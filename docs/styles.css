@@ -1,0 +1,17 @@
+.screenshot {
+  border: 1px solid #ccc;
+}
+
+table.table td a:only-child:link,
+table.table td a:only-child:visited {
+  text-decoration: none;
+}
+table.table td a:only-child:hover,
+table.table td a:only-child:active {
+  text-decoration: underline;
+}
+
+/* Make sure any html tables have padding*/
+th, td {
+  padding: 5px;
+}
