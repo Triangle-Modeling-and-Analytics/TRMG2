@@ -614,11 +614,15 @@ Macro "Export Project Layer" (MacroOpts)
     end
   end
 
-  // CloseMap(map)
+  CloseMap(map)
 endmacro
 
-Macro "run"
-  opts.hwy_dbd = "C:\\projects\\Oahu\\working_files\\CMP\\mapping\\master_network\\Oahu Network 102907.dbd"
-  RunMacro("Export Project Layer", opts)
+/*
+Flesh out into a general macro for the drop down menu.
+*/
 
+Macro "run export project layer"
+  opts.hwy_dbd = "C:\\projects\\TRM\\trm_project\\repo_trmg2\\master\\networks\\master_network.dbd"
+  RunMacro("Export Project Layer", opts)
+  ShowMessage("Project layer exported")
 endmacro
