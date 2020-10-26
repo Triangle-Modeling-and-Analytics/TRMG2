@@ -1,5 +1,5 @@
 TRMG2 Master Network
-867
+954
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "NCDOTClass",C,37,20,0,20,0,,"","This field does not affect model output and is only used|for reporting purposes. The NCDOT roadway classification|is a political classification and does not always accurately|reflect the road's operating characteristics.||Interstate|OtherFreeway|PrincipalArterial|MinorArterial|MajorCollector|MinorCollector|Local|NA",,"Copy",
@@ -31,6 +31,15 @@ TRMG2 Master Network
 "p2DTWB",C,287,9,0,9,0,,"","",,"Copy",
 "p2TollType",C,296,9,0,9,0,,"","",,"Copy",
 "p2HOVType",C,305,9,0,9,0,,"","",,"Copy",
+"p3ID",C,868,16,0,16,0,,"","",,"Copy",
+"p3HCMType",C,884,16,0,16,0,,"","",,"Copy",
+"p3ABLanes",I,900,4,0,8,0,,"","",,"Sum",
+"p3BALanes",I,904,4,0,8,0,,"","",,"Sum",
+"p3PostedSpeed",I,908,4,0,8,0,,"","",,"Sum",
+"p3HCMMedian",C,912,16,0,16,0,,"","",,"Copy",
+"p3DTWB",C,928,9,0,9,0,,"","",,"Copy",
+"p3TollType",C,937,9,0,9,0,,"","",,"Copy",
+"p3HOVType",C,946,9,0,9,0,,"","",,"Copy",
 "old_fields",C,314,16,0,16,0,,"","",,"Copy",
 "TRMv6_IDs",I,330,4,0,10,0,,"","",,"Blank",
 "TRMv7_IDs",I,334,4,0,10,0,,"","",,"Blank",
