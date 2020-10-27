@@ -1,0 +1,64 @@
+---
+title: "Networks"
+author: "Kyle"
+date: "10/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The highway and transit networks are critical inputs for any travel model. They
+provide travel time, accessibility, and other impedance information. The Caliper
+team used the various existing data sources from the model stakeholders in order
+to fashion a new master network for both highway and transit.
+
+## Highway
+
+### Creating the master network
+
+Like TRMv6, the TRMG2 model uses a master network that contains all
+projects stakeholders might consider (even competing ideas). This allows each
+scenario network to be exported from the master with little or no manual editing.
+Information on using the project management tools is covered in the user's guide.
+
+The previous highway network made heavy use of numeric codes that translated
+into values (e.g. a facility type of 1 might signify interstate). For TRMG2,
+these fields now contain the character values directly, which improves
+understanding, usability, and maintenance of the network. It also makes the
+model's GISDK code easier to read.
+
+For these same reasons, the previous "Special" field was broken up into new
+HOV and Toll-related fields. For example, the "TollType" field includes values
+like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It will be much
+easier to find scenario toll links using a query like "TollType = 'Toll'"
+compared to "Special = 43". For a full enumeration of field names and meanings,
+see the user's guide.
+
+The Caliper team also updated the master network to reflect a 2016 base year
+during model estimation (the final network is a 2020 base year). What this means
+is that, if you include no projects in a scenario, the resulting scenario
+network will reflect that base year. This was done by permanently modifying the
+base attributes of the master network with any projects scheduled to be complete
+by the base year date. This did include some road closures, and those links
+dropped out of the network permanently.
+
+### Checking the master network
+
+With all the changes mentioned above, it was important to check that the
+new master network's projects matched the previous. To be exhaustive, Caliper
+wrote code do this programmatically. For instance, every project in the old
+master network had it's length checked against the new network. Of the well-
+over 1000 projects, only 6 had length discrepancies. Each was investigated and
+corrected if necessary.
+
+### Loading count data
+
+The previous model used a separate table to hold count data which then had to be
+joined to the network to make comparisons. For TRMG2, the basic count data
+including station ID and daily AWDT were added to the master network directly.
+This makes it easier to compare (either manually or in code) between
+model volumes and count data.
