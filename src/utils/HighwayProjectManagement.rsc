@@ -79,7 +79,7 @@ Macro "Highway Project Management" (MacroOpts)
     if p = v_projIDs.length then do
       type2 = if CompareStrings(type, "string", ) then "Character" else "Integer"
       a_fields = {{"UpdatedWithP", type2, 10, }}
-      RunMacro("Add Fields", llyr, a_fields)
+      RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     end
 
     // Loop over each project group (group of project fields)
@@ -505,7 +505,7 @@ Macro "Create Project Group" (number, llyr)
     a_fields = {
       {pgroup + field, type, width, dec}
     }
-    RunMacro("Add Fields", llyr, a_fields)
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
   end
 EndMacro
 

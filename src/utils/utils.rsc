@@ -16,29 +16,37 @@ Macro "Close All" (scen_dir)
   RunMacro("TCB Init")
   RunMacro("G30 File Close All")
 endMacro
-/*
-Adds a field.
 
-  * view
-    * String
-    * view name
-  * a_fields
-    * Array of arrays
-    * Each sub-array contains the 12-elements that describe a field.
-      e.g. {{"Density", "Real", 10, 3, , , , "Used to calculate initial AT"}}
-      (See ModifyTable() TC help page for full array info)
-  * initial_values
-    * Number, string, or array of numbers/strings (optional)
-    * If not provided, any fields to add that already exist in the table will not be
-      modified in any way. If provided, the added field will be set to this value.
-      This can be used to ensure that a field is set to null, zero, etc. even if it
-      already exists.
-    * If a single value, it will be used for all fields.
-    * If an array shorter than number of fields, the last value will be used
-      for all remaining fields.
+/*
+Adds a field to a view.
+
+  * `MacroOpts`
+    * named array of function arguments
+    * `view`
+      * String
+      * view name
+    * `a_fields`
+      * Array of arrays
+      * Each sub-array contains the 12-elements that describe a field.
+        e.g. {{"Density", "Real", 10, 3, , , , "Used to calculate initial AT"}}
+        (See ModifyTable() TC help page for full array info)
+    * `initial_values`
+      * Number, string, or array of numbers/strings (optional)
+      * If not provided, any fields to add that already exist in the table will not be
+        modified in any way. If provided, the added field will be set to this value.
+        This can be used to ensure that a field is set to null, zero, etc. even if it
+        already exists.
+      * If a single value, it will be used for all fields.
+      * If an array shorter than number of fields, the last value will be used
+        for all remaining fields.
 */
 
-Macro "Add Fields" (view, a_fields, initial_values)
+Macro "Add Fields" (MacroOpts)
+
+  // Argument extraction
+  view = MacroOpts.view
+  a_fields = MacroOpts.a_fields
+  initial_values = MacroOpts.initial_values
 
   // Argument check
   if view = null then Throw("'view' not provided")
