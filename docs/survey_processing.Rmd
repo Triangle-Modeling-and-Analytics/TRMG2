@@ -1,0 +1,301 @@
+---
+title: "Survey Processing"
+author: "Caliper Corporation"
+date: "10/30/2020"
+output: 
+  html_document:
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(broom)
+library(readxl)
+library(ggplot2)
+library(plotly)
+library(leaflet)
+library(sf)
+library(knitr)
+library(scales)
+```
+
+```{r read_data, message=FALSE}
+# Household files
+hh_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Households_Final_2016-06-22_RSG.xlsx")
+# I exported an xlsx from the access database these were in
+combined_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_hh_weights_2016.xlsx")
+hh_2016_raw <- hh_2016_raw %>%
+  left_join(combined_weights_2016, by = c("hhID" = "hhid"))
+hh_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_HH_2020-04-28.xlsx")
+
+# Person files
+per_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Persons_Final_2016-07-01_RSG.xlsx")
+per_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_Person_2020-04-28.xlsx")
+
+# Trip files
+trips_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Trips_Final_2016-06-22_RSG.xlsx")
+trips_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_Trip_2020-04-28.xlsx")
+```
+
+## Introduction
+
+The Institute for Transportation Research and Education (ITRE) on behalf of the
+Triangle Region stakeholders, began conducting rolling household travel surveys
+in 2016. For the TRMG2 estimation, both the 2016 and 2018 surveys are available.
+This page documents the combination of those surveys along with any general
+processing steps not specific to a particular model.
+
+## Survey combination
+
+When RSG delivered the 2018 survey, they provided weighting and expansion factors
+for 2018 using two data sets:
+
+  * Only the 2018 samples
+  * A combination of 2016 and 2018 samples
+  
+The combined data set expansion was controlled using 2018 American Community
+Survey (ACS) marginals. For TRMG2, with a 2016 base year, these weights were
+close enough. For example, the table below shows that the original and combined
+weights for the 2016 records produce effectively the same distribution of
+household size.
+
+```{r}
+remove_na_2016 <- hh_2016_raw %>%
+  filter(!is.na(hhweight))
+remove_na_2018 <- hh_2018_raw %>%
+  filter(!is.na(hh_weight_2018))
+
+remove_na_2016 %>%
+  mutate(hhsize = ifelse(hhsize > 5, 5, hhsize)) %>%
+  group_by(hhsize) %>%
+  summarize(weight_2016 = sum(hhweight), weight_combined = sum(hh_weight_combined)) %>%
+  mutate(
+    pct_16 = round(weight_2016 / sum(weight_2016), 3),
+    pct_16 = percent(pct_16),
+    pct_combined = round(weight_combined / sum(weight_combined), 3),
+    pct_combined = percent(pct_combined)
+  ) %>%
+  select(
+    `HH Size` = hhsize, `2016 weights` = pct_16,
+    `Combined Weights` = pct_combined
+  ) %>%
+  kable() %>%
+  kable_styling()
+```
+
+For models were absolute counts of households matter (like trip production), the
+weights will be scaled down to match the 2016 socio-economic (SE) data's total
+household count.
+
+The 2016 survey did have slight differences in the field names and definitions
+from the 2018 survey. As such, each table had to be processed into a common
+format before they could be combined.
+
+```{r}
+# create the combined table
+prep_2016 <- remove_na_2016 %>%
+  rename(hhid = hhID) %>%
+  mutate(
+    year = 2016,
+    hh_income_broad = ifelse(
+      hh_income_broad %in% c(5, 99), hhincome_imputed, hh_income_broad
+    )
+  ) %>%
+  select(-hhweight, -hhincome_imputed, -secondhome)
+prep_2018 <- remove_na_2018 %>%
+  mutate(
+    year = 2018,
+    home_loc_puma = str_pad(home_loc_puma, 5, "left", pad = "0"),
+    home_loc_tract = str_pad(home_loc_tract, 6, "left", pad = "0"),
+    hh_income_broad = ifelse(
+      imputed_income_flag == 1 | hh_income_broad == 99,
+      hh_income_imputed, hh_income_broad
+    )
+  ) %>%
+  select(
+    -imputed_income_flag, -hh_weight_2018, -hh_income_imputed,
+    -personhh_income_flag
+  )
+
+hh_combined <- bind_rows(
+  prep_2016, prep_2018
+)
+```
+
+```{r}
+# combine persons
+bind_rows(
+  per_2016_raw %>% mutate(year = 2016),
+  per_2018_raw %>% mutate(year = 2018)
+) %>%
+  group_by(year) %>%
+  summarize_all(~sum(is.na(.))) %>%
+  View()
+
+prep_per_2016 <- per_2016_raw
+# prep_per_2018 <- per_2018_raw %>%
+  
+
+per_2018_raw %>%
+  select(hhid, starts_with("race_")) %>%
+  mutate_all(~if(is.na(.), 99, .)) %>%
+  pivot_longer(
+    cols = race_asian:race_noanswer,
+    names_to = "race"
+  ) %>%
+  filter(value != 0) %>% View()
+```
+
+
+## Income imputation
+
+The provides income at two levels of aggregation: 10 categories or 5. For the
+aggregate categories, RSG imputed income for two reasons:
+
+  1. To further stratify category 5 (\$100k+) into those above and below \$150k.
+  2. To estimate incomes for those households that did not report.
+  
+In order to preserve all the records in the survey, the Caliper team used the
+imputed, broad categories of income. The table below shows the count of samples
+by the original and imputed categories.
+
+```{r}
+temp_broad <- bind_rows(
+  remove_na_2016 %>%
+    select(hh_income_broad),
+  remove_na_2018 %>%
+    select(hh_income_broad)
+) %>%
+  group_by(hh_income_broad) %>%
+  summarize(count = n())
+
+df <- bind_cols(
+  temp_broad,
+  hh_combined %>%
+    group_by(hh_income_broad) %>%
+    summarize(count = n())
+)
+colnames(df) <- c("Original", "Count", "Imputed", "Count")
+df$Original <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000 or more",
+  "Prefer not to answer"
+)
+df$Imputed <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000-$149,999",
+  "$150,000 or more"
+)
+
+df %>%
+  kable() %>%
+  kable_styling()
+```
+
+## Survey filtering
+
+A common task in household survey processing is to remove households for various
+reasons. For instance, travel models estimate weekday travel, so households
+surveyed on the weekend must be removed. Households may have incomplete travel
+diaries, be located outside the model region, or have other issues that means
+they must be removed from estimation set.
+
+### Day of week
+
+Thanks to careful survey design, none of the Triangle households were surveyed
+on the weekend. The chart below shows the days surveyed (1 is Monday).
+
+```{r}
+temp <- hh_combined %>%
+  group_by(year, travelday) %>%
+  summarize(samples = n())
+
+ggplot(temp, aes(x = travelday, y = samples, fill = as.factor(travelday))) +
+  geom_bar(stat = "identity") +
+  guides(fill = FALSE) +
+  facet_wrap(~year)
+```
+
+Starting in 2018, the survey was improved to only collect travel diaries in the
+middle of the week. This improvement recognizes that Monday and Friday are often
+different from midweek, which can be due to holidays, vacations, alternative
+work schedules, or other reasons. This is a general rule of thumb, however, and
+is not necessarily true of all places at all times.
+
+A quick t-test was done to see if travel on Monday and Friday was statistically
+different from the mid-week (Tuesday through Thursday). The result suggests that
+trip making is not different on Monday and Friday, which means we can keep all
+surveyed households in our estimation set.
+
+```{r}
+# Compare Friday to not Friday
+t.test(
+  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
+  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
+  var.equal = TRUE # if false then performs Welch's t-test
+) %>%
+  tidy() %>%
+  # rename(`mean T-Th` = estimate1, `M & F` = estimate2) %>%
+  select(estimate1:p.value) %>%
+  pivot_longer(
+    cols = estimate1:p.value, names_to = "Parameter", values_to = "Value"
+  ) %>%
+  mutate(
+    Parameter = c(
+      "Average Trips/HH (Mon/Fri)",
+      "Average Trips/HH (Midweek)",
+      "t-stat",
+      "p.value"
+    )
+  ) %>%
+  kable(digits = 2) %>%
+  kable_styling()
+```
+
+## Household locations
+
+It is also important to make sure that only households in your model region are
+used for estimation. In addition to the obvious reasons, it will also not be
+possible to collect a model-based skim of impedance for these households. The
+map below shows the locations of all households included in the survey. Each
+falls within the model boundary.
+
+```{r}
+shp <- hh_combined %>%
+  select(home_loc_lat, home_loc_lng) %>%
+  st_as_sf(
+    coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
+  ) #%>%
+  # st_jitter(factor = .03)
+boundary_shp <- st_read("data/input/model_boundary/boundary 2020-11-02.shp")
+boundary_shp <- st_transform(boundary_shp, st_crs(shp))
+bbox <- as.list(st_bbox(boundary_shp))
+lng <- (bbox$xmin - bbox$xmax) / 2 + bbox$xmax
+lat <- (bbox$ymax - bbox$ymin) / 2 + bbox$ymin
+
+leaflet(
+  options = leafletOptions(zoomControl = FALSE, minZoom = 9, maxZoom = 9)
+) %>%
+  addTiles() %>%
+  addPolygons(
+    data = boundary_shp,
+    color = "#444444", weight = 1, smoothFactor = 0.5
+  ) %>%
+  addCircleMarkers(
+    data = shp, radius = 1, weight = 3,
+    opacity = .2, fillOpacity = .2
+  ) %>%
+  setView(lng, lat, zoom = 9)
+```
+
+
