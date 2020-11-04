@@ -27,9 +27,9 @@ library(scales)
 # Household files
 hh_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Households_Final_2016-06-22_RSG.xlsx")
 # I exported an xlsx from the access database these were in
-combined_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_hh_weights_2016.xlsx")
+combined_hh_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_hh_weights_2016.xlsx")
 hh_2016_raw <- hh_2016_raw %>%
-  left_join(combined_weights_2016, by = c("hhID" = "hhid"))
+  left_join(combined_hh_weights_2016, by = c("hhID" = "hhid"))
 hh_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_HH_2020-04-28.xlsx")
 
 # Person files
@@ -38,6 +38,19 @@ per_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2
 
 # Trip files
 trips_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Trips_Final_2016-06-22_RSG.xlsx")
+# I exported an xlsx from the access database these were in
+combined_trip_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_trip_weights_2016.xlsx") %>%
+  mutate(
+    hhid = as.numeric(hhid)
+    # personnum = str_pad(personnum, "2", "left", "0"),
+    # tripnum = str_pad(tripnum, "3", "left", "0"),
+    # hhID = paste0(hhid, personnum, tripnum)
+  )
+trips_2016_raw <- trips_2016_raw %>%
+  left_join(
+    combined_trip_weights_2016, 
+    by = c("hhID" = "hhid", "personNum" = "personnum", "tripNum" = "tripnum")
+  )
 trips_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_Trip_2020-04-28.xlsx")
 ```
 
@@ -87,16 +100,18 @@ remove_na_2016 %>%
   kable_styling()
 ```
 
-For models were absolute counts of households matter (like trip production), the
+For models where absolute counts of households matter (like trip production), the
 weights will be scaled down to match the 2016 socio-economic (SE) data's total
 household count.
 
-The 2016 survey did have slight differences in the field names and definitions
-from the 2018 survey. As such, each table had to be processed into a common
-format before they could be combined.
+### Household table
 
-```{r}
-# create the combined table
+The 2016 survey's household table did have slight differences in the field names
+and definitions from the 2018 survey. Compared to the person and trip tables,
+the household table was easy to combine and did not result in losing any
+information.
+
+```{r combine_hhs}
 prep_2016 <- remove_na_2016 %>%
   rename(hhid = hhID) %>%
   mutate(
@@ -126,7 +141,21 @@ hh_combined <- bind_rows(
 )
 ```
 
-```{r}
+### Person table
+
+The person table changed substantially between 2016 and 2018. As an example,
+race included 6 categories in 2016 and was contained in a single column. In
+2018, race only had 5 categories and was contained in 5 separate binary columns
+(e.g. race_white = 1 or 0). These formats had to be rectified, and the "Two+"
+race category from 2016 collapsed into "Other", before the tables could be
+combined.
+
+In addition, some fields in the 2016 table were not present in 2018 (and vice
+versa). The `num_transitpass` field kept track of how many transit passes the
+person used per week in 2016. This field was dropped in 2018. While several
+fields were dropped, none were critical to model estimation.
+
+```{r combine_persons}
 # combine persons
 
 # # Check for field discrepancies
@@ -212,6 +241,78 @@ per_combined <- bind_rows(
   prep_per_2018
 )  
 ```
+
+### Trip table
+
+Similar to the person table, the trip tables from 2016 and 2018 contained some
+different fields and field definitions. Importantly, the definition of activity
+purpose changed slightly between the two years as shown in the table below.
+
+```{r}
+tibble(
+  `Activity Code` = c(2, 3),
+  `2016` = c("Working (for pay) at work or home", "Work-related: delivering goods or services"),
+  `2018` = c("At home, working for pay", "At work (not home), working for pay"),
+) %>%
+  kable() %>%
+  kable_styling()
+```
+
+The other codes remained the same. The change to 2018 makes it easier to identify
+people working from home, but most records are still from 2016 and require using
+several fields to infer work from home.
+
+```{r combine_trips}
+prep_trip_2016 <- trips_2016_raw %>%
+  mutate(
+    year = 2016,
+    personNum = str_pad(personNum, 2, "left", "0"),
+    hhID = as.character(hhID),
+    personid = paste0(hhID, personNum),
+    tripNum = str_pad(tripNum, 3, "left", "0"),
+    tripid = paste0(personid, tripNum)
+  ) %>%
+  rename(
+    hhid = hhID, personnum = personNum, tripnum = tripNum,
+    o_activity_2016 = o_activity, vehiclenum = vehicleNum
+  ) %>%
+  select(-c(
+    tripweight1:tripweight4,
+    transit_access:transit_passtype, 
+    o_activity_derived, d_activity_derived, tollroad_cost, 
+    tollroad_cost_dontknow, trip_flag, gpsfact_age, gpsfact_inc, gpsfact_purp
+  ))
+
+
+prep_trip_2018 <- trips_2018_raw %>%
+  mutate(
+    year = 2018,
+    hhid = as.character(hhid),
+    personnum = as.character(personnum),
+    personid = str_pad(personid, 2, "left", "0"),
+    tripnum = str_pad(tripnum, 3, "left", "0"),
+    tripid = as.character(tripid)
+  ) %>%
+  select(-c(
+    last_trip, segment, origin_taz, origin_campus, origin_region,
+    destination_taz, destination_campus, destination_region,
+    departure_string, arrival_string, o_activity_itre, o_activity_final,
+    d_activity_itre, d_activity_final,
+    transit_access:transit_passtype, 
+    quality_flag, trip_weight_2018
+  )) %>%
+  rename(o_activity_2018 = o_activity)
+
+trip_combined <- bind_rows(
+  prep_trip_2016,
+  prep_trip_2018
+)
+```
+
+```{r activity_purpose}
+
+```
+
 
 ## Income imputation
 
