@@ -128,28 +128,90 @@ hh_combined <- bind_rows(
 
 ```{r}
 # combine persons
-bind_rows(
-  per_2016_raw %>% mutate(year = 2016),
-  per_2018_raw %>% mutate(year = 2018)
-) %>%
-  group_by(year) %>%
-  summarize_all(~sum(is.na(.))) %>%
-  View()
 
-prep_per_2016 <- per_2016_raw
-# prep_per_2018 <- per_2018_raw %>%
-  
+# # Check for field discrepancies
+# bind_rows(
+#   per_2016_raw %>% mutate(year = 2016),
+#   per_2018_raw %>% mutate(year = 2018)
+# ) %>%
+#   group_by(year) %>%
+#   summarize_all(~sum(is.na(.))) %>%
+#   View()
 
-per_2018_raw %>%
-  select(hhid, starts_with("race_")) %>%
-  mutate_all(~if(is.na(.), 99, .)) %>%
+prep_per_2016 <- per_2016_raw %>%
+  mutate(
+    race = case_when(
+      race == 1 ~ "Asian",
+      race == 2 ~ "Black",
+      race == 3 ~ "White",
+      race == 4 ~ "Other",
+      race == 5 ~ "Other",
+      race == 6 ~ "Noanswer"
+    )
+  ) %>%
+  rename(
+    hhid = hhID,
+    personid = personID,
+    personnum = personNum,
+    worker_earnings = worker_income,
+    numtrips = num_trips
+  ) %>%
+  # remove fields that weren't collected in 2018
+  select(-c(
+    num_transitpass:work_transit, walk_freq,
+    hhweight, person_weight_final,
+    smartphone_iphone, smartphone_android, android_age
+  )) %>%
+  mutate(year = 2016)
+
+prep_per_2018 <- per_2018_raw %>%
+  select(-c(
+    segment:home_loc_region,
+    school_taz, school_region,
+    work_taz_1, work_region_1, work_taz_2, work_region_2,
+    secondhome_taz, secondhome_region,
+    hh_income_cat, hh_weight_combined, diary_order, copied_trips_available,
+    copied_trips_confirmed, user_ismobiledevice, education_flag,
+    school_mode_flag, hh_weight_2018
+  )) %>%
+  # handle other fields
+  mutate(
+    personid = as.character(personid),
+    year = 2018
+  )
+
+# collapse race fields into a single column
+race_collapse <- prep_per_2018 %>%
+  select(personid, race_asian:race_noanswer) %>%
+  mutate(race_noanswer = ifelse(is.na(race_noanswer), 1, race_noanswer)) %>%
   pivot_longer(
     cols = race_asian:race_noanswer,
     names_to = "race"
   ) %>%
-  filter(value != 0) %>% View()
-```
+  filter(!is.na(value)) %>%
+  group_by(personid) %>%
+  # Collapse 2+ races into "other"
+  mutate(
+    race_count = sum(value),
+    value = ifelse(race_count > 1, 0, value),
+    value = ifelse(race_count > 1 & race == "race_other", 1, value)
+  ) %>%
+  filter(value == 1) %>%
+  mutate(
+    race = gsub("race_", "", race),
+    race = str_to_title(race)
+  ) %>%
+  select(-value, -race_count)
 
+prep_per_2018 <- prep_per_2018 %>%
+  left_join(race_collapse, by = "personid") %>%
+  select(-c(race_asian:race_noanswer))
+
+per_combined <- bind_rows(
+  prep_per_2016,
+  prep_per_2018
+)  
+```
 
 ## Income imputation
 
@@ -201,6 +263,11 @@ df %>%
   kable() %>%
   kable_styling()
 ```
+
+A full discussion of their income imputation can be found in the survey
+documentation. They used ordinal logistic regression to predict income
+categories based on household features like size and number of households (among
+others).
 
 ## Survey filtering
 
@@ -275,8 +342,7 @@ shp <- hh_combined %>%
   select(home_loc_lat, home_loc_lng) %>%
   st_as_sf(
     coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
-  ) #%>%
-  # st_jitter(factor = .03)
+  )
 boundary_shp <- st_read("data/input/model_boundary/boundary 2020-11-02.shp")
 boundary_shp <- st_transform(boundary_shp, st_crs(shp))
 bbox <- as.list(st_bbox(boundary_shp))
