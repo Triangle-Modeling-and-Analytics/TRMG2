@@ -21,6 +21,7 @@ library(leaflet)
 library(sf)
 library(knitr)
 library(scales)
+library(kableExtra)
 ```
 
 ```{r read_data, message=FALSE}
@@ -244,24 +245,6 @@ per_combined <- bind_rows(
 
 ### Trip table
 
-Similar to the person table, the trip tables from 2016 and 2018 contained some
-different fields and field definitions. Importantly, the definition of activity
-purpose changed slightly between the two years as shown in the table below.
-
-```{r}
-tibble(
-  `Activity Code` = c(2, 3),
-  `2016` = c("Working (for pay) at work or home", "Work-related: delivering goods or services"),
-  `2018` = c("At home, working for pay", "At work (not home), working for pay"),
-) %>%
-  kable() %>%
-  kable_styling()
-```
-
-The other codes remained the same. The change to 2018 makes it easier to identify
-people working from home, but most records are still from 2016 and require using
-several fields to infer work from home.
-
 ```{r combine_trips}
 prep_trip_2016 <- trips_2016_raw %>%
   mutate(
@@ -283,7 +266,6 @@ prep_trip_2016 <- trips_2016_raw %>%
     o_activity_derived, d_activity_derived, tollroad_cost, 
     tollroad_cost_dontknow, trip_flag, gpsfact_age, gpsfact_inc, gpsfact_purp
   ))
-
 
 prep_trip_2018 <- trips_2018_raw %>%
   mutate(
@@ -316,33 +298,64 @@ trip_combined <- bind_rows(
   select(hhid, personid, tripid, personnum, tripnum, everything())
 ```
 
+Similar to the person table, the trip tables from 2016 and 2018 contained
+different fields and field definitions, which complicated the combination
+process. Importantly, the definition of activity purpose changed slightly
+between the two years. The model purpose key and the equivalency table between
+survey activity and model purpose is shown below.
+
+  * H: Home
+  * W?: Work (maybe from home)
+  * WFH: Work from home
+  * W: Work
+  * Sch: School
+  * Shp: Shop
+  * PU: Pick Up
+  * DO: Drop Off
+  * O: Other
+
 ```{r, include=FALSE}
-activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv") %>%
-  select(-activity_long)
-activity_2018 <- read_csv("data/input/survey_processing/activity_2018.csv") %>%
-  select(-activity_long)
+activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv")
+activity_2018 <- read_csv("data/input/survey_processing/activity_2018.csv")
 ```
 
+```{r}
+activity_2016 %>%
+  left_join(activity_2018, by = "code") %>%
+  rename(
+    `Activity Code` = code,
+    `2016 Description` = activity_long.x,
+    `2016 Equivalence` = activity.x,
+    `2018 Description` = activity_long.y,
+    `2018 Eqiuvalence` = activity.y
+  ) %>%
+  kable() %>%
+  kable_styling()
+```
+
+As shown above, the definition of a work activity in the 2016 survey did not
+specify whether work was performed in or outside the home. Caliper compared the
+latitude/longitude of the activity and home locations. This made it possible
+to determine which work activities were performed at home.
 
 ```{r activity_purpose}
+act_to_join_2016 <- activity_2016 %>% select(-activity_long)
+act_to_join_2018 <- activity_2018 %>% select(-activity_long)
+
 convert_purpose <- trip_combined %>%
-  left_join(activity_2016, by = c("o_activity_2016" = "code")) %>%
+  left_join(act_to_join_2016, by = c("o_activity_2016" = "code")) %>%
   rename(o_activity1 = activity) %>%
-  left_join(activity_2016, by = c("d_activity_2016" = "code")) %>%
+  left_join(act_to_join_2016, by = c("d_activity_2016" = "code")) %>%
   rename(d_activity1 = activity) %>%
-  left_join(activity_2018, by = c("o_activity_2018" = "code")) %>%
+  left_join(act_to_join_2018, by = c("o_activity_2018" = "code")) %>%
   rename(o_activity2 = activity) %>%
-  left_join(activity_2018, by = c("d_activity_2018" = "code")) %>%
+  left_join(act_to_join_2018, by = c("d_activity_2018" = "code")) %>%
   rename(d_activity2 = activity) %>%
   mutate(
     o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
     d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1)
   ) %>%
-  select(-c(
-    o_activity1:d_activity2
-    # o_activity_2016, o_activity_2018,
-    # d_activity_2016, d_activity_2018
-  )) %>%
+  select(-c(o_activity1:d_activity2)) %>%
   mutate(
     mode = case_when(
       mode == 1 ~ "auto_own",
@@ -371,45 +384,16 @@ determine_wfh <- convert_purpose %>%
     ),
     d_activity = ifelse(d_activity == "W?", "W", d_activity)
   )
-
-determine_tours <- determine_wfh %>%
-  group_by(personid) %>%
-  mutate(
-    new_tour = ifelse(row_number() == 1, 1, 0),
-    new_tour = ifelse(o_activity %in% c("H", "WFH"), 1, new_tour),
-    tour_num = cumsum(new_tour)
-  ) %>%
-  group_by(personid, tour_num) %>%
-  mutate(
-    temp = ifelse(d_activity == "W", "W", ""),
-    temp = ifelse(d_activity == "WFH", "WFH", temp),
-    temp = ifelse(tripnum == max(tripnum) & temp == "WFH", "", temp),
-    temp = ifelse(o_activity %in% c("H", "WFH") & d_activity %in% c("H", "WFH"), "H", temp),
-    tour_type = case_when(
-      "W" %in% temp ~ "W",
-      "WFH" %in% temp ~ "WFH",
-      "H" %in% temp ~ "H",
-      TRUE ~ "NW"
-    )
-  ) %>%
-  select(-temp, -new_tour)
-
-# determine_tours %>%
-#   select(
-#     personid, tripnum, o_activity, d_activity, tour_num, tour_type#,
-#     # temp, new_tour
-#   ) %>%
-#   View()
 ```
-
 
 ## Income imputation
 
-The provides income at two levels of aggregation: 10 categories or 5. For the
-aggregate categories, RSG imputed income for two reasons:
+The survey provides income at two levels of aggregation: 10 categories or 5. RSG
+imputed incomes for the broad category in order to use ACS income information
+during survey expansion. The imputation:
 
-  1. To further stratify category 5 (\$100k+) into those above and below \$150k.
-  2. To estimate incomes for those households that did not report.
+  1. Further stratified category 5 (\$100k+) into those above and below \$150k.
+  2. Estimated incomes for those households that did not report.
   
 In order to preserve all the records in the survey, the Caliper team used the
 imputed, broad categories of income. The table below shows the count of samples
@@ -554,4 +538,67 @@ leaflet(
   setView(lng, lat, zoom = 9)
 ```
 
+## Basic tour formation
+While the TRMG2 is a trip-based model, the production rates and other estimated
+behavior can still make use of tour information to improve predictive power. At
+the same time, the trip-based formulation means that tour formation is much
+simpler. Rather than requiring detailed tour pattern information to support
+coordinated activity patterns within a household, tours can be classified
+simply as work or non-work.
+
+For each person in the survey, a tour begins with their first trip and ends
+when they return home. A second tour starts if they leave home again. A tour is
+classified as a work tour if the traveler has a work activity during the tour.
+If they do not, then the tour is classified as non-work.
+
+There is a third tour type ("home"), that handles cases where the survey reports
+trips within the home. For example, when a respondent reports being at home and
+then working from home, the survey includes that as a trip. Home tours also
+capture things like recreational walks that start and end at the home. For the
+purpose of travel modeling, these home tours are ignored.
+
+```{r tour_formation}
+determine_tours <- determine_wfh %>%
+  group_by(personid) %>%
+  mutate(
+    new_tour = ifelse(row_number() == 1, 1, 0),
+    new_tour = ifelse(o_activity %in% c("H", "WFH"), 1, new_tour),
+    tour_num = cumsum(new_tour)
+  ) %>%
+  group_by(personid, tour_num) %>%
+  mutate(
+    tour_anchor = ifelse(d_activity == "W", "W", ""),
+    tour_anchor = ifelse(d_activity == "WFH", "WFH", tour_anchor),
+    tour_anchor = ifelse(
+      tripnum == max(tripnum) & tour_anchor == "WFH", "", tour_anchor),
+    tour_anchor = ifelse(
+      o_activity %in% c("H", "WFH") & d_activity %in% c("H", "WFH"),
+      "H", tour_anchor),
+    tour_type = case_when(
+      "W" %in% tour_anchor ~ "W",
+      "WFH" %in% tour_anchor ~ "WFH",
+      "H" %in% tour_anchor ~ "H",
+      TRUE ~ "NW"
+    )
+  )
+```
+
+```{r write tables, eval=FALSE}
+# This treatment prevents the output files from being changed unintentionally
+# while knitting, testing, etc.
+if {1 = 0} {
+  write_csv(
+    hh_combined,
+    "data/output/_PRIVATE/survey_processing/hh_processed.csv"
+  )
+  write_csv(
+    per_combined,
+    "data/output/_PRIVATE/survey_processing/per_processed.csv"
+  )
+  write_csv(
+    determine_tours,
+    "data/output/_PRIVATE/survey_processing/trips_processed.csv"
+  )
+}
+```
 
