@@ -270,11 +270,12 @@ prep_trip_2016 <- trips_2016_raw %>%
     hhID = as.character(hhID),
     personid = paste0(hhID, personNum),
     tripNum = str_pad(tripNum, 3, "left", "0"),
-    tripid = paste0(personid, tripNum)
+    tripid = paste0(hhID, personid, tripNum)
   ) %>%
   rename(
     hhid = hhID, personnum = personNum, tripnum = tripNum,
-    o_activity_2016 = o_activity, vehiclenum = vehicleNum
+    o_activity_2016 = o_activity, d_activity_2016 = d_activity,
+    vehiclenum = vehicleNum
   ) %>%
   select(-c(
     tripweight1:tripweight4,
@@ -301,16 +302,104 @@ prep_trip_2018 <- trips_2018_raw %>%
     transit_access:transit_passtype, 
     quality_flag, trip_weight_2018
   )) %>%
-  rename(o_activity_2018 = o_activity)
+  rename(o_activity_2018 = o_activity, d_activity_2018 = d_activity)
 
 trip_combined <- bind_rows(
   prep_trip_2016,
   prep_trip_2018
-)
+) %>%
+  mutate(
+    hhid = as.numeric(hhid),
+    personnum = as.numeric(personnum),
+    tripnum = as.numeric(tripnum)
+  ) %>%
+  select(hhid, personid, tripid, personnum, tripnum, everything())
 ```
 
-```{r activity_purpose}
+```{r, include=FALSE}
+activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv") %>%
+  select(-activity_long)
+activity_2018 <- read_csv("data/input/survey_processing/activity_2018.csv") %>%
+  select(-activity_long)
+```
 
+
+```{r activity_purpose}
+convert_purpose <- trip_combined %>%
+  left_join(activity_2016, by = c("o_activity_2016" = "code")) %>%
+  rename(o_activity1 = activity) %>%
+  left_join(activity_2016, by = c("d_activity_2016" = "code")) %>%
+  rename(d_activity1 = activity) %>%
+  left_join(activity_2018, by = c("o_activity_2018" = "code")) %>%
+  rename(o_activity2 = activity) %>%
+  left_join(activity_2018, by = c("d_activity_2018" = "code")) %>%
+  rename(d_activity2 = activity) %>%
+  mutate(
+    o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
+    d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1)
+  ) %>%
+  select(-c(
+    o_activity1:d_activity2
+    # o_activity_2016, o_activity_2018,
+    # d_activity_2016, d_activity_2018
+  )) %>%
+  mutate(
+    mode = case_when(
+      mode == 1 ~ "auto_own",
+      mode == 2 ~ "auto_other",
+      mode == 3 ~ "bus",
+      mode == 4 ~ "walk",
+      mode == 5 ~ "bike",
+      mode == 6 ~ "other"
+    )
+  )
+
+determine_wfh <- convert_purpose %>%
+  left_join(
+    hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
+    by = "hhid"
+  ) %>%
+  mutate(
+    o_activity = ifelse(
+      o_activity == "W?" & origin_lat == home_loc_lat & origin_lng == home_loc_lng,
+      "WFH", o_activity
+    ),
+    o_activity = ifelse(o_activity == "W?", "W", o_activity),
+    d_activity = ifelse(
+      d_activity == "W?" & destination_lat == home_loc_lat & destination_lng == home_loc_lng,
+      "WFH", d_activity
+    ),
+    d_activity = ifelse(d_activity == "W?", "W", d_activity)
+  )
+
+determine_tours <- determine_wfh %>%
+  group_by(personid) %>%
+  mutate(
+    new_tour = ifelse(row_number() == 1, 1, 0),
+    new_tour = ifelse(o_activity %in% c("H", "WFH"), 1, new_tour),
+    tour_num = cumsum(new_tour)
+  ) %>%
+  group_by(personid, tour_num) %>%
+  mutate(
+    temp = ifelse(d_activity == "W", "W", ""),
+    temp = ifelse(d_activity == "WFH", "WFH", temp),
+    temp = ifelse(tripnum == max(tripnum) & temp == "WFH", "", temp),
+    temp = ifelse(o_activity %in% c("H", "WFH") & d_activity %in% c("H", "WFH"), "H", temp),
+    tour_type = case_when(
+      "W" %in% temp ~ "W",
+      "WFH" %in% temp ~ "WFH",
+      "H" %in% temp ~ "H",
+      TRUE ~ "NW"
+    )
+  ) %>%
+  select(-temp, -new_tour)
+
+# determine_tours %>%
+#   select(
+#     personid, tripnum, o_activity, d_activity, tour_num, tour_type#,
+#     # temp, new_tour
+#   ) %>%
+#   View()
 ```
 
 
