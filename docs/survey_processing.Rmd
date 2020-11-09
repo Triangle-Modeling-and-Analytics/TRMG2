@@ -1,16 +1,16 @@
 ---
 title: "Survey Processing"
 author: "Caliper Corporation"
-date: "10/30/2020"
+date: "11/5/2020"
 output: 
-  html_document:
-    code_folding: hide
+  html_document
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
 
 library(tidyverse)
 library(broom)
@@ -19,6 +19,7 @@ library(ggplot2)
 library(plotly)
 library(leaflet)
 library(sf)
+library(geosphere)
 library(knitr)
 library(scales)
 library(kableExtra)
@@ -86,7 +87,10 @@ remove_na_2018 <- hh_2018_raw %>%
 remove_na_2016 %>%
   mutate(hhsize = ifelse(hhsize > 5, 5, hhsize)) %>%
   group_by(hhsize) %>%
-  summarize(weight_2016 = sum(hhweight), weight_combined = sum(hh_weight_combined)) %>%
+  summarize(
+    weight_2016 = sum(hhweight),
+    weight_combined = sum(hh_weight_combined)
+  ) %>%
   mutate(
     pct_16 = round(weight_2016 / sum(weight_2016), 3),
     pct_16 = percent(pct_16),
@@ -98,7 +102,7 @@ remove_na_2016 %>%
     `Combined Weights` = pct_combined
   ) %>%
   kable() %>%
-  kable_styling()
+  kable_styling(full_width = FALSE)
 ```
 
 For models where absolute counts of households matter (like trip production), the
@@ -147,7 +151,7 @@ hh_combined <- bind_rows(
 The person table changed substantially between 2016 and 2018. As an example,
 race included 6 categories in 2016 and was contained in a single column. In
 2018, race only had 5 categories and was contained in 5 separate binary columns
-(e.g. race_white = 1 or 0). These formats had to be rectified, and the "Two+"
+(e.g. `race_white` = 1 or 0). These formats had to be rectified, and the "Two+"
 race category from 2016 collapsed into "Other", before the tables could be
 combined.
 
@@ -304,15 +308,17 @@ process. Importantly, the definition of activity purpose changed slightly
 between the two years. The model purpose key and the equivalency table between
 survey activity and model purpose is shown below.
 
-  * H: Home
-  * W?: Work (maybe from home)
-  * WFH: Work from home
-  * W: Work
-  * Sch: School
-  * Shp: Shop
-  * PU: Pick Up
-  * DO: Drop Off
-  * O: Other
+- H: Home (non-work activities at home)
+- WFH: Work from home
+- W: Work outside the home
+- Sch: School
+- Shp: Shop
+- PU: Pick Up
+- DO: Drop Off
+- O: Other
+
+In the table below, the "W?" purpose denotes a work activity that could either
+be in or outside the home.
 
 ```{r, include=FALSE}
 activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv")
@@ -330,7 +336,7 @@ activity_2016 %>%
     `2018 Eqiuvalence` = activity.y
   ) %>%
   kable() %>%
-  kable_styling()
+  kable_styling(bootstrap_options = "striped")
 ```
 
 As shown above, the definition of a work activity in the 2016 survey did not
@@ -367,23 +373,37 @@ convert_purpose <- trip_combined %>%
     )
   )
 
-determine_wfh <- convert_purpose %>%
+# Calculate distances of origins and destinations from home
+calc_distances <- convert_purpose %>%
   left_join(
     hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
     by = "hhid"
-  ) %>%
-  mutate(
-    o_activity = ifelse(
-      o_activity == "W?" & origin_lat == home_loc_lat & origin_lng == home_loc_lng,
-      "WFH", o_activity
-    ),
-    o_activity = ifelse(o_activity == "W?", "W", o_activity),
-    d_activity = ifelse(
-      d_activity == "W?" & destination_lat == home_loc_lat & destination_lng == home_loc_lng,
-      "WFH", d_activity
-    ),
-    d_activity = ifelse(d_activity == "W?", "W", d_activity)
   )
+o_dists <- distHaversine(
+  calc_distances %>% select(origin_lng, origin_lat),
+  calc_distances %>% select(home_loc_lng, home_loc_lat)
+)
+d_dists <- distHaversine(
+  calc_distances %>% select(destination_lng, destination_lat),
+  calc_distances %>% select(home_loc_lng, home_loc_lat)
+)
+
+determine_wfh <- calc_distances %>%
+  mutate(
+    dist_orig_home = o_dists,
+    dist_dest_home = d_dists,
+    o_test = o_activity,
+    d_test = d_activity,
+    o_test = ifelse(
+      o_test == "W?" & dist_orig_home < 100, "WFH", o_test),
+    o_test = ifelse(o_test == "W?", "W", o_test),
+    d_test = ifelse(
+      d_test == "W?" & dist_dest_home < 100, "WFH", d_activity),
+    d_test = ifelse(d_test == "W?", "W", d_test)
+  )
+
+
+write_csv(determine_wfh, "test.csv")
 ```
 
 ## Income imputation
@@ -407,13 +427,17 @@ temp_broad <- bind_rows(
     select(hh_income_broad)
 ) %>%
   group_by(hh_income_broad) %>%
-  summarize(count = n())
+  summarize(count = n()) %>%
+  ungroup() %>%
+  rename(Original = hh_income_broad, count1 = count)
 
 df <- bind_cols(
   temp_broad,
   hh_combined %>%
     group_by(hh_income_broad) %>%
-    summarize(count = n())
+    summarize(count = n()) %>%
+    ungroup() %>%
+    rename(Imputed = hh_income_broad, count2 = count)
 )
 colnames(df) <- c("Original", "Count", "Imputed", "Count")
 df$Original <- c(
@@ -443,7 +467,7 @@ documentation. They used ordinal logistic regression to predict income
 categories based on household features like size and number of households (among
 others).
 
-## Survey filtering
+## Survey checking
 
 A common task in household survey processing is to remove households for various
 reasons. For instance, travel models estimate weekday travel, so households
@@ -500,10 +524,10 @@ t.test(
     )
   ) %>%
   kable(digits = 2) %>%
-  kable_styling()
+  kable_styling(full_width = FALSE)
 ```
 
-## Household locations
+### Household locations
 
 It is also important to make sure that only households in your model region are
 used for estimation. In addition to the obvious reasons, it will also not be
@@ -517,7 +541,10 @@ shp <- hh_combined %>%
   st_as_sf(
     coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
   )
-boundary_shp <- st_read("data/input/model_boundary/boundary 2020-11-02.shp")
+boundary_shp <- st_read(
+  "data/input/model_boundary/boundary 2020-11-02.shp",
+  quiet = TRUE
+)
 boundary_shp <- st_transform(boundary_shp, st_crs(shp))
 bbox <- as.list(st_bbox(boundary_shp))
 lng <- (bbox$xmin - bbox$xmax) / 2 + bbox$xmax
@@ -537,6 +564,65 @@ leaflet(
   ) %>%
   setView(lng, lat, zoom = 9)
 ```
+
+### Weight distribution
+
+It is important to check the weighting and expansion of a survey for extreme
+weight values. To do this, the weights must first be normalized based on the
+expected average weight per sample. A simple comparison of two hypothetical
+surveys explains why:
+
+1. A survey with 100 samples of a population of 100,000: Average weight = 1,000
+2. A survey with 1000 samples of a population of 100,000: Average weight = 100
+
+A household weight of 1,000 in the first survey is reasonable based on the
+number of samples, but it is 10 times the expected weight in the second survey.
+For the 2016+2018 combined survey, the average weight is shown below.
+
+```{r}
+temp <- hh_combined %>%
+  summarize(
+    Samples = n(),
+    `Total Households` = sum(hh_weight_combined),
+    `Average Weight` = `Total Households` / Samples
+  ) %>%
+  pivot_longer(cols = everything())
+
+weight_mean <- mean(hh_combined$hh_weight_combined)
+colnames(temp) <- c("", "")
+
+temp %>%
+  kable(digits = 0) %>%
+  kable_styling(full_width = FALSE)
+```
+
+The first histogram below shows the distribution of weights divided by the mean
+weight. While the largest weight is 15x the mean weight, this is an outlier and
+most are within 6x. This is a reasonable result and indicates and well-designed
+sample plan that collected adequate numbers of households in all the demographic
+groups of interest.
+
+```{r}
+ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Weight / Average Weight")
+```
+
+The second histogram below inverts the factor above and divides the average
+weight by the individual households weights. Large factors in this histogram
+would indicate the presence of small weights. The smallest weight (17.3) is 14%
+of the average weight, suggesting a modest over sample, but is well within
+reason.
+
+```{r}
+ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Average Weight / Weight")
+```
+
+After a review of RSGs expansion procedure and the review of weights above,
+Caliper determined that the weights were appropriate for use in model
+estimation.
 
 ## Basic tour formation
 While the TRMG2 is a trip-based model, the production rates and other estimated
