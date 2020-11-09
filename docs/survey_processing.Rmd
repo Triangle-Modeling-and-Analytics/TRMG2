@@ -311,10 +311,14 @@ survey activity and model purpose is shown below.
 - H: Home (non-work activities at home)
 - WFH: Work from home
 - W: Work outside the home
+- WR: Work-related (e.g. making a delivery)
 - Sch: School
 - Shp: Shop
-- PU: Pick Up
-- DO: Drop Off
+- Eat: Dining out
+- PUS: Pick up from school
+- PUO: Pick up from other
+- DOS: Drop off at school
+- DOO: Drop off at other
 - O: Other
 
 In the table below, the "W?" purpose denotes a work activity that could either
@@ -339,10 +343,11 @@ activity_2016 %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
-As shown above, the definition of a work activity in the 2016 survey did not
+As explained above, the definition of a work activity in the 2016 survey did not
 specify whether work was performed in or outside the home. Caliper compared the
 latitude/longitude of the activity and home locations. This made it possible
-to determine which work activities were performed at home.
+to determine which work activities were performed at home. The same procedure
+was used to determine if pick-up/drop-off trips were to school or not.
 
 ```{r activity_purpose}
 act_to_join_2016 <- activity_2016 %>% select(-activity_long)
@@ -372,7 +377,9 @@ convert_purpose <- trip_combined %>%
       mode == 6 ~ "other"
     )
   )
+```
 
+```{r determine_wfh}
 # Calculate distances of origins and destinations from home
 calc_distances <- convert_purpose %>%
   left_join(
@@ -392,19 +399,62 @@ determine_wfh <- calc_distances %>%
   mutate(
     dist_orig_home = o_dists,
     dist_dest_home = d_dists,
-    o_test = o_activity,
-    d_test = d_activity,
-    o_test = ifelse(
-      o_test == "W?" & dist_orig_home < 100, "WFH", o_test),
-    o_test = ifelse(o_test == "W?", "W", o_test),
-    d_test = ifelse(
-      d_test == "W?" & dist_dest_home < 100, "WFH", d_activity),
-    d_test = ifelse(d_test == "W?", "W", d_test)
+    o_activity = ifelse(
+      o_activity == "W?" & dist_orig_home < 100, "WFH", o_activity),
+    o_activity = ifelse(o_activity == "W?", "W", o_activity),
+    d_activity = ifelse(
+      d_activity == "W?" & dist_dest_home < 100, "WFH", d_activity),
+    d_activity = ifelse(d_activity == "W?", "W", d_activity)
   )
-
-
-write_csv(determine_wfh, "test.csv")
 ```
+
+```{r determine_pudo_school}
+calc_dist <- function(x1, y1, x2, y2) {
+  df1 <- tibble(lng = x1, lat = y1)
+  df2 <- tibble(lng = x2, lat = y2)
+  distHaversine(df1, df2)
+}
+
+school_loc <- per_combined %>%
+  select(hhid, school_lat, school_lng) %>%
+  filter(!is.na(school_lat))
+
+determine_pudo_sch <- determine_wfh %>%
+  left_join(school_loc, by = "hhid") %>%
+  mutate(
+    dist_orig_sch = calc_dist(origin_lng, origin_lat, school_lng, school_lat)
+  ) %>%
+  group_by(tripid) %>%
+  arrange(tripid, dist_orig_sch) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(-school_lat, -school_lng) %>%
+  left_join(school_loc, by = "hhid") %>%
+  mutate(dist_dest_sch = calc_dist(
+    destination_lng, destination_lat, school_lng, school_lat
+  )) %>%
+  group_by(tripid) %>%
+  arrange(tripid, dist_dest_sch) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(
+    o_activity = case_when(
+      o_activity == "PU" & dist_orig_sch < 100 ~ "PUS",
+      o_activity == "PU" ~ "PUO",
+      o_activity == "DO" & dist_orig_sch < 100 ~ "DOS",
+      o_activity == "DO" ~ "DOO",
+      TRUE ~ o_activity
+    ),
+    d_activity = case_when(
+      d_activity == "PU" & dist_dest_sch < 100 ~ "PUS",
+      d_activity == "PU" ~ "PUO",
+      d_activity == "DO" & dist_dest_sch < 100 ~ "DOS",
+      d_activity == "DO" ~ "DOO",
+      TRUE ~ d_activity
+    )
+  )
+```
+
 
 ## Income imputation
 
