@@ -419,33 +419,21 @@ det_home_place <- convert_purpose %>%
   select(-home_loc_lat, -home_loc_lng)
 
 school_loc <- per_combined %>%
-  select(hhid, school_address, school_lat, school_lng) %>%
+  select(hhid, personid, school_address, school_lat, school_lng) %>%
   left_join(
     hh_combined %>% select(hhid, home_loc_address),
     by = "hhid"
   ) %>%
   filter(!is.na(school_lat) & home_loc_address != school_address) %>%
-  select(-school_address, -home_loc_address)
+  select(-hhid, -school_address, -home_loc_address)
 
 det_sch_place <- det_home_place %>%
-  left_join(school_loc, by = "hhid") %>%
+  left_join(school_loc, by = "personid") %>%
   mutate(
-    orig_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat)
-  ) %>%
-  group_by(tripid) %>%
-  arrange(tripid, orig_sch_dist) %>%
-  slice(1) %>%
-  ungroup() %>%
-  select(-school_lat, -school_lng) %>%
-  left_join(school_loc, by = "hhid") %>%
-  mutate(dest_sch_dist = calc_dist(
-    destination_lng, destination_lat, school_lng, school_lat
-  )) %>%
-  group_by(tripid) %>%
-  arrange(tripid, dest_sch_dist) %>%
-  slice(1) %>%
-  ungroup() %>%
-  mutate(
+    orig_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
+    dest_sch_dist = calc_dist(
+      destination_lng, destination_lat, school_lng, school_lat),
+    is_student = ifelse(is.na(dest_sch_dist), 0, 1),
     o_place = case_when(
       is.na(orig_sch_dist) ~ o_place,
       o_place == "H" ~ "H",
