@@ -249,6 +249,12 @@ per_combined <- bind_rows(
 
 ### Trip table
 
+Similar to the person table, the trip tables from 2016 and 2018 contained
+different fields and field definitions, which complicated the combination
+process. Importantly, the definition of activity purpose changed slightly
+between the two years. Both columns were left in the combined table, to be
+processed in the next step.
+
 ```{r combine_trips}
 prep_trip_2016 <- trips_2016_raw %>%
   mutate(
@@ -307,11 +313,13 @@ trip_combined <- bind_rows(
   mutate(party_size = num_hh_members + num_nonhh)
 ```
 
-Similar to the person table, the trip tables from 2016 and 2018 contained
-different fields and field definitions, which complicated the combination
-process. Importantly, the definition of activity purpose changed slightly
-between the two years. The model purpose key and the equivalency table between
-survey activity and model purpose is shown below.
+## Trip processing
+
+### Activity purpose
+
+The atomic model purposes are shown below. These represent the most fundamental
+purposes and may be aggregated during the estimation of specific model
+components.
 
 - H: Home (non-work activities at home)
 - W: Work
@@ -324,8 +332,8 @@ survey activity and model purpose is shown below.
 - X: Transfer modes (e.g. at a bus stop)
 - O: Other
 
-In the table below, the "W?" purpose denotes a work activity that could either
-be in or outside the home.
+The table below shows how the survey purposes (for both years) were collapsed
+into the purposes above.
 
 ```{r, include=FALSE}
 activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv")
@@ -346,6 +354,8 @@ activity_2016 %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
+### Places
+
 As explained above, the definition of a work activity in the 2016 survey did not
 specify whether work was performed in or outside the home. Caliper computed a
 place code for every trip end independent of activity.
@@ -358,10 +368,12 @@ place code for every trip end independent of activity.
 Home and school locations were derived by comparing the activity location
 (long/lat) with the home and school locations. Trip ends within 100 meters of
 each were tagged to the appropriate place type. This approach gave a more
-accurate result compared to depending on the names each person gave their origin
+accurate result than depending on the names each person gave their origin
 and destination, which varied widely.
 
-Work location was done differently...**FILL IN**
+Work locations could not be handled the same way. Not only do people have
+multiple jobs, but many had jobs without fixed work locations (e.g. nanny). For
+this reason, we relied on the stated activity purpose to determine work places.
 
 ```{r activity_purpose}
 act_to_join_2016 <- activity_2016 %>% select(-activity_long)
@@ -450,7 +462,7 @@ det_sch_place <- det_home_place %>%
   select(-school_lng, -school_lat)
 
 # Determining work place is harder. People have multiple jobs, and some jobs
-# don't have fixed addresses.
+# don't have fixed addresses. Rely on their reported activity.
 det_work_place <- det_sch_place %>%
   mutate(
     o_place = case_when(
@@ -466,6 +478,50 @@ det_work_place <- det_sch_place %>%
   ) %>%
   relocate(o_place, .before = o_activity) %>%
   relocate(d_place, .after = o_place)
+```
+
+### Tour formation
+
+While the TRMG2 is a trip-based model, the production rates and other estimated
+behavior can still make use of tour information to improve predictive power. At
+the same time, the trip-based formulation means that tour formation is much
+simpler. Rather than requiring detailed tour pattern information to support
+coordinated activity patterns within a household, tours can be classified
+simply as work or non-work.
+
+For each person in the survey, a tour begins with their first trip and ends
+when they return home. A second tour starts if they leave home again. A tour is
+classified as a work tour if the traveler has a work activity during the tour.
+If they do not, then the tour is classified as non-work.
+
+There is a third tour type ("home"), that handles cases where the survey reports
+trips within the home. For example, when a respondent reports being at home and
+then working from home, the survey includes that as a trip. Home tours also
+capture things like recreational walks that start and end at the home. For the
+purpose of travel modeling, these home tours are ignored.
+
+```{r tour_formation}
+determine_tours <- det_work_place %>%
+  group_by(personid) %>%
+  mutate(
+    new_tour = ifelse(row_number() == 1, 1, 0),
+    new_tour = ifelse(o_place == "H", 1, new_tour),
+    tour_num = cumsum(new_tour)
+  ) %>%
+  group_by(personid, tour_num) %>%
+  mutate(
+    tour_anchor = ifelse(d_activity == "W", "W", ""),
+    tour_anchor = ifelse(d_activity == "WFH", "WFH", tour_anchor),
+    tour_anchor = ifelse(
+      tripnum == max(tripnum) & tour_anchor == "WFH", "", tour_anchor),
+    tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
+    tour_type = case_when(
+      "W" %in% tour_anchor ~ "W",
+      "WFH" %in% tour_anchor ~ "WFH",
+      "H" %in% tour_anchor ~ "H",
+      TRUE ~ "NW"
+    )
+  )
 ```
 
 ## Income imputation
@@ -686,60 +742,15 @@ After a review of RSGs expansion procedure and the review of weights above,
 Caliper determined that the weights were appropriate for use in model
 estimation.
 
-## Trip purpose checks
-
-
-
-
-## Basic tour formation
-While the TRMG2 is a trip-based model, the production rates and other estimated
-behavior can still make use of tour information to improve predictive power. At
-the same time, the trip-based formulation means that tour formation is much
-simpler. Rather than requiring detailed tour pattern information to support
-coordinated activity patterns within a household, tours can be classified
-simply as work or non-work.
-
-For each person in the survey, a tour begins with their first trip and ends
-when they return home. A second tour starts if they leave home again. A tour is
-classified as a work tour if the traveler has a work activity during the tour.
-If they do not, then the tour is classified as non-work.
-
-There is a third tour type ("home"), that handles cases where the survey reports
-trips within the home. For example, when a respondent reports being at home and
-then working from home, the survey includes that as a trip. Home tours also
-capture things like recreational walks that start and end at the home. For the
-purpose of travel modeling, these home tours are ignored.
-
-```{r tour_formation}
-determine_tours <- det_work_place %>%
-  group_by(personid) %>%
-  mutate(
-    new_tour = ifelse(row_number() == 1, 1, 0),
-    new_tour = ifelse(o_place == "H", 1, new_tour),
-    tour_num = cumsum(new_tour)
-  ) %>%
-  group_by(personid, tour_num) %>%
-  mutate(
-    tour_anchor = ifelse(d_activity == "W", "W", ""),
-    tour_anchor = ifelse(d_activity == "WFH", "WFH", tour_anchor),
-    tour_anchor = ifelse(
-      tripnum == max(tripnum) & tour_anchor == "WFH", "", tour_anchor),
-    tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
-    tour_type = case_when(
-      "W" %in% tour_anchor ~ "W",
-      "WFH" %in% tour_anchor ~ "WFH",
-      "H" %in% tour_anchor ~ "H",
-      TRUE ~ "NW"
-    )
-  )
-```
+### Trip purpose checks
 
 Numerous problems detected with the coding of school activity purpose.
 
-- School activities reported at locations other than school/home (850 origins / 876 dests)
-  - Bus stops coded as school rather than mode transfer (70 origins / 70 dests)
+- School activities reported by non-students (1000 trips)
+  - School activities reported at locations other than school/home (850 trips)
+    - Public libraries
+    - Bus stops coded as school rather than mode transfer (70 trips)
   - PU/DO coded as school (300 origins / 300 origins)
-  - Public libraries
 - Home activities reported at non-home locations (e.g. "In-laws house")
 
 ```{r}
@@ -748,21 +759,29 @@ determine_tours %>%
   mutate(
     party_size_change = lead(party_size) - party_size,
     dest_act_dur = lead(departure_time) - arrival_time,
+    bus_flag = ifelse(
+      str_detect(tolower(destination_name), "bus") &
+        str_detect(tolower(lead(origin_name)), "bus"),
+      1, 0
+    ),
     do_flag = ifelse(
       d_activity == "SCH" &
-        lead(personnum) == personnum &
+        # is_student == 0 &
+        # lead(personnum) == personnum &
         party_size_change < 0 &
         dest_act_dur < 15
         , 1, 0
-    ),
-    d_activity = ifelse(do_flag == 1, "DO", d_activity),
-    o_activity = case_when(
-      is.na(lag(do_flag)) ~ o_activity,
-      lag(do_flag) == 1 ~ "DO",
-      TRUE ~ o_activity
-    )
+    )#,
+    # d_activity = ifelse(do_flag == 1, "DO", d_activity),
+    # o_activity = case_when(
+    #   is.na(lag(do_flag)) ~ o_activity,
+    #   lag(do_flag) == 1 ~ "DO",
+    #   TRUE ~ o_activity
+    # )
   ) %>%
   write_csv("test.csv")
+
+
 ```
 
 
