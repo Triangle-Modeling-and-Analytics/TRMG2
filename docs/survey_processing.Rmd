@@ -497,6 +497,21 @@ det_sch_place <- det_home_place %>%
       # dest_sch_dist < 100 ~ "S",
       destination_address == school_address ~ "S",
       TRUE ~ d_place
+    ),
+    # Guess school places for students with missing school loc info
+    o_place = ifelse(
+      student_type != "" &
+        o_activity %in% c("PreK", "K12", "U") &
+        o_place == "O" &
+        "school" %in% tolower(origin_name),
+      "S", o_place
+    ),
+    d_place = ifelse(
+      student_type != "" &
+        d_activity %in% c("PreK", "K12", "U") &
+        d_place == "O" &
+        "school" %in% tolower(destination_name),
+      "S", d_place
     )
   ) %>%
   select(-school_lng, -school_lat)
@@ -564,7 +579,7 @@ determine_tours <- det_work_place %>%
   )
 ```
 
-### Purpose problems
+### Problems
 
 ```{r}
 num_sch_problems <- determine_tours %>%
@@ -675,19 +690,22 @@ fix_bus <- fix_remaining_sch %>%
 
 ```
 
-
 There are `r num_sch_problems` trip records where a school activity purpose is
 recorded for people who are not students.
 
 - `r num_sch_problems` trips recorded with school activity for non-students.
 - `r num_missing_joint_trips` trips that reference a household member that not also have that trip listed.
 
-Numerous problems detected with the coding of school activity purpose.
+Numerous problems detected:
 
 - School activities reported by non-students (1000 trips)
+- Missing joint trips (1604). E.g., a trip references two hh members but second
+  member doesn't have that trip
 - Bus stops coded as school rather than mode transfer (70 trips)
 - PU/DO coded as school (300 origins / 300 origins)
-- Kids marked home school but go to school on travel day
+- Kids marked as homeschool but go to traditional school on travel day for
+  school activity
+- Students without school address in person file (195)
 - Home activities reported at non-home locations (e.g. "In-laws house")
 
 ## Income imputation
