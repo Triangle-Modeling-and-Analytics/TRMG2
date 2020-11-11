@@ -379,6 +379,10 @@ convert_purpose <- trip_combined %>%
   mutate(
     mode = case_when(
       mode == 1 ~ "auto_own",
+      mode == 2 & mode_othauto == 1 ~ "auto_work",
+      mode == 2 & mode_othauto == 2 ~ "auto_rental",
+      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
+      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
       mode == 2 ~ "auto_other",
       mode == 3 ~ "bus",
       mode == 4 ~ "walk",
