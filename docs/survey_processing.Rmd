@@ -326,7 +326,7 @@ components.
 - W: Work
 - WR: Work-related (e.g. making a delivery)
 - SCH: School. Clarified explicitly in the person table into:
-  - PREK: Pre-Kindergarten
+  - PreK: Pre-Kindergarten
   - K12: Kindergarten through 12th grade
   - U: University or College
 - SHP: Shop
@@ -413,9 +413,9 @@ convert_purpose <- trip_combined %>%
       d_activity != "SCH" ~ d_activity,
       student_type != "" ~ student_type,
       TRUE ~ "SCH?"
-    )
-  ) %>%
-  select(-school)
+    ),
+    homeschooled_flag = ifelse(school %in% c(5, 7, 9), 1, 0)
+  )
 ```
 
 
@@ -655,9 +655,24 @@ fix_remaining_sch <- fix_pudo %>%
 ```
 
 ```{r clean_bus_probs}
-# fix_remaining_sch
-# 
-# write_csv(fix_remaining_sch, "test.csv")
+fix_bus <- fix_remaining_sch %>%
+  mutate(
+    bus_flag = ifelse(
+      str_detect(tolower(destination_name), "bus") &
+        !str_detect(tolower(destination_name), "business") &
+        mode != lead(mode) &
+        d_activity %in% c("PreK", "K12", "U"),
+      1, 0
+    ),
+    d_activity = ifelse(bus_flag == 1, "X", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_activity)) ~ o_activity,
+      lag(d_activity) == "X" ~ "X",
+      TRUE ~ o_activity
+    )
+  )
+
+
 ```
 
 
@@ -670,10 +685,9 @@ recorded for people who are not students.
 Numerous problems detected with the coding of school activity purpose.
 
 - School activities reported by non-students (1000 trips)
-  - School activities reported at locations other than school/home (850 trips)
-    - Public libraries
-    - Bus stops coded as school rather than mode transfer (70 trips)
-  - PU/DO coded as school (300 origins / 300 origins)
+- Bus stops coded as school rather than mode transfer (70 trips)
+- PU/DO coded as school (300 origins / 300 origins)
+- Kids marked home school but go to school on travel day
 - Home activities reported at non-home locations (e.g. "In-laws house")
 
 ## Income imputation
