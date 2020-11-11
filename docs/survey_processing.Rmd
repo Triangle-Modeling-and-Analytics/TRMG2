@@ -579,7 +579,8 @@ determine_tours <- det_work_place %>%
     tour_type = case_when(
       "W" %in% tour_anchor ~ "W",
       "H" %in% tour_anchor ~ "H",
-      TRUE ~ "NW"
+      "S" %in% tour_anchor ~ "S",
+      TRUE ~ "O"
     ),
     o_party_size_change = party_size - lag(party_size),
     d_party_size_change = lead(party_size) - party_size,
