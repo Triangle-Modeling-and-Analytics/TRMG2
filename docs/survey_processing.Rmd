@@ -11,6 +11,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
 
 library(tidyverse)
 library(broom)
@@ -324,7 +325,10 @@ components.
 - H: Home (non-work activities at home)
 - W: Work
 - WR: Work-related (e.g. making a delivery)
-- SCH: School
+- SCH: School. Clarified explicitly in the person table into:
+  - PREK: Pre-Kindergarten
+  - K12: Kindergarten through 12th grade
+  - U: University or College
 - SHP: Shop
 - EAT: Dining out
 - PU: Pick up
@@ -354,27 +358,6 @@ activity_2016 %>%
   kable_styling(bootstrap_options = "striped")
 ```
 
-### Places
-
-As explained above, the definition of a work activity in the 2016 survey did not
-specify whether work was performed in or outside the home. Caliper computed a
-place code for every trip end independent of activity.
-
--H: Home
--W: Work
--S: School
--O: Other
-
-Home and school locations were derived by comparing the activity location
-(long/lat) with the home and school locations. Trip ends within 100 meters of
-each were tagged to the appropriate place type. This approach gave a more
-accurate result than depending on the names each person gave their origin
-and destination, which varied widely.
-
-Work locations could not be handled the same way. Not only do people have
-multiple jobs, but many had jobs without fixed work locations (e.g. nanny). For
-this reason, we relied on the stated activity purpose to determine work places.
-
 ```{r activity_purpose}
 act_to_join_2016 <- activity_2016 %>% select(-activity_long)
 act_to_join_2018 <- activity_2018 %>% select(-activity_long)
@@ -390,7 +373,7 @@ convert_purpose <- trip_combined %>%
   rename(d_activity2 = activity) %>%
   mutate(
     o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
-    d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1)
+    d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1),
   ) %>%
   select(-c(o_activity1:d_activity2)) %>%
   mutate(
@@ -402,8 +385,60 @@ convert_purpose <- trip_combined %>%
       mode == 5 ~ "bike",
       mode == 6 ~ "other"
     )
-  )
+  ) %>%
+  left_join(
+    per_combined %>% select(personid, school),
+    by = "personid"
+  ) %>%
+  mutate(
+    # some people marked 1-yo old as student with school at home. Not what
+    # we are interested in.
+    # student_type = ifelse(is.na(school), 0, 1),
+    student_type = case_when(
+      school >= 4 & school <= 9 ~ "K12",
+      school >= 10 & school <= 13 ~ "U",
+      !is.na(school) ~ "PreK",
+      TRUE ~ ""
+    ),
+    o_activity = case_when(
+      o_activity != "SCH" ~ o_activity,
+      student_type != "" ~ student_type,
+      TRUE ~ "SCH?"
+    ),
+    d_activity = case_when(
+      d_activity != "SCH" ~ d_activity,
+      student_type != "" ~ student_type,
+      TRUE ~ "SCH?"
+    )
+  ) %>%
+  select(-school)
 ```
+
+
+### Places
+
+As explained above, the definition of a work activity in the 2016 survey did not
+specify whether work was performed in or outside the home. Caliper computed a
+place code for every trip end independent of activity.
+
+-H: Home
+-W: Work
+-S: School
+-O: Other
+
+Home and school locations were derived by comparing the activity location
+(long/lat) with the home and school locations. Trip ends within 100 meters of
+the home were tagged to the appropriate place type. This approach gave a more
+accurate result than depending on the names each person gave their origin and
+destination, which varied widely. It also handled several cases where
+respondents separated places like "front yard" and "shed" from their physical
+home.
+
+Work locations could not be handled the same way. Not only do people have
+multiple jobs, but many had jobs without fixed work locations (e.g. nanny). For
+this reason, we relied on the stated activity purpose to determine work places.
+
+
 
 ```{r determine_place}
 # Use calculated distances (rather than place names) to determine trip end
@@ -437,7 +472,7 @@ school_loc <- per_combined %>%
     by = "hhid"
   ) %>%
   filter(!is.na(school_lat) & home_loc_address != school_address) %>%
-  select(-hhid, -school_address, -home_loc_address)
+  select(-hhid, -home_loc_address)
 
 det_sch_place <- det_home_place %>%
   left_join(school_loc, by = "personid") %>%
@@ -445,17 +480,18 @@ det_sch_place <- det_home_place %>%
     orig_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
     dest_sch_dist = calc_dist(
       destination_lng, destination_lat, school_lng, school_lat),
-    is_student = ifelse(is.na(dest_sch_dist), 0, 1),
     o_place = case_when(
       is.na(orig_sch_dist) ~ o_place,
       o_place == "H" ~ "H",
-      orig_sch_dist < 100 ~ "S",
+      # orig_sch_dist < 100 ~ "S",
+      origin_address == school_address ~ "S",
       TRUE ~ o_place
     ),
     d_place = case_when(
       is.na(dest_sch_dist) ~ d_place,
       d_place == "H" ~ "H",
-      dest_sch_dist < 100 ~ "S",
+      # dest_sch_dist < 100 ~ "S",
+      destination_address == school_address ~ "S",
       TRUE ~ d_place
     )
   ) %>%
@@ -511,18 +547,130 @@ determine_tours <- det_work_place %>%
   group_by(personid, tour_num) %>%
   mutate(
     tour_anchor = ifelse(d_activity == "W", "W", ""),
-    tour_anchor = ifelse(d_activity == "WFH", "WFH", tour_anchor),
-    tour_anchor = ifelse(
-      tripnum == max(tripnum) & tour_anchor == "WFH", "", tour_anchor),
     tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
     tour_type = case_when(
       "W" %in% tour_anchor ~ "W",
-      "WFH" %in% tour_anchor ~ "WFH",
       "H" %in% tour_anchor ~ "H",
       TRUE ~ "NW"
-    )
+    ),
+    o_party_size_change = party_size - lag(party_size),
+    d_party_size_change = lead(party_size) - party_size,
+    o_act_dur = departure_time - lag(arrival_time),
+    d_act_dur = lead(departure_time) - arrival_time
   )
 ```
+
+### Purpose problems
+
+```{r}
+num_sch_problems <- determine_tours %>%
+  mutate(
+    sch_flag = case_when(
+      o_activity == "SCH?" ~ 1,
+      d_activity == "SCH?" ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  filter(sch_flag == 1) %>%
+  nrow()
+```
+
+```{r clean_sch_probs}
+# this checks to see if anyone in the trip had school as origin/dest place.
+# Drop off trips with school trips often take longer (e.g. waiting for the
+# bus or carpool).
+s_check <- determine_tours %>%
+  ungroup() %>%
+  unite(
+    key, hhid, origin_address, departure_time, destination_address, arrival_time
+  ) %>%
+  select(key, o_place, d_place) %>%
+  group_by(key) %>%
+  mutate(
+    o_s_check = ifelse("S" %in% o_place, 1, 0),
+    d_s_check = ifelse("S" %in% d_place, 1, 0)
+  ) %>%
+  summarize(
+    o_s_check = max(o_s_check),
+    d_s_check = max(d_s_check)
+  )
+
+# Use logic to identify pu/do trips. Many of the SCH? activities are actually
+# pu/do.
+fix_pudo <- determine_tours %>%
+  unite(
+    key, hhid, origin_address, departure_time, destination_address, arrival_time,
+    remove = FALSE
+  ) %>%
+  left_join(s_check, by = "key") %>%
+  mutate(
+    # flag trips where the logic identifies DO before changing purpose
+    d_do_flag = case_when(
+      d_party_size_change >= 0 ~ 0,
+      d_act_dur <= 10 ~ 1,
+      d_act_dur <= 25 & d_s_check == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    d_activity = ifelse(d_do_flag == 1, "DO", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_do_flag)) ~ o_activity,
+      lag(d_do_flag) == 1 ~ "DO",
+      TRUE ~ o_activity
+    ),
+    d_pu_flag = case_when(
+      d_party_size_change <= 0 ~ 0,
+      d_act_dur <= 10 ~ 1,
+      d_act_dur <= 25 & o_s_check == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    d_activity = ifelse(d_pu_flag == 1, "PU", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_pu_flag)) ~ o_activity,
+      lag(d_pu_flag) == 1 ~ "PU",
+      TRUE ~ o_activity
+    ),
+    # Differentiate PU/DO at school from other
+    d_activity = ifelse(
+      d_activity %in% c("PU", "DO") & d_s_check == 1,
+      paste0(d_activity, "S"), d_activity
+    ),
+    o_activity = case_when(
+      is.na(lag(d_activity)) ~ o_activity,
+      lag(d_activity) %in% c("PUS", "DOS") ~ paste0(o_activity, "S"),
+      TRUE ~ o_activity
+    )
+  )
+
+fix_remaining_sch <- fix_pudo %>%
+  mutate(
+    o_activity = ifelse(o_activity == "SCH?" & o_place == "H", "H", o_activity),
+    o_activity = ifelse(o_activity == "SCH?", "O", o_activity),
+    d_activity = ifelse(d_activity == "SCH?" & d_place == "H", "H", d_activity),
+    d_activity = ifelse(d_activity == "SCH?", "O", d_activity),
+  )
+```
+
+```{r clean_bus_probs}
+# fix_remaining_sch
+# 
+# write_csv(fix_remaining_sch, "test.csv")
+```
+
+
+There are `r num_sch_problems` trip records where a school activity purpose is
+recorded for people who are not students.
+
+- `r num_sch_problems` trips recorded with school activity for non-students.
+- `r num_missing_joint_trips` trips that reference a household member that not also have that trip listed.
+
+Numerous problems detected with the coding of school activity purpose.
+
+- School activities reported by non-students (1000 trips)
+  - School activities reported at locations other than school/home (850 trips)
+    - Public libraries
+    - Bus stops coded as school rather than mode transfer (70 trips)
+  - PU/DO coded as school (300 origins / 300 origins)
+- Home activities reported at non-home locations (e.g. "In-laws house")
 
 ## Income imputation
 
@@ -742,47 +890,6 @@ After a review of RSGs expansion procedure and the review of weights above,
 Caliper determined that the weights were appropriate for use in model
 estimation.
 
-### Trip purpose checks
-
-Numerous problems detected with the coding of school activity purpose.
-
-- School activities reported by non-students (1000 trips)
-  - School activities reported at locations other than school/home (850 trips)
-    - Public libraries
-    - Bus stops coded as school rather than mode transfer (70 trips)
-  - PU/DO coded as school (300 origins / 300 origins)
-- Home activities reported at non-home locations (e.g. "In-laws house")
-
-```{r}
-determine_tours %>%
-  group_by(personid, tour_num) %>%
-  mutate(
-    party_size_change = lead(party_size) - party_size,
-    dest_act_dur = lead(departure_time) - arrival_time,
-    bus_flag = ifelse(
-      str_detect(tolower(destination_name), "bus") &
-        str_detect(tolower(lead(origin_name)), "bus"),
-      1, 0
-    ),
-    do_flag = ifelse(
-      d_activity == "SCH" &
-        # is_student == 0 &
-        # lead(personnum) == personnum &
-        party_size_change < 0 &
-        dest_act_dur < 15
-        , 1, 0
-    )#,
-    # d_activity = ifelse(do_flag == 1, "DO", d_activity),
-    # o_activity = case_when(
-    #   is.na(lag(do_flag)) ~ o_activity,
-    #   lag(do_flag) == 1 ~ "DO",
-    #   TRUE ~ o_activity
-    # )
-  ) %>%
-  write_csv("test.csv")
-
-
-```
 
 
 ```{r write tables, eval=FALSE}
