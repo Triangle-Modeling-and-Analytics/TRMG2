@@ -465,9 +465,18 @@ det_home_place <- convert_purpose %>%
     dest_home_dist = calc_dist(
       destination_lng, destination_lat, home_loc_lng, home_loc_lat),
     o_place = ifelse(orig_home_dist < 100, "H", "O"),
-    d_place = ifelse(dest_home_dist < 100, "H", "O")
+    o_place = ifelse(is.na(o_place), "O", o_place),
+    o_place = ifelse(origin_name == "HOME", "H", o_place),
+    d_place = ifelse(dest_home_dist < 100, "H", "O"),
+    d_place = ifelse(is.na(d_place), "O", d_place),
+    d_place = ifelse(destination_name == "HOME", "H", d_place)
   ) %>%
-  select(-home_loc_lat, -home_loc_lng)
+  select(-home_loc_lat, -home_loc_lng) %>%
+  # correct home activities that don't happen at home
+  mutate(
+    o_activity = ifelse(o_activity == "H" & o_place != "H", "O", o_activity),
+    d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
+  )
 
 school_loc <- per_combined %>%
   select(hhid, personid, school_address, school_lat, school_lng) %>%
