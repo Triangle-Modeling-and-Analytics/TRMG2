@@ -4,7 +4,7 @@ code,activity_long,activity
 3,"At work (not home), working for pay",W
 4,"Other work-related activity (e.g., meeting, site visit, sales call, etc.)",WR
 5,Attend school/class,SCH
-6,Other school-related activity,SCH
+6,Other school-related activity,O
 7,"Routine shopping (e.g., grocery, get gas, clothing, convenience store, household maintenance, etc.)",SHP
 8,"Shopping for major purchase/specialty item (e.g., appliances, electronics, new vehicle, major household repairs, etc.)",SHP
 9,"Dining out/take-out/coffee (e.g., eat at restaurant, get take-out/fast-food)",EAT
