@@ -1,7 +1,7 @@
 ---
 title: "Survey Processing"
 author: "Caliper Corporation"
-date: "11/5/2020"
+date: "11/16/2020"
 output: 
   html_document
 editor_options: 
@@ -471,12 +471,73 @@ After a review of RSGs expansion procedure and the review of weights above,
 Caliper determined that the weights were appropriate for use in model
 estimation.
 
+### Income imputation
+
+The survey provides income at two levels of aggregation: 10 categories or 5. RSG
+imputed incomes for the broad category in order to use ACS income information
+during survey expansion. The imputation:
+
+  1. Further stratified category 5 (\$100k+) into those above and below \$150k.
+  2. Estimated incomes for those households that did not report.
+  
+In order to preserve all the records in the survey, the Caliper team used the
+imputed, broad categories of income. The table below shows the count of samples
+by the original and imputed categories.
+
+```{r}
+temp_broad <- bind_rows(
+  remove_na_2016 %>%
+    select(hh_income_broad),
+  remove_na_2018 %>%
+    select(hh_income_broad)
+) %>%
+  group_by(hh_income_broad) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  rename(Original = hh_income_broad, count1 = count)
+
+df <- bind_cols(
+  temp_broad,
+  hh_combined %>%
+    group_by(hh_income_broad) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    rename(Imputed = hh_income_broad, count2 = count)
+)
+colnames(df) <- c("Original", "Count", "Imputed", "Count")
+df$Original <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000 or more",
+  "Prefer not to answer"
+)
+df$Imputed <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000-$149,999",
+  "$150,000 or more"
+)
+
+df %>%
+  kable() %>%
+  kable_styling()
+```
+
+A full discussion of their income imputation can be found in the survey
+documentation. They used ordinal logistic regression to predict income
+categories based on household features like size and number of households (among
+others).
+
 ## Trip processing
 
 ### Activity purpose
 
-The atomic model purposes are shown below. These represent the most fundamental
-purposes and may be aggregated during the estimation of specific model
+The atomic model purposes are shown below. These represent the fundamental
+activity purposes and may be aggregated during the estimation of specific model
 components.
 
 - H: Home (non-work activities at home)
@@ -575,17 +636,16 @@ convert_purpose <- trip_combined %>%
   )
 ```
 
-
 ### Places
 
 As explained above, the definition of a work activity in the 2016 survey did not
 specify whether work was performed in or outside the home. Caliper computed a
 place code for every trip end independent of activity.
 
--H: Home
--W: Work
--S: School
--O: Other
+- H: Home
+- W: Work
+- S: School
+- O: Other
 
 Home and school locations were derived by comparing the activity location
 (long/lat) with the home and school locations. Trip ends within 100 meters of
@@ -617,14 +677,14 @@ det_home_place <- convert_purpose %>%
     by = "hhid"
   ) %>%
   mutate(
-    orig_home_dist = calc_dist(
+    o_home_dist = calc_dist(
       origin_lng, origin_lat, home_loc_lng, home_loc_lat),
-    dest_home_dist = calc_dist(
+    d_home_dist = calc_dist(
       destination_lng, destination_lat, home_loc_lng, home_loc_lat),
-    o_place = ifelse(orig_home_dist < 100, "H", "O"),
+    o_place = ifelse(o_home_dist < 100, "H", "O"),
     o_place = ifelse(is.na(o_place), "O", o_place),
     o_place = ifelse(origin_name == "HOME", "H", o_place),
-    d_place = ifelse(dest_home_dist < 100, "H", "O"),
+    d_place = ifelse(d_home_dist < 100, "H", "O"),
     d_place = ifelse(is.na(d_place), "O", d_place),
     d_place = ifelse(destination_name == "HOME", "H", d_place)
   ) %>%
@@ -647,20 +707,20 @@ school_loc <- per_combined %>%
 det_sch_place <- det_home_place %>%
   left_join(school_loc, by = "personid") %>%
   mutate(
-    orig_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
-    dest_sch_dist = calc_dist(
+    o_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
+    d_sch_dist = calc_dist(
       destination_lng, destination_lat, school_lng, school_lat),
     o_place = case_when(
-      is.na(orig_sch_dist) ~ o_place,
+      is.na(o_sch_dist) ~ o_place,
       o_place == "H" ~ "H",
-      # orig_sch_dist < 100 ~ "S",
+      # o_sch_dist < 100 ~ "S",
       origin_address == school_address ~ "S",
       TRUE ~ o_place
     ),
     d_place = case_when(
-      is.na(dest_sch_dist) ~ d_place,
+      is.na(d_sch_dist) ~ d_place,
       d_place == "H" ~ "H",
-      # dest_sch_dist < 100 ~ "S",
+      # d_sch_dist < 100 ~ "S",
       destination_address == school_address ~ "S",
       TRUE ~ d_place
     ),
@@ -764,14 +824,27 @@ num_sch_problems <- determine_tours %>%
 ```
 
 ```{r clean_sch_probs}
-# this checks to see if anyone in the trip had school as origin/dest place.
-# Drop off trips with school trips often take longer (e.g. waiting for the
-# bus or carpool).
-s_check <- determine_tours %>%
+add_key <- determine_tours %>%
   ungroup() %>%
   unite(
     key, hhid, origin_address, departure_time, destination_address, arrival_time
-  ) %>%
+  )
+
+# check to see how many missing joint trips there are. i.e other hh members
+# report hh member 3 was on the trip, but hh member 3 doesn't have that trip
+# listed.
+temp <- add_key %>%
+  select(key, num_hh_members) %>%
+  group_by(key) %>%
+  mutate(count = n()) %>%
+  slice(1)
+num_missing_joint_trips <- sum(temp$num_hh_members) - sum(temp$count)
+remove(temp)
+
+# this checks to see if anyone in the trip had school as origin/dest place.
+# Drop off trips with school trips often take longer (e.g. waiting for the
+# bus or carpool).
+s_check <- add_key %>%
   select(key, o_place, d_place) %>%
   group_by(key) %>%
   mutate(
@@ -839,6 +912,7 @@ fix_remaining_sch <- fix_pudo %>%
 ```
 
 ```{r clean_bus_probs}
+# School kids going to bus stops are not handled consistently. Fix them.
 fix_bus <- fix_remaining_sch %>%
   mutate(
     bus_flag = ifelse(
@@ -854,91 +928,96 @@ fix_bus <- fix_remaining_sch %>%
       lag(d_activity) == "X" ~ "X",
       TRUE ~ o_activity
     )
-  )
+  ) %>%
+  select(-bus_flag)
 
 
 ```
 
-There are `r num_sch_problems` trip records where a school activity purpose is
-recorded for people who are not students.
-
-- `r num_sch_problems` trips recorded with school activity for non-students.
-- `r num_missing_joint_trips` trips that reference a household member that not also have that trip listed.
-
 Numerous problems detected:
 
-- School activities reported by non-students (1000 trips)
-  - Pickup/Dropoff coded as school (300 origins / 300 origins)
+- School activities reported by non-students (`r num_sch_problems` trips)
+  - Pickup/Dropoff coded as school (300 trips)
   - Bus stops coded as school rather than mode transfer (70 trips)
-- Missing joint trips (1604). E.g., a trip references two hh members but second
-  member doesn't have that trip
+- Missing joint trips (`r num_missing_joint_trips`). E.g., a trip references 
+  two hh members but second member doesn't have that trip
 - Kids marked as homeschool but go to traditional school on travel day for
   school activity (30)
 - Students without school address in person file (195)
 - Home activities reported at non-home locations (e.g. "In-laws house") (2,147)
   - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
 
-## Income imputation
+### Trip linking
 
-The survey provides income at two levels of aggregation: 10 categories or 5. RSG
-imputed incomes for the broad category in order to use ACS income information
-during survey expansion. The imputation:
+**NEED PROSE**
 
-  1. Further stratified category 5 (\$100k+) into those above and below \$150k.
-  2. Estimated incomes for those households that did not report.
-  
-In order to preserve all the records in the survey, the Caliper team used the
-imputed, broad categories of income. The table below shows the count of samples
-by the original and imputed categories.
+```{r link_out_bus}
+bus_flag <- fix_bus %>%
+  mutate(
+    bus_flag = case_when(
+      o_activity != "X" & d_activity != "X" ~ 0,
+      str_detect(tolower(destination_name), "bus") &
+        !str_detect(tolower(destination_name), "business") ~ 1,
+      str_detect(tolower(origin_name), "bus") &
+        !str_detect(tolower(origin_name), "business") ~ 1,
+      str_detect(tolower(destination_name), "transit") ~ 1,
+      str_detect(tolower(origin_name), "transit") ~ 1,
+      TRUE ~ 0
+    )
+  )
 
-```{r}
-temp_broad <- bind_rows(
-  remove_na_2016 %>%
-    select(hh_income_broad),
-  remove_na_2018 %>%
-    select(hh_income_broad)
-) %>%
-  group_by(hh_income_broad) %>%
-  summarize(count = n()) %>%
+# Create a separate df of only the flagged trips. Collapse trip records on
+# the same subtour into single trip records.
+flagged_only  <- bus_flag  %>%
+  filter(bus_flag == 1) %>%
+  mutate(
+    start_flag = ifelse(o_activity != "X" & d_activity == "X", 1, 0),
+    end_flag = ifelse(o_activity == "X" & d_activity != "X", 1, 0),
+    sub_tour = cumsum(start_flag)
+  ) %>%
+  group_by(personid, tour_num, sub_tour) %>%
+  mutate(
+    across(
+      c(num_hh_members:num_nonhh),
+      ~ .x[duration == max(duration, na.rm = TRUE)]
+    ),
+    mode = paste(unique(mode), collapse = " "),
+    across(
+      c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
+      ~ min(ifelse(is.na(.x), 999, .x), na.rm = TRUE)
+    ),
+    park_address = first(park_address[!is.na(park_address)]),
+    across(
+      c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
+      ~ ifelse(.x == 999, NA, .x)
+    ),
+    trip_weight_combined = mean(trip_weight_combined),
+    speed_mph = round(distance / duration / 60, 0),
+    across(
+      starts_with(c("destination_", "d_", "arrival_time")),
+      ~ last(.x)
+    ),
+    across(
+      c("distance", "duration", "reported_duration"),
+      ~ sum(.x)
+    ),
+    duration_string = paste0(
+      str_pad(duration %/% 60, 2, "left", "0"),
+      ":",
+      str_pad(duration %% 60, 2, "left", "0")
+    )
+  ) %>%
+  slice(1) %>%
   ungroup() %>%
-  rename(Original = hh_income_broad, count1 = count)
+  select(-c(bus_flag:sub_tour)) %>%
+  mutate(linked_flag = 1)
 
-df <- bind_cols(
-  temp_broad,
-  hh_combined %>%
-    group_by(hh_income_broad) %>%
-    summarize(count = n()) %>%
-    ungroup() %>%
-    rename(Imputed = hh_income_broad, count2 = count)
-)
-colnames(df) <- c("Original", "Count", "Imputed", "Count")
-df$Original <- c(
-  "Under $25,000",
-  "$25,000-$49,999",
-  "$50,000-$74,999",
-  "$75,000-$99,999",
-  "$100,000 or more",
-  "Prefer not to answer"
-)
-df$Imputed <- c(
-  "Under $25,000",
-  "$25,000-$49,999",
-  "$50,000-$74,999",
-  "$75,000-$99,999",
-  "$100,000-$149,999",
-  "$150,000 or more"
-)
-
-df %>%
-  kable() %>%
-  kable_styling()
+xfer_linked_out <- bus_flag %>%
+  filter(bus_flag == 0) %>%
+  select(-bus_flag) %>%
+  bind_rows(flagged_only) %>%
+  arrange(hhid, personnum, tripnum)
 ```
-
-A full discussion of their income imputation can be found in the survey
-documentation. They used ordinal logistic regression to predict income
-categories based on household features like size and number of households (among
-others).
-
 
 
 ```{r write tables, eval=FALSE}
@@ -954,7 +1033,7 @@ if {1 = 0} {
     "data/output/_PRIVATE/survey_processing/per_processed.csv"
   )
   write_csv(
-    determine_tours,
+    xfer_linked_out,
     "data/output/_PRIVATE/survey_processing/trips_processed.csv"
   )
 }
