@@ -314,6 +314,163 @@ trip_combined <- bind_rows(
   mutate(party_size = num_hh_members + num_nonhh)
 ```
 
+## Basic checks
+
+A common task in household survey processing is to remove households for various
+reasons. For instance, travel models estimate weekday travel, so households
+surveyed on the weekend must be removed. Households may have incomplete travel
+diaries, be located outside the model region, or have other issues that means
+they must be removed from estimation set.
+
+### Day of week
+
+Thanks to careful survey design, none of the Triangle households were surveyed
+on the weekend. The chart below shows the days surveyed (1 is Monday).
+
+```{r}
+temp <- hh_combined %>%
+  group_by(year, travelday) %>%
+  summarize(samples = n())
+
+ggplot(temp, aes(x = travelday, y = samples, fill = as.factor(travelday))) +
+  geom_bar(stat = "identity") +
+  guides(fill = FALSE) +
+  facet_wrap(~year)
+```
+
+Starting in 2018, the survey was improved to only collect travel diaries in the
+middle of the week. This improvement recognizes that Monday and Friday are often
+different from midweek, which can be due to holidays, vacations, alternative
+work schedules, or other reasons. This is a general rule of thumb, however, and
+is not necessarily true of all places at all times.
+
+A quick t-test was done to see if travel on Monday and Friday was statistically
+different from the mid-week (Tuesday through Thursday). The result suggests that
+trip making is not different on Monday and Friday, which means we can keep all
+surveyed households in our estimation set.
+
+```{r}
+# Compare Friday to not Friday
+t.test(
+  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
+  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
+  var.equal = TRUE # if false then performs Welch's t-test
+) %>%
+  tidy() %>%
+  # rename(`mean T-Th` = estimate1, `M & F` = estimate2) %>%
+  select(estimate1:p.value) %>%
+  pivot_longer(
+    cols = estimate1:p.value, names_to = "Parameter", values_to = "Value"
+  ) %>%
+  mutate(
+    Parameter = c(
+      "Average Trips/HH (Mon/Fri)",
+      "Average Trips/HH (Midweek)",
+      "t-stat",
+      "p.value"
+    )
+  ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+### Household locations
+
+It is also important to make sure that only households in your model region are
+used for estimation. In addition to the obvious reasons, it will also not be
+possible to collect a model-based skim of impedance for these households. The
+map below shows the locations of all households included in the survey. Each
+falls within the model boundary.
+
+```{r}
+shp <- hh_combined %>%
+  select(home_loc_lat, home_loc_lng) %>%
+  st_as_sf(
+    coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
+  )
+boundary_shp <- st_read(
+  "data/input/model_boundary/boundary 2020-11-02.shp",
+  quiet = TRUE
+)
+boundary_shp <- st_transform(boundary_shp, st_crs(shp))
+bbox <- as.list(st_bbox(boundary_shp))
+lng <- (bbox$xmin - bbox$xmax) / 2 + bbox$xmax
+lat <- (bbox$ymax - bbox$ymin) / 2 + bbox$ymin
+
+leaflet(
+  options = leafletOptions(zoomControl = FALSE, minZoom = 9, maxZoom = 9)
+) %>%
+  addTiles() %>%
+  addPolygons(
+    data = boundary_shp,
+    color = "#444444", weight = 1, smoothFactor = 0.5
+  ) %>%
+  addCircleMarkers(
+    data = shp, radius = 1, weight = 3,
+    opacity = .2, fillOpacity = .2
+  ) %>%
+  setView(lng, lat, zoom = 9)
+```
+
+### Weight distribution
+
+It is important to check the weighting and expansion of a survey for extreme
+weight values. To do this, the weights must first be normalized based on the
+expected average weight per sample. A simple comparison of two hypothetical
+surveys explains why:
+
+1. A survey with 100 samples of a population of 100,000: Average weight = 1,000
+2. A survey with 1000 samples of a population of 100,000: Average weight = 100
+
+A household weight of 1,000 in the first survey is reasonable based on the
+number of samples, but it is 10 times the expected weight in the second survey.
+For the 2016+2018 combined survey, the average weight is shown below.
+
+```{r}
+temp <- hh_combined %>%
+  summarize(
+    Samples = n(),
+    `Total Households` = sum(hh_weight_combined),
+    `Average Weight` = `Total Households` / Samples
+  ) %>%
+  pivot_longer(cols = everything())
+
+weight_mean <- mean(hh_combined$hh_weight_combined)
+colnames(temp) <- c("", "")
+
+temp %>%
+  kable(digits = 0) %>%
+  kable_styling(full_width = FALSE)
+```
+
+The first histogram below shows the distribution of weights divided by the mean
+weight. While the largest weight is 15x the mean weight, this is an outlier and
+most are within 6x. This is a reasonable result and indicates and well-designed
+sample plan that collected adequate numbers of households in all the demographic
+groups of interest.
+
+```{r}
+ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Weight / Average Weight")
+```
+
+The second histogram below inverts the factor above and divides the average
+weight by the individual households weights. Large factors in this histogram
+would indicate the presence of small weights. The smallest weight (17.3) is 14%
+of the average weight, suggesting a modest over sample, but is well within
+reason.
+
+```{r}
+ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Average Weight / Weight")
+```
+
+After a review of RSGs expansion procedure and the review of weights above,
+Caliper determined that the weights were appropriate for use in model
+estimation.
+
 ## Trip processing
 
 ### Activity purpose
@@ -709,14 +866,15 @@ recorded for people who are not students.
 Numerous problems detected:
 
 - School activities reported by non-students (1000 trips)
+  - Pickup/Dropoff coded as school (300 origins / 300 origins)
+  - Bus stops coded as school rather than mode transfer (70 trips)
 - Missing joint trips (1604). E.g., a trip references two hh members but second
   member doesn't have that trip
-- Bus stops coded as school rather than mode transfer (70 trips)
-- PU/DO coded as school (300 origins / 300 origins)
 - Kids marked as homeschool but go to traditional school on travel day for
-  school activity
+  school activity (30)
 - Students without school address in person file (195)
-- Home activities reported at non-home locations (e.g. "In-laws house")
+- Home activities reported at non-home locations (e.g. "In-laws house") (2,147)
+  - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
 
 ## Income imputation
 
@@ -778,163 +936,6 @@ A full discussion of their income imputation can be found in the survey
 documentation. They used ordinal logistic regression to predict income
 categories based on household features like size and number of households (among
 others).
-
-## Survey checking
-
-A common task in household survey processing is to remove households for various
-reasons. For instance, travel models estimate weekday travel, so households
-surveyed on the weekend must be removed. Households may have incomplete travel
-diaries, be located outside the model region, or have other issues that means
-they must be removed from estimation set.
-
-### Day of week
-
-Thanks to careful survey design, none of the Triangle households were surveyed
-on the weekend. The chart below shows the days surveyed (1 is Monday).
-
-```{r}
-temp <- hh_combined %>%
-  group_by(year, travelday) %>%
-  summarize(samples = n())
-
-ggplot(temp, aes(x = travelday, y = samples, fill = as.factor(travelday))) +
-  geom_bar(stat = "identity") +
-  guides(fill = FALSE) +
-  facet_wrap(~year)
-```
-
-Starting in 2018, the survey was improved to only collect travel diaries in the
-middle of the week. This improvement recognizes that Monday and Friday are often
-different from midweek, which can be due to holidays, vacations, alternative
-work schedules, or other reasons. This is a general rule of thumb, however, and
-is not necessarily true of all places at all times.
-
-A quick t-test was done to see if travel on Monday and Friday was statistically
-different from the mid-week (Tuesday through Thursday). The result suggests that
-trip making is not different on Monday and Friday, which means we can keep all
-surveyed households in our estimation set.
-
-```{r}
-# Compare Friday to not Friday
-t.test(
-  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
-  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
-  var.equal = TRUE # if false then performs Welch's t-test
-) %>%
-  tidy() %>%
-  # rename(`mean T-Th` = estimate1, `M & F` = estimate2) %>%
-  select(estimate1:p.value) %>%
-  pivot_longer(
-    cols = estimate1:p.value, names_to = "Parameter", values_to = "Value"
-  ) %>%
-  mutate(
-    Parameter = c(
-      "Average Trips/HH (Mon/Fri)",
-      "Average Trips/HH (Midweek)",
-      "t-stat",
-      "p.value"
-    )
-  ) %>%
-  kable(digits = 2) %>%
-  kable_styling(full_width = FALSE)
-```
-
-### Household locations
-
-It is also important to make sure that only households in your model region are
-used for estimation. In addition to the obvious reasons, it will also not be
-possible to collect a model-based skim of impedance for these households. The
-map below shows the locations of all households included in the survey. Each
-falls within the model boundary.
-
-```{r}
-shp <- hh_combined %>%
-  select(home_loc_lat, home_loc_lng) %>%
-  st_as_sf(
-    coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
-  )
-boundary_shp <- st_read(
-  "data/input/model_boundary/boundary 2020-11-02.shp",
-  quiet = TRUE
-)
-boundary_shp <- st_transform(boundary_shp, st_crs(shp))
-bbox <- as.list(st_bbox(boundary_shp))
-lng <- (bbox$xmin - bbox$xmax) / 2 + bbox$xmax
-lat <- (bbox$ymax - bbox$ymin) / 2 + bbox$ymin
-
-leaflet(
-  options = leafletOptions(zoomControl = FALSE, minZoom = 9, maxZoom = 9)
-) %>%
-  addTiles() %>%
-  addPolygons(
-    data = boundary_shp,
-    color = "#444444", weight = 1, smoothFactor = 0.5
-  ) %>%
-  addCircleMarkers(
-    data = shp, radius = 1, weight = 3,
-    opacity = .2, fillOpacity = .2
-  ) %>%
-  setView(lng, lat, zoom = 9)
-```
-
-### Weight distribution
-
-It is important to check the weighting and expansion of a survey for extreme
-weight values. To do this, the weights must first be normalized based on the
-expected average weight per sample. A simple comparison of two hypothetical
-surveys explains why:
-
-1. A survey with 100 samples of a population of 100,000: Average weight = 1,000
-2. A survey with 1000 samples of a population of 100,000: Average weight = 100
-
-A household weight of 1,000 in the first survey is reasonable based on the
-number of samples, but it is 10 times the expected weight in the second survey.
-For the 2016+2018 combined survey, the average weight is shown below.
-
-```{r}
-temp <- hh_combined %>%
-  summarize(
-    Samples = n(),
-    `Total Households` = sum(hh_weight_combined),
-    `Average Weight` = `Total Households` / Samples
-  ) %>%
-  pivot_longer(cols = everything())
-
-weight_mean <- mean(hh_combined$hh_weight_combined)
-colnames(temp) <- c("", "")
-
-temp %>%
-  kable(digits = 0) %>%
-  kable_styling(full_width = FALSE)
-```
-
-The first histogram below shows the distribution of weights divided by the mean
-weight. While the largest weight is 15x the mean weight, this is an outlier and
-most are within 6x. This is a reasonable result and indicates and well-designed
-sample plan that collected adequate numbers of households in all the demographic
-groups of interest.
-
-```{r}
-ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
-  geom_histogram(color="black", fill="orange", bins = 10) +
-  xlab("Weight / Average Weight")
-```
-
-The second histogram below inverts the factor above and divides the average
-weight by the individual households weights. Large factors in this histogram
-would indicate the presence of small weights. The smallest weight (17.3) is 14%
-of the average weight, suggesting a modest over sample, but is well within
-reason.
-
-```{r}
-ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
-  geom_histogram(color="black", fill="orange", bins = 10) +
-  xlab("Average Weight / Weight")
-```
-
-After a review of RSGs expansion procedure and the review of weights above,
-Caliper determined that the weights were appropriate for use in model
-estimation.
 
 
 
