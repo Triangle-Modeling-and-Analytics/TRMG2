@@ -667,16 +667,18 @@ det_sch_place <- det_home_place %>%
     # Guess school places for students with missing school loc info
     o_place = ifelse(
       student_type != "" &
+        is.na(school_address) &
         o_activity %in% c("PreK", "K12", "U") &
         o_place == "O" &
-        "school" %in% tolower(origin_name),
+        str_detect(origin_name, "school"),
       "S", o_place
     ),
     d_place = ifelse(
       student_type != "" &
+        is.na(school_address) &
         d_activity %in% c("PreK", "K12", "U") &
         d_place == "O" &
-        "school" %in% tolower(destination_name),
+        str_detect(origin_name, "school"),
       "S", d_place
     )
   ) %>%
