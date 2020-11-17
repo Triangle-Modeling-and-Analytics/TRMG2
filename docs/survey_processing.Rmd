@@ -793,6 +793,9 @@ determine_tours <- det_work_place %>%
   ) %>%
   group_by(personid, tour_num) %>%
   mutate(
+    trips_in_tour = n(),
+    tour_distance = sum(distance),
+    tour_duration = last(arrival_time) - first(departure_time),
     tour_anchor = ifelse(d_activity == "W", "W", ""),
     tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
     tour_type = case_when(
@@ -806,12 +809,27 @@ determine_tours <- det_work_place %>%
     o_act_dur = departure_time - lag(arrival_time),
     d_act_dur = lead(departure_time) - arrival_time
   )
+
+# loop trips are things like recreational walks
+flag_loop_trips <- determine_tours %>%
+  mutate(
+    loop_flag = case_when(
+      trips_in_tour > 2 ~ 0,
+      d_act_dur > 10 ~ 0,
+      !(mode %in% c("walk", "bike")) ~ 0,
+      "walk" %in% origin_name ~ 1,
+      "walk" %in% destination_name ~ 1,
+      !(o_activity %in% c("H", "O")) ~ 0,
+      !(d_activity %in% c("H", "O")) ~ 0,
+      TRUE ~ 1
+    )
+  )
 ```
 
 ### Problems
 
 ```{r}
-num_sch_problems <- determine_tours %>%
+num_sch_problems <- flag_loop_trips %>%
   mutate(
     sch_flag = case_when(
       o_activity == "SCH?" ~ 1,
