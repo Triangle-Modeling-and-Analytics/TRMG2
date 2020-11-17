@@ -1,0 +1,20 @@
+code,activity_long,activity
+1,"At home activity, not working (for pay) or schooling",H
+2,Working (for pay) at work or home,W
+3,Work-related: delivering goods or services,WR
+4,"Other work-related activity (meeting, visit, sale call, etc.)",WR
+5,Attend school/class,SCH
+6,Other school-related activity,O
+7,"Routine shopping (grocery, get gas, clothing, convenience store, household maintenance, etc.)",SHP
+8,"Shopping for major purchase/specialty item (appliance, electronics, new vehicle, major household repairs, etc.)",SHP
+9,"Dining out/take-out/coffee (eat at restaurant, get take-out/fast-food)",EAT
+10,Pick someone up,PU
+11,Drop someone off,DO
+12,"Change type of transportation/Transfer to (take bus, airplane, park car or pick up parked car if walk 2+ blocks, etc.)",X
+13,"Household errands (bank/ATM, post office, dry cleaning, car services, etc.)",O
+14,"Personal business (visit government office, attorney, accountant, etc.)",O
+15,"Medical visit (doctor, dentist, etc.)",O
+16,"Recreation/entertainment (walk the dog, exercise/workout, go to a movie)",O
+17,Social (visit friends/relatives),O
+18,"Religious, civic, or volunteer",O
+19,Other (not at home),O

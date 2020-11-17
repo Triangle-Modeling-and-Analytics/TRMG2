@@ -1,0 +1,1063 @@
+---
+title: "Survey Processing"
+author: "Caliper Corporation"
+date: "11/17/2020"
+output: 
+  html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(broom)
+library(readxl)
+library(ggplot2)
+library(plotly)
+library(leaflet)
+library(sf)
+library(geosphere)
+library(knitr)
+library(scales)
+library(kableExtra)
+```
+
+```{r read_data, message=FALSE}
+# Household files
+hh_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Households_Final_2016-06-22_RSG.xlsx")
+# I exported an xlsx from the access database these were in
+combined_hh_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_hh_weights_2016.xlsx")
+hh_2016_raw <- hh_2016_raw %>%
+  left_join(combined_hh_weights_2016, by = c("hhID" = "hhid"))
+hh_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_HH_2020-04-28.xlsx")
+
+# Person files
+per_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Persons_Final_2016-07-01_RSG.xlsx")
+per_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_Person_2020-04-28.xlsx")
+
+# Trip files
+trips_2016_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/2016HTS_Data_Main_Trips_Final_2016-06-22_RSG.xlsx")
+# I exported an xlsx from the access database these were in
+combined_trip_weights_2016 <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2016 Recurrent HTS/1_Data - Original/combined_trip_weights_2016.xlsx") %>%
+  mutate(
+    hhid = as.numeric(hhid)
+    # personnum = str_pad(personnum, "2", "left", "0"),
+    # tripnum = str_pad(tripnum, "3", "left", "0"),
+    # hhID = paste0(hhid, personnum, tripnum)
+  )
+trips_2016_raw <- trips_2016_raw %>%
+  left_join(
+    combined_trip_weights_2016, 
+    by = c("hhID" = "hhid", "personNum" = "personnum", "tripNum" = "tripnum")
+  )
+trips_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2018 Recurrent HTS/1_Data - Original/2018RHTS_Trip_2020-04-28.xlsx")
+```
+
+## Introduction
+
+The Institute for Transportation Research and Education (ITRE) on behalf of the
+Triangle Region stakeholders, began conducting rolling household travel surveys
+in 2016. For the TRMG2 estimation, both the 2016 and 2018 surveys are available.
+This page documents the combination of those surveys along with any general
+processing steps not specific to a particular model.
+
+## Survey combination
+
+When RSG delivered the 2018 survey, they provided weighting and expansion factors
+for 2018 using two data sets:
+
+  * Only the 2018 samples
+  * A combination of 2016 and 2018 samples
+  
+The combined data set expansion was controlled using 2018 American Community
+Survey (ACS) marginals. For TRMG2, with a 2016 base year, these weights were
+close enough. For example, the table below shows that the original and combined
+weights for the 2016 records produce effectively the same distribution of
+household size.
+
+```{r}
+remove_na_2016 <- hh_2016_raw %>%
+  filter(!is.na(hhweight))
+remove_na_2018 <- hh_2018_raw %>%
+  filter(!is.na(hh_weight_2018))
+
+remove_na_2016 %>%
+  mutate(hhsize = ifelse(hhsize > 5, 5, hhsize)) %>%
+  group_by(hhsize) %>%
+  summarize(
+    weight_2016 = sum(hhweight),
+    weight_combined = sum(hh_weight_combined)
+  ) %>%
+  mutate(
+    pct_16 = round(weight_2016 / sum(weight_2016), 3),
+    pct_16 = percent(pct_16),
+    pct_combined = round(weight_combined / sum(weight_combined), 3),
+    pct_combined = percent(pct_combined)
+  ) %>%
+  select(
+    `HH Size` = hhsize, `2016 weights` = pct_16,
+    `Combined Weights` = pct_combined
+  ) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+For models where absolute counts of households matter (like trip production), the
+weights will be scaled down to match the 2016 socio-economic (SE) data's total
+household count.
+
+### Household table
+
+The 2016 survey's household table did have slight differences in the field names
+and definitions from the 2018 survey. Compared to the person and trip tables,
+the household table was easy to combine and did not result in losing any
+information.
+
+```{r combine_hhs}
+prep_2016 <- remove_na_2016 %>%
+  rename(hhid = hhID) %>%
+  mutate(
+    year = 2016,
+    hh_income_broad = ifelse(
+      hh_income_broad %in% c(5, 99), hhincome_imputed, hh_income_broad
+    )
+  ) %>%
+  select(-hhweight, -hhincome_imputed, -secondhome)
+prep_2018 <- remove_na_2018 %>%
+  mutate(
+    year = 2018,
+    home_loc_puma = str_pad(home_loc_puma, 5, "left", pad = "0"),
+    home_loc_tract = str_pad(home_loc_tract, 6, "left", pad = "0"),
+    hh_income_broad = ifelse(
+      imputed_income_flag == 1 | hh_income_broad == 99,
+      hh_income_imputed, hh_income_broad
+    )
+  ) %>%
+  select(
+    -imputed_income_flag, -hh_weight_2018, -hh_income_imputed,
+    -personhh_income_flag
+  )
+
+hh_combined <- bind_rows(
+  prep_2016, prep_2018
+)
+```
+
+### Person table
+
+The person table changed substantially between 2016 and 2018. As an example,
+race included 6 categories in 2016 and was contained in a single column. In
+2018, race only had 5 categories and was contained in 5 separate binary columns
+(e.g. `race_white` = 1 or 0). These formats had to be rectified, and the "Two+"
+race category from 2016 collapsed into "Other", before the tables could be
+combined.
+
+In addition, some fields in the 2016 table were not present in 2018 (and vice
+versa). The `num_transitpass` field kept track of how many transit passes the
+person used per week in 2016. This field was dropped in 2018. While several
+fields were dropped, none were critical to model estimation.
+
+```{r combine_persons}
+# combine persons
+
+# # Check for field discrepancies
+# bind_rows(
+#   per_2016_raw %>% mutate(year = 2016),
+#   per_2018_raw %>% mutate(year = 2018)
+# ) %>%
+#   group_by(year) %>%
+#   summarize_all(~sum(is.na(.))) %>%
+#   View()
+
+prep_per_2016 <- per_2016_raw %>%
+  mutate(
+    race = case_when(
+      race == 1 ~ "Asian",
+      race == 2 ~ "Black",
+      race == 3 ~ "White",
+      race == 4 ~ "Other",
+      race == 5 ~ "Other",
+      race == 6 ~ "Noanswer"
+    )
+  ) %>%
+  rename(
+    hhid = hhID,
+    personid = personID,
+    personnum = personNum,
+    worker_earnings = worker_income,
+    numtrips = num_trips
+  ) %>%
+  # remove fields that weren't collected in 2018
+  select(-c(
+    num_transitpass:work_transit, walk_freq,
+    hhweight, person_weight_final,
+    smartphone_iphone, smartphone_android, android_age
+  )) %>%
+  mutate(year = 2016)
+
+prep_per_2018 <- per_2018_raw %>%
+  select(-c(
+    segment:home_loc_region,
+    school_taz, school_region,
+    work_taz_1, work_region_1, work_taz_2, work_region_2,
+    secondhome_taz, secondhome_region,
+    hh_income_cat, hh_weight_combined, diary_order, copied_trips_available,
+    copied_trips_confirmed, user_ismobiledevice, education_flag,
+    school_mode_flag, hh_weight_2018
+  )) %>%
+  # handle other fields
+  mutate(
+    personid = as.character(personid),
+    year = 2018
+  )
+
+# collapse race fields into a single column
+race_collapse <- prep_per_2018 %>%
+  select(personid, race_asian:race_noanswer) %>%
+  mutate(race_noanswer = ifelse(is.na(race_noanswer), 1, race_noanswer)) %>%
+  pivot_longer(
+    cols = race_asian:race_noanswer,
+    names_to = "race"
+  ) %>%
+  filter(!is.na(value)) %>%
+  group_by(personid) %>%
+  # Collapse 2+ races into "other"
+  mutate(
+    race_count = sum(value),
+    value = ifelse(race_count > 1, 0, value),
+    value = ifelse(race_count > 1 & race == "race_other", 1, value)
+  ) %>%
+  filter(value == 1) %>%
+  mutate(
+    race = gsub("race_", "", race),
+    race = str_to_title(race)
+  ) %>%
+  select(-value, -race_count)
+
+prep_per_2018 <- prep_per_2018 %>%
+  left_join(race_collapse, by = "personid") %>%
+  select(-c(race_asian:race_noanswer))
+
+per_combined <- bind_rows(
+  prep_per_2016,
+  prep_per_2018
+)  
+```
+
+### Trip table
+
+Similar to the person table, the trip tables from 2016 and 2018 contained
+different fields and field definitions, which complicated the combination
+process. Importantly, the definition of activity purpose changed slightly
+between the two years. Both columns were left in the combined table, to be
+processed in the next step.
+
+```{r combine_trips}
+prep_trip_2016 <- trips_2016_raw %>%
+  mutate(
+    year = 2016,
+    personNum = str_pad(personNum, 2, "left", "0"),
+    hhID = as.character(hhID),
+    personid = paste0(hhID, personNum),
+    tripNum = str_pad(tripNum, 3, "left", "0"),
+    tripid = paste0(hhID, personid, tripNum)
+  ) %>%
+  rename(
+    hhid = hhID, personnum = personNum, tripnum = tripNum,
+    o_activity_2016 = o_activity, d_activity_2016 = d_activity,
+    vehiclenum = vehicleNum
+  ) %>%
+  select(-c(
+    tripweight1:tripweight4,
+    transit_access:transit_passtype, 
+    o_activity_derived, d_activity_derived, tollroad_cost, 
+    tollroad_cost_dontknow, trip_flag, gpsfact_age, gpsfact_inc, gpsfact_purp
+  ))
+
+prep_trip_2018 <- trips_2018_raw %>%
+  mutate(
+    year = 2018,
+    hhid = as.character(hhid),
+    personnum = as.character(personnum),
+    personid = str_pad(personid, 2, "left", "0"),
+    tripnum = str_pad(tripnum, 3, "left", "0"),
+    tripid = as.character(tripid)
+  ) %>%
+  select(-c(
+    last_trip, segment, origin_taz, origin_campus, origin_region,
+    destination_taz, destination_campus, destination_region,
+    departure_string, arrival_string, o_activity_itre, o_activity_final,
+    d_activity_itre, d_activity_final,
+    transit_access:transit_passtype, 
+    quality_flag, trip_weight_2018
+  )) %>%
+  rename(o_activity_2018 = o_activity, d_activity_2018 = d_activity)
+
+trip_combined <- bind_rows(
+  prep_trip_2016,
+  prep_trip_2018
+) %>%
+  mutate(
+    hhid = as.numeric(hhid),
+    personnum = as.numeric(personnum),
+    tripnum = as.numeric(tripnum)
+  ) %>%
+  select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
+  left_join(
+    per_combined %>% select(personid, age),
+    by = "personid"
+  ) %>%
+  mutate(party_size = num_hh_members + num_nonhh)
+```
+
+## Basic checks
+
+A common task in household survey processing is to remove households for various
+reasons. For instance, travel models estimate weekday travel, so households
+surveyed on the weekend must be removed. Households may have incomplete travel
+diaries, be located outside the model region, or have other issues that means
+they must be removed from estimation set.
+
+### Day of week
+
+Thanks to careful survey design, none of the Triangle households were surveyed
+on the weekend. The chart below shows the days surveyed (1 is Monday).
+
+```{r}
+temp <- hh_combined %>%
+  group_by(year, travelday) %>%
+  summarize(samples = n())
+
+ggplot(temp, aes(x = travelday, y = samples, fill = as.factor(travelday))) +
+  geom_bar(stat = "identity") +
+  guides(fill = FALSE) +
+  facet_wrap(~year)
+```
+
+Starting in 2018, the survey was improved to only collect travel diaries in the
+middle of the week. This improvement recognizes that Monday and Friday are often
+different from midweek, which can be due to holidays, vacations, alternative
+work schedules, or other reasons. This is a general rule of thumb, however, and
+is not necessarily true of all places at all times.
+
+A quick t-test was done to see if travel on Monday and Friday was statistically
+different from the mid-week (Tuesday through Thursday). The result suggests that
+trip making is not different on Monday and Friday, which means we can keep all
+surveyed households in our estimation set.
+
+```{r}
+# Compare Friday to not Friday
+t.test(
+  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
+  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
+  var.equal = TRUE # if false then performs Welch's t-test
+) %>%
+  tidy() %>%
+  # rename(`mean T-Th` = estimate1, `M & F` = estimate2) %>%
+  select(estimate1:p.value) %>%
+  pivot_longer(
+    cols = estimate1:p.value, names_to = "Parameter", values_to = "Value"
+  ) %>%
+  mutate(
+    Parameter = c(
+      "Average Trips/HH (Mon/Fri)",
+      "Average Trips/HH (Midweek)",
+      "t-stat",
+      "p.value"
+    )
+  ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+### Household locations
+
+It is also important to make sure that only households in your model region are
+used for estimation. In addition to the obvious reasons, it will also not be
+possible to collect a model-based skim of impedance for these households. The
+map below shows the locations of all households included in the survey. Each
+falls within the model boundary.
+
+```{r}
+shp <- hh_combined %>%
+  select(home_loc_lat, home_loc_lng) %>%
+  st_as_sf(
+    coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
+  )
+boundary_shp <- st_read(
+  "data/input/model_boundary/boundary 2020-11-02.shp",
+  quiet = TRUE
+)
+boundary_shp <- st_transform(boundary_shp, st_crs(shp))
+bbox <- as.list(st_bbox(boundary_shp))
+lng <- (bbox$xmin - bbox$xmax) / 2 + bbox$xmax
+lat <- (bbox$ymax - bbox$ymin) / 2 + bbox$ymin
+
+leaflet(
+  options = leafletOptions(zoomControl = FALSE, minZoom = 9, maxZoom = 9)
+) %>%
+  addTiles() %>%
+  addPolygons(
+    data = boundary_shp,
+    color = "#444444", weight = 1, smoothFactor = 0.5
+  ) %>%
+  addCircleMarkers(
+    data = shp, radius = 1, weight = 3,
+    opacity = .2, fillOpacity = .2
+  ) %>%
+  setView(lng, lat, zoom = 9)
+```
+
+### Weight distribution
+
+It is important to check the weighting and expansion of a survey for extreme
+weight values. To do this, the weights must first be normalized based on the
+expected average weight per sample. A simple comparison of two hypothetical
+surveys explains why:
+
+1. A survey with 100 samples of a population of 100,000: Average weight = 1,000
+2. A survey with 1000 samples of a population of 100,000: Average weight = 100
+
+A household weight of 1,000 in the first survey is reasonable based on the
+number of samples, but it is 10 times the expected weight in the second survey.
+For the 2016+2018 combined survey, the average weight is shown below.
+
+```{r}
+temp <- hh_combined %>%
+  summarize(
+    Samples = n(),
+    `Total Households` = sum(hh_weight_combined),
+    `Average Weight` = `Total Households` / Samples
+  ) %>%
+  pivot_longer(cols = everything())
+
+weight_mean <- mean(hh_combined$hh_weight_combined)
+colnames(temp) <- c("", "")
+
+temp %>%
+  kable(digits = 0) %>%
+  kable_styling(full_width = FALSE)
+```
+
+The first histogram below shows the distribution of weights divided by the mean
+weight. While the largest weight is 15x the mean weight, this is an outlier and
+most are within 6x. This is a reasonable result and indicates and well-designed
+sample plan that collected adequate numbers of households in all the demographic
+groups of interest.
+
+```{r}
+ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Weight / Average Weight")
+```
+
+The second histogram below inverts the factor above and divides the average
+weight by the individual households weights. Large factors in this histogram
+would indicate the presence of small weights. The smallest weight (17.3) is 14%
+of the average weight, suggesting a modest over sample, but is well within
+reason.
+
+```{r}
+ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
+  geom_histogram(color="black", fill="orange", bins = 10) +
+  xlab("Average Weight / Weight")
+```
+
+After a review of RSGs expansion procedure and the review of weights above,
+Caliper determined that the weights were appropriate for use in model
+estimation.
+
+### Income imputation
+
+The survey provides income at two levels of aggregation: 10 categories or 5. RSG
+imputed incomes for the broad category in order to use ACS income information
+during survey expansion. The imputation:
+
+  1. Further stratified category 5 (\$100k+) into those above and below \$150k.
+  2. Estimated incomes for those households that did not report.
+  
+In order to preserve all the records in the survey, the Caliper team used the
+imputed, broad categories of income. The table below shows the count of samples
+by the original and imputed categories.
+
+```{r}
+temp_broad <- bind_rows(
+  remove_na_2016 %>%
+    select(hh_income_broad),
+  remove_na_2018 %>%
+    select(hh_income_broad)
+) %>%
+  group_by(hh_income_broad) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  rename(Original = hh_income_broad, count1 = count)
+
+df <- bind_cols(
+  temp_broad,
+  hh_combined %>%
+    group_by(hh_income_broad) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    rename(Imputed = hh_income_broad, count2 = count)
+)
+colnames(df) <- c("Original", "Count", "Imputed", "Count")
+df$Original <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000 or more",
+  "Prefer not to answer"
+)
+df$Imputed <- c(
+  "Under $25,000",
+  "$25,000-$49,999",
+  "$50,000-$74,999",
+  "$75,000-$99,999",
+  "$100,000-$149,999",
+  "$150,000 or more"
+)
+
+df %>%
+  kable() %>%
+  kable_styling()
+```
+
+A full discussion of their income imputation can be found in the survey
+documentation. They used ordinal logistic regression to predict income
+categories based on household features like size and number of households (among
+others).
+
+## Trip processing
+
+### Activity purpose
+
+The atomic model purposes are shown below. These represent the fundamental
+activity purposes and may be aggregated during the estimation of specific model
+components.
+
+- H: Home (non-work activities at home)
+- W: Work
+- WR: Work-related (e.g. making a delivery)
+- SCH: School. Clarified explicitly in the person table into:
+  - PreK: Pre-Kindergarten
+  - K12: Kindergarten through 12th grade
+  - U: University or College
+- SHP: Shop
+- EAT: Dining out
+- PU: Pick up
+- DO: Drop off
+- X: Transfer modes (e.g. at a bus stop)
+- O: Other
+
+The table below shows how the survey purposes (for both years) were collapsed
+into the purposes above.
+
+```{r, include=FALSE}
+activity_2016 <- read_csv("data/input/survey_processing/activity_2016.csv")
+activity_2018 <- read_csv("data/input/survey_processing/activity_2018.csv")
+```
+
+```{r}
+activity_2016 %>%
+  left_join(activity_2018, by = "code") %>%
+  rename(
+    `Activity Code` = code,
+    `2016 Description` = activity_long.x,
+    `2016 Equivalence` = activity.x,
+    `2018 Description` = activity_long.y,
+    `2018 Eqiuvalence` = activity.y
+  ) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+```{r activity_purpose}
+act_to_join_2016 <- activity_2016 %>% select(-activity_long)
+act_to_join_2018 <- activity_2018 %>% select(-activity_long)
+
+convert_purpose <- trip_combined %>%
+  left_join(act_to_join_2016, by = c("o_activity_2016" = "code")) %>%
+  rename(o_activity1 = activity) %>%
+  left_join(act_to_join_2016, by = c("d_activity_2016" = "code")) %>%
+  rename(d_activity1 = activity) %>%
+  left_join(act_to_join_2018, by = c("o_activity_2018" = "code")) %>%
+  rename(o_activity2 = activity) %>%
+  left_join(act_to_join_2018, by = c("d_activity_2018" = "code")) %>%
+  rename(d_activity2 = activity) %>%
+  mutate(
+    o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
+    d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1),
+  ) %>%
+  select(-c(o_activity1:d_activity2)) %>%
+  mutate(
+    mode = case_when(
+      mode == 1 ~ "auto_own",
+      mode == 2 & mode_othauto == 1 ~ "auto_work",
+      mode == 2 & mode_othauto == 2 ~ "auto_rental",
+      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
+      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
+      mode == 2 ~ "auto_other",
+      mode == 3 ~ "bus",
+      mode == 4 ~ "walk",
+      mode == 5 ~ "bike",
+      mode == 6 ~ "other"
+    )
+  ) %>%
+  left_join(
+    per_combined %>% select(personid, school),
+    by = "personid"
+  ) %>%
+  mutate(
+    # some people marked 1-yo old as student with school at home. Not what
+    # we are interested in.
+    # student_type = ifelse(is.na(school), 0, 1),
+    student_type = case_when(
+      school >= 4 & school <= 9 ~ "K12",
+      school >= 10 & school <= 13 ~ "U",
+      !is.na(school) ~ "PreK",
+      TRUE ~ ""
+    ),
+    o_activity = case_when(
+      o_activity != "SCH" ~ o_activity,
+      student_type != "" ~ student_type,
+      TRUE ~ "SCH?"
+    ),
+    d_activity = case_when(
+      d_activity != "SCH" ~ d_activity,
+      student_type != "" ~ student_type,
+      TRUE ~ "SCH?"
+    ),
+    homeschooled_flag = ifelse(school %in% c(5, 7, 9), 1, 0)
+  )
+```
+
+### Places
+
+As explained above, the definition of a work activity in the 2016 survey did not
+specify whether work was performed in or outside the home. Caliper computed a
+place code for every trip end independent of activity.
+
+- H: Home
+- W: Work
+- S: School
+- O: Other
+
+Home and school locations were derived by comparing the activity location
+(long/lat) with the home and school locations. Trip ends within 100 meters of
+the home were tagged to the appropriate place type. This approach gave a more
+accurate result than depending on the names each person gave their origin and
+destination, which varied widely. It also handled several cases where
+respondents separated places like "front yard" and "shed" from their physical
+home.
+
+Work locations could not be handled the same way. Not only do people have
+multiple jobs, but many had jobs without fixed work locations (e.g. nanny). For
+this reason, we relied on the stated activity purpose to determine work places.
+
+
+
+```{r determine_place}
+# Use calculated distances (rather than place names) to determine trip end
+# place type (H, W, S(chool), O)
+calc_dist <- function(x1, y1, x2, y2) {
+  df1 <- tibble(lng = x1, lat = y1)
+  df2 <- tibble(lng = x2, lat = y2)
+  distHaversine(df1, df2)
+}
+
+det_home_place <- convert_purpose %>%
+  # Home
+  left_join(
+    hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
+    by = "hhid"
+  ) %>%
+  mutate(
+    o_home_dist = calc_dist(
+      origin_lng, origin_lat, home_loc_lng, home_loc_lat),
+    d_home_dist = calc_dist(
+      destination_lng, destination_lat, home_loc_lng, home_loc_lat),
+    o_place = ifelse(o_home_dist < 100, "H", "O"),
+    o_place = ifelse(is.na(o_place), "O", o_place),
+    o_place = ifelse(origin_name == "HOME", "H", o_place),
+    d_place = ifelse(d_home_dist < 100, "H", "O"),
+    d_place = ifelse(is.na(d_place), "O", d_place),
+    d_place = ifelse(destination_name == "HOME", "H", d_place)
+  ) %>%
+  select(-home_loc_lat, -home_loc_lng) %>%
+  # correct home activities that don't happen at home
+  mutate(
+    o_activity = ifelse(o_activity == "H" & o_place != "H", "O", o_activity),
+    d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
+  )
+
+school_loc <- per_combined %>%
+  select(hhid, personid, school_address, school_lat, school_lng) %>%
+  left_join(
+    hh_combined %>% select(hhid, home_loc_address),
+    by = "hhid"
+  ) %>%
+  filter(!is.na(school_lat) & home_loc_address != school_address) %>%
+  select(-hhid, -home_loc_address)
+
+det_sch_place <- det_home_place %>%
+  left_join(school_loc, by = "personid") %>%
+  mutate(
+    o_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
+    d_sch_dist = calc_dist(
+      destination_lng, destination_lat, school_lng, school_lat),
+    o_place = case_when(
+      is.na(o_sch_dist) ~ o_place,
+      o_place == "H" ~ "H",
+      # o_sch_dist < 100 ~ "S",
+      origin_address == school_address ~ "S",
+      TRUE ~ o_place
+    ),
+    d_place = case_when(
+      is.na(d_sch_dist) ~ d_place,
+      d_place == "H" ~ "H",
+      # d_sch_dist < 100 ~ "S",
+      destination_address == school_address ~ "S",
+      TRUE ~ d_place
+    ),
+    # Guess school places for students with missing school loc info
+    o_place = ifelse(
+      student_type != "" &
+        is.na(school_address) &
+        o_activity %in% c("PreK", "K12", "U") &
+        o_place == "O" &
+        str_detect(origin_name, "school"),
+      "S", o_place
+    ),
+    d_place = ifelse(
+      student_type != "" &
+        is.na(school_address) &
+        d_activity %in% c("PreK", "K12", "U") &
+        d_place == "O" &
+        str_detect(origin_name, "school"),
+      "S", d_place
+    )
+  ) %>%
+  select(-school_lng, -school_lat)
+
+# Determining work place is harder. People have multiple jobs, and some jobs
+# don't have fixed addresses. Rely on their reported activity.
+det_work_place <- det_sch_place %>%
+  mutate(
+    o_place = case_when(
+      o_place == "H" ~ "H",
+      o_activity == "W" ~ "W",
+      TRUE ~ o_place
+    ),
+    d_place = case_when(
+      d_place == "H" ~ "H",
+      d_activity == "W" ~ "W",
+      TRUE ~ d_place
+    )
+  ) %>%
+  relocate(o_place, .before = o_activity) %>%
+  relocate(d_place, .after = o_place)
+```
+
+### Tour formation
+
+While the TRMG2 is a trip-based model, the production rates and other estimated
+behavior can still make use of tour information to improve predictive power. At
+the same time, the trip-based formulation means that tour formation is much
+simpler. Rather than requiring detailed tour pattern information to support
+coordinated activity patterns within a household, tours can be classified
+simply as work or non-work.
+
+For each person in the survey, a tour begins with their first trip and ends
+when they return home. A second tour starts if they leave home again. A tour is
+classified as a work tour if the traveler has a work activity during the tour.
+If they do not, then the tour is classified as non-work.
+
+There is a third tour type ("home"), that handles cases where the survey reports
+trips within the home. For example, when a respondent reports being at home and
+then working from home, the survey includes that as a trip. Home tours also
+capture things like recreational walks that start and end at the home. For the
+purpose of travel modeling, these home tours are ignored.
+
+```{r tour_formation}
+determine_tours <- det_work_place %>%
+  group_by(personid) %>%
+  mutate(
+    new_tour = ifelse(row_number() == 1, 1, 0),
+    new_tour = ifelse(o_place == "H", 1, new_tour),
+    tour_num = cumsum(new_tour)
+  ) %>%
+  group_by(personid, tour_num) %>%
+  mutate(
+    trips_in_tour = n(),
+    tour_distance = sum(distance),
+    tour_duration = last(arrival_time) - first(departure_time),
+    tour_anchor = ifelse(d_activity == "W", "W", ""),
+    tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
+    tour_type = case_when(
+      "W" %in% tour_anchor ~ "W",
+      "H" %in% tour_anchor ~ "H",
+      "S" %in% tour_anchor ~ "S",
+      TRUE ~ "O"
+    ),
+    o_party_size_change = party_size - lag(party_size),
+    d_party_size_change = lead(party_size) - party_size,
+    o_act_dur = departure_time - lag(arrival_time),
+    d_act_dur = lead(departure_time) - arrival_time
+  )
+
+# loop trips are things like recreational walks
+flag_loop_trips <- determine_tours %>%
+  mutate(
+    loop_flag = case_when(
+      trips_in_tour > 2 ~ 0,
+      d_act_dur > 10 ~ 0,
+      !(mode %in% c("walk", "bike")) ~ 0,
+      "walk" %in% origin_name ~ 1,
+      "walk" %in% destination_name ~ 1,
+      !(o_activity %in% c("H", "O")) ~ 0,
+      !(d_activity %in% c("H", "O")) ~ 0,
+      TRUE ~ 1
+    )
+  )
+```
+
+### Problems
+
+```{r}
+num_sch_problems <- flag_loop_trips %>%
+  mutate(
+    sch_flag = case_when(
+      o_activity == "SCH?" ~ 1,
+      d_activity == "SCH?" ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  filter(sch_flag == 1) %>%
+  nrow()
+```
+
+```{r clean_sch_probs}
+add_key <- flag_loop_trips %>%
+  ungroup() %>%
+  unite(
+    key, hhid, origin_address, departure_time, destination_address,
+    arrival_time,
+    remove = FALSE
+  )
+
+# check to see how many missing joint trips there are. i.e other hh members
+# report hh member 3 was on the trip, but hh member 3 doesn't have that trip
+# listed.
+temp <- add_key %>%
+  select(key, num_hh_members) %>%
+  group_by(key) %>%
+  mutate(count = n()) %>%
+  slice(1)
+num_missing_joint_trips <- sum(temp$num_hh_members) - sum(temp$count)
+remove(temp)
+
+# this checks to see if anyone in the trip had school as origin/dest place.
+# Drop off trips with school trips often take longer (e.g. waiting for the
+# bus or carpool).
+s_check <- add_key %>%
+  select(key, o_place, d_place) %>%
+  group_by(key) %>%
+  mutate(
+    o_s_check = ifelse("S" %in% o_place, 1, 0),
+    d_s_check = ifelse("S" %in% d_place, 1, 0)
+  ) %>%
+  summarize(
+    o_s_check = max(o_s_check),
+    d_s_check = max(d_s_check)
+  )
+
+# Use logic to identify pu/do trips. Many of the SCH? activities are actually
+# pu/do.
+fix_pudo <- add_key %>%
+  left_join(s_check, by = "key") %>%
+  mutate(
+    # flag trips where the logic identifies DO before changing purpose
+    d_do_flag = case_when(
+      d_party_size_change >= 0 ~ 0,
+      d_act_dur <= 10 ~ 1,
+      d_act_dur <= 25 & d_s_check == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    d_activity = ifelse(d_do_flag == 1, "DO", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_do_flag)) ~ o_activity,
+      lag(d_do_flag) == 1 ~ "DO",
+      TRUE ~ o_activity
+    ),
+    d_pu_flag = case_when(
+      d_party_size_change <= 0 ~ 0,
+      d_act_dur <= 10 ~ 1,
+      d_act_dur <= 25 & o_s_check == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    d_activity = ifelse(d_pu_flag == 1, "PU", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_pu_flag)) ~ o_activity,
+      lag(d_pu_flag) == 1 ~ "PU",
+      TRUE ~ o_activity
+    ),
+    # Differentiate PU/DO at school from other
+    d_activity = ifelse(
+      d_activity %in% c("PU", "DO") & d_s_check == 1,
+      paste0(d_activity, "S"), d_activity
+    ),
+    o_activity = case_when(
+      is.na(lag(d_activity)) ~ o_activity,
+      lag(d_activity) %in% c("PUS", "DOS") ~ paste0(o_activity, "S"),
+      TRUE ~ o_activity
+    )
+  ) %>%
+  select(-c(o_s_check:d_pu_flag))
+
+fix_remaining_sch <- fix_pudo %>%
+  mutate(
+    o_activity = ifelse(o_activity == "SCH?" & o_place == "H", "H", o_activity),
+    o_activity = ifelse(o_activity == "SCH?", "O", o_activity),
+    d_activity = ifelse(d_activity == "SCH?" & d_place == "H", "H", d_activity),
+    d_activity = ifelse(d_activity == "SCH?", "O", d_activity),
+  )
+```
+
+```{r clean_bus_probs}
+# School kids going to bus stops are not handled consistently. Fix them.
+fix_bus <- fix_remaining_sch %>%
+  mutate(
+    bus_flag = ifelse(
+      str_detect(tolower(destination_name), "bus") &
+        !str_detect(tolower(destination_name), "business") &
+        mode != lead(mode) &
+        d_activity %in% c("PreK", "K12", "U"),
+      1, 0
+    ),
+    d_activity = ifelse(bus_flag == 1, "X", d_activity),
+    o_activity = case_when(
+      is.na(lag(d_activity)) ~ o_activity,
+      lag(d_activity) == "X" ~ "X",
+      TRUE ~ o_activity
+    )
+  ) %>%
+  select(-bus_flag)
+
+
+```
+
+Numerous problems detected:
+
+- School activities reported by non-students (`r num_sch_problems` trips)
+  - Pickup/Dropoff coded as school (300 trips)
+  - Bus stops coded as school rather than mode transfer (70 trips)
+- Missing joint trips (`r num_missing_joint_trips`). E.g., a trip references 
+  two hh members but second member doesn't have that trip
+- Kids marked as homeschool but go to traditional school on travel day for
+  school activity (30)
+- Students without school address in person file (195)
+- Home activities reported at non-home locations (e.g. "In-laws house") (2,147)
+  - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
+
+### Trip linking
+
+**NEED PROSE**
+
+```{r link_out_bus}
+bus_flag <- fix_bus %>%
+  mutate(
+    bus_flag = case_when(
+      o_activity != "X" & d_activity != "X" ~ 0,
+      str_detect(tolower(destination_name), "bus") &
+        !str_detect(tolower(destination_name), "business") ~ 1,
+      str_detect(tolower(origin_name), "bus") &
+        !str_detect(tolower(origin_name), "business") ~ 1,
+      str_detect(tolower(destination_name), "transit") ~ 1,
+      str_detect(tolower(origin_name), "transit") ~ 1,
+      TRUE ~ 0
+    )
+  )
+
+# Create a separate df of only the flagged trips. Collapse trip records on
+# the same subtour into single trip records.
+flagged_only  <- bus_flag  %>%
+  filter(bus_flag == 1) %>%
+  mutate(
+    start_flag = ifelse(o_activity != "X" & d_activity == "X", 1, 0),
+    end_flag = ifelse(o_activity == "X" & d_activity != "X", 1, 0),
+    sub_tour = cumsum(start_flag)
+  ) %>%
+  group_by(personid, tour_num, sub_tour) %>%
+  mutate(
+    linked_modes = paste(unique(mode), collapse = " "),
+    across(
+      c(mode, num_hh_members:num_nonhh),
+      ~ .x[duration == max(duration, na.rm = TRUE)]
+    ),
+    across(
+      c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
+      ~ min(ifelse(is.na(.x), 999, .x), na.rm = TRUE)
+    ),
+    park_address = first(park_address[!is.na(park_address)]),
+    across(
+      c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
+      ~ ifelse(.x == 999, NA, .x)
+    ),
+    trip_weight_combined = mean(trip_weight_combined),
+    speed_mph = round(distance / duration / 60, 0),
+    across(
+      starts_with(c("destination_", "d_", "arrival_time")),
+      ~ last(.x)
+    ),
+    across(
+      c("distance", "duration", "reported_duration"),
+      ~ sum(.x)
+    ),
+    duration_string = paste0(
+      str_pad(duration %/% 60, 2, "left", "0"),
+      ":",
+      str_pad(duration %% 60, 2, "left", "0")
+    )
+  ) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(-c(bus_flag:sub_tour)) %>%
+  mutate(linked_flag = 1)
+
+xfer_linked_out <- bus_flag %>%
+  filter(bus_flag == 0) %>%
+  select(-bus_flag) %>%
+  bind_rows(flagged_only) %>%
+  arrange(hhid, personnum, tripnum) %>%
+  relocate(linked_modes, .after = linked_flag) %>%
+  mutate(linked_flag = ifelse(is.na(linked_flag), 0, linked_flag))
+```
+
+
+```{r write tables, eval=FALSE}
+# This treatment prevents the output files from being changed unintentionally
+# while knitting, testing, etc.
+if (1 == 0) {
+  write_csv(
+    hh_combined,
+    "data/output/_PRIVATE/survey_processing/hh_processed.csv",
+    na = ""
+  )
+  write_csv(
+    per_combined,
+    "data/output/_PRIVATE/survey_processing/per_processed.csv",
+    na = ""
+  )
+  write_csv(
+    xfer_linked_out,
+    "data/output/_PRIVATE/survey_processing/trips_processed.csv",
+    na = ""
+  )
+}
+```
+

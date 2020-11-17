@@ -1,0 +1,5 @@
+# This folder is used to store sensitive data (like the household surveys) that must not
+# be pushed to GitHub. Contact Leta Huntsinger to request access to these files.
+
+*
+!.gitignore
