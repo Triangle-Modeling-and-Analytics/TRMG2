@@ -1,7 +1,7 @@
 ---
 title: "Survey Processing"
 author: "Caliper Corporation"
-date: "11/16/2020"
+date: "11/17/2020"
 output: 
   html_document
 editor_options: 
@@ -842,10 +842,12 @@ num_sch_problems <- flag_loop_trips %>%
 ```
 
 ```{r clean_sch_probs}
-add_key <- determine_tours %>%
+add_key <- flag_loop_trips %>%
   ungroup() %>%
   unite(
-    key, hhid, origin_address, departure_time, destination_address, arrival_time
+    key, hhid, origin_address, departure_time, destination_address,
+    arrival_time,
+    remove = FALSE
   )
 
 # check to see how many missing joint trips there are. i.e other hh members
@@ -876,11 +878,7 @@ s_check <- add_key %>%
 
 # Use logic to identify pu/do trips. Many of the SCH? activities are actually
 # pu/do.
-fix_pudo <- determine_tours %>%
-  unite(
-    key, hhid, origin_address, departure_time, destination_address, arrival_time,
-    remove = FALSE
-  ) %>%
+fix_pudo <- add_key %>%
   left_join(s_check, by = "key") %>%
   mutate(
     # flag trips where the logic identifies DO before changing purpose
@@ -918,7 +916,8 @@ fix_pudo <- determine_tours %>%
       lag(d_activity) %in% c("PUS", "DOS") ~ paste0(o_activity, "S"),
       TRUE ~ o_activity
     )
-  )
+  ) %>%
+  select(-c(o_s_check:d_pu_flag))
 
 fix_remaining_sch <- fix_pudo %>%
   mutate(
@@ -995,11 +994,11 @@ flagged_only  <- bus_flag  %>%
   ) %>%
   group_by(personid, tour_num, sub_tour) %>%
   mutate(
+    linked_modes = paste(unique(mode), collapse = " "),
     across(
-      c(num_hh_members:num_nonhh),
+      c(mode, num_hh_members:num_nonhh),
       ~ .x[duration == max(duration, na.rm = TRUE)]
     ),
-    mode = paste(unique(mode), collapse = " "),
     across(
       c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
       ~ min(ifelse(is.na(.x), 999, .x), na.rm = TRUE)
@@ -1034,25 +1033,30 @@ xfer_linked_out <- bus_flag %>%
   filter(bus_flag == 0) %>%
   select(-bus_flag) %>%
   bind_rows(flagged_only) %>%
-  arrange(hhid, personnum, tripnum)
+  arrange(hhid, personnum, tripnum) %>%
+  relocate(linked_modes, .after = linked_flag) %>%
+  mutate(linked_flag = ifelse(is.na(linked_flag), 0, linked_flag))
 ```
 
 
 ```{r write tables, eval=FALSE}
 # This treatment prevents the output files from being changed unintentionally
 # while knitting, testing, etc.
-if {1 = 0} {
+if (1 == 0) {
   write_csv(
     hh_combined,
-    "data/output/_PRIVATE/survey_processing/hh_processed.csv"
+    "data/output/_PRIVATE/survey_processing/hh_processed.csv",
+    na = ""
   )
   write_csv(
     per_combined,
-    "data/output/_PRIVATE/survey_processing/per_processed.csv"
+    "data/output/_PRIVATE/survey_processing/per_processed.csv",
+    na = ""
   )
   write_csv(
     xfer_linked_out,
-    "data/output/_PRIVATE/survey_processing/trips_processed.csv"
+    "data/output/_PRIVATE/survey_processing/trips_processed.csv",
+    na = ""
   )
 }
 ```
