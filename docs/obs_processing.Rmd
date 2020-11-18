@@ -1,0 +1,18 @@
+---
+title: "On-board Survey Processing"
+author: "Caliper Corporation"
+date: "11/17/2020"
+output: 
+  html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+```
+
