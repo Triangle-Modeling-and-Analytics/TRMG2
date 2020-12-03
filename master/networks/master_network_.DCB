@@ -1,5 +1,5 @@
-TRMv6 True Universe Network
-108
+TRMG2 Master Network
+116
 "ID",I,1,4,0,10,0,,"","",,"Sum",
 "ID:1",I,5,4,0,10,0,,"","",,"Blank",
 "ID:1:1",I,9,4,0,10,0,,"","",,"Blank",
@@ -18,3 +18,5 @@ TRMv6 True Universe Network
 "PnR Category2",C,85,16,0,16,0,,"","",,"Blank",
 "Preserve",I,101,4,0,8,0,,"","",,"Blank",
 "MaxDriveTime",I,105,4,0,8,0,,"","",,"Blank",
+"Original_Node_ID",I,109,4,0,8,0,,"","",,"Sum",
+"Existing",I,113,4,0,8,0,,"","",,"Sum",
