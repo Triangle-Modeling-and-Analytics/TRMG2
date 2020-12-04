@@ -20,31 +20,31 @@ to fashion a new master network for both highway and transit.
 
 ### Creating the master network
 
-Like TRMv6, the TRMG2 model uses a master network that contains all
-projects stakeholders might consider (even competing ideas). This allows each
-scenario network to be exported from the master with little or no manual editing.
-Information on using the project management tools is covered in the user's guide.
+Like TRMv6, the TRMG2 model uses a master network that contains all projects
+stakeholders might consider (including competing ideas). This allows each
+scenario network to be exported from the master with little or no manual
+editing. Information on using the project management tools is covered in the
+user's guide.
 
 The previous highway network made heavy use of numeric codes that translated
 into values (e.g. a facility type of 1 might signify interstate). For TRMG2,
-these fields now contain the character values directly, which improves
+these fields now contain the string values directly, which improves
 understanding, usability, and maintenance of the network. It also makes the
 model's GISDK code easier to read.
 
 For these same reasons, the previous "Special" field was broken up into new
 HOV and Toll-related fields. For example, the "TollType" field includes values
-like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It will be much
-easier to find scenario toll links using a query like "TollType = 'Toll'"
-compared to "Special = 43". For a full enumeration of field names and meanings,
-see the user's guide.
+like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It is easier to
+understand a query like "TollType = 'Toll'" compared to "Special = 43". For a
+full enumeration of field names and meanings, see the user's guide.
 
 The Caliper team also updated the master network to reflect a 2016 base year
-during model estimation (the final network is a 2020 base year). What this means
-is that, if you include no projects in a scenario, the resulting scenario
-network will reflect that base year. This was done by permanently modifying the
-base attributes of the master network with any projects scheduled to be complete
-by the base year date. This did include some road closures, and those links
-dropped out of the network permanently.
+during model estimation (the final network is a 2020 base year). In other words,
+if you export a scenario network without any projects it will reflect the 2016
+road system. This was done by permanently modifying the base attributes of the
+master network with any projects scheduled to be complete by the base year date.
+This did include some road closures, and those links dropped out of the network
+permanently.
 
 ### Checking the master network
 
@@ -53,7 +53,7 @@ new master network's projects matched the previous. To be exhaustive, Caliper
 wrote code do this programmatically. For instance, every project in the old
 master network had it's length checked against the new network. Of the well-
 over 1000 projects, only 6 had length discrepancies. Each was investigated and
-corrected if necessary.
+corrected as necessary.
 
 ### Loading count data
 
