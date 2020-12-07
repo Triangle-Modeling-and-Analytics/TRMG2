@@ -1,5 +1,5 @@
 TRMG2 Master Network
-978
+986
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "ID:1",I,5,4,0,10,0,,"","",,"Sum",
 "RoadName",C,9,32,0,32,0,,"","",,"Copy",
@@ -110,3 +110,4 @@ TRMG2 Master Network
 "Lateral_ClearanceBA2",R,963,8,0,10,2,,"Sum|Avg","",,"Copy",
 "Parking2",I,971,4,0,10,0,,"Sum|Avg","",,"Copy",
 "Remain_Highway2",I,975,4,0,10,0,,"Sum|Avg","",,"Copy",
+"ff_time",R,979,8,0,10,2,,"","",,"Sum",
