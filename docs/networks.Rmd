@@ -65,3 +65,15 @@ model volumes and count data.
 
 ### Network Conflation
 
+Place holder documentation:
+
+- Adam did a review of the entire network
+- Improved alignments, added collector/distributors/ramps, etc.
+- I performed connectivity checks
+- Also did a skim comparison.
+  - Final %RMSE: 0.25%
+  - Localized changes were more drastic. (see working_files/network_conflation/comparison_pics)
+- A lot of work done to improve Capital Blvd north of downtown. Included transit work.
+- I put shapefile exports of the old/new networks in data/input/networks/conflation.
+  - Consider leaflet maps.
+
