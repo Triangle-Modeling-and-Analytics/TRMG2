@@ -1,8 +1,9 @@
 Final_TRMNG_TAZ
-61
+65
 "ID",I,1,4,0,4,0,,"","",,"Sum",
-"District",I,5,4,0,8,0,,"","",,"Blank",
-"County",C,9,20,0,20,0,,"","",,"Blank",
-"PUMA",C,41,8,0,8,0,,"","",,"Copy",
-"Tract",C,29,12,0,12,0,,"","",,"Copy",
+"District",I,5,4,0,8,0,,"","",,"Copy",
+"County",C,9,20,0,20,0,,"","",,"Copy",
+"PUMA",C,29,8,0,8,0,,"","",,"Copy",
+"Tract",C,37,12,0,12,0,,"","",,"Copy",
 "BG",C,49,13,0,13,0,,"","",,"Copy",
+"orig_id",I,62,4,0,8,0,,"","This is the ID before I split zones",,"Copy",
