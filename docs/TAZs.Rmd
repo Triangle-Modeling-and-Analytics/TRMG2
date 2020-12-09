@@ -62,10 +62,10 @@ se_data <- read_csv(
 )
 
 # Remove outputs from old model
-remove_outputs <- se_data %>%
-  select(TAZ_NG:Retail)
+# remove_outputs <- se_data %>%
+#   select(TAZ_NG:Retail)
 
-calc_percents <- remove_outputs %>%
+calc_percents <- se_data %>%
   left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
   group_by(TAZ_NG) %>%
   mutate(pct = AREA / sum(AREA)) %>%
@@ -77,7 +77,12 @@ calc_percents <- remove_outputs %>%
     TAZ_NG = ifelse(is.na(ID), TAZ_NG, ID),
     County = ifelse(County == "External", "External", "Internal")
   ) %>%
-  select(TAZ = TAZ_NG, Type = County, HH:Retail)
+  select(
+    TAZ = TAZ_NG, Type = County, HH:Retail, K12 = ENROLLMENT,
+    ParkCostW = PrkCosW1, ParkCostO = PrkCosO1, ParkCostU = PrkCosU1, 
+    ADT:PCTCVEE
+  ) %>%
+  arrange(TAZ)
 ```
 
 ```{r}
