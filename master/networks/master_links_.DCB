@@ -1,8 +1,7 @@
 TRMG2 Master Network
-48
-"new_id",I,1,4,0,4,0,,"","",,"Sum",
+44
+"new_id:1",I,1,4,0,4,0,,"","",,"Sum",
 "TAZ",I,5,4,0,8,0,,"","",,"Blank",
 "External",I,9,4,0,8,0,,"","",,"Blank",
 "PnR Category1",C,13,16,0,16,0,,"","",,"Blank",
 "PnR Category2",C,29,16,0,16,0,,"","",,"Blank",
-"original_taz",I,45,4,0,8,0,,"","This is the TAZ ID from the zones before I split them",,"Sum",

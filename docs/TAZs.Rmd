@@ -77,7 +77,7 @@ calc_percents <- remove_outputs %>%
     TAZ_NG = ifelse(is.na(ID), TAZ_NG, ID),
     County = ifelse(County == "External", "External", "Internal")
   ) %>%
-  select(TAZ = TAZ_NG, Type = County, HH:Retail) %>%
+  select(TAZ = TAZ_NG, Type = County, HH:Retail)
 ```
 
 ```{r}
