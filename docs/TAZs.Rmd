@@ -1,0 +1,91 @@
+---
+title: "Traffic Analysis Zones"
+author: "Caliper Corporation"
+date: "12/8/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(sf)
+library(leaflet)
+```
+
+```{r}
+taz_old <- sf::read_sf("data/input/tazs/tazs 2020-11-02.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+taz_new <- sf::read_sf("data/input/tazs/tazs 2020-12-08.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
+
+- Did a review focused on large zones and universities
+- Presented initial recommendations
+- Incorporated feedback and made edits
+
+```{r}
+leaflet() %>%
+  addPolygons(
+    data = taz_new,
+    weight = 1,
+    fill = FALSE,
+    color = "red"
+  ) %>%
+  addPolygons(
+    data = taz_old,
+    weight = 1,
+    fill = FALSE
+  ) #%>%
+  # setView(-78.404481, 35.464345, zoom = 12)
+```
+
+## Network updates
+
+- Updated master highway layer with new centroids and connectors.
+  - re-exported to make sure node IDs matched TAZ IDs
+  
+## Socio-economic updates
+
+- Place holder approach uses area to distribute se data into split zones
+
+```{r}
+se_data <- read_csv(
+  "data/input/se_data/se_2016.csv",
+  col_types = cols(
+    .default = col_double(),
+    County = col_character(),
+    TRM_6.2_Fill = col_logical()
+  )
+)
+
+# Remove outputs from old model
+remove_outputs <- se_data %>%
+  select(TAZ_NG:Retail)
+
+calc_percents <- remove_outputs %>%
+  left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
+  group_by(TAZ_NG) %>%
+  mutate(pct = AREA / sum(AREA)) %>%
+  mutate(across(
+    c(HH, HH_POP, Stud_GQ:Retail),
+    ~round(.x * pct, 0)
+  )) %>%
+  mutate(
+    TAZ_NG = ifelse(is.na(ID), TAZ_NG, ID),
+    County = ifelse(County == "External", "External", "Internal")
+  ) %>%
+  select(TAZ = TAZ_NG, Type = County, HH:Retail) %>%
+```
+
+```{r}
+if (1 = 0) {
+  write_csv(
+    calc_percents, "data/output/se_data/se_2016.csv",
+    na = "0"
+  )
+}
+```
+

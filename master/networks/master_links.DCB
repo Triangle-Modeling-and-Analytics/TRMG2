@@ -3,7 +3,7 @@ TRMG2 Master Network
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "NCDOTClass",C,37,20,0,20,0,,"","This field does not affect model output and is only used|for reporting purposes. The NCDOT roadway classification|is a political classification and does not always accurately|reflect the road's operating characteristics.||Interstate|OtherFreeway|PrincipalArterial|MinorArterial|MajorCollector|MinorCollector|Local|NA",,"Copy",
-"HCMType",C,57,20,0,20,0,,"","Highway Capacity Manuall Type|This classification describes the operational characteristics|of the link and is used to determine capacity and freeflow|speed.||Freeway|MLHighway|TLHighway|MajorArterial|MinorArterial|CollectorLocal|Ramp|CC|PNR|TransitOnly",,"Copy",
+"HCMType",C,57,20,0,20,0,,"","Highway Capacity Manual Type|This classification describes the operational characteristics|of the link and is used to determine capacity and freeflow|speed.||Freeway|MLHighway|TLHighway|MajorArterial|MinorArterial|CollectorLocal|Ramp|CC|PNR|TransitOnly",,"Copy",
 "ABLanes",I,77,4,0,8,0,,"","Number of lanes in the topological direction|(direction link was drawn)|Layer style settings can be used to show link topo direction.",,"Copy",
 "BALanes",I,81,4,0,8,0,,"","Number of lanes against the topological direction|(direction link was drawn)|Layer style settings can be used to show link topo direction.",,"Copy",
 "PostedSpeed",I,85,4,0,8,0,,"","Speed as posted on roadway signage",,"Copy",
