@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(sf)
 library(leaflet)
+
+library(RDCOMClient)
+library(caliperR)
 ```
 
 ```{r}
@@ -86,7 +89,7 @@ calc_percents <- se_data %>%
 ```
 
 ```{r}
-if (1 = 0) {
+if (1 == 0) {
   write_csv(
     calc_percents, "data/output/se_data/se_2016.csv",
     na = "0"
