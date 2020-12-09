@@ -1,7 +1,7 @@
 
 94
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
-"Type",C,5,10,0,10,0,,"","",,"Copy",
+"Type",C,5,10,0,10,0,,"","Whether the centroid is an internal or external zone",,"Copy",
 "HH",I,15,4,0,11,0,,"","",,"Sum",
 "HH_POP",I,19,4,0,11,0,,"","",,"Sum",
 "MEANINC",I,23,4,0,11,0,,"","",,"Sum",
