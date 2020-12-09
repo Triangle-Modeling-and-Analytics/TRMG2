@@ -1,7 +1,7 @@
 
-94
+134
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
-"Type",C,5,10,0,10,0,,"","Whether the centroid is an internal or external zone",,"Copy",
+"Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","",,"Sum",
 "HH_POP",I,19,4,0,11,0,,"","",,"Sum",
 "MEANINC",I,23,4,0,11,0,,"","",,"Sum",
@@ -22,3 +22,11 @@
 "Service_RateLow",I,83,4,0,11,0,,"","",,"Sum",
 "Service_RateHigh",I,87,4,0,11,0,,"","",,"Sum",
 "Retail",I,91,4,0,11,0,,"","",,"Sum",
+"K12",I,95,4,0,11,0,,"","",,"Sum",
+"ParkCostW",I,99,4,0,11,0,,"","",,"Sum",
+"ParkCostO",I,103,4,0,11,0,,"","",,"Sum",
+"ParkCostU",I,107,4,0,11,0,,"","",,"Sum",
+"ADT",I,111,4,0,11,0,,"","",,"Sum",
+"PCTCV",I,115,4,0,11,0,,"","",,"Sum",
+"PCTAUTOEE",R,119,8,0,15,4,,"","",,"Sum",
+"PCTCVEE",R,127,8,0,15,4,,"","",,"Sum",
