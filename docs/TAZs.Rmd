@@ -13,9 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(sf)
 library(leaflet)
-
-library(RDCOMClient)
-library(caliperR)
 ```
 
 ```{r}
@@ -86,6 +83,13 @@ calc_percents <- se_data %>%
     ADT:PCTCVEE
   ) %>%
   arrange(TAZ)
+
+# Throw error if total households are off by more than rounding error
+hh_ratio = sum(calc_percents$HH, na.rm = TRUE) / 
+  sum(se_data$HH, na.rm = TRUE)
+if (abs(hh_ratio - 1) > .01) stop(
+  "Disaggregation caused significant change in total households"
+)
 ```
 
 ```{r}
