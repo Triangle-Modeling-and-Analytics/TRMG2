@@ -1,5 +1,5 @@
 ---
-title: "Traffic Analysis Zones"
+title: "TAZs and SE Data"
 author: "Caliper Corporation"
 date: "12/8/2020"
 output: html_document
@@ -9,6 +9,8 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
 
 library(tidyverse)
 library(sf)
@@ -48,6 +50,8 @@ leaflet() %>%
   - re-exported to make sure node IDs matched TAZ IDs
   
 ## Socio-economic updates
+
+### Allocation to split zones
 
 - Place holder approach uses area to distribute se data into split zones
 
@@ -92,12 +96,69 @@ if (abs(hh_ratio - 1) > .01) stop(
 )
 ```
 
+### Income
+
+```{r load census data}
+source("R/load_census_data.R")
+shapes <- load_census_data()
+
+acs_bg <- shapes$acs_bg
+acs_tract <- shapes$acs_tract
+dec_bg <- shapes$dec_bg
+
+taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
+```
+
+```{r}
+# regional median income
+# source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
+reg_med_inc <- 65317
+
+centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(acs_bg %>% select(inc_med)) %>%
+  as.data.frame()
+  
+num_missing <- nrow(centroids %>% filter(is.na(inc_med)))
+add_income <- taz %>%
+  left_join(centroids %>% select(ID, inc_med), by = "ID") %>%
+  mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
+  rename(MEDIANINC = inc_med)
+```
+
+Due to the skewed nature of income distributions, median income is a better
+approximation of the average than the mean. This information was appended to the
+socio-economic (SE) data from the Census, but income information is only
+available at the block group geography level. As a result, all TAZs within a
+block group have the same median income. In addition, income measures were
+suppressed by the Census for `r num_missing` block groups. For TAZs in these
+block groups, the regional median income of `r paste0('$',formatC(reg_med_inc,
+big.mark=',', format = 'd'))` was used.
+
+
+
+
+
+
+```{r}
+output <- calc_percents %>%
+  left_join(
+    add_income %>%
+      select(ID, MEDIANINC) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")
+  ) %>%
+  relocate(MEDIANINC, .before = MEANINC) %>%
+  select(-MEANINC)
+  
+```
+
+
 ```{r}
 if (1 == 0) {
   write_csv(
-    calc_percents, "data/output/se_data/se_2016.csv",
+    output, "data/output/se_data/se_2016.csv",
     na = "0"
   )
 }
 ```
-
