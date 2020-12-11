@@ -49,9 +49,7 @@ leaflet() %>%
 - Updated master highway layer with new centroids and connectors.
   - re-exported to make sure node IDs matched TAZ IDs
   
-## Socio-economic updates
-
-### Allocation to split zones
+## Allocating existing SE data
 
 - Place holder approach uses area to distribute se data into split zones
 
@@ -64,10 +62,6 @@ se_data <- read_csv(
     TRM_6.2_Fill = col_logical()
   )
 )
-
-# Remove outputs from old model
-# remove_outputs <- se_data %>%
-#   select(TAZ_NG:Retail)
 
 calc_percents <- se_data %>%
   left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
@@ -96,6 +90,8 @@ if (abs(hh_ratio - 1) > .01) stop(
 )
 ```
 
+## Creating new SE data
+
 ### Income
 
 ```{r load census data}
@@ -114,16 +110,27 @@ taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 reg_med_inc <- 65317
 
-centroids <- taz %>%
+inc_centroids <- taz %>%
   st_point_on_surface() %>%
   st_join(acs_bg %>% select(inc_med)) %>%
-  as.data.frame()
+  as.data.frame() %>%
+  select(ID, inc_med)
   
-num_missing <- nrow(centroids %>% filter(is.na(inc_med)))
-add_income <- taz %>%
-  left_join(centroids %>% select(ID, inc_med), by = "ID") %>%
+num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
+add_income_taz <- taz %>%
+  left_join(inc_centroids, by = "ID") %>%
   mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
   rename(MEDIANINC = inc_med)
+
+add_income_se <- calc_percents %>%
+  left_join(
+    add_income_taz %>%
+      select(ID, MEDIANINC) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")
+  ) %>%
+  relocate(MEDIANINC, .before = MEANINC) %>%
+  select(-MEANINC)
 ```
 
 Due to the skewed nature of income distributions, median income is a better
@@ -135,29 +142,96 @@ suppressed by the Census for `r num_missing` block groups. For TAZs in these
 block groups, the regional median income of `r paste0('$',formatC(reg_med_inc,
 big.mark=',', format = 'd'))` was used.
 
-
-
-
-
+### Workers
 
 ```{r}
-output <- calc_percents %>%
-  left_join(
-    add_income %>%
-      select(ID, MEDIANINC) %>%
-      st_drop_geometry(),
-    by = c("TAZ" = "ID")
-  ) %>%
-  relocate(MEDIANINC, .before = MEANINC) %>%
-  select(-MEANINC)
+calc_tot_workers <- acs_tract %>%
+  mutate(
+    # 3.1 acknowledges that 3+worker households have an average higher than 3,
+    # but the exact average is unknown.
+    wrk_tot = wrk1 + 2 * wrk2 + 3.1 * wrk3,
+    avg_wrk = wrk_tot / (hh_tot + .0000001)
+  )
+
+wrk_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(calc_tot_workers %>% select(avg_wrk)) %>%
+  as.data.frame() %>%
+  select(ID, avg_wrk)
   
+add_workers_taz <- add_income_taz %>%
+  left_join(wrk_centroids, by = "ID")
+
+add_workers_se <- add_income_se %>%
+  left_join(
+    add_workers_taz %>%
+      select(ID, avg_wrk) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")    
+  ) %>%
+  mutate(Workers = round(avg_wrk * HH, 0)) %>%
+  select(-avg_wrk) %>%
+  relocate(Workers, .after = MEDIANINC)
 ```
+
+Estimates of workers are only available from the ACS at the tract level. Without
+more-disaggregate data to inform the process, the following steps are taken to
+assign workers to TAZs:
+
+  1. Calculate the average workers per household for the ACS tract.
+  2. Use that average for each TAZ within the tract.
+  
+In this way, workers are allocated within each tract proportionally based
+on the number of households.
+
+Also, it is important to note that ACS tables that count total workers cannot be
+used, as they include workers living in group quarters. Instead, total workers 
+in households must be imputed from tables that count households by number of
+workers.
+
+### Vehicles
+
+```{r}
+reg_avg_veh <- sum(acs_bg$veh_tot, na.rm = TRUE) / sum(acs_bg$hh_tot, na.rm = TRUE)
+
+acs_bg <- acs_bg %>%
+  mutate(avg_veh = veh_tot / hh_tot)
+
+veh_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(acs_bg %>% select(avg_veh)) %>%
+  as.data.frame() %>%
+  select(ID, avg_veh)
+
+add_veh_taz <- add_workers_taz %>%
+  left_join(veh_centroids, by = "ID") %>%
+  mutate(avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh))
+  
+add_veh_se <- add_workers_se %>%
+  left_join(
+    add_veh_taz %>%
+      select(ID, avg_veh) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")    
+  ) %>%
+  mutate(
+    Vehicles = round(HH * avg_veh, 0)
+  ) %>%
+  select(-avg_veh) %>%
+  relocate(Vehicles, .after = Workers)
+```
+
+Vehicle data is available from the ACS at the block group level. In addition,
+total vehicles can be retrieved for just households. Like workers, however,
+the lack of information at the block level means that all TAZs within the same
+block group are assigned the same number of vehicles per household. Also, some
+block groups had suppressed vehicle information and the regional average of `r round(reg_avg_veh, 2)` was used.
 
 
 ```{r}
 if (1 == 0) {
   write_csv(
-    output, "data/output/se_data/se_2016.csv",
+    add_veh_se, "data/output/se_data/se_2016.csv",
     na = "0"
   )
 }
