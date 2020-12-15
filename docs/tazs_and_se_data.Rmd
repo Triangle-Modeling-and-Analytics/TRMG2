@@ -1,0 +1,275 @@
+---
+title: "TAZs and SE Data"
+author: "Caliper Corporation"
+date: "12/8/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(sf)
+library(leaflet)
+```
+
+## TAZ edits
+
+The zonal system for TRMG2 was inherited from the existing model, and Caliper
+performed a brief review and recommended additional zone splits. These
+recommendations were focused on addressing two concerns:
+
+1. Breaking up zones with large employment and households (in base or future).
+2. Adding granularity for universities.
+
+Large zones can create traffic loading problems by generating lots of trips and
+loading them on the network in a small number of locations. Breaking these into
+smaller zones allows for more-even loading of traffic and avoids spikes in
+congestion.
+
+A major concern for universities at the outset is getting transit loading
+correct. Larger zones capture more trips as "intra-zonal" meaning they never
+leave the zone and load onto the network. For universities, where trips between
+classes have a significant impact on transit ridership, it is important that
+these trips travel between zones. In addition, the added granularity gives more
+accurate measurements of non-motorized travel times, which is important for the
+university market.
+
+Caliper made several presentations of proposed changes and took feedback from
+the stakeholders concerning zone edits. The map below shows the final edits.
+Scroll/Zoom the map below to review them, and use the layers control box
+to turn the old and new zone layers off.
+
+```{r}
+taz_old <- sf::read_sf("data/input/tazs/tazs 2020-11-02.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+taz_new <- sf::read_sf("data/input/tazs/tazs 2020-12-08.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
+
+```{r}
+leaflet() %>%
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(
+    data = taz_new,
+    weight = 1,
+    fill = FALSE,
+    color = "red",
+    group = "New"
+  ) %>%
+  addPolygons(
+    data = taz_old,
+    weight = 1,
+    fill = FALSE,
+    group = "Old"
+  ) %>%
+  addLayersControl(overlayGroups = c("New", "Old")) %>%
+  setView(-78.672682, 35.784927, zoom = 12)
+```
+
+### Network updates
+
+For each new TAZ, a corresponding centroid node and appropriate centroid
+connectors were added to the roadway network.
+  
+### Allocating existing SE data
+
+*Placeholder*
+
+For now, the SE data is allocated into the new zones using the percent area.
+
+```{r}
+se_data <- read_csv(
+  "data/input/se_data/se_2016.csv",
+  col_types = cols(
+    .default = col_double(),
+    County = col_character(),
+    TRM_6.2_Fill = col_logical()
+  )
+)
+
+calc_percents <- se_data %>%
+  left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
+  group_by(TAZ_NG) %>%
+  mutate(pct = AREA / sum(AREA)) %>%
+  mutate(across(
+    c(HH, HH_POP, Stud_GQ:Retail),
+    ~round(.x * pct, 0)
+  )) %>%
+  mutate(
+    TAZ_NG = ifelse(is.na(ID), TAZ_NG, ID),
+    County = ifelse(County == "External", "External", "Internal")
+  ) %>%
+  select(
+    TAZ = TAZ_NG, Type = County, HH:Retail, K12 = ENROLLMENT,
+    ParkCostW = PrkCosW1, ParkCostO = PrkCosO1, ParkCostU = PrkCosU1, 
+    ADT:PCTCVEE
+  ) %>%
+  arrange(TAZ)
+
+# Throw error if total households are off by more than rounding error
+hh_ratio = sum(calc_percents$HH, na.rm = TRUE) / 
+  sum(se_data$HH, na.rm = TRUE)
+if (abs(hh_ratio - 1) > .01) stop(
+  "Disaggregation caused significant change in total households"
+)
+```
+
+## Creating new SE data
+
+The TRMG2 model will make use of some new zonal attributes:
+
+- Median Income
+- Workers
+- Vehicles
+
+Caliper used the 2014-2018 5-year ACS data to populate these new attributes.
+
+### Income
+
+```{r load census data, include=FALSE}
+source("R/load_census_data.R")
+shapes <- load_census_data()
+
+acs_bg <- shapes$acs_bg
+acs_tract <- shapes$acs_tract
+dec_bg <- shapes$dec_bg
+
+taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
+```
+
+```{r, include=FALSE}
+# regional median income
+# source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
+reg_med_inc <- 65317
+
+inc_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(acs_bg %>% select(inc_med)) %>%
+  as.data.frame() %>%
+  select(ID, inc_med)
+  
+num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
+add_income_taz <- taz %>%
+  left_join(inc_centroids, by = "ID") %>%
+  mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
+  rename(MEDIANINC = inc_med)
+
+add_income_se <- calc_percents %>%
+  left_join(
+    add_income_taz %>%
+      select(ID, MEDIANINC) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")
+  ) %>%
+  relocate(MEDIANINC, .before = MEANINC) %>%
+  select(-MEANINC)
+```
+
+Due to the skewed nature of income distributions, median income is a better
+approximation of the average than the mean. This information was appended to the
+socio-economic (SE) data from the Census, but income information is only
+available at the block group geography level. As a result, all TAZs within a
+block group have the same median income. In addition, income measures were
+suppressed by the Census for `r num_missing` block groups. For TAZs in these
+block groups, the regional median income of `r paste0('$',formatC(reg_med_inc,
+big.mark=',', format = 'd'))` was used.
+
+### Workers
+
+```{r, include=FALSE}
+calc_tot_workers <- acs_tract %>%
+  mutate(
+    # 3.1 acknowledges that 3+worker households have an average higher than 3,
+    # but the exact average is unknown.
+    wrk_tot = wrk1 + 2 * wrk2 + 3.1 * wrk3,
+    avg_wrk = wrk_tot / (hh_tot + .0000001)
+  )
+
+wrk_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(calc_tot_workers %>% select(avg_wrk)) %>%
+  as.data.frame() %>%
+  select(ID, avg_wrk)
+  
+add_workers_taz <- add_income_taz %>%
+  left_join(wrk_centroids, by = "ID")
+
+add_workers_se <- add_income_se %>%
+  left_join(
+    add_workers_taz %>%
+      select(ID, avg_wrk) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")    
+  ) %>%
+  mutate(Workers = round(avg_wrk * HH, 0)) %>%
+  select(-avg_wrk) %>%
+  relocate(Workers, .after = MEDIANINC)
+```
+
+Estimates of workers are only available from the ACS at the tract level. It is
+also important to note that ACS tables that count total workers cannot be used,
+because they include workers living in group quarters. Instead, total workers in
+households must be imputed from tables that count households by number of
+workers.
+
+Without more-disaggregate data to inform the process, the following steps were
+taken to assign workers to TAZs:
+
+  1. Calculate the average workers per household for the ACS tract.
+  2. Use that average for each TAZ within the tract.
+  
+In this way, workers were allocated within each tract proportionally based
+on the number of households.
+
+### Vehicles
+
+```{r, include=FALSE}
+reg_avg_veh <- sum(acs_bg$veh_tot, na.rm = TRUE) / sum(acs_bg$hh_tot, na.rm = TRUE)
+
+acs_bg <- acs_bg %>%
+  mutate(avg_veh = veh_tot / hh_tot)
+
+veh_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(acs_bg %>% select(avg_veh)) %>%
+  as.data.frame() %>%
+  select(ID, avg_veh)
+
+add_veh_taz <- add_workers_taz %>%
+  left_join(veh_centroids, by = "ID") %>%
+  mutate(avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh))
+  
+add_veh_se <- add_workers_se %>%
+  left_join(
+    add_veh_taz %>%
+      select(ID, avg_veh) %>%
+      st_drop_geometry(),
+    by = c("TAZ" = "ID")    
+  ) %>%
+  mutate(
+    Vehicles = round(HH * avg_veh, 0)
+  ) %>%
+  select(-avg_veh) %>%
+  relocate(Vehicles, .after = Workers)
+```
+
+Vehicle data is available from the ACS at the block group level. Unlike workers,
+total vehicles can be retrieved for just households; however, the lack of
+information at the block level means that all TAZs within the same block group
+are assigned the same number of vehicles per household. Also, some block groups
+had suppressed vehicle information and the regional average of 
+`r round(reg_avg_veh, 2)` was used.
+
+```{r}
+if (1 == 0) {
+  write_csv(
+    add_veh_se, "data/output/se_data/se_2016.csv",
+    na = "0"
+  )
+}
+```
