@@ -20,7 +20,7 @@ source("R/load_census_data.R")
 source("R/calc_shares.R")
 ```
 
-```{r load census data}
+```{r load census data, include=FALSE}
 shapes <- load_census_data()
 
 acs_bg <- shapes$acs_bg
@@ -44,12 +44,11 @@ In the Triangle, the marginal distribution curves estimated are:
 
   * Size (1-4+)
   * Income
-    * Low: $0 - $24,999
-    * Medium-Low: $25,000 - $49,999
-    * Medium-High: $50,000 - $99,999
-    * High: $100,000 and above
+    * Low: \$0 - \$34,999
+    * Medium-Low: \$35,000 - \$74,999
+    * Medium-High: \$75,000 - \$149,999
+    * High: \$150,000 and above
   * Workers (0-3+)
-  * Vehicles (0-3+)
   
 These curves are estimated from Census data, and the data is taken from
 different data products and geographies depending on availability. For example,
@@ -58,7 +57,7 @@ Community Survey (ACS) product known as the Census Transportation Planning
 Package (CTPP). Vehicle and income information is available from the ACS 5-year
 file directly, and size information is available from multiple products.
 
-```{r, warning=FALSE}
+```{r, include=FALSE}
 # Read in worker data from CTPP table A112109 at the TAZ level.
 # It isn't available from the ACS at anything below tract, which is too coarse.
 ctpp_tbl <- read_csv(
@@ -88,8 +87,14 @@ as shown by the blue histogram bars below. The Census blockgroup histogram,
 shown in orange, has a similar range of household sizes, which makes it a good
 candidate for model estimation.
 
-```{r size range}
-input_se <- read_csv("data/output/se_data/se_2016.csv")
+```{r size range, warning=FALSE}
+input_se <- read_csv(
+  "data/output/se_data/se_2016.csv",
+  col_types = cols(
+    .default = col_double(),
+    Type = col_character()
+  )
+)
 
 # se data
 input_se <- input_se %>%
@@ -111,11 +116,11 @@ size <- dec_bg %>%
 plot_ly() %>%
   add_trace(
     data = input_se, x = ~pph, type = "histogram", name = "Model",
-    alpha = .6
+    alpha = .6, bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
     data = size, x = ~avg_size, type = "histogram", name = "Census",
-    alpha = .6
+    alpha = .6, bingroup = 1
   ) %>%
   layout(
     title = "Average Household Size",
@@ -246,7 +251,7 @@ household. The Census Transportation Planning Program (CTPP) data was used at
 the TAZ level, which contains more than enough observations to estimate a robust
 curve across the entire range of zonal values.
 
-```{r worker range}
+```{r worker range, warning=FALSE}
 # se data distribution
 input_se <- input_se %>%
   mutate(wph = Workers / HH)
@@ -267,11 +272,11 @@ workers <- ctpp_tbl %>%
 plot_ly() %>%
   add_trace(
     data = input_se, x = ~wph, type = "histogram", alpha = .6,
-    name = "Model"
+    name = "Model", bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
     data = workers, x = ~avg_workers, type = "histogram", alpha = .6,
-    name = "Census"
+    name = "Census", bingroup = 1
   ) %>%
   layout(
     title = "Average Workers per Household",
@@ -347,139 +352,56 @@ ggplotly(p) %>%
   )
 ```
 
-## Household Vehicles
+## Household Income
 
-The chart below confirms that Census blockgroups show the same range of vehicles
-per household as the model TAZ data, which gives confidence in it's ability to
-predict the relationship across the entire spectrum.
+Before the same treatment was applied for median income, Caliper had to determine appropriate income groups. ACS data is already grouped to some extent,
+which limits the possible breakpoints in the final grouping. The histogram
+below shows the final income grouping and count of households in each group.
 
-```{r vehicle range}
-# model data
-input_se <- input_se %>%
-  mutate(vph = Vehicles / HH)
-
-# census data
-vehicles <- acs_bg %>%
-  as.data.frame() %>%
-  filter(hh_tot > 0) %>%
-  select(GEOID, hh_tot, veh_tot:veh5) %>%
+```{r, fig.height=4}
+inc_histo <- acs_bg %>%
+  summarize(across(starts_with("inc"), sum)) %>%
+  st_drop_geometry() %>%
+  select(-inc_med) %>%
+  pivot_longer(cols = everything(), names_to = "inc", values_to = "count") %>%
   mutate(
-    veh_tot = case_when(
-      !is.na(veh_tot) ~ veh_tot,
-      is.na(veh_tot) ~ veh1 + veh2 * 2 + veh3 * 3 + veh4 * 4 + veh5 * 5.1
+    inc = gsub("inc", "", inc),
+    inc = gsub("p", "", inc),
+    inc = as.numeric(inc),
+    inc = case_when(
+      inc <= 35 ~ "0-35",
+      inc <= 75 ~ "35-75",
+      inc <= 150 ~ "75-150",
+      TRUE ~ "150+",
     ),
-    avg_vehicles = veh_tot / hh_tot,
-    veh3 = veh3 + veh4 + veh5
+    inc = factor(
+      inc,
+      levels = c("0-35", "35-75", "75-150", "150+"),
+      ordered = TRUE
+    )
   ) %>%
-  select(-veh4, -veh5) %>%
-  group_by(GEOID) %>%
-  gather(key = vehicles, value = n, veh0:veh3) %>%
-  mutate(share = n / hh_tot)
+  group_by(inc) %>%
+  summarize(count = sum(count))
+  
 
 plot_ly() %>%
   add_trace(
-    data = input_se, x = ~vph, type = "histogram", name = "Model",
-    alpha = .6, nbinsx = 15
-  ) %>%
-  add_trace(
-    data = vehicles, x = ~avg_vehicles, type = "histogram", name = "Census",
-    alpha = .6, nbinsx = 15
+    data = inc_histo, x = ~inc, y = ~count, type = "bar", name = "Model",
+    alpha = .6
   ) %>%
   layout(
-    title = "Average Vehicles per Household",
-    xaxis = list(
-      title = "Vehicles per Household"
-    ),
-    yaxis = list(
-      title = "Count"
-    ),
-    barmode = "overlay"
+    xaxis = list(title = "Income Range"),
+    yaxis = list(title = "Households")
   )
+  
 ```
 
-```{r mean_vehicles}
-# calculate
-mean_vehicles <- calc_mean_share(vehicles, "avg_vehicles", "vehicles", bin_width = 0.1) %>%
-  spread(group, share) %>%
-  rename(avg_vehicles = bin) %>%
-  filter(!is.na(avg_vehicles)) %>%
-  ungroup() %>%
-  mutate(avg_vehicles = round(avg_vehicles, 1))
+The prediction metric used for income is the median income of the zone divided
+by the regional median. This provides an estimation range on a similar scale as
+the other variables ( e.g. 0.2 - 3.0 instead of $0 - 250,000).
 
-# manual adjustments
-adjustment_table <- tribble(
-  ~avg_vehicles, ~veh0, ~veh1, ~veh2, ~veh3,
-  0,             1,     0,     0,     0
-)
-mean_vehicles <- bind_rows(mean_vehicles, adjustment_table) %>%
-  arrange(avg_vehicles)
-
-mean_vehicles <- mean_vehicles %>% gather(vehicles, share, -avg_vehicles)
-
-# smooth and predict
-veh_min <- 0
-veh_max <- 3
-vehicles_functions <- fit_models(mean_vehicles, "avg_vehicles", "vehicles", 
-                             x = seq(veh_min, veh_max, 0.01),  degree = 4) %>%
-  rename(avg_vehicles = avg, vehicles = group)
-
-# Check that the shares of each bin add to 1, which they will not after 
-# rounding.  Adjust the category with the largest share to correct.
-vehicles_functions <- vehicles_functions %>%
-  group_by(avg_vehicles) %>%
-  mutate(
-    share = round(share, 4),
-    max = ifelse(share == max(share), 1, 0),
-    # At avg_veh of .58 and .59, the veh0 and veh1 curves switch places as the
-    # largest share. Using the max above creates an odd looking jagged cross as
-    # a result. This case_when() call corrects that by adjusting the veh0 curve
-    # for both .58 and .59. This has no meaningful impact on the model, but
-    # makes the curves look a little nicer while ensuring all ratios add
-    # to 1.
-    max = case_when(
-      avg_vehicles != .59 ~ max,
-      vehicles == "veh0" ~ 1,
-      TRUE ~ 0
-    ),
-    diff = 1 - sum(share),
-    share = round(share + diff * max, 4)
-  ) %>%
-  select(-c(max, diff)) %>%
-  ungroup()
-
-spread_vehicles <- vehicles_functions %>%
-  pivot_wider(names_from = vehicles, values_from = share)
-```
-
-<p>
-The chart below shows the raw data from ACS blockgroups as well as the fitted
-curves.
-
-```{r}
-p <- ggplot(data = NULL, aes(x = avg_vehicles, y = share, color = vehicles)) +
-  geom_point(data = vehicles, alpha = 0.5) +
-  geom_line(data = vehicles_functions, size = 2) +
-  xlab("Average Vehicles per Household") +
-  scale_color_brewer("Vehicles", type = "qual", palette = "Dark2") +
-  scale_x_continuous(lim = c(veh_min, veh_max)) +
-  theme_bw()
-
-ggplotly(p) %>%
-  layout(
-    title = "Vehicles by Average Vehicles",
-    margin = list(t = 50)
-  )
-```
-
-## Household Income
-
-Finally, the same treatment was applied for median income. The prediction metric
-used for income is the median income of the zone divided by the regional median.
-This provides an estimation range on a similar scale as the other variables (
-e.g. 0.2 - 3.0 instead of $0 - 250,000). 
-
-The chart below shows the distribution of model and Census data. The distributions are similar, with the exception being that the model has zones
-without households (and thus zero median income).
+The chart below shows the distribution of model and Census data. The model has zones without households (and thus zero median income), but otherwise the
+distributions are similar.
 
 ```{r}
 # regional median income
@@ -495,10 +417,10 @@ income <- acs_bg %>%
   filter(hh_tot > 0, !is.na(inc_med)) %>%
   mutate(
     inc_ratio = inc_med / regional_median,
-    incL = inc10 + inc15 + inc20 + inc25,
-    incML = inc30 + inc35 + inc40 + inc45 + inc50,
-    incMH = inc60 + inc75 + inc100,
-    incH = inc125 + inc150 + inc200 + inc200p
+    incL = inc10 + inc15 + inc20 + inc25 + inc30 + inc35,
+    incML = inc40 + inc45 + inc50 + inc60 + inc75,
+    incMH = inc100 + inc125 + inc150,
+    incH =  inc200 + inc200p
   ) %>%
   select(GEOID, hh_tot, inc_ratio, incL:incH) %>%
   group_by(GEOID) %>%
@@ -508,11 +430,11 @@ income <- acs_bg %>%
 plot_ly() %>%
   add_trace(
     data = input_se, x = ~inc_ratio, type = "histogram", name = "Model",
-    alpha = .6
+    alpha = .6, bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
     data = income, x = ~inc_ratio, type = "histogram", name = "Census",
-    alpha = .6
+    alpha = .6, bingroup = 1
   ) %>%
   layout(
     title = "Model TAZ Income Ratio",
@@ -574,7 +496,7 @@ spread_income <- income_functions %>%
  
 <p>
 The chart below shows the raw observations and fitted curves.
- 
+
 ```{r}
 p <- ggplot(data = NULL, aes(x = inc_ratio, y = share, color = income)) +
   geom_point(data = income, alpha = 0.5) +
@@ -585,8 +507,14 @@ p <- ggplot(data = NULL, aes(x = inc_ratio, y = share, color = income)) +
   theme_bw()
 
 ggplotly(p) %>%
-  layout(title = "Income by Proportion of Regional Income")
+  layout(title = "Income by Proportion of Regional Income") %>%
+  layout(margin = list(t = 30))
 ```
+
+## Household Vehicles
+
+The TRMG2 model utilizes an auto-ownership model, and as a result does
+not require disaggregation by household vehicles.
 
 ```{r write_output}
 # The if statement makes sure that this code block is only ever executed
@@ -594,7 +522,6 @@ ggplotly(p) %>%
 if (1 == 0) {
   write_csv(spread_size, "data/output/disagg_model/size_curves.csv")
   write_csv(spread_workers, "data/output/disagg_model/worker_curves.csv")
-  write_csv(spread_vehicles, "data/output/disagg_model/vehicle_curves.csv")
   write_csv(spread_income, "data/output/disagg_model/income_curves.csv")
 }
 ```

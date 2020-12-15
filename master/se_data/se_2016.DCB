@@ -6,7 +6,7 @@
 "HH_POP",I,21,4,0,11,0,,"","",,"Sum",
 "MEDIANINC",I,25,4,0,11,0,,"","",,"Sum",
 "Workers",I,29,4,0,11,0,,"","",,"Sum",
-"Vehicles",I,33,4,0,11,0,,"","",,"Sum",
+"Vehicles",I,33,4,0,11,0,,"","Used for validation only. Remove before final delivery.|Using auto-ownership model instead.",,"Sum",
 "Stud_GQ",I,37,4,0,11,0,,"","",,"Sum",
 "Other_NonInst_GQ",I,41,4,0,11,0,,"","",,"Sum",
 "Inst_GQ",I,45,4,0,11,0,,"","",,"Sum",
