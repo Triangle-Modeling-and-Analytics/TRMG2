@@ -56,16 +56,17 @@ leaflet() %>%
   addProviderTiles("Stamen.TonerLite") %>%
   addPolygons(
     data = taz_new,
-    weight = 1,
+    weight = 2,
     fill = FALSE,
-    color = "red",
+    color = "gold",
     group = "New"
   ) %>%
   addPolygons(
     data = taz_old,
-    weight = 1,
+    weight = 2,
     fill = FALSE,
-    group = "Old"
+    group = "Old",
+    color = "royalblue"
   ) %>%
   addLayersControl(overlayGroups = c("New", "Old")) %>%
   setView(-78.672682, 35.784927, zoom = 12)
