@@ -126,9 +126,9 @@ Macro "Highway Project Management" (MacroOpts)
   SetLayer(llyr)
   for f = 1 to attrList.length do
     field = attrList[f]
-    if f = 1 then qtype = "Several" else qtype = "Subset"
+    if f = 1 then qtype = "several" else qtype = "more"
 
-    query = "Select * where " + field + " = null"
+    query = "Select * where " + field + " = -99"
     to_del = SelectByQuery("to delete", qtype, query)
   end
   if to_del > 0 then do
