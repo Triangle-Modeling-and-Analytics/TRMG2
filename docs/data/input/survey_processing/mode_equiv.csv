@@ -1,0 +1,11 @@
+code,mode_simple
+auto_own,auto
+auto_other,auto
+auto_work,auto
+auto_rental,auto_pay
+auto_taxi,auto_pay
+auto_tnc,auto_pay
+bus,bus
+walk,walk
+bike,bike
+other,other

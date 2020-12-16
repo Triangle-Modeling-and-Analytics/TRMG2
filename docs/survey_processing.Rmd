@@ -1,5 +1,5 @@
 ---
-title: "Survey Processing"
+title: "Household Survey Processing"
 author: "Caliper Corporation"
 date: "11/17/2020"
 output: 
@@ -67,8 +67,8 @@ processing steps not specific to a particular model.
 
 ## Survey combination
 
-When RSG delivered the 2018 survey, they provided weighting and expansion factors
-for 2018 using two data sets:
+When RSG delivered the 2018 survey, they provided weighting and expansion
+factors for 2018 using two data sets:
 
   * Only the 2018 samples
   * A combination of 2016 and 2018 samples
@@ -242,10 +242,16 @@ prep_per_2018 <- prep_per_2018 %>%
   left_join(race_collapse, by = "personid") %>%
   select(-c(race_asian:race_noanswer))
 
+# combine and remove person records for households without hhweight
 per_combined <- bind_rows(
   prep_per_2016,
   prep_per_2018
-)  
+) %>%
+  left_join(
+    hh_combined %>% select(hhid, hh_weight_combined),
+    by = "hhid"
+  ) %>%
+  filter(!is.na(hh_weight_combined))
 ```
 
 ### Trip table
@@ -311,7 +317,12 @@ trip_combined <- bind_rows(
     per_combined %>% select(personid, age),
     by = "personid"
   ) %>%
-  mutate(party_size = num_hh_members + num_nonhh)
+  mutate(party_size = num_hh_members + num_nonhh) %>%
+  left_join(
+    hh_combined %>% select(hhid, hh_weight_combined),
+    by = "hhid"
+  ) %>%
+  filter(!is.na(hh_weight_combined))
 ```
 
 ## Basic checks
@@ -552,7 +563,9 @@ components.
 - PU: Pick up
 - DO: Drop off
 - X: Transfer modes (e.g. at a bus stop)
-- O: Other
+- OM: Other maintenance 
+- OMED: Other medical
+- OD: Other discretionary
 
 The table below shows how the survey purposes (for both years) were collapsed
 into the purposes above.
@@ -763,6 +776,37 @@ det_work_place <- det_sch_place %>%
   relocate(d_place, .after = o_place)
 ```
 
+### Mode simplification
+
+
+
+```{r simplify_mode}
+mode_equiv <- read_csv(
+  "data/input/survey_processing/mode_equiv.csv",
+  col_types = cols(
+    code = col_character(),
+    mode_simple = col_character()
+  )
+)
+
+mode_equiv %>%
+  rename(`Survey Mode` = code, `Model Mode` = mode_simple) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+
+simplify_mode <- det_work_place %>%
+  left_join(mode_equiv, by = c("mode" = "code")) %>%
+  mutate(
+    mode_simple2 = case_when(
+      grepl("auto", mode_simple) & party_size == 1 ~ "sov",
+      grepl("auto", mode_simple) & party_size > 1 ~ "hov",
+      mode_simple == "auto_pay" ~ "pay",
+      TRUE ~ mode_simple
+    )
+  )
+```
+
+
 ### Tour formation
 
 While the TRMG2 is a trip-based model, the production rates and other estimated
@@ -784,7 +828,7 @@ capture things like recreational walks that start and end at the home. For the
 purpose of travel modeling, these home tours are ignored.
 
 ```{r tour_formation}
-determine_tours <- det_work_place %>%
+determine_tours <- simplify_mode %>%
   group_by(personid) %>%
   mutate(
     new_tour = ifelse(row_number() == 1, 1, 0),
@@ -799,10 +843,10 @@ determine_tours <- det_work_place %>%
     tour_anchor = ifelse(d_activity == "W", "W", ""),
     tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
     tour_type = case_when(
-      "W" %in% tour_anchor ~ "W",
+      "W" %in% tour_anchor ~ "WT",
+      # "S" %in% tour_anchor ~ "S",
       "H" %in% tour_anchor ~ "H",
-      "S" %in% tour_anchor ~ "S",
-      TRUE ~ "O"
+      TRUE ~ "NT"
     ),
     o_party_size_change = party_size - lag(party_size),
     d_party_size_change = lead(party_size) - party_size,
@@ -1038,6 +1082,182 @@ xfer_linked_out <- bus_flag %>%
   mutate(linked_flag = ifelse(is.na(linked_flag), 0, linked_flag))
 ```
 
+## Exploratory Analysis
+
+TODO: this EDA is using place holder time of day values. Make sure to update
+once real values have been determined.
+
+```{r}
+prep_for_eda <- xfer_linked_out %>%
+  mutate(homebased = ifelse(o_place == "H" | d_place == "H", "HB", "NHB")) %>%
+  left_join(
+    hh_combined %>%
+      mutate(child_present = ifelse(num_children > 0, 1, 0)) %>%
+      select(
+        hhid, hhsize, num_vehicles, num_children, child_present,
+        hh_income_broad
+      ),
+    by = "hhid"
+  ) %>%
+  mutate(
+    hh_income_midpt = case_when(
+      hh_income_broad == 1 ~ 12500,
+      hh_income_broad == 2 ~ 37500,
+      hh_income_broad == 3 ~ 62500,
+      hh_income_broad == 4 ~ 87500,
+      hh_income_broad == 5 ~ 125000,
+      TRUE ~ 200000
+    )
+  ) %>%
+  left_join(
+    per_combined %>%
+      mutate(senior = ifelse(age_category >= 10, 1, 0)) %>%
+      group_by(hhid) %>%
+      summarize(num_seniors = sum(senior)) %>%
+      mutate(senior_present = ifelse(num_seniors > 0, 1, 0)),
+    by = "hhid"
+  ) %>%
+  relocate(num_seniors:senior_present, .after = child_present) %>%
+  mutate(
+    duration = ifelse(d_act_dur >= 30, "Long", "Short"),
+    duration = ifelse(is.na(duration), "Long", duration),
+    tod = case_when(
+      departure_time < 7*60 ~ "NT",
+      departure_time < 9*60 ~ "AM",
+      departure_time < (4 + 12)*60 + 30 ~ "MD",
+      departure_time < (6 + 12)*60 + 30 ~ "PM",
+      TRUE ~ "NT"
+    )
+  )
+
+# This step adds the first purpose scheme defined by Vince
+scheme1 <- prep_for_eda %>%
+  mutate(
+    purp_scheme1 = d_activity,
+    dur_scheme1 = duration,
+    # WT HB trips
+    purp_scheme1 = case_when(
+      tour_type != "WT" ~ purp_scheme1,
+      homebased != "HB" ~ purp_scheme1,
+      purp_scheme1 %in% c("POS", "DOS") ~ "SCH",
+      purp_scheme1 %in% c("W", "SCH") ~ purp_scheme1,
+      TRUE ~ "O"
+    ),
+    dur_scheme1 = case_when(
+      tour_type != "WT" ~ dur_scheme1,
+      homebased != "HB" ~ dur_scheme1,
+      purp_scheme1 %in% c("W", "SCH") ~ "All",
+      TRUE ~ dur_scheme1
+    ),
+    # WT NHB trips
+    purp_scheme1 = case_when(
+      tour_type != "WT" ~ purp_scheme1,
+      homebased != "NHB" ~ purp_scheme1,
+      o_activity %in% c("POS", "DOS") ~ "SCH",
+      d_activity %in% c("POS", "DOS") ~ "SCH",
+      o_activity == "SCH" | d_activity == "SCH" ~ "SCH",
+      o_activity == "EAT" | d_activity == "EAT" ~ "EAT",
+      o_activity %in% c("W", "WR") | d_activity %in% c("W", "WR") ~ "WR",
+      TRUE ~ "O"
+    ),
+    dur_scheme1 = case_when(
+      tour_type != "WT" ~ dur_scheme1,
+      homebased != "NHB" ~ dur_scheme1,
+      purp_scheme1 %in% c("WR", "SCH", "EAT") ~ "All",
+      TRUE ~ dur_scheme1
+    ),
+    # NT HB trips
+    purp_scheme1 = case_when(
+      tour_type != "NT" ~ purp_scheme1,
+      homebased != "HB" ~ purp_scheme1,
+      purp_scheme1 %in% c("POS", "DOS") ~ "SCH",
+      purp_scheme1 %in% c("SCH", "SHP", "EAT", "OM", "OMED") ~ purp_scheme1,
+      TRUE ~ "OD"
+    ),
+    dur_scheme1 = case_when(
+      tour_type != "NT" ~ dur_scheme1,
+      homebased != "HB" ~ dur_scheme1,
+      purp_scheme1 %in% c("SCH", "EAT", "OM", "OMED") ~ "All",
+      TRUE ~ dur_scheme1
+    ),
+    # NT NHB trips
+    purp_scheme1 = case_when(
+      tour_type != "NT" ~ purp_scheme1,
+      homebased != "NHB" ~ purp_scheme1,
+      o_activity == "EAT" & d_activity == "SHP" ~ "EAT-SHP",
+      o_activity == "SHP" & d_activity == "EAT" ~ "EAT-SHP",
+      o_activity == "EAT" | d_activity == "EAT" ~ "EAT-O",
+      o_activity == "SHP" | d_activity == "SHP" ~ "SHP",
+      TRUE ~ "O"
+    ),
+    dur_scheme1 = case_when(
+      tour_type != "NT" ~ dur_scheme1,
+      homebased != "NHB" ~ dur_scheme1,
+      purp_scheme1 %in% c("EAT-SHP", "EAT-O") ~ "All",
+      TRUE ~ dur_scheme1
+    ),
+  ) %>%
+  relocate(c(tour_type, homebased), .before = purp_scheme1)
+
+
+
+
+eda_scheme1 <- scheme1 %>%
+  group_by(tour_type, homebased, purp_scheme1, dur_scheme1) %>%
+  nest() %>%
+  mutate(
+    wTrips = map_dbl(
+      data, function(df) round(sum(df$trip_weight_combined, na.rm = TRUE), 0)),
+    r_size = map_dbl(data, function(df) {
+      model <- lm(trip_weight_combined ~ hhsize, data = df)
+      round(summary(model)$r.squared, 3)
+    }),
+    r_senior = map_dbl(data, function(df) {
+      model <- lm(trip_weight_combined ~ senior_present, data = df)
+      round(summary(model)$r.squared, 3)
+    }),
+    r_kid = map_dbl(data, function(df) {
+      model <- lm(trip_weight_combined ~ child_present, data = df)
+      round(summary(model)$r.squared, 3)
+    }),
+    r_income = map_dbl(data, function(df) {
+      model <- lm(trip_weight_combined ~ hh_income_midpt, data = df)
+      round(summary(model)$r.squared, 3)
+    }),
+    r_veh = map_dbl(data, function(df) {
+      model <- lm(trip_weight_combined ~ num_vehicles, data = df)
+      round(summary(model)$r.squared, 3)
+    }),
+    tod_summary = map(data, function(df) {
+      df %>%
+        group_by(tod) %>%
+        summarize(total = sum(trip_weight_combined, na.rm = TRUE)) %>%
+        mutate(
+          pct = round(total / sum(total) * 100, 1),
+          tod = paste0("pct_", tod)
+        ) %>%
+        select(-total) %>%
+        pivot_wider(names_from = "tod", values_from = "pct")
+    }),
+    mode_summary = map(data, function(df) {
+      df %>%
+        group_by(mode_simple2) %>%
+        summarize(total = sum(trip_weight_combined, na.rm = TRUE)) %>%
+        mutate(
+          pct = round(total / sum(total) * 100, 1),
+          mode_simple2 = paste0("pct_", mode_simple2)
+        ) %>%
+        select(-total) %>%
+        pivot_wider(names_from = "mode_simple2", values_from = "pct")
+    })
+  ) %>%
+  unnest(cols = c(tod_summary, mode_summary)) %>%
+  mutate(across(pct_bike:pct_walk, ~ifelse(is.na(.x), 0, .x))) %>%
+  select(-data) %>%
+  filter(tour_type != "H") %>%
+  arrange(tour_type, homebased, purp_scheme1, dur_scheme1)
+```
+
 
 ```{r write tables, eval=FALSE}
 # This treatment prevents the output files from being changed unintentionally
@@ -1054,7 +1274,7 @@ if (1 == 0) {
     na = ""
   )
   write_csv(
-    xfer_linked_out,
+    prep_for_eda,
     "data/output/_PRIVATE/survey_processing/trips_processed.csv",
     na = ""
   )
