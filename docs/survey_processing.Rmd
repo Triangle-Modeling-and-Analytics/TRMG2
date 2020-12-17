@@ -1082,13 +1082,84 @@ xfer_linked_out <- bus_flag %>%
   mutate(linked_flag = ifelse(is.na(linked_flag), 0, linked_flag))
 ```
 
+### Geocoding and skims
+
+A critical step in processing the trip table is to geocode trip ends to the
+model's zone system. This allows important model metrics like travel impedance
+skims and socio-economic data to be associated with trip making behavior.
+
+The survey provides a lat/long pair for each origin, destination, and parking
+location (if applicable). Each of these was used to locate the appropriate
+TRMG2 TAZ. Some of these locations fall outside the model region and do not
+receive a TAZ ID. These trips will be ignored during estimation of the internal
+resident trip models.
+
+```{r}
+tazs <- st_read("data/input/tazs/tazs 2020-12-08.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+
+# create unique list of lat/long points
+pts <- tibble(
+  lng = c(
+    xfer_linked_out$origin_lng,
+    xfer_linked_out$destination_lng,
+    xfer_linked_out$park_lng
+  ),
+  lat = c(
+    xfer_linked_out$origin_lat,
+    xfer_linked_out$destination_lat,
+    xfer_linked_out$park_lat
+  ),
+) %>%
+  unite(lng_lat, c(lng, lat)) %>%
+  group_by(lng_lat) %>%
+  summarize() %>%
+  separate(lng_lat, into = c("lng", "lat"), sep = "_") %>%
+  filter(lng != "NA") %>%
+  mutate(
+    lng = as.numeric(lng),
+    lat = as.numeric(lat)
+  ) %>%
+  st_as_sf(
+    coords = c("lng", "lat"), 
+    crs = st_crs(tazs),
+    remove = FALSE
+  )
+
+# check that they overlap
+# plot(tazs, max.plot = 1)
+# plot(pts, add=TRUE)
+
+geocode_points <- pts %>%
+  st_join(tazs %>% select(TAZ = ID)) %>%
+  st_drop_geometry()
+
+add_taz_id <- xfer_linked_out %>%
+  left_join(
+    geocode_points,
+    by = c("origin_lng" = "lng", "origin_lat" = "lat")
+  ) %>%
+  rename(origin_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("destination_lng" = "lng", "destination_lat" = "lat")
+  ) %>%
+  rename(destination_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("park_lng" = "lng", "park_lat" = "lat")
+  ) %>%
+  rename(park_taz = TAZ)
+```
+
+
 ## Exploratory Analysis
 
 TODO: this EDA is using place holder time of day values. Make sure to update
 once real values have been determined.
 
 ```{r}
-prep_for_eda <- xfer_linked_out %>%
+prep_for_eda <- add_taz_id %>%
   mutate(homebased = ifelse(o_place == "H" | d_place == "H", "HB", "NHB")) %>%
   left_join(
     hh_combined %>%
@@ -1129,6 +1200,8 @@ prep_for_eda <- xfer_linked_out %>%
       TRUE ~ "NT"
     )
   )
+
+# TODO: use "LL" and "SS" etc for the NT/NHB trips
 
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
