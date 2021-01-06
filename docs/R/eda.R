@@ -102,5 +102,5 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
     select(-data) %>%
     filter(tour_type != "H") %>%
     select(tour_type, homebased, purpose, duration, everything()) %>%
-    arrange(tour_type, homebased, purpose, duration)
+    arrange(desc(tour_type), homebased, purpose, duration)
 }

@@ -1196,12 +1196,25 @@ add_se_data <- add_skim_info %>%
   mutate(d_emp = sum(c_across(c(d_ind:d_ret))))
 ```
 
-
-
 ## Exploratory Analysis
 
-TODO: this EDA is using place holder time of day values. Make sure to update
-once real values have been determined.
+With the trip table fully processed, exploratory analysis was used to determine
+the trip purposes most appropriate for the Triangle. Several classification
+schemes were investigated, and each one classified trips by the following
+categories:
+
+  * Tour type (work or non-work)
+  * Homebased (homebased or non-homebased)
+  * Purpose
+  * Destination activity duration (over or under 30 minutes)
+  
+Each classification was then summarized to produce 25 different metrics like
+total trips, average trip length, and correlations to different variables. The
+table below provides a sample of these metrics for the simplest classification
+scheme tested.
+
+*TODO: this EDA is using place holder time of day values. Make sure to update
+once real values have been determined.*
 
 ```{r}
 prep_for_eda <- add_se_data %>%
@@ -1235,8 +1248,10 @@ prep_for_eda <- add_se_data %>%
   ) %>%
   relocate(num_seniors:senior_present, .after = child_present) %>%
   mutate(
-    duration = ifelse(d_act_dur >= 30, "Long", "Short"),
-    duration = ifelse(is.na(duration), "Long", duration),
+    o_duration = ifelse(o_act_dur >= 30, "Long", "Short"),
+    o_duration = ifelse(is.na(o_duration), "Long", o_duration),
+    d_duration = ifelse(d_act_dur >= 30, "Long", "Short"),
+    d_duration = ifelse(is.na(d_duration), "Long", d_duration),
     tod = case_when(
       departure_time < 7*60 ~ "NT",
       departure_time < 9*60 ~ "AM",
@@ -1247,12 +1262,12 @@ prep_for_eda <- add_se_data %>%
   )
 ```
 
-```{r eda_scheme1}
+```{r eda_scheme1, eval=FALSE}
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
   mutate(
     purp_scheme = d_activity,
-    dur_scheme = duration,
+    dur_scheme = d_duration,
     # WT HB trips
     purp_scheme = case_when(
       tour_type != "WT" ~ purp_scheme,
@@ -1325,7 +1340,7 @@ eda_scheme1 <- eda(scheme1)
 scheme2 <- prep_for_eda %>%
   mutate(
     purp_scheme = d_activity,
-    dur_scheme = duration,
+    dur_scheme = d_duration,
     # WT HB trips
     purp_scheme = case_when(
       tour_type != "WT" ~ purp_scheme,
@@ -1377,69 +1392,210 @@ scheme2 <- prep_for_eda %>%
   )
 
 eda_scheme2 <- eda(scheme2)
+
+eda_scheme2 %>%
+  select(
+    `Tour Type` = tour_type,
+    Homebased = homebased,
+    Purpose = purpose,
+    `Dest Duration` = duration,
+    `Trips (weighted)` = wTrips,
+    `Rsq HH Size` = r_size,
+    `Rsq HH Income` = r_income,
+    `Rsq Employment` = r_emp,
+    `% AM` = pct_AM,
+    `% HOV` = pct_hov,
+    `Trip Length` = wAvgTrpLen
+  ) %>%
+  kable() %>%
+  kable_styling()
 ```
 
-```{r eda_scheme3}
-# scheme3 <- prep_for_eda %>%
-#   mutate(
-#     purp_scheme = d_activity,
-#     dur_scheme = duration,
-#     # WT HB trips
-#     purp_scheme = case_when(
-#       tour_type != "WT" ~ purp_scheme,
-#       homebased != "HB" ~ purp_scheme,
-#       purp_scheme %in% c("POS", "DOS") ~ "K12",
-#       purp_scheme %in% c("W", "K12") ~ purp_scheme,
-#       TRUE ~ "O"
-#     ),
-#     dur_scheme = case_when(
-#       tour_type != "WT" ~ dur_scheme,
-#       homebased != "HB" ~ dur_scheme,
-#       TRUE ~ "All"
-#     ),
-#     # WT NHB trips
-#     purp_scheme = case_when(
-#       tour_type != "WT" ~ purp_scheme,
-#       homebased != "NHB" ~ purp_scheme,
-#       tod %in% c("AM", "PM") ~ "PK",
-#       TRUE ~ "OP"
-#     ),
-#     dur_scheme = case_when(
-#       tour_type != "WT" ~ purp_scheme,
-#       homebased != "NHB" ~ purp_scheme,
-#       TRUE ~ "All"
-#     ),
-#     
-#     
-#     
-#     
-#     # NT HB trips
-#     purp_scheme = case_when(
-#       tour_type != "NT" ~ purp_scheme,
-#       homebased != "HB" ~ purp_scheme,
-#       purp_scheme == "K12" ~ purp_scheme,
-#       TRUE ~ "O"
-#     ),
-#     dur_scheme = case_when(
-#       tour_type != "NT" ~ dur_scheme,
-#       homebased != "HB" ~ dur_scheme,
-#       purp_scheme == "K12" ~ "All",
-#       TRUE ~ dur_scheme
-#     ),
-#     # NT NHB trips
-#     purp_scheme = case_when(
-#       tour_type != "NT" ~ purp_scheme,
-#       homebased != "NHB" ~ purp_scheme,
-#       TRUE ~ "All"
-#     ),
-#     dur_scheme = case_when(
-#       tour_type != "NT" ~ dur_scheme,
-#       homebased != "NHB" ~ dur_scheme,
-#       TRUE ~ "All"
-#     ),
-#   )
-# 
-# eda_scheme3 <- eda(scheme3)
+```{r eda_scheme3, eval=FALSE}
+scheme3 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = d_activity,
+    dur_scheme = d_duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      tod %in% c("AM", "PM") ~ "PK",
+      TRUE ~ "OP"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme == "K12" ~ purp_scheme,
+      purp_scheme == "SHP" ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+  )
+
+eda_scheme3 <- eda(scheme3)
+```
+
+```{r eda_scheme4, eval=FALSE}
+scheme4 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = d_activity,
+    dur_scheme = d_duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme == "K12" ~ purp_scheme,
+      purp_scheme == "SHP" ~ purp_scheme,
+      purp_scheme == "EAT" ~ purp_scheme,
+      purp_scheme == "OMED" ~ "OM/MED",
+      purp_scheme == "OM" ~ "OM/MED",
+      TRUE ~ "OD"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      o_activity %in% c("SHP", "EAT") & 
+        d_activity %in% c("SHP", "EAT") ~ "SHP/EAT",
+      o_activity %in% c("SHP", "EAT") | 
+        d_activity %in% c("SHP", "EAT") ~ "SHP/EAT-O",
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+  )
+
+eda_scheme4 <- eda(scheme4)
+```
+
+```{r eda_scheme5, eval=FALSE}
+scheme5 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = d_activity,
+    dur_scheme = d_duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      tod %in% c("AM", "PM") ~ "PK",
+      TRUE ~ "OP"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme == "K12" ~ purp_scheme,
+      o_activity %in% c("SHP", "EAT") & 
+        d_activity %in% c("SHP", "EAT") ~ "SHP/EAT",
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme == "K12" ~ "All",
+      TRUE ~ dur_scheme
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      o_duration == "Long" & d_duration == "Long" ~ "LL",
+      o_duration == "Long" | d_duration == "Long" ~ "LS",
+      TRUE ~ "SS"
+    ),
+  )
+
+eda_scheme5 <- eda(scheme5)
 ```
 
 ```{r write tables, eval=FALSE}
@@ -1457,7 +1613,7 @@ if (1 == 0) {
     na = ""
   )
   write_csv(
-    prep_for_eda,
+    scheme2,
     "data/output/_PRIVATE/survey_processing/trips_processed.csv",
     na = ""
   )
@@ -1471,6 +1627,21 @@ if (1 == 0) {
   write_csv(
     eda_scheme2,
     "data/output/survey_processing/eda_scheme2.csv",
+    na = ""
+  )
+  write_csv(
+    eda_scheme3,
+    "data/output/survey_processing/eda_scheme3.csv",
+    na = ""
+  )
+  write_csv(
+    eda_scheme4,
+    "data/output/survey_processing/eda_scheme4.csv",
+    na = ""
+  )
+  write_csv(
+    eda_scheme5,
+    "data/output/survey_processing/eda_scheme5.csv",
     na = ""
   )
 }
