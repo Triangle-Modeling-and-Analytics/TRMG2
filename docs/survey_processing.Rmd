@@ -1257,23 +1257,23 @@ scheme1 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "WT" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "SCH",
-      purp_scheme %in% c("W", "SCH") ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
       TRUE ~ "O"
     ),
     dur_scheme = case_when(
       tour_type != "WT" ~ dur_scheme,
       homebased != "HB" ~ dur_scheme,
-      purp_scheme %in% c("W", "SCH") ~ "All",
+      purp_scheme %in% c("W", "K12") ~ "All",
       TRUE ~ dur_scheme
     ),
     # WT NHB trips
     purp_scheme = case_when(
       tour_type != "WT" ~ purp_scheme,
       homebased != "NHB" ~ purp_scheme,
-      o_activity %in% c("POS", "DOS") ~ "SCH",
-      d_activity %in% c("POS", "DOS") ~ "SCH",
-      o_activity == "SCH" | d_activity == "SCH" ~ "SCH",
+      o_activity %in% c("POS", "DOS") ~ "K12",
+      d_activity %in% c("POS", "DOS") ~ "K12",
+      o_activity == "K12" | d_activity == "K12" ~ "K12",
       o_activity == "EAT" | d_activity == "EAT" ~ "EAT",
       o_activity %in% c("W", "WR") | d_activity %in% c("W", "WR") ~ "WR",
       TRUE ~ "O"
@@ -1281,21 +1281,21 @@ scheme1 <- prep_for_eda %>%
     dur_scheme = case_when(
       tour_type != "WT" ~ dur_scheme,
       homebased != "NHB" ~ dur_scheme,
-      purp_scheme %in% c("WR", "SCH", "EAT") ~ "All",
+      purp_scheme %in% c("WR", "K12", "EAT") ~ "All",
       TRUE ~ dur_scheme
     ),
     # NT HB trips
     purp_scheme = case_when(
       tour_type != "NT" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "SCH",
-      purp_scheme %in% c("SCH", "SHP", "EAT", "OM", "OMED") ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("K12", "SHP", "EAT", "OM", "OMED") ~ purp_scheme,
       TRUE ~ "OD"
     ),
     dur_scheme = case_when(
       tour_type != "NT" ~ dur_scheme,
       homebased != "HB" ~ dur_scheme,
-      purp_scheme %in% c("SCH", "EAT", "OM", "OMED") ~ "All",
+      purp_scheme %in% c("K12", "EAT", "OM", "OMED") ~ "All",
       TRUE ~ dur_scheme
     ),
     # NT NHB trips
@@ -1330,8 +1330,8 @@ scheme2 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "WT" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "SCH",
-      purp_scheme %in% c("W", "SCH") ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
       TRUE ~ "O"
     ),
     dur_scheme = case_when(
@@ -1346,21 +1346,21 @@ scheme2 <- prep_for_eda %>%
       TRUE ~ "All"
     ),
     dur_scheme = case_when(
-      tour_type != "WT" ~ purp_scheme,
-      homebased != "NHB" ~ purp_scheme,
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
       TRUE ~ "All"
     ),
     # NT HB trips
     purp_scheme = case_when(
       tour_type != "NT" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme == "SCH" ~ purp_scheme,
+      purp_scheme == "K12" ~ purp_scheme,
       TRUE ~ "O"
     ),
     dur_scheme = case_when(
       tour_type != "NT" ~ dur_scheme,
       homebased != "HB" ~ dur_scheme,
-      purp_scheme == "SCH" ~ "All",
+      purp_scheme == "K12" ~ "All",
       TRUE ~ dur_scheme
     ),
     # NT NHB trips
@@ -1379,6 +1379,68 @@ scheme2 <- prep_for_eda %>%
 eda_scheme2 <- eda(scheme2)
 ```
 
+```{r eda_scheme3}
+# scheme3 <- prep_for_eda %>%
+#   mutate(
+#     purp_scheme = d_activity,
+#     dur_scheme = duration,
+#     # WT HB trips
+#     purp_scheme = case_when(
+#       tour_type != "WT" ~ purp_scheme,
+#       homebased != "HB" ~ purp_scheme,
+#       purp_scheme %in% c("POS", "DOS") ~ "K12",
+#       purp_scheme %in% c("W", "K12") ~ purp_scheme,
+#       TRUE ~ "O"
+#     ),
+#     dur_scheme = case_when(
+#       tour_type != "WT" ~ dur_scheme,
+#       homebased != "HB" ~ dur_scheme,
+#       TRUE ~ "All"
+#     ),
+#     # WT NHB trips
+#     purp_scheme = case_when(
+#       tour_type != "WT" ~ purp_scheme,
+#       homebased != "NHB" ~ purp_scheme,
+#       tod %in% c("AM", "PM") ~ "PK",
+#       TRUE ~ "OP"
+#     ),
+#     dur_scheme = case_when(
+#       tour_type != "WT" ~ purp_scheme,
+#       homebased != "NHB" ~ purp_scheme,
+#       TRUE ~ "All"
+#     ),
+#     
+#     
+#     
+#     
+#     # NT HB trips
+#     purp_scheme = case_when(
+#       tour_type != "NT" ~ purp_scheme,
+#       homebased != "HB" ~ purp_scheme,
+#       purp_scheme == "K12" ~ purp_scheme,
+#       TRUE ~ "O"
+#     ),
+#     dur_scheme = case_when(
+#       tour_type != "NT" ~ dur_scheme,
+#       homebased != "HB" ~ dur_scheme,
+#       purp_scheme == "K12" ~ "All",
+#       TRUE ~ dur_scheme
+#     ),
+#     # NT NHB trips
+#     purp_scheme = case_when(
+#       tour_type != "NT" ~ purp_scheme,
+#       homebased != "NHB" ~ purp_scheme,
+#       TRUE ~ "All"
+#     ),
+#     dur_scheme = case_when(
+#       tour_type != "NT" ~ dur_scheme,
+#       homebased != "NHB" ~ dur_scheme,
+#       TRUE ~ "All"
+#     ),
+#   )
+# 
+# eda_scheme3 <- eda(scheme3)
+```
 
 ```{r write tables, eval=FALSE}
 # This treatment prevents the output files from being changed unintentionally
@@ -1404,6 +1466,11 @@ if (1 == 0) {
   write_csv(
     eda_scheme1,
     "data/output/survey_processing/eda_scheme1.csv",
+    na = ""
+  )
+  write_csv(
+    eda_scheme2,
+    "data/output/survey_processing/eda_scheme2.csv",
     na = ""
   )
 }
