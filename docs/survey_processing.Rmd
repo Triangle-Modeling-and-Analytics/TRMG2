@@ -1245,7 +1245,9 @@ prep_for_eda <- add_se_data %>%
       TRUE ~ "NT"
     )
   )
+```
 
+```{r eda_scheme1}
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
   mutate(
@@ -1337,6 +1339,13 @@ if (1 == 0) {
   write_csv(
     prep_for_eda,
     "data/output/_PRIVATE/survey_processing/trips_processed.csv",
+    na = ""
+  )
+  
+  # EDA tables
+  write_csv(
+    eda_scheme1,
+    "data/output/survey_processing/eda_scheme1.csv",
     na = ""
   )
 }
