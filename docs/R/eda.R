@@ -11,7 +11,7 @@
 #'   segment. Market segments defined by the four grouping column names.
 
 eda <- function(df, tour_type = "tour_type", homebased = "homebased",
-                purpose = "purp_scheme1", duration = "dur_scheme1") {
+                purpose = "purp_scheme", duration = "dur_scheme") {
   
   # Avoid the complication of programming with dplyr by creating new columns
   df$tour_type <- df[[tour_type]]

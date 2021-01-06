@@ -1251,26 +1251,26 @@ prep_for_eda <- add_se_data %>%
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
   mutate(
-    purp_scheme1 = d_activity,
-    dur_scheme1 = duration,
+    purp_scheme = d_activity,
+    dur_scheme = duration,
     # WT HB trips
-    purp_scheme1 = case_when(
-      tour_type != "WT" ~ purp_scheme1,
-      homebased != "HB" ~ purp_scheme1,
-      purp_scheme1 %in% c("POS", "DOS") ~ "SCH",
-      purp_scheme1 %in% c("W", "SCH") ~ purp_scheme1,
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "SCH",
+      purp_scheme %in% c("W", "SCH") ~ purp_scheme,
       TRUE ~ "O"
     ),
-    dur_scheme1 = case_when(
-      tour_type != "WT" ~ dur_scheme1,
-      homebased != "HB" ~ dur_scheme1,
-      purp_scheme1 %in% c("W", "SCH") ~ "All",
-      TRUE ~ dur_scheme1
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme %in% c("W", "SCH") ~ "All",
+      TRUE ~ dur_scheme
     ),
     # WT NHB trips
-    purp_scheme1 = case_when(
-      tour_type != "WT" ~ purp_scheme1,
-      homebased != "NHB" ~ purp_scheme1,
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
       o_activity %in% c("POS", "DOS") ~ "SCH",
       d_activity %in% c("POS", "DOS") ~ "SCH",
       o_activity == "SCH" | d_activity == "SCH" ~ "SCH",
@@ -1278,47 +1278,105 @@ scheme1 <- prep_for_eda %>%
       o_activity %in% c("W", "WR") | d_activity %in% c("W", "WR") ~ "WR",
       TRUE ~ "O"
     ),
-    dur_scheme1 = case_when(
-      tour_type != "WT" ~ dur_scheme1,
-      homebased != "NHB" ~ dur_scheme1,
-      purp_scheme1 %in% c("WR", "SCH", "EAT") ~ "All",
-      TRUE ~ dur_scheme1
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      purp_scheme %in% c("WR", "SCH", "EAT") ~ "All",
+      TRUE ~ dur_scheme
     ),
     # NT HB trips
-    purp_scheme1 = case_when(
-      tour_type != "NT" ~ purp_scheme1,
-      homebased != "HB" ~ purp_scheme1,
-      purp_scheme1 %in% c("POS", "DOS") ~ "SCH",
-      purp_scheme1 %in% c("SCH", "SHP", "EAT", "OM", "OMED") ~ purp_scheme1,
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "SCH",
+      purp_scheme %in% c("SCH", "SHP", "EAT", "OM", "OMED") ~ purp_scheme,
       TRUE ~ "OD"
     ),
-    dur_scheme1 = case_when(
-      tour_type != "NT" ~ dur_scheme1,
-      homebased != "HB" ~ dur_scheme1,
-      purp_scheme1 %in% c("SCH", "EAT", "OM", "OMED") ~ "All",
-      TRUE ~ dur_scheme1
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme %in% c("SCH", "EAT", "OM", "OMED") ~ "All",
+      TRUE ~ dur_scheme
     ),
     # NT NHB trips
-    purp_scheme1 = case_when(
-      tour_type != "NT" ~ purp_scheme1,
-      homebased != "NHB" ~ purp_scheme1,
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
       o_activity == "EAT" & d_activity == "SHP" ~ "EAT-SHP",
       o_activity == "SHP" & d_activity == "EAT" ~ "EAT-SHP",
       o_activity == "EAT" | d_activity == "EAT" ~ "EAT-O",
       o_activity == "SHP" | d_activity == "SHP" ~ "SHP",
       TRUE ~ "O"
     ),
-    dur_scheme1 = case_when(
-      tour_type != "NT" ~ dur_scheme1,
-      homebased != "NHB" ~ dur_scheme1,
-      purp_scheme1 %in% c("EAT-SHP", "EAT-O") ~ "All",
-      TRUE ~ dur_scheme1
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      purp_scheme %in% c("EAT-SHP", "EAT-O") ~ "All",
+      TRUE ~ dur_scheme
     ),
   ) %>%
-  relocate(c(tour_type, homebased), .before = purp_scheme1)
+  relocate(c(tour_type, homebased), .before = purp_scheme)
 
 
 eda_scheme1 <- eda(scheme1)
+```
+
+```{r eda_scheme2}
+scheme2 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = d_activity,
+    dur_scheme = duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "SCH",
+      purp_scheme %in% c("W", "SCH") ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme == "SCH" ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme == "SCH" ~ "All",
+      TRUE ~ dur_scheme
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      TRUE ~ "All"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+  )
+
+eda_scheme2 <- eda(scheme2)
 ```
 
 
