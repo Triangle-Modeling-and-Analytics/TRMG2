@@ -1170,6 +1170,32 @@ add_skim_info <- add_taz_id %>%
   rename(skim_length = Length)
 ```
 
+```{r}
+se_2016 <- read_csv("data/output/se_data/se_2016.csv", col_types = cols(
+  .default = col_double(),
+  Type = col_character()  
+))
+
+to_join <- se_2016 %>%
+  select(
+    TAZ,
+    ind = Industry,
+    off = Office,
+    svl = Service_RateLow,
+    svh = Service_RateHigh,
+    ret = Retail
+  )
+
+add_se_data <- add_skim_info %>%
+  left_join(to_join, by = c("origin_taz" = "TAZ")) %>%
+  rename_with(~paste0("o_", .x), c(ind:ret)) %>%
+  rowwise() %>%
+  mutate(o_emp = sum(c_across(c(o_ind:o_ret)))) %>%
+  left_join(to_join, by = c("destination_taz" = "TAZ")) %>%
+  rename_with(~paste0("d_", .x), c(ind:ret)) %>%
+  mutate(d_emp = sum(c_across(c(d_ind:d_ret))))
+```
+
 
 
 ## Exploratory Analysis
@@ -1178,7 +1204,7 @@ TODO: this EDA is using place holder time of day values. Make sure to update
 once real values have been determined.
 
 ```{r}
-prep_for_eda <- add_skim_info %>%
+prep_for_eda <- add_se_data %>%
   mutate(homebased = ifelse(o_place == "H" | d_place == "H", "HB", "NHB")) %>%
   left_join(
     hh_combined %>%

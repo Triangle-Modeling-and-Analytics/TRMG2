@@ -67,6 +67,34 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
           ) %>%
           select(-total) %>%
           pivot_wider(names_from = "mode_simple2", values_from = "pct")
+      }),
+      wAvgTrpLen = map_dbl(data, function(df) {
+        round(weighted.mean(
+          df$skim_length, df$trip_weight_combined, na.rm = TRUE), 2)
+      }),
+      r_emp = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_emp, data = df)
+        round(summary(model)$r.squared, 3)
+      }),
+      r_ret = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_ret, data = df)
+        round(summary(model)$r.squared, 3)
+      }),
+      r_ind = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_ind, data = df)
+        round(summary(model)$r.squared, 3)
+      }),
+      r_off = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_off, data = df)
+        round(summary(model)$r.squared, 3)
+      }),
+      r_svh = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_svh, data = df)
+        round(summary(model)$r.squared, 3)
+      }),
+      r_svl = map_dbl(data, function(df) {
+        model <- lm(trip_weight_combined ~ d_svl, data = df)
+        round(summary(model)$r.squared, 3)
       })
     ) %>%
     unnest(cols = c(tod_summary, mode_summary)) %>%
