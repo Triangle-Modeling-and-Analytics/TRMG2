@@ -24,6 +24,8 @@ library(geosphere)
 library(knitr)
 library(scales)
 library(kableExtra)
+
+source("R/eda.R")
 ```
 
 ```{r read_data, message=FALSE}
@@ -647,6 +649,14 @@ convert_purpose <- trip_combined %>%
     ),
     homeschooled_flag = ifelse(school %in% c(5, 7, 9), 1, 0)
   )
+
+# A departure time of 0 is 3:00 am. Anything before that is -60.
+# Change it to be minutes from midnight.
+change_time <- convert_purpose %>%
+  mutate(across(
+    c(departure_time, arrival_time),
+    ~ifelse(.x == -60, 0, .x + 180)
+  ))
 ```
 
 ### Places
@@ -683,7 +693,7 @@ calc_dist <- function(x1, y1, x2, y2) {
   distHaversine(df1, df2)
 }
 
-det_home_place <- convert_purpose %>%
+det_home_place <- change_time %>%
   # Home
   left_join(
     hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
@@ -778,8 +788,6 @@ det_work_place <- det_sch_place %>%
 
 ### Mode simplification
 
-
-
 ```{r simplify_mode}
 mode_equiv <- read_csv(
   "data/input/survey_processing/mode_equiv.csv",
@@ -805,7 +813,6 @@ simplify_mode <- det_work_place %>%
     )
   )
 ```
-
 
 ### Tour formation
 
@@ -1047,7 +1054,11 @@ flagged_only  <- bus_flag  %>%
       c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
       ~ min(ifelse(is.na(.x), 999, .x), na.rm = TRUE)
     ),
-    park_address = first(park_address[!is.na(park_address)]),
+    park_address = ifelse(
+      length(first(park_address[!is.na(park_address)])) > 0,
+      first(park_address[!is.na(park_address)]),
+      NA
+    ),
     across(
       c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
       ~ ifelse(.x == 999, NA, .x)
@@ -1599,51 +1610,50 @@ eda_scheme5 <- eda(scheme5)
 ```
 
 ```{r write tables, eval=FALSE}
-# This treatment prevents the output files from being changed unintentionally
-# while knitting, testing, etc.
-if (1 == 0) {
-  write_csv(
-    hh_combined,
-    "data/output/_PRIVATE/survey_processing/hh_processed.csv",
-    na = ""
-  )
-  write_csv(
-    per_combined,
-    "data/output/_PRIVATE/survey_processing/per_processed.csv",
-    na = ""
-  )
-  write_csv(
-    scheme2,
-    "data/output/_PRIVATE/survey_processing/trips_processed.csv",
-    na = ""
-  )
-  
-  # EDA tables
-  write_csv(
-    eda_scheme1,
-    "data/output/survey_processing/eda_scheme1.csv",
-    na = ""
-  )
-  write_csv(
-    eda_scheme2,
-    "data/output/survey_processing/eda_scheme2.csv",
-    na = ""
-  )
-  write_csv(
-    eda_scheme3,
-    "data/output/survey_processing/eda_scheme3.csv",
-    na = ""
-  )
-  write_csv(
-    eda_scheme4,
-    "data/output/survey_processing/eda_scheme4.csv",
-    na = ""
-  )
-  write_csv(
-    eda_scheme5,
-    "data/output/survey_processing/eda_scheme5.csv",
-    na = ""
-  )
-}
+# These files will not be written during knitting, but must be done
+# manually (consciously).
+
+write_csv(
+  hh_combined,
+  "data/output/_PRIVATE/survey_processing/hh_processed.csv",
+  na = ""
+)
+write_csv(
+  per_combined,
+  "data/output/_PRIVATE/survey_processing/per_processed.csv",
+  na = ""
+)
+write_csv(
+  scheme2,
+  "data/output/_PRIVATE/survey_processing/trips_processed.csv",
+  na = ""
+)
+
+# EDA tables
+write_csv(
+  eda_scheme1,
+  "data/output/survey_processing/eda_scheme1.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme2,
+  "data/output/survey_processing/eda_scheme2.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme3,
+  "data/output/survey_processing/eda_scheme3.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme4,
+  "data/output/survey_processing/eda_scheme4.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme5,
+  "data/output/survey_processing/eda_scheme5.csv",
+  na = ""
+)
 ```
 
