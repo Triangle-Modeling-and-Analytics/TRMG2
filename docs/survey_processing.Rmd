@@ -1152,6 +1152,25 @@ add_taz_id <- xfer_linked_out %>%
   rename(park_taz = TAZ)
 ```
 
+```{r}
+# The full skim table is large (160MB). Instead of commit that to the
+# repo, I did the join below first. I think saved only the OD pairs
+# that we actually needed for trips in the survey. This shrunk the file
+# to 560kb.
+skim <- read_csv(
+  "data/input/survey_processing/length_skim.csv", col_types = cols(
+    .default = col_double()
+  )
+)
+
+add_skim_info <- add_taz_id %>%
+  left_join(
+    skim, by = c("origin_taz" = "Origin", "destination_taz" = "Destination")
+  ) %>%
+  rename(skim_length = Length)
+```
+
+
 
 ## Exploratory Analysis
 
@@ -1159,7 +1178,7 @@ TODO: this EDA is using place holder time of day values. Make sure to update
 once real values have been determined.
 
 ```{r}
-prep_for_eda <- add_taz_id %>%
+prep_for_eda <- add_skim_info %>%
   mutate(homebased = ifelse(o_place == "H" | d_place == "H", "HB", "NHB")) %>%
   left_join(
     hh_combined %>%
