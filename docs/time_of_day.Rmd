@@ -1,0 +1,866 @@
+---
+title: "Time of Day, Directionality, and Occupancy"
+author: "Caliper Corporation"
+date: "January 6, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warnings = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(data.table)
+library(chron)
+library(plotly)
+library(knitr)
+library(kableExtra)
+```
+
+# Introduction
+This page details the steps taken to determine the most appropriate time period
+definitions for the Triangle Regional Model (TRM). Caliper used the processed
+household survey to perform the analysis.
+
+```{r read survey, include = FALSE}
+# This file is created by the Generation-Resident.Rmd
+tripTbl <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv")
+```
+
+# Peak period determination
+
+*(To skip to the final period definitions, click [here](#final_defs).)*
+
+Peak period determination is based on an analysis of the trips in motion
+throughout the day.  First, the day is broken up into 15-minute increments.  A
+trip from the household survey is said to be "in motion" if any portion of the
+trip occurs within the 15-minute bin. As a result, a single trip can be counted
+in multiple bins.  Determining the peak period considers the distribution of all
+trips as well as the distribution of trips on work tours individually. The chart
+below shows these two distributions, which look as expected with the AM peak
+being shorter and more condensed than the PM. Travelers have much more
+flexibility in their travel choices in the PM.
+
+```{r}
+bin_size = 15 # minutes
+
+# Vector of time by 15 minutes
+v_time <- seq(0, 24, by = bin_size / 60) * 60
+
+# Determine how many trips (all purposes) fall in each bin
+v_all <- c()
+for (i in 1:length(v_time)) {
+  v_all[i] <- sum(
+    tripTbl$trip_weight_combined[
+      tripTbl$departure_time < v_time[i + 1] & 
+        tripTbl$arrival_time >= v_time[i]
+    ],
+    na.rm = TRUE
+  )
+}
+
+# Determine how many trips (work purpose) fall in each bin
+work_trips <- tripTbl %>%
+  mutate(
+    work_trip = ifelse(
+      tour_type == "WT", #& homebased == "HB" & purp_scheme == "W",
+      # (o_activity == "W" | d_activity == "W") &
+      #   (o_activity == "H" | d_activity == "H"),
+      1, 0
+    )
+  )
+
+v_wrk <- c()
+for (i in 1:length(v_time)) {
+  v_wrk[i] <- sum(
+    work_trips$trip_weight_combined[
+      work_trips$departure_time < v_time[i + 1] & 
+        work_trips$arrival_time >= v_time[i] & 
+        work_trips$work_trip == 1
+    ]
+  )
+}
+
+timTbl <- tibble(
+  time = v_time,
+  AllTrips = v_all,
+  WrkTrips = v_wrk
+)
+```
+
+```{r time_conv_formula}
+# Formula for converting minutes to chart format (e.g. 1000 for 10:00 am)
+chart_time <- function(minutes){
+  ((minutes %/% 60) * 100 + (minutes %% 60)) / 100
+}
+```
+
+```{r, warning=FALSE, message=FALSE}
+tbl <- timTbl %>%
+  mutate(time = chart_time(time))
+
+plot_ly(
+  tbl, x = ~time, y = ~AllTrips, type = "scatter", mode = "lines", name = "All",
+  hoverinfo = "text+x", text = ~format(round(AllTrips, 0), big.mark = ",")
+) %>%
+  add_trace(
+    x = ~time, y = ~WrkTrips, type = "scatter", mode = "lines", name = "Work",
+    hoverinfo = "text+x", text = ~format(round(WrkTrips, 0), big.mark = ",")
+  ) %>%
+  layout(
+    title = "Distribution of Trips in Motion by Purpose",
+    xaxis = list(title = "Time of Day"),
+    yaxis = list(title = "Trips in Motion")
+  )
+```
+
+The next step is to determine the peak hour for all trips and those on work
+tours.  In the tables below, the AM and PM peak hours by type are presented.  At
+a minimum, the AM and PM peak periods should contain the respective peak hour
+for work trips and all trips. The chart below shows that the peak hour for work
+and all trips are nearly the same.
+
+```{r}
+# Create rolling sums to determine peak hour
+an = function(n, len) c(seq.int(n), rep(n, len-n))
+n = an(60 / bin_size, nrow(timTbl))
+
+roll_sums <- timTbl %>%
+  mutate(
+    all_trips_in_hour = frollsum(AllTrips, n, na.rm = TRUE, adaptive = TRUE),
+    wrk_trips_in_hour = frollsum(WrkTrips, n, na.rm = TRUE, adaptive = TRUE)
+  )
+```
+
+```{r am_peak_hour}
+# AM Peak Hour
+am_tbl <- roll_sums %>%
+  filter(time < 720) # before noon
+# for work trips
+am_wrk_peak <- am_tbl$time[
+  which(am_tbl$wrk_trips_in_hour == max(am_tbl$wrk_trips_in_hour))
+  ]
+# for all trips
+am_all_peak <- am_tbl$time[
+  which(am_tbl$all_trips_in_hour == max(am_tbl$all_trips_in_hour))
+  ]
+
+# Convert minutes to times for table and prose
+am_wrk_peak_from <- chron(times. = c((am_wrk_peak - 60) / 1440))
+am_wrk_peak_to <- chron(times. = c(am_wrk_peak / 1440))
+am_all_peak_from <- chron(times. = c((am_all_peak - 60) / 1440))
+am_all_peak_to <- chron(times. = c(am_all_peak / 1440))
+am_min_from <- chron(times. = c((min(am_wrk_peak, am_all_peak) - 60) / 1440))
+am_max_to <- chron(times. = c(max(am_wrk_peak, am_all_peak) / 1440))
+  
+tibble(
+  `Trip Purpose` = c("Work", "All"),
+  `Peak Start` = c(am_wrk_peak_from, am_all_peak_from),
+  `Peak End` = c(am_wrk_peak_to, am_all_peak_to)
+) %>%
+  # kable2(caption = "AM Peak Hour by Purpose")
+  kable() %>%
+  kable_styling()
+
+```
+
+```{r pm_peak_hour}
+# PM Peak Hour
+pm_tbl <- roll_sums %>%
+  filter(time > 720) # after noon
+# for wrk trips
+pm_wrk_peak <- pm_tbl$time[
+  which(pm_tbl$wrk_trips_in_hour == max(pm_tbl$wrk_trips_in_hour))
+  ]
+# for all trips
+pm_all_peak <- pm_tbl$time[
+  which(pm_tbl$all_trips_in_hour == max(pm_tbl$all_trips_in_hour))
+  ]
+
+# Convert minutes to times for table and prose
+pm_wrk_peak_from <- chron(times. = c((pm_wrk_peak - 60) / 1440))
+pm_wrk_peak_to <- chron(times. = c(pm_wrk_peak / 1440))
+pm_all_peak_from <- chron(times. = c((pm_all_peak - 60) / 1440))
+pm_all_peak_to <- chron(times. = c(pm_all_peak / 1440))
+pm_min_from <- chron(times. = c((min(pm_wrk_peak, pm_all_peak) - 60) / 1440))
+pm_max_to <- chron(times. = c(max(pm_wrk_peak, pm_all_peak) / 1440))
+  
+tibble(
+  `Trip Purpose` = c("Work", "All"),
+  `Peak Start` = c(pm_wrk_peak_from, pm_all_peak_from),
+  `Peak End` = c(pm_wrk_peak_to, pm_all_peak_to)
+) %>%
+  # kable2(caption = "PM Peak Hour by Purpose")
+  kable() %>%
+  kable_styling()
+
+```
+
+```{r peak_hour_chart}
+plotly_tbl <- timTbl %>%
+  mutate(time = chart_time(time))
+
+plot_ly(
+  plotly_tbl,
+  x = ~time, y = ~AllTrips, type = "scatter", mode = "lines", name = "All",
+  hoverinfo = "text+x", text = ~format(round(AllTrips, 0), big.mark = ",")
+) %>%
+  add_trace(
+    x = ~time, y = ~WrkTrips, type = "scatter", mode = "lines", name = "Work",
+    hoverinfo = "text+x", text = ~format(round(WrkTrips, 0), big.mark = ",")
+  ) %>%
+  add_trace(
+    name = "Peak Hours",
+    hoverinfo = "x",
+    # Vector of x positions (may need individual adjustment)
+    x = c(
+      chart_time(am_wrk_peak - 10),
+      chart_time(pm_wrk_peak - 35)
+      ),
+    # Vector of y positions
+    y = rep(max(plotly_tbl$AllTrips) * 1.02, 2),
+    text = c("Work and All", "Work and All"),
+    mode = "text"
+  ) %>%
+  layout(
+    title = "Peak Hours",
+    xaxis = list(title = "Time of Day"),
+    yaxis = list(title = "Trips in Motion"),
+    shapes = list(
+      # Work AM Peak Hour
+      list(type = "rect",
+           fillcolor = "blue", line = list(color = "blue"), opacity = .3,
+           x0 = chart_time(am_wrk_peak - 60),
+           x1 = chart_time(am_wrk_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # All AM Peak Hour
+      list(type = "rect",
+           fillcolor = "green", line = list(color = "green"), opacity = .3,
+           x0 = chart_time(am_all_peak - 60),
+           x1 = chart_time(am_all_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # Work PM Peak Hour
+      list(type = "rect",
+           fillcolor = "blue", line = list(color = "blue"), opacity = .3,
+           x0 = chart_time(pm_wrk_peak - 60),
+           x1 = chart_time(pm_wrk_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # All PM Peak Hour
+      list(type = "rect",
+           fillcolor = "green", line = list(color = "green"), opacity = .3,
+           x0 = chart_time(pm_all_peak - 60),
+           x1 = chart_time(pm_all_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      )
+    )
+  )
+```
+
+
+```{r period_definition}
+#If desired, manually override the final period definitions in the variables
+#below. Use chron(times. = c("15:30:00")) to specify 3:30pm
+
+am_peak_from <- am_min_from
+am_peak_to <- am_max_to
+
+pm_peak_from <- pm_min_from
+pm_peak_to <- pm_max_to
+```
+
+## Final Period Definitions {#final_defs}
+
+The final period definitions are shown in the table below including the mid-day
+(MD) period.  The remaining hours of the day are captured in the night (NT)
+period. In the chart, the final period is represented by the gray rectangle.
+```{r final_per_defs}
+period_tbl <- tibble(
+  Period = c("AM", "MD", "PM", "NT"),
+  From = c(am_peak_from, am_peak_to, pm_peak_from, pm_peak_to),
+  To = c(am_peak_to, pm_peak_from, pm_peak_to, am_peak_from)
+) %>%
+  mutate(
+    Hours = hours(To - From) + minutes(To - From) / 60
+  )
+
+period_tbl %>%
+  # kable2(caption = "Final Period Definitions")
+  kable() %>%
+  kable_styling()
+```
+
+```{r peak_period_chart}
+# Function used to calculate the x location of the period label
+text_loc <- function (chron1, chron2) {
+  start <- as.numeric(min(chron1, chron2))
+  stop <- as.numeric(max(chron1, chron2))
+  midpoint <- ((stop - start) / 2 + start) * 1440
+  midpoint <- chart_time(midpoint)
+  return(midpoint)
+}
+
+plot_ly(
+  plotly_tbl,
+  x = ~time, y = ~AllTrips, type = "scatter", mode = "lines", name = "All",
+  hoverinfo = "text+x", text = ~format(round(AllTrips, 0), big.mark = ",")
+) %>%
+  add_trace(
+    x = ~time, y = ~WrkTrips, type = "scatter", mode = "lines", name = "Work",
+    hoverinfo = "text+x", text = ~format(round(WrkTrips, 0), big.mark = ",")
+  ) %>%
+  add_trace(
+    name = "Period",
+    hoverinfo = "x",
+    # Vector of x positions
+    x = c(
+      text_loc(0, am_peak_from),                        # first NT
+      text_loc(am_peak_from, am_peak_to),               # AM
+      text_loc(am_peak_to, pm_peak_from),               # MD
+      text_loc(pm_peak_from, pm_peak_to),               # PM
+      text_loc(pm_peak_to, chron(times. = "23:59:59"))  # second NT
+      ),
+    # Vector of y positions
+    y = rep(max(plotly_tbl$AllTrips) * 1.06, 5),
+    text = c("NT", "AM", "MD", "PM", "NT"),
+    mode = "text"
+  ) %>%
+  layout(
+    title = "Peak Periods",
+    xaxis = list(title = "Time of Day"),
+    yaxis = list(title = "Trips in Motion"),
+    shapes = list(
+      # AM Peak Period
+      list(type = "rect",
+           fillcolor = "gray", line = list(color = "black"), opacity = .3,
+           x0 = chart_time(as.numeric(am_peak_from) * 1440),
+           x1 = chart_time(as.numeric(am_peak_to) * 1440),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips) * 1.04
+      ),
+      # AM Peak Period
+      list(type = "rect",
+           fillcolor = "gray", line = list(color = "black"), opacity = .3,
+           x0 = chart_time(as.numeric(pm_peak_from) * 1440),
+           x1 = chart_time(as.numeric(pm_peak_to) * 1440),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips) * 1.04
+      ),
+      # Work AM Peak Hour
+      list(type = "rect",
+           fillcolor = "blue", line = list(color = "blue"), opacity = .3,
+           x0 = chart_time(am_wrk_peak - 60),
+           x1 = chart_time(am_wrk_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # All AM Peak Hour
+      list(type = "rect",
+           fillcolor = "green", line = list(color = "green"), opacity = .3,
+           x0 = chart_time(am_all_peak - 60),
+           x1 = chart_time(am_all_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # Work PM Peak Hour
+      list(type = "rect",
+           fillcolor = "blue", line = list(color = "blue"), opacity = .3,
+           x0 = chart_time(pm_wrk_peak - 60),
+           x1 = chart_time(pm_wrk_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      ),
+      # All PM Peak Hour
+      list(type = "rect",
+           fillcolor = "green", line = list(color = "green"), opacity = .3,
+           x0 = chart_time(pm_all_peak - 60),
+           x1 = chart_time(pm_all_peak),
+           y0 = 0, y1 = max(plotly_tbl$AllTrips)
+      )
+    )
+  )
+```
+
+```{r add_tod_to_tripTbl}
+# tripTbl is modified to include a tod column for use in the following
+# sections
+breaks <- c(am_peak_from, am_peak_to, pm_peak_from, pm_peak_to)
+breaks <- as.numeric(breaks) * 1440
+labels <- c("AM", "MD", "PM")
+
+tripTbl <- tripTbl %>%
+  group_by(tod = cut(departure_time, breaks = breaks, labels = labels)) %>%
+  ungroup() %>%
+  mutate(
+    tod = as.character(tod),
+    tod = ifelse(is.na(tod), "NT", tod),
+    # Use factors to set display order in table
+    tod = factor(
+      tod,
+      levels = c("AM", "MD", "PM", "NT"),
+      ordered = TRUE
+      ),
+    # Include a PK/OP definition for distribution/mode models to use
+    pk_op = ifelse(tod %in% c("AM", "PM"), "PK", "OP")
+    )
+```
+
+
+```{r}
+# Stop knitting here for now
+knitr::knit_exit()
+```
+
+
+# Time of day factors
+With the periods defined, the percent of trips produced by purpose and time of
+day must be determined.  These factors are calculated based on the departure
+time of each trip rather than using the trips in motion table.  This ensures
+that each trip is only counted once, regardless of duration, and that it is
+included in the right period.  These factors are used to divide the daily person
+trips created during trip generation into time of day (by purpose). IEEI trips
+are assumed to behave like HBO trips.
+
+Directionality factors are calculated separately in the next section.  As a
+reference, the time period definition is shown again first.
+
+```{r}
+period_tbl %>%
+  kable2(caption = "Final Period Definitions")
+```
+
+```{r calc_tod_trip_factors}
+tod_factors <- tripTbl %>%
+  group_by(Period = tod, Purpose = final_purp_g) %>%
+  summarise(Trips = sum(hhrkwt0)) %>%
+  group_by(Purpose) %>%
+  mutate(
+    Percent = round(Trips / sum(Trips), 3),
+    # ensure unity
+    temp = ifelse(Period == "NT", 0, Percent),
+    Percent = ifelse(Period == "NT", 1 - sum(temp), Percent)
+  ) %>%
+  select(Purpose, Period, Percent) %>%
+  arrange(Purpose, Period)
+
+purp_levels <- c("HBW", "HBSC", "HBSH", "HBU", "HBO", "NHBW", "NHBO")
+
+tod_factors %>%
+  ungroup() %>%
+  mutate(
+    Percent = percent(Percent),
+    Purpose = factor(
+      Purpose,
+      levels = c(purp_levels),
+      ordered = TRUE
+    )) %>%
+  spread(key = Period, value = Percent) %>%
+  kable2(digits = 3, caption = "Time of Day Factors by Purpose")
+```
+
+```{r create crosswalk table for model}
+# Create a table for non-resident purposes (CV, SUT, MUT, and IEEI)
+# Use HBO for these purposes
+other_tbl <- tibble(
+  Purpose = c("CV", "SUT", "MUT", "IEEI"),
+  equiv = c("HBO", "HBO", "HBO", "HBO")
+)
+other_tbl <- merge(other_tbl, unique(tod_factors$Period)) %>%
+  rename(Period = y) %>%
+  left_join(tod_factors, by = c("equiv" = "Purpose", "Period" = "Period")) %>%
+  select(-equiv) %>%
+  arrange(Purpose, Period)
+
+# Combine other and tod tables
+out_tbl <- bind_rows(tod_factors, other_tbl) %>% 
+  ungroup()
+
+# Create a duplicate table for attractions and add it to other_tbl
+attr_tbl <- out_tbl %>%
+  mutate(Purpose = paste0(Purpose, "a"))
+out_tbl <- bind_rows(out_tbl, attr_tbl) %>%
+  arrange(Purpose, Period)
+
+# Repeat the HBW and HBO factors for each market segment
+temp <- out_tbl %>%
+  filter(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa")) %>%
+  merge(tibble(market = c("v0", "ilvi", "ilvs", "ihvi", "ihvs"))) %>%
+  mutate(Purpose = paste(Purpose, market, sep = "_")) %>%
+  select(-market)
+
+out_tbl <- out_tbl %>%
+  filter(!(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa"))) %>%
+  bind_rows(temp) %>%
+  arrange(Purpose)
+
+# Create standard format table used by "Field Crosswalk" macro in model
+out_tbl <- out_tbl %>%
+  mutate(
+    to_desc = paste(
+      "Time of Day", 
+      "Generation fields split into time period", 
+      "See time_of_day_factors.csv for rates", 
+      sep = "|"
+    ),
+    to_field = paste0(Purpose, "_", Period)
+  ) %>%
+  select(to_field, to_desc, from_field = Purpose, from_factor = Percent, Period)
+
+# Create a description field for the table
+desc <- vector(mode = "character", length = nrow(out_tbl))
+desc[1] = "Used by 'Field Crosswalk' macro"
+desc[2] = "to_field = to_field + from_field * from_factor"
+desc[3] = "The 'to_desc' gets placed in the TC field description"
+desc[5] = "Non-resident purposes use HBO factors"
+desc[6] = "'Period' column included to facilitate manual summary/review"
+desc[8] = "CREATION: table created by TimeOfDay.Rmd"
+out_tbl$Description <- desc
+
+tod_tbl <- out_tbl
+```
+
+# Directionality factors
+For most steps in a trip-based model, the trips are said to be in
+"Production/Attraction" (PA) format.  This simply means that all home-based
+trips start at home and end somewhere else.  This simplification of reality is
+done for a number of reasons in the model, but is not actually how travel
+occurs.  As a result, before highway trip assignment can take place, the PA
+format must be converted to "Origin/Destination" (OD) format.  In this format, a
+trip from work to home starts at work and ends at home.
+
+This conversion is accomplished using factors stratified by time of day and
+purpose.  As an example, the majority of HBW trips in the AM start at home
+and end at work.  As a result, PA-to-OD factor ("PA factor" for short) would be
+above 50% (> .5).  In the PM period, this trend is usually reversed, and the PA
+factor would be less than 50% (< .5).
+
+These factors can be calculated directly from the survey by comparing the number
+of home-based trips that start at home to the number home-based trips that start
+elsewhere.  By definition, non-home-based trips are the same in either format;
+their PA factors are set to .5.  The same treatment is applied to commercial
+vehicles, trucks, and external trips.
+
+Finally, directionality factors are applied after the distribution and modal
+models.  At that point, the purposes are collapsed due to sample size
+limitations in the household survey.  As a result, the factors must be estimated
+using the matching, more-aggregate purposes.
+
+```{r calc_pa_factors}
+# Calculate a pa field
+tripTbl <- tripTbl %>%
+  mutate(pa = ifelse(dest_blk == home_blk & orig_blk != home_blk, "AP", "PA"))
+
+pa_tbl <- tripTbl %>%
+  group_by(Purpose = final_purp_d, Period = tod, pa) %>%
+  summarise(Trips = sum(hhrkwt0)) %>%
+  group_by(Purpose, Period) %>%
+  mutate(
+    Value = round(Trips / sum(Trips), 3),
+    # Set NHB purposes to .5
+    Value = ifelse(
+      # Check for first letter = "N" or "n"
+      grepl("^N", Purpose, ignore.case = TRUE),
+      .5,
+      Value
+    )
+  ) %>%
+  filter(pa == "PA") %>%
+  select(Purpose, Period, Value) %>%
+  ungroup() %>%
+  mutate(Purpose = factor(
+    Purpose, levels = c("HBW", "HBO", "HBSC", "HBSH", "NHB"), ordered = TRUE
+  )) %>%
+  arrange(Purpose)
+
+pa_tbl %>%
+  spread(key = Period, value = Value) %>%
+  kable2(digits = 2, caption = "PA Factors by Purpose and Time of Day")
+```
+
+```{r add other purps and desc, warning=FALSE}
+# Add rows for NHBNR, CV, SUT, MUT, and IEEI.  They are all 50/50.
+v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
+for (type in v_types){
+  template <- pa_tbl %>%
+    filter(Purpose == "NHB") %>%
+    mutate(Purpose = type)
+  
+  pa_tbl <- bind_rows(pa_tbl, template)
+}
+pa_tbl <- pa_tbl %>%
+  mutate(Purpose = factor(
+    Purpose, levels = c(
+      "HBW",
+      "HBO",
+      "HBSC",
+      "HBSH",
+      "NHB",
+      v_types
+    ), ordered = TRUE
+  )) %>%
+  arrange(Purpose)
+
+# add description column
+v_desc <- vector(mode = "character", nrow(pa_tbl))
+v_desc[1] <- "Percent of trips in PA direction by purpose and tod"
+v_desc[2] <- "CREATION: this file created by rmarkdown"
+pa_tbl$Description <- v_desc
+```
+
+# Vehicle occupancy factors
+In addition to applying directionality factors before assignment, the person 
+trip matrices are converted to vehicles using occupancy factors.  These factors
+are calculated from the household survey, which includes information on the
+party size of each trip. The rates below meet expectations.
+```{r calculate veh occ factors}
+occ_tbl <- tripTbl %>%
+  filter(mode %in% c("auto", "shared2", "shared3")) %>%
+  mutate(
+    mode = case_when(
+      mode == "auto" ~ "da",
+      mode == "shared2" ~ "sr2",
+      mode == "shared3" ~ "sr3"
+    ),
+    party_size = num_on_trip
+  ) %>%
+  group_by(Purpose = final_purp_d, Period = tod, Mode = mode) %>%
+  summarise(Value = round(weighted.mean(party_size, w = hhrkwt0), 3)) %>%
+  ungroup() %>%
+  mutate(Purpose = factor(
+    Purpose, levels = c(
+      "HBW",
+      "HBO",
+      "HBSC",
+      "HBSH",
+      "NHB",
+      v_types
+    ), ordered = TRUE
+  )) %>%
+  arrange(Purpose, Period, Mode) %>%
+  select(Purpose, Mode, Period, Value)
+
+occ_tbl %>%
+  spread(key = Period, value = Value) %>%
+  kable2(digits = 2, caption = "Occupancy Factors by Purpose and Time of Day")
+
+# Repeat occupancy factors by market segment to match model
+# matrix core names
+occ1 <- occ_tbl %>%
+  filter(Purpose %in% c("HBW", "HBO")) %>%
+  merge(c("v0", "ilvi", "ilvs", "ihvi", "ihvs")) %>%
+  select(Purpose, Segment = y, Mode, Period, Value)
+occ2 <- occ_tbl %>%
+  filter(!(Purpose %in% c("HBW", "HBO"))) %>%
+  mutate(Segment = "all") %>%
+  select(Purpose, Segment, Mode, Period, Value)
+occ_tbl <- bind_rows(occ1, occ2) %>%
+  arrange(Purpose, Segment, Mode, Period)
+
+
+# No need to add CV, IX, etc. By not being in the table, it's the same
+# as if they were and had a factor of 1.
+
+# add description column
+v_desc <- vector(mode = "character", nrow(occ_tbl))
+v_desc[1] <- "Vehicle occupancy rates (per/veh)"
+v_desc[2] <- "CREATION: this file created by TimeOfDay.Rmd and University.Rmd"
+occ_tbl$Description <- v_desc
+```
+
+
+# Period capacity factors
+In aggregate, period-based assignment regimes, hourly capacities must be
+converted to period capacities in a manner that accurately captures the balance
+of congestion.  In the real world, the hourly capacity of a road is generally
+the same throughout the day; it is the demand that changes.  This change in
+demand causes congestion levels to change throughout the day.  Consider the
+stylized example below of a real world street segment.
+
+## Qualitative example
+
+```{r}
+real_world <- tibble(
+  Time = c("6-7", "7-8", "8-9"),
+  Capacity = c(1050, 1050, 1050),
+  Demand = c(500, 900, 500)
+) %>%
+  mutate(Percent = round(Demand / Capacity * 100, 2))
+
+real_world %>% kable2(caption = "Example of Real-World Behavior")
+
+plot_ly(
+  real_world,
+  x = ~Time, y = ~Capacity, type = "bar", name = "Capacity"
+) %>%
+  add_trace(x = ~Time, y = ~Demand, type = "bar", name = "Demand") %>%
+  layout(
+    xaxis = list(title = "Hour of Day"), yaxis = list(title = "Veh per Hour")
+  )
+```
+
+Now consider how the same situation is represented in a period assignment if the
+model simply adds up the capacity and demand of each hour.
+
+```{r}
+model_period <- tibble(
+  Time = c("6-9"),
+  Capacity = c(sum(real_world$Capacity)),
+  Demand = c(sum(real_world$Demand))
+)
+
+model_period %>% kable2(caption = "Initial Model Representation")
+
+plot_ly(
+  model_period,
+  x = ~Time, y = ~Capacity, type = "bar", name = "Capacity"
+) %>%
+  add_trace(x = ~Time, y = ~Demand, type = "bar", name = "Demand") %>%
+  layout(
+    xaxis = list(title = "Hour of Day"), yaxis = list(title = "Veh per Hour")
+  )
+```
+
+In this representation, no one experiences congestion.  In the real world,
+nearly half the vehicles in the period experience congested conditions between
+7:00 am and 8:00 am.  This discrepency can cause numerous errors in the model,
+including:
+
+  * Longer trip lengths
+  * Incorrect route choices
+  * Lower diversion to transit
+  * Incorrect link assignment
+
+The period capacity factor (PCF) corrects for this, and is the inverse of a
+similar concept from traffic engineering: the peak hour factor (PHF). In traffic
+engineering, the PHF adjusts hourly volume based on the highest 15-minute volume
+within the hour. While the PHF is used to adjust demand given a fixed capacity,
+the PCF adjusts period capacity based on the highest-volume hour of the period.
+
+Consider our example of a three-hour period from 6:00 am to 9:00 am.  If the
+actual demand was evenly distributed across the period, the PHF would be .33. 
+The PCF, the inverse of the PHF, would be 3.  In this scenario, the hourly
+capacity would be multiplied by 3, which would lead to the capacity shown in the
+table above.  Instead, using the actual demand from our example, the PHF would
+be:
+
+$$PHF = 900 /(500 + 900 + 500) = 0.474$$
+
+Taking the inverse gives a PCF of:
+
+$$PCF = 1 / .474 = 2.11$$
+
+Finally, the period capacity that most-accurately reflects congestion would be:
+
+$$Period Capacity = 1050 * 2.11 = 2215$$
+
+That capacity is shown relative to the period demand in the chart below.  This
+relationship is a better representation of real world conditions.
+
+```{r}
+final_period <- tibble(
+  PCF = c("PCF = 3.00", "PCF = 2.11"),
+  Demand = rep(sum(real_world$Demand), 2)
+)
+final_period <- final_period %>%
+  mutate(Capacity = c(3150, round(2.11 * 1050, 0)) - Demand)
+
+plot_ly(
+  final_period,
+  x = ~PCF, y = ~Demand, type = "bar", name = "Demand"
+) %>%
+  add_trace(x = ~PCF, y = ~Capacity, type = "bar", name = "Capacity") %>%
+  layout(
+    title = "Final Model Representation",
+    xaxis = list(title = ""),
+    yaxis = list(title = "Veh per Period"),
+    barmode = "stack"
+  )
+
+final_period %>%
+  mutate(
+    Capacity = Demand + Capacity,
+    Percent = round(Demand / Capacity * 100, 2)
+  ) %>%
+  kable2(caption = "Final Model Representation")
+```
+
+
+## Calculation from survey
+The PCFs for the model can be calculated from the trips in motion table using
+the same approach.  The results are shown in the table below.
+
+```{r calc_pcf}
+pcf_tbl <- timTbl %>%
+  group_by(tod = cut(time, breaks = breaks, labels = labels)) %>%
+  ungroup() %>%
+  mutate(
+    tod = as.character(tod),
+    tod = ifelse(is.na(tod), "NT", tod),
+    # Use factors to set display order in table
+    tod = factor(
+      tod,
+      levels = c("AM", "MD", "PM", "NT"),
+      ordered = TRUE
+      )
+    ) %>%
+  group_by(tod) %>%
+  mutate(
+    all_trips_in_hour = rollapplyr(AllTrips, 60 / bin_size, sum, partial = TRUE)
+  ) %>%
+  summarise(
+    PHF = max(all_trips_in_hour) / sum(AllTrips),
+    PCF = 1 / PHF
+  ) %>%
+  mutate(
+    From = c(am_peak_from, am_peak_to, pm_peak_from, pm_peak_to),
+    To = c(am_peak_to, pm_peak_from, pm_peak_to, am_peak_from),
+    Length = ifelse(
+      tod != "NT",
+      (To - From) * 1440 / 60,
+      (1 - as.numeric(From) + as.numeric(To)) * 1440 / 60
+    )
+  ) %>%
+  # Reorder and rename for display
+  select(Period = tod, From, To, Length, PHF, PCF)
+
+total <- round(sum(pcf_tbl$PCF), 2)
+
+pcf_tbl %>%
+  rename(`Length (hrs)` = Length, `Model Capacity (hrs)` = PCF) %>%
+  kable2(digits = 2, caption = "Model Peak Capacity Factors (PCFs)")
+```
+
+A [general
+guideline](https://www.fhwa.dot.gov/planning/tmip/publications/other_reports/validation_and_reasonableness_2010/ch08.cfm)
+to follow suggests the model should provide 8-12 hours of capacity per day.  The
+PCFs calculated directly from the survey data provide `r total`.  This is slightly
+higher, but still acceptable.
+
+
+```{r write param tables, eval=FALSE}
+# All writing of parameters files should be in this chunk, and will not
+# execute when knitting. Run them manually only when you want to update the
+# model.
+
+# TOD factors
+tod_tbl %>%
+  mutate(from_factor = round(from_factor, 3)) %>%
+  write_csv("../master/tod/time_of_day_factors.csv")
+
+# Directionality factors. HBU gets appended by University.Rmd.
+write_csv(pa_tbl , "../master/directionality/directionality_factors.csv")
+
+# Occupancy factors. HBU gets appended by University.Rmd
+write_csv(occ_tbl , "../master/directionality/veh_occ_factors.csv")
+
+# Period capacity table
+write_csv(
+  pcf_tbl %>%
+    select(TOD = Period, Value = PCF) %>%
+    mutate(
+      Description = paste("Hours of capacity in", TOD, "period", sep = " "),
+      Value = round(Value, 5)
+    ),
+  "../master/networks/period_capacity_factors.csv"
+)
+```
