@@ -121,7 +121,7 @@ The next step is to determine the peak hour for all trips and those on work
 tours.  In the tables below, the AM and PM peak hours by type are presented.  At
 a minimum, the AM and PM peak periods should contain the respective peak hour
 for work trips and all trips. The chart below shows that the peak hour for work
-and all trips are nearly the same.
+and all trips are exactly the same.
 
 ```{r}
 # Create rolling sums to determine peak hour
@@ -163,7 +163,7 @@ tibble(
 ) %>%
   # kable2(caption = "AM Peak Hour by Purpose")
   kable() %>%
-  kable_styling()
+  kable_styling(full_width = FALSE)
 
 ```
 
@@ -195,7 +195,7 @@ tibble(
 ) %>%
   # kable2(caption = "PM Peak Hour by Purpose")
   kable() %>%
-  kable_styling()
+  kable_styling(full_width = FALSE)
 
 ```
 
@@ -268,10 +268,13 @@ plot_ly(
 #below. Use chron(times. = c("15:30:00")) to specify 3:30pm
 
 am_peak_from <- am_min_from
-am_peak_to <- am_max_to
+# am_peak_to <- am_max_to
+am_peak_to <- chron(times. = c("9:00:00"))
 
-pm_peak_from <- pm_min_from
-pm_peak_to <- pm_max_to
+# pm_peak_from <- pm_min_from
+# pm_peak_to <- pm_max_to
+pm_peak_from <- chron(times. = c("15:00:00"))
+pm_peak_to <- chron(times. = c("18:00:00"))
 ```
 
 ## Final Period Definitions {#final_defs}
@@ -292,7 +295,7 @@ period_tbl <- tibble(
 period_tbl %>%
   # kable2(caption = "Final Period Definitions")
   kable() %>%
-  kable_styling()
+  kable_styling(full_width = FALSE)
 ```
 
 ```{r peak_period_chart}
@@ -381,6 +384,44 @@ plot_ly(
   )
 ```
 
+
+The table below shows the average 15-minute trips in motion during each period.
+These period definitions accurately capture the disparate characteristics of
+each.
+
+```{r}
+am_from_min <- as.numeric(am_peak_from) * 1440
+am_to_min <- as.numeric(am_peak_to) * 1440
+pm_from_min <- as.numeric(pm_peak_from) * 1440
+pm_to_min <- as.numeric(pm_peak_to) * 1440
+
+avg_tim <- timTbl %>%
+  mutate(tod = case_when(
+    time <= am_from_min ~ "NT",
+    time <= am_to_min ~ "AM",
+    time <= pm_from_min ~ "MD",
+    time <= pm_to_min ~ "PM",
+    TRUE ~ "NT"
+  )) %>%
+  group_by(tod) %>%
+  summarize(mean = mean(AllTrips)) %>%
+  mutate(tod = factor(
+    tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE
+  )) %>%
+  arrange(tod)
+
+avg_tim %>%
+  mutate(mean = round(mean, 0)) %>%
+  rename(`Time of Day` = tod, `Mean Trips in Motion` = mean) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r}
+# Stop knitting here for now
+knitr::knit_exit()
+```
+
 ```{r add_tod_to_tripTbl}
 # tripTbl is modified to include a tod column for use in the following
 # sections
@@ -403,12 +444,6 @@ tripTbl <- tripTbl %>%
     # Include a PK/OP definition for distribution/mode models to use
     pk_op = ifelse(tod %in% c("AM", "PM"), "PK", "OP")
     )
-```
-
-
-```{r}
-# Stop knitting here for now
-knitr::knit_exit()
 ```
 
 
