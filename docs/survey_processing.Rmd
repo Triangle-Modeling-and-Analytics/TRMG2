@@ -556,7 +556,7 @@ components.
 - H: Home (non-work activities at home)
 - W: Work
 - WR: Work-related (e.g. making a delivery)
-- SCH: School. Clarified explicitly in the person table into:
+- SCH: School. Separated using age in the person table to:
   - PreK: Pre-Kindergarten
   - K12: Kindergarten through 12th grade
   - U: University or College
@@ -788,6 +788,9 @@ det_work_place <- det_sch_place %>%
 
 ### Mode simplification
 
+The table below shows how the survey mode field was simplified into the model
+modes.
+
 ```{r simplify_mode}
 mode_equiv <- read_csv(
   "data/input/survey_processing/mode_equiv.csv",
@@ -1002,22 +1005,36 @@ fix_bus <- fix_remaining_sch %>%
 
 ```
 
-Numerous problems detected:
+There were numerous problems detected in the survey. These include:
 
 - School activities reported by non-students (`r num_sch_problems` trips)
   - Pickup/Dropoff coded as school (300 trips)
   - Bus stops coded as school rather than mode transfer (70 trips)
-- Missing joint trips (`r num_missing_joint_trips`). E.g., a trip references 
-  two hh members but second member doesn't have that trip
+- Missing joint trips (`r num_missing_joint_trips`). 
+  -  (e.g., a trip references two hh members but second member doesn't have that
+     trip record)
 - Kids marked as homeschool but go to traditional school on travel day for
   school activity (30)
 - Students without school address in person file (195)
 - Home activities reported at non-home locations (e.g. "In-laws house") (2,147)
   - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
 
+These problems were identified and cleaned such that each person's trip diary
+was logically consistent.
+
 ### Trip linking
 
-**NEED PROSE**
+The way the TRMG2 model classifies trips (by including tour information) greatly
+reduces the importance of trip linking. In traditional models, a stop to get gas
+on the way to work is ignored. Rather than two trips (to the gas station and to
+work), the trips are linked together into a single work trip. By classifying
+trips by tour type, the TRMG2 retains the knowledge that both trips occur on the
+way to work. This allows us to model them separately from other non-homebased
+trips without needing to link them together.
+
+For this model, trip linking was only performed to remove mode transfers at bus
+stops. The survey treated parking location as an attribute of the trip rather an
+origin or destination, which meant no linking was required.
 
 ```{r link_out_bus}
 bus_flag <- fix_bus %>%
@@ -1123,10 +1140,13 @@ TRMG2 TAZ. Some of these locations fall outside the model region and do not
 receive a TAZ ID. These trips will be ignored during estimation of the internal
 resident trip models.
 
-```{r}
+```{r, include=FALSE}
 tazs <- st_read("data/input/tazs/tazs 2020-12-08.shp") %>%
   st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
 
+
+```{r}
 # create unique list of lat/long points
 pts <- tibble(
   lng = c(
@@ -1155,14 +1175,18 @@ pts <- tibble(
     remove = FALSE
   )
 
-# check that they overlap
+# manual check that they overlap
 # plot(tazs, max.plot = 1)
 # plot(pts, add=TRUE)
+```
 
+```{r, include=FALSE}
 geocode_points <- pts %>%
   st_join(tazs %>% select(TAZ = ID)) %>%
   st_drop_geometry()
+```
 
+```{r}
 add_taz_id <- flip_to_pa %>%
   left_join(
     geocode_points,
@@ -1180,6 +1204,7 @@ add_taz_id <- flip_to_pa %>%
   ) %>%
   rename(park_taz = TAZ)
 ```
+
 
 ```{r}
 # The full skim table is large (160MB). Instead of commit that to the
@@ -1225,7 +1250,6 @@ add_se_data <- add_skim_info %>%
   mutate(a_emp = sum(c_across(c(a_ind:a_ret))))
 ```
 
-
 ## Exploratory Analysis
 
 With the trip table fully processed, exploratory analysis was used to determine
@@ -1242,9 +1266,6 @@ Each classification was then summarized to produce 25 different metrics like
 total trips, average trip length, and correlations to different variables. The
 table below provides a sample of these metrics for the simplest classification
 scheme tested.
-
-*TODO: this EDA is using place holder time of day values. Make sure to update
-once real values have been determined.*
 
 ```{r}
 prep_for_eda <- add_se_data %>%
@@ -1285,8 +1306,8 @@ prep_for_eda <- add_se_data %>%
     tod = case_when(
       departure_time < 7*60 ~ "NT",
       departure_time < 9*60 ~ "AM",
-      departure_time < (4 + 12)*60 + 30 ~ "MD",
-      departure_time < (6 + 12)*60 + 30 ~ "PM",
+      departure_time < (3 + 12)*60 ~ "MD",
+      departure_time < (6 + 12)*60 ~ "PM",
       TRUE ~ "NT"
     )
   )
