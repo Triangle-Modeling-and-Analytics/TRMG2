@@ -19,6 +19,9 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
   df$purpose <- df[[purpose]]
   df$duration <- df[[duration]]
   
+  df <- df %>%
+    filter(tour_type != "H")
+  
   # Perform the EDA
   eda <- df %>%
     group_by(tour_type, homebased, purpose, duration) %>%
@@ -27,24 +30,49 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
       wTrips = map_dbl(
         data, function(df) round(sum(df$trip_weight_combined, na.rm = TRUE), 0)),
       r_size = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ hhsize, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          group_by(hhid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            hhsize = first(hhsize)
+          )
+        my_cor(s, "trips", "hhsize")
       }),
       r_senior = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ senior_present, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          group_by(hhid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            senior_present = first(senior_present)
+          )
+        my_cor(s, "trips", "senior_present")
       }),
       r_kid = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ child_present, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          group_by(hhid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            child_present = first(child_present)
+          )
+        my_cor(s, "trips", "child_present")
       }),
       r_income = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ hh_income_midpt, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          group_by(hhid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            hh_income_midpt = first(hh_income_midpt)
+          )
+        my_cor(s, "trips", "hh_income_midpt")
       }),
       r_veh = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ num_vehicles, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          group_by(hhid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            num_vehicles = first(num_vehicles)
+          )
+        my_cor(s, "trips", "num_vehicles")
       }),
       tod_summary = map(data, function(df) {
         df %>%
@@ -73,28 +101,64 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
           df$skim_length, df$trip_weight_combined, na.rm = TRUE), 2)
       }),
       r_emp = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_emp, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_emp = first(a_emp)
+          )
+        my_cor(s, "trips", "a_emp")
       }),
       r_ret = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_ret, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_ret = first(a_ret)
+          )
+        my_cor(s, "trips", "a_ret")
       }),
       r_ind = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_ind, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_ind = first(a_ind)
+          )
+        my_cor(s, "trips", "a_ind")
       }),
       r_off = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_off, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_off = first(a_off)
+          )
+        my_cor(s, "trips", "a_off")
       }),
       r_svh = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_svh, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_svh = first(a_svh)
+          )
+        my_cor(s, "trips", "a_svh")
       }),
       r_svl = map_dbl(data, function(df) {
-        model <- lm(trip_weight_combined ~ a_svl, data = df)
-        round(summary(model)$r.squared, 3)
+        s <- df %>%
+          filter(!is.na(a_taz)) %>%
+          group_by(a_taz) %>%
+          summarize(
+            trips = sum(trip_weight_combined),
+            a_svl = first(a_svl)
+          )
+        my_cor(s, "trips", "a_svl")
       })
     ) %>%
     unnest(cols = c(tod_summary, mode_summary)) %>%
@@ -103,4 +167,9 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
     filter(tour_type != "H") %>%
     select(tour_type, homebased, purpose, duration, everything()) %>%
     arrange(desc(tour_type), homebased, purpose, duration)
+}
+
+my_cor <- function(df, c1, c2) {
+  value <- cor(df[[c1]], df[[c2]])
+  round(value, 3)
 }

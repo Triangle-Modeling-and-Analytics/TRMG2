@@ -1366,7 +1366,7 @@ scheme1 <- prep_for_eda %>%
 eda_scheme1 <- eda(scheme1)
 ```
 
-```{r eda_scheme2}
+```{r eda_scheme2, warning=TRUE}
 scheme2 <- prep_for_eda %>%
   mutate(
     purp_scheme = a_activity,
