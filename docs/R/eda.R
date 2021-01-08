@@ -27,6 +27,7 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
     group_by(tour_type, homebased, purpose, duration) %>%
     nest() %>%
     mutate(
+      samples = map_dbl(data, function(df) nrow(df)),
       wTrips = map_dbl(
         data, function(df) round(sum(df$trip_weight_combined, na.rm = TRUE), 0)),
       r_size = map_dbl(data, function(df) {
@@ -38,23 +39,25 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
           )
         my_cor(s, "trips", "hhsize")
       }),
-      r_senior = map_dbl(data, function(df) {
+      r_seniors = map_dbl(data, function(df) {
         s <- df %>%
           group_by(hhid) %>%
           summarize(
             trips = sum(trip_weight_combined) / first(hh_weight_combined),
-            senior_present = first(senior_present)
+            # senior_present = first(senior_present)
+            num_seniors = first(num_seniors)
           )
-        my_cor(s, "trips", "senior_present")
+        my_cor(s, "trips", "num_seniors")
       }),
-      r_kid = map_dbl(data, function(df) {
+      r_kids = map_dbl(data, function(df) {
         s <- df %>%
           group_by(hhid) %>%
           summarize(
             trips = sum(trip_weight_combined) / first(hh_weight_combined),
-            child_present = first(child_present)
+            # child_present = first(child_present)
+            num_children = first(num_children)
           )
-        my_cor(s, "trips", "child_present")
+        my_cor(s, "trips", "num_children")
       }),
       r_income = map_dbl(data, function(df) {
         s <- df %>%
