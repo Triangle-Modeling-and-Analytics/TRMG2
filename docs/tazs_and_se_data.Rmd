@@ -15,6 +15,8 @@ options(scipen = 999)
 library(tidyverse)
 library(sf)
 library(leaflet)
+library(knitr)
+library(kableExtra)
 ```
 
 ## TAZ edits
@@ -127,8 +129,10 @@ The TRMG2 model will make use of some new zonal attributes:
 - Median Income
 - Workers
 - Vehicles
+- % High Earnings
 
-Caliper used the 2014-2018 5-year ACS data to populate these new attributes.
+Caliper used the 2014-2018 5-year ACS data to populate the first three of these
+new attributes and the LEHD LODES7 data for the fourth.
 
 ### Income
 
@@ -266,11 +270,80 @@ are assigned the same number of vehicles per household. Also, some block groups
 had suppressed vehicle information and the regional average of 
 `r round(reg_avg_veh, 2)` was used.
 
+### Percent high earnings
+
+The LEHD Origin-Destination Employment Statistics
+([LODES](https://lehd.ces.census.gov/data/)) provides many valuable attributes
+including a breakdown of jobs by earnings group at the block level. Caliper
+aggregated these block statistics to TRM TAZs in order to calculate the percent
+of high- and low-earning jobs in each. For this purpose, and due to the limited
+breakpoints available in the LODES data, the following category definitions were
+used:
+
+  * High earning: >= $3,333 per month (~\$40,000 per year)
+  * Low earning: < $3,333 per months
+
+For TAZs with low employment (<30 jobs), the tract percentage was used. This
+information was added to the SE data table in the field `PctHighEarn`.
+
+```{r, include=FALSE}
+lehd <- read_csv("data/input/lehd/trm_lodes_blocks.csv")
+```
+
 ```{r}
-if (1 == 0) {
-  write_csv(
-    add_veh_se, "data/output/se_data/se_2016.csv",
-    na = "0"
+calc_high_pct <- lehd %>%
+  select(tract = trm_tract, trm_taz, low = CE01, med = CE02, high = CE03) %>%
+  pivot_longer(low:high, names_to = "earn") %>%
+  mutate(
+    earn = ifelse(earn == "med", "low", earn),
+    value = ifelse(is.na(value), 0, value)
   )
-}
+
+taz_pct <- calc_high_pct %>%
+  group_by(trm_taz, earn) %>%
+  summarize(
+    count = sum(value)
+  ) %>%
+  mutate(
+    taz_total = sum(count),
+    taz_pct = ifelse(taz_total == 0, 0, round(count / taz_total * 100, 0))
+  ) %>%
+  select(-count)
+
+tract_pct <- calc_high_pct %>%
+  group_by(tract, earn) %>%
+  summarize(
+    count = sum(value)
+  ) %>%
+  mutate(
+    tract_total = sum(count),
+    tract_pct = ifelse(tract_total == 0, 0, round(count / tract_total * 100, 0))
+  ) %>%
+  select(-count)
+
+final_pct <- calc_high_pct %>%
+  group_by(tract, trm_taz, earn) %>%
+  summarize() %>%
+  left_join(taz_pct, by = c("trm_taz", "earn")) %>%
+  left_join(tract_pct, by = c("tract", "earn")) %>%
+  mutate(final_pct = ifelse(taz_total >= 30, taz_pct, tract_pct)) %>%
+  ungroup() %>%
+  select(TAZ = trm_taz, earn, final_pct) %>%
+  pivot_wider(names_from = "earn", values_from = "final_pct")
+
+add_earn_pct <- add_veh_se %>%
+  left_join(
+    final_pct %>%
+      select(TAZ, PctHighEarn = high),
+    by = "TAZ"
+  ) %>%
+  relocate(PctHighEarn, .after = Retail)
+```
+
+
+```{r, eval=FALSE}
+write_csv(
+  add_earn_pct, "data/output/se_data/se_2016.csv",
+  na = "0"
+)
 ```

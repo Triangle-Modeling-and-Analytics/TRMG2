@@ -25,3 +25,5 @@ o_act_dur,Origin activity duration
 d_act_dur,Destination activity duration
 linked_flag,Flags trips that are the result of collapsing raw trip records in the survey (e.g. bus stop mode transfers)
 linked_modes,"For linked trips, this displays all modes used (e.g. ""walk bus"" for walked to bus)"
+,
+"Note: fields with an ""a_"" and ""p_"" prefix are the same as the ""o_""/""d_"" column but in PA format",
