@@ -132,6 +132,7 @@ Caliper added several new variables to the SE data:
 - Vehicles
 - % High Earnings
 - Off-campus students
+- Age information
 
 Caliper used the 2014-2018 5-year ACS data to populate the first three of these
 new attributes and the LEHD LODES7 data for the fourth.
@@ -144,7 +145,7 @@ shapes <- load_census_data()
 
 acs_bg <- shapes$acs_bg
 acs_tract <- shapes$acs_tract
-dec_bg <- shapes$dec_bg
+# dec_bg <- shapes$dec_bg
 
 taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 ```
@@ -164,16 +165,16 @@ num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
 add_income_taz <- taz %>%
   left_join(inc_centroids, by = "ID") %>%
   mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
-  rename(MEDIANINC = inc_med)
+  rename(Median_Inc = inc_med)
 
 add_income_se <- calc_percents %>%
   left_join(
     add_income_taz %>%
-      select(ID, MEDIANINC) %>%
+      select(ID, Median_Inc) %>%
       st_drop_geometry(),
     by = c("TAZ" = "ID")
   ) %>%
-  relocate(MEDIANINC, .before = MEANINC) %>%
+  relocate(Median_Inc, .before = MEANINC) %>%
   select(-MEANINC)
 ```
 
@@ -194,7 +195,7 @@ calc_tot_workers <- acs_tract %>%
     # 3.1 acknowledges that 3+worker households have an average higher than 3,
     # but the exact average is unknown.
     wrk_tot = wrk1 + 2 * wrk2 + 3.1 * wrk3,
-    avg_wrk = wrk_tot / (hh_tot + .0000001)
+    avg_wrk = ifelse(hh_tot == 0, 0, wrk_tot / hh_tot)
   )
 
 wrk_centroids <- taz %>%
@@ -215,7 +216,7 @@ add_workers_se <- add_income_se %>%
   ) %>%
   mutate(Workers = round(avg_wrk * HH, 0)) %>%
   select(-avg_wrk) %>%
-  relocate(Workers, .after = MEDIANINC)
+  relocate(Workers, .after = Median_Inc)
 ```
 
 Estimates of workers are only available from the ACS at the tract level. It is
@@ -505,6 +506,28 @@ add_studoff <- add_earn_pct %>%
   left_join(duke_agg, by = "TAZ") %>%
   left_join(nccu_agg, by = "TAZ") %>%
   relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
+```
+
+### Age 
+
+```{r}
+calc_age_pct <- acs_bg %>%
+  select(GEOID, age_child, age_other, age_senior) %>%
+  mutate(
+    total = age_child + age_other + age_senior,
+    Pct_Child = round(age_child / total * 100, 0),
+    Pct_Senior = round(age_senior / total * 100, 0),
+  )
+
+age_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
+  st_drop_geometry() %>%
+  select(TAZ = ID, Pct_Child, Pct_Senior)
+  
+add_age <- add_studoff %>%
+  left_join(age_centroids, by = "TAZ") %>%
+  relocate(Pct_Child:Pct_Senior, .after = Vehicles)
 ```
 
 

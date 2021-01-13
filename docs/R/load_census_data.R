@@ -27,6 +27,7 @@ load_census_data <- function(state = "NC", acs_year = 2018){
   acs_file <- "data/input/census_data/shapes/acs_blockgroups.shp"
   if (!file.exists(acs_file)){
     # Read table of census variables and their names/geographies
+    # https://api.census.gov/data/2018/acs/acs5/variables.html
     acs_vars <- read_csv("data/input/census_data/acs_bg_variables.csv")
     # Get census data from API
     acs_raw <- get_acs(
@@ -38,14 +39,29 @@ load_census_data <- function(state = "NC", acs_year = 2018){
     # boundary. Using st_intersection alone will modify/crop the edge block
     # groups, which is not desired here.
     model_boundary <- st_transform(model_boundary, st_crs(acs_raw))
-    acs_bg <- acs_raw[st_intersects(acs_raw, model_boundary, sparse = FALSE), ]
+    intersect_bg <- acs_raw[st_intersects(acs_raw, model_boundary, sparse = FALSE), ]
     
     # Join variable names, sum any repeats, and then spread. Vehicle variable
     # names are repeated because the household numbers come from a table that
     # lists them by owner/renter.
-    acs_tbl <- acs_bg %>%
+    acs_tbl <- intersect_bg %>%
       as.data.frame() %>%
       left_join(acs_vars, by = "variable") %>%
+      mutate(
+        name = case_when(
+          name %in% c(
+            "m_u5", "m_u9", "m_u14", "m_u17",
+            "f_u5", "f_u9", "f_u14", "f_u17"
+          ) ~ "age_child",
+          name %in% c(
+            "m_u66", "m_u69", "m_u74", "m_u79", "m_u84", "m_o85",
+            "f_u66", "f_u69", "f_u74", "f_u79", "f_u84", "f_o85"
+          ) ~ "age_senior",
+          grepl("f_", name) ~ "age_other",
+          grepl("m_", name) ~ "age_other",
+          TRUE ~ name
+        )
+      ) %>%
       group_by(GEOID, name) %>%
       summarize(estimate = sum(estimate)) %>%
       spread(key = name, value = estimate) %>%
@@ -63,7 +79,7 @@ load_census_data <- function(state = "NC", acs_year = 2018){
       ) %>%
       select(-veh_tot_temp)
     
-    acs_bg <- acs_bg %>%
+    acs_bg <- intersect_bg %>%
       group_by(GEOID) %>%
       slice(1) %>%
       ungroup() %>%
