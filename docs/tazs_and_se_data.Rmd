@@ -15,6 +15,7 @@ options(scipen = 999)
 library(tidyverse)
 library(sf)
 library(leaflet)
+library(ggplot2)
 library(knitr)
 library(kableExtra)
 ```
@@ -124,12 +125,13 @@ if (abs(hh_ratio - 1) > .01) stop(
 
 ## Creating new SE data
 
-The TRMG2 model will make use of some new zonal attributes:
+Caliper added several new variables to the SE data:
 
 - Median Income
 - Workers
 - Vehicles
 - % High Earnings
+- Off-campus students
 
 Caliper used the 2014-2018 5-year ACS data to populate the first three of these
 new attributes and the LEHD LODES7 data for the fourth.
@@ -340,10 +342,175 @@ add_earn_pct <- add_veh_se %>%
   relocate(PctHighEarn, .after = Retail)
 ```
 
+### Student housing (off-campus)
+
+The TRMG2 model requires off-campus student housing information as input in the
+SE data. Total enrollment statistics were collected for the following
+universities:
+
+  * North Carolina State University ([source](https://oirp.ncsu.edu/facts-figures/the-basics/student-statistics/))
+  * University of North Carolina at Chapel Hill ([source](https://oira.unc.edu/reports/))
+  * Duke University ([source](https://finance.provost.duke.edu/sites/default/files/documents/CDS_2016-2017.pdf))
+  * North Carolina Central University ([source](https://legacy.nccu.edu/formsdocs/proxy.cfm?file_id=4073))
+
+The TRM stakeholders provided counts of students living in dorms for each
+campus, which allowed Caliper to calculate the total number of off-campus
+students as shown in the table below.
+
+```{r, include=FALSE}
+ncsu <- st_read("data/input/university/ncsu_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+unc <- st_read("data/input/university/unc_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+duke <- st_read("data/input/university/duke_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+nccu <- st_read("data/input/university/nccu_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
+
+```{r}
+# ncsu: https://oirp.ncsu.edu/facts-figures/the-basics/student-statistics/
+# total enrollment for students taking on-campus classes (not distance ed)
+ncsu_tot <- 31008
+ncsu_gq <- sum(add_earn_pct$StudGQ_NCSU, na.rm = TRUE)
+ncsu_off <- ncsu_tot - ncsu_gq
+
+# UNC: https://oira.unc.edu/reports/
+unc_tot <- 29468
+unc_gq <- sum(add_earn_pct$StudGQ_UNC, na.rm = TRUE)
+unc_off <- unc_tot - unc_gq
+
+# Duke: https://finance.provost.duke.edu/sites/default/files/documents/CDS_2016-2017.pdf
+duke_tot <- 15928
+duke_gq <- sum(add_earn_pct$StudGQ_DUKE, na.rm = TRUE)
+duke_off <- duke_tot - duke_gq
+
+# NCCU: https://legacy.nccu.edu/formsdocs/proxy.cfm?file_id=4073
+nccu_tot <- 8096
+nccu_gq <- sum(add_earn_pct$StudGQ_NCCU, na.rm = TRUE)
+nccu_off <- nccu_tot - nccu_gq
+
+
+```
+
+```{r}
+tibble(
+  School = c("NCSU", "UNC", "Duke", "NCCU"),
+  `Total Enrollment` = c(ncsu_tot, unc_tot, duke_tot, nccu_tot),
+  `In Dorms` = c(ncsu_gq, unc_gq, duke_gq, nccu_gq),
+  `Implied Off-Campus` = c(ncsu_off, unc_off, duke_off, nccu_off)
+) %>%
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+Stakeholders provided Caliper with off-campus student addresses from the same
+four universities. The NCSU, UNC, and NCCU data sets contained student addresses
+from all over the country (and world). These addresses are a mix of local
+students living off campus, distance ed students, and billing addresses (often
+parent addresses) as shown in the map below.
+
+![](img/university/raw_stud_locations.png)
+
+The histograms below show the number of address points for each university in
+one-mile bands around the campus. The intensity drops off drastically beyond
+10 miles.
+
+```{r}
+df1 <- ncsu %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "NCSU")
+df2 <- unc %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "UNC")
+df3 <- duke %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "Duke")
+df4 <- nccu %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "NCCU")
+
+df <- bind_rows(df1, df2, df3, df4)
+
+ggplot(data = df, aes(x = DIST_TO_CA, fill = School)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~School, ncol = 1, scales = "free_y") +
+  xlab("Distance to Campus (miles)")
+```
+
+For each school, Caliper ignored address points outside 10 miles as shown below.
+
+![](img/university/raw_locations_w_buffers.png)
+
+Finally, the weight of each point within the buffer was factored up to match the
+total off-campus enrollment for each university. These weights were aggregated
+by TAZ and added to the SE data table.
+
+```{r, include=FALSE}
+ncsu_agg <- ncsu %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_NCSU = n()) %>%
+  mutate(
+    StudOff_NCSU = (ncsu_off / sum(StudOff_NCSU)) * StudOff_NCSU,
+    StudOff_NCSU = round(StudOff_NCSU, 0)
+  )
+
+unc_agg <- unc %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_UNC = n()) %>%
+  mutate(
+    StudOff_UNC = (unc_off / sum(StudOff_UNC)) * StudOff_UNC,
+    StudOff_UNC = round(StudOff_UNC, 0)
+  )
+
+duke_agg <- duke %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_DUKE = n()) %>%
+  mutate(
+    StudOff_DUKE = (duke_off / sum(StudOff_DUKE)) * StudOff_DUKE,
+    StudOff_DUKE = round(StudOff_DUKE, 0)
+  )
+
+nccu_agg <- nccu %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_NCCU = n()) %>%
+  mutate(
+    StudOff_NCCU = (nccu_off / sum(StudOff_NCCU)) * StudOff_NCCU,
+    StudOff_NCCU = round(StudOff_NCCU, 0)
+  )
+
+add_studoff <- add_earn_pct %>%
+  left_join(ncsu_agg, by = "TAZ") %>%
+  left_join(unc_agg, by = "TAZ") %>%
+  left_join(duke_agg, by = "TAZ") %>%
+  left_join(nccu_agg, by = "TAZ") %>%
+  relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
+```
+
 
 ```{r, eval=FALSE}
 write_csv(
-  add_earn_pct, "data/output/se_data/se_2016.csv",
+  add_studoff, "data/output/se_data/se_2016.csv",
   na = "0"
 )
 ```
