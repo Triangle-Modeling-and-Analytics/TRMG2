@@ -127,15 +127,11 @@ if (abs(hh_ratio - 1) > .01) stop(
 
 Caliper added several new variables to the SE data:
 
-- Median Income
+- Median income
 - Workers
-- Vehicles
-- % High Earnings
+- Age (percent children and seniors)
+- Percent high earnin jobs
 - Off-campus students
-- Age information
-
-Caliper used the 2014-2018 5-year ACS data to populate the first three of these
-new attributes and the LEHD LODES7 data for the fourth.
 
 ### Income
 
@@ -232,11 +228,14 @@ taken to assign workers to TAZs:
   2. Use that average for each TAZ within the tract.
   
 In this way, workers were allocated within each tract proportionally based
-on the number of households.
+on the number of households. This information is contained in the `Workers`
+field of the SE data table.
 
-### Vehicles
+```{r vehicles, include=FALSE}
+# Vehicles are not added to the SE data table, because we have an auto-ownership
+# model to determine that information. Instead, this info is used to validate
+# that model.
 
-```{r, include=FALSE}
 reg_avg_veh <- sum(acs_bg$veh_tot, na.rm = TRUE) / sum(acs_bg$hh_tot, na.rm = TRUE)
 
 acs_bg <- acs_bg %>%
@@ -250,9 +249,11 @@ veh_centroids <- taz %>%
 
 add_veh_taz <- add_workers_taz %>%
   left_join(veh_centroids, by = "ID") %>%
-  mutate(avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh))
+  mutate(
+    avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh)
+  )
   
-add_veh_se <- add_workers_se %>%
+veh_validation_tbl <- add_workers_se %>%
   left_join(
     add_veh_taz %>%
       select(ID, avg_veh) %>%
@@ -262,16 +263,41 @@ add_veh_se <- add_workers_se %>%
   mutate(
     Vehicles = round(HH * avg_veh, 0)
   ) %>%
-  select(-avg_veh) %>%
-  relocate(Vehicles, .after = Workers)
+  select(TAZ, Vehicles, avg_veh)
 ```
 
-Vehicle data is available from the ACS at the block group level. Unlike workers,
-total vehicles can be retrieved for just households; however, the lack of
-information at the block level means that all TAZs within the same block group
-are assigned the same number of vehicles per household. Also, some block groups
-had suppressed vehicle information and the regional average of 
-`r round(reg_avg_veh, 2)` was used.
+### Age 
+
+Like vehicles, age data is available from the ACS at the block group level. For
+each blockgroup, Caliper computed the percentage of children and seniors.
+
+- Child: Under 18
+- Senior: 65 or older
+
+Then, each TAZ within a blockgroup was assigned the same percentages. Age
+information was available for all blockgroups with population, and no TAZs
+needed to use a regional average. This information can be found in the SE
+data table in the fields `Pct_Child` and `Pct_Senior`.
+
+```{r, include=FALSE}
+calc_age_pct <- acs_bg %>%
+  select(GEOID, age_child, age_other, age_senior) %>%
+  mutate(
+    total = age_child + age_other + age_senior,
+    Pct_Child = ifelse(total == 0, 0, round(age_child / total * 100, 0)),
+    Pct_Senior = ifelse(total == 0, 0, round(age_senior / total * 100, 0)),
+  )
+
+age_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
+  st_drop_geometry() %>%
+  select(TAZ = ID, Pct_Child, Pct_Senior)
+  
+add_age <- add_workers_se %>%
+  left_join(age_centroids, by = "TAZ") %>%
+  relocate(Pct_Child:Pct_Senior, .after = Workers)
+```
 
 ### Percent high earnings
 
@@ -334,7 +360,7 @@ final_pct <- calc_high_pct %>%
   select(TAZ = trm_taz, earn, final_pct) %>%
   pivot_wider(names_from = "earn", values_from = "final_pct")
 
-add_earn_pct <- add_veh_se %>%
+add_earn_pct <- add_age %>%
   left_join(
     final_pct %>%
       select(TAZ, PctHighEarn = high),
@@ -449,7 +475,9 @@ For each school, Caliper ignored address points outside 10 miles as shown below.
 
 Finally, the weight of each point within the buffer was factored up to match the
 total off-campus enrollment for each university. These weights were aggregated
-by TAZ and added to the SE data table.
+by TAZ and added to the SE data table. This information is contained in the
+SE data table in fields `StudOff_NCSU`, `StudOff_UNC`, `StudOff_Duke`, and
+`StudOff_NCCU`.
 
 ```{r, include=FALSE}
 ncsu_agg <- ncsu %>%
@@ -508,32 +536,14 @@ add_studoff <- add_earn_pct %>%
   relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
 ```
 
-### Age 
-
-```{r}
-calc_age_pct <- acs_bg %>%
-  select(GEOID, age_child, age_other, age_senior) %>%
-  mutate(
-    total = age_child + age_other + age_senior,
-    Pct_Child = round(age_child / total * 100, 0),
-    Pct_Senior = round(age_senior / total * 100, 0),
-  )
-
-age_centroids <- taz %>%
-  st_point_on_surface() %>%
-  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
-  st_drop_geometry() %>%
-  select(TAZ = ID, Pct_Child, Pct_Senior)
-  
-add_age <- add_studoff %>%
-  left_join(age_centroids, by = "TAZ") %>%
-  relocate(Pct_Child:Pct_Senior, .after = Vehicles)
-```
-
-
 ```{r, eval=FALSE}
 write_csv(
   add_studoff, "data/output/se_data/se_2016.csv",
+  na = "0"
+)
+
+write_csv(
+  veh_validation_tbl, "data/output/se_data/vehicle_validation.csv",
   na = "0"
 )
 ```
