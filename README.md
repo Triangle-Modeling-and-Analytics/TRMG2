@@ -12,9 +12,11 @@ This repo is the home for the TRMG2 during the development phase. Project stakeh
 - WSP
 
 At the end of development, this repo will be transferred to the Triangle Modeling and Analytics
-GitHub organization:
-
+GitHub organization:  
 https://github.com/Triangle-Modeling-and-Analytics
+
+Draft documentation can be found here:  
+https://caliper-corporation.github.io/TRMG2/
 
 Caliper PM: Vince Bernardin  
 Caliper DPM: Kyle Ward  
