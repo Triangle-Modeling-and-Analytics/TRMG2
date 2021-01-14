@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Caliper Corporation" />
 
+<meta name="date" content="2020-10-26" />
 
-<title>Triangle Regional Model G2</title>
+<title>Networks</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +21,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
@@ -244,6 +249,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -251,6 +319,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -321,13 +399,62 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Triangle Regional Model G2</h1>
+<h1 class="title toc-ignore">Networks</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">10/26/2020</h4>
 
 </div>
 
 
-<p>This website is under construction.</p>
-<p>As the new Triangle Regional Model is developed, documentation will be added to the navigation bar at the top. All documentation is an interim product and is subject to change during the development process.</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders in order to fashion a new master network for both highway and transit.</p>
+</div>
+<div id="highway" class="section level2">
+<h2>Highway</h2>
+<div id="creating-the-master-network" class="section level3">
+<h3>Creating the master network</h3>
+<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tools is covered in the user’s guide.</p>
+<p>The previous highway network made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the network. It also makes the model’s GISDK code easier to read.</p>
+<p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user’s guide.</p>
+<p>The Caliper team also updated the master network to reflect a 2016 base year during model estimation (the final network is a 2020 base year). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
+</div>
+<div id="checking-the-master-network" class="section level3">
+<h3>Checking the master network</h3>
+<p>With all the changes mentioned above, it was important to check that the new master network’s projects matched the previous. To be exhaustive, Caliper wrote code do this programmatically. For instance, every project in the old master network had it’s length checked against the new network. Of the well- over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
+</div>
+<div id="loading-count-data" class="section level3">
+<h3>Loading count data</h3>
+<p>The previous model used a separate table to hold count data which then had to be joined to the network to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master network directly. This makes it easier to compare (either manually or in code) between model volumes and count data.</p>
+</div>
+<div id="network-conflation" class="section level3">
+<h3>Network Conflation</h3>
+<p>Placeholder documentation:</p>
+<ul>
+<li>Did a review of the entire network</li>
+<li>Improved alignments, added collector/distributors/ramps, etc.</li>
+<li>Performed connectivity checks</li>
+<li>Also did a skim comparison.
+<ul>
+<li>Final %RMSE: 0.25%</li>
+<li>Localized changes were more drastic. (see working_files/network_conflation/comparison_pics)</li>
+</ul></li>
+<li>A lot of work done to improve Capital Blvd north of downtown. Included transit work.</li>
+</ul>
+</div>
+<div id="all-streets" class="section level3">
+<h3>All Streets</h3>
+<p>Placeholder documentation:</p>
+<ul>
+<li>Stakeholders decided to move forward with the all-streets addition 1/14</li>
+<li>This will add a large number of additional streets to the model line layer for the purpose of walk/bike/transit pathing.</li>
+</ul>
+</div>
+</div>
+<div id="transit" class="section level2">
+<h2>Transit</h2>
+<p>To be added.</p>
+</div>
 
 <br>
 <br>
@@ -336,6 +463,8 @@ $(document).ready(function () {
 <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2020</p>
 
 
+</div>
+</div>
 
 </div>
 
@@ -368,6 +497,32 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 
 </body>

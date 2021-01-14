@@ -128,6 +128,13 @@
       "Repository": "CRAN",
       "Hash": "f61dbaec772ccd2e17705c1e872e9e7c"
     },
+    "chron": {
+      "Package": "chron",
+      "Version": "2.3-56",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "2d8e9b1143af1caf26a521ed26e8736b"
+    },
     "class": {
       "Package": "class",
       "Version": "7.3-17",
