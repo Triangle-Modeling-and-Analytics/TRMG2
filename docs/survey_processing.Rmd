@@ -261,7 +261,8 @@ add_flags <- per_combined %>%
   mutate(
     is_senior = ifelse(age_category >= 10, 1, 0),
     is_child = ifelse(age_category <= 4, 1, 0),
-    is_worker = ifelse(employment <= 3, 1, 0)
+    is_worker = ifelse(employment <= 3, 1, 0),
+    is_worker = replace_na(is_worker, 0)
   )
 ```
 
@@ -326,7 +327,7 @@ trip_combined <- bind_rows(
   ) %>%
   select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
   left_join(
-    add_flags %>% select(personid, age),
+    add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
     by = "personid"
   ) %>%
   mutate(party_size = num_hh_members + num_nonhh) %>%
@@ -632,10 +633,6 @@ convert_purpose <- trip_combined %>%
       mode == 5 ~ "bike",
       mode == 6 ~ "other"
     )
-  ) %>%
-  left_join(
-    add_flags %>% select(personid, school),
-    by = "personid"
   ) %>%
   mutate(
     # some people marked 1-yo old as student with school at home. Not what
@@ -1299,14 +1296,15 @@ prep_for_eda <- add_se_data %>%
       TRUE ~ 200000
     )
   ) %>%
-  left_join(
-    add_flags %>%
-      group_by(hhid) %>%
-      summarize(num_seniors = sum(is_senior)) %>%
-      mutate(senior_present = ifelse(num_seniors > 0, 1, 0)),
-    by = "hhid"
+  group_by(hhid) %>%
+  mutate(
+    num_seniors = sum(is_senior, na.rm = TRUE),
+    senior_present = ifelse(num_seniors > 0, 1, 0),
+    num_workers = sum(is_worker, na.rm = TRUE),
+    worker_present = ifelse(num_workers > 0, 1, 0)
   ) %>%
-  relocate(num_seniors:senior_present, .after = child_present) %>%
+  ungroup() %>%
+  relocate(num_seniors:worker_present, .after = child_present) %>%
   mutate(
     p_duration = ifelse(p_act_dur >= 30, "Long", "Short"),
     p_duration = ifelse(is.na(p_duration), "Long", p_duration),
@@ -1660,7 +1658,7 @@ eda_scheme5 <- eda(scheme5)
 
 ```{r}
 # EDA based on person-level attributes
-test <- person_eda(scheme2)
+person_eda_scheme2 <- person_eda(scheme2)
 ```
 
 
@@ -1708,6 +1706,11 @@ write_csv(
 write_csv(
   eda_scheme5,
   "data/output/survey_processing/eda_scheme5.csv",
+  na = ""
+)
+write_csv(
+  person_eda_scheme2,
+  "data/output/survey_processing/person_eda_scheme2.csv",
   na = ""
 )
 ```

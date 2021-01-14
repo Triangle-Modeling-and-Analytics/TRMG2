@@ -176,3 +176,118 @@ my_cor <- function(df, c1, c2) {
   value <- cor(df[[c1]], df[[c2]])
   round(value, 3)
 }
+
+#' Similar to eda() but analyzes from the perspective of the person
+
+person_eda <- function(df, tour_type = "tour_type", homebased = "homebased",
+                purpose = "purp_scheme", duration = "dur_scheme") {
+  
+  # Avoid the complication of programming with dplyr by creating new columns
+  df$tour_type <- df[[tour_type]]
+  df$homebased <- df[[homebased]]
+  df$purpose <- df[[purpose]]
+  df$duration <- df[[duration]]
+  
+  df <- df %>%
+    filter(tour_type != "H")
+  
+  # Perform the EDA
+  eda <- df %>%
+    group_by(tour_type, homebased, purpose, duration) %>%
+    nest() %>%
+    mutate(
+      samples = map_dbl(data, function(df) nrow(df)),
+      wTrips = map_dbl(
+        data, function(df) round(sum(df$trip_weight_combined, na.rm = TRUE), 0)),
+      r_othpers = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          mutate(hhsize = hhsize - 1) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            hhsize = first(hhsize)
+          )
+        my_cor(s, "trips", "hhsize")
+      }),
+      r_is_worker = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            is_worker = first(is_worker)
+          )
+        my_cor(s, "trips", "is_worker")
+      }),
+      r_othworkers = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          mutate(num_workers = num_workers - is_senior) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            num_workers = first(num_workers)
+          )
+        my_cor(s, "trips", "num_workers")
+      }),
+      r_is_senior = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            is_senior = first(is_senior)
+          )
+        my_cor(s, "trips", "is_senior")
+      }),
+      r_othseniors = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          mutate(num_seniors = num_seniors - is_senior) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            num_seniors = first(num_seniors)
+          )
+        my_cor(s, "trips", "num_seniors")
+      }),
+      r_is_kid = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            is_child = first(is_child)
+          )
+        my_cor(s, "trips", "is_child")
+      }),
+      r_othkids = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          mutate(num_children = num_children - is_child) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            num_children = first(num_children)
+          )
+        my_cor(s, "trips", "num_children")
+      }),
+      r_hhincome = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            hh_income_midpt = first(hh_income_midpt)
+          )
+        my_cor(s, "trips", "hh_income_midpt")
+      }),
+      r_hhveh = map_dbl(data, function(df) {
+        s <- df %>%
+          group_by(personid) %>%
+          summarize(
+            trips = sum(trip_weight_combined) / first(hh_weight_combined),
+            num_vehicles = first(num_vehicles)
+          )
+        my_cor(s, "trips", "num_vehicles")
+      })
+      # The other summaries from eda() would be the same
+    ) %>%
+    select(-data) %>%
+    filter(tour_type != "H") %>%
+    select(tour_type, homebased, purpose, duration, everything()) %>%
+    arrange(desc(tour_type), homebased, purpose, duration)
+}
