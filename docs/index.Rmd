@@ -1,9 +1,12 @@
 ---
-title: "My Website"
+title: "Triangle Regional Model G2"
+output:
+  html_document:
+    toc: false
 ---
 
-Hello, Website!
+This website is under construction.
 
-For more information about simple R Markdown websites, please read the documentation at https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html.
-
-Please also note that simple R Markdown sites are _not_ based on **blogdown**. They are probably good for websites with only a few Rmd documents. For larger-scale and more sophisticated websites (such as blogs), you may want to use **blogdown** instead: https://github.com/rstudio/blogdown.
+As the new Triangle Regional Model is developed, documentation will be added
+to the navigation bar at the top. All documentation is an interim product and
+is subject to change during the development process.

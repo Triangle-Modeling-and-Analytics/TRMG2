@@ -3,15 +3,22 @@ output_dir: "."
 navbar:
   title: "TRMG2"
   left:
-    - text: Ch. 1
+    - text: Databases
       menu:
-        - text: "Databases"
-        - text: "Sample Placeholder"
-          href: Database-TAZ.html
-        - text: "-----------------"
-        - text: "Surveys"
-        - text: "Sample Placeholder"
-          href: Survey-HHSurvey.html
+        - text: "TAZs and SE Data"
+          href: tazs_and_se_data.html
+        - text: "Networks"
+          href: networks.html
+    - text: Surveys
+      menu:
+        - text: "Household Survey"
+          href: survey_processing.html
+    - text: Models
+      menu:
+        - text: "Dissaggregation"
+          href: generation_disaggregation.html
+        - text: "Time of Day"
+          href: time_of_day.html
 output:
   html_document:
     theme: flatly
