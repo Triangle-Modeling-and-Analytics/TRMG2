@@ -256,6 +256,16 @@ per_combined <- bind_rows(
   filter(!is.na(hh_weight_combined))
 ```
 
+```{r}
+add_flags <- per_combined %>%
+  mutate(
+    is_senior = ifelse(age_category >= 10, 1, 0),
+    is_child = ifelse(age_category <= 4, 1, 0),
+    is_worker = ifelse(employment <= 3, 1, 0)
+  )
+```
+
+
 ### Trip table
 
 Similar to the person table, the trip tables from 2016 and 2018 contained
@@ -316,7 +326,7 @@ trip_combined <- bind_rows(
   ) %>%
   select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
   left_join(
-    per_combined %>% select(personid, age),
+    add_flags %>% select(personid, age),
     by = "personid"
   ) %>%
   mutate(party_size = num_hh_members + num_nonhh) %>%
@@ -624,7 +634,7 @@ convert_purpose <- trip_combined %>%
     )
   ) %>%
   left_join(
-    per_combined %>% select(personid, school),
+    add_flags %>% select(personid, school),
     by = "personid"
   ) %>%
   mutate(
@@ -718,7 +728,7 @@ det_home_place <- change_time %>%
     d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
   )
 
-school_loc <- per_combined %>%
+school_loc <- add_flags %>%
   select(hhid, personid, school_address, school_lat, school_lng) %>%
   left_join(
     hh_combined %>% select(hhid, home_loc_address),
@@ -1290,10 +1300,9 @@ prep_for_eda <- add_se_data %>%
     )
   ) %>%
   left_join(
-    per_combined %>%
-      mutate(senior = ifelse(age_category >= 10, 1, 0)) %>%
+    add_flags %>%
       group_by(hhid) %>%
-      summarize(num_seniors = sum(senior)) %>%
+      summarize(num_seniors = sum(is_senior)) %>%
       mutate(senior_present = ifelse(num_seniors > 0, 1, 0)),
     by = "hhid"
   ) %>%
@@ -1649,6 +1658,12 @@ scheme5 <- prep_for_eda %>%
 eda_scheme5 <- eda(scheme5)
 ```
 
+```{r}
+# EDA based on person-level attributes
+test <- person_eda(scheme2)
+```
+
+
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
 # manually (consciously).
@@ -1659,7 +1674,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  per_combined,
+  add_flags,
   "data/output/_PRIVATE/survey_processing/per_processed.csv",
   na = ""
 )
