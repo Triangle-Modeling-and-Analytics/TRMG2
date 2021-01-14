@@ -15,6 +15,7 @@ options(scipen = 999)
 library(tidyverse)
 library(sf)
 library(leaflet)
+library(ggplot2)
 library(knitr)
 library(kableExtra)
 ```
@@ -124,15 +125,13 @@ if (abs(hh_ratio - 1) > .01) stop(
 
 ## Creating new SE data
 
-The TRMG2 model will make use of some new zonal attributes:
+Caliper added several new variables to the SE data:
 
-- Median Income
+- Median income
 - Workers
-- Vehicles
-- % High Earnings
-
-Caliper used the 2014-2018 5-year ACS data to populate the first three of these
-new attributes and the LEHD LODES7 data for the fourth.
+- Age (percent children and seniors)
+- Percent high earnin jobs
+- Off-campus students
 
 ### Income
 
@@ -142,7 +141,7 @@ shapes <- load_census_data()
 
 acs_bg <- shapes$acs_bg
 acs_tract <- shapes$acs_tract
-dec_bg <- shapes$dec_bg
+# dec_bg <- shapes$dec_bg
 
 taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 ```
@@ -151,6 +150,15 @@ taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 # regional median income
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 reg_med_inc <- 65317
+
+# County median incomes
+
+county_med_inc <- get_acs(
+  geography = "county", state = "NC", year = 2018,
+  county = unique(taz$COUNTY), variables = c("B19013_001")
+) %>%
+  mutate(NAME = word(NAME, 1, 1)) %>%
+  select(COUNTY = NAME, county_med_inc = estimate)
 
 inc_centroids <- taz %>%
   st_point_on_surface() %>%
@@ -161,17 +169,19 @@ inc_centroids <- taz %>%
 num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
 add_income_taz <- taz %>%
   left_join(inc_centroids, by = "ID") %>%
-  mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
-  rename(MEDIANINC = inc_med)
+  left_join(county_med_inc, by = "COUNTY") %>%
+  mutate(inc_med = ifelse(
+    is.na(inc_med), county_med_inc, inc_med)) %>%
+  rename(Median_Inc = inc_med)
 
 add_income_se <- calc_percents %>%
   left_join(
     add_income_taz %>%
-      select(ID, MEDIANINC) %>%
+      select(ID, Median_Inc) %>%
       st_drop_geometry(),
     by = c("TAZ" = "ID")
   ) %>%
-  relocate(MEDIANINC, .before = MEANINC) %>%
+  relocate(Median_Inc, .before = MEANINC) %>%
   select(-MEANINC)
 ```
 
@@ -181,25 +191,45 @@ socio-economic (SE) data from the Census, but income information is only
 available at the block group geography level. As a result, all TAZs within a
 block group have the same median income. In addition, income measures were
 suppressed by the Census for `r num_missing` block groups. For TAZs in these
-block groups, the regional median income of `r paste0('$',formatC(reg_med_inc,
-big.mark=',', format = 'd'))` was used.
+block groups, the county's median income was used as shown in the following
+table.
+
+```{r}
+county_med_inc %>%
+  mutate(county_med_inc = paste0(
+    "$", format(county_med_inc, big.mark = ",")
+  )) %>%
+  rename(County = COUNTY, `Median Income` = county_med_inc) %>%
+  kable(align = "lr") %>%
+  kable_styling(full_width = FALSE)
+```
 
 ### Workers
 
 ```{r, include=FALSE}
 calc_tot_workers <- acs_tract %>%
+  group_by(County) %>%
+  mutate(
+    county_wrk_tot = sum(wrk1, na.rm = TRUE) + 2 * sum(wrk2, na.rm = TRUE) + 
+      3.1 * sum(wrk3, na.rm = TRUE),
+    county_hh_pop = sum(hh_pop, na.rm = TRUE),
+    county_pct_wrk = round(county_wrk_tot / county_hh_pop * 100, 0)
+  ) %>%
+  ungroup() %>%
   mutate(
     # 3.1 acknowledges that 3+worker households have an average higher than 3,
     # but the exact average is unknown.
     wrk_tot = wrk1 + 2 * wrk2 + 3.1 * wrk3,
-    avg_wrk = wrk_tot / (hh_tot + .0000001)
+    Pct_Worker = ifelse(
+      hh_tot == 0, county_pct_wrk, round(wrk_tot / hh_pop * 100, 0)
+    )
   )
 
 wrk_centroids <- taz %>%
   st_point_on_surface() %>%
-  st_join(calc_tot_workers %>% select(avg_wrk)) %>%
+  st_join(calc_tot_workers %>% select(Pct_Worker)) %>%
   as.data.frame() %>%
-  select(ID, avg_wrk)
+  select(ID, Pct_Worker)
   
 add_workers_taz <- add_income_taz %>%
   left_join(wrk_centroids, by = "ID")
@@ -207,13 +237,11 @@ add_workers_taz <- add_income_taz %>%
 add_workers_se <- add_income_se %>%
   left_join(
     add_workers_taz %>%
-      select(ID, avg_wrk) %>%
+      select(ID, Pct_Worker) %>%
       st_drop_geometry(),
     by = c("TAZ" = "ID")    
   ) %>%
-  mutate(Workers = round(avg_wrk * HH, 0)) %>%
-  select(-avg_wrk) %>%
-  relocate(Workers, .after = MEDIANINC)
+  relocate(Pct_Worker, .after = Median_Inc)
 ```
 
 Estimates of workers are only available from the ACS at the tract level. It is
@@ -225,15 +253,16 @@ workers.
 Without more-disaggregate data to inform the process, the following steps were
 taken to assign workers to TAZs:
 
-  1. Calculate the average workers per household for the ACS tract.
-  2. Use that average for each TAZ within the tract.
+  1. Calculate the percentage of workers for the ACS tract.
+  2. Use that percentage for each TAZ within the tract.
   
-In this way, workers were allocated within each tract proportionally based
-on the number of households.
+This information is contained in the `Pct_Worker` field of the SE data table.
 
-### Vehicles
+```{r vehicles, include=FALSE}
+# Vehicles are not added to the SE data table, because we have an auto-ownership
+# model to determine that information. Instead, this info is used to validate
+# that model.
 
-```{r, include=FALSE}
 reg_avg_veh <- sum(acs_bg$veh_tot, na.rm = TRUE) / sum(acs_bg$hh_tot, na.rm = TRUE)
 
 acs_bg <- acs_bg %>%
@@ -247,9 +276,11 @@ veh_centroids <- taz %>%
 
 add_veh_taz <- add_workers_taz %>%
   left_join(veh_centroids, by = "ID") %>%
-  mutate(avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh))
+  mutate(
+    avg_veh = ifelse(is.na(avg_veh), reg_avg_veh, avg_veh)
+  )
   
-add_veh_se <- add_workers_se %>%
+veh_validation_tbl <- add_workers_se %>%
   left_join(
     add_veh_taz %>%
       select(ID, avg_veh) %>%
@@ -259,16 +290,52 @@ add_veh_se <- add_workers_se %>%
   mutate(
     Vehicles = round(HH * avg_veh, 0)
   ) %>%
-  select(-avg_veh) %>%
-  relocate(Vehicles, .after = Workers)
+  select(TAZ, Vehicles, avg_veh)
 ```
 
-Vehicle data is available from the ACS at the block group level. Unlike workers,
-total vehicles can be retrieved for just households; however, the lack of
-information at the block level means that all TAZs within the same block group
-are assigned the same number of vehicles per household. Also, some block groups
-had suppressed vehicle information and the regional average of 
-`r round(reg_avg_veh, 2)` was used.
+### Age 
+
+Like vehicles, age data is available from the ACS at the block group level. For
+each blockgroup, Caliper computed the percentage of children and seniors.
+
+- Child: Under 18
+- Senior: 65 or older
+
+Then, each TAZ within a blockgroup was assigned the same percentages. Age
+information was available for all blockgroups with population, and no TAZs
+needed to use their county average. This information can be found in the SE
+data table in the fields `Pct_Child` and `Pct_Senior`.
+
+```{r, include=FALSE}
+calc_age_pct <- acs_bg %>%
+  select(GEOID, County, age_child, age_other, age_senior) %>%
+  group_by(County) %>%
+  mutate(
+    cnty_tot = sum(age_child, na.rm = TRUE) + sum(age_other, na.rm = TRUE) +
+      sum(age_senior, na.rm = TRUE),
+    cnty_age_child = sum(age_child, na.rm = TRUE),
+    cnty_age_senior = sum(age_senior, na.rm = TRUE),
+    cnty_pct_child = round(cnty_age_child / cnty_tot * 100, 0),
+    cnty_pct_senior = round(cnty_age_senior / cnty_tot * 100, 0)
+  ) %>%
+  mutate(
+    total = age_child + age_other + age_senior,
+    Pct_Child = ifelse(
+      total == 0, cnty_pct_child, round(age_child / total * 100, 0)),
+    Pct_Senior = ifelse(
+      total == 0, cnty_pct_senior, round(age_senior / total * 100, 0)),
+  )
+
+age_centroids <- taz %>%
+  st_point_on_surface() %>%
+  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
+  st_drop_geometry() %>%
+  select(TAZ = ID, Pct_Child, Pct_Senior)
+  
+add_age <- add_workers_se %>%
+  left_join(age_centroids, by = "TAZ") %>%
+  relocate(Pct_Child:Pct_Senior, .after = Pct_Worker)
+```
 
 ### Percent high earnings
 
@@ -331,19 +398,191 @@ final_pct <- calc_high_pct %>%
   select(TAZ = trm_taz, earn, final_pct) %>%
   pivot_wider(names_from = "earn", values_from = "final_pct")
 
-add_earn_pct <- add_veh_se %>%
+add_earn_pct <- add_age %>%
   left_join(
     final_pct %>%
       select(TAZ, PctHighEarn = high),
     by = "TAZ"
   ) %>%
-  relocate(PctHighEarn, .after = Retail)
+  relocate(PctHighEarn, .after = Retail) %>%
+  relocate(Industry:PctHighEarn, .after = Total_POP)
 ```
 
+### Student housing (off-campus)
+
+The TRMG2 model requires off-campus student housing information as input in the
+SE data. Total enrollment statistics were collected for the following
+universities:
+
+  * North Carolina State University ([source](https://oirp.ncsu.edu/facts-figures/the-basics/student-statistics/))
+  * University of North Carolina at Chapel Hill ([source](https://oira.unc.edu/reports/))
+  * Duke University ([source](https://finance.provost.duke.edu/sites/default/files/documents/CDS_2016-2017.pdf))
+  * North Carolina Central University ([source](https://legacy.nccu.edu/formsdocs/proxy.cfm?file_id=4073))
+
+The TRM stakeholders provided counts of students living in dorms for each
+campus, which allowed Caliper to calculate the total number of off-campus
+students as shown in the table below.
+
+```{r, include=FALSE}
+ncsu <- st_read("data/input/university/ncsu_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+unc <- st_read("data/input/university/unc_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+duke <- st_read("data/input/university/duke_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+nccu <- st_read("data/input/university/nccu_off_stud.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
+
+```{r}
+# ncsu: https://oirp.ncsu.edu/facts-figures/the-basics/student-statistics/
+# total enrollment for students taking on-campus classes (not distance ed)
+ncsu_tot <- 31008
+ncsu_gq <- sum(add_earn_pct$StudGQ_NCSU, na.rm = TRUE)
+ncsu_off <- ncsu_tot - ncsu_gq
+
+# UNC: https://oira.unc.edu/reports/
+unc_tot <- 29468
+unc_gq <- sum(add_earn_pct$StudGQ_UNC, na.rm = TRUE)
+unc_off <- unc_tot - unc_gq
+
+# Duke: https://finance.provost.duke.edu/sites/default/files/documents/CDS_2016-2017.pdf
+duke_tot <- 15928
+duke_gq <- sum(add_earn_pct$StudGQ_DUKE, na.rm = TRUE)
+duke_off <- duke_tot - duke_gq
+
+# NCCU: https://legacy.nccu.edu/formsdocs/proxy.cfm?file_id=4073
+nccu_tot <- 8096
+nccu_gq <- sum(add_earn_pct$StudGQ_NCCU, na.rm = TRUE)
+nccu_off <- nccu_tot - nccu_gq
+
+
+```
+
+```{r}
+tibble(
+  School = c("NCSU", "UNC", "Duke", "NCCU"),
+  `Total Enrollment` = c(ncsu_tot, unc_tot, duke_tot, nccu_tot),
+  `In Dorms` = c(ncsu_gq, unc_gq, duke_gq, nccu_gq),
+  `Implied Off-Campus` = c(ncsu_off, unc_off, duke_off, nccu_off)
+) %>%
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+Stakeholders provided Caliper with off-campus student addresses from the same
+four universities. The NCSU, UNC, and NCCU data sets contained student addresses
+from all over the country (and world). These addresses are a mix of local
+students living off campus, distance ed students, and billing addresses (often
+parent addresses) as shown in the map below.
+
+![](img/university/raw_stud_locations.png)
+
+The histograms below show the number of address points for each university in
+one-mile bands around the campus. The intensity drops off drastically beyond
+10 miles.
+
+```{r}
+df1 <- ncsu %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "NCSU")
+df2 <- unc %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "UNC")
+df3 <- duke %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "Duke")
+df4 <- nccu %>%
+  st_drop_geometry() %>%
+  select(DIST_TO_CA) %>%
+  mutate(School = "NCCU")
+
+df <- bind_rows(df1, df2, df3, df4)
+
+ggplot(data = df, aes(x = DIST_TO_CA, fill = School)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~School, ncol = 1, scales = "free_y") +
+  xlab("Distance to Campus (miles)")
+```
+
+For each school, Caliper ignored address points outside 10 miles as shown below.
+
+![](img/university/raw_locations_w_buffers.png)
+
+Finally, the weight of each point within the buffer was factored up to match the
+total off-campus enrollment for each university. These weights were aggregated
+by TAZ and added to the SE data table. This information is contained in the
+SE data table in fields `StudOff_NCSU`, `StudOff_UNC`, `StudOff_Duke`, and
+`StudOff_NCCU`.
+
+```{r, include=FALSE}
+ncsu_agg <- ncsu %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_NCSU = n()) %>%
+  mutate(
+    StudOff_NCSU = (ncsu_off / sum(StudOff_NCSU)) * StudOff_NCSU,
+    StudOff_NCSU = round(StudOff_NCSU, 0)
+  )
+
+unc_agg <- unc %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_UNC = n()) %>%
+  mutate(
+    StudOff_UNC = (unc_off / sum(StudOff_UNC)) * StudOff_UNC,
+    StudOff_UNC = round(StudOff_UNC, 0)
+  )
+
+duke_agg <- duke %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_DUKE = n()) %>%
+  mutate(
+    StudOff_DUKE = (duke_off / sum(StudOff_DUKE)) * StudOff_DUKE,
+    StudOff_DUKE = round(StudOff_DUKE, 0)
+  )
+
+nccu_agg <- nccu %>%
+  st_join(
+    taz_new %>% select(TAZ = ID)
+  ) %>%
+  st_drop_geometry() %>%
+  group_by(TAZ) %>%
+  summarize(StudOff_NCCU = n()) %>%
+  mutate(
+    StudOff_NCCU = (nccu_off / sum(StudOff_NCCU)) * StudOff_NCCU,
+    StudOff_NCCU = round(StudOff_NCCU, 0)
+  )
+
+add_studoff <- add_earn_pct %>%
+  left_join(ncsu_agg, by = "TAZ") %>%
+  left_join(unc_agg, by = "TAZ") %>%
+  left_join(duke_agg, by = "TAZ") %>%
+  left_join(nccu_agg, by = "TAZ") %>%
+  relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
+```
 
 ```{r, eval=FALSE}
 write_csv(
-  add_earn_pct, "data/output/se_data/se_2016.csv",
+  add_studoff, "data/output/se_data/se_2016.csv",
+  na = "0"
+)
+
+write_csv(
+  veh_validation_tbl, "data/output/se_data/vehicle_validation.csv",
   na = "0"
 )
 ```

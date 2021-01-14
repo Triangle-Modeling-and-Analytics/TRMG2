@@ -88,7 +88,7 @@ shown in orange, has a similar range of household sizes, which makes it a good
 candidate for model estimation.
 
 ```{r size range, warning=FALSE}
-input_se <- read_csv(
+se_tbl <- read_csv(
   "data/output/se_data/se_2016.csv",
   col_types = cols(
     .default = col_double(),
@@ -97,7 +97,7 @@ input_se <- read_csv(
 )
 
 # se data
-input_se <- input_se %>%
+se_tbl <- se_tbl %>%
   mutate(pph = HH_POP / HH)
 
 # census
@@ -115,7 +115,7 @@ size <- dec_bg %>%
 
 plot_ly() %>%
   add_trace(
-    data = input_se, x = ~pph, type = "histogram", name = "Model",
+    data = se_tbl, x = ~pph, type = "histogram", name = "Model",
     alpha = .6, bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
@@ -253,8 +253,11 @@ curve across the entire range of zonal values.
 
 ```{r worker range, warning=FALSE}
 # se data distribution
-input_se <- input_se %>%
-  mutate(wph = Workers / HH)
+se_tbl <- se_tbl %>%
+  mutate(
+    Workers = Pct_Worker / 100 * HH_POP,
+    wph = Workers / HH
+  )
 
 # census distribution
 workers <- ctpp_tbl %>%
@@ -271,7 +274,7 @@ workers <- ctpp_tbl %>%
 
 plot_ly() %>%
   add_trace(
-    data = input_se, x = ~wph, type = "histogram", alpha = .6,
+    data = se_tbl, x = ~wph, type = "histogram", alpha = .6,
     name = "Model", bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
@@ -396,20 +399,13 @@ plot_ly() %>%
   
 ```
 
-The prediction metric used for income is the median income of the zone divided
-by the regional median. This provides an estimation range on a similar scale as
-the other variables ( e.g. 0.2 - 3.0 instead of $0 - 250,000).
-
-The chart below shows the distribution of model and Census data. The model has zones without households (and thus zero median income), but otherwise the
-distributions are similar.
-
 ```{r}
 # regional median income
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 regional_median <- 65317
 
-input_se <- input_se %>%
-  mutate(inc_ratio = MEDIANINC / regional_median)
+se_tbl <- se_tbl %>%
+  mutate(inc_ratio = Median_Inc / regional_median)
 
 # census distribution
 income <- acs_bg %>%
@@ -426,10 +422,19 @@ income <- acs_bg %>%
   group_by(GEOID) %>%
   gather(key = income, value = n, incL:incH) %>%
   mutate(share = n / hh_tot)
+```
 
+The prediction metric used for income is the median income of the zone divided
+by the regional median (`r paste0("$", format(regional_median, big.mark = ","))`). This provides an estimation range on a similar scale as
+the other variables ( e.g. 0.2 - 3.0 instead of \$0 - \$250,000).
+
+The chart below shows the distribution of model and Census data. The model has zones without households (and thus zero median income), but otherwise the
+distributions are similar.
+
+```{r}
 plot_ly() %>%
   add_trace(
-    data = input_se, x = ~inc_ratio, type = "histogram", name = "Model",
+    data = se_tbl, x = ~inc_ratio, type = "histogram", name = "Model",
     alpha = .6, bingroup = 1, nbinsx = 50
   ) %>%
   add_trace(
@@ -447,6 +452,7 @@ plot_ly() %>%
     barmode = "overlay"
   )
 ```
+
 
 ```{r}
 # calculate
