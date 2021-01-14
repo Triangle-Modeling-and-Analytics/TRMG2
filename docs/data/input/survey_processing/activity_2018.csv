@@ -4,17 +4,17 @@ code,activity_long,activity
 3,"At work (not home), working for pay",W
 4,"Other work-related activity (e.g., meeting, site visit, sales call, etc.)",WR
 5,Attend school/class,SCH
-6,Other school-related activity,O
+6,Other school-related activity,OD
 7,"Routine shopping (e.g., grocery, get gas, clothing, convenience store, household maintenance, etc.)",SHP
 8,"Shopping for major purchase/specialty item (e.g., appliances, electronics, new vehicle, major household repairs, etc.)",SHP
 9,"Dining out/take-out/coffee (e.g., eat at restaurant, get take-out/fast-food)",EAT
 10,Pick someone up,PU
 11,Drop someone off,DO
 12,"Change type of transportation/transfer (e.g., take bus, take airplane, park a car or pick up a parked car if walk 2+ blo",X
-13,"Household errands, non-shopping (e.g., bank/ATM, post office, dry cleaning, car services, etc.)",O
-14,"Personal business (e.g., visit government office, attorney, accountant, etc.)",O
-15,"Medical visit (e.g., doctor, dentist, etc.)",O
-16,"Recreation/entertainment (e.g., walk the dog, exercise/workout, go to a movie)",O
-17,"Social (e.g., visit friends/relatives, including at their home or elsewhere)",O
-18,"Religious, civic, or volunteer",O
-19,Other (not-at-home) activity,O
+13,"Household errands, non-shopping (e.g., bank/ATM, post office, dry cleaning, car services, etc.)",OM
+14,"Personal business (e.g., visit government office, attorney, accountant, etc.)",OM
+15,"Medical visit (e.g., doctor, dentist, etc.)",OMED
+16,"Recreation/entertainment (e.g., walk the dog, exercise/workout, go to a movie)",OD
+17,"Social (e.g., visit friends/relatives, including at their home or elsewhere)",OD
+18,"Religious, civic, or volunteer",OD
+19,Other (not-at-home) activity,OD
