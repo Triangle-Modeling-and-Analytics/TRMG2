@@ -151,6 +151,15 @@ taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 reg_med_inc <- 65317
 
+# County median incomes
+
+county_med_inc <- get_acs(
+  geography = "county", state = "NC", year = 2018,
+  county = unique(taz$COUNTY), variables = c("B19013_001")
+) %>%
+  mutate(NAME = word(NAME, 1, 1)) %>%
+  select(COUNTY = NAME, county_med_inc = estimate)
+
 inc_centroids <- taz %>%
   st_point_on_surface() %>%
   st_join(acs_bg %>% select(inc_med)) %>%
@@ -160,7 +169,9 @@ inc_centroids <- taz %>%
 num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
 add_income_taz <- taz %>%
   left_join(inc_centroids, by = "ID") %>%
-  mutate(inc_med = ifelse(is.na(inc_med), reg_med_inc, inc_med)) %>%
+  left_join(county_med_inc, by = "COUNTY") %>%
+  mutate(inc_med = ifelse(
+    is.na(inc_med), county_med_inc, inc_med)) %>%
   rename(Median_Inc = inc_med)
 
 add_income_se <- calc_percents %>%
@@ -180,25 +191,45 @@ socio-economic (SE) data from the Census, but income information is only
 available at the block group geography level. As a result, all TAZs within a
 block group have the same median income. In addition, income measures were
 suppressed by the Census for `r num_missing` block groups. For TAZs in these
-block groups, the regional median income of `r paste0('$',formatC(reg_med_inc,
-big.mark=',', format = 'd'))` was used.
+block groups, the county's median income was used as shown in the following
+table.
+
+```{r}
+county_med_inc %>%
+  mutate(county_med_inc = paste0(
+    "$", format(county_med_inc, big.mark = ",")
+  )) %>%
+  rename(County = COUNTY, `Median Income` = county_med_inc) %>%
+  kable(align = "lr") %>%
+  kable_styling(full_width = FALSE)
+```
 
 ### Workers
 
 ```{r, include=FALSE}
 calc_tot_workers <- acs_tract %>%
+  group_by(County) %>%
+  mutate(
+    county_wrk_tot = sum(wrk1, na.rm = TRUE) + 2 * sum(wrk2, na.rm = TRUE) + 
+      3.1 * sum(wrk3, na.rm = TRUE),
+    county_hh_pop = sum(hh_pop, na.rm = TRUE),
+    county_pct_wrk = round(county_wrk_tot / county_hh_pop * 100, 0)
+  ) %>%
+  ungroup() %>%
   mutate(
     # 3.1 acknowledges that 3+worker households have an average higher than 3,
     # but the exact average is unknown.
     wrk_tot = wrk1 + 2 * wrk2 + 3.1 * wrk3,
-    avg_wrk = ifelse(hh_tot == 0, 0, wrk_tot / hh_tot)
+    Pct_Worker = ifelse(
+      hh_tot == 0, county_pct_wrk, round(wrk_tot / hh_pop * 100, 0)
+    )
   )
 
 wrk_centroids <- taz %>%
   st_point_on_surface() %>%
-  st_join(calc_tot_workers %>% select(avg_wrk)) %>%
+  st_join(calc_tot_workers %>% select(Pct_Worker)) %>%
   as.data.frame() %>%
-  select(ID, avg_wrk)
+  select(ID, Pct_Worker)
   
 add_workers_taz <- add_income_taz %>%
   left_join(wrk_centroids, by = "ID")
@@ -206,13 +237,11 @@ add_workers_taz <- add_income_taz %>%
 add_workers_se <- add_income_se %>%
   left_join(
     add_workers_taz %>%
-      select(ID, avg_wrk) %>%
+      select(ID, Pct_Worker) %>%
       st_drop_geometry(),
     by = c("TAZ" = "ID")    
   ) %>%
-  mutate(Workers = round(avg_wrk * HH, 0)) %>%
-  select(-avg_wrk) %>%
-  relocate(Workers, .after = Median_Inc)
+  relocate(Pct_Worker, .after = Median_Inc)
 ```
 
 Estimates of workers are only available from the ACS at the tract level. It is
@@ -224,12 +253,10 @@ workers.
 Without more-disaggregate data to inform the process, the following steps were
 taken to assign workers to TAZs:
 
-  1. Calculate the average workers per household for the ACS tract.
-  2. Use that average for each TAZ within the tract.
+  1. Calculate the percentage of workers for the ACS tract.
+  2. Use that percentage for each TAZ within the tract.
   
-In this way, workers were allocated within each tract proportionally based
-on the number of households. This information is contained in the `Workers`
-field of the SE data table.
+This information is contained in the `Pct_Worker` field of the SE data table.
 
 ```{r vehicles, include=FALSE}
 # Vehicles are not added to the SE data table, because we have an auto-ownership
@@ -276,16 +303,27 @@ each blockgroup, Caliper computed the percentage of children and seniors.
 
 Then, each TAZ within a blockgroup was assigned the same percentages. Age
 information was available for all blockgroups with population, and no TAZs
-needed to use a regional average. This information can be found in the SE
+needed to use their county average. This information can be found in the SE
 data table in the fields `Pct_Child` and `Pct_Senior`.
 
 ```{r, include=FALSE}
 calc_age_pct <- acs_bg %>%
-  select(GEOID, age_child, age_other, age_senior) %>%
+  select(GEOID, County, age_child, age_other, age_senior) %>%
+  group_by(County) %>%
+  mutate(
+    cnty_tot = sum(age_child, na.rm = TRUE) + sum(age_other, na.rm = TRUE) +
+      sum(age_senior, na.rm = TRUE),
+    cnty_age_child = sum(age_child, na.rm = TRUE),
+    cnty_age_senior = sum(age_senior, na.rm = TRUE),
+    cnty_pct_child = round(cnty_age_child / cnty_tot * 100, 0),
+    cnty_pct_senior = round(cnty_age_senior / cnty_tot * 100, 0)
+  ) %>%
   mutate(
     total = age_child + age_other + age_senior,
-    Pct_Child = ifelse(total == 0, 0, round(age_child / total * 100, 0)),
-    Pct_Senior = ifelse(total == 0, 0, round(age_senior / total * 100, 0)),
+    Pct_Child = ifelse(
+      total == 0, cnty_pct_child, round(age_child / total * 100, 0)),
+    Pct_Senior = ifelse(
+      total == 0, cnty_pct_senior, round(age_senior / total * 100, 0)),
   )
 
 age_centroids <- taz %>%
@@ -296,7 +334,7 @@ age_centroids <- taz %>%
   
 add_age <- add_workers_se %>%
   left_join(age_centroids, by = "TAZ") %>%
-  relocate(Pct_Child:Pct_Senior, .after = Workers)
+  relocate(Pct_Child:Pct_Senior, .after = Pct_Worker)
 ```
 
 ### Percent high earnings
@@ -366,7 +404,8 @@ add_earn_pct <- add_age %>%
       select(TAZ, PctHighEarn = high),
     by = "TAZ"
   ) %>%
-  relocate(PctHighEarn, .after = Retail)
+  relocate(PctHighEarn, .after = Retail) %>%
+  relocate(Industry:PctHighEarn, .after = Total_POP)
 ```
 
 ### Student housing (off-campus)

@@ -24,8 +24,8 @@ load_census_data <- function(state = "NC", acs_year = 2018){
   counties <- unique(tazs$COUNTY)
 
   
-  acs_file <- "data/input/census_data/shapes/acs_blockgroups.shp"
-  if (!file.exists(acs_file)){
+  bg_file <- "data/input/census_data/shapes/acs_blockgroups.shp"
+  if (!file.exists(bg_file)){
     # Read table of census variables and their names/geographies
     # https://api.census.gov/data/2018/acs/acs5/variables.html
     acs_vars <- read_csv("data/input/census_data/acs_bg_variables.csv")
@@ -87,11 +87,13 @@ load_census_data <- function(state = "NC", acs_year = 2018){
       as.data.frame() %>%
       left_join(acs_tbl, by = "GEOID") %>%
       st_as_sf() %>%
-      st_make_valid()
+      st_make_valid() %>%
+      mutate(County = substr(GEOID, 1, 5)) %>%
+      relocate(County, .after = GEOID)
     
-    st_write(acs_bg, acs_file)
+    st_write(acs_bg, bg_file)
   } else {
-    acs_bg <- st_read(acs_file, quiet = TRUE)
+    acs_bg <- st_read(bg_file, quiet = TRUE)
   }
   
   # ACS tracts
@@ -109,16 +111,16 @@ load_census_data <- function(state = "NC", acs_year = 2018){
     # boundary. st_intersection alone will modify/crop the edge block groups, 
     # which is not desired here.
     model_boundary <- st_transform(model_boundary, st_crs(acs_raw))
-    acs_tract <- acs_raw[st_intersects(acs_raw, model_boundary, sparse = FALSE), ]
+    intersect_tract <- acs_raw[st_intersects(acs_raw, model_boundary, sparse = FALSE), ]
     
     # Join variable names, sum any repeats, and then spread
-    acs_tbl <- acs_tract %>%
+    acs_tbl <- intersect_tract %>%
       as.data.frame() %>%
       left_join(acs_vars, by = "variable") %>%
       group_by(GEOID, name) %>%
       summarize(estimate = sum(estimate)) %>%
       spread(key = name, value = estimate)
-    acs_tract <- acs_tract %>%
+    acs_tract <- intersect_tract %>%
       group_by(GEOID) %>%
       slice(1) %>%
       ungroup() %>%
@@ -126,7 +128,9 @@ load_census_data <- function(state = "NC", acs_year = 2018){
       as.data.frame() %>%
       left_join(acs_tbl, by = "GEOID") %>%
       st_as_sf() %>%
-      st_make_valid()
+      st_make_valid() %>%
+      mutate(County = substr(GEOID, 1, 5)) %>%
+      relocate(County, .after = GEOID)
     
     st_write(acs_tract, acs_file)
   } else {
