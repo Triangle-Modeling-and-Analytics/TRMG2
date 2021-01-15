@@ -206,21 +206,14 @@ person_eda <- function(df, tour_type = "tour_type", homebased = "homebased",
     left_join(hh_df, by = "hhid") %>%
     mutate(trip_weight = trip_weight / hh_weight_combined)
   
-  #testing
-  per_add_trips %>%
-    filter(
-      grepl("K12", trip_type),
-      is_child == 0,
-      trip_weight != 0
-    )
-  
-  
   # Perform the EDA
   eda <- per_add_trips %>%
     group_by(trip_type) %>%
     nest() %>%
     mutate(
-      samples = map_dbl(data, function(df) nrow(df)),
+      samples = map_dbl(data, function(df) {
+        nrow(df %>% filter(trip_weight > 0))
+      }),
       wTrips = map_dbl(data, function(df) {
         round(sum(df$trip_weight * df$hh_weight_combined, na.rm = TRUE), 0)
       }),

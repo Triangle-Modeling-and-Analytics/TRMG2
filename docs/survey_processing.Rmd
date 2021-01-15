@@ -654,7 +654,10 @@ convert_purpose <- trip_combined %>%
     o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
     d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1),
   ) %>%
-  select(-c(o_activity1:d_activity2)) %>%
+  select(
+    -c(o_activity1:d_activity2), -o_activity_2016, -o_activity_other,
+    -d_activity_2016, -d_activity_other, -o_activity_2018, -d_activity_2018
+  ) %>%
   mutate(
     mode = case_when(
       mode == 1 ~ "auto_own",
@@ -756,8 +759,8 @@ det_home_place <- change_time %>%
   select(-home_loc_lat, -home_loc_lng) %>%
   # correct home activities that don't happen at home
   mutate(
-    o_activity = ifelse(o_activity == "H" & o_place != "H", "O", o_activity),
-    d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
+    o_activity = ifelse(o_activity == "H" & o_place != "H", "OD", o_activity),
+    d_activity = ifelse(d_activity == "H" & d_place != "H", "OD", d_activity)
   )
 
 school_loc <- per_add_flags %>%
@@ -900,7 +903,6 @@ determine_tours <- simplify_mode %>%
     tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
     tour_type = case_when(
       "W" %in% tour_anchor ~ "WT",
-      # "S" %in% tour_anchor ~ "S",
       "H" %in% tour_anchor ~ "H",
       TRUE ~ "NT"
     ),
@@ -919,8 +921,8 @@ flag_loop_trips <- determine_tours %>%
       !(mode %in% c("walk", "bike")) ~ 0,
       "walk" %in% origin_name ~ 1,
       "walk" %in% destination_name ~ 1,
-      !(o_activity %in% c("H", "O")) ~ 0,
-      !(d_activity %in% c("H", "O")) ~ 0,
+      !(o_activity %in% c("H", "OD")) ~ 0,
+      !(d_activity %in% c("H", "OD")) ~ 0,
       TRUE ~ 1
     )
   )
@@ -942,6 +944,9 @@ num_sch_problems <- flag_loop_trips %>%
 ```
 
 ```{r clean_sch_probs}
+# This key uniquely identifies trips in a way that isn't person specific. This
+# lets you identify all the trip records that went on the same trip. Great for
+# HOV analysis.
 add_key <- flag_loop_trips %>%
   ungroup() %>%
   unite(
@@ -1022,9 +1027,21 @@ fix_pudo <- add_key %>%
 fix_remaining_sch <- fix_pudo %>%
   mutate(
     o_activity = ifelse(o_activity == "SCH?" & o_place == "H", "H", o_activity),
-    o_activity = ifelse(o_activity == "SCH?", "O", o_activity),
+    o_activity = ifelse(o_activity == "SCH?", "OD", o_activity),
+    o_activity = case_when(
+      o_activity %in% c("K12", "PreK") & age > 18 ~ "U",
+      o_activity == "U" & age <= 17 & age > 5 ~ "K12",
+      o_activity == "U" & age <= 5 ~ "PreK",
+      TRUE ~ o_activity
+    ),
     d_activity = ifelse(d_activity == "SCH?" & d_place == "H", "H", d_activity),
-    d_activity = ifelse(d_activity == "SCH?", "O", d_activity),
+    d_activity = ifelse(d_activity == "SCH?", "OD", d_activity),
+    d_activity = case_when(
+      d_activity %in% c("K12", "PreK") & age > 18 ~ "U",
+      d_activity == "U" & age <= 17 & age > 5 ~ "K12",
+      d_activity == "U" & age <= 5 ~ "PreK",
+      TRUE ~ d_activity
+    ),
   )
 ```
 
@@ -1671,13 +1688,7 @@ eda_scheme5 <- eda(scheme5)
 
 ```{r}
 # EDA based on person-level attributes
-
-prep_per_tbl <- per_add_flags %>%
-  left_join(
-    hh_add_seniors
-  )
-
-# person_eda_scheme2 <- person_eda(scheme2)
+person_eda_scheme2 <- person_eda(scheme2)
 ```
 
 
