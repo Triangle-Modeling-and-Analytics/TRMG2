@@ -18,7 +18,7 @@ https://github.com/Triangle-Modeling-and-Analytics
 Draft documentation can be found here:  
 https://caliper-corporation.github.io/TRMG2/
 
-Client PM: Leta Huntsinger
+Client PM: Leta Huntsinger  
 Caliper PM: Vince Bernardin  
 Caliper DPM: Kyle Ward  
   
