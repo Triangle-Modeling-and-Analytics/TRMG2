@@ -1664,7 +1664,7 @@ eda_scheme5 <- eda(scheme5)
 
 ```{r}
 # EDA based on person-level attributes
-person_eda_scheme2 <- person_eda(scheme2)
+# person_eda_scheme2 <- person_eda(scheme2)
 ```
 
 
