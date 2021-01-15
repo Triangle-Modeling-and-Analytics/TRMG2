@@ -44,7 +44,6 @@ eda <- function(df, tour_type = "tour_type", homebased = "homebased",
           group_by(hhid) %>%
           summarize(
             trips = sum(trip_weight_combined) / first(hh_weight_combined),
-            # senior_present = first(senior_present)
             num_seniors = first(num_seniors)
           )
         my_cor(s, "trips", "num_seniors")

@@ -147,6 +147,16 @@ prep_2018 <- remove_na_2018 %>%
 hh_combined <- bind_rows(
   prep_2016, prep_2018
 )
+
+hh_add_flags <- hh_combined %>%
+  mutate(
+    child_in_hh = ifelse(num_children > 0, 1, 0),
+    worker_in_hh = ifelse(num_workers > 0, 1, 0),
+    vehicle_in_hh = ifelse(num_vehicles > 0, 1, 0),
+  ) %>%
+  relocate(child_in_hh, .before = num_children) %>%
+  relocate(worker_in_hh, .before = num_workers) %>%
+  relocate(vehicle_in_hh, .before = num_vehicles)
 ```
 
 ### Person table
@@ -250,19 +260,33 @@ per_combined <- bind_rows(
   prep_per_2018
 ) %>%
   left_join(
-    hh_combined %>% select(hhid, hh_weight_combined),
+    hh_add_flags %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
 ```
 
 ```{r}
-add_flags <- per_combined %>%
+per_add_flags <- per_combined %>%
   mutate(
     is_senior = ifelse(age_category >= 10, 1, 0),
+    is_senior = replace_na(is_senior, 0),
     is_child = ifelse(age_category <= 4, 1, 0),
+    is_child = replace_na(is_child, 0),
     is_worker = ifelse(employment <= 3, 1, 0),
     is_worker = replace_na(is_worker, 0)
+  )
+
+hh_add_seniors <- hh_add_flags %>%
+  left_join(
+    per_add_flags %>%
+      group_by(hhid) %>%
+      summarize(num_seniors = sum(is_senior, na.rm = TRUE)),
+    by = "hhid"
+  ) %>%
+  mutate(
+    num_seniors = replace_na(num_seniors, 0),
+    senior_in_hh = ifelse(num_seniors > 0, 1, 0),
   )
 ```
 
@@ -327,12 +351,12 @@ trip_combined <- bind_rows(
   ) %>%
   select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
   left_join(
-    add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
+    per_add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
     by = "personid"
   ) %>%
   mutate(party_size = num_hh_members + num_nonhh) %>%
   left_join(
-    hh_combined %>% select(hhid, hh_weight_combined),
+    hh_add_seniors %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
@@ -352,7 +376,7 @@ Thanks to careful survey design, none of the Triangle households were surveyed
 on the weekend. The chart below shows the days surveyed (1 is Monday).
 
 ```{r}
-temp <- hh_combined %>%
+temp <- hh_add_seniors %>%
   group_by(year, travelday) %>%
   summarize(samples = n())
 
@@ -376,8 +400,8 @@ surveyed households in our estimation set.
 ```{r}
 # Compare Friday to not Friday
 t.test(
-  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
-  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
+  hh_add_seniors$num_trips[hh_add_seniors$travelday %in% c(1,5)],
+  hh_add_seniors$num_trips[!(hh_add_seniors$travelday %in% c(1,5))],
   var.equal = TRUE # if false then performs Welch's t-test
 ) %>%
   tidy() %>%
@@ -407,7 +431,7 @@ map below shows the locations of all households included in the survey. Each
 falls within the model boundary.
 
 ```{r}
-shp <- hh_combined %>%
+shp <- hh_add_seniors %>%
   select(home_loc_lat, home_loc_lng) %>%
   st_as_sf(
     coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
@@ -451,7 +475,7 @@ number of samples, but it is 10 times the expected weight in the second survey.
 For the 2016+2018 combined survey, the average weight is shown below.
 
 ```{r}
-temp <- hh_combined %>%
+temp <- hh_add_seniors %>%
   summarize(
     Samples = n(),
     `Total Households` = sum(hh_weight_combined),
@@ -459,7 +483,7 @@ temp <- hh_combined %>%
   ) %>%
   pivot_longer(cols = everything())
 
-weight_mean <- mean(hh_combined$hh_weight_combined)
+weight_mean <- mean(hh_add_seniors$hh_weight_combined)
 colnames(temp) <- c("", "")
 
 temp %>%
@@ -474,7 +498,7 @@ sample plan that collected adequate numbers of households in all the demographic
 groups of interest.
 
 ```{r}
-ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
+ggplot(hh_add_seniors, aes(x=hh_weight_combined / weight_mean)) + 
   geom_histogram(color="black", fill="orange", bins = 10) +
   xlab("Weight / Average Weight")
 ```
@@ -486,7 +510,7 @@ of the average weight, suggesting a modest over sample, but is well within
 reason.
 
 ```{r}
-ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
+ggplot(hh_add_seniors, aes(x= weight_mean/ hh_weight_combined)) + 
   geom_histogram(color="black", fill="orange", bins = 10) +
   xlab("Average Weight / Weight")
 ```
@@ -522,7 +546,7 @@ temp_broad <- bind_rows(
 
 df <- bind_cols(
   temp_broad,
-  hh_combined %>%
+  hh_add_seniors %>%
     group_by(hh_income_broad) %>%
     summarize(count = n()) %>%
     ungroup() %>%
@@ -703,7 +727,7 @@ calc_dist <- function(x1, y1, x2, y2) {
 det_home_place <- change_time %>%
   # Home
   left_join(
-    hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
+    hh_add_seniors %>% select(hhid, home_loc_lat, home_loc_lng),
     by = "hhid"
   ) %>%
   mutate(
@@ -725,10 +749,10 @@ det_home_place <- change_time %>%
     d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
   )
 
-school_loc <- add_flags %>%
+school_loc <- per_add_flags %>%
   select(hhid, personid, school_address, school_lat, school_lng) %>%
   left_join(
-    hh_combined %>% select(hhid, home_loc_address),
+    hh_add_seniors %>% select(hhid, home_loc_address),
     by = "hhid"
   ) %>%
   filter(!is.na(school_lat) & home_loc_address != school_address) %>%
@@ -1284,11 +1308,10 @@ scheme tested.
 prep_for_eda <- add_se_data %>%
   mutate(homebased = ifelse(p_place == "H", "HB", "NHB")) %>%
   left_join(
-    hh_combined %>%
-      mutate(child_present = ifelse(num_children > 0, 1, 0)) %>%
+    hh_add_seniors %>%
       select(
-        hhid, hhsize, num_vehicles, num_children, child_present,
-        hh_income_broad
+        hhid, hhsize, num_vehicles, num_children, child_in_hh,
+        hh_income_broad, num_seniors, senior_in_hh, num_workers
       ),
     by = "hhid"
   ) %>%
@@ -1310,7 +1333,7 @@ prep_for_eda <- add_se_data %>%
     worker_present = ifelse(num_workers > 0, 1, 0)
   ) %>%
   ungroup() %>%
-  relocate(num_seniors:worker_present, .after = child_present) %>%
+  relocate(num_seniors:worker_present, .after = child_in_hh) %>%
   mutate(
     p_duration = ifelse(p_act_dur >= 30, "Long", "Short"),
     p_duration = ifelse(is.na(p_duration), "Long", p_duration),
@@ -1664,6 +1687,12 @@ eda_scheme5 <- eda(scheme5)
 
 ```{r}
 # EDA based on person-level attributes
+
+prep_per_tbl <- per_add_flags %>%
+  left_join(
+    hh_add_seniors
+  )
+
 # person_eda_scheme2 <- person_eda(scheme2)
 ```
 
@@ -1673,12 +1702,12 @@ eda_scheme5 <- eda(scheme5)
 # manually (consciously).
 
 write_csv(
-  hh_combined,
+  hh_add_seniors,
   "data/output/_PRIVATE/survey_processing/hh_processed.csv",
   na = ""
 )
 write_csv(
-  add_flags,
+  per_add_flags,
   "data/output/_PRIVATE/survey_processing/per_processed.csv",
   na = ""
 )
