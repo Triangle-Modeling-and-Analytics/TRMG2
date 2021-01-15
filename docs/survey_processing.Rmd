@@ -1064,8 +1064,6 @@ fix_bus <- fix_remaining_sch %>%
     )
   ) %>%
   select(-bus_flag)
-
-
 ```
 
 There were numerous problems detected in the survey. These include:
@@ -1322,15 +1320,22 @@ the trip purposes most appropriate for the Triangle. Several classification
 schemes were investigated, and each one classified trips by the following
 categories:
 
-  * Tour type (work or non-work)
-  * Home-based (home-based or non-home-based)
-  * Purpose
-  * Destination activity duration (over or under 30 minutes)
+- Tour type (work or non-work)
+- Home-based (home-based or non-home-based)
+- Purpose
+- Destination activity duration (over or under 30 minutes)
   
 Each classification was then summarized to produce 25 different metrics like
 total trips, average trip length, and correlations to different variables. The
 table below provides a sample of these metrics for the simplest classification
 scheme tested.
+
+- `Is Worker (r)`: Correlation between trip making and work status
+- `Is Child (r)`: Correlation between trip making and being <18
+- `Employment (r)`: Correlation between trips attracted to a zone and employment
+- `AM (%)`: Percentage of trips in the AM period
+- `HOV (%)`: Percentage of trips using the high-occupancy vehicle mode
+- `Trip Length`: Mean trip length
 
 ```{r}
 prep_for_eda <- add_se_data %>%
@@ -1421,7 +1426,7 @@ scheme1 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 
-eda_scheme1 <- eda(scheme1)
+eda_scheme1 <- person_eda(scheme1)
 ```
 
 ```{r eda_scheme2, warning=TRUE}
@@ -1479,7 +1484,7 @@ scheme2 <- prep_for_eda %>%
     ),
   )
 
-# eda_scheme2 <- eda(scheme2)
+eda_scheme2 <- person_eda(scheme2)
 
 eda_scheme2 %>%
   select(
@@ -1488,11 +1493,11 @@ eda_scheme2 %>%
     Purpose = purpose,
     `Dest Duration` = duration,
     `Trips (weighted)` = wTrips,
-    `Rsq HH Size` = r_size,
-    `Rsq HH Income` = r_income,
-    `Rsq Employment` = r_emp,
-    `% AM` = pct_AM,
-    `% HOV` = pct_hov,
+    `Is Worker (r)` = r_is_worker,
+    `Is Child (r)` = r_is_kid,
+    `Zonal Employment (r)` = r_emp,
+    `AM (%)` = pct_AM,
+    `HOV (%)` = pct_hov,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
@@ -1555,7 +1560,7 @@ scheme3 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme3 <- eda(scheme3)
+eda_scheme3 <- person_eda(scheme3)
 ```
 
 ```{r eda_scheme4, eval=FALSE}
@@ -1620,7 +1625,7 @@ scheme4 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme4 <- eda(scheme4)
+eda_scheme4 <- person_eda(scheme4)
 ```
 
 ```{r eda_scheme5, eval=FALSE}
@@ -1683,14 +1688,8 @@ scheme5 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme5 <- eda(scheme5)
+eda_scheme5 <- person_eda(scheme5)
 ```
-
-```{r}
-# EDA based on person-level attributes
-person_eda_scheme2 <- person_eda(scheme2)
-```
-
 
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
@@ -1736,11 +1735,6 @@ write_csv(
 write_csv(
   eda_scheme5,
   "data/output/survey_processing/eda_scheme5.csv",
-  na = ""
-)
-write_csv(
-  person_eda_scheme2,
-  "data/output/survey_processing/person_eda_scheme2.csv",
   na = ""
 )
 ```
