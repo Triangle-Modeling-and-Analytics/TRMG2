@@ -53,18 +53,20 @@ The previous model used a separate table to hold count data which then had to be
 joined to the network to make comparisons. For TRMG2, the basic count data
 including station ID and daily AWDT were added to the master network directly.
 This makes it easier to compare (either manually or in code) between
-model volumes and count data.  Additional information (such as hourly counts)
+model volumes and count data. Additional information (such as hourly counts)
 can still be maintained in a separate table and joined to the network only as
-needed.  
+needed. 
 
 ### Network Conflation
 
 Caliper reviewed every link in the network line layer comparing against satellite
-imagery.  Alignments were adjusted to match the imagery.  Many links were adjusted,
-but most adjustments were small.  The alignment of many ramps were corrected and 
-collector/distributor systems were added in some places to reflect reality.  
+imagery. Alignments were adjusted to match the imagery. Many links were adjusted,
+but most adjustments were small. The alignment of many ramps were corrected and 
+collector/distributor systems were added in some places to reflect reality. 
 
-[A lot of work done to improve Capital Blvd north of downtown, including transit work.]
+```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Capital before and after",fig.show='hold',fig.align='center'}
+knitr::include_graphics(c("img/networks/capital_before.png","img/networks/capital_after.png"))
+``` 
 
 ### Review of the master network
 
@@ -76,18 +78,25 @@ over 1000 projects, only 6 had length discrepancies. Each was investigated and
 corrected as necessary.
 
 Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow
-times based on posted speeds.  Comparison of the resulting matrices showed that
+times based on posted speeds. Comparison of the resulting matrices showed that
 overall the RMSE was only 0.25%, which is very small, indicating close 
-consistency between the networks (that nothing was broken).  The OD pairs with
-the largest percentage differences were manually reviewed.  The largest 
+consistency between the networks (that nothing was broken). The OD pairs with
+the largest percentage differences were manually reviewed. The largest 
 relative difference was 62% for one OD pair (between zone 1535 and 1444); in 
 that case, the review revealed that the new network was correct while the 
-original TRMv6 network allowed a U-turn where it should not have.  The top
+original TRMv6 network allowed a U-turn where it should not have. See the
+before and after images below.
+
+```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Pathing before and after",fig.show='hold',fig.align='center'}
+knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_after.png"))
+``` 
+
+The top
 several OD pairs (by relative change in travel time) were reviewed to 
 guarantee that all changes were either corrections or a very small percentage
-change.  
+change. 
 
-## Complete Streets and Non-motorized Networks
+### Complete Streets
 
 Placeholder documentation:
 
