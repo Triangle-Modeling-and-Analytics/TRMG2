@@ -425,21 +425,33 @@ div.tocify {
 <div id="network-conflation" class="section level3">
 <h3>Network Conflation</h3>
 <p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added in some places to reflect reality.</p>
-<p>[A lot of work done to improve Capital Blvd north of downtown, including transit work.]</p>
+<div class="figure" style="text-align: center">
+<img src="img/networks/capital_before.png" alt="Capital before and after" width="49%" height="20%" /><img src="img/networks/capital_after.png" alt="Capital before and after" width="49%" height="20%" />
+<p class="caption">
+Capital before and after
+</p>
+</div>
 </div>
 <div id="review-of-the-master-network" class="section level3">
 <h3>Review of the master network</h3>
 <p>With all the changes mentioned above, it was important to check that the new master network’s projects matched the previous. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well- over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
-<p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks (that nothing was broken). The OD pairs with the largest percentage differences were manually reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. The top several OD pairs (by relative change in travel time) were reviewed to guarantee that all changes were either corrections or a very small percentage change.</p>
+<p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks (that nothing was broken). The OD pairs with the largest percentage differences were manually reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. See the before and after images below.</p>
+<div class="figure" style="text-align: center">
+<img src="img/networks/path_before.png" alt="Pathing before and after" width="49%" height="20%" /><img src="img/networks/path_after.png" alt="Pathing before and after" width="49%" height="20%" />
+<p class="caption">
+Pathing before and after
+</p>
 </div>
+<p>The top several OD pairs (by relative change in travel time) were reviewed to guarantee that all changes were either corrections or a very small percentage change.</p>
 </div>
-<div id="complete-streets-and-non-motorized-networks" class="section level2">
-<h2>Complete Streets and Non-motorized Networks</h2>
+<div id="complete-streets" class="section level3">
+<h3>Complete Streets</h3>
 <p>Placeholder documentation:</p>
 <ul>
 <li>Stakeholders decided to move forward with the all-streets addition 1/14</li>
 <li>This will add a large number of additional streets to the model line layer for the purpose of walk/bike/transit pathing.</li>
 </ul>
+</div>
 </div>
 <div id="transit-networks" class="section level2">
 <h2>Transit Networks</h2>
@@ -450,7 +462,7 @@ div.tocify {
 <br>
 <br>
 <hr>
-<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2020</p>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
 
 
 </div>

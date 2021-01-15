@@ -846,7 +846,7 @@ purpose of travel modeling, these home tours are ignored in TRMG2; however,
 this segmentation scheme would allow for the addition of non-motorized "loop"
 tours without any reported stops for improved non-motorized trip modeling in
 a future version of the model without requiring any changes to the existing 
-trip puproses.  
+trip puproses. 
 
 ```{r tour_formation}
 determine_tours <- simplify_mode %>%

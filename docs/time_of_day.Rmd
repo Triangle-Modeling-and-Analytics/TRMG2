@@ -35,10 +35,10 @@ tripTbl <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv"
 *(To skip to the final period definitions, click [here](#final_defs).)*
 
 Peak period determination is based on an analysis of the trips in motion
-throughout the day.  First, the day is broken up into 15-minute increments.  A
+throughout the day. First, the day is broken up into 15-minute increments. A
 trip from the household survey is said to be "in motion" if any portion of the
 trip occurs within the 15-minute bin. As a result, a single trip can be counted
-in multiple bins.  Determining the peak period considers the distribution of all
+in multiple bins. Determining the peak period considers the distribution of all
 trips as well as the distribution of trips on work tours individually. The chart
 below shows these two distributions, which look as expected with the AM peak
 being shorter and more condensed than the PM. 
@@ -117,7 +117,7 @@ plot_ly(
 ```
 
 The next step is to determine the peak hour for all trips and those on work
-tours.  In the tables below, the AM and PM peak hours by type are presented.  At
+tours. In the tables below, the AM and PM peak hours by type are presented. At
 a minimum, the AM and PM peak periods should contain the respective peak hour
 for work trips and all trips. The chart below shows that the peak hour for work
 and all trips are exactly the same in the Triangle region based on the surveys 
@@ -280,7 +280,7 @@ pm_peak_to <- chron(times. = c("18:00:00"))
 ## Final Period Definitions {#final_defs}
 
 The final period definitions are shown in the table below including the mid-day
-(MD) period.  The remaining hours of the day are captured in the night (NT)
+(MD) period. The remaining hours of the day are captured in the night (NT)
 period. In the chart, the final period is represented by the gray rectangle.
 ```{r final_per_defs}
 period_tbl <- tibble(
@@ -449,14 +449,14 @@ tripTbl <- tripTbl %>%
 
 # Time of day factors
 With the periods defined, the percent of trips produced by purpose and time of
-day must be determined.  These factors are calculated based on the departure
-time of each trip rather than using the trips in motion table.  This ensures
+day must be determined. These factors are calculated based on the departure
+time of each trip rather than using the trips in motion table. This ensures
 that each trip is only counted once, regardless of duration, and that it is
-included in the right period.  These factors are used to divide the daily person
+included in the right period. These factors are used to divide the daily person
 trips created during trip generation into time of day (by purpose). IEEI trips
 are assumed to behave like HBO trips.
 
-Directionality factors are calculated separately in the next section.  As a
+Directionality factors are calculated separately in the next section. As a
 reference, the time period definition is shown again first.
 
 ```{r}
@@ -556,28 +556,28 @@ tod_tbl <- out_tbl
 
 # Directionality factors
 For most steps in a trip-based model, the trips are said to be in
-"Production/Attraction" (PA) format.  This simply means that all home-based
-trips start at home and end somewhere else.  This simplification of reality is
+"Production/Attraction" (PA) format. This simply means that all home-based
+trips start at home and end somewhere else. This simplification of reality is
 done for a number of reasons in the model, but is not actually how travel
-occurs.  As a result, before highway trip assignment can take place, the PA
-format must be converted to "Origin/Destination" (OD) format.  In this format, a
+occurs. As a result, before highway trip assignment can take place, the PA
+format must be converted to "Origin/Destination" (OD) format. In this format, a
 trip from work to home starts at work and ends at home.
 
 This conversion is accomplished using factors stratified by time of day and
-purpose.  As an example, the majority of HBW trips in the AM start at home
-and end at work.  As a result, PA-to-OD factor ("PA factor" for short) would be
-above 50% (> .5).  In the PM period, this trend is usually reversed, and the PA
+purpose. As an example, the majority of HBW trips in the AM start at home
+and end at work. As a result, PA-to-OD factor ("PA factor" for short) would be
+above 50% (> .5). In the PM period, this trend is usually reversed, and the PA
 factor would be less than 50% (< .5).
 
 These factors can be calculated directly from the survey by comparing the number
 of home-based trips that start at home to the number home-based trips that start
-elsewhere.  By definition, non-home-based trips are the same in either format;
-their PA factors are set to .5.  The same treatment is applied to commercial
+elsewhere. By definition, non-home-based trips are the same in either format;
+their PA factors are set to .5. The same treatment is applied to commercial
 vehicles, trucks, and external trips.
 
 Finally, directionality factors are applied after the distribution and modal
-models.  At that point, the purposes are collapsed due to sample size
-limitations in the household survey.  As a result, the factors must be estimated
+models. At that point, the purposes are collapsed due to sample size
+limitations in the household survey. As a result, the factors must be estimated
 using the matching, more-aggregate purposes.
 
 ```{r calc_pa_factors}
@@ -613,7 +613,7 @@ pa_tbl %>%
 ```
 
 ```{r add other purps and desc, warning=FALSE}
-# Add rows for NHBNR, CV, SUT, MUT, and IEEI.  They are all 50/50.
+# Add rows for NHBNR, CV, SUT, MUT, and IEEI. They are all 50/50.
 v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
 for (type in v_types){
   template <- pa_tbl %>%
@@ -644,7 +644,7 @@ pa_tbl$Description <- v_desc
 
 # Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
-trip matrices are converted to vehicles using occupancy factors.  These factors
+trip matrices are converted to vehicles using occupancy factors. These factors
 are calculated from the household survey, which includes information on the
 party size of each trip. The rates below meet expectations.
 ```{r calculate veh occ factors}
@@ -706,9 +706,9 @@ occ_tbl$Description <- v_desc
 # Period capacity factors
 In aggregate, period-based assignment regimes, hourly capacities must be
 converted to period capacities in a manner that accurately captures the balance
-of congestion.  In the real world, the hourly capacity of a road is generally
-the same throughout the day; it is the demand that changes.  This change in
-demand causes congestion levels to change throughout the day.  Consider the
+of congestion. In the real world, the hourly capacity of a road is generally
+the same throughout the day; it is the demand that changes. This change in
+demand causes congestion levels to change throughout the day. Consider the
 stylized example below of a real world street segment.
 
 ## Qualitative example
@@ -755,9 +755,9 @@ plot_ly(
   )
 ```
 
-In this representation, no one experiences congestion.  In the real world,
+In this representation, no one experiences congestion. In the real world,
 nearly half the vehicles in the period experience congested conditions between
-7:00 am and 8:00 am.  This discrepency can cause numerous errors in the model,
+7:00 am and 8:00 am. This discrepency can cause numerous errors in the model,
 including:
 
   * Longer trip lengths
@@ -771,11 +771,11 @@ engineering, the PHF adjusts hourly volume based on the highest 15-minute volume
 within the hour. While the PHF is used to adjust demand given a fixed capacity,
 the PCF adjusts period capacity based on the highest-volume hour of the period.
 
-Consider our example of a three-hour period from 6:00 am to 9:00 am.  If the
+Consider our example of a three-hour period from 6:00 am to 9:00 am. If the
 actual demand was evenly distributed across the period, the PHF would be .33. 
-The PCF, the inverse of the PHF, would be 3.  In this scenario, the hourly
+The PCF, the inverse of the PHF, would be 3. In this scenario, the hourly
 capacity would be multiplied by 3, which would lead to the capacity shown in the
-table above.  Instead, using the actual demand from our example, the PHF would
+table above. Instead, using the actual demand from our example, the PHF would
 be:
 
 $$PHF = 900 /(500 + 900 + 500) = 0.474$$
@@ -788,7 +788,7 @@ Finally, the period capacity that most-accurately reflects congestion would be:
 
 $$Period Capacity = 1050 * 2.11 = 2215$$
 
-That capacity is shown relative to the period demand in the chart below.  This
+That capacity is shown relative to the period demand in the chart below. This
 relationship is a better representation of real world conditions.
 
 ```{r}
@@ -822,7 +822,7 @@ final_period %>%
 
 ## Calculation from survey
 The PCFs for the model can be calculated from the trips in motion table using
-the same approach.  The results are shown in the table below.
+the same approach. The results are shown in the table below.
 
 ```{r calc_pcf}
 pcf_tbl <- timTbl %>%
@@ -867,8 +867,8 @@ pcf_tbl %>%
 
 A [general
 guideline](https://www.fhwa.dot.gov/planning/tmip/publications/other_reports/validation_and_reasonableness_2010/ch08.cfm)
-to follow suggests the model should provide 8-12 hours of capacity per day.  The
-PCFs calculated directly from the survey data provide `r total`.  This is slightly
+to follow suggests the model should provide 8-12 hours of capacity per day. The
+PCFs calculated directly from the survey data provide `r total`. This is slightly
 higher, but still acceptable.
 
 

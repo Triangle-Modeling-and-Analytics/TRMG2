@@ -37,19 +37,19 @@ taz <- st_transform(taz, st_crs(acs_bg)) %>% st_make_valid()
 The first step in synthesizing the population of travelers in the TRMG2 is to 
 develop univariate or one-dimensional marginal distributions describing the 
 population in each zone based on the limited demographic variables forecast 
-for each zone, typically averages.  In other words, the model starts by 
+for each zone, typically averages. In other words, the model starts by 
 determining the number of single person, two person, three person, etc., 
-households in each zones based on the average household size in the zone.  
+households in each zones based on the average household size in the zone. 
 
 Rather than use stratification curves to convert simple zonal input variables
 such as average household size into a distribution of households by size, 
 some travel models' population synthesizers require the user to supply the 
-number of households by size.  However, this puts a considerable burden on 
+number of households by size. However, this puts a considerable burden on 
 data development for future year scenarios which is difficult for agencies 
-lacking staff dedicated to demographic forecasting.  
+lacking staff dedicated to demographic forecasting. 
 
 Therefore, to keep the data development burden as light as possible, Caliper
-has retained the approach of using stratification curves in the TRMG2.  These
+has retained the approach of using stratification curves in the TRMG2. These
 curves simply encode information on the extent to which, for example, a zone
 with 3.5 persons-per-household on average will have a high percentage of 3- 
 and 4-person households and a zone with an average of 1.5 persons-per-
@@ -180,7 +180,7 @@ size_functions <- fit_models(
   rename(avg_size = avg, size = group)
 
 # Check that the shares of each bin add to 1, which they will not after 
-# rounding.  Adjust the category with the largest share to correct.
+# rounding. Adjust the category with the largest share to correct.
 size_functions <- size_functions %>%
   group_by(avg_size) %>%
   mutate(
@@ -214,7 +214,7 @@ that have the same average household size will usually have slight differences
 in their shares of 1-person households. For example, blockgroups with an 
 average household size of 2.0 generally have 37-47% 1-person households; 
 whereas, blockgroups with close to 3.5 persons per household on average 
-typically have only 5-15% 1-person households.  The same is true of the dots 
+typically have only 5-15% 1-person households. The same is true of the dots 
 of different colors representing 2-, 3-, and 4+ households. A polynomial 
 equation is fit to each set of colored dots. For any average household size, 
 these polynomials can be evaluated to determine the percent of households in
@@ -247,7 +247,7 @@ ggplotly(p) %>%
 <p>
 At the extremes of average household size, manual edits were required to adjust
 curve behavior due to the low number of observations in
-these ranges.  This same treatment was applied to create all marginal tables.
+these ranges. This same treatment was applied to create all marginal tables.
 
 The model implements the curves above using a lookup table. The table below
 shows a segment of rows from the look-up table the model uses to dis-aggregate
@@ -280,7 +280,7 @@ participation as may have been the case earlier in the decade following the
 Great Recession). However, the difference is small enough (1.2 vs 1.3 workers 
 per household) that the Census data should be suitable for use. Moreover, 
 presumably, if something were to be changed, it would be to make the zonal 
-data more consistent with the Census data.  
+data more consistent with the Census data. 
 
 ```{r worker range, warning=FALSE}
 # se data distribution
@@ -350,7 +350,7 @@ workers_functions <- fit_models(mean_workers, "avg_workers", "workers",
   rename(avg_workers = avg, workers = group)
 
 # Check that the shares of each bin add to 1, which they will not after 
-# rounding.  Adjust the category with the largest share to correct.
+# rounding. Adjust the category with the largest share to correct.
 workers_functions <- workers_functions %>%
   group_by(avg_workers) %>%
   mutate(
@@ -512,7 +512,7 @@ income_functions <- fit_models(mean_income, "inc_ratio", "income",
   rename(inc_ratio = avg, income = group)
 
 # Check that the shares of each bin add to 1, which they will not after 
-# rounding.  Adjust the category with the largest share to correct.
+# rounding. Adjust the category with the largest share to correct.
 income_functions <- income_functions %>%
   group_by(inc_ratio) %>%
   mutate(
