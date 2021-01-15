@@ -147,6 +147,27 @@ prep_2018 <- remove_na_2018 %>%
 hh_combined <- bind_rows(
   prep_2016, prep_2018
 )
+
+hh_add_flags <- hh_combined %>%
+  mutate(
+    child_in_hh = ifelse(num_children > 0, 1, 0),
+    worker_in_hh = ifelse(num_workers > 0, 1, 0),
+    vehicle_in_hh = ifelse(num_vehicles > 0, 1, 0),
+  ) %>%
+  relocate(child_in_hh, .before = num_children) %>%
+  relocate(worker_in_hh, .before = num_workers) %>%
+  relocate(vehicle_in_hh, .before = num_vehicles) %>%
+  mutate(
+    hh_income_midpt = case_when(
+      hh_income_broad == 1 ~ 12500,
+      hh_income_broad == 2 ~ 37500,
+      hh_income_broad == 3 ~ 62500,
+      hh_income_broad == 4 ~ 87500,
+      hh_income_broad == 5 ~ 125000,
+      TRUE ~ 200000
+    )
+  ) %>%
+  relocate(hh_income_midpt, .after = hh_income_broad)
 ```
 
 ### Person table
@@ -250,19 +271,33 @@ per_combined <- bind_rows(
   prep_per_2018
 ) %>%
   left_join(
-    hh_combined %>% select(hhid, hh_weight_combined),
+    hh_add_flags %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
 ```
 
 ```{r}
-add_flags <- per_combined %>%
+per_add_flags <- per_combined %>%
   mutate(
     is_senior = ifelse(age_category >= 10, 1, 0),
+    is_senior = replace_na(is_senior, 0),
     is_child = ifelse(age_category <= 4, 1, 0),
+    is_child = replace_na(is_child, 0),
     is_worker = ifelse(employment <= 3, 1, 0),
     is_worker = replace_na(is_worker, 0)
+  )
+
+hh_add_seniors <- hh_add_flags %>%
+  left_join(
+    per_add_flags %>%
+      group_by(hhid) %>%
+      summarize(num_seniors = sum(is_senior, na.rm = TRUE)),
+    by = "hhid"
+  ) %>%
+  mutate(
+    num_seniors = replace_na(num_seniors, 0),
+    senior_in_hh = ifelse(num_seniors > 0, 1, 0),
   )
 ```
 
@@ -327,12 +362,12 @@ trip_combined <- bind_rows(
   ) %>%
   select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
   left_join(
-    add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
+    per_add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
     by = "personid"
   ) %>%
   mutate(party_size = num_hh_members + num_nonhh) %>%
   left_join(
-    hh_combined %>% select(hhid, hh_weight_combined),
+    hh_add_seniors %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
@@ -352,7 +387,7 @@ Thanks to careful survey design, none of the Triangle households were surveyed
 on the weekend. The chart below shows the days surveyed (1 is Monday).
 
 ```{r}
-temp <- hh_combined %>%
+temp <- hh_add_seniors %>%
   group_by(year, travelday) %>%
   summarize(samples = n())
 
@@ -376,8 +411,8 @@ surveyed households in our estimation set.
 ```{r}
 # Compare Friday to not Friday
 t.test(
-  hh_combined$num_trips[hh_combined$travelday %in% c(1,5)],
-  hh_combined$num_trips[!(hh_combined$travelday %in% c(1,5))],
+  hh_add_seniors$num_trips[hh_add_seniors$travelday %in% c(1,5)],
+  hh_add_seniors$num_trips[!(hh_add_seniors$travelday %in% c(1,5))],
   var.equal = TRUE # if false then performs Welch's t-test
 ) %>%
   tidy() %>%
@@ -407,7 +442,7 @@ map below shows the locations of all households included in the survey. Each
 falls within the model boundary.
 
 ```{r}
-shp <- hh_combined %>%
+shp <- hh_add_seniors %>%
   select(home_loc_lat, home_loc_lng) %>%
   st_as_sf(
     coords = c("home_loc_lng", "home_loc_lat"), crs = 4326, agr = "constant"
@@ -451,7 +486,7 @@ number of samples, but it is 10 times the expected weight in the second survey.
 For the 2016+2018 combined survey, the average weight is shown below.
 
 ```{r}
-temp <- hh_combined %>%
+temp <- hh_add_seniors %>%
   summarize(
     Samples = n(),
     `Total Households` = sum(hh_weight_combined),
@@ -459,7 +494,7 @@ temp <- hh_combined %>%
   ) %>%
   pivot_longer(cols = everything())
 
-weight_mean <- mean(hh_combined$hh_weight_combined)
+weight_mean <- mean(hh_add_seniors$hh_weight_combined)
 colnames(temp) <- c("", "")
 
 temp %>%
@@ -474,7 +509,7 @@ sample plan that collected adequate numbers of households in all the demographic
 groups of interest.
 
 ```{r}
-ggplot(hh_combined, aes(x=hh_weight_combined / weight_mean)) + 
+ggplot(hh_add_seniors, aes(x=hh_weight_combined / weight_mean)) + 
   geom_histogram(color="black", fill="orange", bins = 10) +
   xlab("Weight / Average Weight")
 ```
@@ -486,7 +521,7 @@ of the average weight, suggesting a modest over sample, but is well within
 reason.
 
 ```{r}
-ggplot(hh_combined, aes(x= weight_mean/ hh_weight_combined)) + 
+ggplot(hh_add_seniors, aes(x= weight_mean/ hh_weight_combined)) + 
   geom_histogram(color="black", fill="orange", bins = 10) +
   xlab("Average Weight / Weight")
 ```
@@ -522,7 +557,7 @@ temp_broad <- bind_rows(
 
 df <- bind_cols(
   temp_broad,
-  hh_combined %>%
+  hh_add_seniors %>%
     group_by(hh_income_broad) %>%
     summarize(count = n()) %>%
     ungroup() %>%
@@ -619,7 +654,10 @@ convert_purpose <- trip_combined %>%
     o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
     d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1),
   ) %>%
-  select(-c(o_activity1:d_activity2)) %>%
+  select(
+    -c(o_activity1:d_activity2), -o_activity_2016, -o_activity_other,
+    -d_activity_2016, -d_activity_other, -o_activity_2018, -d_activity_2018
+  ) %>%
   mutate(
     mode = case_when(
       mode == 1 ~ "auto_own",
@@ -703,7 +741,7 @@ calc_dist <- function(x1, y1, x2, y2) {
 det_home_place <- change_time %>%
   # Home
   left_join(
-    hh_combined %>% select(hhid, home_loc_lat, home_loc_lng),
+    hh_add_seniors %>% select(hhid, home_loc_lat, home_loc_lng),
     by = "hhid"
   ) %>%
   mutate(
@@ -721,14 +759,14 @@ det_home_place <- change_time %>%
   select(-home_loc_lat, -home_loc_lng) %>%
   # correct home activities that don't happen at home
   mutate(
-    o_activity = ifelse(o_activity == "H" & o_place != "H", "O", o_activity),
-    d_activity = ifelse(d_activity == "H" & d_place != "H", "O", d_activity)
+    o_activity = ifelse(o_activity == "H" & o_place != "H", "OD", o_activity),
+    d_activity = ifelse(d_activity == "H" & d_place != "H", "OD", d_activity)
   )
 
-school_loc <- add_flags %>%
+school_loc <- per_add_flags %>%
   select(hhid, personid, school_address, school_lat, school_lng) %>%
   left_join(
-    hh_combined %>% select(hhid, home_loc_address),
+    hh_add_seniors %>% select(hhid, home_loc_address),
     by = "hhid"
   ) %>%
   filter(!is.na(school_lat) & home_loc_address != school_address) %>%
@@ -865,7 +903,6 @@ determine_tours <- simplify_mode %>%
     tour_anchor = ifelse(o_place == "H" & d_place == "H", "H", tour_anchor),
     tour_type = case_when(
       "W" %in% tour_anchor ~ "WT",
-      # "S" %in% tour_anchor ~ "S",
       "H" %in% tour_anchor ~ "H",
       TRUE ~ "NT"
     ),
@@ -884,8 +921,8 @@ flag_loop_trips <- determine_tours %>%
       !(mode %in% c("walk", "bike")) ~ 0,
       "walk" %in% origin_name ~ 1,
       "walk" %in% destination_name ~ 1,
-      !(o_activity %in% c("H", "O")) ~ 0,
-      !(d_activity %in% c("H", "O")) ~ 0,
+      !(o_activity %in% c("H", "OD")) ~ 0,
+      !(d_activity %in% c("H", "OD")) ~ 0,
       TRUE ~ 1
     )
   )
@@ -907,6 +944,9 @@ num_sch_problems <- flag_loop_trips %>%
 ```
 
 ```{r clean_sch_probs}
+# This key uniquely identifies trips in a way that isn't person specific. This
+# lets you identify all the trip records that went on the same trip. Great for
+# HOV analysis.
 add_key <- flag_loop_trips %>%
   ungroup() %>%
   unite(
@@ -987,9 +1027,21 @@ fix_pudo <- add_key %>%
 fix_remaining_sch <- fix_pudo %>%
   mutate(
     o_activity = ifelse(o_activity == "SCH?" & o_place == "H", "H", o_activity),
-    o_activity = ifelse(o_activity == "SCH?", "O", o_activity),
+    o_activity = ifelse(o_activity == "SCH?", "OD", o_activity),
+    o_activity = case_when(
+      o_activity %in% c("K12", "PreK") & age > 18 ~ "U",
+      o_activity == "U" & age <= 17 & age > 5 ~ "K12",
+      o_activity == "U" & age <= 5 ~ "PreK",
+      TRUE ~ o_activity
+    ),
     d_activity = ifelse(d_activity == "SCH?" & d_place == "H", "H", d_activity),
-    d_activity = ifelse(d_activity == "SCH?", "O", d_activity),
+    d_activity = ifelse(d_activity == "SCH?", "OD", d_activity),
+    d_activity = case_when(
+      d_activity %in% c("K12", "PreK") & age > 18 ~ "U",
+      d_activity == "U" & age <= 17 & age > 5 ~ "K12",
+      d_activity == "U" & age <= 5 ~ "PreK",
+      TRUE ~ d_activity
+    ),
   )
 ```
 
@@ -1012,8 +1064,6 @@ fix_bus <- fix_remaining_sch %>%
     )
   ) %>%
   select(-bus_flag)
-
-
 ```
 
 There were numerous problems detected in the survey. These include:
@@ -1270,48 +1320,27 @@ the trip purposes most appropriate for the Triangle. Several classification
 schemes were investigated, and each one classified trips by the following
 categories:
 
-  * Tour type (work or non-work)
-  * Home-based (home-based or non-home-based)
-  * Purpose
-  * Destination activity duration (over or under 30 minutes)
+- Tour type (work or non-work)
+- Home-based (home-based or non-home-based)
+- Purpose
+- Destination activity duration (over or under 30 minutes)
   
 Each classification was then summarized to produce 25 different metrics like
 total trips, average trip length, and correlations to different variables. The
 table below provides a sample of these metrics for the simplest classification
 scheme tested.
 
+- `Is Worker (r)`: Correlation between trip making and work status
+- `Is Child (r)`: Correlation between trip making and being <18
+- `Employment (r)`: Correlation between trips attracted to a zone and employment
+- `AM (%)`: Percentage of trips in the AM period
+- `HOV (%)`: Percentage of trips using the high-occupancy vehicle mode
+- `Trip Length`: Mean trip length
+
 ```{r}
 prep_for_eda <- add_se_data %>%
-  mutate(homebased = ifelse(p_place == "H", "HB", "NHB")) %>%
-  left_join(
-    hh_combined %>%
-      mutate(child_present = ifelse(num_children > 0, 1, 0)) %>%
-      select(
-        hhid, hhsize, num_vehicles, num_children, child_present,
-        hh_income_broad
-      ),
-    by = "hhid"
-  ) %>%
   mutate(
-    hh_income_midpt = case_when(
-      hh_income_broad == 1 ~ 12500,
-      hh_income_broad == 2 ~ 37500,
-      hh_income_broad == 3 ~ 62500,
-      hh_income_broad == 4 ~ 87500,
-      hh_income_broad == 5 ~ 125000,
-      TRUE ~ 200000
-    )
-  ) %>%
-  group_by(hhid) %>%
-  mutate(
-    num_seniors = sum(is_senior, na.rm = TRUE),
-    senior_present = ifelse(num_seniors > 0, 1, 0),
-    num_workers = sum(is_worker, na.rm = TRUE),
-    worker_present = ifelse(num_workers > 0, 1, 0)
-  ) %>%
-  ungroup() %>%
-  relocate(num_seniors:worker_present, .after = child_present) %>%
-  mutate(
+    homebased = ifelse(p_place == "H", "HB", "NHB"),
     p_duration = ifelse(p_act_dur >= 30, "Long", "Short"),
     p_duration = ifelse(is.na(p_duration), "Long", p_duration),
     a_duration = ifelse(a_act_dur >= 30, "Long", "Short"),
@@ -1397,7 +1426,7 @@ scheme1 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 
-eda_scheme1 <- eda(scheme1)
+eda_scheme1 <- person_eda(scheme1)
 ```
 
 ```{r eda_scheme2, warning=TRUE}
@@ -1455,7 +1484,7 @@ scheme2 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme2 <- eda(scheme2)
+eda_scheme2 <- person_eda(scheme2)
 
 eda_scheme2 %>%
   select(
@@ -1464,11 +1493,11 @@ eda_scheme2 %>%
     Purpose = purpose,
     `Dest Duration` = duration,
     `Trips (weighted)` = wTrips,
-    `Rsq HH Size` = r_size,
-    `Rsq HH Income` = r_income,
-    `Rsq Employment` = r_emp,
-    `% AM` = pct_AM,
-    `% HOV` = pct_hov,
+    `Is Worker (r)` = r_is_worker,
+    `Is Child (r)` = r_is_kid,
+    `Zonal Employment (r)` = r_emp,
+    `AM (%)` = pct_AM,
+    `HOV (%)` = pct_hov,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
@@ -1531,7 +1560,7 @@ scheme3 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme3 <- eda(scheme3)
+eda_scheme3 <- person_eda(scheme3)
 ```
 
 ```{r eda_scheme4, eval=FALSE}
@@ -1596,7 +1625,7 @@ scheme4 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme4 <- eda(scheme4)
+eda_scheme4 <- person_eda(scheme4)
 ```
 
 ```{r eda_scheme5, eval=FALSE}
@@ -1659,26 +1688,20 @@ scheme5 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme5 <- eda(scheme5)
+eda_scheme5 <- person_eda(scheme5)
 ```
-
-```{r}
-# EDA based on person-level attributes
-# person_eda_scheme2 <- person_eda(scheme2)
-```
-
 
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
 # manually (consciously).
 
 write_csv(
-  hh_combined,
+  hh_add_seniors,
   "data/output/_PRIVATE/survey_processing/hh_processed.csv",
   na = ""
 )
 write_csv(
-  add_flags,
+  per_add_flags,
   "data/output/_PRIVATE/survey_processing/per_processed.csv",
   na = ""
 )
@@ -1712,11 +1735,6 @@ write_csv(
 write_csv(
   eda_scheme5,
   "data/output/survey_processing/eda_scheme5.csv",
-  na = ""
-)
-write_csv(
-  person_eda_scheme2,
-  "data/output/survey_processing/person_eda_scheme2.csv",
   na = ""
 )
 ```
