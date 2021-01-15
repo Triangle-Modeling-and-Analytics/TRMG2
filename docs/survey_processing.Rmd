@@ -1,7 +1,7 @@
 ---
 title: "Household Survey Processing"
 author: "Caliper Corporation"
-date: "11/17/2020"
+date: "1/14/2021"
 output: 
   html_document
 editor_options: 
@@ -542,12 +542,12 @@ df %>%
 
 A full discussion of their income imputation can be found in the survey
 documentation. They used ordinal logistic regression to predict income
-categories based on household features like size and number of households (among
+categories based on household features like size and number of workers (among
 others).
 
 ## Trip processing
 
-### Activity purpose
+### Activity types
 
 The atomic model purposes are shown below. These represent the fundamental
 activity purposes and may be aggregated during the estimation of specific model
@@ -659,7 +659,7 @@ change_time <- convert_purpose %>%
   ))
 ```
 
-### Places
+### Place types
 
 As explained above, the definition of a work activity in the 2016 survey did not
 specify whether work was performed in or outside the home. Caliper computed a
@@ -820,11 +820,11 @@ simplify_mode <- det_work_place %>%
 ### Tour formation
 
 While the TRMG2 is a trip-based model, the production rates and other estimated
-behavior can still make use of tour information to improve predictive power. At
-the same time, the trip-based formulation means that tour formation is much
-simpler. Rather than requiring detailed tour pattern information to support
-coordinated activity patterns within a household, tours can be classified
-simply as work or non-work.
+behavior can still make use of tour information to improve predictive power and
+accuracy. At the same time, the trip-based formulation means that tour formation 
+is much simpler. Rather than requiring detailed tour pattern information to 
+support coordinated activity patterns within a household as in activity-based
+models, tours can be classified simply as work or non-work.
 
 For each person in the survey, a tour begins with their first trip and ends
 when they return home. A second tour starts if they leave home again. A tour is
@@ -835,7 +835,11 @@ There is a third tour type ("home"), that handles cases where the survey reports
 trips within the home. For example, when a respondent reports being at home and
 then working from home, the survey includes that as a trip. Home tours also
 capture things like recreational walks that start and end at the home. For the
-purpose of travel modeling, these home tours are ignored.
+purpose of travel modeling, these home tours are ignored in TRMG2; however, 
+this segmentation scheme would allow for the addition of non-motorized "loop"
+tours without any reported stops for improved non-motorized trip modeling in
+a future version of the model without requiring any changes to the existing 
+trip puproses.  
 
 ```{r tour_formation}
 determine_tours <- simplify_mode %>%
@@ -1020,7 +1024,8 @@ There were numerous problems detected in the survey. These include:
   - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
 
 These problems were identified and cleaned such that each person's trip diary
-was logically consistent.
+was internally logically consistent with itself and externally consistent with
+the diaries of other household members. 
 
 ### Trip linking
 
@@ -1029,12 +1034,13 @@ reduces the importance of trip linking. In traditional models, a stop to get gas
 on the way to work is ignored. Rather than two trips (to the gas station and to
 work), the trips are linked together into a single work trip. By classifying
 trips by tour type, the TRMG2 retains the knowledge that both trips occur on the
-way to work. This allows us to model them separately from other non-homebased
+way to work. This allows us to model them separately from other non-home-based
 trips without needing to link them together.
 
 For this model, trip linking was only performed to remove mode transfers at bus
 stops. The survey treated parking location as an attribute of the trip rather an
-origin or destination, which meant no linking was required.
+origin or destination, which meant no processing was required, rather linking 
+for this mode transfer was included in the delivered survey data.
 
 ```{r link_out_bus}
 bus_flag <- fix_bus %>%
@@ -1258,7 +1264,7 @@ schemes were investigated, and each one classified trips by the following
 categories:
 
   * Tour type (work or non-work)
-  * Homebased (homebased or non-homebased)
+  * Home-based (home-based or non-home-based)
   * Purpose
   * Destination activity duration (over or under 30 minutes)
   

@@ -1,7 +1,7 @@
 ---
 title: "Networks"
 author: "Caliper Corporation"
-date: "10/26/2020"
+date: "1/14/2021"
 output: html_document
 ---
 
@@ -13,12 +13,13 @@ knitr::opts_chunk$set(echo = FALSE)
 
 The highway and transit networks are critical inputs for any travel model. They
 provide travel time, accessibility, and other impedance information. The Caliper
-team used the various existing data sources from the model stakeholders in order
-to fashion a new master network for both highway and transit.
+team used the various existing data sources from the model stakeholders together 
+with other sources including the TIGER line files and review with sattelite 
+imagery in order to fashion a new master network for both roadways and transit.
 
-## Highway
+## Roadway Network
 
-### Creating the master network
+### Creation of the master network
 
 Like TRMv6, the TRMG2 model uses a master network that contains all projects
 stakeholders might consider (including competing ideas). This allows each
@@ -46,36 +47,47 @@ master network with any projects scheduled to be complete by the base year date.
 This did include some road closures, and those links dropped out of the network
 permanently.
 
-### Checking the master network
-
-With all the changes mentioned above, it was important to check that the
-new master network's projects matched the previous. To be exhaustive, Caliper
-wrote code do this programmatically. For instance, every project in the old
-master network had it's length checked against the new network. Of the well-
-over 1000 projects, only 6 had length discrepancies. Each was investigated and
-corrected as necessary.
-
-### Loading count data
+### Update of count data
 
 The previous model used a separate table to hold count data which then had to be
 joined to the network to make comparisons. For TRMG2, the basic count data
 including station ID and daily AWDT were added to the master network directly.
 This makes it easier to compare (either manually or in code) between
-model volumes and count data.
+model volumes and count data.  Additional information (such as hourly counts)
+can still be maintained in a separate table and joined to the network only as
+needed.  
 
 ### Network Conflation
 
-Placeholder documentation:
+Caliper reviewed every link in the network line layer comparing against satellite
+imagery.  Alignments were adjusted to match the imagery.  Many links were adjusted,
+but most adjustments were small.  The alignment of many ramps were corrected and 
+collector/distributor systems were added in some places to reflect reality.  
 
-- Did a review of the entire network
-- Improved alignments, added collector/distributors/ramps, etc.
-- Performed connectivity checks
-- Also did a skim comparison.
-  - Final %RMSE: 0.25%
-  - Localized changes were more drastic. (see working_files/network_conflation/comparison_pics)
-- A lot of work done to improve Capital Blvd north of downtown. Included transit work.
+[A lot of work done to improve Capital Blvd north of downtown, including transit work.]
 
-### All Streets
+### Review of the master network
+
+With all the changes mentioned above, it was important to check that the
+new master network's projects matched the previous. To be exhaustive, Caliper
+wrote code to do this programmatically. For instance, every project in the old
+master network had its length checked against the new network. Of the well-
+over 1000 projects, only 6 had length discrepancies. Each was investigated and
+corrected as necessary.
+
+Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow
+times based on posted speeds.  Comparison of the resulting matrices showed that
+overall the RMSE was only 0.25%, which is very small, indicating close 
+consistency between the networks (that nothing was broken).  The OD pairs with
+the largest percentage differences were manually reviewed.  The largest 
+relative difference was 62% for one OD pair (between zone 1535 and 1444); in 
+that case, the review revealed that the new network was correct while the 
+original TRMv6 network allowed a U-turn where it should not have.  The top
+several OD pairs (by relative change in travel time) were reviewed to 
+guarantee that all changes were either corrections or a very small percentage
+change.  
+
+## Complete Streets and Non-motorized Networks
 
 Placeholder documentation:
 
@@ -83,6 +95,6 @@ Placeholder documentation:
 - This will add a large number of additional streets to the model line layer for
   the purpose of walk/bike/transit pathing.
   
-## Transit
+## Transit Networks
 
 To be added.

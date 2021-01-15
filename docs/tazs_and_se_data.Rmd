@@ -20,7 +20,7 @@ library(knitr)
 library(kableExtra)
 ```
 
-## TAZ edits
+## TAZ Boundary Updates
 
 The zonal system for TRMG2 was inherited from the existing model, and Caliper
 performed a brief review and recommended additional zone splits. These
@@ -124,7 +124,7 @@ if (abs(hh_ratio - 1) > .01) stop(
 )
 ```
 
-## Creating new SE data
+## SE Data Updates
 
 Caliper added several new variables to the SE data:
 
