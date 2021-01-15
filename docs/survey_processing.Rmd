@@ -156,7 +156,18 @@ hh_add_flags <- hh_combined %>%
   ) %>%
   relocate(child_in_hh, .before = num_children) %>%
   relocate(worker_in_hh, .before = num_workers) %>%
-  relocate(vehicle_in_hh, .before = num_vehicles)
+  relocate(vehicle_in_hh, .before = num_vehicles) %>%
+  mutate(
+    hh_income_midpt = case_when(
+      hh_income_broad == 1 ~ 12500,
+      hh_income_broad == 2 ~ 37500,
+      hh_income_broad == 3 ~ 62500,
+      hh_income_broad == 4 ~ 87500,
+      hh_income_broad == 5 ~ 125000,
+      TRUE ~ 200000
+    )
+  ) %>%
+  relocate(hh_income_midpt, .after = hh_income_broad)
 ```
 
 ### Person table
@@ -1306,35 +1317,8 @@ scheme tested.
 
 ```{r}
 prep_for_eda <- add_se_data %>%
-  mutate(homebased = ifelse(p_place == "H", "HB", "NHB")) %>%
-  left_join(
-    hh_add_seniors %>%
-      select(
-        hhid, hhsize, num_vehicles, num_children, child_in_hh,
-        hh_income_broad, num_seniors, senior_in_hh, num_workers
-      ),
-    by = "hhid"
-  ) %>%
   mutate(
-    hh_income_midpt = case_when(
-      hh_income_broad == 1 ~ 12500,
-      hh_income_broad == 2 ~ 37500,
-      hh_income_broad == 3 ~ 62500,
-      hh_income_broad == 4 ~ 87500,
-      hh_income_broad == 5 ~ 125000,
-      TRUE ~ 200000
-    )
-  ) %>%
-  group_by(hhid) %>%
-  mutate(
-    num_seniors = sum(is_senior, na.rm = TRUE),
-    senior_present = ifelse(num_seniors > 0, 1, 0),
-    num_workers = sum(is_worker, na.rm = TRUE),
-    worker_present = ifelse(num_workers > 0, 1, 0)
-  ) %>%
-  ungroup() %>%
-  relocate(num_seniors:worker_present, .after = child_in_hh) %>%
-  mutate(
+    homebased = ifelse(p_place == "H", "HB", "NHB"),
     p_duration = ifelse(p_act_dur >= 30, "Long", "Short"),
     p_duration = ifelse(is.na(p_duration), "Long", p_duration),
     a_duration = ifelse(a_act_dur >= 30, "Long", "Short"),
@@ -1478,7 +1462,7 @@ scheme2 <- prep_for_eda %>%
     ),
   )
 
-eda_scheme2 <- eda(scheme2)
+# eda_scheme2 <- eda(scheme2)
 
 eda_scheme2 %>%
   select(
