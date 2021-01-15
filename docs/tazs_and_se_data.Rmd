@@ -159,28 +159,36 @@ taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 reg_med_inc <- 65317
 
-# County median incomes
-
+# Tract and county median incomes
 county_med_inc <- get_acs(
   geography = "county", state = "NC", year = 2018,
   county = unique(taz$COUNTY), variables = c("B19013_001")
 ) %>%
   mutate(NAME = word(NAME, 1, 1)) %>%
   select(COUNTY = NAME, county_med_inc = estimate)
+tract_med_inc <- get_acs(
+  geography = "tract", state = "NC", year = 2018,
+  county = unique(taz$COUNTY), variables = c("B19013_001"),
+  geometry = TRUE
+) %>%
+  rename(tract_med_inc = estimate)
 
 inc_centroids <- taz %>%
   st_point_on_surface() %>%
-  st_join(acs_bg %>% select(inc_med)) %>%
-  as.data.frame() %>%
-  select(ID, inc_med)
+  st_join(acs_bg %>% select(bg_med_inc = inc_med)) %>%
+  st_join(tract_med_inc %>% select(tract_med_inc)) %>%
+  st_drop_geometry() %>%
+  select(ID, bg_med_inc, tract_med_inc)
   
-num_missing <- nrow(inc_centroids %>% filter(is.na(inc_med)))
+num_missing <- nrow(inc_centroids %>% filter(is.na(bg_med_inc)))
 add_income_taz <- taz %>%
   left_join(inc_centroids, by = "ID") %>%
   left_join(county_med_inc, by = "COUNTY") %>%
-  mutate(inc_med = ifelse(
-    is.na(inc_med), county_med_inc, inc_med)) %>%
-  rename(Median_Inc = inc_med)
+  mutate(Median_Inc = case_when(
+    !is.na(bg_med_inc) ~ bg_med_inc,
+    !is.na(tract_med_inc) ~ tract_med_inc,
+    TRUE ~ county_med_inc
+  ))
 
 add_income_se <- calc_percents %>%
   left_join(
@@ -199,8 +207,9 @@ socio-economic (SE) data from the Census, but income information is only
 available at the block group geography level. As a result, all TAZs within a
 block group have the same median income. In addition, income measures were
 suppressed by the Census for `r num_missing` block groups. For TAZs in these
-block groups, the county's median income was used as shown in the following
-table.
+block groups, tract median income was used. If tract was also missing, then the
+county median was used (shown below). This information is stored in the
+`Median_Inc` field of the SE table.
 
 ```{r}
 county_med_inc %>%
