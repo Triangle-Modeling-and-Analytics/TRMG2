@@ -1,7 +1,7 @@
 ---
 title: "TAZs and SE Data"
 author: "Caliper Corporation"
-date: "12/8/2020"
+date: "1/14/2021"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -20,14 +20,14 @@ library(knitr)
 library(kableExtra)
 ```
 
-## TAZ edits
+## TAZ Boundary Updates
 
 The zonal system for TRMG2 was inherited from the existing model, and Caliper
 performed a brief review and recommended additional zone splits. These
 recommendations were focused on addressing two concerns:
 
 1. Breaking up zones with large employment and households (in base or future).
-2. Adding granularity for universities.
+2. Adding granularity for universities to improve modeling of non-auto modes.
 
 Large zones can create traffic loading problems by generating lots of trips and
 loading them on the network in a small number of locations. Breaking these into
@@ -47,6 +47,7 @@ the stakeholders concerning zone edits. The map below shows the final edits.
 Scroll/Zoom the map below to review them, and use the layers control box
 to turn the old and new zone layers off.
 
+**Existing and Split Zones**
 ```{r}
 taz_old <- sf::read_sf("data/input/tazs/tazs 2020-11-02.shp") %>%
   st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
@@ -70,6 +71,13 @@ leaflet() %>%
     fill = FALSE,
     group = "Old",
     color = "royalblue"
+  ) %>%
+  addLegend(
+    "bottomright", 
+    colors =c("gold", "royalblue"),
+    labels= c("New", "Old"),
+    title= "Legend",
+    opacity = 1
   ) %>%
   addLayersControl(overlayGroups = c("New", "Old")) %>%
   setView(-78.672682, 35.784927, zoom = 12)
@@ -123,14 +131,14 @@ if (abs(hh_ratio - 1) > .01) stop(
 )
 ```
 
-## Creating new SE data
+## SE Data Updates
 
 Caliper added several new variables to the SE data:
 
 - Median income
 - Workers
 - Age (percent children and seniors)
-- Percent high earnin jobs
+- Percent high earning jobs (>$40k)
 - Off-campus students
 
 ### Income
@@ -295,7 +303,7 @@ veh_validation_tbl <- add_workers_se %>%
 
 ### Age 
 
-Like vehicles, age data is available from the ACS at the block group level. For
+Like income, age data is available from the ACS at the block group level. For
 each blockgroup, Caliper computed the percentage of children and seniors.
 
 - Child: Under 18

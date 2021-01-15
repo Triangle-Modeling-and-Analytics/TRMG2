@@ -1,7 +1,7 @@
 ---
 title: "Time of Day, Directionality, and Occupancy"
 author: "Caliper Corporation"
-date: "January 6, 2021"
+date: "January 14, 2021"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -41,8 +41,7 @@ trip occurs within the 15-minute bin. As a result, a single trip can be counted
 in multiple bins.  Determining the peak period considers the distribution of all
 trips as well as the distribution of trips on work tours individually. The chart
 below shows these two distributions, which look as expected with the AM peak
-being shorter and more condensed than the PM. Travelers have much more
-flexibility in their travel choices in the PM.
+being shorter and more condensed than the PM. 
 
 ```{r}
 bin_size = 15 # minutes
@@ -121,7 +120,8 @@ The next step is to determine the peak hour for all trips and those on work
 tours.  In the tables below, the AM and PM peak hours by type are presented.  At
 a minimum, the AM and PM peak periods should contain the respective peak hour
 for work trips and all trips. The chart below shows that the peak hour for work
-and all trips are exactly the same.
+and all trips are exactly the same in the Triangle region based on the surveys 
+as is often, but not always, the case.
 
 ```{r}
 # Create rolling sums to determine peak hour
