@@ -72,6 +72,13 @@ leaflet() %>%
     group = "Old",
     color = "royalblue"
   ) %>%
+  addLegend(
+    "bottomright", 
+    colors =c("gold", "royalblue"),
+    labels= c("New", "Old"),
+    title= "Legend",
+    opacity = 1
+  ) %>%
   addLayersControl(overlayGroups = c("New", "Old")) %>%
   setView(-78.672682, 35.784927, zoom = 12)
 ```
