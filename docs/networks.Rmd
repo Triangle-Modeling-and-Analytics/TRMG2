@@ -49,6 +49,11 @@ permanently.
 
 ### Update of count data
 
+The count data was provided to Caliper by the Stakeholders. The original source
+of this info was NCDOTs 2017 traffic count program along with a special count
+collection specifically for the model. All counts were factored to an Average
+Weekday Daily Traffic (AWDT) for April 2017.
+
 The previous model used a separate table to hold count data which then had to be
 joined to the network to make comparisons. For TRMG2, the basic count data
 including station ID and daily AWDT were added to the master network directly.
@@ -80,8 +85,7 @@ corrected as necessary.
 Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow
 times based on posted speeds. Comparison of the resulting matrices showed that
 overall the RMSE was only 0.25%, which is very small, indicating close 
-consistency between the networks (that nothing was broken). The OD pairs with
-the largest percentage differences were manually reviewed. The largest 
+consistency between the networks (that nothing was broken). Every OD pair with an absolute percentage change greater than 30% was reviewed. The largest 
 relative difference was 62% for one OD pair (between zone 1535 and 1444); in 
 that case, the review revealed that the new network was correct while the 
 original TRMv6 network allowed a U-turn where it should not have. See the
@@ -91,10 +95,8 @@ before and after images below.
 knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_after.png"))
 ``` 
 
-The top
-several OD pairs (by relative change in travel time) were reviewed to 
-guarantee that all changes were either corrections or a very small percentage
-change. 
+A small number of OD pairs were reviewed with changes <30%, but everything
+was reasonable.
 
 ### Complete Streets
 
