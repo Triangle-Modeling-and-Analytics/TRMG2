@@ -6,6 +6,10 @@ auto_rental,auto_pay
 auto_taxi,auto_pay
 auto_tnc,auto_pay
 bus,bus
+school_bus,school_bus
+bus_other,other
+vanpool,auto_pay
+paratransit,auto_pay
 walk,walk
 bike,bike
 other,other

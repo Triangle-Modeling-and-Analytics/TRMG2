@@ -318,7 +318,23 @@ prep_trip_2016 <- trips_2016_raw %>%
     hhID = as.character(hhID),
     personid = paste0(hhID, personNum),
     tripNum = str_pad(tripNum, 3, "left", "0"),
-    tripid = paste0(hhID, personid, tripNum)
+    tripid = paste0(hhID, personid, tripNum),
+    mode = case_when(
+      mode == 1 ~ "auto_own",
+      mode == 2 & mode_othauto == 1 ~ "auto_work",
+      mode == 2 & mode_othauto == 2 ~ "auto_rental",
+      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
+      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
+      mode == 2 ~ "auto_other",
+      mode == 3 & mode_bus %in% c(1, 2, 5) ~ "bus",
+      mode == 3 & mode_bus %in% 3:4 ~ "school_bus",
+      mode == 3 & mode_bus == 7 ~ "vanpool",
+      mode == 3 & mode_bus == 8 ~ "paratransit",
+      mode == 3 ~ "bus_other",
+      mode == 4 ~ "walk",
+      mode == 5 ~ "bike",
+      mode == 6 ~ "other"
+    )
   ) %>%
   rename(
     hhid = hhID, personnum = personNum, tripnum = tripNum,
@@ -339,7 +355,23 @@ prep_trip_2018 <- trips_2018_raw %>%
     personnum = as.character(personnum),
     personid = str_pad(personid, 2, "left", "0"),
     tripnum = str_pad(tripnum, 3, "left", "0"),
-    tripid = as.character(tripid)
+    tripid = as.character(tripid),
+    mode = case_when(
+      mode == 1 ~ "auto_own",
+      mode == 2 & mode_othauto == 1 ~ "auto_work",
+      mode == 2 & mode_othauto == 2 ~ "auto_rental",
+      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
+      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
+      mode == 2 ~ "auto_other",
+      mode == 3 & mode_bus %in% c(1, 2, 4) ~ "bus",
+      mode == 3 & mode_bus == 3 ~ "school_bus",
+      mode == 3 & mode_bus == 6 ~ "vanpool",
+      mode == 3 & mode_bus == 7 ~ "paratransit",
+      mode == 3 ~ "bus_other",
+      mode == 4 ~ "walk",
+      mode == 5 ~ "bike",
+      mode == 6 ~ "other"
+    )
   ) %>%
   select(-c(
     last_trip, segment, origin_taz, origin_campus, origin_region,
@@ -659,20 +691,6 @@ convert_purpose <- trip_combined %>%
     -d_activity_2016, -d_activity_other, -o_activity_2018, -d_activity_2018
   ) %>%
   mutate(
-    mode = case_when(
-      mode == 1 ~ "auto_own",
-      mode == 2 & mode_othauto == 1 ~ "auto_work",
-      mode == 2 & mode_othauto == 2 ~ "auto_rental",
-      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
-      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
-      mode == 2 ~ "auto_other",
-      mode == 3 ~ "bus",
-      mode == 4 ~ "walk",
-      mode == 5 ~ "bike",
-      mode == 6 ~ "other"
-    )
-  ) %>%
-  mutate(
     # some people marked 1-yo old as student with school at home. Not what
     # we are interested in.
     # student_type = ifelse(is.na(school), 0, 1),
@@ -834,7 +852,8 @@ det_work_place <- det_sch_place %>%
 ### Mode simplification
 
 The table below shows how the survey mode field was simplified into the model
-modes.
+modes. For the auto mode, occupancy was used to split into single-occupancy
+(sov) and high-occupancy (hov).
 
 ```{r simplify_mode}
 mode_equiv <- read_csv(
@@ -854,12 +873,32 @@ simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
   mutate(
     mode_simple2 = case_when(
+      mode_simple == "auto_pay" ~ "auto_pay",
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
       grepl("auto", mode_simple) & party_size > 1 ~ "hov",
-      mode_simple == "auto_pay" ~ "pay",
       TRUE ~ mode_simple
     )
   )
+```
+
+The chart below shows the expanded trips by mode.
+
+```{r}
+temp <- simplify_mode %>%
+  group_by(Mode = mode_simple2) %>%
+  summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
+ggplot(data = temp, aes(
+  x = reorder(Mode, -weight), y = weight, fill = Mode,
+  label = format(weight, big.mark = ",", digits = 0)
+)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(nudge_y = 100000, color = "black") +
+  labs(
+    title = "Trips by Mode",
+    x = "Mode",
+    y = "Weighted Trips"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Tour formation
