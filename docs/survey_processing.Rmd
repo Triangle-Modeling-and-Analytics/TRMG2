@@ -981,7 +981,9 @@ temp <- flag_loop_trips %>%
 temp2 <- flag_loop_trips %>%
   filter(tour_type == "WT") %>%
   group_by(personid, tour_num) %>%
-  mutate(max_o_duration = max(d_act_dur, na.rm = TRUE)) %>%
+  mutate(
+    max_o_duration = max(replace_na(d_act_dur, 0), na.rm = TRUE)
+  ) %>%
   filter(d_act_dur == max_o_duration & d_activity != "W") %>%
   left_join(temp, by = c("personid", "tour_num")) %>%
   select(personid, tour_num, d_activity, max_o_duration, total_w_duration) %>%
@@ -1428,7 +1430,7 @@ prep_for_eda <- add_se_data %>%
   )
 ```
 
-```{r eda_scheme1}
+```{r eda_scheme1, eval=FALSE}
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
   mutate(
@@ -1498,11 +1500,10 @@ scheme1 <- prep_for_eda %>%
   ) %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
-
-# eda_scheme1 <- person_eda(scheme1)
+eda_scheme1 <- person_eda(scheme1)
 ```
 
-```{r eda_scheme2, warning=TRUE}
+```{r eda_scheme2, eval=FALSE}
 scheme2 <- prep_for_eda %>%
   mutate(
     purp_scheme = a_activity,
@@ -1824,7 +1825,7 @@ scheme6 <- prep_for_eda %>%
       a_activity %in% c("OM", "EAT", "SHP") | 
         p_activity %in% c("OM", "EAT", "SHP") ~ "OME",
       a_activity == "K12" | p_activity == "K12" ~ "K12-O/OME",
-      TRUE ~ "O-O"
+      TRUE ~ "O"
     ),
     dur_scheme = case_when(
       tour_type != "NT" ~ dur_scheme,
@@ -1890,7 +1891,7 @@ scheme7 <- prep_for_eda %>%
       homebased != "NHB" ~ purp_scheme,
       a_activity %in% c("OM", "EAT", "SHP") | 
         p_activity %in% c("OM", "EAT", "SHP") ~ "OME",
-      TRUE ~ "O-O"
+      TRUE ~ "O"
     ),
     dur_scheme = case_when(
       tour_type != "NT" ~ dur_scheme,
@@ -1901,6 +1902,23 @@ scheme7 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 eda_scheme7 <- person_eda(scheme7)
+
+eda_scheme7 %>%
+  select(
+    `Tour Type` = tour_type,
+    Homebased = homebased,
+    Purpose = purpose,
+    `Dest Duration` = duration,
+    `Trips (weighted)` = wTrips,
+    `Is Worker (r)` = r_is_worker,
+    `Is Child (r)` = r_is_kid,
+    `Zonal Employment (r)` = r_emp,
+    `AM (%)` = pct_AM,
+    `HOV (%)` = pct_hov,
+    `Trip Length` = wAvgTrpLen
+  ) %>%
+  kable() %>%
+  kable_styling()
 ```
 
 
@@ -1919,7 +1937,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  scheme2,
+  scheme7,
   "data/output/_PRIVATE/survey_processing/trips_processed.csv",
   na = ""
 )
