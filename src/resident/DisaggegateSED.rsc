@@ -13,7 +13,7 @@ Macro "DisaggregateSED"(Args)
     // Open SED Data and check table for missing fields
     obj = CreateObject("AddTables", {TableName: Args.SEData})
     vwSED = obj.TableView
-    flds = {"TAZ", "Type", "HH", "HH_Pop", "MedianInc", "Workers"}
+    flds = {"TAZ", "PUMA5", "Type", "HH", "HH_Pop", "Median_Inc", "Pct_Worker"}
     ExportView(vwSED + "|", "FFB", Args.SEDMarginals, flds,)
     obj = null
 
@@ -22,15 +22,15 @@ Macro "DisaggregateSED"(Args)
 
     // Run models to disaggregate curves
     // 1. ==== Size
-    opt = {View: vw, Curve: Args.SizeCurves, KeyExpression: "HH_POP/HH", LookupField: "avg_size"}
+    opt = {View: vw, Curve: Args.SizeCurves, KeyExpression: "HH_Pop/HH", LookupField: "avg_size"}
     RunMacro("Disaggregate SE HH Data", opt)
 
     // 2. ==== Income
-    opt = {View: vw, Curve: Args.IncomeCurves, KeyExpression: "MedianInc/" + String(Args.RegionalMedianIncome), LookupField: "inc_ratio"}
+    opt = {View: vw, Curve: Args.IncomeCurves, KeyExpression: "Median_Inc/" + String(Args.RegionalMedianIncome), LookupField: "inc_ratio"}
     RunMacro("Disaggregate SE HH Data", opt)
 
     // 3. ==== Workers
-    opt = {View: vw, Curve: Args.WorkerCurves, KeyExpression: "Workers/HH", LookupField: "avg_workers"}
+    opt = {View: vw, Curve: Args.WorkerCurves, KeyExpression: "((Pct_Worker/100)*HH_Pop)/HH", LookupField: "avg_workers"}
     RunMacro("Disaggregate SE HH Data", opt)
 
     obj = null
@@ -39,7 +39,7 @@ Macro "DisaggregateSED"(Args)
     on error, notfound, escape default
     if !ret_value then do
         if ErrorMsg <> null then
-            RunMacro("TCB Error", ErrorMsg)
+            AppendToLogFile(0, ErrorMsg)
     end
     Return(ret_value)
 endMacro
