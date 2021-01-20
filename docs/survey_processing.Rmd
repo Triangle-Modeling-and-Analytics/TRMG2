@@ -905,15 +905,18 @@ ggplot(data = temp, aes(
 
 While the TRMG2 is a trip-based model, the production rates and other estimated
 behavior can still make use of tour information to improve predictive power and
-accuracy. At the same time, the trip-based formulation means that tour formation 
-is much simpler. Rather than requiring detailed tour pattern information to 
-support coordinated activity patterns within a household as in activity-based
-models, tours can be classified simply as work or non-work.
+accuracy. At the same time, the trip-based formulation means that tour formation
+is much simpler. Rather than requiring detailed tour information to support
+coordinated activity patterns within a household (as in activity-based models),
+tours can be classified simply as work or non-work.
 
-For each person in the survey, a tour begins with their first trip and ends
-when they return home. A second tour starts if they leave home again. A tour is
-classified as a work tour if the traveler has a work activity during the tour.
-If they do not, then the tour is classified as non-work.
+For each person in the survey, a tour begins with their first trip and ends when
+they return home. A second tour starts if they leave home again. Most tours are
+classified as work if the traveler has a work activity during the tour. If they
+do not, then the tour is classified as non-work. A small number of tours have a
+work activity during the tour, but the duration of that activity is short (less
+than 2 hours) or they spend twice as long somewhere else as at work. These tours
+are classified as non-work.
 
 There is a third tour type ("home"), that handles cases where the survey reports
 trips within the home. For example, when a respondent reports being at home and
@@ -967,10 +970,41 @@ flag_loop_trips <- determine_tours %>%
   )
 ```
 
+```{r}
+# Flip work tours to non-work if time spent at work isn't the major component
+# of the trip.
+temp <- flag_loop_trips %>%
+  filter(tour_type == "WT", d_activity == "W") %>%
+  group_by(personid, tour_num) %>%
+  summarize(total_w_duration = sum(d_act_dur, na.rm = TRUE))
+
+temp2 <- flag_loop_trips %>%
+  filter(tour_type == "WT") %>%
+  group_by(personid, tour_num) %>%
+  mutate(max_o_duration = max(d_act_dur, na.rm = TRUE)) %>%
+  filter(d_act_dur == max_o_duration & d_activity != "W") %>%
+  left_join(temp, by = c("personid", "tour_num")) %>%
+  select(personid, tour_num, d_activity, max_o_duration, total_w_duration) %>%
+  mutate(flip_to_nt = case_when(
+    d_activity == "WR" ~ 0,
+    total_w_duration < 120 ~ 1,
+    max_o_duration > 2 * total_w_duration ~ 1,
+    TRUE ~ 0
+  )) %>%
+  select(personid, tour_num, flip_to_nt)
+
+flip_to_nt <- flag_loop_trips %>%
+  left_join(temp2, by = c("personid", "tour_num")) %>%
+  mutate(flip_to_nt = replace_na(flip_to_nt, 0)) %>%
+  group_by(personid, tour_num) %>%
+  mutate(tour_type = ifelse(flip_to_nt == 1, "NT", tour_type))
+```
+
+
 ### Problems
 
 ```{r}
-num_sch_problems <- flag_loop_trips %>%
+num_sch_problems <- flip_to_nt %>%
   mutate(
     sch_flag = case_when(
       o_activity == "SCH?" ~ 1,
@@ -986,7 +1020,7 @@ num_sch_problems <- flag_loop_trips %>%
 # This key uniquely identifies trips in a way that isn't person specific. This
 # lets you identify all the trip records that went on the same trip. Great for
 # HOV analysis.
-add_key <- flag_loop_trips %>%
+add_key <- flip_to_nt %>%
   ungroup() %>%
   unite(
     key, hhid, origin_address, departure_time, destination_address,
