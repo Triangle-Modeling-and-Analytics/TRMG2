@@ -1428,7 +1428,7 @@ prep_for_eda <- add_se_data %>%
   )
 ```
 
-```{r eda_scheme1, eval=FALSE}
+```{r eda_scheme1}
 # This step adds the first purpose scheme defined by Vince
 scheme1 <- prep_for_eda %>%
   mutate(
@@ -1499,7 +1499,7 @@ scheme1 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 
-eda_scheme1 <- person_eda(scheme1)
+# eda_scheme1 <- person_eda(scheme1)
 ```
 
 ```{r eda_scheme2, warning=TRUE}
@@ -1764,6 +1764,146 @@ scheme5 <- prep_for_eda %>%
 eda_scheme5 <- person_eda(scheme5)
 ```
 
+```{r eda_scheme6, eval=FALSE}
+# Scheme 6 was created largely by collapsing scheme1 after reviewing
+# the results. It collapses the WT and NT-HB and then takes a different
+# approach for NT-NHB.
+
+scheme6 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = a_activity,
+    dur_scheme = a_duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("W", "K12") ~ purp_scheme,
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      o_activity %in% c("POS", "DOS") ~ "K12",
+      a_activity %in% c("POS", "DOS") ~ "K12",
+      o_activity == "K12" | a_activity == "K12" ~ "K12",
+      o_activity %in% c("W", "WR") | a_activity %in% c("W", "WR") ~ "WR",
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme == "K12" ~ "K12",
+      purp_scheme == "OMED" ~ "OMED",
+      purp_scheme %in% c("SHP", "EAT", "OM") ~ "OME",
+      TRUE ~ "OD"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme == "OD" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      a_activity %in% c("OM", "EAT", "SHP") | 
+        p_activity %in% c("OM", "EAT", "SHP") ~ "OME",
+      a_activity == "K12" | p_activity == "K12" ~ "K12-O/OME",
+      TRUE ~ "O-O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      purp_scheme %in% c("EAT-SHP", "EAT-O") ~ "All",
+      TRUE ~ "All"
+    )
+  ) %>%
+  relocate(c(tour_type, homebased), .before = purp_scheme)
+
+eda_scheme6 <- person_eda(scheme6)
+```
+
+```{r eda_scheme7}
+# Scheme 7 is a collapse of scheme6
+
+scheme7 <- prep_for_eda %>%
+  mutate(
+    purp_scheme = a_activity,
+    dur_scheme = a_duration,
+    # WT HB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme == "W" ~ "W",
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # WT NHB trips
+    purp_scheme = case_when(
+      tour_type != "WT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      o_activity %in% c("W", "WR") | a_activity %in% c("W", "WR") ~ "WR",
+      TRUE ~ "O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "WT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT HB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "HB" ~ purp_scheme,
+      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme == "K12" ~ "K12",
+      purp_scheme %in% c("SHP", "EAT", "OM", "OMED") ~ "OME",
+      TRUE ~ "OD"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "HB" ~ dur_scheme,
+      purp_scheme == "OD" ~ dur_scheme,
+      TRUE ~ "All"
+    ),
+    # NT NHB trips
+    purp_scheme = case_when(
+      tour_type != "NT" ~ purp_scheme,
+      homebased != "NHB" ~ purp_scheme,
+      a_activity %in% c("OM", "EAT", "SHP") | 
+        p_activity %in% c("OM", "EAT", "SHP") ~ "OME",
+      TRUE ~ "O-O"
+    ),
+    dur_scheme = case_when(
+      tour_type != "NT" ~ dur_scheme,
+      homebased != "NHB" ~ dur_scheme,
+      TRUE ~ "All"
+    )
+  ) %>%
+  relocate(c(tour_type, homebased), .before = purp_scheme)
+
+eda_scheme7 <- person_eda(scheme7)
+```
+
+
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
 # manually (consciously).
@@ -1808,6 +1948,16 @@ write_csv(
 write_csv(
   eda_scheme5,
   "data/output/survey_processing/eda_scheme5.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme6,
+  "data/output/survey_processing/eda_scheme6.csv",
+  na = ""
+)
+write_csv(
+  eda_scheme7,
+  "data/output/survey_processing/eda_scheme7.csv",
   na = ""
 )
 ```

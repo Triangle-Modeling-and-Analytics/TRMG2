@@ -53,7 +53,8 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
     nest() %>%
     mutate(
       samples = map_dbl(data, function(df) {
-        nrow(df %>% filter(trip_weight > 0))
+        # nrow(df %>% filter(trip_weight > 0))
+        nrow(df)
       }),
       wTrips = map_dbl(data, function(df) {
         round(sum(df$trip_weight * df$hh_weight_combined, na.rm = TRUE), 0)
@@ -246,7 +247,10 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
   
   final <- eda_tbl %>%
     left_join(other_metrics, by = "trip_type") %>%
-    separate(trip_type, c("tour_type", "homebased", "purpose", "duration")) %>%
+    separate(
+      trip_type, c("tour_type", "homebased", "purpose", "duration"),
+      sep = "_"
+    ) %>%
     arrange(desc(tour_type), homebased, purpose, duration) %>%
     relocate(
       c(pct_sov, pct_hov, pct_auto_pay, pct_bus, pct_school_bus, pct_walk,
