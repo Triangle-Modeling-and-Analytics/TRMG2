@@ -1765,7 +1765,7 @@ scheme5 <- prep_for_eda %>%
 eda_scheme5 <- person_eda(scheme5)
 ```
 
-```{r eda_scheme6, eval=FALSE}
+```{r eda_scheme6}
 # Scheme 6 was created largely by collapsing scheme1 after reviewing
 # the results. It collapses the WT and NT-HB and then takes a different
 # approach for NT-NHB.
@@ -1837,9 +1837,27 @@ scheme6 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 eda_scheme6 <- person_eda(scheme6)
+
+eda_scheme6 %>%
+  select(
+    `Tour Type` = tour_type,
+    Homebased = homebased,
+    Purpose = purpose,
+    `Dest Duration` = duration,
+    `Trips (weighted)` = wTrips,
+    `Is Worker (r)` = r_is_worker,
+    `Is Child (r)` = r_is_kid,
+    `Zonal Employment (r)` = r_emp,
+    `AM (%)` = pct_AM,
+    `HOV (%)` = pct_hov,
+    `Trip Length` = wAvgTrpLen
+  ) %>%
+  kable() %>%
+  kable_styling() %>%
+  row_spec(which(eda_scheme6$homebased == "NHB"), background = "lightgray")
 ```
 
-```{r eda_scheme7}
+```{r eda_scheme7, eval=FALSE}
 # Scheme 7 is a collapse of scheme6
 
 scheme7 <- prep_for_eda %>%
@@ -1902,23 +1920,6 @@ scheme7 <- prep_for_eda %>%
   relocate(c(tour_type, homebased), .before = purp_scheme)
 
 eda_scheme7 <- person_eda(scheme7)
-
-eda_scheme7 %>%
-  select(
-    `Tour Type` = tour_type,
-    Homebased = homebased,
-    Purpose = purpose,
-    `Dest Duration` = duration,
-    `Trips (weighted)` = wTrips,
-    `Is Worker (r)` = r_is_worker,
-    `Is Child (r)` = r_is_kid,
-    `Zonal Employment (r)` = r_emp,
-    `AM (%)` = pct_AM,
-    `HOV (%)` = pct_hov,
-    `Trip Length` = wAvgTrpLen
-  ) %>%
-  kable() %>%
-  kable_styling()
 ```
 
 
