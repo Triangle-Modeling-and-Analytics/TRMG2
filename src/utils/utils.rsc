@@ -330,13 +330,13 @@ Similar to "unique_view_name" in gplyr.
 Macro "Get Unique Map Name"
   {map_names, idx, cur_name} = GetMaps()
   if map_names.length = 0 then do
-    map_name = "gisdk_tools1"
+    map_name = "map1"
   end else do
     num = 0
     exists = "True"
     while exists do
       num = num + 1
-      map_name = "gisdk_tools" + String(num)
+      map_name = "map" + String(num)
       exists = if (ArrayPosition(map_names, {map_name}, ) <> 0)
         then "True"
         else "False"
@@ -344,4 +344,170 @@ Macro "Get Unique Map Name"
   end
 
   return(map_name)
+EndMacro
+
+/*
+Uses the batch shell to copy the folders and subfolders from
+one directory to another.
+
+Inputs (all in a named array)
+  * from
+    * String
+    * Full path of directory to copy
+  * to
+    * String
+    * Full path of destination
+  * copy_files
+    * Optional true/false
+    * Whether or not to copy files
+    * Defaults to true
+  * subdirectories
+    * Optional true/false
+    * Whether or not to include subdirectories
+    * Defaults to true
+  * purge
+   * Optional true/false
+   * Whether to delete files in `to` that are no longer present in `from`
+   * Defaults to true
+*/
+
+Macro "Copy Directory" (MacroOpts)
+
+  from = MacroOpts.from
+  to = MacroOpts.to
+  copy_files = MacroOpts.copy_files
+  subdirectories = MacroOpts.subdirectories
+  purge = MacroOpts.purge
+
+  if from = null then Throw("Copy Diretory: 'from' not provided") 
+  if to = null then Throw("Copy Diretory: 'from' not provided") 
+  if copy_files = null then copy_files = "true"
+  if subdirectories = null then subdirectories = "true"
+  if purge = null then purge = "true"
+
+  RunMacro("Normalize Path", from)
+  RunMacro("Normalize Path", to)
+
+  from = "\"" +  from + "\""
+  to = "\"" +  to + "\""
+  cmd = "cmd /C robocopy " + from + " " + to
+  if !copy_files then cmd = cmd + " /t"
+  if subdirectories then cmd = cmd + " /e"
+  if purge then cmd = cmd + " /purge"
+  opts.Minimize = "true"
+  RunProgram(cmd, opts)
+EndMacro
+
+/*
+Takes a path like this:
+C:\\projects\\model\\..\\other_model
+
+and turns it into this:
+C:\\projects\\other_model
+
+Works whether using "\\" or "/" for directory markers
+
+Also removes any trailing slashes
+*/
+
+Macro "Normalize Path" (rel_path)
+
+  a_parts = ParseString(rel_path, "/\\")
+  for i = 1 to a_parts.length do
+    part = a_parts[i]
+
+    if part <> ".." then do
+      a_path = a_path + {part}
+    end else do
+      a_path = ExcludeArrayElements(a_path, a_path.length, 1)
+    end
+  end
+
+  for i = 1 to a_path.length do
+    if i = 1
+      then path = a_path[i]
+      else path = path + "\\" + a_path[i]
+  end
+
+  return(path)
+EndMacro
+
+/*
+Simple improvement on CreateDirectory(). This only creates a directory if it
+doesn't already exist. It does not throw an error like CreateDirectory(). It
+also normalizes the path of `dir` (resolves relative paths and removes any
+trailing slashes).
+
+Inputs
+  * dir
+    * String
+    * Path of directory to create.
+*/
+
+Macro "Create Directory" (dir)
+  if dir = null then Throw("Create Directory: 'dir' not provided") 
+  dir = RunMacro("Normalize Path", dir)
+  if GetDirectoryInfo(dir, "All") = null then CreateDirectory(dir)
+EndMacro
+
+/*
+Recursively searches the directory and any subdirectories for files.
+This can be useful for cataloging all the files created by the model.
+
+Inputs:
+dir
+  String
+  The directory to search
+
+ext
+  Optional string or array of strings
+  extensions to limit the search to.
+  e.g. "rsc" or {"rsc", "lst", "bin"}
+  If null, finds files of all types.
+
+Output:
+An array of complete paths for each file found
+*/
+
+Macro "Catalog Files" (dir, ext)
+
+  if TypeOf(ext) = "string" then ext = {ext}
+
+  a_dirInfo = GetDirectoryInfo(dir + "/*", "Directory")
+
+  // If there are folders in the current directory,
+  // call the macro again for each one.
+  if a_dirInfo <> null then do
+    for d = 1 to a_dirInfo.length do
+      path = dir + "/" + a_dirInfo[d][1]
+
+      a_files = a_files + RunMacro("Catalog Files", path, ext)
+    end
+  end
+
+  // If the ext parameter is used
+  if ext <> null then do
+    for e = 1 to ext.length do
+      if Left(ext[e], 1) = "." 
+        then path = dir + "/*" + ext[e]
+        else path = dir + "/*." + ext[e]
+
+      a_info = GetDirectoryInfo(path, "File")
+      if a_info <> null then do
+        for i = 1 to a_info.length do
+          a_files = a_files + {dir + "/" + a_info[i][1]}
+        end
+      end
+    end
+  // If the ext parameter is not used
+  end else do
+    a_info = GetDirectoryInfo(dir + "/*", "File")
+    if a_info <> null then do
+      for i = 1 to a_info.length do
+        a_files = a_files + {dir + "/" + a_info[i][1]}
+      end
+    end
+  end
+
+  return(a_files)
 EndMacro
