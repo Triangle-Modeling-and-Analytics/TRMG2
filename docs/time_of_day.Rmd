@@ -65,7 +65,7 @@ for (i in 1:length(v_time)) {
 work_trips <- tripTbl %>%
   mutate(
     work_trip = ifelse(
-      tour_type == "WT", #& homebased == "HB" & purp_scheme == "W",
+      tour_type == "W", #& homebased == "HB" & purp_scheme == "W",
       # (o_activity == "W" | d_activity == "W") &
       #   (o_activity == "H" | d_activity == "H"),
       1, 0
