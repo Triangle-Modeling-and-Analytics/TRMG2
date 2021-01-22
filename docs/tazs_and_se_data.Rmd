@@ -318,12 +318,12 @@ each blockgroup, Caliper computed the percentage of children and seniors.
 - Child: Under 18
 - Senior: 65 or older
 
-Then, each TAZ within a blockgroup was assigned the same percentages. Age
-information was available for all blockgroups with population, and no TAZs
-needed to use their county average. This information can be found in the SE
-data table in the fields `Pct_Child` and `Pct_Senior`.
+The ACSs data on age is provided for total population and not population in
+households. This means that some block groups with high group quarters
+populations could have extreme values for children and seniors. The histogram
+below shows the count of block groups by percent children and seniors.
 
-```{r, include=FALSE}
+```{r}
 calc_age_pct <- acs_bg %>%
   select(GEOID, County, age_child, age_other, age_senior) %>%
   group_by(County) %>%
@@ -335,17 +335,68 @@ calc_age_pct <- acs_bg %>%
     cnty_pct_child = round(cnty_age_child / cnty_tot * 100, 0),
     cnty_pct_senior = round(cnty_age_senior / cnty_tot * 100, 0)
   ) %>%
+  mutate(tract = substr(GEOID, 1, 11)) %>%
+  group_by(tract) %>%
+  mutate(
+    tract_tot = sum(age_child, na.rm = TRUE) + sum(age_other, na.rm = TRUE) +
+      sum(age_senior, na.rm = TRUE),
+    tract_age_child = sum(age_child, na.rm = TRUE),
+    tract_age_senior = sum(age_senior, na.rm = TRUE),
+    tract_pct_child = ifelse(
+      tract_tot == 0, 0, round(tract_age_child / tract_tot * 100, 0)),
+    tract_pct_senior = ifelse(
+      tract_tot == 0, 0, round(tract_age_senior / tract_tot * 100, 0))
+  ) %>%
   mutate(
     total = age_child + age_other + age_senior,
     Pct_Child = ifelse(
-      total == 0, cnty_pct_child, round(age_child / total * 100, 0)),
+      total == 0, cnty_pct_child, round(age_child / total * 100, 1)),
+    Pct_Child = ifelse(Pct_Child < 5, 5, Pct_Child),
     Pct_Senior = ifelse(
-      total == 0, cnty_pct_senior, round(age_senior / total * 100, 0)),
+      total == 0, cnty_pct_senior, round(age_senior / total * 100, 1)),
+    Pct_Senior = ifelse(Pct_Senior < 5, 5, Pct_Senior),
   )
 
+pct_tbl <- calc_age_pct %>%
+  st_drop_geometry() %>%
+  select(tract, Children = Pct_Child, Seniors = Pct_Senior) %>%
+  pivot_longer(cols = Children:Seniors)
+
+ggplot(data = pct_tbl) +
+  geom_histogram(aes(x = value, fill = name), bins = 30) +
+  facet_wrap(~name) +
+  labs(
+    title = "Percentage of Children and Seniors by Block Group",
+    x = "Percentage",
+    y = "Count"
+  ) +
+  theme(
+    plot.title = element_text(hjust = .5),
+    legend.position = "none"
+  )
+```
+
+Based on these distributions, Caliper set 5% as the minimum for children and
+seniors per TAZ. Seniors are also capped at 50%.
+
+```{r}
+cap_age <- calc_age_pct %>%
+  mutate(
+    Pct_Child = max(5, Pct_Child),
+    Pct_Senior = max(5, Pct_Senior),
+    Pct_Senior = min(50, Pct_Senior),
+  )
+```
+
+Next, each TAZ within a block group was assigned the same percentages. Age
+information was available for all block groups with population, and no TAZs
+needed to use a tract or county data. This information can be found in the SE
+data table in the fields `Pct_Child` and `Pct_Senior`.
+
+```{r, include=FALSE}
 age_centroids <- taz %>%
   st_point_on_surface() %>%
-  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
+  st_join(cap_age %>% select(Pct_Child, Pct_Senior)) %>%
   st_drop_geometry() %>%
   select(TAZ = ID, Pct_Child, Pct_Senior)
   
