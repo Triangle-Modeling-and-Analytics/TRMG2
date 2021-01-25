@@ -325,36 +325,40 @@ below shows the count of block groups by percent children and seniors.
 
 ```{r}
 calc_age_pct <- acs_bg %>%
-  select(GEOID, County, age_child, age_other, age_senior) %>%
+  select(GEOID, County, hh_pop, hh_child, hh_senior) %>%
   group_by(County) %>%
   mutate(
-    cnty_tot = sum(age_child, na.rm = TRUE) + sum(age_other, na.rm = TRUE) +
-      sum(age_senior, na.rm = TRUE),
-    cnty_age_child = sum(age_child, na.rm = TRUE),
-    cnty_age_senior = sum(age_senior, na.rm = TRUE),
-    cnty_pct_child = round(cnty_age_child / cnty_tot * 100, 0),
-    cnty_pct_senior = round(cnty_age_senior / cnty_tot * 100, 0)
+    adults_in_hhs = hh_pop - hh_child - hh_senior,
+    cnty_tot = sum(hh_pop, na.rm = TRUE),
+    cnty_children = sum(hh_child, na.rm = TRUE),
+    cnty_seniors = sum(hh_senior, na.rm = TRUE),
+    cnty_pct_child = round(cnty_children / cnty_tot * 100, 0),
+    cnty_pct_senior = round(cnty_seniors / cnty_tot * 100, 0)
   ) %>%
   mutate(tract = substr(GEOID, 1, 11)) %>%
   group_by(tract) %>%
   mutate(
-    tract_tot = sum(age_child, na.rm = TRUE) + sum(age_other, na.rm = TRUE) +
-      sum(age_senior, na.rm = TRUE),
-    tract_age_child = sum(age_child, na.rm = TRUE),
-    tract_age_senior = sum(age_senior, na.rm = TRUE),
+    tract_tot = sum(hh_pop, na.rm = TRUE),
+    tract_children = sum(hh_child, na.rm = TRUE),
+    tract_seniors = sum(hh_senior, na.rm = TRUE),
     tract_pct_child = ifelse(
-      tract_tot == 0, 0, round(tract_age_child / tract_tot * 100, 0)),
+      tract_tot == 0, 0, round(tract_children / tract_tot * 100, 0)),
     tract_pct_senior = ifelse(
-      tract_tot == 0, 0, round(tract_age_senior / tract_tot * 100, 0))
+      tract_tot == 0, 0, round(tract_seniors / tract_tot * 100, 0))
   ) %>%
   mutate(
-    total = age_child + age_other + age_senior,
-    Pct_Child = ifelse(
-      total == 0, cnty_pct_child, round(age_child / total * 100, 1)),
-    Pct_Child = ifelse(Pct_Child < 5, 5, Pct_Child),
-    Pct_Senior = ifelse(
-      total == 0, cnty_pct_senior, round(age_senior / total * 100, 1)),
-    Pct_Senior = ifelse(Pct_Senior < 5, 5, Pct_Senior),
+    Pct_Child = case_when(
+      hh_pop > 50 ~ round(hh_child / hh_pop * 100, 1),
+      tract_tot > 200 ~ tract_pct_child,
+      TRUE ~ cnty_pct_child
+    ),
+    # Pct_Child = ifelse(Pct_Child < 5, 5, Pct_Child),
+    Pct_Senior = case_when(
+      hh_pop > 50 ~ round(hh_senior / hh_pop * 100, 1),
+      tract_tot > 200 ~ tract_pct_senior,
+      TRUE ~ cnty_pct_senior
+    )
+    # Pct_Senior = ifelse(Pct_Senior < 5, 5, Pct_Senior),
   )
 
 pct_tbl <- calc_age_pct %>%
@@ -376,16 +380,16 @@ ggplot(data = pct_tbl) +
   )
 ```
 
-Based on these distributions, Caliper set 5% as the minimum for children and
-seniors per TAZ. Seniors are also capped at 50%.
-
 ```{r}
-cap_age <- calc_age_pct %>%
-  mutate(
-    Pct_Child = max(5, Pct_Child),
-    Pct_Senior = max(5, Pct_Senior),
-    Pct_Senior = min(50, Pct_Senior),
-  )
+# Based on these distributions, Caliper set 5% as the minimum for children and
+# seniors per TAZ. Seniors are also capped at 50%.
+
+# cap_age <- calc_age_pct %>%
+#   mutate(
+#     Pct_Child = max(5, Pct_Child),
+#     Pct_Senior = max(5, Pct_Senior),
+#     Pct_Senior = min(50, Pct_Senior),
+#   )
 ```
 
 Next, each TAZ within a block group was assigned the same percentages. Age
@@ -396,7 +400,7 @@ data table in the fields `Pct_Child` and `Pct_Senior`.
 ```{r, include=FALSE}
 age_centroids <- taz %>%
   st_point_on_surface() %>%
-  st_join(cap_age %>% select(Pct_Child, Pct_Senior)) %>%
+  st_join(calc_age_pct %>% select(Pct_Child, Pct_Senior)) %>%
   st_drop_geometry() %>%
   select(TAZ = ID, Pct_Child, Pct_Senior)
   
