@@ -1,0 +1,10 @@
+    
+    
+Scenario "Base year"
+    
+    [Base Folder] = "%Model Folder%"
+    Scenario = "base_2016"
+    [Radio Value] = "Value 2"
+    [Checkbox Value] = {"Value 1","Value 2","Value 3"}
+EndScenario
+    

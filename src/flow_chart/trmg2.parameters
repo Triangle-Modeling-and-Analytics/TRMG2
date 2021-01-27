@@ -1,0 +1,60 @@
+    Section = "Geographic Data"
+    
+        Args.[Base Folder] = { "Type":"folder" , "Value":"%Model Folder%", "Description":"Scenario base folder. Must be a full path." }
+        Args.[Output Folder] = { "Type":"folder" , "Value":"%Model Folder%\\Outputs", "Description":"Output scenario folder. Must be a full path." }
+        Args.TablePath = { "Type":"hidden" , "Value":"Set at Runtime", "Description":"Tables folder" }
+        Args.HWYDB = { "Type":"File" , "Value":"%Base Folder%\\PLAN_NET.DBD", "Description":"Build Highway Network Opts.Input.[Link Set]" }
+        Args.Network = { "Type":"NETWORK" , "Value":"%Output Folder%\\PlanningNetwork.net", "Description":"Build Highway Network" }
+        Args.TG_AttractionTable = { "Type":"TABLE" , "Value":"%TablePath%\\ATTR_TGP.DBF", "Description":"Trip Generation" }
+        Args.TG_OutputTable = { "Type":"TABLE" , "Value":"%Output Folder%\\QRM_ALL.bin", "Description":"Trip Generation" }
+        Args.TG_ProductionTable = { "Type":"TABLE" , "Value":"%TablePath%\\PROD_TGP.DBF", "Description":"Trip Generation Production Table" }
+        Args.TG_ZonalTable = { "Type":"File" , "Value":"%Base Folder%\\PLAN_TAZ.DBD", "Description":"Trip Generation Zone View" }
+        Args.TG_ZonalLayer = { "Type":"LAYER" , "Value":"TAZ", "Description":"Trip Generation TAZ", "JoinTo":"TG_ZonalTable" }
+        Args.Gravity_PA = { "Type":"VIEW" , "Value":"QRM_ALL", "Description":"Gravity " }
+        Args.Assign_FlowTable = { "Type":"TABLE" , "Value":"%Output Folder%\\ASN_LinkFlow.bin", "Description":"Assignment Flow Output", "VisualizeMenu": {"FlowMap"} }
+        Args.AssignIterationLog = { "Type":"TABLE" , "Value":"%Output Folder%\\IterationLog.bin", "Description":"Assignment Iteration Log", "VisualizeMenu": {"ConvChart"} }
+        Args.AssignVMT = { "Type":"TABLE" , "Value":"%Output Folder%\\VMTVHT.bin", "Description":"Assignment Iteration Log" }
+    
+    Section = "Matrix Data Files"
+    
+        Args.MatrixExtension = { "Type":"string" , "Value":".MTX", "Style":"MatrixOptionList" }
+        Args.PAMatrix = { "Type":"MATRIX" , "Value":"%Output Folder%\\OD%MatrixExtension%", "VisualizeMenu": {"M_Chord","M_Sankey"} }
+        Args.SP_Matrix = { "Type":"MATRIX" , "Value":"%Output Folder%\\SPMAT%MatrixExtension%", "Description":"Shortest Path Matrix " }
+        Args.GravityOutput = { "Type":"MATRIX" , "Value":"%Output Folder%\\Gravity%MatrixExtension%", "Description":"Gravity Opts.Output.[Output Matrix].[File Name]" }
+    
+    Section = "Numeric Parameters"
+        Args.UseGlobalVDFParameters = { "Type":"hidden" , "Value":0, "Description":"Do not use BPR fields but global parameters" }
+    
+        Args.RMSE = { "Type":"hidden" , "Value":1, "Description":"RMSE convergence value" }
+        Args.GammaFunction = { "Type":"array" , "Value":{{"HBW",50000,-0.0174,-0.0425},
+                                                         {"HBNW",200000,0.0724,-0.1278},
+                                                         {"HBO",150000,-0.256,-0.0886},
+                                                         {"NHB",100000,-0.0056,-0.1556}}, "Caption":"Trip Distribution Parameters", "Style":"PTStyle" }
+        Args.FeedbackConvergence = { "Type":"double" , "Value":1, "Description":"RMSE value" }
+        Args.MaxIterations = { "Type":"int" , "Value":4, "Description":"Max number of iterations" }
+        Args.GlobalAlpha = { "Type":"double" , "Value":0.15, "Description":"Global alpha VDF parameter" }
+        Args.GlobalBeta =  { "Type":"double" , "Value":4.0, "Description":"Global beta VDF parameter" }
+        Args.AssignIterations = { "Type":"int" , "Value":100, "Description":"Max number of assignment iterations" }
+        Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence" }
+    
+    Section = "Email Notifications"
+    
+        Args.SendEmails = { "Type":"boolean" , "Value":0, "Description":"Send emails at model checkpoints." }
+        Args.SMTPServer = { "Type":"string" , "Value":"<ServerName>", "Description":"Name of SMPT Server." }
+        Args.PortNumber = { "Type":"int" , "Value":587, "Description":"SMPT Port" }
+        Args.FromAddress = { "Type":"string" , "Value":"<FromEmailAddress>", "Description":"From Email Address." }
+        Args.ToAddress = { "Type":"string" , "Value":"<ToEmailAddress>", "Description":"To Email Addtess." }
+        Args.ccAddresses = { "Type":"array" , "Value":{"<emailaddress1>","<emailaddress2>"}, "Description":"List of emeil addresses for CC." }
+    
+    Section = "Runtime Parameters"
+    
+        Args.AskToContinue = { "Type":"int" , "Value":0, "Description":"Ask if to continue iterating" }
+        Args.[Disable Steps] = { "Type":"array" , "Value":null, "Description":"List of disabled step names for each scenario" }
+        Args.RunInIterations = { "Type":"array" , "Value":null, "Description":"Option array listing step names and what iteration they run in each scenario" }
+        Args.ExitMessage = { "Type":"hidden" , "Value":"OK", "Description":"Diagnostic error message." }
+        Args.Version = { "Type":"double" , "Value":1, "Description":"Version number" }
+        Args.[Application Version] = { "Type":"double" , "Value":8, "Description":"TransCAD Full 8" }
+        Args.DoNotVerifyUI = { "Type":"hidden" , "Value":1, "Description":"Skip UI verification." }
+        Args.BatchMode = { "Type":"hidden" , "Value":1, "Description":"Requires TransCAD Batch Macro Environment (TCB)" }
+        Args.Exit = { "Type":"hidden" , "Value":null, "Description":"A step can set it to True and the model will stop running." }
+        Args.Iteration = { "Type":"int" , "Value":1, "Description":"Iteration number. Use it to run this model multiple times." }
