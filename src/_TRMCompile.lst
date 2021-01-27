@@ -2,7 +2,7 @@ TRMControl.rsc
 01 - CreateScenario.rsc
 02 - InitialProcessing.rsc
 utils/utils.rsc
-utils/project_management/HighwayProjectManagement.rsc
-utils/project_management/TransitProjectManagement.rsc
+utils/HighwayProjectManagement.rsc
+utils/TransitProjectManagement.rsc
 resident/DisaggegateSED.rsc
 resident/PopulationSynthesis.rsc

@@ -1,7 +1,14 @@
-    Section = "Geographic Data"
+    Section = "Folders"
     
-        Args.[Base Folder] = { "Type":"folder" , "Value":"%Model Folder%", "Description":"Scenario base folder. Must be a full path." }
-        Args.[Output Folder] = { "Type":"folder" , "Value":"%Model Folder%\\Outputs", "Description":"Output scenario folder. Must be a full path." }
+        Args.[Base Folder] = { "Type":"folder" , "Value":"%Model Folder%", "Description":"Model folder. Must be a full path." }
+        Args.[Master Folder] = { "Type":"folder" , "Value":"%Base Folder%\\master", "Description":"Master folder. Must be a full path." }
+        Args.Scenario = { "Type":"string" , "Value":"base_2016", "Description":"Same as scenario folder name" }
+        Args.[Scenario Folder] = { "Type":"folder" , "Value":"%Base Folder%\\scenarios\\%Scenario%", "Description":"Scenario folder. Must be a full path." }
+        Args.[Input Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder. Must be a full path." }
+        Args.[Output Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder. Must be a full path." }
+    
+    Section = "Files"
+
         Args.TablePath = { "Type":"hidden" , "Value":"Set at Runtime", "Description":"Tables folder" }
         Args.HWYDB = { "Type":"File" , "Value":"%Base Folder%\\PLAN_NET.DBD", "Description":"Build Highway Network Opts.Input.[Link Set]" }
         Args.Network = { "Type":"NETWORK" , "Value":"%Output Folder%\\PlanningNetwork.net", "Description":"Build Highway Network" }
@@ -14,7 +21,7 @@
         Args.Assign_FlowTable = { "Type":"TABLE" , "Value":"%Output Folder%\\ASN_LinkFlow.bin", "Description":"Assignment Flow Output", "VisualizeMenu": {"FlowMap"} }
         Args.AssignIterationLog = { "Type":"TABLE" , "Value":"%Output Folder%\\IterationLog.bin", "Description":"Assignment Iteration Log", "VisualizeMenu": {"ConvChart"} }
         Args.AssignVMT = { "Type":"TABLE" , "Value":"%Output Folder%\\VMTVHT.bin", "Description":"Assignment Iteration Log" }
-    
+
     Section = "Matrix Data Files"
     
         Args.MatrixExtension = { "Type":"string" , "Value":".MTX", "Style":"MatrixOptionList" }

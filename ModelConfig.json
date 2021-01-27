@@ -9,6 +9,7 @@
         "Scenarios": "trmg2.scenarios",
         "Parameters": ["src\\flow_chart\\trmg2.parameters"],
         "Styles": ["src\\flow_chart\\common.styles"],
+        "Plugins": ["src\\flow_chart\\trmg2_plugin_macros.rsc"],
         "Menus": ["src\\flow_chart\\trmg2_menu.rsc"]
     }
 }
