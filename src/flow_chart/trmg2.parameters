@@ -1,7 +1,7 @@
     Section = "Files|Master"
     
-        Args.[Base Folder] = { "Type":"hidden" , "Value":"%Model Folder%", "Description":"Model folder. Must be a full path." }
-        Args.[Master Folder] = { "Type":"folder" , "Value":"%Model Folder%\\master", "Description":"Master folder. Must be a full path." }
+        Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
+        Args.[Master Folder] = { "Type":"folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
         Args.[Master Transit] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_transit.rts", "Description":"Master transit routes" }
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
@@ -9,12 +9,13 @@
     
     Section = "Files|Scenario|Input"
     
-        Args.[Scenario Folder] = { "Type":"folder" , "Value":"%Model Folder%\\scenarios", "Description":"Scenario folder. Must be a full path." }
-        Args.[Input Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder. Must be a full path." }
-    
-    Section = "Files|Scenario|Output"
-    
-        Args.[Output Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder. Must be a full path." }
+        Args.[Scenarios Folder] = { "Type":"folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
+        Args.[Scenario Folder] = { "Type":"folder" , "Value":"%Scenarios Folder%\\base_2016", "Description":"Scenario folder" }
+        Args.[Input Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder" }
+        
+    Section = "Files|Scenario|Output"        
+        
+        Args.[Output Folder] = { "Type":"folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
     
     Section = "Numeric Parameters"
     

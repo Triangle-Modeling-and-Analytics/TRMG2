@@ -61,7 +61,7 @@ menu "TRMG2 Menu"
             ShowMessage("Choose a scenario (not 'Model')")
             return()
         end
-        if Args.[Scenario Folder] = Args.[Model Folder] + "\\scenarios" then do
+        if Args.[Scenario Folder] = null then do
             ShowMessage(
                 "Choose a folder for the current scenario\n" +
                 "(Parameters -> Files -> Scenario -> Input)"
@@ -69,7 +69,6 @@ menu "TRMG2 Menu"
             return()
         end
 
-        RunMacro("Create Scenario", Args)
-        enditem 
-
+        mr.RunCode("Create Scenario", Args)
+        enditem
 endMenu 

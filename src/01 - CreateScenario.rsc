@@ -4,6 +4,8 @@ Builds a scenario from master files
 
 Macro "Create Scenario" (Args)
 
+  scen_dir = Args.[Scenario Folder]
+
   // Check if anything has already been created in the scenario directory
   dir = Args.scen_dir + "/inputs/*"
   if GetDirectoryInfo(dir, "All") <> null then do
@@ -19,10 +21,10 @@ Macro "Create Scenario" (Args)
 
   if yesno = "Yes" or yesno = null then do
     RunMacro("Create Folder Structure", Args)
-    RunMacro("Copy TAZ", Args)
-    RunMacro("Create Scenario SE", Args)
-    RunMacro("Create Scenario Highway", Args)
-    RunMacro("Create Scenario Transit", Args)
+    // RunMacro("Copy TAZ", Args)
+    // RunMacro("Create Scenario SE", Args)
+    // RunMacro("Create Scenario Highway", Args)
+    // RunMacro("Create Scenario Transit", Args)
   end
 EndMacro
 
@@ -31,7 +33,6 @@ EndMacro
 */
 
 Macro "Create Folder Structure" (Args)
-  UpdateProgressBar("Create Folder Structure", 0)
 
   // copy the master directory structure to the scenario input directory
   opts = null
