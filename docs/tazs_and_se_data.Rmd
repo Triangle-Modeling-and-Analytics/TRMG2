@@ -321,7 +321,10 @@ each blockgroup, Caliper computed the percentage of children and seniors.
 The ACSs data on age is provided for total population and not population in
 households. This means that some block groups with high group quarters
 populations could have extreme values for children and seniors. The histogram
-below shows the count of block groups by percent children and seniors.
+below shows the count of block groups by percent children and seniors. A minimum
+percentage was asserted for both children and seniors at 2.5%. This prevents
+TAZs with 1,000 or more household population from having unrealistically low
+levels of children and seniors (the ACS is a survey, not a full enumeration).
 
 ```{r}
 calc_age_pct <- acs_bg %>%
@@ -352,13 +355,13 @@ calc_age_pct <- acs_bg %>%
       tract_tot > 200 ~ tract_pct_child,
       TRUE ~ cnty_pct_child
     ),
-    # Pct_Child = ifelse(Pct_Child < 5, 5, Pct_Child),
+    Pct_Child = ifelse(Pct_Child < 2.5, 2.5, Pct_Child),
     Pct_Senior = case_when(
       hh_pop > 50 ~ round(hh_senior / hh_pop * 100, 1),
       tract_tot > 200 ~ tract_pct_senior,
       TRUE ~ cnty_pct_senior
-    )
-    # Pct_Senior = ifelse(Pct_Senior < 5, 5, Pct_Senior),
+    ),
+    Pct_Senior = ifelse(Pct_Senior < 2.5, 2.5, Pct_Senior),
   )
 
 pct_tbl <- calc_age_pct %>%
@@ -378,18 +381,6 @@ ggplot(data = pct_tbl) +
     plot.title = element_text(hjust = .5),
     legend.position = "none"
   )
-```
-
-```{r}
-# Based on these distributions, Caliper set 5% as the minimum for children and
-# seniors per TAZ. Seniors are also capped at 50%.
-
-# cap_age <- calc_age_pct %>%
-#   mutate(
-#     Pct_Child = max(5, Pct_Child),
-#     Pct_Senior = max(5, Pct_Senior),
-#     Pct_Senior = min(50, Pct_Senior),
-#   )
 ```
 
 Next, each TAZ within a block group was assigned the same percentages. Age
