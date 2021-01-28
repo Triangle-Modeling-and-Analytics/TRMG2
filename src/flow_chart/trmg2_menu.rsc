@@ -54,7 +54,22 @@ menu "TRMG2 Menu"
         do 
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        ShowMessage("Not implemented yet")
+        {, scen_name} = mr.GetScenario()
+
+        // Check that a scenario is selected and that a folder has been chosen
+        if scen_name = null then do
+            ShowMessage("Choose a scenario (not 'Model')")
+            return()
+        end
+        if Args.[Scenario Folder] = Args.[Model Folder] + "\\scenarios" then do
+            ShowMessage(
+                "Choose a folder for the current scenario\n" +
+                "(Parameters -> Files -> Scenario -> Input)"
+            )
+            return()
+        end
+
+        RunMacro("Create Scenario", Args)
         enditem 
 
 endMenu 
