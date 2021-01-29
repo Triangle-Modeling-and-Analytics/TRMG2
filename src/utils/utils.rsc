@@ -1,5 +1,6 @@
 /*
-Closes any views and maps
+Closes any views and maps. Does not call "G30 File Close All", because that
+would close the flowchart.
 */
 
 Macro "Close All" (scen_dir)
@@ -7,14 +8,17 @@ Macro "Close All" (scen_dir)
   // Close maps
   maps = GetMapNames()
   if maps <> null then do
-    for i = 1 to maps.length do
-      CloseMap(maps[i])
+    for map in maps do
+      CloseMap(map)
     end
   end
 
-  // Close any views
-  RunMacro("TCB Init")
-  RunMacro("G30 File Close All")
+  {views, , } = GetViews()
+  if views <> null then do
+    for view in views do
+      CloseView(view)
+    end
+  end
 endMacro
 
 /*
