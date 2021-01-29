@@ -55,6 +55,7 @@ Macro "Highway Project Management" (MacroOpts)
   {nlyr, llyr} = GetDBLayers(hwy_dbd)
   llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
   nlyr = AddLayerToWorkspace(nlyr, hwy_dbd, nlyr)
+  {llyr_f_names, llyr_f_specs} = RunMacro("Get Fields", {view_name: llyr})
 
   // Check validity of project definitions
   fix_master = RunMacro("Check Project Group Validity", llyr)
@@ -120,7 +121,7 @@ Macro "Highway Project Management" (MacroOpts)
     end
   end
 
-  // Delete links with nulls for all attributes.
+  // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.
   // Re-export instead.
   SetLayer(llyr)
@@ -128,11 +129,15 @@ Macro "Highway Project Management" (MacroOpts)
     field = attrList[f]
     if f = 1 then qtype = "several" else qtype = "more"
 
-    query = "Select * where " + field + " = -99"
+    spec = llyr_f_specs.(field)
+    {field_type, , } = GetFieldInfo(spec)
+    if field_type = "String"
+      then query = "Select * where " + field + " = '-99'"
+      else query = "Select * where " + field + " = -99"
     to_del = SelectByQuery("to delete", qtype, query)
-  end
+  end  
   if to_del > 0 then do
-    to_exp = SetInvert("to export", "to delete")
+    to_exp = SetInvert("to export", "to delete")    
     if to_exp = 0 then Throw("No links have attributes")
     a_path = SplitPath(hwy_dbd)
     new_dbd = a_path[1] + a_path[2] + a_path[3] + "_temp" + a_path[4]

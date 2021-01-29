@@ -22,7 +22,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Create Folder Structure", Args)
     RunMacro("Copy TAZ", Args)
     RunMacro("Create Scenario SE", Args)
-    // RunMacro("Create Scenario Highway", Args)
+    RunMacro("Create Scenario Highway", Args)
     // RunMacro("Create Scenario Transit", Args)
   end
 
@@ -151,7 +151,7 @@ Macro "Create Scenario Highway" (Args)
   // Update the network using the project manager
   opts = null
   opts.hwy_dbd = scen_hwy
-  opts.proj_list = Args.[Scenario Folder] + "/HighwayProjectList.csv"
+  opts.proj_list = Args.[Scenario Folder] + "/RoadwayProjectList.csv"
   opts.master_dbd = master_hwy
   RunMacro("Highway Project Management", opts)
 

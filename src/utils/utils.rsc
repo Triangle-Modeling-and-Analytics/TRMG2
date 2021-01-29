@@ -22,6 +22,19 @@ Macro "Close All" (scen_dir)
 endMacro
 
 /*
+Removes any progress bars open
+*/
+
+Macro "Destroy Progress Bars"
+  on notfound goto quit
+  while 0 < 1 do
+    DestroyProgressBar()
+  end
+  quit:
+  on notfound default
+EndMacro
+
+/*
 Adds a field to a view.
 
   * `MacroOpts`
@@ -515,3 +528,60 @@ Macro "Catalog Files" (dir, ext)
 
   return(a_files)
 EndMacro
+
+/*
+Makes it easy to get properly bracketed field names and specs that you can
+reference with simple field name strings.
+
+Inputs
+  * view_name
+    * String
+    * Name of view to get field info from
+  * field_type
+    * Optional string
+    * Defaults to "All"
+    * Field types to get info for
+  * named_array
+    * Boolean
+    * Defaults to "true"
+    * Whether to returned a named or flat list (see Returns)
+    * If "false", functions the same as GetFields()
+  
+Returns
+  * If `named_array = "true"`
+    * An array with two items
+      * Named array of field names
+      * Named array of field specs
+  * If `named_array = "false"`
+    * An array with two items
+      * Simple array of field names
+      * Simple array of field specs    
+*/
+
+Macro "Get Fields" (MacroOpts)
+
+  view_name = MacroOpts.view_name
+  field_type = MacroOpts.field_type
+  named_array = MacroOpts.named_array
+
+  if field_type = null then field_type = "All"
+  if named_array = null then named_array = "true"
+
+  {names, specs} = GetFields(view_name, field_type)
+  
+  if !named_array then return({names, specs})
+
+  // Continue if returning a named array
+  for i = 1 to names.length do
+    name = names[i]
+    spec = specs[i]
+
+    array_name = if Left(name, 1) = "[" and Right(name, 1) = "]"
+      then Substring(name, 2, StringLength(name) - 2)
+      else name
+    
+    name_result.(array_name) = name
+    spec_result.(array_name) = spec
+  end
+  return({name_result, spec_result})
+endmacro
