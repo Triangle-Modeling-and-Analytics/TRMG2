@@ -13,8 +13,12 @@ Macro "DisaggregateSED"(Args)
     // Open SED Data and check table for missing fields
     obj = CreateObject("AddTables", {TableName: Args.SEData})
     vwSED = obj.TableView
-    flds = {"TAZ", "PUMA5", "Type", "HH", "HH_Pop", "Median_Inc", "Pct_Worker"}
-    ExportView(vwSED + "|", "FFB", Args.SEDMarginals, flds,)
+    flds = {"TAZ", "Type", "HH", "HH_Pop", "Median_Inc", "Pct_Worker", "Pct_Child", "Pct_Senior"}
+    expOpts.[Additional Fields] = {{"Kids", "Integer", 12,,,,},
+                                   {"AdultsUnder65", "Integer", 12,,,,},
+                                   {"Seniors", "Integer", 12,,,,},
+                                   {"PUMA5", "Integer", 12,,,,}}
+    ExportView(vwSED + "|", "FFB", Args.SEDMarginals, flds, expOpts)
     obj = null
 
     obj = CreateObject("AddTables", {TableName: Args.SEDMarginals})
@@ -32,6 +36,24 @@ Macro "DisaggregateSED"(Args)
     // 3. ==== Workers
     opt = {View: vw, Curve: Args.WorkerCurves, KeyExpression: "((Pct_Worker/100)*HH_Pop)/HH", LookupField: "avg_workers"}
     RunMacro("Disaggregate SE HH Data", opt)
+
+    // Fill number of kids, adults and seniors
+    vecs = GetDataVectors(vw + '|', {"HH_Pop", "Pct_Child", "Pct_Senior"}, {OptArray: 1})
+    vecsSet = null
+    vecsSet.Kids = r2i(vecs.HH_Pop * vecs.Pct_Child/100)
+    vecsSet.Seniors = r2i(vecs.HH_Pop * vecs.Pct_Senior/100)
+    vecsSet.AdultsUnder65 = vecs.HH_Pop - vecsSet.Kids - vecsSet.Seniors
+    SetDataVectors(vw + '|', vecsSet,)
+
+    // Fill PUMA5 field using PUMA info from the master TAZ database
+    objLyrs = CreateObject("AddDBLayers", {FileName: Args.TAZDB})
+    {TAZLayer} = objLyrs.Layers
+    vwJ = JoinViews("SED_TAZ", GetFieldFullSpec(vw, "TAZ"), GetFieldFullSpec(TAZLayer, "ID"),)
+    v = GetDataVector(vwJ + "|", "PUMA",)
+    vOut = s2i(Right(v,5))
+    SetDataVector(vwJ + "|", "PUMA5", vOut,)
+    CloseView(vwJ)
+    objLyrs = null
 
     obj = null
     ret_value = 1
