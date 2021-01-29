@@ -14,26 +14,26 @@ macro "sort project groups"
 endmacro
 
 /*
-A function to manage scenario network creation from a master highway database.
+A function to manage scenario network creation from a master roadway database.
 
 Inputs (all in a named array)
   * `hwy_dbd`
     * String
-    * Full path to highway network to update
+    * Full path to roadway network to update
   * `proj_list`
     * String
     * CSV file of project IDs. Must contain a single column titled "ProjID" with
       a proj ID on each row.
   * `master_dbd`
     * String
-    * Full path to master highway network to be cleaned (if necessary)
+    * Full path to master roadway network to be cleaned (if necessary)
 
 Returns  
 Nothing. Destructively modifies `hwy_dbd` by changing the base attributes with
 the project attributes.
 */
 
-Macro "Highway Project Management" (MacroOpts)
+Macro "Roadway Project Management" (MacroOpts)
 
   hwy_dbd = MacroOpts.hwy_dbd
   proj_list = MacroOpts.proj_list
@@ -51,7 +51,7 @@ Macro "Highway Project Management" (MacroOpts)
   CloseView(csv_tbl)
   DeleteFile(Substitute(proj_list, ".csv", ".DCC", ))
 
-  // Open the highway dbd
+  // Open the roadway dbd
   {nlyr, llyr} = GetDBLayers(hwy_dbd)
   llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
   nlyr = AddLayerToWorkspace(nlyr, hwy_dbd, nlyr)

@@ -313,10 +313,10 @@ Macro "Create Map" (MacroOpts)
   // Create the map if a RTS file was passed
   if file_type = "rts" then do
 
-    // Get the RTS's highway file
+    // Get the RTS's roadway file
     opts = null
     opts.rts_file = file
-    hwy_dbd = RunMacro("Get RTS Highway File", opts)
+    hwy_dbd = RunMacro("Get RTS Roadway File", opts)
     {scope, label, rev} = GetDBInfo(hwy_dbd)
     opts = null
     opts.Scope = scope

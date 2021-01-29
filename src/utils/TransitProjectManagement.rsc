@@ -49,7 +49,7 @@ Inputs
 
     scen_hwy
       String
-      Full path to the scenario highway dbd that will have the routes loaded.
+      Full path to the scenario roadway dbd that will have the routes loaded.
 
     centroid_qry
       String
@@ -66,7 +66,7 @@ Inputs
       The file name desired for the output route system.
       Defaults to "ScenarioRoutes.rts".
       Do not include the full path. The route system will always be created
-      in the same folder as the scenario highway file.
+      in the same folder as the scenario roadway file.
 
 Outputs
   Creates a new RTS file in the same folder as scen_hwy
@@ -93,7 +93,7 @@ Macro "Transit Project Management" (MacroOpts)
   centroid_qry = RunMacro("Normalize Query", centroid_qry)
   if output_rts_file = null then output_rts_file = "ScenarioRoutes.rts"
 
-  // Set the output directory to be the same as the scenario highway
+  // Set the output directory to be the same as the scenario roadway
   a_path = SplitPath(scen_hwy)
   out_dir = a_path[1] + a_path[2]
   out_dir = RunMacro("Normalize Path", out_dir)
@@ -281,7 +281,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   opts = null
   opts.llyr = llyr
   opts.centroid_qry = centroid_qry
-  net_file = RunMacro("Create Simple Highway Net", opts)
+  net_file = RunMacro("Create Simple Roadway Net", opts)
 
   // Get the name of the master (copy) route layer
   {, , a_info} = GetRouteSystemInfo(master_rts_copy)
@@ -436,12 +436,12 @@ Macro "Check Scenario Route System" (MacroOpts)
   output_rts_file = MacroOpts.output_rts_file
   out_dir = MacroOpts.out_dir
 
-  // Create path to the copy of the master rts and highway files
+  // Create path to the copy of the master rts and roadway files
   {drive, path, filename, ext} = SplitPath(master_rts)
   master_rts_copy = out_dir + "/" + filename + ext
   opts = null
   opts.rts_file = master_rts_copy
-  master_hwy_copy = RunMacro("Get RTS Highway File", opts)
+  master_hwy_copy = RunMacro("Get RTS Roadway File", opts)
 
   // Get project IDs from the project list and convert to route ids on both
   // the master and scenario route systems.

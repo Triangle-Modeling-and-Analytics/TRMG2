@@ -22,7 +22,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Create Folder Structure", Args)
     RunMacro("Copy TAZ", Args)
     RunMacro("Create Scenario SE", Args)
-    RunMacro("Create Scenario Highway", Args)
+    RunMacro("Create Scenario Roadway", Args)
     // RunMacro("Create Scenario Transit", Args)
   end
 
@@ -130,10 +130,10 @@ EndMacro
 /*
 - copies the master network into the scenario directory
 - standardizes name
-- uses the highway project manager
+- uses the roadway project manager
 */
 
-Macro "Create Scenario Highway" (Args)
+Macro "Create Scenario Roadway" (Args)
 
   // Remove any dbd files in the directory
   dir = Args.[Input Folder] + "/networks"
@@ -142,7 +142,7 @@ Macro "Create Scenario Highway" (Args)
     DeleteDatabase(a_dbds[i])
   end
 
-  // Copy the master highway network into the scenario folder
+  // Copy the master roadway network into the scenario folder
   master_hwy = Args.[Master Links]
   scen_hwy = Args.Links
   if GetFileInfo(scen_hwy) <> null then DeleteFile(scen_hwy)
@@ -153,7 +153,7 @@ Macro "Create Scenario Highway" (Args)
   opts.hwy_dbd = scen_hwy
   opts.proj_list = Args.[Scenario Folder] + "/RoadwayProjectList.csv"
   opts.master_dbd = master_hwy
-  RunMacro("Highway Project Management", opts)
+  RunMacro("Roadway Project Management", opts)
 
   RunMacro("Close All")
 EndMacro
