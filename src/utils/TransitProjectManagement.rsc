@@ -132,9 +132,10 @@ Macro "Create Scenario Route System" (MacroOpts)
   {master_rts_copy, master_hwy_copy} = RunMacro("Copy RTS Files", opts)
 
   // Get project IDs from the project list
-  proj_df = CreateObject("df")
-  proj_df.read_csv(proj_list)
-  v_pid = proj_df.get_col("ProjID")
+  proj = OpenTable("projects", "CSV", {proj_list, })
+  v_pid = GetDataVector(proj + "|", "ProjID", )
+  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
 
   // Convert the project IDs into route IDs
   opts = null
@@ -193,7 +194,7 @@ Macro "Create Scenario Route System" (MacroOpts)
     {"missing_node", "Integer", 10,,,,,
     "1: a stop in the master rts could not find a nearby node"}
   }
-  RunMacro("Add Fields", slyr, a_fields, {1, , , 0})
+  RunMacro("Add Fields", {view: slyr, a_fields: a_fields, initial_values:{1, , , 0}})
 
   // Create a selection set of centroids on the node layer. These will be
   // excluded so that routes do not pass through them. Also create a
@@ -416,7 +417,7 @@ Macro "Update Scenario Attributes" (MacroOpts)
 
   // Tag stops to nodes within
   a_field = {{"Node_ID", "Integer", 10, , , , , "ID of node closest to stop"}}
-  RunMacro("Add Fields", slyr, a_field,)
+  RunMacro("Add Fields", {view: slyr, a_fields: a_field})
   n = TagRouteStopsWithNode(rlyr,,"Node_ID",.2)
 
   CloseMap(map)
@@ -445,9 +446,11 @@ Macro "Check Scenario Route System" (MacroOpts)
 
   // Get project IDs from the project list and convert to route ids on both
   // the master and scenario route systems.
-  proj_df = CreateObject("df")
-  proj_df.read_csv(proj_list)
-  v_pid = proj_df.get_col("ProjID")
+  proj = OpenTable("projects", "CSV", {proj_list, })
+  v_pid = GetDataVector(proj + "|", "ProjID", )
+  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
+  CloseView(proj)
   opts = null
   opts.rts_file = master_rts_copy
   opts.v_pid = v_pid

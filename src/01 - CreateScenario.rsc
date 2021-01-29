@@ -23,7 +23,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Copy TAZ", Args)
     RunMacro("Create Scenario SE", Args)
     RunMacro("Create Scenario Roadway", Args)
-    // RunMacro("Create Scenario Transit", Args)
+    RunMacro("Create Scenario Transit", Args)
   end
 
   return()
@@ -193,3 +193,4 @@ Macro "Create Scenario Transit" (Args)
   )
   CloseMap(map)
 EndMacro
+

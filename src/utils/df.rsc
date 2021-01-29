@@ -904,7 +904,7 @@ Class "df" (tbl, desc, groups)
 
       width = self.new_field_width(self.tbl.(field))
       a_fields =  {{field, type, width, 2,,,, ""}}
-      RunMacro("Add Fields", view, a_fields, )
+      RunMacro("Add Fields", {view: view, a_fields: a_fields})
     end
 
     SetDataVectors(view + "|" + set, self.tbl, )
