@@ -177,6 +177,8 @@ Macro "Create Scenario Transit" (Args)
   opts.scen_hwy = Args.Links
   opts.proj_list = scen_dir + "/TransitProjectList.csv"
   opts.centroid_qry = "Centroid = 1"
+  {, , rts_name, ext} = SplitPath(scen_rts)
+  opts.output_rts_file = rts_name + ext
   RunMacro("Transit Project Management", opts)
 
   // Check that no centroids are marked for PNR. This will cause
