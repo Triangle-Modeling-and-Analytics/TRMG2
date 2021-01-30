@@ -169,7 +169,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   /*
   Add stop layer fields. The tour table required to create a fresh route
   system requires the following fields:
-  Route_Number
+  Master_Route_ID
   Node_ID
   Stop_Flag
   Stop_ID
@@ -177,7 +177,7 @@ Macro "Create Scenario Route System" (MacroOpts)
 
   On a freshly-created route system, only the following fields are present
   on the stop layer:
-  Route_ID (can be renamed to Route_Number)
+  Route_ID (can be renamed to Master_Route_ID)
   STOP_ID (can be renamed to Stop_ID)
 
   Thus, the following fields must be created:
@@ -261,7 +261,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   // "Creating a Route System from a Tour Table", and is in the drop down
   // menu Route Systems -> Utilities -> Create from table...
   // Fields:
-  // Route_Number
+  // Master_Route_ID
   // Node_ID
   // Stop_Flag
   // Stop_ID
@@ -269,11 +269,11 @@ Macro "Create Scenario Route System" (MacroOpts)
   create_df = stop_df.copy()
   create_df.rename(
     {"Route_ID", "STOP_ID", "Stop Name"},
-    {"Route_Number", "Stop_ID", "Stop_Name"}
+    {"Master_Route_ID", "Stop_ID", "Stop_Name"}
   )
   create_df.filter("missing_node <> 1")
   create_df.select(
-    {"Route_Number", "Node_ID", "Stop_Flag", "Stop_ID", "Stop_Name"}
+    {"Master_Route_ID", "Node_ID", "Stop_Flag", "Stop_ID", "Stop_Name"}
   )
   tour_table = out_dir + "/create_rts_from_table.bin"
   create_df.write_bin(tour_table)
@@ -316,8 +316,9 @@ Macro "Create Scenario Route System" (MacroOpts)
   scen_df.read_bin(
     Substitute(output_rts_file, ".rts", "R.bin", )
   )
+
   scen_df.remove({"Route_Name", "Time", "Distance"})
-  scen_df.left_join(master_df, "Route_Number", "Route_ID")
+  scen_df.left_join(master_df, "Master_Route_ID", "Route_ID")
   scen_df.desc = CopyArray(master_df.desc)
   scen_df.update_bin(
     Substitute(output_rts_file, ".rts", "R.bin", )
@@ -424,7 +425,7 @@ Macro "Update Scenario Attributes" (MacroOpts)
 EndMacro
 
 /*
-
+Creates a CSV with stats on how well the route system transfer did
 */
 
 Macro "Check Scenario Route System" (MacroOpts)
@@ -481,6 +482,7 @@ Macro "Check Scenario Route System" (MacroOpts)
   {scen_map, {rlyr_s, slyr_s, , , llyr_s}} = RunMacro("Create Map", opts)
   // Compare route lengths between master and scenario
   data = null
+
   for i = 1 to v_rev_pid.length do
     pid = v_rev_pid[i]
     rid_m = v_rid_m[i]
