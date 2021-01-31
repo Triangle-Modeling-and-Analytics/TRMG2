@@ -12,13 +12,18 @@
         Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
         Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2016", "Description":"Scenario folder" }
         Args.[Input Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder" }
-        Args.Links = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_links.dbd", "Description":"Scenario roadway links" }
-        Args.Routes = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario routes" }
-        Args.SE = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario se data" }
+        Args.[Input Links] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_links.dbd", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.[Input Routes] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario input routes. Created during scenario creation." }
+        Args.[Input TAZs] = { "Type":"File" , "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd", "Description":"Master TAZs" }
+        Args.[Input SE] = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario input se data. Created during scenario creation." }
         
     Section = "Files|Scenario|Output"        
         
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
+        Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
+        Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
+        Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
+        Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
     
     Section = "Numeric Parameters"
     

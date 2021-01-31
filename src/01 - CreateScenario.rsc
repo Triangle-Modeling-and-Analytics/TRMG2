@@ -82,16 +82,7 @@ Macro "Copy TAZ" (Args)
   end
 
   // Create the TAZ file
-  taz_dir = Args.[Master Folder] + "\\tazs"
-  a_files = GetDirectoryInfo(taz_dir + "/*.dbd", "File")
-  if a_files.length > 1 then Throw(
-    "There are multiple DBD files in the master TAZ folder.\n" +
-    "Leave only the official TAZ layer of the model."
-  )
-  CopyDatabase(
-    taz_dir + "\\" + a_files[1][1],
-    Args.[Input Folder] + "\\taz\\ScenarioTAZ.dbd"
-  )
+  CopyDatabase(Args.[Master TAZs], Args.[Input TAZs])
 
 EndMacro
 
@@ -115,7 +106,7 @@ Macro "Create Scenario SE" (Args)
 
   // Export se data into the scenario folder
   master_se = OpenTable("master_se", "FFB", {Args.[Master SE]})
-  scen_se = Args.SE
+  scen_se = Args.[Input SE]
   if GetFileInfo(scen_se) <> null then DeleteTableFiles("FFB", scen_se, )
   ExportView(
     master_se + "|",
@@ -144,7 +135,7 @@ Macro "Create Scenario Roadway" (Args)
 
   // Copy the master roadway network into the scenario folder
   master_hwy = Args.[Master Links]
-  scen_hwy = Args.Links
+  scen_hwy = Args.[Input Links]
   if GetFileInfo(scen_hwy) <> null then DeleteFile(scen_hwy)
   CopyDatabase(master_hwy, scen_hwy)
 
@@ -167,14 +158,14 @@ EndMacro
 Macro "Create Scenario Transit" (Args)
 
   // Remove any RTS files in the directory
-  scen_rts = Args.Routes
+  scen_rts = Args.[Input Routes]
   if GetFileInfo(scen_rts) <> null then DeleteRouteSystem(scen_rts)
 
   // Create scenario RTS using project manager
   scen_dir = Args.[Scenario Folder]
   opts = null
   opts.master_rts = Args.[Master Routes]
-  opts.scen_hwy = Args.Links
+  opts.scen_hwy = Args.[Input Links]
   opts.proj_list = scen_dir + "/TransitProjectList.csv"
   opts.centroid_qry = "Centroid = 1"
   {, , rts_name, ext} = SplitPath(scen_rts)
@@ -184,7 +175,7 @@ Macro "Create Scenario Transit" (Args)
   // Check that no centroids are marked for PNR. This will cause
   // transit skimming to crash.
   opts = null
-  opts.file = Args.Links
+  opts.file = Args.[Input Links]
   {map, {nlyr, llyr}} = RunMacro("Create Map", opts)
   SetLayer(nlyr)
   qry = "Select * where Centroid = 1 and PNR = 1"
