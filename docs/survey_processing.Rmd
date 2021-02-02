@@ -320,17 +320,21 @@ prep_trip_2016 <- trips_2016_raw %>%
     tripNum = str_pad(tripNum, 3, "left", "0"),
     tripid = paste0(hhID, personid, tripNum),
     mode = case_when(
-      mode == 1 ~ "auto_own",
-      mode == 2 & mode_othauto == 1 ~ "auto_work",
-      mode == 2 & mode_othauto == 2 ~ "auto_rental",
-      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
-      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
-      mode == 2 ~ "auto_other",
+      mode == 1 ~ "own_car",
+      mode == 2 & mode_othauto == 1 ~ "work_car",
+      mode == 2 & mode_othauto == 2 ~ "rental_car",
+      mode == 2 & mode_othauto %in% 3:4 ~ "friends_car",
+      mode == 2 & mode_othauto == 5 ~ "carshare",
+      mode == 2 & mode_othauto == 6 ~ "taxi",
+      mode == 2 & mode_othauto == 7 ~ "tnc",
+      mode == 2 & mode_othauto == 8 ~ "vanpool",
+      mode == 2 ~ "other_auto",
       mode == 3 & mode_bus %in% c(1, 2, 5) ~ "bus",
       mode == 3 & mode_bus %in% 3:4 ~ "school_bus",
+      mode == 3 & mode_bus == 6 ~ "shuttle",
       mode == 3 & mode_bus == 7 ~ "vanpool",
       mode == 3 & mode_bus == 8 ~ "paratransit",
-      mode == 3 ~ "bus_other",
+      mode == 3 ~ "other_bus",
       mode == 4 ~ "walk",
       mode == 5 ~ "bike",
       mode == 6 ~ "other"
@@ -357,17 +361,21 @@ prep_trip_2018 <- trips_2018_raw %>%
     tripnum = str_pad(tripnum, 3, "left", "0"),
     tripid = as.character(tripid),
     mode = case_when(
-      mode == 1 ~ "auto_own",
-      mode == 2 & mode_othauto == 1 ~ "auto_work",
-      mode == 2 & mode_othauto == 2 ~ "auto_rental",
-      mode == 2 & mode_othauto == 3 ~ "auto_taxi",
-      mode == 2 & mode_othauto == 7 ~ "auto_tnc",
-      mode == 2 ~ "auto_other",
+      mode == 1 ~ "own_car",
+      mode == 2 & mode_othauto == 1 ~ "work_car",
+      mode == 2 & mode_othauto == 2 ~ "rental_car",
+      mode == 2 & mode_othauto %in% 3:4 ~ "friends_car",
+      mode == 2 & mode_othauto == 5 ~ "carshare",
+      mode == 2 & mode_othauto == 6 ~ "taxi",
+      mode == 2 & mode_othauto == 7 ~ "tnc",
+      mode == 2 & mode_othauto == 8 ~ "vanpool",
+      mode == 2 ~ "other_auto",
       mode == 3 & mode_bus %in% c(1, 2, 4) ~ "bus",
       mode == 3 & mode_bus == 3 ~ "school_bus",
+      mode == 3 & mode_bus == 5 ~ "shuttle",
       mode == 3 & mode_bus == 6 ~ "vanpool",
       mode == 3 & mode_bus == 7 ~ "paratransit",
-      mode == 3 ~ "bus_other",
+      mode == 3 ~ "other_bus",
       mode == 4 ~ "walk",
       mode == 5 ~ "bike",
       mode == 6 ~ "other"
@@ -1203,7 +1211,7 @@ flagged_only  <- bus_flag  %>%
     linked_modes = paste(unique(mode), collapse = " "),
     across(
       c(mode, num_hh_members:num_nonhh),
-      ~ .x[duration == max(duration, na.rm = TRUE)]
+      ~ .x[duration == max(duration, na.rm = TRUE)][1]
     ),
     across(
       c(vehiclenum:taxi_cost_dontknow, park_lat, park_lng, year),
@@ -1857,6 +1865,13 @@ eda_scheme6 %>%
   kable() %>%
   kable_styling() %>%
   row_spec(which(eda_scheme6$homebased == "NH"), background = "lightgray")
+
+add_trip_type <- scheme6 %>%
+  unite(
+    c(tour_type, homebased, purp_scheme, dur_scheme),
+    col = "trip_type",
+    remove = FALSE
+  )
 ```
 
 ```{r eda_scheme7, eval=FALSE}
@@ -1939,7 +1954,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  scheme7,
+  add_trip_type,
   "data/output/_PRIVATE/survey_processing/trips_processed.csv",
   na = ""
 )
