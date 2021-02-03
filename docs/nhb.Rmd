@@ -1,0 +1,63 @@
+---
+title: "Non-Homebased Trips"
+author: "Caliper Corporation"
+date: "2/2/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+source("R/estimate_nhb.R")
+```
+
+## R Markdown
+
+```{r, include = FALSE}
+trips <- read_csv(
+  "data/output/_PRIVATE/survey_processing/trips_processed.csv") %>%
+  mutate(trip_type = paste0(trip_type, "_", mode_simple2))
+```
+
+```{r}
+terms_to_use <- c(
+  "W_HB_O_All_hov",
+  "W_HB_W_All_sov",
+  "W_HB_O_All_sov",
+  "W_HB_EK12_All_hov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_hov"
+)
+
+model <- estimate_nhb(trips, "W_NH_WR_All_sov", dependent_vars = terms_to_use)
+View(model)
+```
+
+```{r}
+terms_to_use <- c(
+  "N_HB_OD_Long_sov",
+  "N_HB_OD_Short_sov",
+  "N_HB_OME_All_hov",
+  "N_HB_OD_Short_hov",
+  "N_HB_K12_All_hov",
+  "N_HB_K12_All_school_bus",
+  "N_HB_K12_All_sov",
+  "N_HB_OME_All_sov",
+  "N_HB_OD_Long_walk",
+  "N_HB_OMED_All_hov",
+  "N_HB_OD_Long_bus"
+)
+
+
+
+model <- estimate_nhb(trips, "N_NH_O_All_sov", dependent_vars = NULL)
+View(model)
+
+estimate_nhb2(trips, "N_NH_O_All_sov", dependent_vars = NULL)
+```
+
