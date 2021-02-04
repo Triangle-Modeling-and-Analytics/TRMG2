@@ -4,6 +4,8 @@ Builds a scenario from master files
 
 Macro "Create Scenario" (Args)
 
+  pbar = CreateObject("G30 Progress Bar", "Scenario Creation", "False", )
+
   scen_dir = Args.[Scenario Folder]
   // Check if anything has already been created in the scenario directory
   dir = Args.[Input Folder] + "/*"
