@@ -3,7 +3,7 @@
         Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
         Args.[Master Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
-        Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_transit.rts", "Description":"Master transit routes" }
+        Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
         Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\se_data\\se_2016.bin", "Description":"Master SE data bin file" }
     
