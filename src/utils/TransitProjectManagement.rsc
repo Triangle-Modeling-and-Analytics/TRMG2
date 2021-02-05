@@ -61,6 +61,12 @@ Inputs
       String
       Full path to the CSV file containing the list of routes to include
 
+    delete_shape_stops
+      Boolean (default true)
+      Whether or not to remove shape stops after transferring routes. Should
+      be true when creating scenario networks. Setting it to false is helpful
+      when transferring master routes to a new link layer.
+
     output_rts_file
       Optional String
       The file name desired for the output route system.
@@ -84,6 +90,7 @@ Macro "Transit Project Management" (MacroOpts)
   proj_list = MacroOpts.proj_list
   centroid_qry = MacroOpts.centroid_qry
   output_rts_file = MacroOpts.output_rts_file
+  delete_shape_stops = MacroOpts.delete_shape_stops
 
   // Argument checking
   if master_rts = null then Throw("'master_rts' not provided")
@@ -92,6 +99,7 @@ Macro "Transit Project Management" (MacroOpts)
   if centroid_qry = null then Throw("'centroid_qry' not provided")
   centroid_qry = RunMacro("Normalize Query", centroid_qry)
   if output_rts_file = null then output_rts_file = "ScenarioRoutes.rts"
+  if delete_shape_stops = null then delete_shape_stops = "true"
 
   // Set the output directory to be the same as the scenario roadway
   a_path = SplitPath(scen_hwy)
@@ -103,6 +111,7 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.output_rts_file = output_rts_file
   MacroOpts.centroid_qry = centroid_qry
   MacroOpts.out_dir = out_dir
+  MacroOpts.delete_shape_stops = delete_shape_stops
 
   RunMacro("Create Scenario Route System", MacroOpts)
   RunMacro("Update Scenario Attributes", MacroOpts)
@@ -122,6 +131,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   centroid_qry = MacroOpts.centroid_qry
   output_rts_file = MacroOpts.output_rts_file
   out_dir = MacroOpts.out_dir
+  delete_shape_stops = MacroOpts.delete_shape_stops
 
   // Make a copy of the master_rts into the output directory to prevent
   // this macro from modifying the actual master RTS.
@@ -245,11 +255,13 @@ Macro "Create Scenario Route System" (MacroOpts)
   // are used to improve the accuracy of the resulting route, but should
   // not be assigned as stops. Handle those here. Test to make sure the
   // shape_stop field exists so as not to make this field a requirement.
-  if stop_df.in("shape_stop", stop_df.colnames()) then do
-    v_shape_stop = stop_df.get_col("shape_stop")
-    v_stop_flag = stop_df.get_col("Stop_Flag")
-    v_stop_flag = if (v_shape_stop = 1) then 0 else 1
-    stop_df.mutate("Stop_Flag", v_stop_flag)
+  if delete_shape_stops then do
+    if stop_df.in("shape_stop", stop_df.colnames()) then do
+      v_shape_stop = stop_df.get_col("shape_stop")
+      v_stop_flag = stop_df.get_col("Stop_Flag")
+      v_stop_flag = if (v_shape_stop = 1) then 0 else 1
+      stop_df.mutate("Stop_Flag", v_stop_flag)
+    end
   end
 
   // In order to draw routes to nodes in the right order, sort by
