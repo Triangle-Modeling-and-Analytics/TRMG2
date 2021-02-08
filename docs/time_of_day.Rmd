@@ -22,7 +22,7 @@ library(kableExtra)
 
 # Introduction
 This page details the steps taken to determine the most appropriate time period
-definitions for the Triangle Regional Model (TRM). Caliper used the processed
+definitions for the Triangle Regional Model (TRMG2). Caliper used the processed
 household survey to perform the analysis.
 
 ```{r read survey, include = FALSE}
@@ -273,11 +273,17 @@ am_peak_to <- chron(times. = c("9:00:00"))
 
 # pm_peak_from <- pm_min_from
 # pm_peak_to <- pm_max_to
-pm_peak_from <- chron(times. = c("15:00:00"))
-pm_peak_to <- chron(times. = c("18:00:00"))
+pm_peak_from <- chron(times. = c("15:30:00"))
+pm_peak_to <- chron(times. = c("18:15:00"))
 ```
 
 ## Final Period Definitions {#final_defs}
+
+Based on the trips in motion profile, there are four distinct periods of the
+day. AM and PM peaks have the highest intensity of trip making, followed by
+mid-day, with the overnight period containing the fewest trips in motion. 
+Boundaries for these periods are defined such that the variance of trips in
+motion within periods is smallest while variance between periods is largest.
 
 The final period definitions are shown in the table below including the mid-day
 (MD) period. The remaining hours of the day are captured in the night (NT)
