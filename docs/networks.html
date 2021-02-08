@@ -11,6 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
+<meta name="date" content="2021-02-08" />
 
 <title>Networks</title>
 
@@ -402,32 +403,32 @@ div.tocify {
 
 <h1 class="title toc-ignore">Networks</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">1/14/2021</h4>
+<h4 class="date">February 8, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with sattelite imagery in order to fashion a new master network for both roadways and transit.</p>
+<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with satellite imagery in order to fashion a new master network for both roadways and transit.</p>
 </div>
 <div id="roadway-network" class="section level2">
 <h2>Roadway Network</h2>
 <div id="creation-of-the-master-network" class="section level3">
 <h3>Creation of the master network</h3>
-<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tools is covered in the user’s guide.</p>
+<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider during transportation plan development (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tool is covered in the user guide.</p>
 <p>The previous highway network made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the network. It also makes the model’s GISDK code easier to read.</p>
-<p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user’s guide.</p>
-<p>The Caliper team also updated the master network to reflect a 2016 base year during model estimation (the final network is a 2020 base year). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
+<p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user guide.</p>
+<p>The Caliper team also updated the master network to reflect a 2016 base year, the target year for model estimation (the final network is a 2020 base year and will be accompanied by a 2020 year model validation process). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
 </div>
 <div id="update-of-count-data" class="section level3">
 <h3>Update of count data</h3>
-<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection specifically for the model. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
+<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection effort undertaken specifically for model validation. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
 <p>The previous model used a separate table to hold count data which then had to be joined to the network to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master network directly. This makes it easier to compare (either manually or in code) between model volumes and count data. Additional information (such as hourly counts) can still be maintained in a separate table and joined to the network only as needed.</p>
 </div>
 <div id="network-conflation" class="section level3">
 <h3>Network conflation</h3>
-<p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added in some places to reflect reality.</p>
+<p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added if they were missing.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/capital_before.png" alt="Capital before and after" width="49%" height="20%" /><img src="img/networks/capital_after.png" alt="Capital before and after" width="49%" height="20%" />
 <p class="caption">
@@ -453,7 +454,7 @@ All-Streets Network
 </div>
 <div id="review-of-the-master-network" class="section level3">
 <h3>Review of the master network</h3>
-<p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well- over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
+<p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
 <p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks. The increased confidence that nothing was broken. Additionally, every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. See the before and after images below.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/path_before.png" alt="Pathing before and after" width="49%" height="20%" /><img src="img/networks/path_after.png" alt="Pathing before and after" width="49%" height="20%" />
@@ -724,7 +725,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
