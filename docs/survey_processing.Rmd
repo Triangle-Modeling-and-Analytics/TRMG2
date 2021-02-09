@@ -1171,18 +1171,28 @@ s_check <- add_key %>%
   select(key, o_place, d_place) %>%
   group_by(key) %>%
   mutate(
-    o_s_check = ifelse("S" %in% o_place, 1, 0),
-    d_s_check = ifelse("S" %in% d_place, 1, 0)
+    o_s_check = ifelse(any(str_detect(o_place, "S")), 1, 0),
+    d_s_check = ifelse(any(str_detect(d_place, "S")), 1, 0)
   ) %>%
   summarize(
     o_s_check = max(o_s_check),
     d_s_check = max(d_s_check)
   )
 
+add_s_check <- add_key %>%
+  left_join(s_check, by = "key") %>%
+  group_by(personid, tour_num) %>%
+  mutate(
+    d_s_check = ifelse(lead(o_s_check) == 1, 1, d_s_check),
+    o_s_check = ifelse(lag(d_s_check) == 1, 1, o_s_check),
+    d_s_check = ifelse(is.na(d_s_check), 0, d_s_check),
+    o_s_check = ifelse(is.na(o_s_check), 0, o_s_check)
+  )
+
+
 # Use logic to identify pu/do trips. Many of the SCH? activities are actually
 # pu/do.
-fix_pudo <- add_key %>%
-  left_join(s_check, by = "key") %>%
+fix_pudo <- add_s_check %>%
   mutate(
     # flag trips where the logic identifies DO before changing purpose
     d_do_flag = case_when(
