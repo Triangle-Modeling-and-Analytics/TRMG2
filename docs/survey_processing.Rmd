@@ -1450,7 +1450,7 @@ scheme1 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1464,8 +1464,8 @@ scheme1 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "NH" ~ purp_scheme,
-      o_activity %in% c("POS", "DOS") ~ "EK12",
-      a_activity %in% c("POS", "DOS") ~ "EK12",
+      o_activity %in% c("PUS", "DOS") ~ "EK12",
+      a_activity %in% c("PUS", "DOS") ~ "EK12",
       o_activity == "EK12" | a_activity == "EK12" ~ "EK12",
       o_activity == "EAT" | a_activity == "EAT" ~ "EAT",
       o_activity %in% c("W", "WR") | a_activity %in% c("W", "WR") ~ "WR",
@@ -1481,7 +1481,7 @@ scheme1 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "N" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("PUS", "DOS") ~ "K12",
       purp_scheme %in% c("K12", "SHP", "EAT", "OM", "OMED") ~ purp_scheme,
       TRUE ~ "OD"
     ),
@@ -1522,7 +1522,7 @@ scheme2 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1597,7 +1597,7 @@ scheme3 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1656,7 +1656,7 @@ scheme4 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1721,7 +1721,7 @@ scheme5 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1788,7 +1788,7 @@ scheme6 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "EK12",
+      purp_scheme %in% c("PUS", "DOS") ~ "EK12",
       purp_scheme %in% c("W", "EK12") ~ purp_scheme,
       TRUE ~ "O"
     ),
@@ -1801,8 +1801,8 @@ scheme6 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "NH" ~ purp_scheme,
-      o_activity %in% c("POS", "DOS") ~ "EK12",
-      a_activity %in% c("POS", "DOS") ~ "EK12",
+      o_activity %in% c("PUS", "DOS") ~ "EK12",
+      a_activity %in% c("PUS", "DOS") ~ "EK12",
       o_activity == "EK12" | a_activity == "EK12" ~ "EK12",
       o_activity %in% c("W", "WR") | a_activity %in% c("W", "WR") ~ "WR",
       TRUE ~ "O"
@@ -1816,7 +1816,7 @@ scheme6 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "N" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("PUS", "DOS") ~ "K12",
       purp_scheme == "K12" ~ "K12",
       purp_scheme == "OMED" ~ "OMED",
       purp_scheme %in% c("SHP", "EAT", "OM") ~ "OME",
@@ -1909,7 +1909,7 @@ scheme7 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "N" ~ purp_scheme,
       homebased != "HB" ~ purp_scheme,
-      purp_scheme %in% c("POS", "DOS") ~ "K12",
+      purp_scheme %in% c("PUS", "DOS") ~ "K12",
       purp_scheme == "K12" ~ "K12",
       purp_scheme %in% c("SHP", "EAT", "OM", "OMED") ~ "OME",
       TRUE ~ "OD"
