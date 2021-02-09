@@ -19,4 +19,6 @@ documentation.
 - TRMG2: Triangle Regional Model Generation 2
 - ITRE: Insitute for Transportation Research and Education
 - RTP: Research Triangle Park
+- ACS: American Community Survey
+- NHTS: National Household Travel Survey
 - TAZ: Traffic Analysis Zone

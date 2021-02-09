@@ -829,7 +829,7 @@ as home, the place was marked as home. If the trip end was within 10 meters of
 home and the place name contained some keywords (e.g. "home", "dog", "mailbox"),
 it was also marked as home.
 
-Determining school locations presentd a slightly different challenge. There
+Determining school locations present a slightly different challenge. There
 wasn't as much consistency in place naming compared to the standard "home".
 Instead, people responded with "school", "university", or often the name of
 the school. Fortunately, the person file contained the school location for each
@@ -889,8 +889,17 @@ det_home_place <- change_time %>%
     d_place = ifelse(is.na(d_place), "O", d_place),
     d_place = ifelse(destination_name == "HOME", "H", d_place)
   ) %>%
-  select(-home_loc_lat, -home_loc_lng) %>%
-  # correct home activities that don't happen at home
+  select(-home_loc_lat, -home_loc_lng)
+
+non_home_problems <- det_home_place %>%
+  filter(
+    (o_activity == "H" & o_place != "H") |
+      (d_activity == "H" & d_place != "H")
+  ) %>%
+  nrow()  
+  
+    # correct home activities that don't happen at home
+fix_home_activities <- det_home_place %>%
   mutate(
     o_activity = ifelse(o_activity == "H" & o_place != "H", "OD", o_activity),
     d_activity = ifelse(d_activity == "H" & d_place != "H", "OD", d_activity)
@@ -905,7 +914,7 @@ school_loc <- per_add_flags %>%
   filter(!is.na(school_lat) & home_loc_address != school_address) %>%
   select(-hhid, -home_loc_address)
 
-det_sch_place <- det_home_place %>%
+det_sch_place <- fix_home_activities %>%
   left_join(school_loc, by = "personid") %>%
   mutate(
     o_sch_dist = calc_dist(origin_lng, origin_lat, school_lng, school_lat),
@@ -962,11 +971,12 @@ det_work_place <- det_sch_place %>%
   relocate(d_place, .after = o_place)
 ```
 
-### Mode simplification
+### Mode code simplification
 
-The table below shows how the survey mode field was simplified into the model
-modes. For the auto mode, occupancy was used to split into single-occupancy
-(sov) and high-occupancy (hov).
+The table below shows how the survey mode field was simplified. For the auto
+mode, occupancy was used to split into single-occupancy (sov) and high-occupancy
+(hov). Final are established in the mode choice documentation, but these are
+used for the purpose of exploratory analysis later in this document.
 
 ```{r simplify_mode}
 mode_equiv <- read_csv(
@@ -1023,23 +1033,23 @@ is much simpler. Rather than requiring detailed tour information to support
 coordinated activity patterns within a household (as in activity-based models),
 tours can be classified simply as work or non-work.
 
-For each person in the survey, a tour begins with their first trip and ends when
-they return home. A second tour starts if they leave home again. Most tours are
-classified as work if the traveler has a work activity during the tour. If they
-do not, then the tour is classified as non-work. A small number of tours have a
-work activity during the tour, but the duration of that activity is short (less
-than 2 hours) or they spend twice as long somewhere else as at work. These tours
-are classified as non-work.
+For example, for each person in the survey, a tour begins with their first trip
+and ends when they return home. A second tour starts if they leave home again.
+Most tours are classified as work if the traveler has a work activity during the
+tour. If they do not, then the tour is classified as non-work. A small number of
+tours have a work activity during the tour, but the duration of that activity is
+short (less than 2 hours) or they spend twice as long somewhere else as at work.
+These tours are classified as non-work.
 
 There is a third tour type ("home"), that handles cases where the survey reports
-trips within the home. For example, when a respondent reports being at home and
-then working from home, the survey includes that as a trip. Home tours also
+trips within the home. For example, some respondents report being at home and
+then working from home as a trip (other respondents do not). Home tours also
 capture things like recreational walks that start and end at the home. For the
-purpose of travel modeling, these home tours are ignored in TRMG2; however, 
-this segmentation scheme would allow for the addition of non-motorized "loop"
-tours without any reported stops for improved non-motorized trip modeling in
-a future version of the model without requiring any changes to the existing 
-trip purposes. 
+purpose of travel modeling, these home tours are ignored in TRMG2; however, this
+segmentation scheme would allow for the addition of non-motorized "loop" tours
+without any reported stops for improved non-motorized trip modeling in a future
+version of the model without requiring any changes to the existing trip
+purposes.
 
 ```{r tour_formation}
 determine_tours <- simplify_mode %>%
@@ -1116,7 +1126,7 @@ flip_to_nt <- flag_loop_trips %>%
 ```
 
 
-### Problems
+### Data cleaning
 
 ```{r}
 num_sch_problems <- flip_to_nt %>%
@@ -1254,7 +1264,12 @@ fix_bus <- fix_remaining_sch %>%
   select(-bus_flag)
 ```
 
-There were numerous problems detected in the survey. These include:
+The collection of travel behavior survey data is a challenging task and problems
+can arise in the data due to a number of factors that can either be attributed
+to respondent coding errors, data reporting errors, or survey design issues.
+Caliper performed various logic checks on the data to identify systematic issues
+with the data that required cleaning before the final estimation data set
+could be created. These include:
 
 - School activities reported by non-students (`r num_sch_problems` trips)
   - Pickup/Dropoff coded as school (300 trips)
@@ -1265,12 +1280,12 @@ There were numerous problems detected in the survey. These include:
 - Kids marked as homeschool but go to traditional school on travel day for
   school activity (30)
 - Students without school address in person file (195)
-- Home activities reported at non-home locations (e.g. "In-laws house") (2,147)
-  - This is after we extended the home definition to be 100m around the home (for things like 'front yard' and 'tractor shed')
+- Home activities reported at non-home locations (e.g. "In-laws house") 
+  (`r non_home_problems`)
 
-These problems were identified and cleaned such that each person's trip diary
-was internally logically consistent with itself and externally consistent with
-the diaries of other household members. 
+These issues were identified and the data cleaned such that each person's trip
+diary was internally logically consistent with itself and externally consistent
+with the diaries of other household members.
 
 ### Trip linking
 
@@ -1283,9 +1298,9 @@ way to work. This allows us to model them separately from other non-home-based
 trips without needing to link them together.
 
 For this model, trip linking was only performed to remove mode transfers at bus
-stops. The survey treated parking location as an attribute of the trip rather an
-origin or destination, which meant no processing was required, rather linking 
-for this mode transfer was included in the delivered survey data.
+stops. The survey treated parking location as an attribute of the trip rather
+than an origin or destination, which meant no processing was required, rather
+linking for this mode transfer was included in the delivered survey data.
 
 ```{r link_out_bus}
 bus_flag <- fix_bus %>%
@@ -1381,15 +1396,16 @@ flip_to_pa <- xfer_linked_out %>%
 
 ### Geocoding and skims
 
-A critical step in processing the trip table is to geocode trip ends to the
-model's zone system. This allows important model metrics like travel impedance
-skims and socio-economic data to be associated with trip making behavior.
+A critical step in processing the survey trip table is to geocode the trip ends
+to the model's zone system. This allows important model metrics like travel
+impedance skims and socio-economic data to be associated with trip making
+behavior.
 
-The survey provides a lat/long pair for each origin, destination, and parking
-location (if applicable). Each of these was used to locate the appropriate
-TRMG2 TAZ. Some of these locations fall outside the model region and do not
-receive a TAZ ID. These trips will be ignored during estimation of the internal
-resident trip models.
+The survey records include a lat/long pair for each origin, destination, and
+parking location (if applicable). Each of these was used to append the
+appropriate TRMG2 TAZ to the data record. Some of these locations fell outside
+the model region and did not receive a TAZ ID. These trips will be ignored during
+estimation of the internal resident trip models.
 
 ```{r, include=FALSE}
 tazs <- st_read("data/input/tazs/tazs 2020-12-08.shp") %>%
@@ -1501,31 +1517,52 @@ add_se_data <- add_skim_info %>%
   mutate(a_emp = sum(c_across(c(a_ind:a_ret))))
 ```
 
-## Exploratory Analysis
+## Exploratory Data Analysis
 
-With the trip table fully processed, exploratory analysis was used to determine
-the trip purposes most appropriate for the Triangle. Several classification
-schemes were investigated, and each one classified trips by the following
-categories:
+With the trip records fully processed, exploratory data analysis was used to
+determine the trip types most appropriate for the Triangle region. Several
+classification schemes were investigated, and each one classified trips by the
+following categories:
 
 - Tour type (work or non-work)
 - Home-based (home-based or non-home-based)
 - Purpose
 - Destination activity duration (over or under 30 minutes)
   
-Each classification was then summarized to produce 25 different metrics like
-total trips, average trip length, and correlations to different variables. The
-table below provides a sample of these metrics for one of the classification
-schemes tested.
+Each classification was then summarized to produce 25 different metrics
+including total trips, average trip length, mode and time of day shares, and
+correlations to different variables. The table below provides a sample of these
+metrics for one of the classification schemes tested.
 
-**TODO: Update this with the final scheme when selected**
+Column definitions:
 
-- `Is Worker (r)`: Correlation between trip making and work status
-- `Is Child (r)`: Correlation between trip making and being <18
-- `Employment (r)`: Correlation between trips attracted to a zone and employment
-- `AM (%)`: Percentage of trips in the AM period
-- `HOV (%)`: Percentage of trips using the high-occupancy vehicle mode
-- `Trip Length`: Mean trip length
+- **TourType**
+  - `W`: Work
+  - `N`: Non-work
+- **Homebased**
+  - `H`: Home-based (one trip end at home)
+  - `N`: Non-home-based
+- **Purpose**
+  - Work tours:
+    - `W`: Work
+    - `WR`: Work related (e.g. a delivery)
+    - `EK12`: Escort child to school
+    - `O`: Other
+  - Non-work tours:
+    - `K12`: school (K-12)
+    - `OME`: Maintenance, shopping, dining
+    - `OMED`: Medical
+- **Duration**
+  - `Long`: Activity above 30 minutes
+  - `Short`: Activity below 30 minutes
+  - `All`: Long and short durations (meaning duration was not used to stratify)
+- **Is Worker (r)**: Correlation between trip making and work status
+- **Is Child (r)**: Correlation between trip making and age <18
+- **Employment (r)**: Correlation between trips attracted to a zone and zonal
+  employment
+- **AM (%)**: Percentage of trips in the AM period (7:00 am - 9:00 am)
+- **HOV (%)**: Percentage of trips using the high-occupancy vehicle mode
+- **Trip Length**: Average trip length
 
 ```{r}
 prep_for_eda <- add_se_data %>%
@@ -1939,7 +1976,7 @@ scheme6 <- prep_for_eda %>%
       homebased != "NH" ~ purp_scheme,
       a_activity %in% c("OM", "EAT", "SHP") | 
         p_activity %in% c("OM", "EAT", "SHP") ~ "OME",
-      a_activity == "K12" | p_activity == "K12" ~ "K12-O/OME",
+      a_activity == "K12" | p_activity == "K12" ~ "K12",
       TRUE ~ "O"
     ),
     dur_scheme = case_when(
@@ -1978,6 +2015,12 @@ add_trip_type <- scheme6 %>%
     remove = FALSE
   )
 ```
+
+For example, the table above shows that if a person is a workers, they are more
+likely to take trips on work tours and less likely to take trips on non-work
+tours. Escort K12 trips are almost 100% HOV as expected (some parents walk their
+kids to school). Medical trips (OMED) have a much longer trip length than other
+non-home-based trips.
 
 ```{r eda_scheme7, eval=FALSE}
 # Scheme 7 is a collapse of scheme6
@@ -2043,6 +2086,10 @@ scheme7 <- prep_for_eda %>%
 
 eda_scheme7 <- person_eda(scheme7)
 ```
+
+## Summary
+
+*TODO: add summary*
 
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
