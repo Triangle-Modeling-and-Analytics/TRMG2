@@ -1,6 +1,0 @@
-
-24
-"STOP_ID",I,1,4,0,9,0,,"","",,"Sum",
-"shape_stop",I,5,4,0,9,0,,"","Used to improve route alignments during scenario creation||The transit project manager uses shortest paths between transit|stops to transfer routes from the master road network to the|scenario. Shape stops are used to improve this fit, but are then|deleted by the manager. This means they are not considered|actual stops during the model run.",,"Sum",
-"dwell_on",R,9,8,0,10,2,,"","",,"Sum",
-"dwell_off",R,17,8,0,10,2,,"","",,"Sum",

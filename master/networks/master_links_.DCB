@@ -1,8 +1,7 @@
 TRMG2 Master Network
-48
-"xyz_id",I,1,4,0,4,0,,"","",,"Sum",
-"Centroid",I,5,4,0,8,0,,"","Nodes on the network where travel can begin/end.|||1: the node is a centroid|0: not a centroid",,"Blank",
-"External",I,9,4,0,8,0,,"","1: the node is an external centroid/station|0: is not||All external stations are centroids. Not all centroids|are external stations.",,"Blank",
-"PNR",I,13,4,0,8,0,,"","1: Node is used for park and ride|0: Not used for park and ride",,"Sum",
-"PnR Category1",C,17,16,0,16,0,,"","not used. delete later.",,"Blank",
-"PnR Category2",C,33,16,0,16,0,,"","not used. delete later.",,"Blank",
+20
+"ID",I,1,4,0,4,0,,"","",,"Sum",
+"ID:1",I,5,4,0,10,0,,"","",,"Sum",
+"Centroid",I,9,4,0,8,0,,"","Nodes on the network where travel can begin/end.|||1: the node is a centroid|0: not a centroid",,"Blank",
+"External",I,13,4,0,8,0,,"","1: the node is an external centroid/station|0: is not||All external stations are centroids. Not all centroids|are external stations.",,"Blank",
+"PNR",I,17,4,0,8,0,,"","",,"Sum",
