@@ -3,12 +3,15 @@ Handle initial steps like capacity and speed calculations.
 */
 
 Macro "Initial Processing" (Args)
+  
   RunMacro("Create Output Copies", Args)
   // RunMacro("Determine Area Type", Args)
   // RunMacro("Capacity", Args)
   // RunMacro("Set CC Speeds", Args)
   // RunMacro("Other Attributes", Args)
   // RunMacro("Filter Transit Settings", Args)
+
+  return(1)
 EndMacro
 
 /*
@@ -22,7 +25,7 @@ Macro "Create Output Copies" (Args)
 
   opts = null
   opts.from_rts = Args.[Input Routes]
-  {drive, folder, filename, ext} = SplitPath(Args.[Input Routes])
+  {drive, folder, filename, ext} = SplitPath(Args.Routes)
   opts.to_dir = drive + folder
   opts.include_hwy_files = "true"
   RunMacro("Copy RTS Files", opts)
