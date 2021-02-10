@@ -1,0 +1,13 @@
+
+
+/**
+  The macro "trmg2" holds the definition for the graphical flowchart of this model,
+  with steps and links connecting steps.
+**/
+Macro "trmg2" (Args)
+//    Activity-Based Nested Logit Model
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Descri
+    model = FlowChart(null,null,null)
+    Return(model)
+endMacro

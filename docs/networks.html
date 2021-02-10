@@ -11,6 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
+<meta name="date" content="2021-02-08" />
 
 <title>Networks</title>
 
@@ -27,6 +28,8 @@
 <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
 <script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -400,32 +403,32 @@ div.tocify {
 
 <h1 class="title toc-ignore">Networks</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">1/14/2021</h4>
+<h4 class="date">February 8, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with sattelite imagery in order to fashion a new master network for both roadways and transit.</p>
+<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with satellite imagery in order to fashion a new master network for both roadways and transit.</p>
 </div>
 <div id="roadway-network" class="section level2">
 <h2>Roadway Network</h2>
 <div id="creation-of-the-master-network" class="section level3">
 <h3>Creation of the master network</h3>
-<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tools is covered in the user’s guide.</p>
+<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider during transportation plan development (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tool is covered in the user guide.</p>
 <p>The previous highway network made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the network. It also makes the model’s GISDK code easier to read.</p>
-<p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user’s guide.</p>
-<p>The Caliper team also updated the master network to reflect a 2016 base year during model estimation (the final network is a 2020 base year). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
+<p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user guide.</p>
+<p>The Caliper team also updated the master network to reflect a 2016 base year, the target year for model estimation (the final network is a 2020 base year and will be accompanied by a 2020 year model validation process). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
 </div>
 <div id="update-of-count-data" class="section level3">
 <h3>Update of count data</h3>
-<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection specifically for the model. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
+<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection effort undertaken specifically for model validation. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
 <p>The previous model used a separate table to hold count data which then had to be joined to the network to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master network directly. This makes it easier to compare (either manually or in code) between model volumes and count data. Additional information (such as hourly counts) can still be maintained in a separate table and joined to the network only as needed.</p>
 </div>
 <div id="network-conflation" class="section level3">
-<h3>Network Conflation</h3>
-<p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added in some places to reflect reality.</p>
+<h3>Network conflation</h3>
+<p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added if they were missing.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/capital_before.png" alt="Capital before and after" width="49%" height="20%" /><img src="img/networks/capital_after.png" alt="Capital before and after" width="49%" height="20%" />
 <p class="caption">
@@ -433,30 +436,242 @@ Capital before and after
 </p>
 </div>
 </div>
+<div id="adding-all-streets" class="section level3">
+<h3>Adding all streets</h3>
+<p>After conflating the existing links to improve alignments with aerials, Caliper upgraded the network to include all streets. These additional streets provide a much better representation of the walk and transit paths travelers actually take, and are shown in orange below.</p>
+<div class="figure" style="text-align: center">
+<img src="img/networks/all_streets.png" alt="All-Streets Network" width="60%" height="40%" />
+<p class="caption">
+All-Streets Network
+</p>
+</div>
+<p>Caliper added a <code>PrimaryLink</code> field to the line layer. It can be used to easily select the gray or orange links depending on what the user wants to do.</p>
+<ul>
+<li><code>PrimaryLink = 1</code>: Gray links</li>
+<li><code>PrimaryLink = 0</code>: Orange links</li>
+</ul>
+<p>These queries will also be used to make roadway and transit network creation easier. The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers.</p>
+</div>
 <div id="review-of-the-master-network" class="section level3">
 <h3>Review of the master network</h3>
-<p>With all the changes mentioned above, it was important to check that the new master network’s projects matched the previous. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well- over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
-<p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks (that nothing was broken). Every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. See the before and after images below.</p>
+<p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
+<p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks. The increased confidence that nothing was broken. Additionally, every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. See the before and after images below.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/path_before.png" alt="Pathing before and after" width="49%" height="20%" /><img src="img/networks/path_after.png" alt="Pathing before and after" width="49%" height="20%" />
 <p class="caption">
 Pathing before and after
 </p>
 </div>
-<p>A small number of OD pairs were reviewed with changes &lt;30%, but everything was reasonable.</p>
-</div>
-<div id="complete-streets" class="section level3">
-<h3>Complete Streets</h3>
-<p>Placeholder documentation:</p>
-<ul>
-<li>Stakeholders decided to move forward with the all-streets addition 1/14</li>
-<li>This will add a large number of additional streets to the model line layer for the purpose of walk/bike/transit pathing.</li>
-</ul>
+<p>A small number of OD pairs were reviewed with changes &lt;30%, but each one was reasonable.</p>
 </div>
 </div>
 <div id="transit-networks" class="section level2">
 <h2>Transit Networks</h2>
-<p>To be added.</p>
+<p>TRMG2 adds a master layer for transit routes along with a project manager specially designed to transfer routes accurately between line layers. This enhancement greatly reduces the burden of coding and managing projects between various base and future year scenarios.</p>
+<p>More detail on how to use the new tools are included in the user’s guide, but information on the creation of the master route system requires a basic understanding of the tool. In short, the transit project manager finds the shortest path between route stops to reconstruct the route on a new layer. This approach struggles when route stops are not frequent enough to get an accurate path, but TRMG2 solves this problem using “shape stops”. These are extra stops along the route that are used to improve alignment, but are then removed.</p>
+<p>The maps below give a good example of a potential problem when transferring routes between layers using only stop locations only. The shortest path between stops is not always the route a bus takes.</p>
+<div class="figure" style="text-align: center">
+<img src="img/networks/1%20route%20without%20shape%20points.png" alt="Transferring without shape points" width="49%" height="20%" /><img src="img/networks/2%20route%20without%20shape%20points%20result.png" alt="Transferring without shape points" width="49%" height="20%" />
+<p class="caption">
+Transferring without shape points
+</p>
+</div>
+<p>The maps below show how a single shape stop solves the alignment problem while maintaining the correct number of stops.</p>
+<div class="figure" style="text-align: center">
+<img src="img/networks/3%20route%20with%20shape%20points.png" alt="Transferring with shape points" width="49%" height="20%" /><img src="img/networks/4%20route%20with%20shape%20points%20result.png" alt="Transferring with shape points" width="49%" height="20%" />
+<p class="caption">
+Transferring with shape points
+</p>
+</div>
+<p>Each time a scenario is created, the transit project manager writes out a file next to the route system detailing how accurate the transfer went. This is achieved by comparing lengths before and after as well as checking for any missed stops. Shape stops can be added until the match is exact, but minor differences in route lengths do not have a measurable impact on model results. The table below provides a sample of the comparison table.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+projid
+</th>
+<th style="text-align:right;">
+master_route_id
+</th>
+<th style="text-align:right;">
+scenario_route_id
+</th>
+<th style="text-align:right;">
+master_length
+</th>
+<th style="text-align:right;">
+scenario_length
+</th>
+<th style="text-align:right;">
+diff
+</th>
+<th style="text-align:right;">
+pct_diff
+</th>
+<th style="text-align:right;">
+missing_stops
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+250
+</td>
+<td style="text-align:right;">
+99
+</td>
+<td style="text-align:right;">
+9.2
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+-0.1
+</td>
+<td style="text-align:right;">
+-1.2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+278
+</td>
+<td style="text-align:right;">
+106
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+9.6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+-0.2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+328
+</td>
+<td style="text-align:right;">
+132
+</td>
+<td style="text-align:right;">
+14.4
+</td>
+<td style="text-align:right;">
+14.3
+</td>
+<td style="text-align:right;">
+-0.1
+</td>
+<td style="text-align:right;">
+-0.8
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+329
+</td>
+<td style="text-align:right;">
+133
+</td>
+<td style="text-align:right;">
+14.3
+</td>
+<td style="text-align:right;">
+14.2
+</td>
+<td style="text-align:right;">
+-0.1
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+48
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+49
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+4.2
+</td>
+<td style="text-align:right;">
+4.2
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 <br>
@@ -510,7 +725,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

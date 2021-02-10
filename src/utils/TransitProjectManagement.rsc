@@ -49,7 +49,7 @@ Inputs
 
     scen_hwy
       String
-      Full path to the scenario highway dbd that will have the routes loaded.
+      Full path to the scenario roadway dbd that will have the routes loaded.
 
     centroid_qry
       String
@@ -61,12 +61,18 @@ Inputs
       String
       Full path to the CSV file containing the list of routes to include
 
+    delete_shape_stops
+      Boolean (default true)
+      Whether or not to remove shape stops after transferring routes. Should
+      be true when creating scenario networks. Setting it to false is helpful
+      when transferring master routes to a new link layer.
+
     output_rts_file
       Optional String
       The file name desired for the output route system.
       Defaults to "ScenarioRoutes.rts".
       Do not include the full path. The route system will always be created
-      in the same folder as the scenario highway file.
+      in the same folder as the scenario roadway file.
 
 Outputs
   Creates a new RTS file in the same folder as scen_hwy
@@ -84,6 +90,7 @@ Macro "Transit Project Management" (MacroOpts)
   proj_list = MacroOpts.proj_list
   centroid_qry = MacroOpts.centroid_qry
   output_rts_file = MacroOpts.output_rts_file
+  delete_shape_stops = MacroOpts.delete_shape_stops
 
   // Argument checking
   if master_rts = null then Throw("'master_rts' not provided")
@@ -92,8 +99,9 @@ Macro "Transit Project Management" (MacroOpts)
   if centroid_qry = null then Throw("'centroid_qry' not provided")
   centroid_qry = RunMacro("Normalize Query", centroid_qry)
   if output_rts_file = null then output_rts_file = "ScenarioRoutes.rts"
+  if delete_shape_stops = null then delete_shape_stops = "true"
 
-  // Set the output directory to be the same as the scenario highway
+  // Set the output directory to be the same as the scenario roadway
   a_path = SplitPath(scen_hwy)
   out_dir = a_path[1] + a_path[2]
   out_dir = RunMacro("Normalize Path", out_dir)
@@ -103,6 +111,7 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.output_rts_file = output_rts_file
   MacroOpts.centroid_qry = centroid_qry
   MacroOpts.out_dir = out_dir
+  MacroOpts.delete_shape_stops = delete_shape_stops
 
   RunMacro("Create Scenario Route System", MacroOpts)
   RunMacro("Update Scenario Attributes", MacroOpts)
@@ -122,6 +131,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   centroid_qry = MacroOpts.centroid_qry
   output_rts_file = MacroOpts.output_rts_file
   out_dir = MacroOpts.out_dir
+  delete_shape_stops = MacroOpts.delete_shape_stops
 
   // Make a copy of the master_rts into the output directory to prevent
   // this macro from modifying the actual master RTS.
@@ -132,9 +142,10 @@ Macro "Create Scenario Route System" (MacroOpts)
   {master_rts_copy, master_hwy_copy} = RunMacro("Copy RTS Files", opts)
 
   // Get project IDs from the project list
-  proj_df = CreateObject("df")
-  proj_df.read_csv(proj_list)
-  v_pid = proj_df.get_col("ProjID")
+  proj = OpenTable("projects", "CSV", {proj_list, })
+  v_pid = GetDataVector(proj + "|", "ProjID", )
+  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
 
   // Convert the project IDs into route IDs
   opts = null
@@ -168,7 +179,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   /*
   Add stop layer fields. The tour table required to create a fresh route
   system requires the following fields:
-  Route_Number
+  Master_Route_ID
   Node_ID
   Stop_Flag
   Stop_ID
@@ -176,7 +187,7 @@ Macro "Create Scenario Route System" (MacroOpts)
 
   On a freshly-created route system, only the following fields are present
   on the stop layer:
-  Route_ID (can be renamed to Route_Number)
+  Route_ID (can be renamed to Master_Route_ID)
   STOP_ID (can be renamed to Stop_ID)
 
   Thus, the following fields must be created:
@@ -193,7 +204,7 @@ Macro "Create Scenario Route System" (MacroOpts)
     {"missing_node", "Integer", 10,,,,,
     "1: a stop in the master rts could not find a nearby node"}
   }
-  RunMacro("Add Fields", slyr, a_fields, {1, , , 0})
+  RunMacro("Add Fields", {view: slyr, a_fields: a_fields, initial_values:{1, , , 0}})
 
   // Create a selection set of centroids on the node layer. These will be
   // excluded so that routes do not pass through them. Also create a
@@ -244,11 +255,13 @@ Macro "Create Scenario Route System" (MacroOpts)
   // are used to improve the accuracy of the resulting route, but should
   // not be assigned as stops. Handle those here. Test to make sure the
   // shape_stop field exists so as not to make this field a requirement.
-  if stop_df.in("shape_stop", stop_df.colnames()) then do
-    v_shape_stop = stop_df.get_col("shape_stop")
-    v_stop_flag = stop_df.get_col("Stop_Flag")
-    v_stop_flag = if (v_shape_stop = 1) then 0 else 1
-    stop_df.mutate("Stop_Flag", v_stop_flag)
+  if delete_shape_stops then do
+    if stop_df.in("shape_stop", stop_df.colnames()) then do
+      v_shape_stop = stop_df.get_col("shape_stop")
+      v_stop_flag = stop_df.get_col("Stop_Flag")
+      v_stop_flag = if (v_shape_stop = 1) then 0 else 1
+      stop_df.mutate("Stop_Flag", v_stop_flag)
+    end
   end
 
   // In order to draw routes to nodes in the right order, sort by
@@ -260,7 +273,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   // "Creating a Route System from a Tour Table", and is in the drop down
   // menu Route Systems -> Utilities -> Create from table...
   // Fields:
-  // Route_Number
+  // Master_Route_ID
   // Node_ID
   // Stop_Flag
   // Stop_ID
@@ -268,11 +281,11 @@ Macro "Create Scenario Route System" (MacroOpts)
   create_df = stop_df.copy()
   create_df.rename(
     {"Route_ID", "STOP_ID", "Stop Name"},
-    {"Route_Number", "Stop_ID", "Stop_Name"}
+    {"Master_Route_ID", "Stop_ID", "Stop_Name"}
   )
   create_df.filter("missing_node <> 1")
   create_df.select(
-    {"Route_Number", "Node_ID", "Stop_Flag", "Stop_ID", "Stop_Name"}
+    {"Master_Route_ID", "Node_ID", "Stop_Flag", "Stop_ID", "Stop_Name"}
   )
   tour_table = out_dir + "/create_rts_from_table.bin"
   create_df.write_bin(tour_table)
@@ -281,7 +294,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   opts = null
   opts.llyr = llyr
   opts.centroid_qry = centroid_qry
-  net_file = RunMacro("Create Simple Highway Net", opts)
+  net_file = RunMacro("Create Simple Roadway Net", opts)
 
   // Get the name of the master (copy) route layer
   {, , a_info} = GetRouteSystemInfo(master_rts_copy)
@@ -315,8 +328,9 @@ Macro "Create Scenario Route System" (MacroOpts)
   scen_df.read_bin(
     Substitute(output_rts_file, ".rts", "R.bin", )
   )
+
   scen_df.remove({"Route_Name", "Time", "Distance"})
-  scen_df.left_join(master_df, "Route_Number", "Route_ID")
+  scen_df.left_join(master_df, "Master_Route_ID", "Route_ID")
   scen_df.desc = CopyArray(master_df.desc)
   scen_df.update_bin(
     Substitute(output_rts_file, ".rts", "R.bin", )
@@ -416,14 +430,14 @@ Macro "Update Scenario Attributes" (MacroOpts)
 
   // Tag stops to nodes within
   a_field = {{"Node_ID", "Integer", 10, , , , , "ID of node closest to stop"}}
-  RunMacro("Add Fields", slyr, a_field,)
+  RunMacro("Add Fields", {view: slyr, a_fields: a_field})
   n = TagRouteStopsWithNode(rlyr,,"Node_ID",.2)
 
   CloseMap(map)
 EndMacro
 
 /*
-
+Creates a CSV with stats on how well the route system transfer did
 */
 
 Macro "Check Scenario Route System" (MacroOpts)
@@ -436,18 +450,20 @@ Macro "Check Scenario Route System" (MacroOpts)
   output_rts_file = MacroOpts.output_rts_file
   out_dir = MacroOpts.out_dir
 
-  // Create path to the copy of the master rts and highway files
+  // Create path to the copy of the master rts and roadway files
   {drive, path, filename, ext} = SplitPath(master_rts)
   master_rts_copy = out_dir + "/" + filename + ext
   opts = null
   opts.rts_file = master_rts_copy
-  master_hwy_copy = RunMacro("Get RTS Highway File", opts)
+  master_hwy_copy = RunMacro("Get RTS Roadway File", opts)
 
   // Get project IDs from the project list and convert to route ids on both
   // the master and scenario route systems.
-  proj_df = CreateObject("df")
-  proj_df.read_csv(proj_list)
-  v_pid = proj_df.get_col("ProjID")
+  proj = OpenTable("projects", "CSV", {proj_list, })
+  v_pid = GetDataVector(proj + "|", "ProjID", )
+  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
+  CloseView(proj)
   opts = null
   opts.rts_file = master_rts_copy
   opts.v_pid = v_pid
@@ -478,6 +494,7 @@ Macro "Check Scenario Route System" (MacroOpts)
   {scen_map, {rlyr_s, slyr_s, , , llyr_s}} = RunMacro("Create Map", opts)
   // Compare route lengths between master and scenario
   data = null
+
   for i = 1 to v_rev_pid.length do
     pid = v_rev_pid[i]
     rid_m = v_rid_m[i]

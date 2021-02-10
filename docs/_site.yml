@@ -25,7 +25,7 @@ output:
     highlight: tango
     mathjax: null
     toc: TRUE
-    toc_depth: 2
+    toc_depth: 3
     toc_float:
       collapsed: true
     includes:

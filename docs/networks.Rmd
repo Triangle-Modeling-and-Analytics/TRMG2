@@ -1,12 +1,20 @@
 ---
 title: "Networks"
 author: "Caliper Corporation"
-date: "1/14/2021"
+date: "February 8, 2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
 ```
 
 ## Introduction
@@ -14,7 +22,7 @@ knitr::opts_chunk$set(echo = FALSE)
 The highway and transit networks are critical inputs for any travel model. They
 provide travel time, accessibility, and other impedance information. The Caliper
 team used the various existing data sources from the model stakeholders together 
-with other sources including the TIGER line files and review with sattelite 
+with other sources including the TIGER line files and review with satellite 
 imagery in order to fashion a new master network for both roadways and transit.
 
 ## Roadway Network
@@ -22,10 +30,10 @@ imagery in order to fashion a new master network for both roadways and transit.
 ### Creation of the master network
 
 Like TRMv6, the TRMG2 model uses a master network that contains all projects
-stakeholders might consider (including competing ideas). This allows each
-scenario network to be exported from the master with little or no manual
-editing. Information on using the project management tools is covered in the
-user's guide.
+stakeholders might consider during transportation plan development (including
+competing ideas). This allows each scenario network to be exported from the
+master with little or no manual editing. Information on using the project
+management tool is covered in the user guide.
 
 The previous highway network made heavy use of numeric codes that translated
 into values (e.g. a facility type of 1 might signify interstate). For TRMG2,
@@ -37,22 +45,23 @@ For these same reasons, the previous "Special" field was broken up into new
 HOV and Toll-related fields. For example, the "TollType" field includes values
 like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It is easier to
 understand a query like "TollType = 'Toll'" compared to "Special = 43". For a
-full enumeration of field names and meanings, see the user's guide.
+full enumeration of field names and meanings, see the user guide.
 
-The Caliper team also updated the master network to reflect a 2016 base year
-during model estimation (the final network is a 2020 base year). In other words,
-if you export a scenario network without any projects it will reflect the 2016
-road system. This was done by permanently modifying the base attributes of the
-master network with any projects scheduled to be complete by the base year date.
-This did include some road closures, and those links dropped out of the network
+The Caliper team also updated the master network to reflect a 2016 base year,
+the target year for model estimation (the final network is a 2020 base year and
+will be accompanied by a 2020 year model validation process). In other words, if
+you export a scenario network without any projects it will reflect the 2016 road
+system. This was done by permanently modifying the base attributes of the master
+network with any projects scheduled to be complete by the base year date. This
+did include some road closures, and those links dropped out of the network
 permanently.
 
 ### Update of count data
 
 The count data was provided to Caliper by the Stakeholders. The original source
 of this info was NCDOTs 2017 traffic count program along with a special count
-collection specifically for the model. All counts were factored to an Average
-Weekday Daily Traffic (AWDT) for April 2017.
+collection effort undertaken specifically for model validation. All counts were
+factored to an Average Weekday Daily Traffic (AWDT) for April 2017.
 
 The previous model used a separate table to hold count data which then had to be
 joined to the network to make comparisons. For TRMG2, the basic count data
@@ -62,50 +71,117 @@ model volumes and count data. Additional information (such as hourly counts)
 can still be maintained in a separate table and joined to the network only as
 needed. 
 
-### Network Conflation
+### Network conflation
 
 Caliper reviewed every link in the network line layer comparing against satellite
 imagery. Alignments were adjusted to match the imagery. Many links were adjusted,
 but most adjustments were small. The alignment of many ramps were corrected and 
-collector/distributor systems were added in some places to reflect reality. 
+collector/distributor systems were added if they were missing. 
 
 ```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Capital before and after",fig.show='hold',fig.align='center'}
 knitr::include_graphics(c("img/networks/capital_before.png","img/networks/capital_after.png"))
 ``` 
 
+### Adding all streets
+
+After conflating the existing links to improve alignments with aerials, Caliper
+upgraded the network to include all streets. These additional streets provide
+a much better representation of the walk and transit paths travelers actually
+take, and are shown in orange below.
+
+```{r, echo=FALSE,out.width="60%",  out.height="40%",fig.cap="All-Streets Network",fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/networks/all_streets.png")
+``` 
+
+Caliper added a `PrimaryLink` field to the line layer. It can be used to easily
+select the gray or orange links depending on what the user wants to do.
+
+- `PrimaryLink = 1`: Gray links
+- `PrimaryLink = 0`: Orange links
+
+These queries will also be used to make roadway and transit network creation
+easier. The minor streets do not have attribute information and should not be
+included for use by vehicle travel. They will only be used by non-motorized and
+transit travelers.
+
 ### Review of the master network
 
-With all the changes mentioned above, it was important to check that the
-new master network's projects matched the previous. To be exhaustive, Caliper
-wrote code to do this programmatically. For instance, every project in the old
-master network had its length checked against the new network. Of the well-
-over 1000 projects, only 6 had length discrepancies. Each was investigated and
-corrected as necessary.
+With all the changes mentioned above, it was important to check that the new
+master projects remained consistent. To be exhaustive, Caliper wrote code to do
+this programmatically. For instance, every project in the old master network had
+its length checked against the new network. Of the well over 1000 projects,
+only 6 had length discrepancies. Each was investigated and corrected as
+necessary.
 
 Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow
 times based on posted speeds. Comparison of the resulting matrices showed that
-overall the RMSE was only 0.25%, which is very small, indicating close 
-consistency between the networks (that nothing was broken). Every OD pair with an absolute percentage change greater than 30% was reviewed. The largest 
-relative difference was 62% for one OD pair (between zone 1535 and 1444); in 
-that case, the review revealed that the new network was correct while the 
-original TRMv6 network allowed a U-turn where it should not have. See the
-before and after images below.
+overall the RMSE was only 0.25%, which is very small, indicating close
+consistency between the networks. The increased confidence that nothing was
+broken. Additionally, every OD pair with an absolute percentage change greater
+than 30% was reviewed. The largest relative difference was 62% for one OD pair
+(between zone 1535 and 1444); in that case, the review revealed that the new
+network was correct while the original TRMv6 network allowed a U-turn where it
+should not have. See the before and after images below.
 
 ```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Pathing before and after",fig.show='hold',fig.align='center'}
 knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_after.png"))
 ``` 
 
-A small number of OD pairs were reviewed with changes <30%, but everything
-was reasonable.
+A small number of OD pairs were reviewed with changes <30%, but each one was
+reasonable.
 
-### Complete Streets
-
-Placeholder documentation:
-
-- Stakeholders decided to move forward with the all-streets addition 1/14
-- This will add a large number of additional streets to the model line layer for
-  the purpose of walk/bike/transit pathing.
-  
 ## Transit Networks
 
-To be added.
+TRMG2 adds a master layer for transit routes along with a project manager
+specially designed to transfer routes accurately between line layers. This
+enhancement greatly reduces the burden of coding and managing projects between
+various base and future year scenarios.
+
+More detail on how to use the new tools are included in the user's guide, but
+information on the creation of the master route system requires a basic
+understanding of the tool. In short, the transit project manager finds the
+shortest path between route stops to reconstruct the route on a new layer. This
+approach struggles when route stops are not frequent enough to get an accurate
+path, but TRMG2 solves this problem using "shape stops". These are extra stops
+along the route that are used to improve alignment, but are then removed.
+
+The maps below give a good example of a potential problem when transferring
+routes between layers using only stop locations only. The shortest path between
+stops is not always the route a bus takes.
+
+```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Transferring without shape points",fig.show='hold',fig.align='center'}
+knitr::include_graphics(c(
+  "img/networks/1 route without shape points.png",
+  "img/networks/2 route without shape points result.png"
+))
+```
+
+The maps below show how a single shape stop solves the alignment problem while
+maintaining the correct number of stops.
+
+```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Transferring with shape points",fig.show='hold',fig.align='center'}
+knitr::include_graphics(c(
+  "img/networks/3 route with shape points.png",
+  "img/networks/4 route with shape points result.png"
+))
+```
+
+Each time a scenario is created, the transit project manager writes out a file
+next to the route system detailing how accurate the transfer went. This is 
+achieved by comparing lengths before and after as well as checking for any
+missed stops. Shape stops can be added until the match is exact, but minor
+differences in route lengths do not have a measurable impact on model results.
+The table below provides a sample of the comparison table.
+
+```{r, include=FALSE}
+rts_check <- read_csv("data/input/networks/transit/_rts_creation_results.csv")
+```
+
+```{r}
+rts_check %>%
+  filter(projid %in% c(1, 2, 31)) %>%
+  head() %>%
+  kable(digits = 1) %>%
+  kable_styling(full_width = FALSE)
+```
+

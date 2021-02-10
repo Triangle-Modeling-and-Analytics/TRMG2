@@ -47,21 +47,6 @@ load_census_data <- function(state = "NC", acs_year = 2018){
     acs_tbl <- intersect_bg %>%
       as.data.frame() %>%
       left_join(acs_vars, by = "variable") %>%
-      mutate(
-        name = case_when(
-          name %in% c(
-            "m_u5", "m_u9", "m_u14", "m_u17",
-            "f_u5", "f_u9", "f_u14", "f_u17"
-          ) ~ "age_child",
-          name %in% c(
-            "m_u66", "m_u69", "m_u74", "m_u79", "m_u84", "m_o85",
-            "f_u66", "f_u69", "f_u74", "f_u79", "f_u84", "f_o85"
-          ) ~ "age_senior",
-          grepl("f_", name) ~ "age_other",
-          grepl("m_", name) ~ "age_other",
-          TRUE ~ name
-        )
-      ) %>%
       group_by(GEOID, name) %>%
       summarize(estimate = sum(estimate)) %>%
       spread(key = name, value = estimate) %>%
@@ -89,7 +74,8 @@ load_census_data <- function(state = "NC", acs_year = 2018){
       st_as_sf() %>%
       st_make_valid() %>%
       mutate(County = substr(GEOID, 1, 5)) %>%
-      relocate(County, .after = GEOID)
+      relocate(County, .after = GEOID) %>%
+      relocate(c(hh_child, hh_senior), .before = gq_pop)
     
     st_write(acs_bg, bg_file)
   } else {

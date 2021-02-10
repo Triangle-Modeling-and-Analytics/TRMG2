@@ -741,8 +741,9 @@ Class "df" (tbl, desc, groups)
     // meaning that TC did not load the entire view into memory.
     // Creating a selection set will force TC to load the entire view.
     SetView(view)
-    qry = "Select * where nz(" + fields[1] + ") >= 0"
-    SelectByQuery("temp", "Several", qry)
+    // qry = "Select * where nz(" + fields[1] + ") >= 0"
+    // SelectByQuery("temp", "Several", qry)
+    SelectAll("temp")
     DeleteSet("temp")
     
     opts = null
@@ -903,8 +904,9 @@ Class "df" (tbl, desc, groups)
       else type = "Real"
 
       width = self.new_field_width(self.tbl.(field))
+      width = max(5, width)
       a_fields =  {{field, type, width, 2,,,, ""}}
-      RunMacro("Add Fields", view, a_fields, )
+      RunMacro("Add Fields", {view: view, a_fields: a_fields})
     end
 
     SetDataVectors(view + "|" + set, self.tbl, )
@@ -926,15 +928,14 @@ Class "df" (tbl, desc, groups)
 
   /*dontdoc
   Helper to update_view().
-  Looks at the first 100 values in a vector/array to determine
-  how large the field needs to be.
+  Determines the maximum width needed for a field.
 
   Inputs
     * `data`
       * Array or vector
 
   Returns
-    * The max width of the first 100 values
+    * The max width of the data
   */
 
   Macro "new_field_width" (data) do
@@ -944,12 +945,14 @@ Class "df" (tbl, desc, groups)
       then Throw("new_field_width: 'data' must be array or vector")
 
     if data.type <> "string" then data = String(data)
+    widths = StringLength(data)
+    width = widths.max()
 
-    width = 0
-    iter = min(100, data.length)
-    for i = 1 to iter do
-      if StringLength(data[i]) > width then width = StringLength(data[i])
-    end
+    // width = 0
+    // iter = min(100, data.length)
+    // for i = 1 to iter do
+    //   if StringLength(data[i]) > width then width = StringLength(data[i])
+    // end
 
     return(width)
   EndItem

@@ -241,11 +241,20 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
       })
     ) %>%
     unnest(cols = c(tod_summary, mode_summary)) %>%
-    mutate(across(pct_bike:pct_walk, ~ifelse(is.na(.x), 0, .x))) %>%
+    mutate(across(pct_bike:pct_other, ~ifelse(is.na(.x), 0, .x))) %>%
     select(-data)
   
   final <- eda_tbl %>%
     left_join(other_metrics, by = "trip_type") %>%
-    separate(trip_type, c("tour_type", "homebased", "purpose", "duration")) %>%
-    arrange(desc(tour_type), homebased, purpose, duration)
+    separate(
+      trip_type, c("tour_type", "homebased", "purpose", "duration"),
+      sep = "_"
+    ) %>%
+    arrange(desc(tour_type), homebased, purpose, duration) %>%
+    relocate(
+      c(pct_sov, pct_hov, pct_auto_pay, pct_bus, pct_school_bus, pct_walk,
+        pct_bike, pct_other),
+      .after = r_hhveh
+    ) %>%
+    relocate(pct_NT, .after = pct_PM)
 }
