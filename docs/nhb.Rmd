@@ -28,8 +28,10 @@ Modes:
 
 - SOV
 - HOV
+- Auto Pay
 - Transit
-- Non-motorized
+- Bike
+- Walk
 
 ```{r, include = FALSE}
 trips <- read_csv(
@@ -47,8 +49,8 @@ output_list <- list()
 ```
 
 ```{r}
-make_table <- function(df) {
-  df %>%
+make_table <- function(model) {
+  model$tbl %>%
     arrange(estimated_as) %>%
     kable(digits = 3) %>%
     kable_styling()
@@ -56,6 +58,9 @@ make_table <- function(df) {
 
 # unique(trips$mode_simple2)
 ```
+
+The regression models below all enforce an intercept of 0. This changes the
+r-squared values interpretation and makes it less meaningful.
 
 ## Non-work types
 
@@ -70,86 +75,59 @@ activities.
 
 ```{r, N_NH_K12_All_sov}
 type <- "N_NH_K12_All_sov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# After running regression on the raw trip types, this table collapses
-# some together.
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_OD_Long_sov" ~ "N_HB_OD_All_sov",
-      trip_type == "N_HB_OD_Short_sov" ~ "N_HB_OD_All_sov",
-      trip_type == "N_HB_OD_Long_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Short_hov" ~ "N_HB_OD_All_hov",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
+  "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
+  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_hov",
   "N_HB_K12_All_sov",
   "N_HB_OD_All_sov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### HOV
 
 ```{r, N_NH_K12_All_hov}
 type <- "N_NH_K12_All_hov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# Collapse any purposes together
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- NULL
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_hov",
   "N_HB_OD_Long_hov",
   "N_HB_OD_Short_hov",
   "N_HB_K12_All_school_bus"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Auto Pay
 
@@ -178,22 +156,15 @@ n_records <- trips %>%
 
 ```{r, N_NH_K12_All_walk}
 type <- "N_NH_K12_All_walk"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# Collapse types
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_K12_All_sov" ~ "N_HB_K12_All_auto",
-      trip_type == "N_HB_K12_All_hov" ~ "N_HB_K12_All_auto",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- list(
+  "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov" = "N_HB_K12_All_auto"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_auto",
   "N_HB_K12_All_school_bus",
   "N_HB_K12_All_walk",
@@ -202,24 +173,17 @@ terms_to_use <- c(
   "N_HB_K12_All_bike",
   "N_HB_OD_Short_walk"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Bike
 
@@ -243,23 +207,15 @@ means that this trip includes all activity durations.
 
 ```{r, N_NH_OME_All_sov}
 type <- "N_NH_OME_All_sov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# After running regression on the raw trip types, this table collapses
-# some together.
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_OD_Long_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Short_hov" ~ "N_HB_OD_All_hov",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_hov",
   "N_HB_K12_All_sov",
   "N_HB_OD_All_hov",
@@ -268,46 +224,31 @@ terms_to_use <- c(
   "N_HB_OME_All_sov",
   "N_HB_OMED_All_sov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### HOV
 
 ```{r, N_NH_OME_All_hov}
 type <- "N_NH_OME_All_hov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# After running regression on the raw trip types, this table collapses
-# some together.
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_OD_Long_sov" ~ "N_HB_OD_All_sov",
-      trip_type == "N_HB_OD_Short_sov" ~ "N_HB_OD_All_sov",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
+  "N_HB_OD_Short_sov" = "N_HB_OD_All_sov"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_hov",
   "N_HB_K12_All_sov",
   "N_HB_OD_All_sov",
@@ -318,79 +259,55 @@ terms_to_use <- c(
   "N_HB_OMED_All_auto_pay",
   "N_HB_OMED_All_hov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Auto Pay
 
 ```{r, N_NH_OME_All_auto_pay}
 type <- "N_NH_OME_All_auto_pay"
-#Only 48 records
-n_records <- trips %>%
-  filter(trip_type == type) %>%
-  nrow()
 
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- NULL
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
-
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Long_auto_pay",
   "N_HB_OD_Short_auto_pay",
   "N_HB_OME_All_auto_pay",
   "N_HB_OMED_All_auto_pay"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Transit
 
 ```{r, N_NH_OME_All_t}
 type <- "N_NH_OME_All_t"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
+# Collapse trip types
+equiv <- NULL
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_t",
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_t",
@@ -398,50 +315,36 @@ terms_to_use <- c(
   "N_HB_OME_All_t",
   "N_HB_OME_All_walk"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Walk
 
 ```{r, N_NH_OME_All_walk}
 type <- "N_NH_OME_All_walk"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# Collapse types
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_OME_All_auto_pay" ~ "N_HB_OME_All_auto_pay",
-      trip_type == "N_HB_OMED_All_auto_pay" ~ "N_HB_OME_All_auto_pay",
-      trip_type == "N_HB_OD_Long_auto_pay" ~ "N_HB_OME_All_auto_pay",
-      trip_type == "N_HB_OD_Long_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Short_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Short_t" ~ "N_HB_OD_All_t",
-      trip_type == "N_HB_OD_Long_t" ~ "N_HB_OD_All_t",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- c(
+  "N_HB_OME_All_auto_pay" = "N_HB_OME_All_auto_pay",
+  "N_HB_OMED_All_auto_pay" = "N_HB_OME_All_auto_pay",
+  "N_HB_OD_Long_auto_pay" = "N_HB_OME_All_auto_pay",
+  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_t" = "N_HB_OD_All_t",
+  "N_HB_OD_Long_t" = "N_HB_OD_All_t"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_t",
   "N_HB_OD_All_hov",
   "N_HB_OD_All_t",
@@ -458,63 +361,45 @@ terms_to_use <- c(
   "N_HB_OMED_All_hov",
   "N_HB_OMED_All_walk"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Bike
 
 ```{r, N_NH_OME_All_bike}
 type <- "N_NH_OME_All_bike"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- NULL
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_bike",
   "N_HB_OD_Long_bike",
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_bike",
   "N_HB_OME_All_bike"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
 
+Adjusted R0 Squared: `r model3$r_sq`
 
 ### N_NH_O_All
 
@@ -526,79 +411,56 @@ includes all activity durations.
 
 ```{r, N_NH_O_All_sov}
 type <- "N_NH_O_All_sov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# After running regression on the raw trip types, this table collapses
-# some together.
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_K12_All_hov" ~ "N_HB_K12_All_auto",
-      trip_type == "N_HB_K12_All_sov" ~ "N_HB_K12_All_auto",
-      trip_type == "N_HB_OD_Long_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Short_hov" ~ "N_HB_OD_All_hov",
-      trip_type == "N_HB_OD_Long_sov" ~ "N_HB_OD_All_sov",
-      trip_type == "N_HB_OD_Short_sov" ~ "N_HB_OD_All_sov",
-      trip_type == "N_HB_OMED_All_hov" ~ "N_HB_OME_All_hov",
-      trip_type == "N_HB_OME_All_hov" ~ "N_HB_OME_All_hov",
-      trip_type == "N_HB_OMED_All_sov" ~ "N_HB_OME_All_sov",
-      trip_type == "N_HB_OME_All_sov" ~ "N_HB_OME_All_sov",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- c(
+  "N_HB_K12_All_hov" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
+  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
+  "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
+  "N_HB_OMED_All_hov" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_sov" = "N_HB_OME_All_sov",
+  "N_HB_OME_All_sov" = "N_HB_OME_All_sov"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_K12_All_auto",
   "N_HB_OD_All_hov",
   "N_HB_OD_All_sov",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_hov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### HOV
 
 ```{r, N_NH_O_All_hov}
 type <- "N_NH_O_All_hov"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# After running regression on the raw trip types, this table collapses
-# some together.
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_K12_All_hov" ~ "N_HB_K12_All_auto",
-      trip_type == "N_HB_K12_All_sov" ~ "N_HB_K12_All_auto",
-      trip_type == "N_HB_OD_Long_hov" ~ "N_HB_OD_Long_auto",
-      trip_type == "N_HB_OD_Long_sov" ~ "N_HB_OD_Long_auto",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- c(
+  "N_HB_K12_All_hov" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
+  "N_HB_OD_Long_hov" = "N_HB_OD_Long_auto",
+  "N_HB_OD_Long_sov" = "N_HB_OD_Long_auto"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Long_auto",
   "N_HB_OD_Short_hov",
   "N_HB_OME_All_hov",
@@ -607,79 +469,55 @@ terms_to_use <- c(
   "N_HB_OMED_All_hov",
   "N_HB_OME_All_sov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Auto Pay
 
 ```{r, N_NH_O_All_auto_pay}
 type <- "N_NH_O_All_auto_pay"
-#Only 45 records
-n_records <- trips %>%
-  filter(trip_type == type) %>%
-  nrow()
 
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- NULL
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
-
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Short_sov",
   "N_HB_OD_Long_auto_pay",
   "N_HB_OD_Short_hov",
   "N_HB_OD_Short_auto_pay"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Transit
 
 ```{r, N_NH_O_All_t}
 type <- "N_NH_O_All_t"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
+# Collapse trip types
+equiv <- NULL
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_t",
   "N_HB_OMED_All_t",
@@ -688,45 +526,31 @@ terms_to_use <- c(
   "N_HB_OD_Short_walk",
   "N_HB_OD_Short_sov"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Walk
 
 ```{r, N_NH_O_All_walk}
 type <- "N_NH_O_All_walk"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# Collapse types
-collapse_type <- trips %>%
-  mutate(
-    trip_type_orig = trip_type,
-    trip_type = case_when(
-      trip_type == "N_HB_OME_All_sov" ~ "N_HB_OD_OME_sov",
-      trip_type == "N_HB_OD_Short_sov" ~ "N_HB_OD_OME_sov",
-      TRUE ~ trip_type
-    )
-  )
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- c(
+  "N_HB_OME_All_sov" = "N_HB_OD_OME_sov",
+  "N_HB_OD_Short_sov" = "N_HB_OD_OME_sov"
+)
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Short_hov",
   "N_HB_OD_OME_sov",
   "N_HB_OD_Short_walk",
@@ -734,62 +558,43 @@ terms_to_use <- c(
   "N_HB_OD_Long_walk",
   "N_HB_OD_Short_t"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
+
+Adjusted R0 Squared: `r model3$r_sq`
 
 #### Bike
 
 ```{r, N_NH_O_All_bike}
 type <- "N_NH_O_All_bike"
-model1 <- estimate_nhb(trips, type, dependent_vars = NULL)
 
-# No collapsing needed for this type
-collapse_type <- trips %>%
-  mutate(trip_type_orig = trip_type)
-model2 <- estimate_nhb(collapse_type, type, dependent_vars = NULL)
+# Collapse trip types
+equiv <- NULL
 
-# Finally select only the significant terms and re-estimate
-terms_to_use <- c(
+# Restrict dependent variables
+dependent_vars <- c(
   "N_HB_OD_Long_bike",
   "N_HB_OD_Short_bike",
   "N_HB_OME_All_bike"
 )
-model3 <- estimate_nhb(
-  collapse_type, type, dependent_vars = terms_to_use
-) %>%
-  left_join(
-    collapse_type %>%
-      select(trip_type, trip_type_orig) %>%
-      group_by(trip_type_orig) %>%
-      slice(1),
-    by = c("term" = "trip_type")
-  ) %>%
-  relocate(trip_type_orig, .before = term) %>%
-  rename(trip_type = trip_type_orig, estimated_as = term)
 
-output_list[type] <- list(model3)
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
-model3 %>%
-  make_table()
+output_list[type] <- list(model3$tbl)
+make_table(model3)
 ```
 
-
+Adjusted R0 Squared: `r model3$r_sq`
 
 
 ```{r write_output, eval=FALSE}
