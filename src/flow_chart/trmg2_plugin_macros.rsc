@@ -45,7 +45,7 @@ EndMacro
 // if needed, can email status at every step
 Macro "Model.OnStepDone" (Args,Result,StepName)
 Body:
-    RunMacro("SendMail", Args, "MSA Model Checkpoint", StepName)
+    // RunMacro("SendMail", Args, "MSA Model Checkpoint", StepName)
     return(1)
 EndMacro
 
@@ -58,7 +58,7 @@ Body:
     xsl = "report.xsl"
     // convert the XML report to a HTML file
     BodyFile = RunMacro("XML2HTML", rep, xsl, )
-    RunMacro("SendMail", Args, "MSA Model Report", , BodyFile)
+    // RunMacro("SendMail", Args, "MSA Model Report", , BodyFile)
     return(1)
 EndMacro
 

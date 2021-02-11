@@ -16,14 +16,21 @@
         Args.[Input Routes] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario input routes. Created during scenario creation." }
         Args.[Input TAZs] = { "Type":"File" , "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd", "Description":"Master TAZs" }
         Args.[Input SE] = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario input se data. Created during scenario creation." }
-        
-    Section = "Files|Scenario|Output"        
-        
+    
+    Section = "Files|Scenario|Output"
+    
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
         Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
         Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
+    
+    Section = "Initial Processing"
+    
+        Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
+                                                     {"Suburban",1000,0.5},
+                                                     {"Urban",10000,0.5},
+                                                     {"Downtown",20000,0.25}}, "Caption":"Area Type Densities   Density = (HH + Emp) / Area", "Style":"AreaType" }
     
     Section = "Numeric Parameters"
     

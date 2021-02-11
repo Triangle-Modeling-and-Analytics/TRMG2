@@ -1,7 +1,7 @@
-    Styles.PTStyle = Pme.Table({"Columns":{{Name:"Purpose", Type:"string",  "Fixed":"false"}
-                                          ,{Name:"Alpha", Type:"float",  "Fixed":"false"}
-                                          ,{Name:"Beta", Type:"float",  "Fixed":"false"}
-                                          ,{Name:"Gamma", Type:"float",  "Fixed":"false"}
+    Styles.AreaType = Pme.Table(
+                              {"Columns":{{"Name":"AreaType", "Type":"string",  "Fixed":"false"},
+                                          {"Name":"Density", "Type":"float",  "Fixed":"false"},
+                                          {"Name":"Buffer", "Type":"float",  "Fixed":"false"}
                               }})
 
     Styles.MatrixOptionList = Pme.DropList({ Options: {".MTX",".OMX"} })

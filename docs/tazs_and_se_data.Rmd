@@ -717,6 +717,102 @@ add_studoff <- add_earn_pct %>%
   relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
 ```
 
+## Area Type
+
+Area type is determined on the fly by the TRMG2. The process happens in three
+steps:
+
+1. Calculate TAZ density
+2. Smooth area type boundaries
+3. Tag link layer
+
+Area type information is used to inform capacity and free-flow speed
+calculations on roadway links.
+
+*TODO: update this section if we use it elsewhere*
+
+### Density
+
+Density is calculated using the following formula:
+
+$(hh\_population + total\_emp * factor) / Area$
+
+Where:
+
+**hh_population**: the household population  
+**total_emp**: total employment  
+**Area**: square miles of the TAZ  
+**factor**: a factor to increase the weight of employment to match population.
+Calculated as follows:
+
+$factor = hh\_population / total\_emp$
+
+Densities are then grouped into area type bins. The density cutoffs for each bin
+is shown in the table below.
+
+```{r}
+tibble(
+  `Area Type` = c("Downtown", "Urban", "Suburban", "Rural"),
+  `Density (>=)` = c(20000, 10000, 1000, 0)
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+### Smoothing
+
+Adjacent zones often have significant differences in density. To avoid roadway
+capacities changing in unexpected ways, the area type is smoothed out to
+adjacent zones using buffering. The map below shows the final result of this
+smoothing process. Clicking a TAZ will display its raw density calculated as
+described above.
+
+```{r, include=FALSE}
+taz_at <- sf::read_sf("data/input/tazs/tazs_with_area_type.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84')) %>%
+  mutate(
+    AREATYPE = factor(
+      AREATYPE, levels = c("Rural", "Suburban", "Urban", "Downtown"),
+      ordered = TRUE
+    ),
+    DENSITY = round(DENSITY, 0)
+  )
+```
+
+```{r}
+pal <- colorFactor(
+  palette = "Set3",
+  domain = (taz_at$AREATYPE)
+)
+
+leaflet(taz_at) %>%
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(
+    data = taz_at,
+    fillColor = ~pal(AREATYPE),
+    color = "gray",
+    weight = .5,
+    opacity = 1,
+    fillOpacity = .6,
+    popup =  ~paste0("Density: ", DENSITY)
+  ) %>%
+  addLegend(
+    "bottomright",
+    pal = pal,
+    values = ~AREATYPE,
+    title= "Area Type",
+    opacity = 1
+  ) %>%
+  setView(-78.77229847704699, 35.859498088192694, zoom = 10)
+```
+
+### Tagging roadway links
+
+Once the zonal area types are established, the roadway links are overlaid and
+tagged with the appropriate area type. A buffering process is used here as well
+to prevent parallel, one-way links (e.g. free way links) from receiving 
+different area types by direction.
+
 ```{r, eval=FALSE}
 write_csv(
   add_studoff, "data/output/se_data/se_2016.csv",

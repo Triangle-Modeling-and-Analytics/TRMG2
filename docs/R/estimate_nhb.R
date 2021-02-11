@@ -1,18 +1,31 @@
 # trip_type <- "N_NH_O_All_sov"
 # trips_df <- trips
 
-estimate_nhb <- function(trips_df, trip_type, dependent_vars) {
+estimate_nhb <- function(trips_df, trip_type, equiv = NULL, 
+                         dependent_vars = NULL) {
   
   add_y <- trips_df
   add_y$trip_type <- ifelse(add_y$trip_type == trip_type, "y", add_y$trip_type)
   tour_str = substr(trip_type, 1, 1)
   
-  temp1 <- add_y %>%
+  collapse_types <- add_y %>%
+    mutate(trip_type_orig = trip_type)
+  if (!is.null(equiv)) {
+    for (i in 1:length(equiv)) {
+      name <- names(equiv)[i]
+      value <- equiv[[i]]
+      collapse_types$trip_type <- ifelse(
+        collapse_types$trip_type == name, value, collapse_types$trip_type
+      )
+    }
+  }
+  
+  temp1 <- collapse_types %>%
     filter(substr(trip_type, 1, 1) %in% c(tour_str, "y")) %>%
     select(personid, tour_num, trip_type, trip_weight_combined) %>%
     group_by(personid, tour_num) %>%
     mutate(keep = ifelse(any(trip_type == "y"), 1, 0))
-
+  
   temp2 <- temp1 %>%
     filter(keep == 0) %>%
     group_by(personid, tour_num) %>%
@@ -42,29 +55,23 @@ estimate_nhb <- function(trips_df, trip_type, dependent_vars) {
   }
   
   model <- lm(y ~ . + 0, data = est_tbl)
-  broom::tidy(model) %>%
+  adj_r_sq <- summary(model)$adj.r.squared
+  coeffs <- broom::tidy(model) %>%
     mutate(p.value = round(p.value, 5))
-}
-
-estimate_nhb2 <- function(trips_df, trip_type, dependent_vars) {
   
-  add_y <- trips_df
-  add_y$trip_type <- ifelse(add_y$trip_type == trip_type, "y", add_y$trip_type)
-  
-  est_tbl <- add_y %>%
-    select(
-      personid, tour_num, homebased, trip_type, trips = trip_weight_combined
+  add_orig_types <- coeffs %>%
+    left_join(
+      collapse_types %>%
+        select(trip_type, trip_type_orig) %>%
+        group_by(trip_type_orig) %>%
+        slice(1),
+      by = c("term" = "trip_type")
     ) %>%
-    group_by(personid, tour_num) %>%
-    mutate(
-      trips_generated = ifelse(lead(trip_type) == "y", lead(trips), 0),
-      trips_generated = trips_generated / trips
-    ) %>%
-    replace_na(list(trips_generated = 0)) %>%
-    filter(trip_type != "y" & !grepl("_NH_", trip_type)) %>%
-    group_by(trip_type) %>%
-    summarize(trips = mean(trips_generated)) %>%
-    filter(trips > 0)
+    relocate(trip_type_orig, .before = term) %>%
+    rename(trip_type = trip_type_orig, estimated_as = term)
   
-  est_tbl
+  result <- list()
+  result$r_sq <- round(adj_r_sq, 2)
+  result$tbl <- add_orig_types
+  return(result)
 }
