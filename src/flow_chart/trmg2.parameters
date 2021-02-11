@@ -30,7 +30,7 @@
         Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
-                                                     {"Downtown",20000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
+                                                     {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
     
     Section = "Numeric Parameters"
     

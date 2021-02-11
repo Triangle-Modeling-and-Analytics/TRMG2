@@ -89,8 +89,8 @@ Macro "Determine Area Type" (Args)
         areatype = if density >= cutoff then name else areatype
     end
     SetDataVector(jv + "|", "TotalEmp", tot_emp, )
-    SetDataVector(jv + "|", "Density", density, )
-    SetDataVector(jv + "|", "AreaType", areatype, )
+    SetDataVector(jv + "|", se_vw + ".Density", density, )
+    SetDataVector(jv + "|", se_vw + ".AreaType", areatype, )
 
     views.se_vw = se_vw
     views.jv = jv
@@ -130,7 +130,7 @@ Macro "Smooth Area Type" (Args, map, views)
 
         // Select TAZs of current type
         SetView(jv)
-        query = "Select * where AreaType = '" + type + "'"
+        query = "Select * where " + se_vw + ".AreaType = '" + type + "'"
         n = SelectByQuery("selection", "Several", query)
 
         if n > 0 then do
@@ -209,7 +209,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
 
         // Select TAZs of current type
         SetView(jv)
-        query = "Select * where AreaType = '" + type + "'"
+        query = "Select * where " + se_vw + ".AreaType = '" + type + "'"
         n = SelectByQuery("selection", "Several", query)
 
         if n > 0 then do
