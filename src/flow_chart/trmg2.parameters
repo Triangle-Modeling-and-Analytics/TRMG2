@@ -25,6 +25,18 @@
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
         Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
     
+    Section = "Initial Processing"
+
+        Args.AreaTypes = { "Type":"array" ,"Value":{
+                {"Rural",0},
+                {"Suburban",500},
+                {"Urban",2000},
+                {"Downtown",20000}
+                },
+                "Caption":"Area Type Densities   Density = (HH + Emp) / Area",
+                "Style":"AreaType" 
+        }
+
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
