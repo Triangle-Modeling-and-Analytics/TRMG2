@@ -409,7 +409,7 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p><em>TODO: Add</em></p>
+<p><em>TODO: Vince to add</em></p>
 <p>Modes:</p>
 <ul>
 <li>SOV</li>
@@ -419,16 +419,1670 @@ div.tocify {
 <li>Bike</li>
 <li>Walk</li>
 </ul>
-<p>The regression models below all enforce an intercept of 0. This changes the r-squared values interpretation and makes it less meaningful.</p>
+<p>The model coefficients below are the result of multiple linear regression with a forced intercept at zero. In addition, the model predictions in estimation will be scaled up to a predicted regional total. As a result of these two factors, the r-squared values are not meaningful and are not displayed. Instead, the value of the coefficients is in determining the relative effect that various home-based trip types have on non-home-based trip generation.</p>
 </div>
-<div id="non-work-types" class="section level2">
-<h2>Non-work types</h2>
-<div id="n_nh_k12_all" class="section level3">
-<h3>N_NH_K12_All</h3>
-<p>These are non-home-based trips with one trend end at school (K-12). This includes children attending school and parents dropping off children at school. The “All” means that this type does not separate short from long duration activities.</p>
+<div id="work-tours" class="section level2">
+<h2>Work tours</h2>
+<div id="w_nh_ek12_all" class="section level3 tabset W_NH_EK12_All">
+<h3>W_NH_EK12_All</h3>
 <div id="sov" class="section level4">
 <h4>SOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:right;">
+0.736
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+86.205
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.055
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+6.616
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+1.840
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+2.944
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_auto
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+2.212
+</td>
+<td style="text-align:right;">
+0.027
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_auto
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+2.212
+</td>
+<td style="text-align:right;">
+0.027
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="hov" class="section level4">
+<h4>HOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:right;">
+0.339
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+29.385
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_sov
+</td>
+<td style="text-align:right;">
+0.487
+</td>
+<td style="text-align:right;">
+0.090
+</td>
+<td style="text-align:right;">
+5.419
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.054
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+9.246
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.054
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+9.246
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.063
+</td>
+<td style="text-align:right;">
+0.028
+</td>
+<td style="text-align:right;">
+2.261
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="auto-pay" class="section level4">
+<h4>Auto Pay</h4>
+<p>No significant presence of this trip type in the survey (0 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+</div>
+<div id="transit" class="section level4">
+<h4>Transit</h4>
+<p>No significant presence of this trip type in the survey (3 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+</div>
+<div id="walk" class="section level4">
+<h4>Walk</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:right;">
+1.042
+</td>
+<td style="text-align:right;">
+0.035
+</td>
+<td style="text-align:right;">
+29.581
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bike" class="section level4">
+<h4>Bike</h4>
+<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+</div>
+</div>
+<div id="w_nh_o_all" class="section level3 tabset W_NH_O_All">
+<h3>W_NH_O_All</h3>
+<div id="sov-1" class="section level4">
+<h4>SOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.087
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+4.077
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.087
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+4.077
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.223
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+10.670
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.426
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+32.467
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.333
+</td>
+<td style="text-align:right;">
+0.052
+</td>
+<td style="text-align:right;">
+6.446
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="hov-1" class="section level4">
+<h4>HOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.507
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+28.775
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.096
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+8.634
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.176
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+4.017
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.086
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+4.027
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="auto-pay-1" class="section level4">
+<h4>Auto Pay</h4>
+<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+</div>
+<div id="transit-1" class="section level4">
+<h4>Transit</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:right;">
+0.207
+</td>
+<td style="text-align:right;">
+0.095
+</td>
+<td style="text-align:right;">
+2.191
+</td>
+<td style="text-align:right;">
+0.028
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:right;">
+0.116
+</td>
+<td style="text-align:right;">
+0.029
+</td>
+<td style="text-align:right;">
+3.950
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.231
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+23.358
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+2.483
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="walk-1" class="section level4">
+<h4>Walk</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+11.626
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+11.626
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.405
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+<td style="text-align:right;">
+16.846
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+4.158
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bike-1" class="section level4">
+<h4>Bike</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+5.146
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="w_nh_wr_all" class="section level3 tabset W_NH_WR_All">
+<h3>W_NH_WR_All</h3>
+<div id="sov-2" class="section level4">
+<h4>SOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.323
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:right;">
+9.036
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.323
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:right;">
+9.036
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+1.078
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+47.266
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.677
+</td>
+<td style="text-align:right;">
+0.087
+</td>
+<td style="text-align:right;">
+7.774
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_auto
+</td>
+<td style="text-align:right;">
+0.156
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+11.606
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_auto
+</td>
+<td style="text-align:right;">
+0.156
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+11.606
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="hov-2" class="section level4">
+<h4>HOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:right;">
+0.105
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+5.431
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.446
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+23.812
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.122
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+10.414
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.141
+</td>
+<td style="text-align:right;">
+0.046
+</td>
+<td style="text-align:right;">
+3.059
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.212
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+9.368
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="auto-pay-2" class="section level4">
+<h4>Auto Pay</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_auto_pay
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto_pay
+</td>
+<td style="text-align:right;">
+1.373
+</td>
+<td style="text-align:right;">
+0.223
+</td>
+<td style="text-align:right;">
+6.144
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+4.363
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="transit-2" class="section level4">
+<h4>Transit</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+1.447
+</td>
+<td style="text-align:right;">
+0.148
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:right;">
+1.024
+</td>
+<td style="text-align:right;">
+0.050
+</td>
+<td style="text-align:right;">
+20.641
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+1.491
+</td>
+<td style="text-align:right;">
+0.136
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_t
+</td>
+<td style="text-align:left;">
+W_HB_W_All_t
+</td>
+<td style="text-align:right;">
+0.279
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+17.015
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_WO_All_walk
+</td>
+<td style="text-align:right;">
+0.164
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+12.724
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_WO_All_walk
+</td>
+<td style="text-align:right;">
+0.164
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+12.724
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="walk-2" class="section level4">
+<h4>Walk</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_nm
+</td>
+<td style="text-align:right;">
+0.874
+</td>
+<td style="text-align:right;">
+0.348
+</td>
+<td style="text-align:right;">
+2.511
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_nm
+</td>
+<td style="text-align:right;">
+0.874
+</td>
+<td style="text-align:right;">
+0.348
+</td>
+<td style="text-align:right;">
+2.511
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.047
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+2.701
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.158
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+13.785
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.457
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+10.387
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_W_All_bike
+</td>
+<td style="text-align:right;">
+0.108
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+<td style="text-align:right;">
+1.634
+</td>
+<td style="text-align:right;">
+0.102
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+2.573
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_t
+</td>
+<td style="text-align:left;">
+W_HB_W_All_t
+</td>
+<td style="text-align:right;">
+0.180
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+4.141
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_W_All_walk
+</td>
+<td style="text-align:right;">
+0.205
+</td>
+<td style="text-align:right;">
+0.059
+</td>
+<td style="text-align:right;">
+3.470
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bike-2" class="section level4">
+<h4>Bike</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+trip_type
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:right;">
+0.960
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+82.043
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+2.371
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_W_All_bike
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+1.054
+</td>
+<td style="text-align:right;">
+0.292
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="non-work-tours" class="section level2">
+<h2>Non-work tours</h2>
+<div id="n_nh_k12_all" class="section level3 tabset N_NH_K12_All">
+<h3>N_NH_K12_All</h3>
+<p>These are non-home-based trips with one trend end at school (K-12). This includes children attending school and parents dropping off children at school. The “All” means that this type does not separate short from long duration activities.</p>
+<div id="sov-3" class="section level4">
+<h4>SOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -534,11 +2188,10 @@ N_HB_OD_All_sov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.03</p>
 </div>
-<div id="hov" class="section level4">
+<div id="hov-3" class="section level4">
 <h4>HOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -644,19 +2297,18 @@ N_HB_OD_Short_hov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.07</p>
 </div>
-<div id="auto-pay" class="section level4">
+<div id="auto-pay-3" class="section level4">
 <h4>Auto Pay</h4>
-<p>There was only one observed trip in this category, so no model was estimated.</p>
+<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was not estimated.</p>
 </div>
-<div id="transit" class="section level4">
+<div id="transit-3" class="section level4">
 <h4>Transit</h4>
-<p>There were only five trips observed in this category, so no model was estimated.</p>
+<p>No significant presence of this trip type in the survey (5 samples), and it is not an important source of travel demand. No model was not estimated.</p>
 </div>
-<div id="walk" class="section level4">
+<div id="walk-3" class="section level4">
 <h4>Walk</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -694,7 +2346,7 @@ N_HB_K12_All_auto
 0.001
 </td>
 <td style="text-align:right;">
-8.102
+8.123
 </td>
 <td style="text-align:right;">
 0.000
@@ -714,7 +2366,7 @@ N_HB_K12_All_auto
 0.001
 </td>
 <td style="text-align:right;">
-8.102
+8.123
 </td>
 <td style="text-align:right;">
 0.000
@@ -737,7 +2389,7 @@ N_HB_K12_All_bike
 1.863
 </td>
 <td style="text-align:right;">
-0.062
+0.063
 </td>
 </tr>
 <tr>
@@ -754,7 +2406,7 @@ N_HB_K12_All_school_bus
 0.002
 </td>
 <td style="text-align:right;">
-3.581
+3.584
 </td>
 <td style="text-align:right;">
 0.000
@@ -774,7 +2426,7 @@ N_HB_K12_All_walk
 0.006
 </td>
 <td style="text-align:right;">
-2.843
+2.842
 </td>
 <td style="text-align:right;">
 0.004
@@ -794,10 +2446,10 @@ N_HB_OD_Short_hov
 0.001
 </td>
 <td style="text-align:right;">
-2.621
+2.667
 </td>
 <td style="text-align:right;">
-0.009
+0.008
 </td>
 </tr>
 <tr>
@@ -814,47 +2466,26 @@ N_HB_OD_Short_walk
 0.001
 </td>
 <td style="text-align:right;">
-1.568
+1.569
 </td>
 <td style="text-align:right;">
 0.117
 </td>
 </tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OMED_All_hov
-</td>
-<td style="text-align:left;">
-N_HB_OMED_All_hov
-</td>
-<td style="text-align:right;">
-0.005
-</td>
-<td style="text-align:right;">
-0.002
-</td>
-<td style="text-align:right;">
-1.993
-</td>
-<td style="text-align:right;">
-0.046
-</td>
-</tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.01</p>
 </div>
-<div id="bike" class="section level4">
+<div id="bike-3" class="section level4">
 <h4>Bike</h4>
-<p>There was only one trip observed in this category, so no model was estimated.</p>
+<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was not estimated.</p>
 </div>
 </div>
-<div id="n_nh_ome_all" class="section level3">
+<div id="n_nh_ome_all" class="section level3 tabset N_NH_OME_All">
 <h3>N_NH_OME_All</h3>
 <p>These non-home-based trips are those where neither end is a K12 school and at least one end is an “OME” activity type. This includes the most common reasons people spend money: shopping, dining, and maintenance activities. The “All” means that this trip includes all activity durations.</p>
-<div id="sov-1" class="section level4">
+<div id="sov-4" class="section level4">
 <h4>SOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -880,62 +2511,22 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:right;">
-0.038
-</td>
-<td style="text-align:right;">
-0.013
-</td>
-<td style="text-align:right;">
-2.807
-</td>
-<td style="text-align:right;">
-0.005
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:right;">
-0.059
-</td>
-<td style="text-align:right;">
-0.022
-</td>
-<td style="text-align:right;">
-2.711
-</td>
-<td style="text-align:right;">
-0.007
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_hov
 </td>
 <td style="text-align:left;">
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.041
+0.043
 </td>
 <td style="text-align:right;">
 0.009
 </td>
 <td style="text-align:right;">
-4.761
+4.910
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 <tr>
@@ -946,16 +2537,16 @@ N_HB_OD_Short_hov
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.041
+0.043
 </td>
 <td style="text-align:right;">
 0.009
 </td>
 <td style="text-align:right;">
-4.761
+4.910
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 <tr>
@@ -966,16 +2557,16 @@ N_HB_OD_Long_sov
 N_HB_OD_Long_sov
 </td>
 <td style="text-align:right;">
-0.096
+0.097
 </td>
 <td style="text-align:right;">
 0.012
 </td>
 <td style="text-align:right;">
-8.216
+8.240
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 <tr>
@@ -992,10 +2583,10 @@ N_HB_OD_Short_sov
 0.017
 </td>
 <td style="text-align:right;">
-5.366
+5.364
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 <tr>
@@ -1012,10 +2603,10 @@ N_HB_OME_All_sov
 0.011
 </td>
 <td style="text-align:right;">
-58.178
+58.210
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 <tr>
@@ -1026,25 +2617,24 @@ N_HB_OMED_All_sov
 N_HB_OMED_All_sov
 </td>
 <td style="text-align:right;">
-0.323
+0.324
 </td>
 <td style="text-align:right;">
 0.036
 </td>
 <td style="text-align:right;">
-9.093
+9.105
 </td>
 <td style="text-align:right;">
-0.000
+0
 </td>
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.23</p>
 </div>
-<div id="hov-1" class="section level4">
+<div id="hov-4" class="section level4">
 <h4>HOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -1070,46 +2660,6 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:right;">
-0.054
-</td>
-<td style="text-align:right;">
-0.015
-</td>
-<td style="text-align:right;">
-3.564
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:right;">
-0.055
-</td>
-<td style="text-align:right;">
-0.024
-</td>
-<td style="text-align:right;">
-2.254
-</td>
-<td style="text-align:right;">
-0.024
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_sov
 </td>
 <td style="text-align:left;">
@@ -1122,7 +2672,7 @@ N_HB_OD_All_sov
 0.011
 </td>
 <td style="text-align:right;">
-7.182
+7.200
 </td>
 <td style="text-align:right;">
 0.000
@@ -1142,7 +2692,7 @@ N_HB_OD_All_sov
 0.011
 </td>
 <td style="text-align:right;">
-7.182
+7.200
 </td>
 <td style="text-align:right;">
 0.000
@@ -1156,13 +2706,13 @@ N_HB_OD_Long_hov
 N_HB_OD_Long_hov
 </td>
 <td style="text-align:right;">
-0.166
+0.168
 </td>
 <td style="text-align:right;">
 0.012
 </td>
 <td style="text-align:right;">
-13.421
+13.528
 </td>
 <td style="text-align:right;">
 0.000
@@ -1176,13 +2726,13 @@ N_HB_OD_Short_hov
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.402
+0.404
 </td>
 <td style="text-align:right;">
 0.017
 </td>
 <td style="text-align:right;">
-23.623
+23.729
 </td>
 <td style="text-align:right;">
 0.000
@@ -1196,13 +2746,13 @@ N_HB_OME_All_hov
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.523
+0.524
 </td>
 <td style="text-align:right;">
 0.009
 </td>
 <td style="text-align:right;">
-55.146
+55.237
 </td>
 <td style="text-align:right;">
 0.000
@@ -1216,16 +2766,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.034
+0.035
 </td>
 <td style="text-align:right;">
 0.012
 </td>
 <td style="text-align:right;">
-2.732
+2.804
 </td>
 <td style="text-align:right;">
-0.006
+0.005
 </td>
 </tr>
 <tr>
@@ -1242,7 +2792,7 @@ N_HB_OMED_All_auto_pay
 0.201
 </td>
 <td style="text-align:right;">
-3.791
+3.786
 </td>
 <td style="text-align:right;">
 0.000
@@ -1256,13 +2806,13 @@ N_HB_OMED_All_hov
 N_HB_OMED_All_hov
 </td>
 <td style="text-align:right;">
-0.269
+0.271
 </td>
 <td style="text-align:right;">
 0.032
 </td>
 <td style="text-align:right;">
-8.388
+8.430
 </td>
 <td style="text-align:right;">
 0.000
@@ -1270,11 +2820,10 @@ N_HB_OMED_All_hov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.25</p>
 </div>
-<div id="auto-pay-1" class="section level4">
+<div id="auto-pay-4" class="section level4">
 <h4>Auto Pay</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -1380,11 +2929,10 @@ N_HB_OMED_All_auto_pay
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.17</p>
 </div>
-<div id="transit-1" class="section level4">
+<div id="transit-4" class="section level4">
 <h4>Transit</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -1410,39 +2958,19 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_t
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_t
-</td>
-<td style="text-align:right;">
-0.309
-</td>
-<td style="text-align:right;">
-0.012
-</td>
-<td style="text-align:right;">
-25.021
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_t
 </td>
 <td style="text-align:left;">
 N_HB_OD_Long_t
 </td>
 <td style="text-align:right;">
-0.046
+0.045
 </td>
 <td style="text-align:right;">
-0.007
+0.008
 </td>
 <td style="text-align:right;">
-6.310
+6.059
 </td>
 <td style="text-align:right;">
 0
@@ -1456,33 +2984,13 @@ N_HB_OD_Short_t
 N_HB_OD_Short_t
 </td>
 <td style="text-align:right;">
-0.268
+0.279
 </td>
 <td style="text-align:right;">
 0.009
 </td>
 <td style="text-align:right;">
-30.134
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OME_All_other
-</td>
-<td style="text-align:left;">
-N_HB_OME_All_other
-</td>
-<td style="text-align:right;">
-0.252
-</td>
-<td style="text-align:right;">
-0.017
-</td>
-<td style="text-align:right;">
-14.740
+30.462
 </td>
 <td style="text-align:right;">
 0
@@ -1496,13 +3004,13 @@ N_HB_OME_All_t
 N_HB_OME_All_t
 </td>
 <td style="text-align:right;">
-0.301
+0.312
 </td>
 <td style="text-align:right;">
 0.007
 </td>
 <td style="text-align:right;">
-41.524
+41.822
 </td>
 <td style="text-align:right;">
 0
@@ -1516,13 +3024,13 @@ N_HB_OME_All_walk
 N_HB_OME_All_walk
 </td>
 <td style="text-align:right;">
-0.009
+0.010
 </td>
 <td style="text-align:right;">
 0.002
 </td>
 <td style="text-align:right;">
-3.934
+4.197
 </td>
 <td style="text-align:right;">
 0
@@ -1530,11 +3038,10 @@ N_HB_OME_All_walk
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.25</p>
 </div>
-<div id="walk-1" class="section level4">
+<div id="walk-4" class="section level4">
 <h4>Walk</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -1566,16 +3073,96 @@ N_HB_K12_All_t
 N_HB_K12_All_t
 </td>
 <td style="text-align:right;">
-0.078
+0.079
 </td>
 <td style="text-align:right;">
 0.048
 </td>
 <td style="text-align:right;">
-1.650
+1.644
 </td>
 <td style="text-align:right;">
-0.099
+0.100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long_auto_pay
+</td>
+<td style="text-align:left;">
+N_HB_O_All_auto_pay
+</td>
+<td style="text-align:right;">
+0.579
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+25.682
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short_auto_pay
+</td>
+<td style="text-align:left;">
+N_HB_O_All_auto_pay
+</td>
+<td style="text-align:right;">
+0.579
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+25.682
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All_auto_pay
+</td>
+<td style="text-align:left;">
+N_HB_O_All_auto_pay
+</td>
+<td style="text-align:right;">
+0.579
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+25.682
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All_auto_pay
+</td>
+<td style="text-align:left;">
+N_HB_O_All_auto_pay
+</td>
+<td style="text-align:right;">
+0.579
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+25.682
+</td>
+<td style="text-align:right;">
+0.000
 </td>
 </tr>
 <tr>
@@ -1592,10 +3179,10 @@ N_HB_OD_All_hov
 0.003
 </td>
 <td style="text-align:right;">
-2.204
+2.165
 </td>
 <td style="text-align:right;">
-0.028
+0.030
 </td>
 </tr>
 <tr>
@@ -1612,10 +3199,10 @@ N_HB_OD_All_hov
 0.003
 </td>
 <td style="text-align:right;">
-2.204
+2.165
 </td>
 <td style="text-align:right;">
-0.028
+0.030
 </td>
 </tr>
 <tr>
@@ -1632,7 +3219,7 @@ N_HB_OD_All_t
 0.022
 </td>
 <td style="text-align:right;">
-2.980
+2.984
 </td>
 <td style="text-align:right;">
 0.003
@@ -1652,7 +3239,7 @@ N_HB_OD_All_t
 0.022
 </td>
 <td style="text-align:right;">
-2.980
+2.984
 </td>
 <td style="text-align:right;">
 0.003
@@ -1672,7 +3259,7 @@ N_HB_OD_Long_walk
 0.008
 </td>
 <td style="text-align:right;">
-4.788
+4.760
 </td>
 <td style="text-align:right;">
 0.000
@@ -1689,10 +3276,10 @@ N_HB_OD_Short_sov
 0.013
 </td>
 <td style="text-align:right;">
-0.005
+0.006
 </td>
 <td style="text-align:right;">
-2.312
+2.305
 </td>
 <td style="text-align:right;">
 0.021
@@ -1706,73 +3293,13 @@ N_HB_OD_Short_walk
 N_HB_OD_Short_walk
 </td>
 <td style="text-align:right;">
-0.014
+0.015
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-3.543
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OD_Long_auto_pay
-</td>
-<td style="text-align:left;">
-N_HB_OME_All_auto_pay
-</td>
-<td style="text-align:right;">
-0.607
-</td>
-<td style="text-align:right;">
-0.023
-</td>
-<td style="text-align:right;">
-26.428
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OME_All_auto_pay
-</td>
-<td style="text-align:left;">
-N_HB_OME_All_auto_pay
-</td>
-<td style="text-align:right;">
-0.607
-</td>
-<td style="text-align:right;">
-0.023
-</td>
-<td style="text-align:right;">
-26.428
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OMED_All_auto_pay
-</td>
-<td style="text-align:left;">
-N_HB_OME_All_auto_pay
-</td>
-<td style="text-align:right;">
-0.607
-</td>
-<td style="text-align:right;">
-0.023
-</td>
-<td style="text-align:right;">
-26.428
+3.576
 </td>
 <td style="text-align:right;">
 0.000
@@ -1792,7 +3319,7 @@ N_HB_OME_All_bike
 0.048
 </td>
 <td style="text-align:right;">
-2.485
+2.475
 </td>
 <td style="text-align:right;">
 0.013
@@ -1812,7 +3339,7 @@ N_HB_OME_All_hov
 0.003
 </td>
 <td style="text-align:right;">
-2.780
+2.779
 </td>
 <td style="text-align:right;">
 0.005
@@ -1826,13 +3353,13 @@ N_HB_OME_All_other
 N_HB_OME_All_other
 </td>
 <td style="text-align:right;">
-0.199
+0.197
 </td>
 <td style="text-align:right;">
 0.066
 </td>
 <td style="text-align:right;">
-3.014
+2.983
 </td>
 <td style="text-align:right;">
 0.003
@@ -1852,7 +3379,7 @@ N_HB_OME_All_sov
 0.003
 </td>
 <td style="text-align:right;">
-7.521
+7.488
 </td>
 <td style="text-align:right;">
 0.000
@@ -1872,7 +3399,7 @@ N_HB_OME_All_t
 0.028
 </td>
 <td style="text-align:right;">
-3.019
+3.002
 </td>
 <td style="text-align:right;">
 0.003
@@ -1886,13 +3413,33 @@ N_HB_OME_All_walk
 N_HB_OME_All_walk
 </td>
 <td style="text-align:right;">
-0.171
+0.177
 </td>
 <td style="text-align:right;">
 0.009
 </td>
 <td style="text-align:right;">
-19.007
+19.647
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All_walk
+</td>
+<td style="text-align:left;">
+N_HB_OME_All_walk
+</td>
+<td style="text-align:right;">
+0.177
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+19.647
 </td>
 <td style="text-align:right;">
 0.000
@@ -1912,39 +3459,18 @@ N_HB_OMED_All_hov
 0.009
 </td>
 <td style="text-align:right;">
-1.797
+1.790
 </td>
 <td style="text-align:right;">
-0.072
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OMED_All_walk
-</td>
-<td style="text-align:left;">
-N_HB_OMED_All_walk
-</td>
-<td style="text-align:right;">
-1.502
-</td>
-<td style="text-align:right;">
-0.153
-</td>
-<td style="text-align:right;">
-9.824
-</td>
-<td style="text-align:right;">
-0.000
+0.073
 </td>
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.09</p>
 </div>
-<div id="bike-1" class="section level4">
+<div id="bike-4" class="section level4">
 <h4>Bike</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -1970,26 +3496,6 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_bike
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_bike
-</td>
-<td style="text-align:right;">
-0.035
-</td>
-<td style="text-align:right;">
-0.007
-</td>
-<td style="text-align:right;">
-4.663
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_bike
 </td>
 <td style="text-align:left;">
@@ -2002,7 +3508,7 @@ N_HB_OD_Long_bike
 0.003
 </td>
 <td style="text-align:right;">
-10.200
+10.157
 </td>
 <td style="text-align:right;">
 0.000
@@ -2022,7 +3528,7 @@ N_HB_OD_Long_t
 0.004
 </td>
 <td style="text-align:right;">
-3.407
+3.405
 </td>
 <td style="text-align:right;">
 0.001
@@ -2042,10 +3548,10 @@ N_HB_OD_Short_bike
 0.002
 </td>
 <td style="text-align:right;">
-1.372
+1.400
 </td>
 <td style="text-align:right;">
-0.170
+0.162
 </td>
 </tr>
 <tr>
@@ -2056,13 +3562,13 @@ N_HB_OME_All_bike
 N_HB_OME_All_bike
 </td>
 <td style="text-align:right;">
-0.707
+0.709
 </td>
 <td style="text-align:right;">
 0.007
 </td>
 <td style="text-align:right;">
-105.492
+105.818
 </td>
 <td style="text-align:right;">
 0.000
@@ -2070,15 +3576,14 @@ N_HB_OME_All_bike
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.48</p>
 </div>
 </div>
-<div id="n_nh_o_all" class="section level3">
+<div id="n_nh_o_all" class="section level3 tabset N_NH_O_All">
 <h3>N_NH_O_All</h3>
 <p>These non-home-based trips are those where neither end is a K12 school or a shopping/dining/maintenance activity (OME). The “All” means that this trip includes all activity durations.</p>
-<div id="sov-2" class="section level4">
+<div id="sov-5" class="section level4">
 <h4>SOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -2104,46 +3609,6 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_auto
-</td>
-<td style="text-align:right;">
-0.025
-</td>
-<td style="text-align:right;">
-0.004
-</td>
-<td style="text-align:right;">
-5.562
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_auto
-</td>
-<td style="text-align:right;">
-0.025
-</td>
-<td style="text-align:right;">
-0.004
-</td>
-<td style="text-align:right;">
-5.562
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_hov
 </td>
 <td style="text-align:left;">
@@ -2156,7 +3621,7 @@ N_HB_OD_All_hov
 0.004
 </td>
 <td style="text-align:right;">
-5.760
+5.951
 </td>
 <td style="text-align:right;">
 0.000
@@ -2176,7 +3641,7 @@ N_HB_OD_All_hov
 0.004
 </td>
 <td style="text-align:right;">
-5.760
+5.951
 </td>
 <td style="text-align:right;">
 0.000
@@ -2190,13 +3655,13 @@ N_HB_OD_Long_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.107
+0.108
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-25.558
+25.559
 </td>
 <td style="text-align:right;">
 0.000
@@ -2210,13 +3675,13 @@ N_HB_OD_Short_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.107
+0.108
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-25.558
+25.559
 </td>
 <td style="text-align:right;">
 0.000
@@ -2236,10 +3701,10 @@ N_HB_OME_All_hov
 0.003
 </td>
 <td style="text-align:right;">
-0.504
+0.654
 </td>
 <td style="text-align:right;">
-0.614
+0.513
 </td>
 </tr>
 <tr>
@@ -2256,10 +3721,10 @@ N_HB_OME_All_hov
 0.003
 </td>
 <td style="text-align:right;">
-0.504
+0.654
 </td>
 <td style="text-align:right;">
-0.614
+0.513
 </td>
 </tr>
 <tr>
@@ -2270,13 +3735,13 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.029
+0.030
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-6.566
+6.650
 </td>
 <td style="text-align:right;">
 0.000
@@ -2290,13 +3755,13 @@ N_HB_OMED_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.029
+0.030
 </td>
 <td style="text-align:right;">
 0.004
 </td>
 <td style="text-align:right;">
-6.566
+6.650
 </td>
 <td style="text-align:right;">
 0.000
@@ -2304,11 +3769,10 @@ N_HB_OME_All_sov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.06</p>
 </div>
-<div id="hov-2" class="section level4">
+<div id="hov-5" class="section level4">
 <h4>HOV</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -2334,59 +3798,19 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_hov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_auto
-</td>
-<td style="text-align:right;">
-0.065
-</td>
-<td style="text-align:right;">
-0.007
-</td>
-<td style="text-align:right;">
-8.908
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_K12_All_sov
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_auto
-</td>
-<td style="text-align:right;">
-0.065
-</td>
-<td style="text-align:right;">
-0.007
-</td>
-<td style="text-align:right;">
-8.908
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_hov
 </td>
 <td style="text-align:left;">
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.058
+0.059
 </td>
 <td style="text-align:right;">
 0.006
 </td>
 <td style="text-align:right;">
-10.284
+10.456
 </td>
 <td style="text-align:right;">
 0.000
@@ -2400,13 +3824,13 @@ N_HB_OD_Long_sov
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.058
+0.059
 </td>
 <td style="text-align:right;">
 0.006
 </td>
 <td style="text-align:right;">
-10.284
+10.456
 </td>
 <td style="text-align:right;">
 0.000
@@ -2420,13 +3844,13 @@ N_HB_OD_Short_hov
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.322
+0.325
 </td>
 <td style="text-align:right;">
 0.011
 </td>
 <td style="text-align:right;">
-29.602
+29.750
 </td>
 <td style="text-align:right;">
 0.000
@@ -2446,7 +3870,7 @@ N_HB_OD_Short_sov
 0.013
 </td>
 <td style="text-align:right;">
-12.527
+12.476
 </td>
 <td style="text-align:right;">
 0.000
@@ -2460,13 +3884,13 @@ N_HB_OME_All_hov
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.030
+0.031
 </td>
 <td style="text-align:right;">
 0.006
 </td>
 <td style="text-align:right;">
-4.953
+5.163
 </td>
 <td style="text-align:right;">
 0.000
@@ -2480,16 +3904,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.014
+0.015
 </td>
 <td style="text-align:right;">
 0.008
 </td>
 <td style="text-align:right;">
-1.833
+1.965
 </td>
 <td style="text-align:right;">
-0.067
+0.049
 </td>
 </tr>
 <tr>
@@ -2500,13 +3924,13 @@ N_HB_OMED_All_hov
 N_HB_OMED_All_hov
 </td>
 <td style="text-align:right;">
-0.082
+0.084
 </td>
 <td style="text-align:right;">
 0.020
 </td>
 <td style="text-align:right;">
-4.057
+4.135
 </td>
 <td style="text-align:right;">
 0.000
@@ -2514,11 +3938,10 @@ N_HB_OMED_All_hov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.11</p>
 </div>
-<div id="auto-pay-2" class="section level4">
+<div id="auto-pay-5" class="section level4">
 <h4>Auto Pay</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -2556,7 +3979,7 @@ N_HB_OD_Long_auto_pay
 0.015
 </td>
 <td style="text-align:right;">
-28.842
+28.841
 </td>
 <td style="text-align:right;">
 0.000
@@ -2570,36 +3993,16 @@ N_HB_OD_Short_auto_pay
 N_HB_OD_Short_auto_pay
 </td>
 <td style="text-align:right;">
-0.039
+0.038
 </td>
 <td style="text-align:right;">
 0.031
 </td>
 <td style="text-align:right;">
-1.234
+1.220
 </td>
 <td style="text-align:right;">
-0.217
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OD_Short_hov
-</td>
-<td style="text-align:left;">
-N_HB_OD_Short_hov
-</td>
-<td style="text-align:right;">
--0.002
-</td>
-<td style="text-align:right;">
-0.001
-</td>
-<td style="text-align:right;">
--1.536
-</td>
-<td style="text-align:right;">
-0.125
+0.222
 </td>
 </tr>
 <tr>
@@ -2610,13 +4013,13 @@ N_HB_OD_Short_sov
 N_HB_OD_Short_sov
 </td>
 <td style="text-align:right;">
-0.013
+0.012
 </td>
 <td style="text-align:right;">
 0.002
 </td>
 <td style="text-align:right;">
-7.593
+7.436
 </td>
 <td style="text-align:right;">
 0.000
@@ -2624,11 +4027,10 @@ N_HB_OD_Short_sov
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.06</p>
 </div>
-<div id="transit-2" class="section level4">
+<div id="transit-5" class="section level4">
 <h4>Transit</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -2654,26 +4056,6 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All_walk
-</td>
-<td style="text-align:left;">
-N_HB_K12_All_walk
-</td>
-<td style="text-align:right;">
-0.037
-</td>
-<td style="text-align:right;">
-0.011
-</td>
-<td style="text-align:right;">
-3.508
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 N_HB_OD_Long_t
 </td>
 <td style="text-align:left;">
@@ -2686,7 +4068,7 @@ N_HB_OD_Long_t
 0.014
 </td>
 <td style="text-align:right;">
-5.316
+5.313
 </td>
 <td style="text-align:right;">
 0.000
@@ -2706,7 +4088,7 @@ N_HB_OD_Short_sov
 0.003
 </td>
 <td style="text-align:right;">
-2.985
+2.983
 </td>
 <td style="text-align:right;">
 0.003
@@ -2726,7 +4108,7 @@ N_HB_OD_Short_t
 0.018
 </td>
 <td style="text-align:right;">
-51.718
+51.694
 </td>
 <td style="text-align:right;">
 0.000
@@ -2746,10 +4128,10 @@ N_HB_OD_Short_walk
 0.002
 </td>
 <td style="text-align:right;">
-2.867
+2.944
 </td>
 <td style="text-align:right;">
-0.004
+0.003
 </td>
 </tr>
 <tr>
@@ -2766,7 +4148,7 @@ N_HB_OME_All_t
 0.014
 </td>
 <td style="text-align:right;">
-3.444
+3.443
 </td>
 <td style="text-align:right;">
 0.001
@@ -2786,7 +4168,7 @@ N_HB_OMED_All_t
 0.027
 </td>
 <td style="text-align:right;">
-13.250
+13.244
 </td>
 <td style="text-align:right;">
 0.000
@@ -2794,11 +4176,10 @@ N_HB_OMED_All_t
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.22</p>
 </div>
-<div id="walk-2" class="section level4">
+<div id="walk-5" class="section level4">
 <h4>Walk</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -2964,11 +4345,10 @@ N_HB_OME_All_walk
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.02</p>
 </div>
-<div id="bike-2" class="section level4">
+<div id="bike-5" class="section level4">
 <h4>Bike</h4>
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -3054,7 +4434,6 @@ N_HB_OME_All_bike
 </tr>
 </tbody>
 </table>
-<p>Adjusted R0 Squared: 0.05</p>
 </div>
 </div>
 </div>

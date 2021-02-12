@@ -22,7 +22,7 @@ source("R/estimate_nhb.R")
 
 ## Introduction
 
-*TODO: Add*
+*TODO: Vince to add*
 
 Modes:
 
@@ -32,6 +32,13 @@ Modes:
 - Transit
 - Bike
 - Walk
+
+The model coefficients below are the result of multiple linear regression with
+a forced intercept at zero. In addition, the model predictions in estimation will
+be scaled up to a predicted regional total. As a result of these two factors,
+the r-squared values are not meaningful and are not displayed. Instead, the
+value of the coefficients is in determining the relative effect that various
+home-based trip types have on non-home-based trip generation.
 
 ```{r, include = FALSE}
 trips <- read_csv(
@@ -53,18 +60,461 @@ make_table <- function(model) {
   model$tbl %>%
     arrange(estimated_as) %>%
     kable(digits = 3) %>%
-    kable_styling()
+    kable_styling(full_width = FALSE)
 }
 
 # unique(trips$mode_simple2)
 ```
 
-The regression models below all enforce an intercept of 0. This changes the
-r-squared values interpretation and makes it less meaningful.
+## Work tours
 
-## Non-work types
+### W_NH_EK12_All {.tabset .W_NH_EK12_All}
 
-### N_NH_K12_All
+#### SOV
+
+```{r, W_NH_EK12_All_sov}
+type <- "W_NH_EK12_All_sov"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_W_All_hov" = "W_HB_W_All_auto",
+  "W_HB_W_All_sov" = "W_HB_W_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_hov",
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_auto"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### HOV
+
+```{r, W_NH_EK12_All_hov}
+type <- "W_NH_EK12_All_hov"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov" = "W_HB_O_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_auto",
+  "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_sov",
+  "W_HB_O_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+
+
+
+
+#### Auto Pay
+
+No significant presence of this trip type in the survey (0 samples), and it is
+not an important source of travel demand. No model was not estimated.
+
+```{r, W_NH_EK12_All_auto_pay}
+type <- "W_NH_EK12_All_auto_pay"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+#### Transit
+
+No significant presence of this trip type in the survey (3 samples), and it is
+not an important source of travel demand. No model was not estimated.
+
+```{r, W_NH_EK12_All_t}
+type <- "W_NH_EK12_All_t"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+#### Walk
+
+```{r, W_NH_EK12_All_walk}
+type <- "W_NH_EK12_All_walk"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+
+
+
+
+
+
+
+#### Bike
+
+No significant presence of this trip type in the survey (2 samples), and it is
+not an important source of travel demand. No model was not estimated.
+
+```{r, W_NH_EK12_All_bike}
+type <- "W_NH_EK12_All_bike"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+
+### W_NH_O_All {.tabset .W_NH_O_All}
+
+#### SOV
+
+```{r, W_NH_O_All_sov}
+type <- "W_NH_O_All_sov"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_auto",
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### HOV
+
+```{r, W_NH_O_All_hov}
+type <- "W_NH_O_All_hov"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_hov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Auto Pay
+
+No significant presence of this trip type in the survey (2 samples), and it is
+not an important source of travel demand. No model was not estimated.
+
+```{r, W_NH_O_All_auto_pay}
+type <- "W_NH_O_All_auto_pay"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+#### Transit
+
+```{r, W_NH_O_All_t}
+type <- "W_NH_O_All_t"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_walk",
+  "W_HB_O_All_t",
+  "W_HB_W_All_hov",
+  "W_HB_EK12_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Walk
+
+```{r, W_NH_O_All_walk}
+type <- "W_NH_O_All_walk"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov" = "W_HB_O_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_auto",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_sov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Bike
+
+```{r, W_NH_O_All_bike}
+type <- "W_NH_O_All_bike"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_bike"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+
+
+
+### W_NH_WR_All {.tabset .W_NH_WR_All}
+
+#### SOV
+
+```{r, W_NH_WR_All_sov}
+type <- "W_NH_WR_All_sov"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
+  "W_HB_W_All_hov" = "W_HB_W_All_auto",
+  "W_HB_W_All_sov" = "W_HB_W_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_auto",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_auto"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### HOV
+
+```{r, W_NH_WR_All_hov}
+type <- "W_NH_WR_All_hov"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'W_HB_O_All_hov',
+  'W_HB_W_All_hov',
+  'W_HB_O_All_sov',
+  'W_HB_EK12_All_hov',
+  'W_HB_O_All_walk'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Auto Pay
+
+```{r, W_NH_WR_All_auto_pay}
+type <- "W_NH_WR_All_auto_pay"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'W_HB_O_All_auto_pay',
+  'W_HB_O_All_sov'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Transit
+
+```{r, W_NH_WR_All_t}
+type <- "W_NH_WR_All_t"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_W_All_walk" = "W_HB_WO_All_walk",
+  "W_HB_O_All_walk" = "W_HB_WO_All_walk"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_WO_All_walk",
+  "W_HB_O_All_t",
+  "W_HB_W_All_t",
+  "W_HB_O_All_sov",
+  "W_HB_W_All_hov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Walk
+
+```{r, W_NH_WR_All_walk}
+type <- "W_NH_WR_All_walk"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_EK12_All_bike" = "W_HB_EK12_All_nm",
+  "W_HB_EK12_All_walk" = "W_HB_EK12_All_nm"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_nm",
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_bike",
+  "W_HB_W_All_sov",
+  "W_HB_W_All_t",
+  "W_HB_W_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+#### Bike
+
+```{r, W_NH_WR_All_bike}
+type <- "W_NH_WR_All_bike"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_bike",
+  "W_HB_O_All_sov",
+  "W_HB_W_All_bike"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+output_list[type] <- list(model3$tbl)
+make_table(model3)
+```
+
+
+
+
+
+
+## Non-work tours
+
+### N_NH_K12_All {.tabset .N_NH_K12_All}
 
 These are non-home-based trips with one trend end at school (K-12). This
 includes children attending school and parents dropping off children at school.
@@ -81,7 +531,12 @@ equiv <- list(
   "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov"
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  
+  "N_HB_OME_All_hov" = "N_HB_OME_All_auto",
+  "N_HB_OME_All_sov" = "N_HB_OME_All_auto",
+  "N_HB_OMED_All_hov" = "N_HB_OME_All_auto",
+  "N_HB_OMED_All_sov" = "N_HB_OME_All_auto"
 )
 
 # Restrict dependent variables
@@ -100,7 +555,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### HOV
 
@@ -127,11 +582,12 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Auto Pay
 
-There was only one observed trip in this category, so no model was estimated.
+No significant presence of this trip type in the survey (1 sample), and it is
+not an important source of travel demand. No model was not estimated.
 
 ```{r, N_NH_K12_All_auto_pay}
 type <- "N_NH_K12_All_auto_pay"
@@ -143,7 +599,8 @@ n_records <- trips %>%
 
 #### Transit
 
-There were only five trips observed in this category, so no model was estimated.
+No significant presence of this trip type in the survey (5 samples), and it is
+not an important source of travel demand. No model was not estimated.
 
 ```{r, N_NH_K12_All_t}
 type <- "N_NH_K12_All_t"
@@ -169,7 +626,6 @@ dependent_vars <- c(
   "N_HB_K12_All_school_bus",
   "N_HB_K12_All_walk",
   "N_HB_OD_Short_hov",
-  "N_HB_OMED_All_hov",
   "N_HB_K12_All_bike",
   "N_HB_OD_Short_walk"
 )
@@ -183,11 +639,12 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Bike
 
-There was only one trip observed in this category, so no model was estimated.
+No significant presence of this trip type in the survey (1 sample), and it is
+not an important source of travel demand. No model was not estimated.
 
 ```{r, N_NH_K12_All_bike}
 type <- "N_NH_K12_All_bike"
@@ -196,7 +653,7 @@ n_records <- trips %>%
   nrow()
 ```
 
-### N_NH_OME_All
+### N_NH_OME_All {.tabset .N_NH_OME_All}
 
 These non-home-based trips are those where neither end is a K12 school and at
 least one end is an "OME" activity type. This includes the most common reasons
@@ -211,18 +668,22 @@ type <- "N_NH_OME_All_sov"
 # Collapse trip types
 equiv <- list(
   "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov"
+  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  "N_HB_OME_All_hov" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_hov" = "N_HB_OME_All_hov"
 )
 
-# Restrict dependent variables
+# Restrict dependent variables.
 dependent_vars <- c(
-  "N_HB_K12_All_hov",
-  "N_HB_K12_All_sov",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_hov",
+  # "N_HB_K12_All_sov",
   "N_HB_OD_All_hov",
   "N_HB_OD_Long_sov",
   "N_HB_OD_Short_sov",
   "N_HB_OME_All_sov",
   "N_HB_OMED_All_sov"
+  # "N_HB_OME_All_hov"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -234,7 +695,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### HOV
 
@@ -244,13 +705,25 @@ type <- "N_NH_OME_All_hov"
 # Collapse trip types
 equiv <- list(
   "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
-  "N_HB_OD_Short_sov" = "N_HB_OD_All_sov"
+  "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
+  "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_walk" = "N_HB_All_All_nonauto"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_K12_All_hov",
-  "N_HB_K12_All_sov",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_hov",
+  # "N_HB_K12_All_sov",
   "N_HB_OD_All_sov",
   "N_HB_OD_Long_hov",
   "N_HB_OD_Short_hov",
@@ -258,6 +731,7 @@ dependent_vars <- c(
   "N_HB_OME_All_sov",
   "N_HB_OMED_All_auto_pay",
   "N_HB_OMED_All_hov"
+  # "N_HB_All_All_nonauto"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -269,7 +743,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Auto Pay
 
@@ -277,7 +751,23 @@ Adjusted R0 Squared: `r model3$r_sq`
 type <- "N_NH_OME_All_auto_pay"
 
 # Collapse trip types
-equiv <- NULL
+equiv <- equiv <- list(
+  "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_hov" = "N_HB_All_All_hov",
+  "N_HB_OD_Short_hov" = "N_HB_All_All_hov",
+  "N_HB_OME_All_hov" = "N_HB_All_All_hov",
+  "N_HB_OMED_All_hov" = "N_HB_All_All_hov"
+)
 
 # Restrict dependent variables
 dependent_vars <- c(
@@ -296,7 +786,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Transit
 
@@ -308,10 +798,10 @@ equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_K12_All_t",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_t",
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_t",
-  "N_HB_OME_All_other",
   "N_HB_OME_All_t",
   "N_HB_OME_All_walk"
 )
@@ -325,7 +815,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Walk
 
@@ -334,13 +824,16 @@ type <- "N_NH_OME_All_walk"
 
 # Collapse trip types
 equiv <- c(
-  "N_HB_OME_All_auto_pay" = "N_HB_OME_All_auto_pay",
-  "N_HB_OMED_All_auto_pay" = "N_HB_OME_All_auto_pay",
-  "N_HB_OD_Long_auto_pay" = "N_HB_OME_All_auto_pay",
+  "N_HB_OME_All_auto_pay" = "N_HB_O_All_auto_pay",
+  "N_HB_OMED_All_auto_pay" = "N_HB_O_All_auto_pay",
+  "N_HB_OD_Long_auto_pay" = "N_HB_O_All_auto_pay",
+  "N_HB_OD_Short_auto_pay" = "N_HB_O_All_auto_pay",
   "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
   "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
   "N_HB_OD_Short_t" = "N_HB_OD_All_t",
-  "N_HB_OD_Long_t" = "N_HB_OD_All_t"
+  "N_HB_OD_Long_t" = "N_HB_OD_All_t",
+  "N_HB_OMED_All_walk" = "N_HB_OME_All_walk",
+  "N_HB_OME_All_walk" = "N_HB_OME_All_walk"
 )
 
 # Restrict dependent variables
@@ -351,15 +844,14 @@ dependent_vars <- c(
   "N_HB_OD_Long_walk",
   "N_HB_OD_Short_sov",
   "N_HB_OD_Short_walk",
-  "N_HB_OME_All_auto_pay",
+  "N_HB_O_All_auto_pay",
   "N_HB_OME_All_bike",
   "N_HB_OME_All_hov",
   "N_HB_OME_All_other",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_t",
   "N_HB_OME_All_walk",
-  "N_HB_OMED_All_hov",
-  "N_HB_OMED_All_walk"
+  "N_HB_OMED_All_hov"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -371,7 +863,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Bike
 
@@ -383,7 +875,8 @@ equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_K12_All_bike",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_bike",
   "N_HB_OD_Long_bike",
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_bike",
@@ -399,9 +892,9 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
 
-### N_NH_O_All
+
+### N_NH_O_All {.tabset .N_NH_O_All}
 
 These non-home-based trips are those where neither end is a K12 school or
 a shopping/dining/maintenance activity (OME). The "All" means that this trip
@@ -428,7 +921,8 @@ equiv <- c(
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_K12_All_auto",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_auto",
   "N_HB_OD_All_hov",
   "N_HB_OD_All_sov",
   "N_HB_OME_All_sov",
@@ -443,8 +937,6 @@ model3 <- estimate_nhb(trips, type, equiv = equiv,
 output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
-
-Adjusted R0 Squared: `r model3$r_sq`
 
 #### HOV
 
@@ -465,7 +957,7 @@ dependent_vars <- c(
   "N_HB_OD_Short_hov",
   "N_HB_OME_All_hov",
   "N_HB_OD_Short_sov",
-  "N_HB_K12_All_auto",
+  # "N_HB_K12_All_auto",
   "N_HB_OMED_All_hov",
   "N_HB_OME_All_sov"
 )
@@ -479,7 +971,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Auto Pay
 
@@ -493,7 +985,6 @@ equiv <- NULL
 dependent_vars <- c(
   "N_HB_OD_Short_sov",
   "N_HB_OD_Long_auto_pay",
-  "N_HB_OD_Short_hov",
   "N_HB_OD_Short_auto_pay"
 )
 
@@ -506,7 +997,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Transit
 
@@ -521,7 +1012,8 @@ dependent_vars <- c(
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_t",
   "N_HB_OMED_All_t",
-  "N_HB_K12_All_walk",
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_walk",
   "N_HB_OME_All_t",
   "N_HB_OD_Short_walk",
   "N_HB_OD_Short_sov"
@@ -536,7 +1028,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Walk
 
@@ -568,7 +1060,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 #### Bike
 
@@ -594,7 +1086,7 @@ output_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
-Adjusted R0 Squared: `r model3$r_sq`
+
 
 
 ```{r write_output, eval=FALSE}
