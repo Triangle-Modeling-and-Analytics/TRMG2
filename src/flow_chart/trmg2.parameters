@@ -31,6 +31,8 @@
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
+        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
+        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
     
     Section = "Numeric Parameters"
     
