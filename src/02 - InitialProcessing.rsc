@@ -7,7 +7,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Create Output Copies", Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
-    // RunMacro("Set CC Speeds", Args)
+    RunMacro("Set CC Speeds", Args)
     // RunMacro("Other Attributes", Args)
     // RunMacro("Filter Transit Settings", Args)
 
@@ -293,8 +293,7 @@ Macro "Capacity" (Args)
     )
     lanes = nz(data.ABLanes) + nz(data.BALanes)
     type = if lanes = 0 then ""
-        else if data.HCMType = "Freeway" then ""
-        else if data.HCMType = "Superstreet" then ""
+        else if data.HCMType <> "Arterial" and data.HCMType <> "Collector" then ""
         else if data.AreaType <> "Rural" then ""
         else if lanes = 2 and data.Dir = 0 then "TL"
         else "ML"
@@ -434,4 +433,35 @@ Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
     end
 
     SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
+EndMacro
+
+/*
+Set CC speed by area type to be more realistic
+*/
+
+Macro "Set CC Speeds" (Args)
+
+    hwy_dbd = Args.Links
+    scen_dir = Args.[Scenario Folder]
+    cc_speeds = Args.CCSpeeds
+
+    // Add link layer to workspace
+    objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
+    {nlyr, llyr} = objLyrs.Layers
+
+    // Create a selection set of centroid connectors
+    SetLayer(llyr)
+    qry = "Select * where HCMType = 'CC'"
+    n = SelectByQuery("CCs", "Several", qry)
+
+    // Update speeds
+    v_speed = GetDataVector(llyr + "|CCs", "PostedSpeed", )
+    v_at = GetDataVector(llyr + "|CCs", "AreaType", )
+    for i = 1 to cc_speeds.length do
+        at = cc_speeds[i].AreaType
+        speed = cc_speeds[i].Speed
+
+        v_speed = if v_at = at then speed else v_speed
+    end
+    SetDataVector(llyr + "|CCs", "PostedSpeed", v_speed, )
 EndMacro
