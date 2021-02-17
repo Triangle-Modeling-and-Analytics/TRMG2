@@ -8,7 +8,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
-    // RunMacro("Other Attributes", Args)
+    RunMacro("Other Attributes", Args)
     // RunMacro("Filter Transit Settings", Args)
 
     return(1)
@@ -441,12 +441,12 @@ Set CC speed by area type to be more realistic
 
 Macro "Set CC Speeds" (Args)
 
-    hwy_dbd = Args.Links
+    links_dbd = Args.Links
     scen_dir = Args.[Scenario Folder]
     cc_speeds = Args.CCSpeeds
 
     // Add link layer to workspace
-    objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
+    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
     {nlyr, llyr} = objLyrs.Layers
 
     // Create a selection set of centroid connectors
@@ -464,4 +464,56 @@ Macro "Set CC Speeds" (Args)
         v_speed = if v_at = at then speed else v_speed
     end
     SetDataVector(llyr + "|CCs", "PostedSpeed", v_speed, )
+EndMacro
+
+/*
+Other important fields like FFS and FFT, walk time, etc.
+*/
+
+Macro "Other Attributes" (Args)
+    
+    links_dbd = Args.Links
+    scen_dir = Args.[Scenario Folder]
+    spd_file = Args.SpeedFactors
+
+    // Add link layer to workspace
+    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
+    {nlyr, llyr} = objLyrs.Layers
+    a_fields = {
+        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
+        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
+        {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
+        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
+        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"}
+    }
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+
+    // Open parameter table
+    ffs_tbl = OpenTable("ffs", "CSV", {spd_file, })
+
+    // Join based on AreaType and HCMType
+    jv = JoinViewsMulti(
+        "jv",
+        {llyr + ".AreaType", llyr + ".HCMType"},
+        {ffs_tbl + ".AreaType", ffs_tbl + ".HCMType"},
+    )
+
+    // Perform calculations
+    {v_len, v_ps, v_mod, v_alpha} = GetDataVectors(
+        jv + "|", {
+            llyr + ".Length",
+            llyr + ".PostedSpeed",
+            ffs_tbl + ".ModifyPosted",
+            ffs_tbl + ".Alpha"
+            },
+        )
+    v_ffs = v_ps + v_mod
+    v_fft = v_len / v_ffs * 60
+    v_wt = v_len / 3 * 60
+    v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
+    SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
+    SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
+    SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
+    SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
+    SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
 EndMacro
