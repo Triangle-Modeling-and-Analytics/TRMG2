@@ -9,7 +9,6 @@ Macro "Initial Processing" (Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
-    // RunMacro("Filter Transit Settings", Args)
 
     return(1)
 EndMacro
@@ -484,7 +483,11 @@ Macro "Other Attributes" (Args)
         {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
         {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
         {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
-        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"}
+        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"},
+        {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
+        {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
+        {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
+        {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"}
     }
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
 
@@ -516,4 +519,16 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
+    CloseView(jv)
+
+    // DTWB fields
+    v_dtwb = GetDataVector(llyr + "|", "DTWB", )
+    set = null
+    set.D = if Position(v_dtwb, "D") <> 0 then 1 else 0
+    set.T = if Position(v_dtwb, "T") <> 0 then 1 else 0
+    set.W = if Position(v_dtwb, "W") <> 0 then 1 else 0
+    set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
+    SetDataVectors(llyr + "|", set, )
+
+    CloseView(ffs_tbl)
 EndMacro
