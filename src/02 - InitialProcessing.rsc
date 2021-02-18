@@ -9,6 +9,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
+    RunMacro("Create Link Networks", Args)
 
     return(1)
 EndMacro
@@ -479,15 +480,17 @@ Macro "Other Attributes" (Args)
     objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
     {nlyr, llyr} = objLyrs.Layers
     a_fields = {
-        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
-        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
-        {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
-        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
-        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
-        {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"}
+        {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"},
+        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
+        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
+        {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
+        {"Beta", "Real", 10, 2, , , , "VDF beta value"},
+        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
+        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph"},
+        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"}
     }
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
 
@@ -502,22 +505,26 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_len, v_ps, v_mod, v_alpha} = GetDataVectors(
+    {v_len, v_ps, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Length",
             llyr + ".PostedSpeed",
             ffs_tbl + ".ModifyPosted",
-            ffs_tbl + ".Alpha"
+            ffs_tbl + ".Alpha",
+            ffs_tbl + ".Beta"
             },
         )
     v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
     v_wt = v_len / 3 * 60
+    v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
+    SetDataVector(jv + "|", llyr + ".Alpha", v_beta, )
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
+    SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
     CloseView(jv)
 
@@ -532,3 +539,67 @@ Macro "Other Attributes" (Args)
 
     CloseView(ffs_tbl)
 EndMacro
+
+/*
+Creates the various link-based (non-transit) networks. Driving, walking, etc.
+*/
+
+Macro "Create Link Networks" (Args)
+
+    link_dbd = Args.Links
+    roadway_net = Args.[Roadway Net]
+    transit_net = Args.[Transit Net]
+    walk_net = Args.[Walk Net]
+    bike_net = Args.[Bike Net]
+
+    // Build roadway network
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter = "D = 1"    
+    netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityAM", Field: {"ABAMCapE", "BAAMCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityMD", Field: {"ABMDCapE", "BAMDCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityPM", Field: {"ABPMCapE", "BAPMCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityNT", Field: {"ABNTCapE", "BANTCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
+    netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+    netObj.NetworkName = roadway_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(roadway_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+
+    // Create walk network with walk time
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter =  "W = 1"
+    netObj.AddLinkField({Name: "WalkTime", Field: {"WalkTime", "WalkTime"}, IsTimeField : true})
+    netObj.NetworkName = walk_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(walk_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+
+    // Create bike network with bike time
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter =  "B = 1"
+    netObj.AddLinkField({Name: "BikeTime", Field: {"BikeTime", "BikeTime"}, IsTimeField : true})
+    netObj.NetworkName = bike_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(bike_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+endmacro
