@@ -1,7 +1,8 @@
 Field,Value,Description
 HH,8.4,These are the attraction rates used for Gini-Simpson Diversity Index
 K12,1.5,(NCHRP 716)
-Univ,5.7,
+CollegeOn,5.7,
+CollegeOff,5.7,
 Retail,18.7,
 Service_RateLow,5.6,
 Service_RateHigh,5.6,
