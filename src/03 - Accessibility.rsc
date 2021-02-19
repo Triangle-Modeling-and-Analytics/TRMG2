@@ -6,6 +6,7 @@ Macro "Accessibility" (Args)
 
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
     RunMacro("Calc Intersection Approach Density", Args)
+    RunMacro("Calc Percent of Zone Near Bus Stop", Args)
 
     return(1)
 endmacro
@@ -65,7 +66,8 @@ Macro "Calc Gini-Simpson Diversity Index" (Args)
 endmacro
 
 /*
-
+Calculates intersection approach density.
+Also does some quick density calculations.
 */
 
 Macro "Calc Intersection Approach Density" (Args)
@@ -86,7 +88,12 @@ Macro "Calc Intersection Approach Density" (Args)
     RunMacro("Add Fields", {view: link_lyr, a_fields: link_fields})
     taz_fields =  {{"ApproachDensity", "Real", 10, 2,,,, "Number of intersection approaches per sq mi"}}
     RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
-    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
+    se_fields = {
+        taz_fields[1],
+        {"GSAttrDens", "Real", 10, 2,,,, "Density of GS attractions"},
+        {"IndEmpDensity", "Real", 10, 2,,,, "Density of industrial employment"}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: se_fields})
     
     
     // Determine intersection approach densities. Only consider approaches
@@ -117,14 +124,83 @@ Macro "Calc Intersection Approach Density" (Args)
     ColumnAggregate(taz_lyr + "|", 0, node_lyr + "|", {
         {"ApproachDensity", "SUM", "Approaches", }
     }, )
-    v = GetDataVector(taz_lyr + "|", taz_specs.ApproachDensity, )
+    v_approach = GetDataVector(taz_lyr + "|", taz_specs.ApproachDensity, )
     v_area = GetDataVector(taz_lyr + "|", "Area", )
-    v = v / v_area
-    SetDataVector(taz_lyr + "|", "ApproachDensity", v, )
+    v_approach = v_approach / v_area
+    SetDataVector(taz_lyr + "|", "ApproachDensity", v_approach, )
     jv = JoinViews("jv", taz_specs.ID, se_specs.TAZ, )
-    v = GetDataVector(jv + "|", taz_specs.ApproachDensity, )
-    SetDataVector(jv + "|", se_specs.ApproachDensity, v, )
+    v_approach = GetDataVector(jv + "|", taz_specs.ApproachDensity, )
+    SetDataVector(jv + "|", se_specs.ApproachDensity, v_approach, )
+
+    // Calculate industry emp density
+    v_ind = GetDataVector(jv + "|", se_specs.Industry, )
+    v_ind_dens = v_ind / v_area
+    SetDataVector(jv + "|", se_specs.IndEmpDensity, v_ind_dens, )
+
+    // Attraction density
+    v_attr = GetDataVector(jv + "|", se_specs.GSAttractions, )
+    v_attr_dens = v_attr / v_area
+    SetDataVector(jv + "|", se_specs.GSAttrDens, v_attr_dens, )
 
     CloseView(se_vw)
+    CloseView(jv)
     CloseMap()
+endmacro
+
+/*
+
+*/
+
+Macro "Calc Percent of Zone Near Bus Stop" (Args)
+
+    route_file = Args.Routes
+    taz_file = Args.TAZs
+    se_file = Args.SE
+
+    // Create map/views
+    {map, {route_lyr, stop_lyr, , node_lyr, link_lyr}} = RunMacro("Create Map", {file: route_file})
+    {taz_lyr} = GetDBLayers(taz_file)
+    taz_lyr = AddLayer(map, taz_lyr, taz_file, taz_lyr, )
+    taz_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
+    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
+    se_vw = OpenTable("se", "FFB", {se_file})
+    RunMacro("Add Fields", {view: se_vw, a_fields: taz_fields})
+
+    // Buffer and intersect
+    SetLayer(stop_lyr)
+    buffer_dbd = GetTempFileName(".dbd")
+    buff_lyr = "buffer"
+    CreateBuffers(buffer_dbd, buff_lyr, {}, "Value", {.25}, {Interior: "Merged", Exterior: "Merged"})
+    buff_lyr = AddLayer(map, buff_lyr, buffer_dbd, buff_lyr, )
+    intersection_file = GetTempFileName(".bin")
+    ComputeIntersectionPercentages({taz_lyr, buff_lyr}, intersection_file, )
+    int_vw = OpenTable("int", "FFB", {intersection_file})
+
+    // Munge intersection table into a form that can be joined to the se table
+    a_fields =  {{"count", "Integer", 10, ,,,, }}
+    RunMacro("Add Fields", {view: int_vw, a_fields: a_fields})
+    agg_vw = SelfAggregate("agg", int_vw + ".Area_1", )
+    jv = JoinViews("jv", int_vw + ".Area_1", agg_vw + ".[GroupedBy(Area_1)]", )
+    v_count = GetDataVector(jv + "|", agg_vw + ".[Count(int)]", )
+    SetDataVector(jv + "|", int_vw + ".count", v_count, )
+    CloseView(jv)
+    CloseView(agg_vw)
+    SetView(int_vw)
+    v_pct = GetDataVector(int_vw + "|", "Percent_1", )
+    v_a2 = GetDataVector(int_vw + "|", "Area_2", )
+    v_pct = if v_a2 = 0 then 1 - v_pct else v_pct
+    SetDataVector(int_vw + "|", "Percent_1", v_pct, )
+    query = "Select * where Area_2 = 0 and count = 2"
+    n = SelectByQuery("to_delete", "several", query)
+    if n > 0 then DeleteRecordsInSet("to_delete")
+
+    // Add to se data table
+    jv = JoinViews("jv", se_vw + ".TAZ", int_vw + ".Area_1", )
+    v_pct = GetDataVector(jv + "|", "Percent_1", )
+    SetDataVector(jv + "|", "PctNearBusStop", v_pct, )
+    CloseView(jv)
+
+    CloseView(int_vw)
+    CloseView(se_vw)
+    CloseMap(map)
 endmacro
