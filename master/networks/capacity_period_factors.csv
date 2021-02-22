@@ -1,0 +1,5 @@
+TOD,Value,Description
+AM,2,Hours of capacity in AM period
+MD,6.5,Hours of capacity in MD period
+PM,3,Hours of capacity in PM period
+NT,4,Hours of capacity in NT period

@@ -6,10 +6,10 @@ Macro "Initial Processing" (Args)
     
     RunMacro("Create Output Copies", Args)
     RunMacro("Determine Area Type", Args)
-    // RunMacro("Capacity", Args)
-    // RunMacro("Set CC Speeds", Args)
-    // RunMacro("Other Attributes", Args)
-    // RunMacro("Filter Transit Settings", Args)
+    RunMacro("Capacity", Args)
+    RunMacro("Set CC Speeds", Args)
+    RunMacro("Other Attributes", Args)
+    RunMacro("Create Link Networks", Args)
 
     return(1)
 EndMacro
@@ -89,8 +89,8 @@ Macro "Determine Area Type" (Args)
         areatype = if density >= cutoff then name else areatype
     end
     SetDataVector(jv + "|", "TotalEmp", tot_emp, )
-    SetDataVector(jv + "|", "Density", density, )
-    SetDataVector(jv + "|", "AreaType", areatype, )
+    SetDataVector(jv + "|", se_vw + ".Density", density, )
+    SetDataVector(jv + "|", se_vw + ".AreaType", areatype, )
 
     views.se_vw = se_vw
     views.jv = jv
@@ -130,7 +130,7 @@ Macro "Smooth Area Type" (Args, map, views)
 
         // Select TAZs of current type
         SetView(jv)
-        query = "Select * where AreaType = '" + type + "'"
+        query = "Select * where " + se_vw + ".AreaType = '" + type + "'"
         n = SelectByQuery("selection", "Several", query)
 
         if n > 0 then do
@@ -209,7 +209,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
 
         // Select TAZs of current type
         SetView(jv)
-        query = "Select * where AreaType = '" + type + "'"
+        query = "Select * where " + se_vw + ".AreaType = '" + type + "'"
         n = SelectByQuery("selection", "Several", query)
 
         if n > 0 then do
@@ -255,3 +255,351 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     // If this script modified the user setting for inclusion, change it back.
     if reset_inclusion = "true" then SetSelectInclusion("Enclosed")
 EndMacro
+
+/*
+Determine link capacities
+*/
+
+Macro "Capacity" (Args)
+
+    link_dbd = Args.Links
+    cap_file = Args.Capacity
+    capfactors_file = Args.CapacityFactors
+
+    // Create a map and add fields to be filled in
+    {map, {node_lyr, link_lyr}} = RunMacro("Create Map", {file: link_dbd})
+    a_fields =  {
+        {"capd_phpl", "Integer", 10, ,,,, 
+        "LOS D capacity per hour per lane|LOS E is used for assignment."},
+        {"cape_phpl", "Integer", 10, ,,,, 
+        "LOS E capacity per hour per lane|LOS E is used for assignment."},
+        {"MLHighway", "Integer", 10, ,,,, "If road is a rural multi-lane highway"},
+        {"TLHighway", "Integer", 10, ,,,, "If road is a rural two-lane highway"}
+    }
+    RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
+    {link_fields, link_specs} = RunMacro("Get Fields", {view_name: link_lyr})
+
+    // Assign facility type to ramps
+    ramp_query = "Select * where HCMType = 'Ramp'"
+    fac_field = "HCMType"
+    a_ft_priority = {"Freeway", "Arterial", "Collector"}
+    RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
+
+    // Update area type to identify ML and TL rural highways
+    data = GetDataVectors(
+        link_lyr + "|",
+        {"HCMType", "AreaType", "ABLanes", "BALanes", "Dir"},
+        {OptArray: TRUE}
+    )
+    lanes = nz(data.ABLanes) + nz(data.BALanes)
+    type = if lanes = 0 then ""
+        else if data.HCMType <> "Arterial" and data.HCMType <> "Collector" then ""
+        else if data.AreaType <> "Rural" then ""
+        else if lanes = 2 and data.Dir = 0 then "TL"
+        else "ML"
+    orig_areatype = data.AreaType
+    new_areatype = data.AreaType + type
+    ml_flag = if type = "ML" then 1 else null
+    tl_flag = if type = "TL" then 1 else null
+    SetDataVector(link_lyr + "|", "AreaType", new_areatype, )
+    SetDataVector(link_lyr + "|", "MLHighway", ml_flag, )
+    SetDataVector(link_lyr + "|", "TLHighway", tl_flag, )
+
+    // Add hourly capacity to link layer
+    cap_vw = OpenTable("cap", "CSV", {cap_file})
+    {cap_fields, cap_specs} = RunMacro("Get Fields", {view_name: cap_vw})
+    jv = JoinViewsMulti(
+        "jv", 
+        {link_specs.HCMType, link_specs.AreaType},
+        {cap_specs.HCMType, cap_specs.AreaType},
+        null
+    )
+    hcm_type = GetDataVector(jv + "|", link_specs.HCMType, )
+    hcm_med = GetDataVector(jv + "|", link_specs.HCMMedian, )
+    boost = if hcm_type = "Freeway" then 1
+        else if hcm_type = "Superstreet" then 1
+        else if hcm_med = "NonRestrictive" then 1.04
+        else if hcm_med = "Restrictive" then 1.08
+        else 1
+    capd = GetDataVector(jv + "|", cap_specs.capd_phpl, )
+    cape = GetDataVector(jv + "|", cap_specs.cape_phpl, )
+    capd = capd * boost
+    cape = cape * boost
+    SetDataVector(jv + "|", link_specs.capd_phpl, capd, )
+    SetDataVector(jv + "|", link_specs.cape_phpl, cape, )
+    CloseView(jv)
+    CloseView(cap_vw)
+    // Reset area type field to original (without "ML"/"TL")
+    SetDataVector(link_lyr + "|", "AreaType", orig_areatype, )
+
+    // Determine period capacities
+    factor_vw = OpenTable("factors", "CSV", {capfactors_file})
+    {fac_fields, fac_specs} = RunMacro("Get Fields", {view_name: factor_vw})
+    v_periods = GetDataVector(factor_vw + "|", "TOD", )
+    v_factors = GetDataVector(factor_vw + "|", "Value", )
+    a_los = {"D", "E"}
+    a_dir = {"AB", "BA"}
+    for los in a_los do
+        for i = 1 to v_periods.length do
+            period = v_periods[i]
+            factor = v_factors[i]
+        
+            for dir in a_dir do
+                field_name = dir + period + "Cap" + los
+                a_fields = {
+                    {field_name, "Integer", 10,,,,, "hourly los " + los + " capacity per lane"}
+                }
+                RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
+
+                v_hourly = GetDataVector(link_lyr + "|", "cap" + Lower(los) + "_phpl", )
+                v_lanes = GetDataVector(link_lyr + "|", dir + "Lanes", )
+                v_period = v_hourly * factor * v_lanes
+                SetDataVector(link_lyr + "|", field_name, v_period, )
+            end
+        end
+    end
+
+    CloseMap(map)
+endmacro
+
+/*
+This macro assigns ramp facility types to the highest FT they connect to.
+It also creates a new field to mark the links as ramps so that info is not lost.
+
+Input:
+hwy_dbd     String  Full path of the highway geodatabase
+ramp_query  String  Query defining which links are ramps
+                    e.g. "Select * where Ramp = 1"
+ftField     String  Name of the facility type field to use
+                    e.g. "HCMType"
+a_ftOrder   Array   Order of FT from highest to lowest
+                    e.g. {"Freeway", "PrArterial", "Local"}
+
+Output:
+Changes the ftField of the ramp links to the FT to use for capacity calculation.
+*/
+
+Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
+
+    SetLayer(llyr)
+    n1 = SelectByQuery("ramps", "Several", ramp_query)
+
+    if n1 = 0 then do
+        Throw("No ramp links found.")
+    end else do
+    
+        // Create a new field to identify these links as ramps
+        // after their facility type is changed.
+        a_fields = {
+            {"ramp", "Character", 10, ,,,,"Is this link a ramp?"}
+        }
+        RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+        opts = null
+        opts.Constant = "Yes"
+        v = Vector(n1, "String", opts)
+        SetDataVector(llyr + "|ramps", "ramp", v, )
+    
+        // Get ramp ids and loop over each one
+        v_rampIDs = GetDataVector(llyr + "|ramps", "ID", )
+        for r = 1 to v_rampIDs.length do
+            rampID = v_rampIDs[r]
+
+            minPos = 999
+            SetLayer(llyr)
+            a_rampNodeIDs = GetEndPoints(rampID)
+            for n = 1 to a_rampNodeIDs.length do
+                rampNodeID = a_rampNodeIDs[n]
+
+                SetLayer(nlyr)
+                a_linkIDs = GetNodeLinks(rampNodeID)
+                for l = 1 to a_linkIDs.length do
+                    id = a_linkIDs[l]
+
+                    SetLayer(llyr)
+                    opts = null
+                    opts.Exact = "True"
+                    rh = LocateRecord(llyr + "|", "ID", {id}, opts)
+                    ft = llyr.(ftField)
+                    pos = ArrayPosition(a_ftOrder, {ft}, )
+                    if pos = 0 then pos = 999
+                    minPos = min(minPos, pos)
+                end
+            end
+
+            // If a ramp is only connected to other ramps, code as highest FT
+            if minPos = 999 then a_ft = a_ft + {a_ftOrder[1]}
+            else a_ft = a_ft + {a_ftOrder[R2I(minPos)]}
+        end
+    end
+
+    SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
+EndMacro
+
+/*
+Set CC speed by area type to be more realistic
+*/
+
+Macro "Set CC Speeds" (Args)
+
+    links_dbd = Args.Links
+    scen_dir = Args.[Scenario Folder]
+    cc_speeds = Args.CCSpeeds
+
+    // Add link layer to workspace
+    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
+    {nlyr, llyr} = objLyrs.Layers
+
+    // Create a selection set of centroid connectors
+    SetLayer(llyr)
+    qry = "Select * where HCMType = 'CC'"
+    n = SelectByQuery("CCs", "Several", qry)
+
+    // Update speeds
+    v_speed = GetDataVector(llyr + "|CCs", "PostedSpeed", )
+    v_at = GetDataVector(llyr + "|CCs", "AreaType", )
+    for i = 1 to cc_speeds.length do
+        at = cc_speeds[i].AreaType
+        speed = cc_speeds[i].Speed
+
+        v_speed = if v_at = at then speed else v_speed
+    end
+    SetDataVector(llyr + "|CCs", "PostedSpeed", v_speed, )
+EndMacro
+
+/*
+Other important fields like FFS and FFT, walk time, etc.
+*/
+
+Macro "Other Attributes" (Args)
+    
+    links_dbd = Args.Links
+    scen_dir = Args.[Scenario Folder]
+    spd_file = Args.SpeedFactors
+
+    // Add link layer to workspace
+    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
+    {nlyr, llyr} = objLyrs.Layers
+    a_fields = {
+        {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
+        {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
+        {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
+        {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"},
+        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
+        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
+        {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
+        {"Beta", "Real", 10, 2, , , , "VDF beta value"},
+        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
+        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph"},
+        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"}
+    }
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+
+    // Open parameter table
+    ffs_tbl = OpenTable("ffs", "CSV", {spd_file, })
+
+    // Join based on AreaType and HCMType
+    jv = JoinViewsMulti(
+        "jv",
+        {llyr + ".AreaType", llyr + ".HCMType"},
+        {ffs_tbl + ".AreaType", ffs_tbl + ".HCMType"},
+    )
+
+    // Perform calculations
+    {v_len, v_ps, v_mod, v_alpha, v_beta} = GetDataVectors(
+        jv + "|", {
+            llyr + ".Length",
+            llyr + ".PostedSpeed",
+            ffs_tbl + ".ModifyPosted",
+            ffs_tbl + ".Alpha",
+            ffs_tbl + ".Beta"
+            },
+        )
+    v_ffs = v_ps + v_mod
+    v_fft = v_len / v_ffs * 60
+    v_wt = v_len / 3 * 60
+    v_bt = v_len / 15 * 60
+    v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
+    SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
+    SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
+    SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
+    SetDataVector(jv + "|", llyr + ".Alpha", v_beta, )
+    SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
+    SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
+    SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
+    CloseView(jv)
+
+    // DTWB fields
+    v_dtwb = GetDataVector(llyr + "|", "DTWB", )
+    set = null
+    set.D = if Position(v_dtwb, "D") <> 0 then 1 else 0
+    set.T = if Position(v_dtwb, "T") <> 0 then 1 else 0
+    set.W = if Position(v_dtwb, "W") <> 0 then 1 else 0
+    set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
+    SetDataVectors(llyr + "|", set, )
+
+    CloseView(ffs_tbl)
+EndMacro
+
+/*
+Creates the various link-based (non-transit) networks. Driving, walking, etc.
+*/
+
+Macro "Create Link Networks" (Args)
+
+    link_dbd = Args.Links
+    roadway_net = Args.[Roadway Net]
+    transit_net = Args.[Transit Net]
+    walk_net = Args.[Walk Net]
+    bike_net = Args.[Bike Net]
+
+    // Build roadway network
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter = "D = 1"    
+    netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityAM", Field: {"ABAMCapE", "BAAMCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityMD", Field: {"ABMDCapE", "BAMDCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityPM", Field: {"ABPMCapE", "BAPMCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "CapacityNT", Field: {"ABNTCapE", "BANTCapE"}, IsTimeField : false, DefaultValue: 1800})
+    netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
+    netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+    netObj.NetworkName = roadway_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(roadway_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+
+    // Create walk network with walk time
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter =  "W = 1"
+    netObj.AddLinkField({Name: "WalkTime", Field: {"WalkTime", "WalkTime"}, IsTimeField : true})
+    netObj.NetworkName = walk_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(walk_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+
+    // Create bike network with bike time
+    netObj = CreateObject("Network.Create")
+    netObj.LayerDB = link_dbd
+    netObj.Filter =  "B = 1"
+    netObj.AddLinkField({Name: "BikeTime", Field: {"BikeTime", "BikeTime"}, IsTimeField : true})
+    netObj.NetworkName = bike_net
+    netObj.Run()
+    // Network settings and centroids
+    netSetObj = null
+    netSetObj = CreateObject("Network.Settings")
+    netSetObj.LayerDB = link_dbd
+    netSetObj.LoadNetwork(bike_net)
+    netSetObj.CentroidFilter = "Centroid = 1"
+    netSetObj.Run()
+endmacro

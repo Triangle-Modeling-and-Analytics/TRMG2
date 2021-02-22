@@ -753,7 +753,7 @@ is shown in the table below.
 ```{r}
 tibble(
   `Area Type` = c("Downtown", "Urban", "Suburban", "Rural"),
-  `Density (>=)` = c(20000, 10000, 1000, 0)
+  `Density (>=)` = c(25000, 10000, 1000, 0)
 ) %>%
   kable() %>%
   kable_styling(full_width = FALSE)

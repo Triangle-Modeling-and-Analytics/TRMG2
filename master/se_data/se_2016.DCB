@@ -1,5 +1,5 @@
 
-174
+182
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","",,"Sum",
@@ -31,10 +31,12 @@
 "BuildingS_DUKE",I,127,4,0,11,0,,"","",,"Sum",
 "BuildingS_NCCU",I,131,4,0,11,0,,"","",,"Sum",
 "K12",I,135,4,0,11,0,,"","",,"Sum",
-"ParkCostW",I,139,4,0,11,0,,"","",,"Sum",
-"ParkCostO",I,143,4,0,11,0,,"","",,"Sum",
-"ParkCostU",I,147,4,0,11,0,,"","",,"Sum",
-"ADT",I,151,4,0,11,0,,"","",,"Sum",
-"PCTCV",I,155,4,0,11,0,,"","",,"Sum",
-"PCTAUTOEE",R,159,8,0,15,4,,"","",,"Sum",
-"PCTCVEE",R,167,8,0,15,4,,"","",,"Sum",
+"CollegeOn",I,139,4,0,11,0,,"","Total on-campus enrollment for smaller colleges/universities||This does not include NCSU, Duke, UNC, and Central.|Those data are in different fields.",,"Sum",
+"CollegeOff",I,143,4,0,11,0,,"","Total off-campus enrollment for smaller colleges/universities||This does not include NCSU, Duke, UNC, and Central.|Those data are in different fields.",,"Sum",
+"ParkCostW",I,147,4,0,11,0,,"","",,"Sum",
+"ParkCostO",I,151,4,0,11,0,,"","",,"Sum",
+"ParkCostU",I,155,4,0,11,0,,"","",,"Sum",
+"ADT",I,159,4,0,11,0,,"","",,"Sum",
+"PCTCV",I,163,4,0,11,0,,"","",,"Sum",
+"PCTAUTOEE",R,167,8,0,15,4,,"","",,"Sum",
+"PCTCVEE",R,175,8,0,15,4,,"","",,"Sum",

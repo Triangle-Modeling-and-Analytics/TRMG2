@@ -11,18 +11,20 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processing"},{"Initial Processing"},)
+    model = FlowChart({"Initial Processing"},{"Accessibility"},)
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
     FlowChartNode(model,"Initial Processing",,,)
+    FlowChartNode(model,"Accessibility",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
+    FlowChartLink(model,"Initial Processing","Accessibility",True,,)
     Return(model)
 EndMacro
 
@@ -32,6 +34,15 @@ Macro "Initial Processing" (Args,Result)
                   {"MacroNames",{"Initial Processing"}}}
 Body:
     ShowMessage('Running: Initial Processing')
+    Return(True)
+EndMacro
+
+
+Macro "Accessibility" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Accessibility"}}}
+Body:
+    ShowMessage('Running: Accessibility')
     Return(True)
 EndMacro
 

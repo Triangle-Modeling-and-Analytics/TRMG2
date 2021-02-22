@@ -15,3 +15,27 @@ table.table td a:only-child:active {
 th, td {
   padding: 5px;
 }
+
+.N_NH_K12_All .tab-content {
+  height: 25em;
+}
+
+.N_NH_OME_All .tab-content {
+  height: 53em;
+}
+
+.N_NH_O_All .tab-content {
+  height: 25em;
+}
+
+.W_NH_EK12_All .tab-content {
+  height: 25em;
+}
+
+.W_NH_O_All .tab-content {
+  height: 25em;
+}
+
+.W_NH_WR_All .tab-content {
+  height: 27em;
+}

@@ -4,6 +4,11 @@
                                           {"Name":"Buffer", "Type":"float",  "Fixed":"false"}
                               }})
 
+    Styles.CCSpeed = Pme.Table(
+                              {"Columns":{{"Name":"AreaType", "Type":"string",  "Fixed":"false"},
+                                          {"Name":"Speed", "Type":"int",  "Fixed":"false"}
+                              }})
+
     Styles.MatrixOptionList = Pme.DropList({ Options: {".MTX",".OMX"} })
 
     Styles.SimpleTable = Pme.Table({ 
