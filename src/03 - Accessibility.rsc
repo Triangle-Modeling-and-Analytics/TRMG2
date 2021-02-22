@@ -1,18 +1,22 @@
 /*
-
+Calls various macros that calculate different accessibility measures.
 */
 
 Macro "Accessibility" (Args)
 
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
     RunMacro("Calc Intersection Approach Density", Args)
+    RunMacro("Calc Walkability Score", Args)
     RunMacro("Calc Percent of Zone Near Bus Stop", Args)
 
     return(1)
 endmacro
 
 /*
-
+The Gini-Simpson Diversity Index is a measure of mixed use. If a zone only has
+one type of 'thing' (households or specific emp type), it will have a score
+of 0. As the number of different uses increases, the score rises to a max
+of 1.
 */
 
 Macro "Calc Gini-Simpson Diversity Index" (Args)
@@ -148,7 +152,8 @@ Macro "Calc Intersection Approach Density" (Args)
 endmacro
 
 /*
-
+Determines what percent of each zone is within a certain distance of
+bus stops.
 */
 
 Macro "Calc Percent of Zone Near Bus Stop" (Args)
@@ -203,4 +208,67 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     CloseView(int_vw)
     CloseView(se_vw)
     CloseMap(map)
+endmacro
+
+/*
+Creates the "Walkability" field on the SE data (and some others), that gives
+the probability of a trip being a walk trip.
+*/
+
+Macro "Calc Walkability Score" (Args)
+
+    se_file = Args.SE
+    model_file = Args.[Input Folder] + "\\accessibility\\walkability.mdl"
+
+    // Normalize utility variables
+    se_vw = OpenTable("scenario_se", "FFB", {se_file})
+    a_fields =  {
+        {"ApproachDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"IndEmpDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"GSAttrDens_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"GSIndex_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"Walkability", "Real", 10, 2,,,, "Probability of walk trips. Result of simple choice model."}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    data = GetDataVectors(
+        se_vw + "|",
+        {"ApproachDensity", "IndEmpDensity", "GSAttrDens", "GSIndex"},
+        {OptArray: true}
+    )
+    for i = 1 to data.length do
+        name = data[i][1]
+        v = data[i][2]
+
+        mu = v.mean()
+        sd = v.sdev()
+        z = (v - mu) / sd
+        new_name = name + "_z"
+        set.(new_name) = z
+    end
+    SetDataVectors(se_vw + "|", set, )
+
+    // Apply mc model
+    SetView(se_vw)
+    SelectByQuery("internal", "several", "Select * where Type = 'Internal'")
+    o = CreateObject("Choice.Mode")
+    o.ModelFile = model_file
+    o.AddTableSource({Label: "sedata", Filter: "Type = 'Internal'", FileName: se_file})
+    o.DropModeIfMissing = true
+    o.SkipValuesBelow = 0.001
+    out_file = GetTempFileName("*.bin")
+    o.OutputProbabilityFile = out_file
+    o.AggregateModel = false
+    ok = o.Run()
+    
+    // Transfer results to SE data
+    out_vw = OpenTable("output", "FFB", {out_file})
+    {, out_specs} = RunMacro("Get Fields", {view_name: out_vw})
+    {, se_specs} = RunMacro("Get Fields", {view_name: se_vw})
+    jv = JoinViews("jv", se_specs.TAZ, out_specs.ID, )
+    v = GetDataVector(jv + "|", "walk Probability", )
+    SetDataVector(jv + "|", "Walkability", v, )
+    CloseView(jv)
+    CloseView(out_vw)
+
+    CloseView(se_vw)
 endmacro
