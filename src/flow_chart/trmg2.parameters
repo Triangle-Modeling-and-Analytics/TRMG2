@@ -38,13 +38,6 @@
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
-
-    Section = "Network Creation"
-
-        Args.[Roadway Net] = { "Type":"File" , "Value":"%Output Folder%\\networks\\net_roadway.net", "Description":"Road network used for skimming/assignment." }
-        Args.[Transit Net] = { "Type":"File" , "Value":"%Output Folder%\\networks\\net_transit.tnw", "Description":"Transit network used for skimming/assignment." }
-        Args.[Walk Net] = { "Type":"File" , "Value":"%Output Folder%\\networks\\net_walk.net", "Description":"Walk network used for skimming/assignment." }
-        Args.[Bike Net] = { "Type":"File" , "Value":"%Output Folder%\\networks\\net_bike.net", "Description":"Bike network used for skimming/assignment." }
     
     Section = "Accessibilities"
 

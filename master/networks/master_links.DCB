@@ -12,7 +12,7 @@ TRMG2 Master Network
 "HCMMedian",C,125,16,0,16,0,,"","HCM Median Type|Restrictive|NonRestrictive|None||This field is ignored for freeways and superstreets (restrictive median is assumed).|For collectors and arterials:|NonRestrictive = 4% capacity increase|Restrictive = 8% capacity increase",,"Copy",
 "DTWB",C,141,9,0,9,0,,"","Drive/Transit/Walk/Bike|Which high level modes are allowed?||T: Transit Only|DT: Drive and Transit|WB: Walk and Bike only|etc.",,"Copy",
 "TollType",C,150,9,0,9,0,,"","Free: no tolls|HOT: tolls but HOV is free|Toll: everyone pays a toll",,"Copy",
-"HOVType",C,159,9,0,9,0,,"","None: No occupancy restriction|HOV2: Requires at least 2 occupants to use|HOV3: Requires at least 3 occupants to use",,"Copy",
+"HOV",C,159,9,0,9,0,,"","None: No occupancy restriction|HOV2: Requires at least 2 occupants to use|HOV3: Requires at least 3 occupants to use",,"Copy",
 "CountID",C,437,16,0,16,0,,"","The CVG/VLM ID of the count",,"Copy",
 "DailyVolume",I,453,4,0,8,0,,"","The AWDT volume",,"Copy",
 "special_temp",I,168,4,0,8,0,,"","Hanging on to this field temporarily until I determine|how to mark toll/hov/hot links",,"Copy",
