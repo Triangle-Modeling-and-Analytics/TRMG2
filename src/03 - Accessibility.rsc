@@ -8,6 +8,7 @@ Macro "Accessibility" (Args)
     RunMacro("Calc Intersection Approach Density", Args)
     RunMacro("Calc Walkability Score", Args)
     RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    RunMacro("Access Logsums", Args)
 
     return(1)
 endmacro
@@ -187,10 +188,9 @@ Macro "Calc Walkability Score" (Args)
         set.(new_name) = z
     end
     SetDataVectors(se_vw + "|", set, )
+    CloseView(se_vw)
 
     // Apply mc model
-    SetView(se_vw)
-    SelectByQuery("internal", "several", "Select * where Type = 'Internal'")
     o = CreateObject("Choice.Mode")
     o.ModelFile = model_file
     o.AddTableSource({Label: "sedata", Filter: "Type = 'Internal'", FileName: se_file})
@@ -210,8 +210,6 @@ Macro "Calc Walkability Score" (Args)
     SetDataVector(jv + "|", "Walkability", v, )
     CloseView(jv)
     CloseView(out_vw)
-
-    CloseView(se_vw)
 endmacro
 
 
@@ -272,4 +270,56 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     CloseView(int_vw)
     CloseView(se_vw)
     CloseMap(map)
+endmacro
+
+/*
+These skims/logsums are not part of feedback or convergence. Instead, they are
+used to generate a log sum estimate for use as an accessibility measure.
+*/
+
+Macro "Access Logsums" (Args)
+
+    link_dbd = Args.Links
+    output_dir = Args.[Output Folder]
+    se_file = Args.SE
+
+    // Skim
+    obj = CreateObject("Network.Skims")
+    net_file = output_dir + "/networks/net_sov.net"
+    obj.Network = net_file
+    obj.LayerDB = link_dbd
+    obj.Origins = "Centroid = 1" 
+    obj.Destinations = "Centroid = 1"
+    obj.Minimize = "FFTime"
+    obj.AddSkimField({"Length", "All"})
+    out_file = output_dir + "/accessibility/skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_file, Matrix: "Accessiblity Skim"})
+    ret_value = obj.Run()
+    
+    // intrazonals
+    obj = CreateObject("Distribution.Intrazonal")
+    obj.SetMatrix(out_file)
+    obj.OperationType = "Replace"
+    obj.TreatMissingAsZero = true
+    obj.Neighbours = 3
+    obj.Factor = .75
+    ok = obj.Run()
+
+    // Calculate logsum
+    m = CreateObject("Matrix")
+    m.LoadMatrix(out_file)
+    m.AddCores({"size", "util"})
+    cores = m.data.cores
+    se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields =  {{"GeneralAccessibility", "Real", 10, 2,,,, "logsum of a simple gravity model"}}
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    size = GetDataVector(se_vw + "|", "GSAttractions", )
+    cores.size := size
+    alpha = .93
+    beta = .09
+    cores.util := cores.size * pow(cores.FFTIME, alpha) * exp(beta * cores.FFTIME)
+    cores.util := if cores.size = 0 then 0 else cores.util
+    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    logsum = log(rowsum)
+    SetDataVector(se_vw + "|", "GeneralAccessibility", logsum, )
 endmacro
