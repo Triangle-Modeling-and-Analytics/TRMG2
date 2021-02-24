@@ -1,0 +1,10 @@
+Field,Value,Description
+HH,1.9,These are the attraction rates used for the walkability score
+K12,1.5,Same as the G-S rates except HH is lower
+CollegeOn,5.7,
+CollegeOff,5.7,
+Retail,18.7,
+Service_RateLow,5.6,
+Service_RateHigh,5.6,
+Office,5.6,
+Industry,3,

@@ -42,6 +42,7 @@
     Section = "Accessibilities"
 
         Args.[GS Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\mixed_use_index_rates.csv", "Description":"Gini-Simpson rates used for mixed-used index calculation." }
+        Args.[Walk Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\walkability_rates.csv", "Description":"Attraction rates used for walkability calculation." }
 
     Section = "Numeric Parameters"
     

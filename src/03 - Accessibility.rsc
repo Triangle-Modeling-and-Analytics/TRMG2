@@ -161,20 +161,43 @@ Macro "Calc Walkability Score" (Args)
 
     se_file = Args.SE
     model_file = Args.[Input Folder] + "\\accessibility\\walkability.mdl"
+    rate_file = Args.[Walk Rates]
+
+    // Calculate attractions
+    se_vw = OpenTable("scenario_se", "FFB", {se_file})
+    a_fields = {
+        {"WAttractions", "Real", 10, 2, , , , "Attraction rates for walkability calculation"}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    rate_vw = OpenTable("rates", "CSV", {rate_file})
+    {v_fields, v_rates} = GetDataVectors(
+        rate_vw + "|",
+        {"Field", "Value"},
+    )
+    CloseView(rate_vw)
+    for i = 1 to v_fields.length do
+        field = v_fields[i]
+        rate = v_rates[i]
+
+        v = nz(GetDataVector(se_vw + "|", field, ))
+        v = v * rate
+        if i = 1 then total = Vector(v.length, "real", {Constant: 0})
+        total = total + v
+    end
+    SetDataVector(se_vw + "|" + internal_set, "WAttractions", total, )
 
     // Normalize utility variables
-    se_vw = OpenTable("scenario_se", "FFB", {se_file})
     a_fields =  {
         {"ApproachDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"IndEmpDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
-        {"GSAttrDens_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"WAttractions_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"GSIndex_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"Walkability", "Real", 10, 2,,,, "Probability of walk trips. Result of simple choice model."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     data = GetDataVectors(
         se_vw + "|",
-        {"ApproachDensity", "IndEmpDensity", "GSAttrDens", "GSIndex"},
+        {"ApproachDensity", "IndEmpDensity", "WAttractions", "GSIndex"},
         {OptArray: true}
     )
     for i = 1 to data.length do
