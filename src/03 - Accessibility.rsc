@@ -4,13 +4,65 @@ Calls various macros that calculate different accessibility measures.
 
 Macro "Accessibility" (Args)
 
+    RunMacro("Calc Accessibility Attractions", Args)
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
-    RunMacro("Calc Intersection Approach Density", Args)
-    RunMacro("Calc Walkability Score", Args)
-    RunMacro("Calc Percent of Zone Near Bus Stop", Args)
-    RunMacro("Access Logsums", Args)
+    // RunMacro("Calc Intersection Approach Density", Args)
+    // RunMacro("Calc Walkability Score", Args)
+    // RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    // RunMacro("Access Logsums", Args)
 
     return(1)
+endmacro
+
+/*
+Calculate the attraction rates for all but the GSIndex measure, which needs a 
+slightly different calculation.
+*/
+
+Macro "Calc Accessibility Attractions" (Args)
+
+    se_file = Args.SE
+    rate_file = Args.[Access Attr Rates]
+
+    rate_vw = OpenTable("rates", "CSV", {rate_file})
+    test = GetFields(rate_vw, "All")
+    rates = GetDataVectors(
+        rate_vw + "|",
+        {"Field", "walkability", "general", "nearby", "employment"},
+        {OptArray: true}
+    )
+    CloseView(rate_vw)
+    v_field = rates.Field
+    rates.Field = null
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields = {
+        {"walkability_attr", "Real", 10, 2, , , , "Walkability attractions"},
+        {"general_attr", "Real", 10, 2, , , , "general accessibility attractions"},
+        {"nearby_attr", "Real", 10, 2, , , , "nearby accessibility attractions"},
+        {"employment_attr", "Real", 10, 2, , , , "employment accessibility attractions"}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+
+    for i = 1 to rates.length do
+        attr_type = rates[i][1]
+        v_rates = rates.(attr_type)
+        
+        for j = 1 to v_field.length do
+            field = v_field[j]
+            rate = v_rates[j]
+
+            v = nz(GetDataVector(se_vw + "|", field, ))
+            v = v * rate
+            if i = 1 then total = Vector(v.length, "real", {Constant: 0})
+            total = total + v
+        end
+
+        col_name = attr_type + "_attr"
+        SetDataVector(se_vw + "|", col_name, total, )
+    end
+
+    CloseView(se_vw)
 endmacro
 
 /*
@@ -23,18 +75,18 @@ of 1.
 Macro "Calc Gini-Simpson Diversity Index" (Args)
 
     se_file = Args.SE
-    rate_file = Args.[GS Rates]
+    rate_file = Args.[Access Attr Rates]
 
     rate_vw = OpenTable("rates", "CSV", {rate_file})
     {v_fields, v_rates} = GetDataVectors(
         rate_vw + "|",
-        {"Field", "Value"},
+        {"Field", "gsindex"},
     )
     CloseView(rate_vw)
 
     se_vw = OpenTable("se", "FFB", {se_file})
     a_fields = {
-        {"GSAttractions", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
+        {"gsindex_attr", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
         {"GSIndex", "Real", 10, 2, , , , "Gini-Simpson Diversity Index|(Measures mixed use)"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
@@ -52,7 +104,7 @@ Macro "Calc Gini-Simpson Diversity Index" (Args)
         if i = 1 then total_g = Vector(v.length, "real", {Constant: 0})
         total_g = total_g + g.(field)
     end
-    SetDataVector(se_vw + "|" + internal_set, "GSAttractions", total_g, )
+    SetDataVector(se_vw + "|" + internal_set, "gsindex_attr", total_g, )
     total_g = if total_g = 0 then -1 else total_g
     // Calculate the sum of the ratios squared: Sum((g/total_g)^2)
     sum_ratio_squared = Vector(total_g.length, "real", {Constant: 0})
@@ -163,41 +215,18 @@ Macro "Calc Walkability Score" (Args)
     model_file = Args.[Input Folder] + "\\accessibility\\walkability.mdl"
     rate_file = Args.[Walk Rates]
 
-    // Calculate attractions
-    se_vw = OpenTable("scenario_se", "FFB", {se_file})
-    a_fields = {
-        {"WAttractions", "Real", 10, 2, , , , "Attraction rates for walkability calculation"}
-    }
-    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-    rate_vw = OpenTable("rates", "CSV", {rate_file})
-    {v_fields, v_rates} = GetDataVectors(
-        rate_vw + "|",
-        {"Field", "Value"},
-    )
-    CloseView(rate_vw)
-    for i = 1 to v_fields.length do
-        field = v_fields[i]
-        rate = v_rates[i]
-
-        v = nz(GetDataVector(se_vw + "|", field, ))
-        v = v * rate
-        if i = 1 then total = Vector(v.length, "real", {Constant: 0})
-        total = total + v
-    end
-    SetDataVector(se_vw + "|" + internal_set, "WAttractions", total, )
-
     // Normalize utility variables
     a_fields =  {
         {"ApproachDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"IndEmpDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
-        {"WAttractions_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"walkability_attr_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"GSIndex_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"Walkability", "Real", 10, 2,,,, "Probability of walk trips. Result of simple choice model."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     data = GetDataVectors(
         se_vw + "|",
-        {"ApproachDensity", "IndEmpDensity", "WAttractions", "GSIndex"},
+        {"ApproachDensity", "IndEmpDensity", "walkability_attr", "GSIndex"},
         {OptArray: true}
     )
     for i = 1 to data.length do
