@@ -12,7 +12,7 @@ model label=walkability version=1.5
     alternative name=walk asc=-2.10257
       data source=sedata spec=ApproachDensity_z term=Beta1 type=Table
       data source=sedata spec=IndEmpDensity_z term=Beta2 type=Table
-      data source=sedata spec=GSAttrDens_z term=Beta3 type=Table
+      data source=sedata spec=walk_attr_dens_z term=Beta3 type=Table
       data source=sedata spec=GSIndex_z term=Beta4 type=Table
     alternative name=notwalk
 

@@ -6,10 +6,10 @@ Macro "Accessibility" (Args)
 
     RunMacro("Calc Accessibility Attractions", Args)
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
-    // RunMacro("Calc Intersection Approach Density", Args)
-    // RunMacro("Calc Walkability Score", Args)
-    // RunMacro("Calc Percent of Zone Near Bus Stop", Args)
-    // RunMacro("Access Logsums", Args)
+    RunMacro("Calc Intersection Approach Density", Args)
+    RunMacro("Calc Walkability Score", Args)
+    RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    RunMacro("Access Logsums", Args)
 
     return(1)
 endmacro
@@ -147,7 +147,7 @@ Macro "Calc Intersection Approach Density" (Args)
     RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
     se_fields = {
         taz_fields[1],
-        {"GSAttrDens", "Real", 10, 2,,,, "Density of GS attractions"},
+        {"walk_attr_dens", "Real", 10, 2,,,, "Density of GS attractions"},
         {"IndEmpDensity", "Real", 10, 2,,,, "Density of industrial employment"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: se_fields})
@@ -195,9 +195,9 @@ Macro "Calc Intersection Approach Density" (Args)
     SetDataVector(jv + "|", se_specs.IndEmpDensity, v_ind_dens, )
 
     // Attraction density
-    v_attr = GetDataVector(jv + "|", se_specs.GSAttractions, )
+    v_attr = GetDataVector(jv + "|", se_specs.gsindex_attr, )
     v_attr_dens = v_attr / v_area
-    SetDataVector(jv + "|", se_specs.GSAttrDens, v_attr_dens, )
+    SetDataVector(jv + "|", se_specs.walk_attr_dens, v_attr_dens, )
 
     CloseView(se_vw)
     CloseView(jv)
@@ -213,20 +213,20 @@ Macro "Calc Walkability Score" (Args)
 
     se_file = Args.SE
     model_file = Args.[Input Folder] + "\\accessibility\\walkability.mdl"
-    rate_file = Args.[Walk Rates]
 
     // Normalize utility variables
+    se_vw = OpenTable("se", "FFB", {se_file})
     a_fields =  {
         {"ApproachDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"IndEmpDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
-        {"walkability_attr_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"walk_attr_dens_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"GSIndex_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"Walkability", "Real", 10, 2,,,, "Probability of walk trips. Result of simple choice model."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     data = GetDataVectors(
         se_vw + "|",
-        {"ApproachDensity", "IndEmpDensity", "walkability_attr", "GSIndex"},
+        {"ApproachDensity", "IndEmpDensity", "walk_attr_dens", "GSIndex"},
         {OptArray: true}
     )
     for i = 1 to data.length do
@@ -240,7 +240,6 @@ Macro "Calc Walkability Score" (Args)
         set.(new_name) = z
     end
     SetDataVectors(se_vw + "|", set, )
-    CloseView(se_vw)
 
     // Apply mc model
     o = CreateObject("Choice.Mode")
@@ -262,6 +261,7 @@ Macro "Calc Walkability Score" (Args)
     SetDataVector(jv + "|", "Walkability", v, )
     CloseView(jv)
     CloseView(out_vw)
+    CloseView(se_vw)
 endmacro
 
 
@@ -357,21 +357,33 @@ Macro "Access Logsums" (Args)
     obj.Factor = .75
     ok = obj.Run()
 
-    // Calculate logsum
-    m = CreateObject("Matrix")
-    m.LoadMatrix(out_file)
-    m.AddCores({"size", "util"})
-    cores = m.data.cores
-    se_vw = OpenTable("se", "FFB", {se_file})
-    a_fields =  {{"GeneralAccessibility", "Real", 10, 2,,,, "logsum of a simple gravity model"}}
-    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-    size = GetDataVector(se_vw + "|", "GSAttractions", )
-    cores.size := size
-    alpha = .93
-    beta = .09
-    cores.util := cores.size * pow(cores.FFTIME, alpha) * exp(beta * cores.FFTIME)
-    cores.util := if cores.size = 0 then 0 else cores.util
-    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
-    logsum = log(rowsum)
-    SetDataVector(se_vw + "|", "GeneralAccessibility", logsum, )
+    // Calculate logsums
+    a_types = {"General", "Nearby", "Employment"}
+    alphas.General = -.93
+    betas.General = -.09
+    alphas.Nearby = -1.35
+    betas.Nearby = -.1
+    alphas.Employment = -.3
+    betas.Employment = -.07
+    for type in a_types do
+        output_field = type + "Accessibility"
+        size_field = Lower(type) + "_attr"
+        alpha = alphas.(type)
+        beta = betas.(type)
+
+        m = CreateObject("Matrix")
+        m.LoadMatrix(out_file)
+        m.AddCores({"size", "util"})
+        cores = m.data.cores
+        se_vw = OpenTable("se", "FFB", {se_file})
+        a_fields =  {{output_field, "Real", 10, 2,,,, "logsum of a simple gravity model"}}
+        RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+        size = GetDataVector(se_vw + "|", size_field, )
+        cores.size := size
+        cores.util := cores.size * pow(cores.FFTIME, alpha) * exp(beta * cores.FFTIME)
+        cores.util := if cores.size = 0 then 0 else cores.util
+        rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+        logsum = log(rowsum)
+        SetDataVector(se_vw + "|", output_field, logsum, )
+    end
 endmacro
