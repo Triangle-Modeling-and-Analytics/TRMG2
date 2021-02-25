@@ -28,7 +28,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Create Scenario Transit", Args)
   end
 
-  return()
+  ShowMessage("Scenario Created")
 EndMacro
 
 /*
