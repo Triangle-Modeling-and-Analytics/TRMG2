@@ -24,43 +24,28 @@ Macro "Calc Accessibility Attractions" (Args)
     se_file = Args.SE
     rate_file = Args.[Access Attr Rates]
 
-    rate_vw = OpenTable("rates", "CSV", {rate_file})
-    test = GetFields(rate_vw, "All")
-    rates = GetDataVectors(
-        rate_vw + "|",
-        {"Field", "walkability", "general", "nearby", "employment"},
-        {OptArray: true}
-    )
-    CloseView(rate_vw)
-    v_field = rates.Field
-    rates.Field = null
-
     se_vw = OpenTable("se", "FFB", {se_file})
-    a_fields = {
-        {"walkability_attr", "Real", 10, 2, , , , "Walkability attractions"},
-        {"general_attr", "Real", 10, 2, , , , "general accessibility attractions"},
-        {"nearby_attr", "Real", 10, 2, , , , "nearby accessibility attractions"},
-        {"employment_attr", "Real", 10, 2, , , , "employment accessibility attractions"}
+    RunMacro("Create Sum Product Fields", {view: se_vw, factor_file: rate_file})
+
+    fields = {
+        "walkability_attr",
+        "general_attr",
+        "nearby_attr",
+        "employment_attr",
+        "gs_home_attr",
+        "gs_work_attr",
+        "gs_other_attr"
     }
-    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-
-    for i = 1 to rates.length do
-        attr_type = rates[i][1]
-        v_rates = rates.(attr_type)
-        
-        for j = 1 to v_field.length do
-            field = v_field[j]
-            rate = v_rates[j]
-
-            v = nz(GetDataVector(se_vw + "|", field, ))
-            v = v * rate
-            if i = 1 then total = Vector(v.length, "real", {Constant: 0})
-            total = total + v
-        end
-
-        col_name = attr_type + "_attr"
-        SetDataVector(se_vw + "|", col_name, total, )
-    end
+    descriptions = {
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc"
+    }
+    RunMacro("Add Field Description", se_vw, fields, descriptions)
 
     CloseView(se_vw)
 endmacro
@@ -75,18 +60,10 @@ of 1.
 Macro "Calc Gini-Simpson Diversity Index" (Args)
 
     se_file = Args.SE
-    rate_file = Args.[Access Attr Rates]
-
-    rate_vw = OpenTable("rates", "CSV", {rate_file})
-    {v_fields, v_rates} = GetDataVectors(
-        rate_vw + "|",
-        {"Field", "gsindex"},
-    )
-    CloseView(rate_vw)
 
     se_vw = OpenTable("se", "FFB", {se_file})
     a_fields = {
-        {"gsindex_attr", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
+        {"gs_total_attr", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
         {"GSIndex", "Real", 10, 2, , , , "Gini-Simpson Diversity Index|(Measures mixed use)"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
@@ -94,30 +71,21 @@ Macro "Calc Gini-Simpson Diversity Index" (Args)
     internal_set = CreateSet("internal")
     SelectByQuery(internal_set, "several", "Select * where Type = 'Internal'")
     // Calculate g and total g for each zone
-    g = null
-    for i = 1 to v_fields.length do
-        field = v_fields[i]
-        rate = v_rates[i]
-
-        v = nz(GetDataVector(se_vw + "|" + internal_set, field, ))
-        g.(field) = v * rate
-        if i = 1 then total_g = Vector(v.length, "real", {Constant: 0})
-        total_g = total_g + g.(field)
-    end
-    SetDataVector(se_vw + "|" + internal_set, "gsindex_attr", total_g, )
-    total_g = if total_g = 0 then -1 else total_g
-    // Calculate the sum of the ratios squared: Sum((g/total_g)^2)
-    sum_ratio_squared = Vector(total_g.length, "real", {Constant: 0})
-    for i = 1 to v_fields.length do
-        field = v_fields[i]
-        rate = v_rates[i]
-
-        sum_ratio_squared = sum_ratio_squared + pow(g.(field) / total_g, 2)
-    end
+    
+    
+    {gs_home_attr, gs_work_attr, gs_other_attr} = GetDataVectors(
+        se_vw + "|" + internal_set,
+        {"gs_home_attr", "gs_work_attr", "gs_other_attr"},
+    )
+    total = gs_home_attr + gs_work_attr + gs_other_attr
+    // // Calculate the sum of the ratios squared: Sum((g/total_g)^2)
+    sum_ratio_squared = pow(gs_home_attr / total, 2)
+    sum_ratio_squared = sum_ratio_squared + pow(gs_work_attr / total, 2)
+    sum_ratio_squared = sum_ratio_squared + pow(gs_other_attr / total, 2)
     sum_ratio_squared = if sum_ratio_squared = 0 then .5 else sum_ratio_squared
-    // Calculate final index value for each zone
     v_index = 1 - sum_ratio_squared
     SetDataVector(se_vw + "|" + internal_set, "GSIndex", v_index, )
+    SetDataVector(se_vw + "|" + internal_set, "gs_total_attr", total, )
 
     CloseView(se_vw)
 endmacro
@@ -195,7 +163,7 @@ Macro "Calc Intersection Approach Density" (Args)
     SetDataVector(jv + "|", se_specs.IndEmpDensity, v_ind_dens, )
 
     // Attraction density
-    v_attr = GetDataVector(jv + "|", se_specs.gsindex_attr, )
+    v_attr = GetDataVector(jv + "|", se_specs.gs_total_attr, )
     v_attr_dens = v_attr / v_area
     SetDataVector(jv + "|", se_specs.walk_attr_dens, v_attr_dens, )
 
