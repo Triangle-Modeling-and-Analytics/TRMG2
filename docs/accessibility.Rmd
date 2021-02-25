@@ -45,12 +45,6 @@ knitr::include_graphics("img/accessibility/gsindex.png")
 knitr::include_graphics("img/accessibility/bus_stop_prox.png")
 ```
 
-### Industry Density
-
-```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/industry_density.png")
-```
-
 ### Walkability
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
@@ -97,39 +91,32 @@ talk for trips originating in that zone. Simple by design, it does not consider
 skims or other matrix-based attributes. Instead, it uses the metrics above to
 make predictions.
 
-- **Approach Density**: intersection approaches in zone dividied by zonal area
-- **GS Attr Density**: The total attractions using the Gini-Simpson rates divided
-  by zonal area.
-- **GS Index**: This Gini-Simpson Diversity Index
-- **Industrial Density**: Density of industrial employment
-- **Constant (walk)**: The constant applied to the walk utility equation
+- **Approach Density**: Intersection approaches in zone divided by zonal area
+- **Attraction Density**: Total attractions divided by zonal area.
+- **GS Index**: Gini-Simpson Diversity Index
+- **Constant (walk)**: Constant applied to the walk utility equation
 
-*Placeholder Model*
-
-Adjusted rho-squared: 0.50
+Adjusted rho-squared: 0.45
 
 ```{r}
 model <- tibble(
   Term = c(
     "Approach Density",
-    "GS Attr Density",
+    "Attraction Density",
     "GS Index",
-    "Industrial Density",
     "Constant (walk)"
   ),
   Coeff = c(
-    .17,
-    .15,
-    -.03,
-    .02,
-    -2.1
+    .16,
+    .23,
+    .12,
+    -1.96
   ),
   `T-Stat` = c(
-    10.5,
-    14.8,
-    -2.2,
-    1.2,
-    -143
+    12.1,
+    24.8,
+    9.5,
+    -141
   )
 )
 

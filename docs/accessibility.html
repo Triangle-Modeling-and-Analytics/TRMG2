@@ -427,10 +427,6 @@ div.tocify {
 <h3>Stop Proximity</h3>
 <p><img src="img/accessibility/bus_stop_prox.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="industry-density" class="section level3">
-<h3>Industry Density</h3>
-<p><img src="img/accessibility/industry_density.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
 <div id="walkability" class="section level3">
 <h3>Walkability</h3>
 <p><img src="img/accessibility/walkability.png" width="50%" style="display: block; margin: auto;" /></p>
@@ -451,7 +447,7 @@ div.tocify {
 <p>This is a common metric in travel models given it’s power at describing zonal accessibility to transit. In the TRMG2, the percent of each zone within 1/4 mile of a bus stop is computed using a GIS overlay. The map below zooms in to Apex to give a better idea of how this calculation works.</p>
 <p><img src="img/accessibility/bus_stop_detail.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="industry-density-1" class="section level3">
+<div id="industry-density" class="section level3">
 <h3>Industry density</h3>
 <p>Industrial employment density is often correlated with lower levels of accessibility. This is simply the total number of industrial jobs in a zone divided by the area.</p>
 </div>
@@ -459,14 +455,12 @@ div.tocify {
 <h3>Walkability</h3>
 <p>For each zone, a binary choice model was applied to determine the propensity to talk for trips originating in that zone. Simple by design, it does not consider skims or other matrix-based attributes. Instead, it uses the metrics above to make predictions.</p>
 <ul>
-<li><strong>Approach Density</strong>: intersection approaches in zone dividied by zonal area</li>
-<li><strong>GS Attr Density</strong>: The total attractions using the Gini-Simpson rates divided by zonal area.</li>
-<li><strong>GS Index</strong>: This Gini-Simpson Diversity Index</li>
-<li><strong>Industrial Density</strong>: Density of industrial employment</li>
-<li><strong>Constant (walk)</strong>: The constant applied to the walk utility equation</li>
+<li><strong>Approach Density</strong>: Intersection approaches in zone divided by zonal area</li>
+<li><strong>Attraction Density</strong>: Total attractions divided by zonal area.</li>
+<li><strong>GS Index</strong>: Gini-Simpson Diversity Index</li>
+<li><strong>Constant (walk)</strong>: Constant applied to the walk utility equation</li>
 </ul>
-<p><em>Placeholder Model</em></p>
-<p>Adjusted rho-squared: 0.50</p>
+<p>Adjusted rho-squared: 0.45</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -487,21 +481,21 @@ T-Stat
 Approach Density
 </td>
 <td style="text-align:right;">
-0.17
+0.16
 </td>
 <td style="text-align:right;">
-10.5
+12.1
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-GS Attr Density
+Attraction Density
 </td>
 <td style="text-align:right;">
-0.15
+0.23
 </td>
 <td style="text-align:right;">
-14.8
+24.8
 </td>
 </tr>
 <tr>
@@ -509,21 +503,10 @@ GS Attr Density
 GS Index
 </td>
 <td style="text-align:right;">
--0.03
+0.12
 </td>
 <td style="text-align:right;">
--2.2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Industrial Density
-</td>
-<td style="text-align:right;">
-0.02
-</td>
-<td style="text-align:right;">
-1.2
+9.5
 </td>
 </tr>
 <tr>
@@ -531,10 +514,10 @@ Industrial Density
 Constant (walk)
 </td>
 <td style="text-align:right;">
--2.10
+-1.96
 </td>
 <td style="text-align:right;">
--143.0
+-141.0
 </td>
 </tr>
 </tbody>
