@@ -59,7 +59,7 @@ output_list <- list()
 make_table <- function(model) {
   model$tbl %>%
     arrange(estimated_as) %>%
-    kable(digits = 3) %>%
+    kable(digits = 4) %>%
     kable_styling(full_width = FALSE)
 }
 
@@ -689,7 +689,7 @@ dependent_vars <- c(
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+                       dependent_vars = dependent_vars, boost = TRUE)
 
 output_list[type] <- list(model3$tbl)
 make_table(model3)
@@ -737,7 +737,7 @@ dependent_vars <- c(
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+                       dependent_vars = dependent_vars, boost = TRUE)
 
 output_list[type] <- list(model3$tbl)
 make_table(model3)

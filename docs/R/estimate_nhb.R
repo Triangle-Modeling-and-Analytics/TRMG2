@@ -43,29 +43,32 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
       trip_weight_combined = 0
     )
   
-  est_tbl <- bind_rows(temp1, temp2) %>%
+  combine_tbl <- bind_rows(temp1, temp2) %>%
     select(-keep) %>%
     filter(
       trip_type == "y" | !grepl("_NH_", trip_type)
-    ) %>%
+    )
+  
+  avg_logsum <- combine_tbl %>%
+    group_by(personid, tour_num) %>%
+    summarize(logsum = mean(logsum, na.rm = TRUE))
+  
+  est_tbl <- combine_tbl %>%
     group_by(personid, tour_num, trip_type) %>%
-    summarize(
-      trips = sum(trip_weight_combined),
-      logsum = mean(logsum, na.rm = TRUE)
-    ) %>%
+    summarize(trips = sum(trip_weight_combined)) %>%
+    left_join(avg_logsum, by = c("personid", "tour_num")) %>%
     pivot_wider(names_from = trip_type, values_from = trips) %>%
     relocate("y", .before = personid) %>%
     ungroup() %>%
     mutate(
       across(everything(), ~ifelse(is.na(.x), 0, .x)),
-    ) %>%
-    select(-personid, -tour_num)
+    )
   
   if (!is.null(dependent_vars)) {
     est_tbl <- est_tbl[, c("y", c("logsum", dependent_vars))]
   }
   
-  model <- lm(y ~ . -logsum + 0, data = est_tbl)
+  model <- lm(y ~ . - logsum + 0, data = est_tbl)
   adj_r_sq <- summary(model)$adj.r.squared
   coeffs <- broom::tidy(model) %>%
     mutate(p.value = round(p.value, 5))
@@ -79,7 +82,38 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
       by = c("term" = "trip_type")
     ) %>%
     relocate(trip_type_orig, .before = term) %>%
-    rename(trip_type = trip_type_orig, estimated_as = term)
+    rename(estimated_as = term, term = trip_type_orig)
+  
+  # Boosting
+  if (boost) {
+    # model$residuals
+    
+    resid_tbl <- est_tbl %>%
+      mutate(
+        ln_y = ifelse(log(y) < -1, -1, log(y)),
+        y_hat = model$fitted.values,
+        y_hat = pmax(0, y_hat),
+        ln_y_hat = ifelse(log(y_hat) < -1, -1, log(y_hat)),
+        diff = ln_y - ln_y_hat,
+        ln_A = ifelse(log(logsum) < -1, -1, log(logsum))
+      ) %>%
+      select(ln_y, ln_y_hat, diff, ln_A)
+    boost_model <- lm(ln_y - ln_y_hat ~ ln_A, data = resid_tbl)
+    gamma <- boost_model$coefficients[[2]]
+    alpha <- exp(boost_model$coefficients[[1]])
+    
+    boost_coeffs <- broom::tidy(boost_model) %>%
+      mutate(p.value = round(p.value, 5))
+    boost_coeffs$term[1] <- "alpha"
+    boost_coeffs$estimate[1] <- exp(boost_coeffs$estimate[1])
+    boost_coeffs$term[2] <- "gamma"
+    
+    p <- est_tbl %>%
+      select(logsum) %>%
+      mutate(y = alpha * logsum ^ gamma)
+    
+    add_orig_types <- bind_rows(add_orig_types, boost_coeffs)
+  }
   
   result <- list()
   result$r_sq <- round(adj_r_sq, 2)
