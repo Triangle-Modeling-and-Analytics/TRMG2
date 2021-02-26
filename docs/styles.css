@@ -16,6 +16,10 @@ th, td {
   padding: 5px;
 }
 
+.display {
+  font-size: 2em;
+}
+
 .N_NH_K12_All .tab-content {
   height: 25em;
 }

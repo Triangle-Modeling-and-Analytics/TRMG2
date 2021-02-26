@@ -431,6 +431,14 @@ div.tocify {
 <h3>Walkability</h3>
 <p><img src="img/accessibility/walkability.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
+<div id="logsum-sov" class="section level3">
+<h3>Logsum SOV</h3>
+<p><img src="img/accessibility/logsums_general_sov.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="logsum-walk" class="section level3">
+<h3>Logsum Walk</h3>
+<p><img src="img/accessibility/logsums_general_walk.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 <div id="details" class="section level2">
 <h2>Details</h2>
@@ -518,6 +526,225 @@ Constant (walk)
 </td>
 <td style="text-align:right;">
 -141.0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="logsums" class="section level3">
+<h3>Logsums</h3>
+<p>Logsums can be considered as a weighted average accessibility. While logsums are most often discussed in relation to mode choice and destination choice models, the logsums used in accessibility is from a simpler gravity formulation.</p>
+<p><br /><span class="math display"><em>A</em><sub><em>i</em></sub> = <em>l</em><em>n</em>(∑<sub><em>j</em></sub><em>S</em><sub><em>j</em></sub><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub><sup><em>α</em></sup><em>e</em><sup><em>β</em><em>t</em><sup><em>i</em><em>j</em><em>m</em></sup></sup>)</span><br /></p>
+<p>Where:<br />
+<span class="math inline"><em>A</em><sub><em>i</em></sub></span>: Accessibility of zone i<br />
+<span class="math inline"><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub></span>: Travel time between zone i and j by mode m<br />
+<span class="math inline"><em>S</em><sub><em>j</em></sub></span>: Attractions in zone j (size term)</p>
+<p>The primary purpose for these mode-specific accessibility values is to inform the non-home-based models. For instance, a non-home-based transit trip is likely to occur in areas with high transit accessibility. More importantly, they cannot occur in areas with no transit access.</p>
+<p>In addition to calculating accessibilty logsums by mode, three different size term formulations were used to capture different types of access. Those three types are:</p>
+<ul>
+<li>General: A balanced accessibility to various land uses</li>
+<li>Nearby: An accessibility that weights land uses more heavily that generate shorter trips (e.g. retail)</li>
+<li>Employment: A measure of accessibility to employment/jobs</li>
+</ul>
+<p>The rates for the size term in each of the above types of accessibility are shown in the table below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Field
+</th>
+<th style="text-align:right;">
+General
+</th>
+<th style="text-align:right;">
+Nearby
+</th>
+<th style="text-align:right;">
+Employment
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+HH
+</td>
+<td style="text-align:right;">
+1.9
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+K12
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+StudGQ_NCSU
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+StudGQ_UNC
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+StudGQ_DUKE
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+StudGQ_NCCU
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CollegeOn
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CollegeOff
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Retail
+</td>
+<td style="text-align:right;">
+18.7
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateLow
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateHigh
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Office
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Industry
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+1
 </td>
 </tr>
 </tbody>
