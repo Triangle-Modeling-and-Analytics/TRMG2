@@ -45,16 +45,22 @@ knitr::include_graphics("img/accessibility/gsindex.png")
 knitr::include_graphics("img/accessibility/bus_stop_prox.png")
 ```
 
-### Industry Density
-
-```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/industry_density.png")
-```
-
 ### Walkability
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/accessibility/walkability.png")
+```
+
+### Logsum SOV
+
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/accessibility/logsums_general_sov.png")
+```
+
+### Logsum Walk
+
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/accessibility/logsums_general_walk.png")
 ```
 
 ## Details
@@ -97,39 +103,32 @@ talk for trips originating in that zone. Simple by design, it does not consider
 skims or other matrix-based attributes. Instead, it uses the metrics above to
 make predictions.
 
-- **Approach Density**: intersection approaches in zone dividied by zonal area
-- **GS Attr Density**: The total attractions using the Gini-Simpson rates divided
-  by zonal area.
-- **GS Index**: This Gini-Simpson Diversity Index
-- **Industrial Density**: Density of industrial employment
-- **Constant (walk)**: The constant applied to the walk utility equation
+- **Approach Density**: Intersection approaches in zone divided by zonal area
+- **Attraction Density**: Total attractions divided by zonal area.
+- **GS Index**: Gini-Simpson Diversity Index
+- **Constant (walk)**: Constant applied to the walk utility equation
 
-*Placeholder Model*
-
-Adjusted rho-squared: 0.50
+Adjusted rho-squared: 0.45
 
 ```{r}
 model <- tibble(
   Term = c(
     "Approach Density",
-    "GS Attr Density",
+    "Attraction Density",
     "GS Index",
-    "Industrial Density",
     "Constant (walk)"
   ),
   Coeff = c(
-    .17,
-    .15,
-    -.03,
-    .02,
-    -2.1
+    .16,
+    .23,
+    .12,
+    -1.96
   ),
   `T-Stat` = c(
-    10.5,
-    14.8,
-    -2.2,
-    1.2,
-    -143
+    12.1,
+    24.8,
+    9.5,
+    -141
   )
 )
 
@@ -137,4 +136,48 @@ model %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 ```
+
+### Logsums
+
+Logsums can be considered as a weighted average accessibility. While logsums are
+most often discussed in relation to mode choice and destination choice models,
+the logsums used in accessibility is from a simpler gravity formulation.
+
+$$A_i = ln(\sum_j S_jt_{ijm}^{\alpha}e^{\beta t^{ijm}})$$
+
+Where:  
+$A_i$: Accessibility of zone i  
+$t_{ijm}$: Travel time between zone i and j by mode m  
+$S_j$: Attractions in zone j (size term)
+
+The primary purpose for these mode-specific accessibility values is to inform
+the non-home-based models. For instance, a non-home-based transit trip is likely
+to occur in areas with high transit accessibility. More importantly, they cannot
+occur in areas with no transit access.
+
+```{r, include=FALSE}
+tbl <- read_csv("../master/accessibility/attraction_rates.csv")
+```
+
+In addition to calculating accessibilty logsums by mode, three different size
+term formulations were used to capture different types of access. Those three
+types are:
+
+- General: A balanced accessibility to various land uses
+- Nearby: An accessibility that weights land uses more heavily that generate
+  shorter trips (e.g. retail)
+- Employment: A measure of accessibility to employment/jobs
+
+The rates for the size term in each of the above types of accessibility are
+shown in the table below.
+
+```{r}
+tbl %>%
+  select(Field, General = general_attr, Nearby = nearby_attr, 
+         Employment = employment_attr) %>%
+  filter(!str_detect(Field, "Building")) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
 

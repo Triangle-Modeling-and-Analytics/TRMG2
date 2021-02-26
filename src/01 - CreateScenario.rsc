@@ -28,7 +28,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Create Scenario Transit", Args)
   end
 
-  return()
+  ShowMessage("Scenario Created")
 EndMacro
 
 /*
@@ -46,6 +46,7 @@ Macro "Create Folder Structure" (Args)
 
   // Array of output directories to create
   a_dir = {
+    "/accessibility",
     "/tazs",
     "/sedata",
     "/networks",

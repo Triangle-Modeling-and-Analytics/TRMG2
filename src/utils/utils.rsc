@@ -1069,3 +1069,41 @@ Macro "2S" (thing)
   end else thing = String(thing)
   return(thing)
 EndMacro
+
+/*
+
+*/
+
+Macro "Create Sum Product Fields" (MacroOpts)
+
+  view = MacroOpts.view
+  factor_file = MacroOpts.factor_file
+
+  if factor_file = null then Throw("'factor_file' not provided")
+
+  fac_vw = OpenTable("factors", "CSV", {factor_file})
+  {names, } = GetFields(fac_vw, "All")
+
+  input_fields = GetDataVector(fac_vw + "|", names[1], )
+  input = GetDataVectors(view + "|", V2A(input_fields), {OptArray: true})
+  // Remove first and last column (Field and Description)
+  output_fields = ExcludeArrayElements(names, 1, 1)
+  output_fields = ExcludeArrayElements(output_fields, output_fields.length, 1)
+
+  for output_field in output_fields do
+    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , }}
+    output.(output_field) = Vector(input[1][2].length, "Real", {Constant: 0})
+    factors = nz(GetDataVector(fac_vw + "|", output_field, ))
+    
+    for i = 1 to input_fields.length do
+      input_field = input_fields[i]
+      factor = factors[i]
+
+      output.(output_field  ) = output.(output_field) + nz(input.(input_field)) * factor
+    end
+  end
+  RunMacro("Add Fields", {view: view, a_fields: a_fields})
+  SetDataVectors(view + "|", output, )
+
+  CloseView(fac_vw)
+endmacro

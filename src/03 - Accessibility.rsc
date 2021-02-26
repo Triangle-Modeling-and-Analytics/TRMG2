@@ -4,12 +4,50 @@ Calls various macros that calculate different accessibility measures.
 
 Macro "Accessibility" (Args)
 
+    RunMacro("Calc Accessibility Attractions", Args)
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
     RunMacro("Calc Intersection Approach Density", Args)
     RunMacro("Calc Walkability Score", Args)
     RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    RunMacro("Access Logsums", Args)
 
     return(1)
+endmacro
+
+/*
+Calculate the attraction rates for all but the GSIndex measure, which needs a 
+slightly different calculation.
+*/
+
+Macro "Calc Accessibility Attractions" (Args)
+
+    se_file = Args.SE
+    rate_file = Args.[Access Attr Rates]
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    RunMacro("Create Sum Product Fields", {view: se_vw, factor_file: rate_file})
+
+    fields = {
+        "walkability_attr",
+        "general_attr",
+        "nearby_attr",
+        "employment_attr",
+        "gs_home_attr",
+        "gs_work_attr",
+        "gs_other_attr"
+    }
+    descriptions = {
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc",
+        "Attractions for access calc"
+    }
+    RunMacro("Add Field Description", se_vw, fields, descriptions)
+
+    CloseView(se_vw)
 endmacro
 
 /*
@@ -22,18 +60,10 @@ of 1.
 Macro "Calc Gini-Simpson Diversity Index" (Args)
 
     se_file = Args.SE
-    rate_file = Args.[GS Rates]
-
-    rate_vw = OpenTable("rates", "CSV", {rate_file})
-    {v_fields, v_rates} = GetDataVectors(
-        rate_vw + "|",
-        {"Field", "Value"},
-    )
-    CloseView(rate_vw)
 
     se_vw = OpenTable("se", "FFB", {se_file})
     a_fields = {
-        {"GSAttractions", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
+        {"gs_total_attr", "Real", 10, 2, , , , "Gini-Simpson Diversity Index attractions"},
         {"GSIndex", "Real", 10, 2, , , , "Gini-Simpson Diversity Index|(Measures mixed use)"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
@@ -41,30 +71,21 @@ Macro "Calc Gini-Simpson Diversity Index" (Args)
     internal_set = CreateSet("internal")
     SelectByQuery(internal_set, "several", "Select * where Type = 'Internal'")
     // Calculate g and total g for each zone
-    g = null
-    for i = 1 to v_fields.length do
-        field = v_fields[i]
-        rate = v_rates[i]
-
-        v = nz(GetDataVector(se_vw + "|" + internal_set, field, ))
-        g.(field) = v * rate
-        if i = 1 then total_g = Vector(v.length, "real", {Constant: 0})
-        total_g = total_g + g.(field)
-    end
-    SetDataVector(se_vw + "|" + internal_set, "GSAttractions", total_g, )
-    total_g = if total_g = 0 then -1 else total_g
-    // Calculate the sum of the ratios squared: Sum((g/total_g)^2)
-    sum_ratio_squared = Vector(total_g.length, "real", {Constant: 0})
-    for i = 1 to v_fields.length do
-        field = v_fields[i]
-        rate = v_rates[i]
-
-        sum_ratio_squared = sum_ratio_squared + pow(g.(field) / total_g, 2)
-    end
+    
+    
+    {gs_home_attr, gs_work_attr, gs_other_attr} = GetDataVectors(
+        se_vw + "|" + internal_set,
+        {"gs_home_attr", "gs_work_attr", "gs_other_attr"},
+    )
+    total = gs_home_attr + gs_work_attr + gs_other_attr
+    // // Calculate the sum of the ratios squared: Sum((g/total_g)^2)
+    sum_ratio_squared = pow(gs_home_attr / total, 2)
+    sum_ratio_squared = sum_ratio_squared + pow(gs_work_attr / total, 2)
+    sum_ratio_squared = sum_ratio_squared + pow(gs_other_attr / total, 2)
     sum_ratio_squared = if sum_ratio_squared = 0 then .5 else sum_ratio_squared
-    // Calculate final index value for each zone
     v_index = 1 - sum_ratio_squared
     SetDataVector(se_vw + "|" + internal_set, "GSIndex", v_index, )
+    SetDataVector(se_vw + "|" + internal_set, "gs_total_attr", total, )
 
     CloseView(se_vw)
 endmacro
@@ -94,7 +115,7 @@ Macro "Calc Intersection Approach Density" (Args)
     RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
     se_fields = {
         taz_fields[1],
-        {"GSAttrDens", "Real", 10, 2,,,, "Density of GS attractions"},
+        {"walk_attr_dens", "Real", 10, 2,,,, "Density of GS attractions"},
         {"IndEmpDensity", "Real", 10, 2,,,, "Density of industrial employment"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: se_fields})
@@ -142,9 +163,9 @@ Macro "Calc Intersection Approach Density" (Args)
     SetDataVector(jv + "|", se_specs.IndEmpDensity, v_ind_dens, )
 
     // Attraction density
-    v_attr = GetDataVector(jv + "|", se_specs.GSAttractions, )
+    v_attr = GetDataVector(jv + "|", se_specs.gs_total_attr, )
     v_attr_dens = v_attr / v_area
-    SetDataVector(jv + "|", se_specs.GSAttrDens, v_attr_dens, )
+    SetDataVector(jv + "|", se_specs.walk_attr_dens, v_attr_dens, )
 
     CloseView(se_vw)
     CloseView(jv)
@@ -162,18 +183,18 @@ Macro "Calc Walkability Score" (Args)
     model_file = Args.[Input Folder] + "\\accessibility\\walkability.mdl"
 
     // Normalize utility variables
-    se_vw = OpenTable("scenario_se", "FFB", {se_file})
+    se_vw = OpenTable("se", "FFB", {se_file})
     a_fields =  {
         {"ApproachDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"IndEmpDensity_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
-        {"GSAttrDens_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
+        {"walk_attr_dens_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"GSIndex_z", "Real", 10, 2,,,, "normalized for walkability choice model"},
         {"Walkability", "Real", 10, 2,,,, "Probability of walk trips. Result of simple choice model."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     data = GetDataVectors(
         se_vw + "|",
-        {"ApproachDensity", "IndEmpDensity", "GSAttrDens", "GSIndex"},
+        {"ApproachDensity", "IndEmpDensity", "walk_attr_dens", "GSIndex"},
         {OptArray: true}
     )
     for i = 1 to data.length do
@@ -189,8 +210,6 @@ Macro "Calc Walkability Score" (Args)
     SetDataVectors(se_vw + "|", set, )
 
     // Apply mc model
-    SetView(se_vw)
-    SelectByQuery("internal", "several", "Select * where Type = 'Internal'")
     o = CreateObject("Choice.Mode")
     o.ModelFile = model_file
     o.AddTableSource({Label: "sedata", Filter: "Type = 'Internal'", FileName: se_file})
@@ -210,7 +229,6 @@ Macro "Calc Walkability Score" (Args)
     SetDataVector(jv + "|", "Walkability", v, )
     CloseView(jv)
     CloseView(out_vw)
-
     CloseView(se_vw)
 endmacro
 
@@ -272,4 +290,81 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     CloseView(int_vw)
     CloseView(se_vw)
     CloseMap(map)
+endmacro
+
+/*
+These skims/logsums are not part of feedback or convergence. Instead, they are
+used to generate a log sum estimate for use as an accessibility measure.
+*/
+
+Macro "Access Logsums" (Args)
+
+    link_dbd = Args.Links
+    output_dir = Args.[Output Folder]
+    se_file = Args.SE
+
+    // SOV Skim
+    obj = CreateObject("Network.Skims")
+    obj.Network = output_dir + "/networks/net_sov.net"
+    obj.LayerDB = link_dbd
+    obj.Origins = "Centroid = 1" 
+    obj.Destinations = "Centroid = 1"
+    obj.Minimize = "FFTime"
+    obj.AddSkimField({"Length", "All"})
+    out_files.sov = output_dir + "/accessibility/sov_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Accessiblity Skim"})
+    ret_value = obj.Run()
+    // Walk Skim
+    obj.Network = output_dir + "/networks/net_walk.net"
+    obj.Minimize = "WalkTime"
+    out_files.walk = output_dir + "/accessibility/walk_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Accessiblity Skim"})
+    ret_value = obj.Run()
+
+    // intrazonals
+    obj = CreateObject("Distribution.Intrazonal")
+    obj.SetMatrix(out_files.sov)
+    obj.OperationType = "Replace"
+    obj.TreatMissingAsZero = true
+    obj.Neighbours = 3
+    obj.Factor = .75
+    ok = obj.Run()
+    obj.SetMatrix(out_files.walk)
+    ok = obj.Run()
+
+    // Calculate logsums
+    a_types = {"General", "Nearby", "Employment"}
+    a_modes = {"walk", "sov"}
+    alphas.General = -.93
+    betas.General = -.09
+    alphas.Nearby = -1.35
+    betas.Nearby = -.1
+    alphas.Employment = -.3
+    betas.Employment = -.07
+    for type in a_types do
+        size_field = Lower(type) + "_attr"
+        alpha = alphas.(type)
+        beta = betas.(type)
+
+        for mode in a_modes do
+            output_field = type + "Accessibility_" + mode
+            matrix = out_files.(mode)
+            if mode = "sov" then time_field = "FFTIME" else time_field = "WalkTime"
+            
+            m = CreateObject("Matrix")
+            m.LoadMatrix(matrix)
+            m.AddCores({"size", "util"})
+            cores = m.data.cores
+            se_vw = OpenTable("se", "FFB", {se_file})
+            a_fields =  {{output_field, "Real", 10, 2,,,, "logsum of a simple gravity model"}}
+            RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+            size = GetDataVector(se_vw + "|", size_field, )
+            cores.size := size
+            cores.util := cores.size * pow(cores.(time_field), alpha) * exp(beta * cores.(time_field))
+            cores.util := if cores.size = 0 then 0 else cores.util
+            rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+            logsum = Max(0, log(rowsum))
+            SetDataVector(se_vw + "|", output_field, logsum, )
+        end
+    end
 endmacro

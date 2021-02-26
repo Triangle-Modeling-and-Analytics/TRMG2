@@ -269,6 +269,8 @@ Macro "Capacity" (Args)
     // Create a map and add fields to be filled in
     {map, {node_lyr, link_lyr}} = RunMacro("Create Map", {file: link_dbd})
     a_fields =  {
+        {"AreaType2", "Character", 10, ,,,, 
+        "Area type used for link cap/speed lookup|Rural links marked with ML/TL"},
         {"capd_phpl", "Integer", 10, ,,,, 
         "LOS D capacity per hour per lane|LOS E is used for assignment."},
         {"cape_phpl", "Integer", 10, ,,,, 
@@ -297,11 +299,10 @@ Macro "Capacity" (Args)
         else if data.AreaType <> "Rural" then ""
         else if lanes = 2 and data.Dir = 0 then "TL"
         else "ML"
-    orig_areatype = data.AreaType
     new_areatype = data.AreaType + type
     ml_flag = if type = "ML" then 1 else null
     tl_flag = if type = "TL" then 1 else null
-    SetDataVector(link_lyr + "|", "AreaType", new_areatype, )
+    SetDataVector(link_lyr + "|", "AreaType2", new_areatype, )
     SetDataVector(link_lyr + "|", "MLHighway", ml_flag, )
     SetDataVector(link_lyr + "|", "TLHighway", tl_flag, )
 
@@ -310,7 +311,7 @@ Macro "Capacity" (Args)
     {cap_fields, cap_specs} = RunMacro("Get Fields", {view_name: cap_vw})
     jv = JoinViewsMulti(
         "jv", 
-        {link_specs.HCMType, link_specs.AreaType},
+        {link_specs.HCMType, link_specs.AreaType2},
         {cap_specs.HCMType, cap_specs.AreaType},
         null
     )
@@ -329,14 +330,13 @@ Macro "Capacity" (Args)
     SetDataVector(jv + "|", link_specs.cape_phpl, cape, )
     CloseView(jv)
     CloseView(cap_vw)
-    // Reset area type field to original (without "ML"/"TL")
-    SetDataVector(link_lyr + "|", "AreaType", orig_areatype, )
 
     // Determine period capacities
     factor_vw = OpenTable("factors", "CSV", {capfactors_file})
     {fac_fields, fac_specs} = RunMacro("Get Fields", {view_name: factor_vw})
     v_periods = GetDataVector(factor_vw + "|", "TOD", )
     v_factors = GetDataVector(factor_vw + "|", "Value", )
+    CloseView(factor_vw)
     a_los = {"D", "E"}
     a_dir = {"AB", "BA"}
     for los in a_los do
@@ -500,7 +500,7 @@ Macro "Other Attributes" (Args)
     // Join based on AreaType and HCMType
     jv = JoinViewsMulti(
         "jv",
-        {llyr + ".AreaType", llyr + ".HCMType"},
+        {llyr + ".AreaType2", llyr + ".HCMType"},
         {ffs_tbl + ".AreaType", ffs_tbl + ".HCMType"},
     )
 
@@ -547,59 +547,65 @@ Creates the various link-based (non-transit) networks. Driving, walking, etc.
 Macro "Create Link Networks" (Args)
 
     link_dbd = Args.Links
-    roadway_net = Args.[Roadway Net]
-    transit_net = Args.[Transit Net]
-    walk_net = Args.[Walk Net]
-    bike_net = Args.[Bike Net]
+    output_dir = Args.[Output Folder] + "/networks"
 
-    // Build roadway network
-    netObj = CreateObject("Network.Create")
-    netObj.LayerDB = link_dbd
-    netObj.Filter = "D = 1"    
-    netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
-    netObj.AddLinkField({Name: "CapacityAM", Field: {"ABAMCapE", "BAAMCapE"}, IsTimeField : false, DefaultValue: 1800})
-    netObj.AddLinkField({Name: "CapacityMD", Field: {"ABMDCapE", "BAMDCapE"}, IsTimeField : false, DefaultValue: 1800})
-    netObj.AddLinkField({Name: "CapacityPM", Field: {"ABPMCapE", "BAPMCapE"}, IsTimeField : false, DefaultValue: 1800})
-    netObj.AddLinkField({Name: "CapacityNT", Field: {"ABNTCapE", "BANTCapE"}, IsTimeField : false, DefaultValue: 1800})
-    netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
-    netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
-    netObj.NetworkName = roadway_net
-    netObj.Run()
-    // Network settings and centroids
-    netSetObj = null
-    netSetObj = CreateObject("Network.Settings")
-    netSetObj.LayerDB = link_dbd
-    netSetObj.LoadNetwork(roadway_net)
-    netSetObj.CentroidFilter = "Centroid = 1"
-    netSetObj.Run()
+    // Create the auto networks
+    // This array could be passed in as an argument to make the function more
+    // generic.
+    auto_nets = null
+    auto_nets.sov.filter = "D = 1 and HOV = 'None'"
+    auto_nets.hov.filter = "D = 1"
+    for i = 1 to auto_nets.length do
+        name = auto_nets[i][1]
+        
+        filter = auto_nets.(name).filter
+        net_file = output_dir + "/net_" + name + ".net"
 
-    // Create walk network with walk time
-    netObj = CreateObject("Network.Create")
-    netObj.LayerDB = link_dbd
-    netObj.Filter =  "W = 1"
-    netObj.AddLinkField({Name: "WalkTime", Field: {"WalkTime", "WalkTime"}, IsTimeField : true})
-    netObj.NetworkName = walk_net
-    netObj.Run()
-    // Network settings and centroids
-    netSetObj = null
-    netSetObj = CreateObject("Network.Settings")
-    netSetObj.LayerDB = link_dbd
-    netSetObj.LoadNetwork(walk_net)
-    netSetObj.CentroidFilter = "Centroid = 1"
-    netSetObj.Run()
+        // Build roadway network
+        netObj = CreateObject("Network.Create")
+        netObj.LayerDB = link_dbd
+        netObj.Filter = filter   
+        netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
+        netObj.AddLinkField({Name: "CapacityAM", Field: {"ABAMCapE", "BAAMCapE"}, IsTimeField : false, DefaultValue: 1800})
+        netObj.AddLinkField({Name: "CapacityMD", Field: {"ABMDCapE", "BAMDCapE"}, IsTimeField : false, DefaultValue: 1800})
+        netObj.AddLinkField({Name: "CapacityPM", Field: {"ABPMCapE", "BAPMCapE"}, IsTimeField : false, DefaultValue: 1800})
+        netObj.AddLinkField({Name: "CapacityNT", Field: {"ABNTCapE", "BANTCapE"}, IsTimeField : false, DefaultValue: 1800})
+        netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
+        netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+        netObj.NetworkName = net_file
+        netObj.Run()
+        netSetObj = null
+        netSetObj = CreateObject("Network.Settings")
+        netSetObj.LayerDB = link_dbd
+        netSetObj.LoadNetwork(net_file)
+        netSetObj.CentroidFilter = "Centroid = 1"
+        netSetObj.Run()
+    end
 
-    // Create bike network with bike time
-    netObj = CreateObject("Network.Create")
-    netObj.LayerDB = link_dbd
-    netObj.Filter =  "B = 1"
-    netObj.AddLinkField({Name: "BikeTime", Field: {"BikeTime", "BikeTime"}, IsTimeField : true})
-    netObj.NetworkName = bike_net
-    netObj.Run()
-    // Network settings and centroids
-    netSetObj = null
-    netSetObj = CreateObject("Network.Settings")
-    netSetObj.LayerDB = link_dbd
-    netSetObj.LoadNetwork(bike_net)
-    netSetObj.CentroidFilter = "Centroid = 1"
-    netSetObj.Run()
+    // Create the non-motorized networks
+    nm_nets = null
+    nm_nets.walk.filter = "W = 1"
+    nm_nets.walk.time_field = "WalkTime"
+    nm_nets.bike.filter = "B = 1"
+    nm_nets.bike.time_field = "BikeTime"
+    for i = 1 to nm_nets.length do
+        name = nm_nets[i][1]
+        
+        filter = nm_nets.(name).filter
+        time_field = nm_nets.(name).time_field
+        net_file = output_dir + "/net_" + name + ".net"
+
+        netObj = CreateObject("Network.Create")
+        netObj.LayerDB = link_dbd
+        netObj.Filter =  filter
+        netObj.AddLinkField({Name: time_field, Field: {time_field, time_field}, IsTimeField : true})
+        netObj.NetworkName = net_file
+        netObj.Run()
+        netSetObj = null
+        netSetObj = CreateObject("Network.Settings")
+        netSetObj.LayerDB = link_dbd
+        netSetObj.LoadNetwork(net_file)
+        netSetObj.CentroidFilter = "Centroid = 1"
+        netSetObj.Run()
+    end
 endmacro

@@ -1,7 +1,7 @@
 ---
 title: "Acronyms"
 author: "Caliper Corporation"
-date: "2/8/2021"
+date: "February 8, 2021"
 output: 
   html_document:
     toc: false
@@ -22,3 +22,5 @@ documentation.
 - ACS: American Community Survey
 - NHTS: National Household Travel Survey
 - TAZ: Traffic Analysis Zone
+- SOV: Single-occupancy vehicle
+- HOV: High-occupancy vehicle
