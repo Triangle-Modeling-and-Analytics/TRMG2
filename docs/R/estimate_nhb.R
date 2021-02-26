@@ -1,14 +1,22 @@
-# trip_type <- "N_NH_O_All_sov"
+# trip_type <- "N_NH_OME_All_sov"
 # trips_df <- trips
+# boost = TRUE
 
 estimate_nhb <- function(trips_df, trip_type, equiv = NULL, 
-                         dependent_vars = NULL) {
+                         dependent_vars = NULL, boost = FALSE) {
+  
+  logsum_tbl <- read_csv("data/input/nhb/logsums.csv") %>%
+    # select(TAZ, GeneralAccessibility_walk:EmploymentAccessibility_sov)
+    select(TAZ, logsum = GeneralAccessibility_sov)
   
   add_y <- trips_df
   add_y$trip_type <- ifelse(add_y$trip_type == trip_type, "y", add_y$trip_type)
   tour_str = substr(trip_type, 1, 1)
   
-  collapse_types <- add_y %>%
+  add_logsum <- add_y %>%
+    left_join(logsum_tbl, by = c("a_taz" = "TAZ"))
+  
+  collapse_types <- add_logsum %>%
     mutate(trip_type_orig = trip_type)
   if (!is.null(equiv)) {
     for (i in 1:length(equiv)) {
@@ -22,7 +30,7 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
   
   temp1 <- collapse_types %>%
     filter(substr(trip_type, 1, 1) %in% c(tour_str, "y")) %>%
-    select(personid, tour_num, trip_type, trip_weight_combined) %>%
+    select(personid, tour_num, trip_type, trip_weight_combined, logsum) %>%
     group_by(personid, tour_num) %>%
     mutate(keep = ifelse(any(trip_type == "y"), 1, 0))
   
@@ -41,7 +49,10 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
       trip_type == "y" | !grepl("_NH_", trip_type)
     ) %>%
     group_by(personid, tour_num, trip_type) %>%
-    summarize(trips = sum(trip_weight_combined)) %>%
+    summarize(
+      trips = sum(trip_weight_combined),
+      logsum = mean(logsum, na.rm = TRUE)
+    ) %>%
     pivot_wider(names_from = trip_type, values_from = trips) %>%
     relocate("y", .before = personid) %>%
     ungroup() %>%
@@ -51,10 +62,10 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     select(-personid, -tour_num)
   
   if (!is.null(dependent_vars)) {
-    est_tbl <- est_tbl[, c("y", dependent_vars)]
+    est_tbl <- est_tbl[, c("y", c("logsum", dependent_vars))]
   }
   
-  model <- lm(y ~ . + 0, data = est_tbl)
+  model <- lm(y ~ . -logsum + 0, data = est_tbl)
   adj_r_sq <- summary(model)$adj.r.squared
   coeffs <- broom::tidy(model) %>%
     mutate(p.value = round(p.value, 5))
