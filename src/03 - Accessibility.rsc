@@ -303,30 +303,38 @@ Macro "Access Logsums" (Args)
     output_dir = Args.[Output Folder]
     se_file = Args.SE
 
-    // Skim
+    // SOV Skim
     obj = CreateObject("Network.Skims")
-    net_file = output_dir + "/networks/net_sov.net"
-    obj.Network = net_file
+    obj.Network = output_dir + "/networks/net_sov.net"
     obj.LayerDB = link_dbd
     obj.Origins = "Centroid = 1" 
     obj.Destinations = "Centroid = 1"
     obj.Minimize = "FFTime"
     obj.AddSkimField({"Length", "All"})
-    out_file = output_dir + "/accessibility/skim.mtx"
-    obj.OutputMatrix({MatrixFile: out_file, Matrix: "Accessiblity Skim"})
+    out_files.sov = output_dir + "/accessibility/sov_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Accessiblity Skim"})
     ret_value = obj.Run()
-    
+    // Walk Skim
+    obj.Network = output_dir + "/networks/net_walk.net"
+    obj.Minimize = "WalkTime"
+    out_files.walk = output_dir + "/accessibility/walk_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Accessiblity Skim"})
+    ret_value = obj.Run()
+
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
-    obj.SetMatrix(out_file)
+    obj.SetMatrix(out_files.sov)
     obj.OperationType = "Replace"
     obj.TreatMissingAsZero = true
     obj.Neighbours = 3
     obj.Factor = .75
     ok = obj.Run()
+    obj.SetMatrix(out_files.walk)
+    ok = obj.Run()
 
     // Calculate logsums
     a_types = {"General", "Nearby", "Employment"}
+    a_modes = {"walk", "sov"}
     alphas.General = -.93
     betas.General = -.09
     alphas.Nearby = -1.35
@@ -334,24 +342,29 @@ Macro "Access Logsums" (Args)
     alphas.Employment = -.3
     betas.Employment = -.07
     for type in a_types do
-        output_field = type + "Accessibility"
         size_field = Lower(type) + "_attr"
         alpha = alphas.(type)
         beta = betas.(type)
 
-        m = CreateObject("Matrix")
-        m.LoadMatrix(out_file)
-        m.AddCores({"size", "util"})
-        cores = m.data.cores
-        se_vw = OpenTable("se", "FFB", {se_file})
-        a_fields =  {{output_field, "Real", 10, 2,,,, "logsum of a simple gravity model"}}
-        RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-        size = GetDataVector(se_vw + "|", size_field, )
-        cores.size := size
-        cores.util := cores.size * pow(cores.FFTIME, alpha) * exp(beta * cores.FFTIME)
-        cores.util := if cores.size = 0 then 0 else cores.util
-        rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
-        logsum = log(rowsum)
-        SetDataVector(se_vw + "|", output_field, logsum, )
+        for mode in a_modes do
+            output_field = type + "Accessibility_" + mode
+            matrix = out_files.(mode)
+            if mode = "sov" then time_field = "FFTIME" else time_field = "WalkTime"
+            
+            m = CreateObject("Matrix")
+            m.LoadMatrix(matrix)
+            m.AddCores({"size", "util"})
+            cores = m.data.cores
+            se_vw = OpenTable("se", "FFB", {se_file})
+            a_fields =  {{output_field, "Real", 10, 2,,,, "logsum of a simple gravity model"}}
+            RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+            size = GetDataVector(se_vw + "|", size_field, )
+            cores.size := size
+            cores.util := cores.size * pow(cores.(time_field), alpha) * exp(beta * cores.(time_field))
+            cores.util := if cores.size = 0 then 0 else cores.util
+            rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+            logsum = Max(0, log(rowsum))
+            SetDataVector(se_vw + "|", output_field, logsum, )
+        end
     end
 endmacro
