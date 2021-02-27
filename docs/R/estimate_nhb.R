@@ -5,9 +5,16 @@
 estimate_nhb <- function(trips_df, trip_type, equiv = NULL, 
                          dependent_vars = NULL, boost = FALSE) {
   
-  logsum_tbl <- read_csv("data/input/nhb/logsums.csv") %>%
+  logsum_tbl <- read_csv(
+    "data/input/nhb/logsums.csv",
+    col_types = cols(
+      .default = col_double(),
+      Type = col_character(),
+      AreaType = col_character()
+    )
+  ) %>%
     # select(TAZ, GeneralAccessibility_walk:EmploymentAccessibility_sov)
-    select(TAZ, logsum = GeneralAccessibility_sov)
+    select(TAZ, logsum = NearbyAccessibility_walk)
   
   add_y <- trips_df
   add_y$trip_type <- ifelse(add_y$trip_type == trip_type, "y", add_y$trip_type)
@@ -84,6 +91,8 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     relocate(trip_type_orig, .before = term) %>%
     rename(estimated_as = term, term = trip_type_orig)
   
+  result <- list()
+  
   # Boosting
   if (boost) {
     # model$residuals
@@ -97,8 +106,11 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
         diff = ln_y - ln_y_hat,
         ln_A = ifelse(log(logsum) < -1, -1, log(logsum))
       ) %>%
-      select(ln_y, ln_y_hat, diff, ln_A)
-    boost_model <- lm(ln_y - ln_y_hat ~ ln_A, data = resid_tbl)
+      rename(A = logsum) %>%
+      filter(!(y == 0 & y_hat == 0)) %>%
+      # filter(y != 0) %>%
+      select(y, y_hat, ln_y, ln_y_hat, diff, A, ln_A)
+    boost_model <- lm(diff ~ ln_A, data = resid_tbl)
     gamma <- boost_model$coefficients[[2]]
     alpha <- exp(boost_model$coefficients[[1]])
     
@@ -108,14 +120,28 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     boost_coeffs$estimate[1] <- exp(boost_coeffs$estimate[1])
     boost_coeffs$term[2] <- "gamma"
     
-    p <- est_tbl %>%
+    p_tbl <- est_tbl %>%
       select(logsum) %>%
-      mutate(y = alpha * logsum ^ gamma)
+      mutate(
+        y = alpha * logsum ^ gamma,
+        trip_type = trip_type
+      )
+    p <- ggplot(p_tbl) +
+      geom_point(aes(x = logsum, y = y), color = "blue") +
+      labs(
+        title = "NHB Trip-Making and Accessibility",
+        y = "Effect on NHB Trip Rate",
+        x = "Nearby Accessibility"
+      ) +
+      theme(plot.title = element_text(hjust = 0.5))
     
     add_orig_types <- bind_rows(add_orig_types, boost_coeffs)
+    
+    result$p_tbl <- p_tbl
+    result$p <- p
   }
   
-  result <- list()
+  
   result$r_sq <- round(adj_r_sq, 2)
   result$tbl <- add_orig_types
   return(result)

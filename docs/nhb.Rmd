@@ -51,8 +51,9 @@ trips <- read_csv(
     trip_type = paste0(trip_type, "_", mode_simple2)
   )
 
-# hold all model tables in a list
-output_list <- list()
+# hold all model tables and plots in a list
+coeffs_list <- list()
+p_tbl_list <- list()
 ```
 
 ```{r}
@@ -95,7 +96,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -123,7 +124,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -173,7 +174,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -223,7 +224,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -248,7 +249,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -285,7 +286,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -312,7 +313,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -334,7 +335,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -369,7 +370,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -395,7 +396,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -418,7 +419,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -447,7 +448,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -479,7 +480,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -503,7 +504,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -551,7 +552,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -578,7 +579,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -635,7 +636,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -675,7 +676,7 @@ equiv <- list(
 
 # Restrict dependent variables.
 dependent_vars <- c(
-  # K12 removed due to preserve consistency
+  # K12 removed to preserve consistency (they generate N_NH_K12)
   # "N_HB_K12_All_hov",
   # "N_HB_K12_All_sov",
   "N_HB_OD_All_hov",
@@ -691,10 +692,14 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars, boost = TRUE)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+model3$p
+```
 
 
 #### HOV
@@ -739,7 +744,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars, boost = TRUE)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -782,7 +787,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -811,7 +816,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -859,7 +864,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -888,7 +893,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -934,7 +939,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -967,7 +972,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -993,7 +998,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -1024,7 +1029,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -1056,7 +1061,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -1082,7 +1087,7 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-output_list[type] <- list(model3$tbl)
+coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 ```
 
@@ -1091,9 +1096,9 @@ make_table(model3)
 
 ```{r write_output, eval=FALSE}
 output_dir <- "data/output/nhb/"
-for (i in 1:length(output_list)) {
-  name <- names(output_list)[i]
-  df <- output_list[[i]]
+for (i in 1:length(coeffs_list)) {
+  name <- names(coeffs_list)[i]
+  df <- coeffs_list[[i]]
   write_csv(df, paste0(output_dir, name, ".csv"))
 }
 ```
