@@ -1,4 +1,4 @@
-# trip_type <- "N_NH_K12_All_sov"
+# trip_type <- "N_NH_OME_All_sov"
 # trips_df <- trips
 # boost = TRUE
 
@@ -169,12 +169,14 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
   return(result)
 }
 
-# trip_type <- "N_NH_OME_All_bike"
+# trip_type <- "N_NH_OME_All_sov"
 # trips_df <- trips
 # coeffs = model3$tbl
 
 
 apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
+  
+  output <- list()
   
   # Determine the correct logsum to use and create a table
   v <- str_split(trip_type, "_")[[1]]
@@ -250,19 +252,21 @@ apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
   }
   result <- result %>%
     relocate(y_hat, .after = TAZ)
-  r_sq <- cor(result$y_hat, result$nh_total) ^ 2
+  output$tbl <- result
+  output$r_sq <- cor(result$y_hat, result$nh_total) ^ 2
+  output$prmse <- prmse(result$nh_total, result$y_hat)
+  output$mape <- mape(result$nh_total, result$y_hat)
   
   # Apply boosted model
   if (alpha_exists) {
     result$y_hat_boost <- result$y_hat * (result$logsum ^ gamma * alpha)
     result <- result %>%
       relocate(y_hat_boost, .after = y_hat)
-    r_sq_boost <- cor(result$y_hat_boost, result$nh_total) ^ 2
+    output$tbl <- result
+    output$r_sq <- cor(result$y_hat_boost, result$nh_total) ^ 2
+    output$prmse <- prmse(result$nh_total, result$y_hat_boost)
+    output$mape <- mape(result$nh_total, result$y_hat_boost)
   }
   
-  output <- list()
-  output$tbl <- result
-  output$r_sq <- r_sq
-  if (alpha_exists) output$r_sq_boost <- r_sq_boost
   return(output)
 }

@@ -18,6 +18,7 @@ library(tidyverse)
 library(knitr)
 library(kableExtra)
 source("R/estimate_nhb.R")
+source("R/utils.R")
 ```
 
 ## Introduction
@@ -58,8 +59,8 @@ p_tbl_list <- list()
 ```
 
 ```{r}
-make_table <- function(model) {
-  model$tbl %>%
+make_table <- function(tbl) {
+  tbl %>%
     arrange(estimated_as) %>%
     kable(digits = 4) %>%
     kable_styling(full_width = FALSE)
@@ -97,8 +98,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### HOV
@@ -125,8 +130,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -175,16 +184,13 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
-
-
-
-
-
 
 #### Bike
 
@@ -225,8 +231,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### HOV
@@ -250,8 +260,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Auto Pay
@@ -287,8 +301,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Walk
@@ -314,8 +332,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Bike
@@ -336,11 +358,13 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 
 ### W_NH_WR_All {.tabset .W_NH_WR_All}
@@ -371,8 +395,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### HOV
@@ -397,8 +425,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Auto Pay
@@ -420,8 +452,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Transit
@@ -449,8 +485,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Walk
@@ -481,8 +521,12 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Bike
@@ -505,14 +549,13 @@ dependent_vars <- c(
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
 
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
-
-
-
 
 ## Non-work tours
 
@@ -556,8 +599,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -587,8 +632,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -646,8 +693,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -706,8 +755,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -756,8 +807,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -801,8 +854,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -832,8 +887,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -884,8 +941,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -915,8 +974,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -963,8 +1024,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -1000,8 +1063,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -1030,8 +1095,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -1065,8 +1132,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -1101,8 +1170,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
@@ -1131,8 +1202,10 @@ model3 <- estimate_nhb(
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeffs_list[type] <- list(model3$tbl)
-make_table(model3)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
