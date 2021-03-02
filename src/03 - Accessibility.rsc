@@ -337,8 +337,12 @@ Macro "Access Logsums" (Args)
     a_modes = {"walk", "sov"}
     alphas.General = -.93
     betas.General = -.09
-    alphas.Nearby = -1.35
-    betas.Nearby = -.1
+    // Original
+    // alphas.Nearby = -1.35
+    // betas.Nearby = -.1
+    // Calibrated based on gravity model
+    alphas.Nearby = -2.05
+    betas.Nearby = -.06
     alphas.Employment = -.3
     betas.Employment = -.07
     for type in a_types do
