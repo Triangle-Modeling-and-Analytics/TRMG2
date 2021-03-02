@@ -1,3 +1,6 @@
+Data dictionary for the processed fields Caliper added. See survey documentation for dictionary for original fields.,
+"Note: fields with an ""a_"" and ""p_"" prefix are the same as the ""o_""/""d_"" column but in PA format",
+,
 Field,Description
 mode,Trip mode. Primary mode for linked trips.
 o_place,"Origin place: H(ome), W(ork), S(chool), O(ther)"
@@ -25,5 +28,38 @@ o_act_dur,Origin activity duration
 d_act_dur,Destination activity duration
 linked_flag,Flags trips that are the result of collapsing raw trip records in the survey (e.g. bus stop mode transfers)
 linked_modes,"For linked trips, this displays all modes used (e.g. ""walk bus"" for walked to bus)"
-,
-"Note: fields with an ""a_"" and ""p_"" prefix are the same as the ""o_""/""d_"" column but in PA format",
+pa_flag,1: if the trip is in PA format. 0 if not
+p_lng,PA version of the field
+a_lng,PA version of the field
+p_lat,PA version of the field
+a_lat,PA version of the field
+p_place,PA version of the field
+a_place,PA version of the field
+p_activity,PA version of the field
+a_activity,PA version of the field
+p_act_dur,PA version of the field
+a_act_dur,PA version of the field
+p_taz,PA version of the field
+a_taz,PA version of the field
+park_taz,The TAZ where the person parked
+skim_length,Skim length from the model
+p_ind,production zone se data
+p_off,production zone se data
+p_svl,production zone se data
+p_svh,production zone se data
+p_ret,production zone se data
+p_emp,production zone se data
+a_ind,attraction zone se data
+a_off,attraction zone se data
+a_svl,attraction zone se data
+a_svh,attraction zone se data
+a_ret,attraction zone se data
+a_emp,attraction zone se data
+p_duration,duration at production end
+a_duration,duration at attraction end
+tod,time period
+trip_type,The trip classification based on four compnents:
+tour_type,W: work tour; N: non-work tour
+homebased,HB: homebased; NH: non-homebased
+purp_scheme,Purpose of the trip
+dur_scheme,Short or long activity duration (30 minute cutoff)
