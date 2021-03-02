@@ -49,7 +49,8 @@ trips <- read_csv(
       TRUE ~ mode_simple2
     ),
     trip_type = paste0(trip_type, "_", mode_simple2)
-  )
+  ) %>%
+  filter(!is.na(p_taz) & !is.na(a_taz))
 
 # hold all model tables and plots in a list
 coeffs_list <- list()
@@ -549,11 +550,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -576,14 +581,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 #### Auto Pay
 
@@ -633,11 +640,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -689,18 +700,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars, boost = TRUE)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-```{r, out.width="50%", fig.show='hold',fig.align='center'}
-model3$p
-```
-
 
 #### HOV
 
@@ -741,14 +750,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars, boost = TRUE)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 #### Auto Pay
 
@@ -784,14 +795,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 #### Transit
 
@@ -813,11 +826,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -861,14 +878,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 #### Bike
 
@@ -890,14 +909,16 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
 
 ### N_NH_O_All {.tabset .N_NH_O_All}
 
@@ -936,11 +957,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### HOV
@@ -969,11 +994,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -995,11 +1024,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -1026,11 +1059,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -1058,11 +1095,15 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -1084,11 +1125,34 @@ dependent_vars <- c(
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = FALSE
+)
 
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeffs_list[type] <- list(model3$tbl)
 make_table(model3)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+## Boosting charts
+
+The chart below shows the effects of boosting...
+
+*TODO: Add details*
+
+```{r}
+tbl <- bind_rows(p_tbl_list)
+ggplot(tbl) +
+  geom_point(aes(x = logsum, y = y, color = trip_type)) +
+  labs(
+    title = "NHB Trip-Making and Accessibility",
+    y = "Effect on NHB Trip Rate",
+    x = "Nearby Accessibility",
+    color = "Trip Type"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 
