@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-03-02" />
+
+<title>Population Synthesis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="generation_disaggregation.html">Dissaggregation</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Population Synthesis</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">March 2, 2021</h4>
+
+</div>
+
+
+<div id="background" class="section level1">
+<h1>Background</h1>
+<p>Enumerating complete households and population with key characteristics for a modeling region is a key requirement for the application of Activity Based Models (ABM) and hybrid trip-based models. These household and person characteristics in the synthesized output reflect the distribution of key variables in the study region and match several categories of observed marginals at an aggregate level.</p>
+<p>The ability of having access to detailed person and household characteristics opens the door for model estimation to include a range of variables that define trip and travel making behavior. Even for traditional trip-based models, development of a synthetic population and household database may help generate various cross-tabulations at desired geographic levels that may not be available otherwise.</p>
+<p>For the TRM, a population synthesis forms the core basis for applying a state-of-the-art hybrid travel demand model. The aim of the synthesis is focused on matching both household and person marginals at the Traffic Analysis Zone (TAZ) level. Another crucial requirement is a solution that is practical to apply and runs in minutes without sacrificing accuracy of the results. To that end, the updated population synthesis procedure in TransCAD 9.0 is employed.</p>
+<p>The document briefly summarizes the basic idea of population synthesis, some of the advancements made in recent years and points the reader to a TRB reference paper for additional details. The technical approach for population synthesis in TRM is briefly illustrated, following details regarding the application. Finally, the results of the application are demonstrated.</p>
+</div>
+<div id="brief-literature-review" class="section level1">
+<h1>Brief Literature Review</h1>
+<p>This section presents a brief literature review of population synthesis in practice. (Reference: Balakrishna et.al.)</p>
+<div id="basic-idea" class="section level2">
+<h2>Basic Idea</h2>
+<p>The basic idea of population synthesis is best illustrated by Figure 1. The key input is seed data consisting of a sample of household (HH) and person records, typically obtained from a survey of the study region, and tagged to a high-level geography such as Public Use Microdata Areas (PUMAs). Public Use Microdata Sample (PUMS) data from the American Community Survey (ACS) typically forms this seed, although this sample can be enhanced by incorporating data from a travel survey and reweighing the combined records. Various aggregate marginals, typically ACS marginals at the census block or block group level provide control totals that the synthesized databases must match. It is also a well-accepted practice to fir curves using the census marginal distributions, which can then be applied to generate marginals at a Traffic Analysis Zone (TAZ) level for example. These TAZs are usually smaller than census block groups but larger than census blocks.</p>
+<p><img src="img/population_synthesis/e77edcda0faee3ffd2ee39c632311b05.png" /></p>
+<p><strong>Figure 1 General population synthesis process flow</strong></p>
+<p>An Iterative Proportional Fitting (IPF) step then estimates the number of each type of household (identified in the seed) to be generated for each of the smallest geographic entities. This is achieved by identifying the number of households of each type that will add up to various household marginals. This is best illustrated for a single block group using the schematic in Figure 2. In this example, the two classifications of interest are HH by Size and HH by Number of Vehicles. The row and column totals highlighted in yellow are the input control totals and the goal of the process is to fill in the cells of the matrix (i.e. the values TS1_V0 etc.) such that the row and column totals are respected. The value TS1_V0 represent the number of zero car, single person HHs that need to be synthesized for this block group.</p>
+<div class="figure">
+<img src="img/population_synthesis/de720c90d6dd29e992ba740f94bc604e.png" alt="" />
+<p class="caption">Timeline Description automatically generated with medium confidence</p>
+</div>
+<p><strong>Figure 2 IPF</strong></p>
+<p>The term “Nested” in Figure 1 indicates that the household marginals may themselves be specified at different (but nested) geographies: for example, the vehicle ownership marginals may be at the traffic analysis zone (TAZ) level while the income marginals may be at the level of Census blocks or block groups. Nested synthesis will drill all the marginals down to a common geography (usually the smallest/finest among all input geographies.</p>
+<p>Finally, for each smallest geographic entity, the predicted number of households generated by IPF are sampled from the surveyed (seed) households using externally supplied (initial) weights. All persons living within a chosen household are automatically copied into an output file, which eventually becomes the synthetic population.</p>
+<p>The most important drawback of this process is the lack of control on person marginals. Since the algorithm only controls for household variables, the obtained distribution of person attributes in any given zone is largely a lottery. There is no guarantee that the chosen households will yield, say, the correct distribution of age, gender, etc. in the synthetic population. This can have adverse effects from a modeling application perspective, for example if these forecasts for working-age persons, students or seniors are incorrect.</p>
+</div>
+<div id="person-marginals-and-iterative-proportional-update-ipu" class="section level2">
+<h2>Person Marginals and Iterative Proportional Update (IPU)</h2>
+<p>The Iterative Proportional Updating (IPU) process in the literature has been proposed and applied as a way of matching person marginals while essentially retaining the simplicity of the IPF framework. In this approach, before sampling households for a particular geographic entity (zone) using the initial weights in the seed, these sampling weights are first adjusted to explicitly match both household and person marginals for the zone. In this process, note that the same seed household(s) may be weighted differently for different zones, which adds precision compared to the use of <em>a priori</em> weights supplied externally. Further, this household re-weighting may be applied at a different (usually more aggregate) geography than that used for simulating the population. A modified version of the published approach in the literature using IPU is applied to the TRM region and is discussed in detail in the next section.</p>
+</div>
+<div id="other-techniques" class="section level2">
+<h2>Other Techniques</h2>
+<p>Several optimization methods have also been published in the literature. More details can be found in the reference TRB paper indicated. While these methods might tackle certain issues of the IPU approach, these methods tend to be customized. Owing to the nonlinear and non-convex nature of the resulting formulation, the performance can be problem dependent and can result in long run times, local optima, and sensitivity to the scale of the objective function.</p>
+</div>
+</div>
+<div id="technical-approach-for-trm" class="section level1">
+<h1>Technical Approach for TRM</h1>
+<p>The population synthesis for TRM is based on an updated algorithm in TransCAD 9. While earlier versions of TransCAD did have a population synthesis procedure, it was based on the basic idea illustrated in the previous section without explicit control of person marginals. The IPU based enhancements provide a natural framework for incorporating person marginals.</p>
+<p>Figure 3 shows the general schematic of the IPU enhancement. Note the additional inserted steps shown by the orange circle. As mentioned earlier, the seed HH weights are adjusted for each zone to match HH and person marginals for that zone.</p>
+<p><img src="img/population_synthesis/5ce59054b0f37c5b8c4264e314e207cb.png" /></p>
+<p><strong>Figure 3: Population Synthesis with IPU</strong></p>
+<p>The weight adjustment for each zone is performed using an incidence table shown in Figure 4. The rows in the table are HHs from the seed database. This can include either all the HHs in the seed or only include those that belong to the parent geography (PUMA) of the zone. The latter is used in TransCAD.</p>
+<p>The columns represent the various marginal categories. For each row (HH), the values in the corresponding column indicates information about that HH and the persons who make up the HH. For instance, assume one HH category with 2 marginal columns (HH Veh 0 and HH Veh 1+) and one person category with three age marginals, then the HH with ID 5 has 1+ vehicles and has three persons (two in age category 2 and one in age category 3). Multiplying the ‘HH Veh 0’ column vector (cell by cell) with a corresponding weight vector will yield the number of HHs with zero vehicles in the zone. This is indicated in the ‘Column Sum’ row. The ‘Marginals’ row consist of the target values for this zone.</p>
+<p><img src="img/population_synthesis/aa0f6caa036c008d9e503a2bd600e134.png" /></p>
+<p><strong>Figure 4: Incidence Table and IPU Adjustment</strong></p>
+<p>One iteration of the IPU consists of a complete set of column adjustments from left to right, one at a time. During each adjustment of the IPU, an adjustment factor is calculated as a simple ratio of the marginal total divided by the column total. This adjustment factor is used to multiply the current weight of all HHs that contributed to the total in the column. The weights of the other HHs are left unmodified.</p>
+<p>For instance, the column sum for the first column is 3 whereas the desired marginal is 35. Thus, a factor of 35/3 = 11.67 is applied to the first three households that contributed totals to the first column. After the first column adjustment, HHs 1, 2 and 3 have a weight of 11.67 while the other HHs have a weight of 1. In the second iteration, the column sum (using the current weights is 5) and the marginal is 65. Thus, the adjustment factor of 13 (=65/5) is used to multiply the weights of the last five HHs to bring them up to 13. After this adjustment, HHs 1 to 3 still have a weight of 11.67 as they did not contribute to the second column sum. This mechanism is repeated for one column at a time.</p>
+<p>Once a single iteration across all the columns is complete, an objective function is calculated and checked for convergence. The objective function calculations are general and can take many forms. For example, the fit <span class="math inline">\(\delta_{j}\)</span> for column <span class="math inline">\(j\)</span> may be computed as:</p>
+<p><span class="math display">\[\delta_{j} = \frac{\sum_{i}^{}\left\lbrack w_{i}d_{\text{ij}} \right\rbrack - m_{j}}{m_{j}}\]</span></p>
+<p>where <span class="math inline">\(w_{i}\)</span> is the weight of household <span class="math inline">\(i\)</span>; <span class="math inline">\(d_{\text{ij}}\)</span> is the contribution of household <span class="math inline">\(i\)</span> to column <span class="math inline">\(j\)</span>; and <span class="math inline">\(m_{j}\)</span> is the marginal for column <span class="math inline">\(j\)</span>. The overall objective function <span class="math inline">\(\delta\)</span> could then be expressed as:</p>
+<p><span class="math display">\[
+\begin{matrix}
+\delta = \sum_{j}^{}\left( \delta_{j} \right)^{2}
+\end{matrix}
+\]</span></p>
+<p>In the incidence table above, <span class="math inline">\(\delta = (3 - 35)/35\)</span> for the first column and its absolute value is 0.914. After obtaining the <span class="math inline">\(\delta\)</span> values for each column, the second equation then can be used to determine the objective function as 4.563.</p>
+<p>The adjustment continues from left to right starting at the first column if the desired convergence metric has not been achieved.</p>
+<div id="key-differences-between-transcads-ipu-and-existing-ipu-approaches-popgen" class="section level2">
+<h2>Key Differences between TransCAD’s IPU and existing IPU approaches (PopGen)</h2>
+<p>The published method using IPU in the literature has been adapted in the PopGen software for instance. If there are multiple marginals to match such as HHs by Size (1,2,3,4+), number of vehicles (0,1,2,3+) and number of workers (1,2,3,4+) and Persons by Age (assume 5 categories) and Gender, then the incidence table has 64 HH columns, one for each combination of size, vehicles and workers and 10 person columns, one for each age category and gender combination. Since only one-dimensional marginals are typically known, the marginal values in the incidence tables come from an IPF run in the previous step. Therefore, two separate IPFs are run, one on the HH marginals and one on the person marginals and the results provide the data for the marginals row in the incidence table.</p>
+<p>This expansion of the IPU incurs several costs. One, the process is slow, especially if there are a lot of marginals and the process can take hours. Second, the solution introduces a couple of other issues that must be dealt with and these issues have garnered significant attention in literature. One of these issues is a zero-cell problem, where the seed data is stretched thin and certain combinations may not be present in the seed. The second issue is a zero-marginal problem, but this can be solved by replacing the zero in the marginal row with epsilon values. There are several techniques to address these issues, which have been implemented in PopGen for example.</p>
+<p>In the TransCAD approach, for want of minimizing these issues and at the behest of maintaining fast run times, only the one-dimensional marginals are used to form the incidence table. Thus, in the hypothetical example, the incidence table has 12 HH columns (as opposed to 64) and 7 person columns (as opposed to 10).</p>
+<p>This approach has borne significant fruit in a couple of high-profile applications prior to TRM. The enhanced synthesis was used in the Las Vegas RTC model as well as the Central Coast ABM model. The match to the one-dimensional marginals (especially the persons) were very close and the joint distribution observed from the synthesis were also very reasonable. These applications take a fraction of time compared to synthesis reported on similar sized problems and their accuracy is more than adequate and in no way compromises the subsequent models.</p>
+<p>The next few sections discuss the application of the procedure to TRM and the results.</p>
+</div>
+</div>
+<div id="application-to-trm" class="section level1">
+<h1>Application to TRM</h1>
+<p>For the TRM region, several marginals have been synthesized at the zone layer. These marginals at the HH level include:</p>
+<ul>
+<li><p>HHs by Size (1, 2, 3 and 4+)</p></li>
+<li><p>HHs by number of workers (0, 1, 2 and 3+)</p></li>
+<li><p>HHs by Income</p>
+<ul>
+<li><p>Low [0, 35000)</p></li>
+<li><p>Medium Low [35000, 75000)</p></li>
+<li><p>Medium High [75000, 150000)</p></li>
+<li><p>High 150000+</p></li>
+</ul></li>
+</ul>
+<p>Several disaggregate curves developed from the ACS 2014-2018 data are used to obtain these marginals. The curves determine the respective marginal splits based on average HH size, ratio of img/population_synthesisn TAZ income to regional TAZ income and average number of workers in the TAZ.</p>
+<p>Person marginals matched include</p>
+<ul>
+<li><p>Persons by Age Group</p>
+<ul>
+<li><p>Kids [0, 18)</p></li>
+<li><p>Adults under 65 [18, 65)</p></li>
+<li><p>Seniors [65, 100)</p></li>
+</ul></li>
+</ul>
+<p>The zone socio economic data contains derived percentages of kids, adults under 65 and seniors (from ACS data). These are used to compute the three age classifications above that serve as person marginals.</p>
+<p>The seed HH and person data come from ACS PUMS that have 45,825 and 110,146 records respectively. The seed data has the necessary fields to generate indicators for the various dimensions being matched using the fields NP (Number of persons in the HH), HHINC and ADJINC (to compute the income classification) in the HH database; and the fields Age and ESR (Employment Status) in the person database to compute the age classification and the number of workers in the HH.</p>
+<p>There are 18 PUMA zones in the TRM region and Figure 5 highlights some key data. The TAZ boundaries are shown in green and the colored areas are the PUMA zones.</p>
+<p><img src="img/population_synthesis/image5.png" /></p>
+<p><strong>Figure 5: PUMAs in the TRM region</strong></p>
+<p>The running time of the entire population synthesis for the TRM (with the IPU) is <strong>2 minutes</strong>. These running times represent a fraction of running times reported for similar problems in the literature.</p>
+</div>
+<div id="results" class="section level1">
+<h1>Results</h1>
+<p>The population synthesis on TRM generates 731,913 HHs and 1,783,548 persons. The number of HHs in the SED data is 731,875 and the population in households is 1,826,973. The percentage errors are 0.005% on the HHs and 2.38% on the overall population.</p>
+<p>The fit to various marginals is illustrated in the following charts. The input SED marginals (by TAZ) are on the x-axis while the synthesized marginals (aggregated to TAZ) are plotted on the y-axis. Each graph also includes the regression line equation, R-squared and the percent RMSE.</p>
+<p><img src="img/population_synthesis/db8da5c42228ecc1576223ac7f2a8ff7.png" /></p>
+<p><strong>Figure 6: Comparison of HH Size Marginals</strong></p>
+<p><img src="img/population_synthesis/98a09d1c852e5f5d9dacf075e49916c6.png" /></p>
+<p><strong>Figure 7: Comparison of HH Workers Marginals</strong></p>
+<p><img src="img/population_synthesis/6fac6a1f1985116924de0d8b36645f6e.png" /></p>
+<p><strong>Figure 8: Comparison of HH Income Marginals</strong></p>
+<p>As expected, the fit to the HH marginals shown in Figures 6, 7 and 8 are pretty much spot on. This is testament to the IPF procedure having converged successfully.</p>
+<p>The subsequent charts show fit to person marginals. Figures 9 and 10 show fit to total HH population and the fit to total number of workers. Since the HH marginals match HH by size and HH by number of workers, these charts are also expected to show a great fit.</p>
+<p><img src="img/population_synthesis/d7905c72942389e0424496f67c21bff9.png" /></p>
+<p><strong>Figure 8: Comparison of total HH population</strong></p>
+<p><img src="img/population_synthesis/1a197f2538ae6a9e4e23863b24fbdb74.png" /></p>
+<p><strong>Figure 9: Comparison of workers</strong></p>
+<p>Note that for a run without the IPU option, the fit to the marginals in Figures 6 to 9 are pretty similar.</p>
+<p>Figures 10 to 12 show the fit of population in three age categories. Unlike the previous figures, the incorporation of the IPU here makes a significant difference. In these graphs, the orange line and the orange points represent the fit of the TRM population synthesis with the IPU option enabled. The blue line and the blue points represent the fit of a similar population synthesis without the IPU options. These graphs are produced to illustrate both the good fit of the final TRM synthesis and illustrate the efficacy of the IPU.</p>
+<p><img src="img/population_synthesis/24a7bb63ab266892288336b248dddb56.png" /></p>
+<p><strong>Figure 10: Comparison of Number of Kids (IPU vs Non-IPU)</strong></p>
+<p><img src="img/population_synthesis/661327beac66817108436087080cf4cf.png" /></p>
+<p><strong>Figure 11: Comparison of Adults Under 65 (IPU vs Non-IPU)</strong></p>
+<p><img src="img/population_synthesis/5474d86bc0caa414b87574635575dee5.png" /></p>
+<p><strong>Figure 12: Comparison of Seniors (IPU vs Non-IPU)</strong></p>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>The updated population synthesis for the TRM is based on TransCAD 9’s synthesis, which is a variant of the population synthesis with IPU published in the literature. The marginals are at the TAZ level are derived by fitting curves on the ACS 2014-2018 data. The ACS PUMS for these years form the seed databases for the synthesis procedure. The marginals matched include HH by Size, HH by Number of Workers, HH by Income Group and Persons by Age. The population synthesis is extremely fast with a run time of 2 minutes and the fit to the marginals is great. The resulting synthesis is demonstrative of the person and HH characteristic distribution in the TRM region and can be confidently used in the application of the state-of-the-art hybrid model for TRM.</p>
+</div>
+<div id="reference" class="section level1">
+<h1>Reference</h1>
+<p>Balakrishna, R., S. Sundaram and J. Lam. An Enhanced and Efficient Population Synthesis Approach to Support Advanced Travel Demand Models. Presented at the 99th TRB Annual Meeting.</p>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
