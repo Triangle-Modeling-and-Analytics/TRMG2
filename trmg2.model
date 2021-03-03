@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processing"},{"Accessibility"},)
+    model = FlowChart({"Initial Processing"},{"Population Synthesis"},)
     //
     // Nodes
     //
@@ -19,12 +19,14 @@ Body:
     //
     FlowChartNode(model,"Initial Processing",,,)
     FlowChartNode(model,"Accessibility",,,)
+    FlowChartNode(model,"Population Synthesis",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"Initial Processing","Accessibility",True,,)
+    FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
     Return(model)
 EndMacro
 
@@ -43,6 +45,15 @@ Macro "Accessibility" (Args,Result)
                   {"MacroNames",{"Accessibility"}}}
 Body:
     ShowMessage('Running: Accessibility')
+    Return(True)
+EndMacro
+
+
+Macro "Population Synthesis" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Population Synthesis"}}}
+Body:
+    ShowMessage('Running: Population Synthesis')
     Return(True)
 EndMacro
 

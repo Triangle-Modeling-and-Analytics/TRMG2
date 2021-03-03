@@ -53,6 +53,8 @@ Macro "Create Folder Structure" (Args)
     "/skims",
     "/external",
     "/university",
+    "/resident/disagg_model",
+    "/resident/population_synthesis",
     "/resident/generation",
     "/resident/destination",
     "/resident/mode",

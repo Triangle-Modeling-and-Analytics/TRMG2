@@ -1,4 +1,161 @@
 /*
+
+*/
+
+Macro "Population Synthesis" (Args)
+
+    RunMacro("DisaggregateSED", Args)
+    RunMacro("Synthesize Population", Args)
+    RunMacro("PopSynth Post Process", Args)
+
+    return(1)
+endmacro
+
+/*
+Macro that creates one dimensional marginls for HH by Size, HH by income and HH by workers
+Uses curves fit from the ACS data to split HH in each TAZ into subcategories
+Creates output file defined by 'Args.SEDMarginals'
+*/
+Macro "DisaggregateSED"(Args)
+    // on escape, error, notfound do
+    //     ErrorMsg = GetLastError()
+    //     ret_value = 0
+    //     goto quit
+    // end
+
+    // Open SED Data and check table for missing fields
+    obj = CreateObject("AddTables", {TableName: Args.SE})
+    vwSED = obj.TableView
+    flds = {"TAZ", "Type", "HH", "HH_Pop", "Median_Inc", "Pct_Worker", "Pct_Child", "Pct_Senior"}
+    expOpts.[Additional Fields] = {{"Kids", "Integer", 12,,,,},
+                                   {"AdultsUnder65", "Integer", 12,,,,},
+                                   {"Seniors", "Integer", 12,,,,},
+                                   {"PUMA5", "Integer", 12,,,,}}
+    ExportView(vwSED + "|", "FFB", Args.SEDMarginals, flds, expOpts)
+    obj = null
+
+    obj = CreateObject("AddTables", {TableName: Args.SEDMarginals})
+    vw = obj.TableView
+
+    // Run models to disaggregate curves
+    // 1. ==== Size
+    opt = {View: vw, Curve: Args.SizeCurves, KeyExpression: "HH_Pop/HH", LookupField: "avg_size"}
+    RunMacro("Disaggregate SE HH Data", opt)
+
+    // 2. ==== Income
+    opt = {View: vw, Curve: Args.IncomeCurves, KeyExpression: "Median_Inc/" + String(Args.RegionalMedianIncome), LookupField: "inc_ratio"}
+    RunMacro("Disaggregate SE HH Data", opt)
+
+    // 3. ==== Workers
+    opt = {View: vw, Curve: Args.WorkerCurves, KeyExpression: "((Pct_Worker/100)*HH_Pop)/HH", LookupField: "avg_workers"}
+    RunMacro("Disaggregate SE HH Data", opt)
+
+    // Fill number of kids, adults and seniors
+    vecs = GetDataVectors(vw + '|', {"HH_Pop", "Pct_Child", "Pct_Senior"}, {OptArray: 1})
+    vecsSet = null
+    vecsSet.Kids = r2i(vecs.HH_Pop * vecs.Pct_Child/100)
+    vecsSet.Seniors = r2i(vecs.HH_Pop * vecs.Pct_Senior/100)
+    vecsSet.AdultsUnder65 = vecs.HH_Pop - vecsSet.Kids - vecsSet.Seniors
+    SetDataVectors(vw + '|', vecsSet,)
+
+    // Fill PUMA5 field using PUMA info from the master TAZ database
+    objLyrs = CreateObject("AddDBLayers", {FileName: Args.TAZs})
+    {TAZLayer} = objLyrs.Layers
+    vwJ = JoinViews("SED_TAZ", GetFieldFullSpec(vw, "TAZ"), GetFieldFullSpec(TAZLayer, "ID"),)
+    v = GetDataVector(vwJ + "|", "PUMA",)
+    vOut = s2i(Right(v,5))
+    SetDataVector(vwJ + "|", "PUMA5", vOut,)
+    CloseView(vwJ)
+    objLyrs = null
+
+    obj = null
+    ret_value = 1
+   quit:
+    on error, notfound, escape default
+    if !ret_value then do
+        if ErrorMsg <> null then
+            AppendToLogFile(0, ErrorMsg)
+    end
+    Return(ret_value)
+endMacro
+
+
+/*
+Macro that disaggregates HH field in TAZ into categories based on input curves
+Options to the macro are:
+View: The SED view that contains TAZ, HH and other pertinent info
+Curve: The csv file that contains the disaggregate curves. 
+        E.g. 'size_curves.csv', that contains 
+            - One field for the average HH size and
+            - Four fields that contain fraction of HH by Size (1,2,3,4) corresponding to each value of average HH size
+LookupField: The key field in the curve csv file. e.g. 'avg_size' in the 'size_curves.csv' table
+KeyExpression: The expression in the SED view that is used to match the lookup field in the curve file (e.g 'HH_POP/HH')
+
+Macro adds fields to the SED view and populates them.
+It adds as many fields as indicated by the input curve csv file
+In the above example, fields added will be 'HH_siz1', 'HH_siz2', 'HH_siz3', 'HH_siz4'
+For records in SED data that fall outside the bounds in the curve.csv file, the appropriate limiting values from the curve table are used.
+*/
+Macro "Disaggregate SE HH Data"(opt)
+    // Open curve and get file characteristics
+    objC = CreateObject("AddTables", {TableName: opt.Curve})
+    vwC = objC.TableView
+    lookupFld = Lower(opt.LookupField)
+    {flds, specs} = GetFields(vwC,)
+    fldsL = flds.Map(do (f) Return(Lower(f)) end)
+
+    // Add output fields to view
+    vw = opt.View
+    modify = CreateObject("CC.ModifyTableOperation", vw)
+    categoryFlds = null
+    for fld in fldsL do
+        if fld <> lookupFld then do // No need to add lookup field
+            categoryFlds = categoryFlds + {fld}
+            modify.AddField("HH_" + fld, "Long", 12,,) // e.g. Add Field 'HH_siz1'
+        end
+    end
+    modify.Apply()
+
+    // Get the range of values in lookupFld
+    vLookup = GetDataVector(vwC + "|", lookupFld,)
+    m1 = VectorStatistic(vLookup, "Max",)
+    maxVal = r2i(Round(m1*100, 2))
+    m2 = VectorStatistic(vLookup, "Min",)
+    minVal = r2i(Round(m2*100, 2))
+    exprStr = "r2i(Round(" + lookupFld + "*100,2))"             // e.g. r2i(Round(avg_size*100,0))
+    exprL = CreateExpression(vwC, "Lookup", exprStr,)
+
+    // Create expression on SED Data
+    // If computed value is beyond the range, set it to the appropriate limit (minVal or maxVal)
+    vw = opt.View
+    expr = "r2i(Round(" + opt.KeyExpression + "*100,2))"        // e.g. r2i(Round(HH_POP/HH*100,0))
+    exprStr = "if " + expr + " = null then null " +
+              "else if " + expr + " < " + String(minVal) + " then " + String(minVal) + " " +
+              "else if " + expr + " > " + String(maxVal) + " then " + String(maxVal) + " " +
+              "else " + expr
+    exprFinal = CreateExpression(vw, "Key", exprStr,) 
+
+    // Join SED Data to Lookup and compute values
+    vecsOut = null
+    vwJ = JoinViews("SEDLookup", GetFieldFullSpec(vw, exprFinal), GetFieldFullSpec(vwC, exprL),)
+    vecs = GetDataVectors(vwJ + "|", {"HH"} + categoryFlds, {OptArray: 1})
+    vTotal = Vector(vecs.HH.Length, "Long", {{"Constant", 0}})
+    for i = 2 to categoryFlds.length do // Do not compute for first category yet, hence the 2.
+        fld = categoryFlds[i]
+        vVal = r2i(vecs.HH * vecs.(fld))    // Intentional truncation of decimal part
+        vecsOut.("HH_" + fld) = nz(vVal)
+        vTotal = vTotal + nz(vVal)      
+    end
+    finalFld = categoryFlds[1]
+    vecsOut.("HH_" + finalFld) = nz(vecs.HH) - vTotal // Done to maintain clean marginals that exactly sum up to HH
+    SetDataVectors(vwJ + "|", vecsOut,)
+    CloseView(vwJ)
+    objC = null
+
+    DestroyExpression(GetFieldFullSpec(vw, exprFinal))
+endMacro
+
+/*
     * Macro that performs population synthesis using the TransCAD (9.0) built-in procedure. 
         * Marginal Data - Disaggregated SED Marginals (by TAZ)
         * HH Dimensions are:
@@ -8,12 +165,12 @@
         * For Persons, a match to the total population (HH_POP) by TAZ is attempted via the IPU (Iterational Proportional Update) option using:
             * Age - Three categories. Kids: [0, 17], AdultsUnder65: [18, 64], Seniors: 65+.
 */
-Macro "Population Synthesis"(Args)
-    on escape, error, notfound do
-        ErrorMsg = GetLastError()
-        ret_value = 0
-        goto quit
-    end
+Macro "Synthesize Population"(Args)
+    // on escape, error, notfound do
+    //     ErrorMsg = GetLastError()
+    //     ret_value = 0
+    //     goto quit
+    // end
     // Set up and run the synthesis
     o = CreateObject("PopulationSynthesis")
     o.RandomSeed = 314159
@@ -34,10 +191,10 @@ Macro "Population Synthesis"(Args)
     // 'Value': The above array, that specifies the marginal fields and how they are mapped to the seed field
     // 'NewFieldName': The field name in the synthesized outout HH file for this variable
     // Also specify the matching field in the seed data
-    HHDimSize = {{Name: "HH_size1", Value: {1, 2}}, 
-                 {Name: "HH_size2", Value: {2, 3}}, 
-                 {Name: "HH_size3", Value: {3, 4}}, 
-                 {Name: "HH_size4", Value: {4, 99}}}
+    HHDimSize = {{Name: "HH_siz1", Value: {1, 2}}, 
+                 {Name: "HH_siz2", Value: {2, 3}}, 
+                 {Name: "HH_siz3", Value: {3, 4}}, 
+                 {Name: "HH_siz4", Value: {4, 99}}}
     HHbySizeSpec = {Field: "NP", Value: HHDimSize, NewFieldName: "HHSize"}
     o.AddHHMarginal(HHbySizeSpec)
 
@@ -104,11 +261,11 @@ endMacro
     * Adds HH summary fields to the synhtesied HH file
 */
 Macro "PopSynth Post Process"(Args)
-    on escape, error, notfound do
-        ErrorMsg = GetLastError()
-        ret_value = 0
-        goto quit
-    end
+    // on escape, error, notfound do
+    //     ErrorMsg = GetLastError()
+    //     ret_value = 0
+    //     goto quit
+    // end
 
     // Generate tabulations from the synthesis output
     RunMacro("Generate Tabulations", Args)
@@ -221,7 +378,7 @@ Macro "Generate Tabulations"(Args)
     
     // Create Expressions on output HH for tabulations
     specs = null
-    specs = {{Fields: {"HH_size1", "HH_size2", "HH_size3", "HH_size4"}, MatchingField: "HHSize", Levels: {1,2,3,4}},
+    specs = {{Fields: {"HH_siz1", "HH_siz2", "HH_siz3", "HH_siz4"}, MatchingField: "HHSize", Levels: {1,2,3,4}},
              {Fields: {"HH_wrk0", "HH_wrk1", "HH_wrk2", "HH_wrk3"},     MatchingField: "NumberWorkers", Levels: {0,1,2,3}},
              {Fields: {"HH_incl", "HH_incml", "HH_incmh", "HH_inch"},   MatchingField: "IncomeCategory", Levels: {1,2,3,4}}
              }
