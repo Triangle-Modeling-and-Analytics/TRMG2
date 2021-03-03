@@ -43,6 +43,22 @@
 
         Args.[Access Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\attraction_rates.csv", "Description":"Attraction rates used for accessibility calculations." }
 
+    Section = "Population Synthesis|Input"
+
+        Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }        
+        Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"%RMSE value" }
+
+    Section = "Population Synthesis|Output"
+
+        Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.[Synthesized HHs] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.[Synthesized Persons] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }

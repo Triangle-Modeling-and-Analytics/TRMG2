@@ -54,13 +54,13 @@ knitr::include_graphics("img/accessibility/walkability.png")
 ### Logsum SOV
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/logsums_general_sov.png")
+knitr::include_graphics("img/accessibility/logsums_nearby_sov.png")
 ```
 
 ### Logsum Walk
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/logsums_general_walk.png")
+knitr::include_graphics("img/accessibility/logsums_nearby_walk.png")
 ```
 
 ## Details

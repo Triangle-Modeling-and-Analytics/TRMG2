@@ -80,7 +80,7 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
       r_othworkers = map_dbl(data, function(df) {
         s <- df %>%
           group_by(personid) %>%
-          mutate(num_workers = num_workers - is_senior) %>%
+          mutate(num_workers = num_workers - is_worker) %>%
           summarize(
             trips = sum(trip_weight),
             num_workers = first(num_workers)
