@@ -1,7 +1,7 @@
 ---
 title: "Population Synthesis"
 author: "Caliper Corporation"
-date: "March 2, 2021"
+date: "March 3, 2021"
 output: 
     html_document:
         mathjax: default
@@ -397,8 +397,8 @@ great. The resulting synthesis is demonstrative of the person and HH
 characteristic distribution in the TRM region and can be confidently used in the
 application of the state-of-the-art hybrid model for the Triangle Region.
 
-Reference
-=========
+References
+==========
 
 Balakrishna, R., S. Sundaram and J. Lam. An Enhanced and Efficient Population
 Synthesis Approach to Support Advanced Travel Demand Models. Presented at the
