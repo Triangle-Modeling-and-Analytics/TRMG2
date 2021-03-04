@@ -146,8 +146,11 @@ plot(est_tbl$N_HB_OME_All, m2$fitted.values)
 library(mlr)
 library(parallelMap)
 library(plotly)
+```
 
-# Feature creation
+
+```{r}
+# Initial attempt using person-level
 dt_tbl <- est_tbl %>%
   select(N_HB_OME_All, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, num_children, access) %>%
   mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
@@ -179,27 +182,115 @@ test_set <- test_set %>% select(-id, -weight)
 train_set <- train_set %>% select(-id, -weight)
 
 # Create tasks
-# trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All")
-# testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All")
+trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
+# trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All")
+testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
+# testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All")
 
 # The classes are imbalanced with 0 being the dominant class. Use oversampling.
 # table(getTaskTargets(trainTask))
 trainTask <- oversample(trainTask, rate = 2)
 ```
 
+```{r}
+# Test household aggregation
+dt_tbl <- est_tbl %>%
+  select(
+    hhid, weight, N_HB_OME_All, num_vehicles, num_adults, num_children, num_seniors, access) %>%
+  group_by(hhid) %>%
+  summarize(
+    N_HB_OME_All = sum(N_HB_OME_All),
+    across(c(weight, num_vehicles:access), first)
+  ) %>%
+  mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
+  mutate(across(hhid:num_seniors, as.factor)) %>%
+  normalizeFeatures(target = "N_HB_OME_All") %>%
+  createDummyFeatures(
+    target = "N_HB_OME_All",
+    cols = c(
+      "num_vehicles",
+      "num_adults",
+      "num_children",
+      "num_seniors"
+    )
+  ) %>%
+  mutate(weight = as.numeric(as.character(weight)))
+
+# Split into train/test data
+test_set <- dt_tbl %>% sample_n(.10 * nrow(dt_tbl))
+test_weights <- test_set$weight
+train_set <- dt_tbl[!dt_tbl$hhid %in% test_set$hhid, ]
+train_weights <- train_set$weight
+test_set <- test_set %>% select(-hhid, -weight)
+train_set <- train_set %>% select(-hhid, -weight)
+
+# Create tasks
+trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
+testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
+
+# The classes are not imbalanced with 0 being the dominant class. Use oversampling.
+# table(getTaskTargets(trainTask))
+```
+
+```{r}
+# Withhold 10% of household and their people
+hhids <- unique(est_tbl$hhid)
+test_hhids <- sample(hhids, length(hhids) * .1)
+train_hhids <- hhids[!hhids %in% test_hhids]
+
+dt_tbl <- est_tbl %>%
+  select(
+    hhid, weight, N_HB_OME_All, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
+    num_children, access
+  ) %>%
+  mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
+  mutate(across(hhid:num_children, as.factor)) %>%
+  normalizeFeatures(target = "N_HB_OME_All") %>%
+  createDummyFeatures(
+    target = "N_HB_OME_All",
+    cols = c(
+      "is_senior",
+      "num_vehicles",
+      "oth_ppl",
+      "oth_kids",
+      "oth_senior",
+      "num_seniors",
+      "num_children"
+    )
+  ) %>%
+  mutate(weight = as.numeric(as.character(weight)))
+
+# Split into train/test data
+test_set <- dt_tbl %>% filter(hhid %in% test_hhids)
+test_hhids <- test_set$hhid
+test_set$hhid <- NULL
+test_weights <- test_set$weight
+test_set$weight <- NULL
+train_set <- dt_tbl %>% filter(hhid %in% train_hhids)
+train_set$hhid <- NULL
+train_weights <- train_set$weight
+train_set$weight <- NULL
+
+trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
+testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
+
+# The classes are imbalanced with 0 being the dominant class. Use oversampling.
+# table(getTaskTargets(trainTask))
+trainTask <- oversample(trainTask, rate = 2)
+```
+
+
 ```{r create-fit-tune xgboost, eval=FALSE}
 # Create learner
 xgb_learner <- makeLearner(
   "classif.xgboost",
-  # predict.type = "prob",
-  predict.type = "response",
+  predict.type = "prob",
+  # predict.type = "response",
   par.vals = list(
     # mlr folks noted bug when objective is included (issue created). remove.
     # objective = "multi:softmax",
-    # eval_metric = "merror"
-    eval_metric = "error"
+    eval_metric = "logloss"
+    # eval_metric = "error"
   )
 )
 
@@ -219,7 +310,7 @@ xgb_params <- makeParamSet(
 control <- makeTuneControlRandom(maxit = 10)
 
 # Create a resampling plan
-resample_desc <- makeResampleDesc("CV", iters = 10)
+resample_desc <- makeResampleDesc("CV", iters = 3)
 
 # Tune the hyper-parameters
 parallelStartMulticore(8)
@@ -243,10 +334,14 @@ xgb_model <- train(xgb_learner_tuned, task = trainTask)
 
 # Save the model so that this chunk does not have to be evaluated every
 # time the page is knit.
+# saveRDS(xgb_model, "data/output/resident_production/xgb_person_level.RDS")
+# saveRDS(xgb_model, "data/output/resident_production/xgb_hh_level.RDS")
 saveRDS(xgb_model, "xgb_model.RDS")
 ```
 
 ```{r load xgboost model}
+# xgb_model <- readRDS("data/output/resident_production/xgb_person_level.RDS")
+# xgb_model <- readRDS("data/output/resident_production/xgb_hh_level.RDS")
 xgb_model <- readRDS("xgb_model.RDS")
 ```
 
@@ -256,13 +351,6 @@ imp_tbl <- getFeatureImportance(xgb_model)
 imp_tbl <- imp_tbl$res #%>%
   # gather(key = "Feature", value = "Importance") %>%
   # arrange(Importance)
-
-# plot_ly() %>%
-#   add_trace(
-#     data = imp_tbl, y = ~Feature, x = ~Importance, type = "bar",
-#     orientation = "h"
-#   ) %>%
-#   layout(margin = list(l = 110))
 
 plot_ly() %>%
   add_trace(
@@ -278,4 +366,16 @@ xgb_result <- predict(xgb_model, testTask)
 
 # Also get confusion matrix
 conf_mtx <- calculateConfusionMatrix(xgb_result)
+conf_mtx
+measureF1(xgb_result$data$truth, xgb_result$data$response, positive = "1")
 ```
+
+```{r}
+# for the third test (holding back 10% of households and their persons from
+# person-level training), collapse back to households
+hh_result <- tibble(
+  hhid = test_hhids,
+  response = xgb_result$data$response
+)
+```
+
