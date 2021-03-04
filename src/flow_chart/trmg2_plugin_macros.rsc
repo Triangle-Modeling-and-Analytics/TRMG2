@@ -2,11 +2,12 @@ Macro "Model.Attributes"
 
 Attributes = {{"BannerHeight",80},
                   {"BannerWidth",2000},
+                  {"BannerPicture","src\\flow_chart\\bmp\\banner.bmp"},
+                  {"HideBanner",0},
                   {"Base Scenario Name","Base 2016"},
                   {"ClearLogFiles",1},
                   {"CodeUI","src\\trmg2.dbd"},
                   {"ExpandStages","Side by Side"},
-                  {"HideBanner",1},
                   {"MaxProgressBars",2},
                   {"MinItemSpacing",20},
                   {"Output Folder Format","Output Folder\\Scenario Name"},

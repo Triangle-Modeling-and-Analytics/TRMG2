@@ -24,3 +24,8 @@ documentation.
 - TAZ: Traffic Analysis Zone
 - SOV: Single-occupancy vehicle
 - HOV: High-occupancy vehicle
+- IPF: Iterative Proportional Fitting
+- IPU: Iterative Proportional Updating
+- HH: Household
+- HB: Home-based
+- NHB: Non-home-based

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-03-02" />
+<meta name="date" content="2021-03-03" />
 
 <title>Population Synthesis</title>
 
@@ -380,10 +380,19 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
       <a href="generation_disaggregation.html">Dissaggregation</a>
     </li>
     <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
       <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-home-based</a>
     </li>
   </ul>
 </li>
@@ -401,53 +410,49 @@ div.tocify {
 
 <h1 class="title toc-ignore">Population Synthesis</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">March 2, 2021</h4>
+<h4 class="date">March 3, 2021</h4>
 
 </div>
 
 
-<div id="background" class="section level1">
-<h1>Background</h1>
-<p>Enumerating complete households and population with key characteristics for a modeling region is a key requirement for the application of Activity Based Models (ABM) and hybrid trip-based models. These household and person characteristics in the synthesized output reflect the distribution of key variables in the study region and match several categories of observed marginals at an aggregate level.</p>
-<p>The ability of having access to detailed person and household characteristics opens the door for model estimation to include a range of variables that define trip and travel making behavior. Even for traditional trip-based models, development of a synthetic population and household database may help generate various cross-tabulations at desired geographic levels that may not be available otherwise.</p>
+<div id="background-and-literature-review" class="section level1">
+<h1>Background and Literature Review</h1>
+<p>Creating a synthetic population, or in other words, enumerating a complete set of households and persons (with key attributes) for a modeling region is a necessary first step for the application of advanced travel models such as hybrid trip-based models and Activity Based Models (ABM).</p>
+<p>The synthesized household and person characteristics reflect the distribution of key variables in the study region and match observed marginal distributions at an aggregate level.</p>
+<p>Having access to detailed person and household characteristics in the model opens the door for model estimation to include a range of variables that define trip and travel making behavior. Even for traditional trip-based models, development of a synthetic population and household database can help generate various cross-tabulations at desired geographic levels that may not be available otherwise.</p>
 <p>For the TRM, a population synthesis forms the core basis for applying a state-of-the-art hybrid travel demand model. The aim of the synthesis is focused on matching both household and person marginals at the Traffic Analysis Zone (TAZ) level. Another crucial requirement is a solution that is practical to apply and runs in minutes without sacrificing accuracy of the results. To that end, the updated population synthesis procedure in TransCAD 9.0 is employed.</p>
-<p>The document briefly summarizes the basic idea of population synthesis, some of the advancements made in recent years and points the reader to a TRB reference paper for additional details. The technical approach for population synthesis in TRM is briefly illustrated, following details regarding the application. Finally, the results of the application are demonstrated.</p>
-</div>
-<div id="brief-literature-review" class="section level1">
-<h1>Brief Literature Review</h1>
-<p>This section presents a brief literature review of population synthesis in practice. (Reference: Balakrishna et.al.)</p>
-<div id="basic-idea" class="section level2">
-<h2>Basic Idea</h2>
-<p>The basic idea of population synthesis is best illustrated by Figure 1. The key input is seed data consisting of a sample of household (HH) and person records, typically obtained from a survey of the study region, and tagged to a high-level geography such as Public Use Microdata Areas (PUMAs). Public Use Microdata Sample (PUMS) data from the American Community Survey (ACS) typically forms this seed, although this sample can be enhanced by incorporating data from a travel survey and reweighing the combined records. Various aggregate marginals, typically ACS marginals at the census block or block group level provide control totals that the synthesized databases must match. It is also a well-accepted practice to fir curves using the census marginal distributions, which can then be applied to generate marginals at a Traffic Analysis Zone (TAZ) level for example. These TAZs are usually smaller than census block groups but larger than census blocks.</p>
+<p>This documentation briefly summarizes the basic idea of population synthesis, some of the advancements made in recent years and points the reader to published literature for additional details. The technical approach for population synthesis in the TRM is briefly illustrated, following details regarding the application. Finally, the results of the application are demonstrated.</p>
+<div id="basic-idea-simple-ipf" class="section level2">
+<h2>Basic Idea (Simple IPF)</h2>
+<p>The basic idea of population synthesis is best illustrated by Figure 1. In simple forms of population synthesis, there are two inputs: disaggregate household (HH) and person seed tables and HH marginals summarizing the distribution of key characteristics of HH at some aggregate level of geography.</p>
+<p>The seed data tables consist of a sample of household (HH) and person records, typically obtained from a survey of the study region, and tagged to a high-level geography such as Public Use Microdata Areas (PUMAs). Public Use Microdata Sample (PUMS) data from the American Community Survey (ACS) typically forms this seed, although this sample can be enhanced by incorporating data from a travel survey and reweighing the combined records.</p>
+<p>Various aggregate marginals, typically ACS marginals at the census block or block group level in the base year or sometimes at higher levels of geography for future years provide control totals that the synthesized databases must match. It is also a well-accepted practice to fir curves using the census marginal distributions, which can then be applied to generate marginals at a Traffic Analysis Zone (TAZ) level for example. These TAZs are usually smaller than census block groups but larger than census blocks.</p>
 <p><img src="img/population_synthesis/e77edcda0faee3ffd2ee39c632311b05.png" /></p>
-<p><strong>Figure 1 General population synthesis process flow</strong></p>
-<p>An Iterative Proportional Fitting (IPF) step then estimates the number of each type of household (identified in the seed) to be generated for each of the smallest geographic entities. This is achieved by identifying the number of households of each type that will add up to various household marginals. This is best illustrated for a single block group using the schematic in Figure 2. In this example, the two classifications of interest are HH by Size and HH by Number of Vehicles. The row and column totals highlighted in yellow are the input control totals and the goal of the process is to fill in the cells of the matrix (i.e. the values TS1_V0 etc.) such that the row and column totals are respected. The value TS1_V0 represent the number of zero car, single person HHs that need to be synthesized for this block group.</p>
-<div class="figure">
-<img src="img/population_synthesis/de720c90d6dd29e992ba740f94bc604e.png" alt="" />
-<p class="caption">Timeline Description automatically generated with medium confidence</p>
-</div>
+<p><strong>Figure 1 Simple population synthesis process flow diagram</strong></p>
+<p>An Iterative Proportional Fitting (IPF) step then estimates the number of each type of household (identified in the seed) to be generated for each of the smallest geographic entities. This is achieved by identifying the number of households of each type that will add up to various household marginals. This is best illustrated for a single block group using the schematic in Figure 2. In this example, the two classifications of interest are HH by Size and HH by Number of Vehicles. The row and column marginals highlighted in yellow are the input control totals and the goal of the process is to fill in the cells of the matrix (i.e. the values TS1_V0 etc.) such that the row and column totals are respected. The value TS1_V0 represent the number of single person, zero car HHs that need to be synthesized for this block group.</p>
+<p>!(img/population_synthesis/de720c90d6dd29e992ba740f94bc604e.png)</p>
 <p><strong>Figure 2 IPF</strong></p>
 <p>The term “Nested” in Figure 1 indicates that the household marginals may themselves be specified at different (but nested) geographies: for example, the vehicle ownership marginals may be at the traffic analysis zone (TAZ) level while the income marginals may be at the level of Census blocks or block groups. Nested synthesis will drill all the marginals down to a common geography (usually the smallest/finest among all input geographies.</p>
-<p>Finally, for each smallest geographic entity, the predicted number of households generated by IPF are sampled from the surveyed (seed) households using externally supplied (initial) weights. All persons living within a chosen household are automatically copied into an output file, which eventually becomes the synthetic population.</p>
-<p>The most important drawback of this process is the lack of control on person marginals. Since the algorithm only controls for household variables, the obtained distribution of person attributes in any given zone is largely a lottery. There is no guarantee that the chosen households will yield, say, the correct distribution of age, gender, etc. in the synthetic population. This can have adverse effects from a modeling application perspective, for example if these forecasts for working-age persons, students or seniors are incorrect.</p>
+<p>Finally, for each smallest geographic entity, the required number of households of each type determined by IPF are sampled or drawn from the surveyed (seed) households using externally supplied (initial) weights (generally based on the suvey sampling). The selected households are accumulated in a HH output file, and all persons living within each sampled household are automatically copied into an person output file. Together, the HH and person files comprise the synthetic population once the sampling is complete.</p>
+<p>The most important drawback of this process is the lack of control on person marginals. Since the algorithm only controls for household variables, the obtained distribution of person attributes in any given zone is largely a lottery. There is no guarantee that the chosen households will yield, for instance, the correct distribution of age, gender, etc., in the synthetic population. This can have adverse effects from a modeling application perspective, for example if the distributions of working-age persons, students or seniors are incorrect.</p>
 </div>
-<div id="person-marginals-and-iterative-proportional-update-ipu" class="section level2">
-<h2>Person Marginals and Iterative Proportional Update (IPU)</h2>
-<p>The Iterative Proportional Updating (IPU) process in the literature has been proposed and applied as a way of matching person marginals while essentially retaining the simplicity of the IPF framework. In this approach, before sampling households for a particular geographic entity (zone) using the initial weights in the seed, these sampling weights are first adjusted to explicitly match both household and person marginals for the zone. In this process, note that the same seed household(s) may be weighted differently for different zones, which adds precision compared to the use of <em>a priori</em> weights supplied externally. Further, this household re-weighting may be applied at a different (usually more aggregate) geography than that used for simulating the population. A modified version of the published approach in the literature using IPU is applied to the TRM region and is discussed in detail in the next section.</p>
+<div id="person-marginals-and-iterative-proportional-updating-ipu" class="section level2">
+<h2>Person Marginals and Iterative Proportional Updating (IPU)</h2>
+<p>The Iterative Proportional Updating (IPU) process (Xe et al, 2009) has been proposed and applied (most notably in PopGen) as a way of matching person marginals while essentially retaining the simplicity of the IPF framework. In this approach, before sampling households for a particular geographic entity (zone) using the initial weights in the seed, these sampling weights are first adjusted (or raked) to explicitly match both household and person marginals for the zone. In this process, note that the same seed household(s) may be weighted differently for different zones, which adds precision compared to the use of <em>a priori</em> weights supplied externally. Further, this household re-weighting may be applied at a different (usually more aggregate) geography than that used for simulating the population. A modified version of the published approach in the literature using IPU is applied to the TRM region and is discussed in detail in the next section.</p>
 </div>
 <div id="other-techniques" class="section level2">
 <h2>Other Techniques</h2>
-<p>Several optimization methods have also been published in the literature. More details can be found in the reference TRB paper indicated. While these methods might tackle certain issues of the IPU approach, these methods tend to be customized. Owing to the nonlinear and non-convex nature of the resulting formulation, the performance can be problem dependent and can result in long run times, local optima, and sensitivity to the scale of the objective function.</p>
+<p>Several optimization methods have also been published in the literature. For a general literature review, see Ramadan and Sisiopiku, 2019. While these methods might tackle certain issues of the IPU approach, these methods tend to be customized. Owing to the nonlinear and non-convex nature of the resulting formulation, the performance can be problem dependent and can result in long run times, local optima, and sensitivity to the scale of the objective function.</p>
 </div>
 </div>
-<div id="technical-approach-for-trm" class="section level1">
-<h1>Technical Approach for TRM</h1>
-<p>The population synthesis for TRM is based on an updated algorithm in TransCAD 9. While earlier versions of TransCAD did have a population synthesis procedure, it was based on the basic idea illustrated in the previous section without explicit control of person marginals. The IPU based enhancements provide a natural framework for incorporating person marginals.</p>
-<p>Figure 3 shows the general schematic of the IPU enhancement. Note the additional inserted steps shown by the orange circle. As mentioned earlier, the seed HH weights are adjusted for each zone to match HH and person marginals for that zone.</p>
+<div id="ipu-approach-for-trm" class="section level1">
+<h1>IPU Approach for TRM</h1>
+<p>The population synthesis for TRM is based on an updated algorithm in TransCAD 9. While earlier versions of TransCAD did have a population synthesis procedure, it was based on basic IPF as illustrated in the previous section without explicit control of person marginals. The IPU based enhancements provide a natural framework for incorporating person marginals.</p>
+<p>Figure 3 shows the general schematic of the IPU enhancement over IPF. Note the additional inserted steps which creates the loop. As mentioned earlier, the HH seed weights are adjusted for each zone to match HH and person marginals for that zone.</p>
 <p><img src="img/population_synthesis/5ce59054b0f37c5b8c4264e314e207cb.png" /></p>
 <p><strong>Figure 3: Population Synthesis with IPU</strong></p>
 <p>The weight adjustment for each zone is performed using an incidence table shown in Figure 4. The rows in the table are HHs from the seed database. This can include either all the HHs in the seed or only include those that belong to the parent geography (PUMA) of the zone. The latter is used in TransCAD.</p>
-<p>The columns represent the various marginal categories. For each row (HH), the values in the corresponding column indicates information about that HH and the persons who make up the HH. For instance, assume one HH category with 2 marginal columns (HH Veh 0 and HH Veh 1+) and one person category with three age marginals, then the HH with ID 5 has 1+ vehicles and has three persons (two in age category 2 and one in age category 3). Multiplying the ‘HH Veh 0’ column vector (cell by cell) with a corresponding weight vector will yield the number of HHs with zero vehicles in the zone. This is indicated in the ‘Column Sum’ row. The ‘Marginals’ row consist of the target values for this zone.</p>
+<p>The columns represent the various marginal categories. For each row (HH), the values in the corresponding column indicates which category the HH belongs to or how many people in the household belong to the category. For instance, assume one HH category with 2 marginal columns (HH Veh 0 and HH Veh 1+) and one person category with three age marginals, then the HH with ID 5 has 1+ vehicles and has three persons (two in age category 2 and one in age category 3). Multiplying the ‘HH Veh 0’ column vector (cell by cell) with a corresponding weight vector will yield the number of HHs with zero vehicles in the zone. This is indicated in the ‘Column Sum’ row. The ‘Marginals’ row consist of the target values for this zone.</p>
 <p><img src="img/population_synthesis/aa0f6caa036c008d9e503a2bd600e134.png" /></p>
 <p><strong>Figure 4: Incidence Table and IPU Adjustment</strong></p>
 <p>One iteration of the IPU consists of a complete set of column adjustments from left to right, one at a time. During each adjustment of the IPU, an adjustment factor is calculated as a simple ratio of the marginal total divided by the column total. This adjustment factor is used to multiply the current weight of all HHs that contributed to the total in the column. The weights of the other HHs are left unmodified.</p>
@@ -464,15 +469,16 @@ div.tocify {
 <p>The adjustment continues from left to right starting at the first column if the desired convergence metric has not been achieved.</p>
 <div id="key-differences-between-transcads-ipu-and-existing-ipu-approaches-popgen" class="section level2">
 <h2>Key Differences between TransCAD’s IPU and existing IPU approaches (PopGen)</h2>
-<p>The published method using IPU in the literature has been adapted in the PopGen software for instance. If there are multiple marginals to match such as HHs by Size (1,2,3,4+), number of vehicles (0,1,2,3+) and number of workers (1,2,3,4+) and Persons by Age (assume 5 categories) and Gender, then the incidence table has 64 HH columns, one for each combination of size, vehicles and workers and 10 person columns, one for each age category and gender combination. Since only one-dimensional marginals are typically known, the marginal values in the incidence tables come from an IPF run in the previous step. Therefore, two separate IPFs are run, one on the HH marginals and one on the person marginals and the results provide the data for the marginals row in the incidence table.</p>
-<p>This expansion of the IPU incurs several costs. One, the process is slow, especially if there are a lot of marginals and the process can take hours. Second, the solution introduces a couple of other issues that must be dealt with and these issues have garnered significant attention in literature. One of these issues is a zero-cell problem, where the seed data is stretched thin and certain combinations may not be present in the seed. The second issue is a zero-marginal problem, but this can be solved by replacing the zero in the marginal row with epsilon values. There are several techniques to address these issues, which have been implemented in PopGen for example.</p>
+<p>The originally published IPU method in the literature was implemented in the PopGen software. In this original IPU algorithm, two separate IPFs are run, one on the HH marginals and one on the person marginals. The results of the second IPF on the person marginals are used to populate detailed person-level columns in the incidence table that specify the full, joint distribution of person<br />
+attributes. So, if there are multiple marginals to match such as HHs by Size (1,2,3,4+), number of vehicles (0,1,2,3+) and number of workers (1,2,3,4+) and Persons by Age (assume 5 categories) and Gender, then the incidence table has 64 HH columns, one for each combination of size, vehicles and workers and 10 person columns, one for each age category and gender combination. Since only one-dimensional marginals are typically known, the marginal values in the incidence tables come from the IPF run and the second IPF must be performed on the person characteristics to populate the person columns.</p>
+<p>This version of IPU has several drawbacks. One, the process is slow, especially if there are a lot of marginals and the process can take hours. Second, the solution introduces a couple of other issues that must be dealt with and these issues have garnered significant attention in literature. One of these issues is a zero-cell problem, where the seed data is stretched thin and certain combinations may not be present in the seed. The second issue is a zero-marginal problem, but this can be solved by replacing the zero in the marginal row with epsilon values. There are several techniques to address these issues, which have been implemented in PopGen, but addressing these issues adds further runtime.</p>
 <p>In the TransCAD approach, for want of minimizing these issues and at the behest of maintaining fast run times, only the one-dimensional marginals are used to form the incidence table. Thus, in the hypothetical example, the incidence table has 12 HH columns (as opposed to 64) and 7 person columns (as opposed to 10).</p>
-<p>This approach has borne significant fruit in a couple of high-profile applications prior to TRM. The enhanced synthesis was used in the Las Vegas RTC model as well as the Central Coast ABM model. The match to the one-dimensional marginals (especially the persons) were very close and the joint distribution observed from the synthesis were also very reasonable. These applications take a fraction of time compared to synthesis reported on similar sized problems and their accuracy is more than adequate and in no way compromises the subsequent models.</p>
+<p>The enhanced TransCAD IPU method has been previously applied successfully for the Las Vegas RTC model as well as the California Central Coast ABM model. In both cases, not only was the match to the one-dimensional marginals (especially the persons) very close but the joint distribution observed from the synthesis were also very reasonable. These applications take a fraction of time compared to that reported on similar sized problems with the original IPU method or optimization methods.</p>
 <p>The next few sections discuss the application of the procedure to TRM and the results.</p>
 </div>
 </div>
-<div id="application-to-trm" class="section level1">
-<h1>Application to TRM</h1>
+<div id="application-for-the-trm" class="section level1">
+<h1>Application for the TRM</h1>
 <p>For the TRM region, several marginals have been synthesized at the zone layer. These marginals at the HH level include:</p>
 <ul>
 <li><p>HHs by Size (1, 2, 3 and 4+)</p></li>
@@ -485,14 +491,14 @@ div.tocify {
 <li><p>High 150000+</p></li>
 </ul></li>
 </ul>
-<p>Several disaggregate curves developed from the ACS 2014-2018 data are used to obtain these marginals. The curves determine the respective marginal splits based on average HH size, ratio of img/population_synthesisn TAZ income to regional TAZ income and average number of workers in the TAZ.</p>
+<p>Several disaggregate curves developed from the ACS 2014-2018 data are used to obtain these marginals from zonal average values which are more easily supplied for future scenarios than full distributions. The curves determine the respective marginal splits based on average HH size, ratio of TAZ income to regional TAZ income and average number of workers in the TAZ.</p>
 <p>Person marginals matched include</p>
 <ul>
 <li><p>Persons by Age Group</p>
 <ul>
-<li><p>Kids [0, 18)</p></li>
+<li><p>Children [0, 18)</p></li>
 <li><p>Adults under 65 [18, 65)</p></li>
-<li><p>Seniors [65, 100)</p></li>
+<li><p>Seniors [65, 130)</p></li>
 </ul></li>
 </ul>
 <p>The zone socio economic data contains derived percentages of kids, adults under 65 and seniors (from ACS data). These are used to compute the three age classifications above that serve as person marginals.</p>
@@ -500,7 +506,7 @@ div.tocify {
 <p>There are 18 PUMA zones in the TRM region and Figure 5 highlights some key data. The TAZ boundaries are shown in green and the colored areas are the PUMA zones.</p>
 <p><img src="img/population_synthesis/image5.png" /></p>
 <p><strong>Figure 5: PUMAs in the TRM region</strong></p>
-<p>The running time of the entire population synthesis for the TRM (with the IPU) is <strong>2 minutes</strong>. These running times represent a fraction of running times reported for similar problems in the literature.</p>
+<p>The running time of the entire population synthesis for the TRM (with the IPU) is <strong>2 minutes</strong>. These running times represent a small fraction of running times reported for similar problems in the literature.</p>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
@@ -529,11 +535,13 @@ div.tocify {
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
-<p>The updated population synthesis for the TRM is based on TransCAD 9’s synthesis, which is a variant of the population synthesis with IPU published in the literature. The marginals are at the TAZ level are derived by fitting curves on the ACS 2014-2018 data. The ACS PUMS for these years form the seed databases for the synthesis procedure. The marginals matched include HH by Size, HH by Number of Workers, HH by Income Group and Persons by Age. The population synthesis is extremely fast with a run time of 2 minutes and the fit to the marginals is great. The resulting synthesis is demonstrative of the person and HH characteristic distribution in the TRM region and can be confidently used in the application of the state-of-the-art hybrid model for TRM.</p>
+<p>The updated population synthesis for the TRM is based on TransCAD 9’s synthesis, which is a variant of the population synthesis with IPU published in the literature. The marginals are at the TAZ level are derived by fitting curves on the ACS 2014-2018 data. The ACS PUMS for these years form the seed databases for the synthesis procedure. The marginals matched include HH by Size, HH by Number of Workers, HH by Income Group and Persons by Age. The population synthesis is extremely fast with a run time of 2 minutes and the fit to the marginals is great. The resulting synthesis is demonstrative of the person and HH characteristic distribution in the TRM region and can be confidently used in the application of the state-of-the-art hybrid model for the Triangle Region.</p>
 </div>
-<div id="reference" class="section level1">
-<h1>Reference</h1>
+<div id="references" class="section level1">
+<h1>References</h1>
 <p>Balakrishna, R., S. Sundaram and J. Lam. An Enhanced and Efficient Population Synthesis Approach to Support Advanced Travel Demand Models. Presented at the 99th TRB Annual Meeting.</p>
+<p>Ye., X., K. Konduri, R.M. Pendyala, B. Sana and P. Waddell. A methodology to match distributions of both household and person attributes in the generation of synthetic populations. Presented at the TRB annual meeting, 2009.</p>
+<p>Ramadan, O.E., and V.P. Sisiopiku. A Critical Review on Population Synthesis for Activity- and Agent-Based Transportation Models. Transportation Systems Analysis and Assessment, IntechOpen, 2019.</p>
 </div>
 
 <br>

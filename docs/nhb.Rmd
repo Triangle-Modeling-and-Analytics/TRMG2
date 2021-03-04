@@ -1,7 +1,7 @@
 ---
 title: "Non-Homebased Trips"
 author: "Caliper Corporation"
-date: "February 2, 2021"
+date: "March 3, 2021"
 output: 
   html_document:
     toc_depth: 4
@@ -23,7 +23,30 @@ source("R/utils.R")
 
 ## Introduction
 
-*TODO: Vince to add*
+There are many problems related to non-home-based trips in traditional
+trip-based models arising from the fact that they are disconnected from the
+home-based trips with which they comprise complete tours. In order to properly
+represent non-home-based trips, two spatial distribution or destination/spatial
+choice models are required to account for both the trip’s origin location and
+destination location. The four-step model architecture is fundamentally flawed
+because it produces non-home-based trips from only one trip distribution or
+spatial choice model. 
+
+To address these problems, the TRM adopts an alternative approach with a simple
+change to the structure of the trip-based model, running the non-home-based
+model components after and conditional on the home-based model components
+instead of in parallel and independently of them as in the traditional four-step
+model. This relatively simple structural change significantly improves the TRM’s
+ability to represent non-home-based trips and their response to land use changes
+and transportation infrastructure investments. Running a NHB distribution or
+destination choice model after and conditional on home-based destination choices
+in this approach, provides the required second spatial distribution model to
+propertly model both the origin and destination of NHB trips.
+
+Moreover, by generating NHB trips separately by mode based on home-based mode
+choices, essentially provides information about whether a traveler has a car
+with them and allows the model, despite its trip-based form, to ensure a
+reasonable consistency of modes on tour. 
 
 Modes:
 
