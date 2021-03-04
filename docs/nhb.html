@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-02-02" />
+<meta name="date" content="2021-03-03" />
 
 <title>Non-Homebased Trips</title>
 
@@ -382,10 +382,19 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
       <a href="generation_disaggregation.html">Dissaggregation</a>
     </li>
     <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
       <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-home-based</a>
     </li>
   </ul>
 </li>
@@ -403,14 +412,16 @@ div.tocify {
 
 <h1 class="title toc-ignore">Non-Homebased Trips</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">February 2, 2021</h4>
+<h4 class="date">March 3, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p><em>TODO: Vince to add</em></p>
+<p>There are many problems related to non-home-based trips in traditional trip-based models arising from the fact that they are disconnected from the home-based trips with which they comprise complete tours. In order to properly represent non-home-based trips, two spatial distribution or destination/spatial choice models are required to account for both the trip’s origin location and destination location. The four-step model architecture is fundamentally flawed because it produces non-home-based trips from only one trip distribution or spatial choice model.</p>
+<p>To address these problems, the TRM adopts an alternative approach with a simple change to the structure of the trip-based model, running the non-home-based model components after and conditional on the home-based model components instead of in parallel and independently of them as in the traditional four-step model. This relatively simple structural change significantly improves the TRM’s ability to represent non-home-based trips and their response to land use changes and transportation infrastructure investments. Running a NHB distribution or destination choice model after and conditional on home-based destination choices in this approach, provides the required second spatial distribution model to propertly model both the origin and destination of NHB trips.</p>
+<p>Moreover, by generating NHB trips separately by mode based on home-based mode choices, essentially provides information about whether a traveler has a car with them and allows the model, despite its trip-based form, to ensure a reasonable consistency of modes on tour.</p>
 <p>Modes:</p>
 <ul>
 <li>SOV</li>

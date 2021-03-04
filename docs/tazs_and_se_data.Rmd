@@ -22,7 +22,12 @@ library(kableExtra)
 
 ## Introduction
 
-*TODO: Fill in*
+In the TRM, as in most travel models, the geographic area being analyzed is
+split into many smaller spatial units or zones. These *TAZs* (which stands for
+travel, transportation, or traffic analysis zones) have several uses, including:
+storing information about the people and places in each zone, serving as origins
+and destinations of trips, and calculating travel times between (and within)
+zones.
 
 ## TAZ Boundary Updates
 
