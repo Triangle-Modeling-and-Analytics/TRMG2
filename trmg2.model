@@ -33,6 +33,7 @@ EndMacro
 
 Macro "Initial Processing" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"},
                   {"MacroNames",{"Initial Processing"}}}
 Body:
     ShowMessage('Running: Initial Processing')
@@ -42,6 +43,7 @@ EndMacro
 
 Macro "Accessibility" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\planskim_v3.bmp"},
                   {"MacroNames",{"Accessibility"}}}
 Body:
     ShowMessage('Running: Accessibility')
@@ -51,6 +53,7 @@ EndMacro
 
 Macro "Population Synthesis" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"},
                   {"MacroNames",{"Population Synthesis"}}}
 Body:
     ShowMessage('Running: Population Synthesis')
