@@ -35,26 +35,30 @@ trips_df <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv
 logsum <- read_csv("data/input/nhb/logsums.csv")
 ```
 
-```{r aggregate trips}
-# # Approach 1: use trip weights. Have non-integer counts of trips.
-# aggregate_trips <- trips_df %>%
-#   filter(tour_type != "H" & homebased == "HB") %>%
-#   group_by(hhid, personid, trip_type) %>%
-#   summarize(trips = sum(trip_weight_combined) / sum(hh_weight_combined)) %>%
-#   pivot_wider(names_from = trip_type, values_from = trips) %>%
-#   mutate(across(everything(), ~ifelse(is.na(.x), 0, .x)))
-
-# Approach 2: use household weights and have integer counts of trips.
+```{r aggregate trips, eval=FALSE}
+# Approach 1: use trip weights. Have non-integer counts of trips.
 aggregate_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
   group_by(hhid, personid, trip_type) %>%
   summarize(
-    trips = n(),
+    trips = sum(trip_weight_combined) / sum(hh_weight_combined),
     p_taz = first(p_taz)
   ) %>%
   pivot_wider(names_from = trip_type, values_from = trips) %>%
   mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
   ungroup()
+
+# # Approach 2: use household weights and have integer counts of trips.
+# aggregate_trips <- trips_df %>%
+#   filter(tour_type != "H" & homebased == "HB") %>%
+#   group_by(hhid, personid, trip_type) %>%
+#   summarize(
+#     trips = n(),
+#     p_taz = first(p_taz)
+#   ) %>%
+#   pivot_wider(names_from = trip_type, values_from = trips) %>%
+#   mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
+#   ungroup()
 
 est_tbl <- person_df %>%
   left_join(aggregate_trips %>% select(-hhid), by = "personid") %>%
@@ -84,7 +88,7 @@ The occasional odd number of trips is due to things like leaving the region
 or having a trip leave home late in the evening and the return trip isn't until
 the next day (and not in the survey).
 
-```{r}
+```{r, eval=FALSE}
 hist_tbl <- est_tbl %>%
   mutate(
     trips = select(., N_HB_K12_All:W_HB_EK12_All) %>% rowSums(na.rm = TRUE))
@@ -101,7 +105,7 @@ ggplot(hist_tbl, aes(x = trips)) +
 ```
 
 
-```{r, N_HB_K12_All}
+```{r, N_HB_K12_All, eval=FALSE}
 formula <- N_HB_K12_All ~ is_child + is_worker + is_senior + num_vehicles + 
   hhsize + access
 m0 <- glm(formula, family = poisson, data = est_tbl)
@@ -125,7 +129,7 @@ summary(m2)
 pR2(m2)
 ```
 
-```{r, N_HB_OME_All}
+```{r, N_HB_OME_All, eval=FALSE}
 m2 <- zeroinfl(
   N_HB_OME_All ~ is_senior + num_vehicles + oth_ppl + oth_kids +
     access + oth_senior | oth_ppl + num_seniors + num_children,
@@ -139,7 +143,7 @@ cor(est_tbl$N_HB_OME_All, m2$fitted.values) ^ 2
 plot(est_tbl$N_HB_OME_All, m2$fitted.values)
 ```
 
-```{r}
+```{r, eval=FALSE}
 # install.packages("mlr-org/mlr3")
 # install.packages("xgboost")
 # install.packages("parallelMap")
@@ -149,7 +153,7 @@ library(plotly)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 # Initial attempt using person-level
 dt_tbl <- est_tbl %>%
   select(N_HB_OME_All, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, num_children, access) %>%
@@ -192,7 +196,7 @@ testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = 
 trainTask <- oversample(trainTask, rate = 2)
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Test household aggregation
 dt_tbl <- est_tbl %>%
   select(
@@ -232,7 +236,7 @@ testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = 
 # table(getTaskTargets(trainTask))
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Withhold 10% of household and their people
 hhids <- unique(est_tbl$hhid)
 test_hhids <- sample(hhids, length(hhids) * .1)
@@ -339,13 +343,13 @@ xgb_model <- train(xgb_learner_tuned, task = trainTask)
 saveRDS(xgb_model, "xgb_model.RDS")
 ```
 
-```{r load xgboost model}
+```{r load xgboost model, eval=FALSE}
 # xgb_model <- readRDS("data/output/resident_production/xgb_person_level.RDS")
 # xgb_model <- readRDS("data/output/resident_production/xgb_hh_level.RDS")
 xgb_model <- readRDS("xgb_model.RDS")
 ```
 
-```{r feature importance}
+```{r feature importance, eval=FALSE}
 # Show feature importance
 imp_tbl <- getFeatureImportance(xgb_model)
 imp_tbl <- imp_tbl$res #%>%
@@ -370,7 +374,7 @@ conf_mtx
 measureF1(xgb_result$data$truth, xgb_result$data$response, positive = "1")
 ```
 
-```{r}
+```{r, eval=FALSE}
 # for the third test (holding back 10% of households and their persons from
 # person-level training), collapse back to households
 hh_result <- tibble(
@@ -379,3 +383,178 @@ hh_result <- tibble(
 )
 ```
 
+
+```{r, eval=FALSE}
+trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
+testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
+
+
+# Create learner
+# logreg_learner <- makeLearner("classif.logreg")
+logreg_learner <- makeLearner("classif.binomial")
+
+# Create model
+logreg_model <- train(logreg_learner, task = trainTask)
+
+logreg_result <- predict(logreg_model, testTask)
+conf_mtx <- calculateConfusionMatrix(logreg_result)
+conf_mtx
+measureF1(logreg_result$data$truth, logreg_result$data$response, positive = "1")
+```
+
+
+## Using DT to guide cross class
+
+```{r, include=FALSE}
+# install.packages("rpart")
+# install.packages("rpart.plot")
+library(rpart)
+library(rpart.plot)
+
+rate_list <- list()
+```
+
+```{r}
+create_rule_table <- function(tree) {
+  rules <- rpart.rules(tree)
+  colnames(rules) <- c(
+    "rate",
+    paste0("c", seq(2:ncol(rules) - 1))
+  )
+  
+  result <- rules %>%
+    as_tibble() %>%
+    unite(col = "rule", -rate, sep = " ", na.rm = TRUE) %>%
+    mutate(
+      rule = gsub("\\s+", " ", rule),
+      rule = gsub("&", "and", rule),
+      rule = gsub("when ", "", rule, fixed = TRUE),
+      rule = gsub(" or ", ",", rule, fixed = TRUE),
+      rule = gsub(" is ", " = ", rule, fixed = TRUE),
+      rule = str_replace(rule, "(.+)\\sis\\s(\\d+)\\sto\\s(\\d+)", "\\1 between \\2 and \\3")
+    )
+  return(result)
+}
+```
+
+```{r}
+# Approach 1: use trip weights. Have non-integer counts of trips.
+aggregate_trips <- trips_df %>%
+  filter(tour_type != "H" & homebased == "HB") %>%
+  group_by(hhid, personid, trip_type) %>%
+  summarize(
+    trips = sum(trip_weight_combined) / sum(hh_weight_combined),
+    p_taz = first(p_taz)
+  ) %>%
+  pivot_wider(names_from = trip_type, values_from = trips) %>%
+  mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
+  ungroup()
+
+est_tbl <- person_df %>%
+  left_join(aggregate_trips %>% select(-hhid), by = "personid") %>%
+  left_join(hh_df, by = "hhid") %>%
+  mutate(across(N_HB_K12_All:W_HB_EK12_All, ~ifelse(is.na(.x), 0, .x))) %>%
+  # feature creation
+  mutate(
+    weight = hh_weight_combined.x,
+    oth_ppl = hhsize - 1,
+    oth_wrkr = num_workers - is_worker,
+    oth_senior = num_seniors - is_senior,
+    oth_kids = num_children - is_child
+  ) %>%
+  left_join(
+    logsum %>% select(TAZ, access = GeneralAccessibility_sov),
+    by = c("p_taz" = "TAZ")
+  ) %>%
+  group_by(hhid) %>%
+  mutate(access = ifelse(is.na(access), mean(access, na.rm = TRUE), access)) %>%
+  ungroup() %>%
+  mutate(access = ifelse(is.na(access), mean(access, na.rm = TRUE), access))
+```
+
+In the trees below, each node lists the average trip rate as well as the percent
+of the population that node represents. This lets you see the overall average
+trip rate (top of the tree) and how it changes as you segment the surveyed
+population.
+
+### N_HB_K12_All
+
+```{r}
+dt_tbl <- est_tbl %>%
+  select(
+    N_HB_K12_All, is_senior, is_child, is_worker, gender, lifecycle, rent_own,
+    res_type, hh_income_broad,
+    oth_ppl, oth_kids, oth_senior, access, age
+  ) %>%
+  mutate(across(is_senior:hh_income_broad, as.factor))
+
+tree <- rpart(
+  N_HB_K12_All ~ .,
+  data = dt_tbl, 
+  method = "anova",
+  maxdepth = 4,
+  cp = .001
+)
+
+rule_tbl <- create_rule_table(tree)
+rate_tbl <- dt_tbl %>%
+  mutate(category = tree$where,) %>%
+  group_by(category) %>%
+  dplyr::summarize(
+    rate = round(mean(N_HB_K12_All, na.rm = TRUE), 3),
+    stdev = round(sd(N_HB_K12_All, na.rm = TRUE), 2),
+    samples = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    trip_type = "N_HB_K12_All",
+    rule = rule_tbl$rule
+  ) %>%
+  relocate(trip_type:rule, .before = category) %>%
+  select(-category) %>%
+  arrange(rate)
+rate_list$N_HB_K12_All <- rate_tbl
+
+rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+```
+
+### N_HB_OME_All
+
+```{r}
+dt_tbl <- est_tbl %>%
+  select(
+    N_HB_OME_All, is_senior, is_child, is_worker, gender, lifecycle, rent_own,
+    res_type, hh_income_broad,
+    oth_ppl, oth_kids, oth_senior, access, age
+  ) %>%
+  mutate(across(is_senior:hh_income_broad, as.factor))
+
+tree <- rpart(
+  N_HB_OME_All ~ .,
+  data = dt_tbl, 
+  method = "anova",
+  maxdepth = 4,
+  cp = .0005
+)
+
+rule_tbl <- create_rule_table(tree)
+rate_tbl <- dt_tbl %>%
+  mutate(category = tree$where,) %>%
+  group_by(category) %>%
+  dplyr::summarize(
+    rate = round(mean(N_HB_OME_All, na.rm = TRUE), 3),
+    stdev = round(sd(N_HB_OME_All, na.rm = TRUE), 2),
+    samples = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    trip_type = "N_HB_OME_All",
+    rule = rule_tbl$rule
+  ) %>%
+  relocate(trip_type:rule, .before = category) %>%
+  select(-category) %>%
+  arrange(rate)
+rate_list$N_HB_OME_All <- rate_tbl
+
+rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+```
