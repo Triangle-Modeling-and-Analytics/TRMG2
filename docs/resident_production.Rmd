@@ -430,8 +430,9 @@ create_rule_table <- function(tree) {
       rule = gsub("&", "and", rule),
       rule = gsub("when ", "", rule, fixed = TRUE),
       rule = gsub(" or ", ",", rule, fixed = TRUE),
+      rule = str_replace(rule, "(.+)\\sis\\s(\\d+)\\sto\\s(\\d+)", "\\1 between \\2 and \\3"),
       rule = gsub(" is ", " = ", rule, fixed = TRUE),
-      rule = str_replace(rule, "(.+)\\sis\\s(\\d+)\\sto\\s(\\d+)", "\\1 between \\2 and \\3")
+      rate = as.numeric(rate)
     )
   return(result)
 }
@@ -501,21 +502,32 @@ rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(N_HB_K12_All, na.rm = TRUE), 3),
+    rate = round(mean(N_HB_K12_All, na.rm = TRUE), 4),
     stdev = round(sd(N_HB_K12_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
   ungroup() %>%
-  mutate(
-    trip_type = "N_HB_K12_All",
-    rule = rule_tbl$rule
-  ) %>%
+  mutate(trip_type = "N_HB_K12_All") %>%
+  left_join(rule_tbl, by = "rate") %>%
   relocate(trip_type:rule, .before = category) %>%
-  select(-category) %>%
   arrange(rate)
 rate_list$N_HB_K12_All <- rate_tbl
 
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+
+# check r^2 at household level
+check <- est_tbl %>%
+  mutate(
+    y = N_HB_K12_All,
+    y_hat = predict(tree, dt_tbl)
+  ) %>%
+  group_by(hhid) %>%
+  summarize(
+    y = sum(y),
+    y_hat = sum(y_hat)
+  )
+r_sq <- cor(check$y, check$y_hat)^2
+# rsq.rpart(tree)
 ```
 
 ### N_HB_OME_All
@@ -534,7 +546,7 @@ tree <- rpart(
   data = dt_tbl, 
   method = "anova",
   maxdepth = 4,
-  cp = .0005
+  cp = .001
 )
 
 rule_tbl <- create_rule_table(tree)
@@ -542,19 +554,30 @@ rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(N_HB_OME_All, na.rm = TRUE), 3),
+    rate = round(mean(N_HB_OME_All, na.rm = TRUE), 2),
     stdev = round(sd(N_HB_OME_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
   ungroup() %>%
-  mutate(
-    trip_type = "N_HB_OME_All",
-    rule = rule_tbl$rule
-  ) %>%
+  mutate(trip_type = "N_HB_OME_All") %>%
+  left_join(rule_tbl, by = "rate") %>%
   relocate(trip_type:rule, .before = category) %>%
-  select(-category) %>%
   arrange(rate)
 rate_list$N_HB_OME_All <- rate_tbl
 
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+
+# check r^2 at household level
+check <- est_tbl %>%
+  mutate(
+    y = N_HB_OME_All,
+    y_hat = predict(tree, dt_tbl)
+  ) %>%
+  group_by(hhid) %>%
+  summarize(
+    y = sum(y),
+    y_hat = sum(y_hat)
+  )
+r_sq <- cor(check$y, check$y_hat)^2
+# rsq.rpart(tree)
 ```
