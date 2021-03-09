@@ -489,13 +489,13 @@ To save room in the charts, many of the explanatory variables are abbreviated.
 Their meanings are listed below for reference:
 
 - Person-level variables
-  - retired_hh: if the household contains only retirees
   - is_worker: if the person is a worker
   - is_senior: if the person is >= 65
   - is_child: if the person is < 18
   - age: person's age
   - gender: Male (1) and Female (2)
 - Household Variables
+  - retired_hh: if the household contains only retirees
   - per_inc: per-capita income (household income / size)
   - oth_ppl: number of other people in the household
   - oth_kids: number of other kids in the household
@@ -516,7 +516,7 @@ W_HB_W_All
 dt_tbl <- est_tbl %>%
   select(
     W_HB_W_All, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -572,7 +572,7 @@ W_HB_O_All
 dt_tbl <- est_tbl %>%
   select(
     W_HB_O_All, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -628,7 +628,7 @@ W_HB_EK12_All
 dt_tbl <- est_tbl %>%
   select(
     W_HB_EK12_All, is_senior, is_child, is_worker, gender, retired_hh, 
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -686,7 +686,7 @@ N_HB_K12_All
 dt_tbl <- est_tbl %>%
   select(
     N_HB_K12_All, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -742,7 +742,7 @@ N_HB_OME_All
 dt_tbl <- est_tbl %>%
   select(
     N_HB_OME_All, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -798,7 +798,7 @@ N_HB_OD_Long
 dt_tbl <- est_tbl %>%
   select(
     N_HB_OD_Long, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -854,7 +854,7 @@ N_HB_OD_Short
 dt_tbl <- est_tbl %>%
   select(
     N_HB_OD_Short, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
@@ -910,7 +910,7 @@ N_HB_OMED_All
 dt_tbl <- est_tbl %>%
   select(
     N_HB_OMED_All, is_senior, is_child, is_worker, gender, retired_hh,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access
   ) %>%
   mutate(across(is_senior:retired_hh, as.factor))
 
