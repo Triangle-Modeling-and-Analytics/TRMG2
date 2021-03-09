@@ -425,39 +425,78 @@ div.tocify {
 <li>We ended up with decision-tree-assisted cross classification</li>
 </ul>
 </div>
-<div id="using-dt-to-guide-cross-class" class="section level2">
-<h2>Using DT to guide cross class</h2>
+<div id="using-dt-to-guide-segmentation" class="section level2">
+<h2>Using DT to guide segmentation</h2>
 <p>In the trees below, each node lists the average trip rate as well as the percent of the population that node represents. This lets you see the overall average trip rate (top of the tree) and how it changes as you segment the surveyed population.</p>
-<div id="w_hb_w_all" class="section level3">
-<h3>W_HB_W_All</h3>
+<p>To save room in the charts, many of the explanatory variables are abbreviated. Their meanings are listed below for reference:</p>
+<ul>
+<li>Person-level variables
+<ul>
+<li>retired_hh: if the household contains only retirees</li>
+<li>is_worker: if the person is a worker</li>
+<li>is_senior: if the person is &gt;= 65</li>
+<li>is_child: if the person is &lt; 18</li>
+<li>age: person’s age</li>
+<li>gender: Male (1) and Female (2)</li>
+</ul></li>
+<li>Household Variables
+<ul>
+<li>per_inc: per-capita income (household income / size)</li>
+<li>oth_ppl: number of other people in the household</li>
+<li>oth_kids: number of other kids in the household</li>
+</ul></li>
+<li>Zonal variables
+<ul>
+<li>g_access: general accessibility of the person’s home zone</li>
+<li>n_access: nearby accessibility of the person’s home zone</li>
+<li>e_access: employment accessibility of the person’s home zone</li>
+</ul></li>
+</ul>
+<p><em>TODO: Add prose for each chart after they are finalized</em></p>
+</div>
+<div id="work-tours" class="section level2">
+<h2>Work Tours</h2>
+<div id="work" class="section level3">
+<h3>Work</h3>
+<p>W_HB_W_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 </div>
-<div id="w_hb_o_all" class="section level3">
-<h3>W_HB_O_All</h3>
+<div id="other" class="section level3">
+<h3>Other</h3>
+<p>W_HB_O_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 </div>
-<div id="w_hb_ek12_all" class="section level3">
-<h3>W_HB_EK12_All</h3>
+<div id="k12-drop-off" class="section level3">
+<h3>K12 Drop Off</h3>
+<p>W_HB_EK12_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 </div>
-<div id="n_hb_k12_all" class="section level3">
-<h3>N_HB_K12_All</h3>
+</div>
+<div id="non-work-tours" class="section level2">
+<h2>Non-Work Tours</h2>
+<div id="k12" class="section level3">
+<h3>K12</h3>
+<p>N_HB_K12_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
-<div id="n_hb_ome_all" class="section level3">
-<h3>N_HB_OME_All</h3>
+<div id="shoppingdining" class="section level3">
+<h3>Shopping/Dining</h3>
+<p>N_HB_OME_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 </div>
-<div id="n_hb_od_long" class="section level3">
-<h3>N_HB_OD_Long</h3>
+<div id="other-long-duration" class="section level3">
+<h3>Other (long duration)</h3>
+<p>N_HB_OD_Long</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 </div>
-<div id="n_hb_od_short" class="section level3">
-<h3>N_HB_OD_Short</h3>
+<div id="other-short-duration" class="section level3">
+<h3>Other (short duration)</h3>
+<p>N_HB_OD_Short</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
-<div id="n_hb_omed_all" class="section level3">
-<h3>N_HB_OMED_All</h3>
+<div id="medical" class="section level3">
+<h3>Medical</h3>
+<p>N_HB_OMED_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 </div>
 </div>

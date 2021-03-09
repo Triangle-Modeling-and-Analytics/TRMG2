@@ -390,7 +390,7 @@ measureF1(logreg_result$data$truth, logreg_result$data$response, positive = "1")
 ```
 
 
-## Using DT to guide cross class
+## Using DT to guide segmentation
 
 ```{r, include=FALSE}
 # install.packages("rpart")
@@ -413,6 +413,7 @@ create_rule_table <- function(tree) {
     as_tibble() %>%
     unite(col = "rule", -rate, sep = " ", na.rm = TRUE) %>%
     mutate(
+      rate = round(as.numeric(rate), 2),
       rule = gsub("\\s+", " ", rule),
       rule = gsub("&", "and", rule),
       rule = gsub("when ", "", rule, fixed = TRUE),
@@ -474,7 +475,8 @@ est_tbl <- person_df %>%
     g_access = ifelse(is.na(g_access), mean(g_access, na.rm = TRUE), g_access),
     n_access = ifelse(is.na(n_access), mean(n_access, na.rm = TRUE), n_access),
     e_access = ifelse(is.na(e_access), mean(e_access, na.rm = TRUE), e_access),
-    senior_hh = ifelse(lifecycle == 2, 1, 0)
+    retired_hh = ifelse(lifecycle == 2, 1, 0),
+    per_inc = hh_income_midpt / hhsize
   )
 ```
 
@@ -483,35 +485,60 @@ of the population that node represents. This lets you see the overall average
 trip rate (top of the tree) and how it changes as you segment the surveyed
 population.
 
-### W_HB_W_All
+To save room in the charts, many of the explanatory variables are abbreviated.
+Their meanings are listed below for reference:
+
+- Person-level variables
+  - retired_hh: if the household contains only retirees
+  - is_worker: if the person is a worker
+  - is_senior: if the person is >= 65
+  - is_child: if the person is < 18
+  - age: person's age
+  - gender: Male (1) and Female (2)
+- Household Variables
+  - per_inc: per-capita income (household income / size)
+  - oth_ppl: number of other people in the household
+  - oth_kids: number of other kids in the household
+- Zonal variables
+  - g_access: general accessibility of the person's home zone
+  - n_access: nearby accessibility of the person's home zone
+  - e_access: employment accessibility of the person's home zone
+
+*TODO: Add prose for each chart after they are finalized*
+
+## Work Tours
+
+### Work
+
+W_HB_W_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    W_HB_W_All, is_senior, is_child, is_worker, gender, senior_hh, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    W_HB_W_All, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   W_HB_W_All ~ .,
   data = dt_tbl, 
   method = "anova",
-  maxdepth = 4,
+  maxdepth = 5,
   cp = .001
 )
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
 # tree <- snip.rpart(tree, 2)
-rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+rpart.plot(tree, type = 1, under = TRUE, extra = 1, cex = .5)
 
 rule_tbl <- create_rule_table(tree)
 rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(W_HB_W_All, na.rm = TRUE), 3),
+    rate = round(mean(W_HB_W_All, na.rm = TRUE), 2),
     stdev = round(sd(W_HB_W_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
@@ -537,15 +564,17 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### W_HB_O_All
+### Other
+
+W_HB_O_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    W_HB_O_All, is_senior, is_child, is_worker, gender, senior_hh, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    W_HB_O_All, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   W_HB_O_All ~ .,
@@ -557,7 +586,7 @@ tree <- rpart(
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-# tree <- snip.rpart(tree, 2)
+# tree <- snip.rpart(tree, c(12, 13))
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
 
 rule_tbl <- create_rule_table(tree)
@@ -565,7 +594,7 @@ rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(W_HB_O_All, na.rm = TRUE), 3),
+    rate = round(mean(W_HB_O_All, na.rm = TRUE), 2),
     stdev = round(sd(W_HB_O_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
@@ -591,15 +620,17 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### W_HB_EK12_All
+### K12 Drop Off
+
+W_HB_EK12_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    W_HB_EK12_All, is_senior, is_child, is_worker, gender, senior_hh, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    W_HB_EK12_All, is_senior, is_child, is_worker, gender, retired_hh, 
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   W_HB_EK12_All ~ .,
@@ -619,7 +650,7 @@ rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(W_HB_EK12_All, na.rm = TRUE), 3),
+    rate = round(mean(W_HB_EK12_All, na.rm = TRUE), 2),
     stdev = round(sd(W_HB_EK12_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
@@ -645,16 +676,19 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### N_HB_K12_All
+## Non-Work Tours
+
+### K12
+
+N_HB_K12_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_K12_All, is_senior, is_child, is_worker, gender, senior_hh, rent_own,
-    res_type, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    N_HB_K12_All, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   N_HB_K12_All ~ .,
@@ -664,12 +698,17 @@ tree <- rpart(
   cp = .001
 )
 
+# Snip to remove specific nodes from the tree
+# summary(tree) # to find node numbers
+tree <- snip.rpart(tree, 14)
+rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+
 rule_tbl <- create_rule_table(tree)
 rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(N_HB_K12_All, na.rm = TRUE), 4),
+    rate = round(mean(N_HB_K12_All, na.rm = TRUE), 2),
     stdev = round(sd(N_HB_K12_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
@@ -679,8 +718,6 @@ rate_tbl <- dt_tbl %>%
   relocate(trip_type:rule, .before = category) %>%
   arrange(rate)
 rate_list$N_HB_K12_All <- rate_tbl
-
-rpart.plot(tree, type = 1, under = TRUE, extra = 1)
 
 # check r^2 at household level
 check <- est_tbl %>%
@@ -697,22 +734,23 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### N_HB_OME_All
+### Shopping/Dining
+
+N_HB_OME_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OME_All, is_senior, is_child, is_worker, gender, senior_hh, rent_own,
-    res_type, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    N_HB_OME_All, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   N_HB_OME_All ~ .,
   data = dt_tbl, 
   method = "anova",
-  maxdepth = 4,
+  maxdepth = 6,
   cp = .001
 )
 
@@ -752,28 +790,29 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### N_HB_OD_Long
+### Other (long duration)
+
+N_HB_OD_Long
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OD_Long, is_senior, is_child, is_worker, gender, senior_hh, rent_own,
-    res_type, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    N_HB_OD_Long, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   N_HB_OD_Long ~ .,
   data = dt_tbl, 
   method = "anova",
-  maxdepth = 5,
+  maxdepth = 6,
   cp = .002
 )
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-tree <- snip.rpart(tree, 27)
+# tree <- snip.rpart(tree, 27)
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
 
 rule_tbl <- create_rule_table(tree)
@@ -807,27 +846,29 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### N_HB_OD_Short
+### Other (short duration)
+
+N_HB_OD_Short
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OD_Short, is_senior, is_child, is_worker, gender, senior_hh, hh_income_broad,
-    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
+    N_HB_OD_Short, is_senior, is_child, is_worker, gender, retired_hh,
+    oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access, per_inc
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   N_HB_OD_Short ~ .,
   data = dt_tbl, 
   method = "anova",
   maxdepth = 4,
-  cp = .001
+  cp = .002
 )
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-tree <- snip.rpart(tree, 4)
+# tree <- snip.rpart(tree, 4)
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
 
 rule_tbl <- create_rule_table(tree)
@@ -861,15 +902,17 @@ r_sq <- cor(check$y, check$y_hat)^2
 # rsq.rpart(tree)
 ```
 
-### N_HB_OMED_All
+### Medical
+
+N_HB_OMED_All
 
 ```{r}
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OMED_All, is_senior, is_child, is_worker, gender, senior_hh, hh_income_broad,
+    N_HB_OMED_All, is_senior, is_child, is_worker, gender, retired_hh,
     oth_ppl, oth_kids, oth_senior, age, g_access, n_access, e_access
   ) %>%
-  mutate(across(is_senior:hh_income_broad, as.factor))
+  mutate(across(is_senior:retired_hh, as.factor))
 
 tree <- rpart(
   N_HB_OMED_All ~ .,
@@ -889,7 +932,7 @@ rate_tbl <- dt_tbl %>%
   mutate(category = tree$where,) %>%
   group_by(category) %>%
   dplyr::summarize(
-    rate = round(mean(N_HB_OMED_All, na.rm = TRUE), 3),
+    rate = round(mean(N_HB_OMED_All, na.rm = TRUE), 2),
     stdev = round(sd(N_HB_OMED_All, na.rm = TRUE), 2),
     samples = n()
   ) %>%
