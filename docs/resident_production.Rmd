@@ -403,7 +403,7 @@ rate_list <- list()
 
 ```{r}
 create_rule_table <- function(tree) {
-  rules <- rpart.rules(tree)
+  rules <- rpart.rules(tree, digits = 4)
   colnames(rules) <- c(
     "rate",
     paste0("c", seq(2:ncol(rules) - 1))
@@ -420,9 +420,9 @@ create_rule_table <- function(tree) {
       rule = gsub(" or ", ",", rule, fixed = TRUE),
       rule = str_replace(rule, "(.+)\\sis\\s(\\d+)\\sto\\s(\\d+)", "\\1 between \\2 and \\3"),
       rule = gsub(" is ", " = ", rule, fixed = TRUE),
-      rule = gsub("g_access", "GeneralAccessibility_sov", rule, fixed = TRUE),
-      rule = gsub("n_access", "NearbyAccessibility_sov", rule, fixed = TRUE),
-      rule = gsub("e_access", "EmploymentAccessibility_sov", rule, fixed = TRUE),
+      # rule = gsub("g_access", "GeneralAccessibility_sov", rule, fixed = TRUE),
+      # rule = gsub("n_access", "NearbyAccessibility_sov", rule, fixed = TRUE),
+      # rule = gsub("e_access", "EmploymentAccessibility_sov", rule, fixed = TRUE),
       rate = as.numeric(rate)
     )
   return(result)
@@ -445,7 +445,10 @@ aggregate_trips <- trips_df %>%
 est_tbl <- person_df %>%
   left_join(aggregate_trips %>% select(-hhid), by = "personid") %>%
   left_join(hh_df, by = "hhid") %>%
-  mutate(across(N_HB_K12_All:W_HB_EK12_All, ~ifelse(is.na(.x), 0, .x))) %>%
+  mutate(
+    p_taz = ifelse(is.na(p_taz), G2_TAZ, p_taz),
+    across(N_HB_K12_All:W_HB_EK12_All, ~ifelse(is.na(.x), 0, .x))
+  ) %>%
   # feature creation
   mutate(
     weight = hh_weight_combined.x,
@@ -456,26 +459,30 @@ est_tbl <- person_df %>%
   ) %>%
   left_join(
     logsum %>%
-      select(
-        TAZ, 
+      transmute(
+        TAZ = TAZ, 
         g_access = GeneralAccessibility_sov,
         n_access = NearbyAccessibility_sov,
-        e_access = EmploymentAccessibility_sov,
+        e_access = EmploymentAccessibility_sov
       ),
     by = c("p_taz" = "TAZ")
   ) %>%
   group_by(hhid) %>%
-  mutate(
-    g_access = ifelse(is.na(g_access), mean(g_access, na.rm = TRUE), g_access),
-    n_access = ifelse(is.na(n_access), mean(n_access, na.rm = TRUE), n_access),
-    e_access = ifelse(is.na(e_access), mean(e_access, na.rm = TRUE), e_access)
-  ) %>%
+  # mutate(
+  #   g_access = ifelse(is.na(g_access), mean(g_access, na.rm = TRUE), g_access),
+  #   n_access = ifelse(is.na(n_access), mean(n_access, na.rm = TRUE), n_access),
+  #   e_access = ifelse(is.na(e_access), mean(e_access, na.rm = TRUE), e_access)
+  # ) %>%
   ungroup() %>%
   mutate(
-    g_access = ifelse(is.na(g_access), mean(g_access, na.rm = TRUE), g_access),
-    n_access = ifelse(is.na(n_access), mean(n_access, na.rm = TRUE), n_access),
-    e_access = ifelse(is.na(e_access), mean(e_access, na.rm = TRUE), e_access),
+    # g_access = ifelse(is.na(g_access), mean(g_access, na.rm = TRUE), g_access),
+    # n_access = ifelse(is.na(n_access), mean(n_access, na.rm = TRUE), n_access),
+    # e_access = ifelse(is.na(e_access), mean(e_access, na.rm = TRUE), e_access),
+    # g_access = round(g_access, 1),
+    # n_access = round(n_access, 1),
+    # e_access = round(e_access, 1),
     retired_hh = ifelse(lifecycle == 2, 1, 0),
+    is_worker = ifelse(retired_hh == 1, 0, is_worker),
     per_inc = hh_income_midpt / hhsize
   )
 ```
@@ -560,9 +567,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### Other
 
@@ -616,9 +625,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### K12 Drop Off
 
@@ -672,9 +683,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ## Non-Work Tours
 
@@ -730,9 +743,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### Shopping/Dining
 
@@ -786,9 +801,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### Other (long duration)
 
@@ -812,8 +829,8 @@ tree <- rpart(
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-# tree <- snip.rpart(tree, 27)
-rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+tree <- snip.rpart(tree, c(12))
+rpart.plot(tree, type = 1, under = TRUE, extra = 1, cex = .5)
 
 rule_tbl <- create_rule_table(tree)
 rate_tbl <- dt_tbl %>%
@@ -842,9 +859,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### Other (short duration)
 
@@ -862,14 +881,14 @@ tree <- rpart(
   N_HB_OD_Short ~ .,
   data = dt_tbl, 
   method = "anova",
-  maxdepth = 4,
-  cp = .002
+  maxdepth = 5,
+  cp = .0015
 )
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-# tree <- snip.rpart(tree, 4)
-rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+tree <- snip.rpart(tree, c(5, 7))
+rpart.plot(tree, type = 1, under = TRUE, extra = 1, cex = .5)
 
 rule_tbl <- create_rule_table(tree)
 rate_tbl <- dt_tbl %>%
@@ -898,9 +917,11 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
 
 ### Medical
 
@@ -954,6 +975,17 @@ check <- est_tbl %>%
     y = sum(y),
     y_hat = sum(y_hat)
   )
-r_sq <- cor(check$y, check$y_hat)^2
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 # rsq.rpart(tree)
 ```
+
+R-squared: `r r_sq`
+
+```{r, eval=FALSE}
+out_df <- bind_rows(rate_list) %>%
+  group_by(trip_type, rule, rate) %>%
+  slice(1) %>%
+  mutate(rule = gsub("2,99", "2", rule, fixed = TRUE))
+write_csv(out_df, "../master/resident/generation/production_rates.csv")
+```
+
