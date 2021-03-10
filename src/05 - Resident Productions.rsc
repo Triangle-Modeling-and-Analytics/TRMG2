@@ -27,6 +27,7 @@ Macro "Create Production Features" (Args)
         {"is_senior", "Integer", 10, ,,,, "Is the person a senior (>= 65)?"},
         {"is_child", "Integer", 10, ,,,, "Is the person a child (< 18)?"},
         {"is_worker", "Integer", 10, ,,,, "Is the person a worker?"},
+        {"single_parent", "Integer", 10, ,,,, "Is the person a single parent?"},
         {"retired_hh", "Integer", 10, ,,,, "If the household contains only retirees"},
         {"per_inc", "Real", 10, 2,,,, "Per-capita income (hh income / hh size)"},
         {"oth_ppl", "Integer", 10, ,,,, "Number of other people in the household"},
@@ -65,6 +66,10 @@ Macro "Create Production Features" (Args)
     data.(per_specs.is_worker) = if v_emp_status = 1 or v_emp_status = 2 or v_emp_status = 4 or v_emp_status = 5
         then 1
         else 0
+    v_num_adults = v_size - v_kids
+    data.(per_specs.single_parent) = if data.(per_specs.is_child) = 0 and v_num_adults = 1 and v_kids > 0
+        then 1
+        else 0
     data.(per_specs.per_inc) = v_inc / v_size
     data.(per_specs.retired_hh) = if v_size = v_seniors and v_workers = 0 then 1 else 0
     data.(per_specs.oth_ppl) = v_size - 1
@@ -83,14 +88,50 @@ endmacro
 
 Macro "Apply Production Rates" (Args)
 
-    // hh_file = Args.[Synthesized HHs]
-    // per_file = Args.[Synthesized Persons]
-    // se_file = Args.SE
+    per_file = Args.[Synthesized Persons]
+    per_vw = OpenTable("per", "FFB", {per_file})
+    rate_file = Args.ProdRates
+    RunMacro("Apply Rates with Queries", {view: per_vw, rate_csv: rate_file})
+endmacro
 
-    // hh_vw = OpenTable("hh", "FFB", {hh_file})
-    // per_vw = OpenTable("per", "FFB", {per_file})
-    // se_vw = OpenTable("per", "FFB", {se_file})
-    // {, hh_specs} = RunMacro("Get Fields", {view_name: hh_vw})
-    // {, per_specs} = RunMacro("Get Fields", {view_name: per_vw})
-    // {, se_specs} = RunMacro("Get Fields", {view_name: se_vw})
+/*
+A generic utility function. Currently only used by the production model, so I'm
+just leaving it here.
+*/
+
+Macro "Apply Rates with Queries" (MacroOpts)
+    o = CreateObject("Utils.Currency")
+
+    view = MacroOpts.view
+    rate_csv = MacroOpts.rate_csv
+
+    // Get rates
+    rate_vw = OpenTable("rate_vw", "CSV", {rate_csv})
+    {v_type, v_query, v_rate} = GetDataVectors(rate_vw + "|", {
+        "trip_type", "rule", "rate"
+    },)
+
+    // Add fields
+    v_unique_types = SortVector(v_type, {Unique: true})
+    for field in v_unique_types do
+        a_fields = a_fields + {
+            {field, "Real", 10, 2,,,, "Resident production field"}
+        }
+    end
+    RunMacro("Add Fields", {view: view, a_fields: a_fields})
+
+    // Loop over queries/rates
+    SetView(view)
+    for i = 1 to v_type.length do
+        type = v_type[i]
+        query = v_query[i]
+        rate = v_rate[i]
+
+        query = "Select * where " + query
+        n = SelectByQuery("sel", "several", query)
+        if n = 0 then Throw("no records found for this rate query:\n" + query)
+
+        v = Vector(n, "Real", {Constant: rate})
+        SetDataVector(view + "|sel", type, v, )
+    end
 endmacro
