@@ -1,71 +1,72 @@
 trip_type,rule,category,rate,stdev,samples
-N_HB_K12_All,age < 5 and oth_kids < 1 ,13,0.03,0.18,249
-N_HB_K12_All,age < 5 and oth_kids >= 1 ,14,0.19,0.39,480
-N_HB_K12_All,age >= 19 and age < 57 and oth_kids >= 1 and is_worker = 0 ,10,0.33,0.57,484
-N_HB_K12_All,age >= 19 and oth_kids < 1 ,3,0,0.06,7167
-N_HB_K12_All,age >= 19 and oth_kids >= 1 and is_worker = 1 and gender = 1,6,0.11,0.36,1114
-N_HB_K12_All,age >= 19 and oth_kids >= 1 and is_worker = 1 and gender = 2,7,0.18,0.44,1033
-N_HB_K12_All,age >= 5 and age < 6 ,16,0.45,0.51,148
-N_HB_K12_All,age >= 57 and oth_kids >= 1 and is_worker = 0 ,9,0.06,0.25,87
-N_HB_K12_All,age >= 6 and age < 19 and per_inc < 16563 ,18,0.6,0.51,401
-N_HB_K12_All,age >= 6 and age < 19 and per_inc >= 16563 ,19,0.8,0.44,1173
-N_HB_OD_Long,is_worker = 0 and age < 6 ,15,0.56,0.5,877
-N_HB_OD_Long,is_worker = 0 and age >= 40 and is_child = 0 and per_inc < 32292,10,0.34,0.48,1411
-N_HB_OD_Long,is_worker = 0 and age >= 40 and is_child = 0 and per_inc >= 32292,11,0.44,0.52,1597
-N_HB_OD_Long,is_worker = 0 and age >= 6 and is_child = 1 ,7,0.31,0.46,1439
-N_HB_OD_Long,is_worker = 0 and age >= 6 and is_worker = 0 and age < 40 and is_child = 0 and oth_wrkr < 1 ,14,0.85,0.64,197
-N_HB_OD_Long,is_worker = 0 and age >= 6 and is_worker = 0 and age < 40 and is_child = 0 and oth_wrkr >= 1 ,13,0.58,0.69,499
-N_HB_OD_Long,is_worker = 1 and age < 32 ,4,0.36,0.59,1350
-N_HB_OD_Long,is_worker = 1 and age >= 32 ,3,0.25,0.48,4966
-N_HB_OD_Short,is_worker = 0 and age < 24 ,6,0.21,0.42,2516
-N_HB_OD_Short,is_worker = 0 and age >= 24 and per_inc < 21354 and oth_kids >= 2 ,14,0.37,0.59,151
-N_HB_OD_Short,is_worker = 0 and age >= 24 and per_inc < 34375 and oth_kids < 2 and g_access < 12.02,6,0.21,0.42,2516
-N_HB_OD_Short,is_worker = 0 and age >= 24 and per_inc < 34375 and oth_kids < 2 and g_access >= 12.02,11,0.34,0.51,456
-N_HB_OD_Short,is_worker = 0 and age >= 24 and per_inc >= 21354 and oth_kids >= 2 ,15,0.6,0.66,151
-N_HB_OD_Short,is_worker = 0 and age >= 24 and per_inc >= 34375 and oth_kids < 2 ,12,0.33,0.5,1658
-N_HB_OD_Short,is_worker = 1 and e_access < 11 ,3,0.15,0.4,1357
-N_HB_OD_Short,is_worker = 1 and e_access >= 11 ,4,0.23,0.49,4959
-N_HB_OME_All,age < 24 and oth_ppl >= 7 ,7,0.55,0.5,40
-N_HB_OME_All,age < 5 and oth_ppl < 7 ,6,0.28,0.45,721
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 0 and oth_kids >= 2,18,0.74,0.65,274
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 0 and per_inc < 34375 and oth_kids < 2,16,0.51,0.58,616
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 0 and per_inc >= 34375 and oth_kids < 2,13,0.64,0.68,56
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 1 and n_access < 9.942 and per_inc < 93750 ,11,0.29,0.54,4727
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 1 and n_access < 9.942 and per_inc >= 93750 ,12,0.38,0.57,587
-N_HB_OME_All,age >= 24 and age < 62 and is_worker = 1 and n_access >= 9.942 ,13,0.64,0.68,56
-N_HB_OME_All,age >= 5 and age < 24 and oth_ppl < 7 ,5,0.2,0.43,2067
-N_HB_OME_All,age >= 62 and age < 71 and is_worker = 1 ,6,0.28,0.45,721
-N_HB_OME_All,age >= 62 and is_worker = 0 and oth_ppl < 2 and n_access < 5.857 ,26,0.39,0.49,73
-N_HB_OME_All,age >= 62 and is_worker = 0 and oth_ppl < 2 and n_access >= 5.857 ,27,0.63,0.5,1962
-N_HB_OME_All,age >= 62 and is_worker = 0 and oth_ppl >= 2 ,24,0.42,0.51,194
-N_HB_OME_All,age >= 71 and is_worker = 1 ,22,0.48,0.53,120
-N_HB_OMED_All,retired_hh = 0 and age < 51 and g_access < 11.08 ,5,0.05,0.24,1332
-N_HB_OMED_All,retired_hh = 0 and age < 51 and g_access >= 11.08 ,4,0.03,0.18,6115
-N_HB_OMED_All,retired_hh = 0 and age >= 51 and is_worker = 0,8,0.08,0.28,1315
-N_HB_OMED_All,retired_hh = 0 and age >= 51 and is_worker = 1,7,0.04,0.21,2130
-N_HB_OMED_All,retired_hh = 1 and g_access < 12.14 ,10,0.1,0.31,1120
-N_HB_OMED_All,retired_hh = 1 and g_access >= 12.14 ,11,0.16,0.37,324
+N_HB_K12_All,age < 5 ,12,0.2,0.75,729
+N_HB_K12_All,age >= 19 and age < 57 and oth_kids >= 1 and is_worker = 0 ,10,0.58,1.31,484
+N_HB_K12_All,age >= 19 and oth_kids < 1 ,3,0,0.08,7167
+N_HB_K12_All,age >= 19 and oth_kids >= 1 and is_worker = 1 and gender = 1,6,0.16,0.62,1114
+N_HB_K12_All,age >= 19 and oth_kids >= 1 and is_worker = 1 and gender = 2,7,0.28,0.84,1033
+N_HB_K12_All,age >= 5 and age < 19 and per_inc < 16563 and oth_wrkr < 2 ,15,0.94,0.95,277
+N_HB_K12_All,age >= 5 and age < 19 and per_inc < 16563 and oth_wrkr >= 2 ,16,1.27,1,159
+N_HB_K12_All,age >= 5 and age < 6 and per_inc >= 16563 ,18,0.78,0.94,113
+N_HB_K12_All,age >= 57 and oth_kids >= 1 and is_worker = 0 ,9,0.05,0.49,87
+N_HB_K12_All,age >= 6 and age < 19 and per_inc >= 16563 ,19,1.34,0.92,1173
+N_HB_OD_Long,is_worker = 0 and age < 6 and per_inc < 15104 ,19,0.55,0.93,187
+N_HB_OD_Long,is_worker = 0 and age < 6 and per_inc >= 15104 and per_inc < 32292 ,20,1.03,1.11,448
+N_HB_OD_Long,is_worker = 0 and age >= 19 and per_inc < 32292 and e_access >= 10.57 ,17,0.65,1.1,1674
+N_HB_OD_Long,is_worker = 0 and age >= 6 and age < 19 and per_inc < 32292 and e_access >= 10.57 ,16,0.44,0.85,924
+N_HB_OD_Long,is_worker = 0 and age >= 6 and per_inc < 32292 and e_access < 10.57 ,14,0.3,0.83,333
+N_HB_OD_Long,is_worker = 0 and per_inc >= 32292 and g_access < 11.50 ,22,0.62,1.05,837
+N_HB_OD_Long,is_worker = 0 and per_inc >= 32292 and g_access >= 11.50 and g_access < 11.57 ,25,1.34,1.12,102
+N_HB_OD_Long,is_worker = 0 and per_inc >= 32292 and g_access >= 11.57 ,24,0.81,1.16,1515
+N_HB_OD_Long,is_worker = 1 and age < 24 and oth_wrkr < 1 ,7,1.31,1.45,69
+N_HB_OD_Long,is_worker = 1 and age < 24 and oth_wrkr >= 1 ,6,0.56,1.02,243
+N_HB_OD_Long,is_worker = 1 and age >= 24 and age < 71 ,4,0.39,0.87,5884
+N_HB_OD_Long,is_worker = 1 and age >= 71 and n_access < 7.873,10,1.13,1.15,53
+N_HB_OD_Long,is_worker = 1 and age >= 71 and n_access >= 7.873,9,0.52,0.94,67
+N_HB_OD_Short,e_access < 10.97 and per_inc < 42708 ,3,0.24,0.74,1744
+N_HB_OD_Short,e_access < 10.97 and per_inc >= 42708 and is_worker = 0 ,6,0.66,1.33,359
+N_HB_OD_Short,e_access < 10.97 and per_inc >= 42708 and is_worker = 1 ,5,0.31,0.81,497
+N_HB_OD_Short,e_access >= 10.97 and oth_kids < 3 and age < 38 ,9,0.33,0.9,4078
+N_HB_OD_Short,e_access >= 10.97 and oth_kids < 3 and age >= 38 and is_worker = 1 and n_access < 7.534,12,0.25,0.81,379
+N_HB_OD_Short,e_access >= 10.97 and oth_kids < 3 and age >= 38 and is_worker = 1 and n_access >= 7.534,13,0.47,1.13,2559
+N_HB_OD_Short,e_access >= 10.97 and oth_kids < 3 and per_inc < 9896 and age >= 38 and is_worker = 0 ,15,0.28,0.71,141
+N_HB_OD_Short,e_access >= 10.97 and oth_kids < 3 and per_inc >= 9896 and age >= 38 and is_worker = 0 ,16,0.7,1.35,2105
+N_HB_OD_Short,e_access >= 10.97 and oth_kids >= 3 and per_inc < 36667 and g_access >= 11.59 ,19,0.4,0.91,283
+N_HB_OD_Short,e_access >= 10.97 and oth_kids >= 3 and per_inc < 8214 and g_access < 11.59 ,25,1.77,1.59,38
+N_HB_OD_Short,e_access >= 10.97 and oth_kids >= 3 and per_inc >= 36667 and g_access >= 11.59 ,20,1.57,1.98,46
+N_HB_OD_Short,e_access >= 10.97 and oth_kids >= 3 and per_inc >= 8214 and age < 41 and g_access < 11.59 ,23,0.43,1.14,75
+N_HB_OD_Short,e_access >= 10.97 and oth_kids >= 3 and per_inc >= 8214 and age >= 41 and g_access < 11.59 ,24,1.67,1.68,32
+N_HB_OME_All,age < 31 ,3,0.32,0.79,3910
+N_HB_OME_All,age >= 31 and age < 63 and e_access < 10.70 and is_worker = 0 ,7,0.74,1.13,167
+N_HB_OME_All,age >= 31 and age < 63 and e_access >= 10.70 and is_worker = 0 ,8,1.16,1.33,977
+N_HB_OME_All,age >= 31 and age < 63 and is_worker = 1 ,5,0.48,0.96,4602
+N_HB_OME_All,age >= 63 and age < 71 and e_access >= 11.40 and oth_ppl < 2,16,1.06,1.46,690
+N_HB_OME_All,age >= 63 and age < 71 and e_access >= 11.40 and oth_ppl >= 2,15,0.44,1.24,72
+N_HB_OME_All,age >= 63 and e_access < 11.40 and retired_hh = 0 ,11,0.7,1.22,570
+N_HB_OME_All,age >= 63 and e_access < 11.40 and retired_hh = 1 ,12,1.14,1.35,673
+N_HB_OME_All,age >= 71 and e_access >= 11.40 and e_access < 11.59 ,19,1.76,1.59,203
+N_HB_OME_All,age >= 71 and e_access >= 11.59 ,18,1.31,1.43,472
+N_HB_OMED_All,retired_hh = 0 and age < 51 ,3,0.03,0.24,7447
+N_HB_OMED_All,retired_hh = 0 and age >= 51 and g_access < 11.94 and is_worker = 0,7,0.1,0.41,864
+N_HB_OMED_All,retired_hh = 0 and age >= 51 and g_access >= 11.94 and is_worker = 0,8,0.23,0.5,451
+N_HB_OMED_All,retired_hh = 0 and age >= 51 and is_worker = 1,5,0.06,0.32,2130
+N_HB_OMED_All,retired_hh = 1 and age < 82 and g_access < 12.30 ,11,0.16,0.49,1133
+N_HB_OMED_All,retired_hh = 1 and age < 82 and g_access >= 12.30 ,12,0.46,0.68,145
+N_HB_OMED_All,retired_hh = 1 and age >= 82 ,13,0.38,0.89,166
 W_HB_EK12_All,oth_kids < 1 ,2,0,0.03,7880
 W_HB_EK12_All,oth_kids >= 1 and is_worker = 0 ,2,0,0.03,7880
-W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and per_inc < 30208 and single_parent = 0 ,7,0.12,0.37,939
-W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and per_inc < 30208 and single_parent = 1 ,8,0.3,0.54,89
-W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and per_inc >= 30208 and age < 45,8,0.3,0.54,89
-W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and per_inc >= 30208 and age >= 45,10,0.15,0.39,433
-W_HB_O_All,is_worker = 0 ,2,0,0.04,6020
-W_HB_O_All,is_worker = 1 and age < 21 and oth_ppl >= 1 ,5,0.11,0.4,142
-W_HB_O_All,is_worker = 1 and age < 54 and oth_ppl < 1 and per_inc < 25000 ,14,0.31,0.51,77
-W_HB_O_All,is_worker = 1 and age < 54 and oth_ppl < 1 and per_inc >= 25000 ,15,0.53,0.63,585
-W_HB_O_All,is_worker = 1 and age >= 21 and is_worker = 1 and age < 52 and oth_ppl >= 1 ,8,0.37,0.59,3547
-W_HB_O_All,is_worker = 1 and age >= 52 and oth_ppl >= 1 ,7,0.3,0.49,1646
-W_HB_O_All,is_worker = 1 and age >= 54 and oth_ppl < 1 and g_access < 12.15,12,0.43,0.52,224
-W_HB_O_All,is_worker = 1 and age >= 54 and oth_ppl < 1 and g_access >= 12.15,11,0.19,0.42,95
-W_HB_W_All,is_worker = 0 ,2,0,0.04,6020
-W_HB_W_All,is_worker = 1 and age < 21 and is_child = 0 ,14,0.36,0.51,92
-W_HB_W_All,is_worker = 1 and age < 21 and is_child = 1 ,13,0.1,0.28,50
-W_HB_W_All,is_worker = 1 and age >= 21 and is_worker = 1 and age < 34 and oth_ppl >= 2 ,16,0.49,0.48,534
-W_HB_W_All,is_worker = 1 and age >= 21 and is_worker = 1 and age < 34 and per_inc < 25000 and oth_ppl < 2 ,18,0.53,0.46,234
-W_HB_W_All,is_worker = 1 and age >= 21 and is_worker = 1 and age < 34 and per_inc >= 25000 and oth_ppl < 2 ,19,0.66,0.44,791
-W_HB_W_All,is_worker = 1 and age >= 34 and is_senior = 1 ,5,0.34,0.36,379
-W_HB_W_All,is_worker = 1 and age >= 34 and per_inc < 22049 and is_senior = 0 ,7,0.4,0.42,867
-W_HB_W_All,is_worker = 1 and age >= 34 and per_inc >= 22049 and is_senior = 0 and oth_kids < 1,10,0.51,0.41,2193
-W_HB_W_All,is_worker = 1 and age >= 34 and per_inc >= 22049 and is_senior = 0 and oth_kids >= 1,9,0.45,0.45,1176
+W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and age < 26 ,6,0.01,0.22,84
+W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and age >= 26 and age < 47,9,0.19,0.52,1583
+W_HB_EK12_All,oth_kids >= 1 and is_worker = 1 and age >= 47,8,0.11,0.33,515
+W_HB_O_All,is_worker = 0 ,2,0,0.03,6020
+W_HB_O_All,is_worker = 1 and age < 22 ,4,0.11,0.34,181
+W_HB_O_All,is_worker = 1 and age >= 22 and oth_ppl < 1 and g_access < 12.15,11,0.53,0.66,647
+W_HB_O_All,is_worker = 1 and age >= 22 and oth_ppl < 1 and g_access >= 12.15,10,0.3,0.56,327
+W_HB_O_All,is_worker = 1 and age >= 22 and oth_ppl >= 1 and oth_senior < 1 ,8,0.34,0.6,4683
+W_HB_O_All,is_worker = 1 and age >= 22 and oth_ppl >= 1 and oth_senior >= 1 ,7,0.22,0.58,478
+W_HB_W_All,is_worker = 0 ,2,0,0.06,6020
+W_HB_W_All,is_worker = 1 and age < 19 ,4,0.33,0.69,84
+W_HB_W_All,is_worker = 1 and age >= 19 and age < 79 and oth_kids < 2 and oth_senior < 2,13,0.96,0.95,5034
+W_HB_W_All,is_worker = 1 and age >= 19 and age < 79 and oth_kids < 2 and oth_senior >= 2,12,0.52,0.85,49
+W_HB_W_All,is_worker = 1 and age >= 19 and age < 79 and oth_kids >= 2 and oth_wrkr < 1 ,10,0.99,0.96,280
+W_HB_W_All,is_worker = 1 and age >= 19 and age < 79 and oth_kids >= 2 and oth_wrkr >= 1 ,9,0.72,0.86,835
+W_HB_W_All,is_worker = 1 and age >= 79 ,6,0.34,0.85,34

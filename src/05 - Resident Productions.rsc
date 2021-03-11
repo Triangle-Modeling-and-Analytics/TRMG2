@@ -33,6 +33,7 @@ Macro "Create Production Features" (Args)
         {"oth_ppl", "Integer", 10, ,,,, "Number of other people in the household"},
         {"oth_kids", "Integer", 10, ,,,, "Number of other kids in the household"},
         {"oth_wrkr", "Integer", 10, ,,,, "Number of other workers in the household"},
+        {"oth_senior", "Integer", 10, ,,,, "Number of other seniors in the household"},
         {"g_access", "Real", 10, 2,,,, "General accessibility of home zone"},
         {"n_access", "Real", 10, 2,,,, "Nearby accessibility of home zone"},
         {"e_access", "Real", 10, 2,,,, "Employment accessibility of home zone"}
@@ -75,11 +76,16 @@ Macro "Create Production Features" (Args)
     data.(per_specs.oth_ppl) = v_size - 1
     data.(per_specs.oth_kids) = v_kids - data.(per_specs.is_child)
     data.(per_specs.oth_wrkr) = v_workers - data.(per_specs.is_worker)
+    data.(per_specs.oth_senior) = v_seniors - data.(per_specs.is_senior)
     data.(per_specs.g_access) = v_ga
     data.(per_specs.n_access) = v_na
     data.(per_specs.e_access) = v_ea
     SetDataVectors(jv + "|", data, )
+    
     CloseView(jv)
+    CloseView(hh_vw)
+    CloseView(per_vw)
+    CloseView(se_vw)
 endmacro
 
 /*
@@ -95,12 +101,12 @@ Macro "Apply Production Rates" (Args)
 endmacro
 
 /*
-A generic utility function. Currently only used by the production model, so I'm
-just leaving it here.
+A generic utility function that can apply decision trees that have been
+converted to a list of GISDK queries. Currently only used by the production
+model, so I'm just leaving it here.
 */
 
 Macro "Apply Rates with Queries" (MacroOpts)
-    o = CreateObject("Utils.Currency")
 
     view = MacroOpts.view
     rate_csv = MacroOpts.rate_csv
@@ -110,6 +116,7 @@ Macro "Apply Rates with Queries" (MacroOpts)
     {v_type, v_query, v_rate} = GetDataVectors(rate_vw + "|", {
         "trip_type", "rule", "rate"
     },)
+    CloseView(rate_vw)
 
     // Add fields
     v_unique_types = SortVector(v_type, {Unique: true})
@@ -127,11 +134,15 @@ Macro "Apply Rates with Queries" (MacroOpts)
         query = v_query[i]
         rate = v_rate[i]
 
-        query = "Select * where " + query
-        n = SelectByQuery("sel", "several", query)
-        if n = 0 then Throw("no records found for this rate query:\n" + query)
-
-        v = Vector(n, "Real", {Constant: rate})
-        SetDataVector(view + "|sel", type, v, )
+        if i = 1 or type <> v_type[i - 1] then expression = "if (" + query + ") then " + String(rate)
+        else expression = expression + " else if (" + query + ") then " + String(rate)
+        
+        if i = v_type.length or type <> v_type[i + 1] then do
+            e_field = CreateExpression(view, "expr", expression, {Type: "Real"})
+            v = GetDataVector(view + "|", e_field, )
+            SetDataVector(view + "|", type, v, )
+            e_spec = GetFieldFullSpec(view, e_field)
+            DestroyExpression(e_spec)
+        end
     end
 endmacro
