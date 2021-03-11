@@ -1020,23 +1020,49 @@ R-squared: `r r_sq`
 
 ## Calibration
 
+The table below shows the production model results compared back to the total
+trips in the survey. Overall, the model performs extremely well even without
+calibration.
+
 ```{r, include=FALSE}
 model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibrated.csv")
 ```
-
 
 ```{r}
 calibration_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
   group_by(trip_type) %>%
-  summarize(obs_trips = sum(trip_weight_combined / hh_weight_combined)) %>%
+  summarize(obs_trips = sum(hh_weight_combined)) %>%
   left_join(model_trips, by = "trip_type") %>%
   mutate(
     diff = model_trips - obs_trips,
-    pct_diff = round(diff / obs_trips * 100, 1)
+    `pct_diff` = round(diff / obs_trips * 100, 1)
+  ) %>%
+  ungroup()
+
+total <- calibration_trips %>%
+  summarize(
+    trip_type = "Total",
+    obs_trips = sum(obs_trips),
+    model_trips = sum(model_trips)
+  ) %>%
+  mutate(
+    diff = model_trips - obs_trips,
+    `pct_diff` = round(diff / obs_trips * 100, 1)
   )
 
-sum(person_df$hh_weight_combined)
+calibration_trips <- bind_rows(calibration_trips, total)
+
+calibration_trips %>%
+  rename(
+    `Trip Type` = trip_type,
+    Observed = obs_trips,
+    Modelled = model_trips,
+    Difference = diff,
+    `%Difference` = pct_diff
+  ) %>%
+  kable(digits = 0, format.args = list(big.mark = ",")) %>%
+  kable_styling(full_width = FALSE)
 ```
 
 
