@@ -914,7 +914,39 @@ check <- est_tbl %>%
   )
 round(cor(check$y, check$y_hat)^2, 3)
 
-# add zeroinfl to ensemble
+# One last thing to try: a tree to pick which tree to use
+class_tree_tbl <- test %>%
+  mutate(
+    tree1_err = abs(tree1 - N_HB_OD_Long),
+    tree2_err = abs(tree2 - N_HB_OD_Long),
+    tree3_err = abs(tree3 - N_HB_OD_Long),
+    best_tree = case_when(
+      tree1_err < tree2_err & tree1_err < tree3_err ~ "tree1",
+      tree2_err < tree1_err & tree2_err < tree3_err ~ "tree2",
+      TRUE ~ "tree1"
+    )
+  )
+
+class_tree <- rpart(
+  best_tree ~ tree1 + tree2 + tree3,
+  data = class_tree_tbl,
+  method = "class",
+  maxdepth = 4,
+  cp = .0015,
+  minbucket = 30,
+  weights = class_tree_tbl$weight,
+)
+rpart.plot(class_tree, type = 1, under = TRUE, extra = 1)
+
+class_test <- test %>%
+  mutate(
+    tree = predict(class_tree, class_tree_tbl, type = "class"),
+    y_hat = case_when(
+      tree == "tree1" ~ tree1,
+      tree == "tree2" ~ tree2,
+      TRUE ~ tree3
+    )
+  )
 ```
 
 ### Other (short duration)
