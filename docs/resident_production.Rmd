@@ -45,29 +45,29 @@ logsum <- read_csv("data/input/nhb/logsums.csv")
 ```
 
 ```{r aggregate trips, eval=FALSE}
-# Approach 1: use trip weights. Have non-integer counts of trips.
-aggregate_trips <- trips_df %>%
-  filter(tour_type != "H" & homebased == "HB") %>%
-  group_by(hhid, personid, trip_type) %>%
-  summarize(
-    trips = sum(trip_weight_combined) / sum(hh_weight_combined),
-    p_taz = first(p_taz)
-  ) %>%
-  pivot_wider(names_from = trip_type, values_from = trips) %>%
-  mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
-  ungroup()
-
-# # Approach 2: use household weights and have integer counts of trips.
+# # Approach 1: use trip weights. Have non-integer counts of trips.
 # aggregate_trips <- trips_df %>%
 #   filter(tour_type != "H" & homebased == "HB") %>%
 #   group_by(hhid, personid, trip_type) %>%
 #   summarize(
-#     trips = n(),
+#     trips = sum(trip_weight_combined) / sum(hh_weight_combined),
 #     p_taz = first(p_taz)
 #   ) %>%
 #   pivot_wider(names_from = trip_type, values_from = trips) %>%
 #   mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
 #   ungroup()
+
+# Approach 2: use household weights and have integer counts of trips.
+aggregate_trips <- trips_df %>%
+  filter(tour_type != "H" & homebased == "HB") %>%
+  group_by(hhid, personid, trip_type) %>%
+  summarize(
+    trips = n(),
+    p_taz = first(p_taz)
+  ) %>%
+  pivot_wider(names_from = trip_type, values_from = trips) %>%
+  mutate(across(everything(), ~ifelse(is.na(.x), 0, .x))) %>%
+  ungroup()
 
 est_tbl <- person_df %>%
   left_join(aggregate_trips %>% select(-hhid), by = "personid") %>%
@@ -139,90 +139,6 @@ library(parallelMap)
 library(plotly)
 ```
 
-
-```{r, eval=FALSE}
-# Initial attempt using person-level
-dt_tbl <- est_tbl %>%
-  select(N_HB_OME_All, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, num_children, access) %>%
-  mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
-  mutate(across(N_HB_OME_All:num_children, as.factor)) %>%
-  normalizeFeatures(target = "N_HB_OME_All") %>%
-  createDummyFeatures(
-    target = "N_HB_OME_All",
-    cols = c(
-      "is_senior",
-      "num_vehicles",
-      "oth_ppl",
-      "oth_kids",
-      "oth_senior",
-      "num_seniors",
-      "num_children"
-    )
-  ) %>%
-  mutate(
-    id = seq(1, n(), 1),
-    weight = est_tbl$weight
-  )
-
-# Split into train/test data
-test_set <- dt_tbl %>% sample_n(.10 * nrow(dt_tbl))
-test_weights <- test_set$weight
-train_set <- dt_tbl[!dt_tbl$id %in% test_set$id, ]
-train_weights <- train_set$weight
-test_set <- test_set %>% select(-id, -weight)
-train_set <- train_set %>% select(-id, -weight)
-
-# Create tasks
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-# trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All")
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
-# testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All")
-
-# The classes are imbalanced with 0 being the dominant class. Use oversampling.
-# table(getTaskTargets(trainTask))
-trainTask <- oversample(trainTask, rate = 2)
-```
-
-```{r, eval=FALSE}
-# Test household aggregation
-dt_tbl <- est_tbl %>%
-  select(
-    hhid, weight, N_HB_OME_All, num_vehicles, num_adults, num_children, num_seniors, access) %>%
-  group_by(hhid) %>%
-  summarize(
-    N_HB_OME_All = sum(N_HB_OME_All),
-    across(c(weight, num_vehicles:access), first)
-  ) %>%
-  mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
-  mutate(across(hhid:num_seniors, as.factor)) %>%
-  normalizeFeatures(target = "N_HB_OME_All") %>%
-  createDummyFeatures(
-    target = "N_HB_OME_All",
-    cols = c(
-      "num_vehicles",
-      "num_adults",
-      "num_children",
-      "num_seniors"
-    )
-  ) %>%
-  mutate(weight = as.numeric(as.character(weight)))
-
-# Split into train/test data
-test_set <- dt_tbl %>% sample_n(.10 * nrow(dt_tbl))
-test_weights <- test_set$weight
-train_set <- dt_tbl[!dt_tbl$hhid %in% test_set$hhid, ]
-train_weights <- train_set$weight
-test_set <- test_set %>% select(-hhid, -weight)
-train_set <- train_set %>% select(-hhid, -weight)
-
-# Create tasks
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
-
-# The classes are not imbalanced with 0 being the dominant class. Use oversampling.
-# table(getTaskTargets(trainTask))
-```
-
 ```{r, eval=FALSE}
 # Withhold 10% of household and their people
 hhids <- unique(est_tbl$hhid)
@@ -231,24 +147,24 @@ train_hhids <- hhids[!hhids %in% test_hhids]
 
 dt_tbl <- est_tbl %>%
   select(
-    hhid, weight, N_HB_OME_All, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
-    num_children, access
+    N_HB_OD_Long, age, g_access, n_access, e_access,
+    hhid, weight, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
+    num_children
   ) %>%
-  mutate(N_HB_OME_All = ifelse(N_HB_OME_All > 1, 1, N_HB_OME_All)) %>%
   mutate(across(hhid:num_children, as.factor)) %>%
-  normalizeFeatures(target = "N_HB_OME_All") %>%
-  createDummyFeatures(
-    target = "N_HB_OME_All",
-    cols = c(
-      "is_senior",
-      "num_vehicles",
-      "oth_ppl",
-      "oth_kids",
-      "oth_senior",
-      "num_seniors",
-      "num_children"
-    )
-  ) %>%
+  normalizeFeatures(target = "N_HB_OD_Long") %>%
+  # createDummyFeatures(
+  #   target = "N_HB_OD_Long",
+  #   cols = c(
+  #     "is_senior",
+  #     "num_vehicles",
+  #     "oth_ppl",
+  #     "oth_kids",
+  #     "oth_senior",
+  #     "num_seniors",
+  #     "num_children"
+  #   )
+  # ) %>%
   mutate(weight = as.numeric(as.character(weight)))
 
 # Split into train/test data
@@ -262,25 +178,29 @@ train_set$hhid <- NULL
 train_weights <- train_set$weight
 train_set$weight <- NULL
 
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
+# trainTask <- makeClassifTask(
+#   data = train_set, target = "N_HB_OD_Long", weights = train_weights)
+# testTask <- makeClassifTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
+trainTask <- makeRegrTask(
+  data = train_set, target = "N_HB_OD_Long", weights = train_weights)
+testTask <- makeRegrTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
 
 # The classes are imbalanced with 0 being the dominant class. Use oversampling.
 # table(getTaskTargets(trainTask))
-trainTask <- oversample(trainTask, rate = 2)
+# trainTask <- oversample(trainTask, rate = 2)
 ```
 
 
 ```{r create-fit-tune xgboost, eval=FALSE}
 # Create learner
 xgb_learner <- makeLearner(
-  "classif.xgboost",
-  predict.type = "prob",
-  # predict.type = "response",
+  "regr.xgboost",
+  # predict.type = "prob",
+  predict.type = "response",
   par.vals = list(
     # mlr folks noted bug when objective is included (issue created). remove.
     # objective = "multi:softmax",
-    eval_metric = "logloss"
+    # eval_metric = "logloss"
     # eval_metric = "error"
   )
 )
@@ -356,9 +276,21 @@ plot_ly() %>%
 xgb_result <- predict(xgb_model, testTask)
 
 # Also get confusion matrix
-conf_mtx <- calculateConfusionMatrix(xgb_result)
-conf_mtx
-measureF1(xgb_result$data$truth, xgb_result$data$response, positive = "1")
+# conf_mtx <- calculateConfusionMatrix(xgb_result)
+# conf_mtx
+# measureF1(xgb_result$data$truth, xgb_result$data$response, positive = "1")
+
+# for regression:
+
+# check r^2 at household level
+check <- xgb_result$data %>%
+  mutate(hhid = test_hhids) %>%
+  group_by(hhid) %>%
+  summarize(
+    y = sum(truth),
+    y_hat = sum(response)
+  )
+r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 ```
 
 ```{r, eval=FALSE}
@@ -844,7 +776,8 @@ dt_tbl <- est_tbl %>%
   select(
     N_HB_OD_Long, weight,
     is_senior, is_child, is_worker, gender, retired_hh, single_parent,
-    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access, per_inc
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access,
+    per_inc, num_vehicles
   ) %>%
   mutate(across(is_senior:single_parent, as.factor))
 
@@ -895,6 +828,94 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 ```
 
 R-squared: `r r_sq`
+
+```{r, eval=FALSE}
+# multi-tree approach
+dt_tbl1 <- est_tbl %>%
+  select(
+    N_HB_OD_Long, weight,
+    is_senior, is_child, is_worker, gender, retired_hh, single_parent,
+    oth_ppl, oth_kids, oth_senior, oth_wrkr, age, g_access, n_access, e_access
+  ) %>%
+  mutate(across(is_senior:single_parent, as.factor))
+
+tree1 <- rpart(
+  N_HB_OD_Long ~ . - weight,
+  data = dt_tbl1, 
+  method = "anova",
+  maxdepth = 4,
+  cp = .0015,
+  minbucket = 30,
+  weights = dt_tbl1$weight,
+)
+
+# Snip to remove specific nodes from the tree
+# summary(tree1) # to find node numbers
+# tree1 <- snip.rpart(tree1, c(7, 13))
+rpart.plot(tree1, type = 1, under = TRUE, extra = 1, cex = .5)
+
+dt_tbl2 <- dt_tbl1 %>%
+  select(-is_worker)
+
+tree2 <- rpart(
+  N_HB_OD_Long ~ . - weight,
+  data = dt_tbl2, 
+  method = "anova",
+  maxdepth = 4,
+  cp = .0015,
+  minbucket = 30,
+  weights = dt_tbl2$weight,
+)
+
+# Snip to remove specific nodes from the tree
+# summary(tree2) # to find node numbers
+# tree <- snip.rpart(tree2, c(7, 13))
+rpart.plot(tree2, type = 1, under = TRUE, extra = 1, cex = .5)
+
+dt_tbl3 <- dt_tbl2 %>%
+  select(-age)
+
+tree3 <- rpart(
+  N_HB_OD_Long ~ . - weight,
+  data = dt_tbl3, 
+  method = "anova",
+  maxdepth = 4,
+  cp = .0015,
+  minbucket = 30,
+  weights = dt_tbl3$weight,
+)
+
+# Snip to remove specific nodes from the tree
+# summary(tree3) # to find node numbers
+# tree <- snip.rpart(tree3, c(7, 13))
+rpart.plot(tree3, type = 1, under = TRUE, extra = 1, cex = .5)
+
+test <- dt_tbl1 %>%
+  select(N_HB_OD_Long, weight,) %>%
+  mutate(
+    tree1 = predict(tree1, dt_tbl1),
+    tree2 = predict(tree2, dt_tbl2),
+    tree3 = predict(tree3, dt_tbl3)
+  )
+
+reg_model <- lm(N_HB_OD_Long ~ tree1 + tree2 + tree3, data = test, weights = weight)
+summary(reg_model)
+
+check <- est_tbl %>%
+  mutate(
+    y = N_HB_OD_Long,
+    y_hat = .70329 * predict(tree1, dt_tbl1) + .35910 * predict(tree2, dt_tbl1) +
+      .56580 * predict(tree3, dt_tbl3) - .33003
+  ) %>%
+  group_by(hhid) %>%
+  summarize(
+    y = sum(y),
+    y_hat = sum(y_hat)
+  )
+round(cor(check$y, check$y_hat)^2, 3)
+
+# add zeroinfl to ensemble
+```
 
 ### Other (short duration)
 
