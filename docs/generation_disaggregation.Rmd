@@ -27,7 +27,7 @@ acs_bg <- shapes$acs_bg
 acs_tract <- shapes$acs_tract
 dec_bg <- shapes$dec_bg
 
-taz <- sf::read_sf("data/input/tazs/tazs 2020-12-08.shp") %>%
+taz <- sf::read_sf("data/input/tazs/master_tazs.shp") %>%
   st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
 taz <- st_transform(taz, st_crs(acs_bg)) %>% st_make_valid()
 ```

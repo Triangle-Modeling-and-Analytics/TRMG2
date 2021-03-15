@@ -235,8 +235,9 @@ Macro "Synthesize Population"(Args)
     // Optional outputs include: The IPUIncidenceFile and one weight table for each PUMA
     o.OutputHouseholdsFile = Args.[Synthesized HHs]
     o.ReportExtraHouseholdField("PUMA", "PUMA")
+    o.ReportExtraHouseholdField("HINCP", "HHInc")
     o.OutputPersonsFile = Args.[Synthesized Persons]
-    o.ReportExtraPersonsField("SEX", "Gender") // Add extra field from Person Seed and change the name
+    o.ReportExtraPersonsField("SEX", "gender") // Add extra field from Person Seed and change the name
     o.ReportExtraPersonsField("ESR", "EmploymentStatus")
     
     // Optional IPU by-products

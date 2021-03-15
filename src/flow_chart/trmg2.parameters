@@ -59,6 +59,10 @@
         Args.[Synthesized Persons] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
 
+    Section = "Resident Productions"
+
+        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
+
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }

@@ -949,7 +949,6 @@ dependent_vars <- c(
   "N_HB_O_All_auto_pay",
   "N_HB_OME_All_bike",
   "N_HB_OME_All_hov",
-  "N_HB_OME_All_other",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_t",
   "N_HB_OME_All_walk",

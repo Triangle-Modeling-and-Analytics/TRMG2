@@ -28,6 +28,8 @@
 <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
 <script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -432,15 +434,16 @@ div.tocify {
 <ul>
 <li>Person-level variables
 <ul>
-<li>retired_hh: if the household contains only retirees</li>
 <li>is_worker: if the person is a worker</li>
 <li>is_senior: if the person is &gt;= 65</li>
 <li>is_child: if the person is &lt; 18</li>
 <li>age: person’s age</li>
 <li>gender: Male (1) and Female (2)</li>
+<li>single_parent: if the person is the only adult in a household with children</li>
 </ul></li>
 <li>Household Variables
 <ul>
+<li>retired_hh: if the household contains only retirees</li>
 <li>per_inc: per-capita income (household income / size)</li>
 <li>oth_ppl: number of other people in the household</li>
 <li>oth_kids: number of other kids in the household</li>
@@ -460,16 +463,19 @@ div.tocify {
 <h3>Work</h3>
 <p>W_HB_W_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>R-squared: 0.363</p>
 </div>
 <div id="other" class="section level3">
 <h3>Other</h3>
 <p>W_HB_O_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>R-squared: 0.156</p>
 </div>
 <div id="k12-drop-off" class="section level3">
 <h3>K12 Drop Off</h3>
 <p>W_HB_EK12_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>R-squared: 0.182</p>
 </div>
 </div>
 <div id="non-work-tours" class="section level2">
@@ -478,27 +484,212 @@ div.tocify {
 <h3>K12</h3>
 <p>N_HB_K12_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>R-squared: 0.534</p>
 </div>
 <div id="shoppingdining" class="section level3">
 <h3>Shopping/Dining</h3>
 <p>N_HB_OME_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>R-squared: 0.113</p>
 </div>
 <div id="other-long-duration" class="section level3">
 <h3>Other (long duration)</h3>
 <p>N_HB_OD_Long</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>R-squared: 0.153</p>
 </div>
 <div id="other-short-duration" class="section level3">
 <h3>Other (short duration)</h3>
 <p>N_HB_OD_Short</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>R-squared: 0.103</p>
 </div>
 <div id="medical" class="section level3">
 <h3>Medical</h3>
 <p>N_HB_OMED_All</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>R-squared: 0.027</p>
 </div>
+</div>
+<div id="calibration" class="section level2">
+<h2>Calibration</h2>
+<p>The table below shows the production model results compared back to the total trips in the survey. Overall, the model performs extremely well even without calibration.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Type
+</th>
+<th style="text-align:right;">
+Observed
+</th>
+<th style="text-align:right;">
+Modelled
+</th>
+<th style="text-align:right;">
+Difference
+</th>
+<th style="text-align:right;">
+%Difference
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N_HB_K12_All
+</td>
+<td style="text-align:right;">
+578,167
+</td>
+<td style="text-align:right;">
+569,133
+</td>
+<td style="text-align:right;">
+-9,034
+</td>
+<td style="text-align:right;">
+-2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long
+</td>
+<td style="text-align:right;">
+899,013
+</td>
+<td style="text-align:right;">
+920,221
+</td>
+<td style="text-align:right;">
+21,208
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short
+</td>
+<td style="text-align:right;">
+728,483
+</td>
+<td style="text-align:right;">
+709,869
+</td>
+<td style="text-align:right;">
+-18,614
+</td>
+<td style="text-align:right;">
+-3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:right;">
+1,023,528
+</td>
+<td style="text-align:right;">
+987,549
+</td>
+<td style="text-align:right;">
+-35,979
+</td>
+<td style="text-align:right;">
+-4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:right;">
+116,545
+</td>
+<td style="text-align:right;">
+100,922
+</td>
+<td style="text-align:right;">
+-15,623
+</td>
+<td style="text-align:right;">
+-13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All
+</td>
+<td style="text-align:right;">
+57,304
+</td>
+<td style="text-align:right;">
+57,663
+</td>
+<td style="text-align:right;">
+360
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:right;">
+287,811
+</td>
+<td style="text-align:right;">
+289,502
+</td>
+<td style="text-align:right;">
+1,691
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All
+</td>
+<td style="text-align:right;">
+767,883
+</td>
+<td style="text-align:right;">
+787,745
+</td>
+<td style="text-align:right;">
+19,862
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Total
+</td>
+<td style="text-align:right;">
+4,458,733
+</td>
+<td style="text-align:right;">
+4,422,603
+</td>
+<td style="text-align:right;">
+-36,130
+</td>
+<td style="text-align:right;">
+-1
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 <br>
