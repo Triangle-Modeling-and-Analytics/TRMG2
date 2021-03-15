@@ -431,7 +431,8 @@ div.tocify {
 <li>Bike</li>
 <li>Walk</li>
 </ul>
-<p>The model coefficients below are the result of multiple linear regression with a forced intercept at zero. In addition, the model predictions in estimation will be scaled up to a predicted regional total. As a result of these two factors, the r-squared values are not meaningful and are not displayed. Instead, the value of the coefficients is in determining the relative effect that various home-based trip types have on non-home-based trip generation.</p>
+<p>The model coefficients below are the result of multiple linear regression with a forced intercept at zero. In addition, the model predictions in estimation will be scaled up to a predicted regional total. As a result of these two factors, the displayed r-squared values are not as meaningful. Instead, the value of the coefficients is in determining the relative effect that various home-based trip types have on non-home-based trip generation.</p>
+<p>When reviewing the coefficients below, note their logical consistency: SOV NHB trips are most likely to result when the HB trip is SOV or HOV. NHB walk trips can be made when a person drives from home, but is more much more likely if they walk. These results greatly improve the TRMG2 NHB models compared to traditional trip-based construction.</p>
 </div>
 <div id="work-tours" class="section level2">
 <h2>Work tours</h2>
@@ -2369,6 +2370,7 @@ NA
 </div>
 <div id="non-work-tours" class="section level2">
 <h2>Non-work tours</h2>
+<p>For many of the NHB trips on non-work tours, the models have two additional parameters alpha and beta. These coefficients control the impact of zonal accessibility on the models and are discussed in detail in the next section.</p>
 <div id="n_nh_k12_all" class="section level3 tabset N_NH_K12_All">
 <h3>N_NH_K12_All</h3>
 <p>These are non-home-based trips with one trend end at school (K-12). This includes children attending school and parents dropping off children at school. The “All” means that this type does not separate short from long duration activities.</p>
@@ -5371,8 +5373,11 @@ NA
 </div>
 <div id="boosting-charts" class="section level2">
 <h2>Boosting charts</h2>
-<p>The chart below shows the effects of boosting…</p>
-<p><em>TODO: Add details</em></p>
+<p><strong>TODO: Vince add intro</strong></p>
+<p><strong>TODO: Kyle to add transit when skims available</strong></p>
+<p>The chart below shows how accessibility impacts each trip type. The y-axis is a simple factor. When the factor is 1, the trip rates will the same as displayed in the tables above. A y-value of 0.5 means the trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are increased by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB making is more likely when traveling to a central business district compared to a rural zone.</p>
+<p>While no zone in the Triangle region has an auto accessibility below four, walk and transit accessibilities can approach zero. If a zone has no transit accessibility, the boosted model will ensure that no NHB transit trips are produced.</p>
+<p>For NHB auto trips, the slope of the line indicates the sensitivity to accessibility. For example, the least sensitive trip is the K12 SOV trip, which can be made after a parent drops a child off at school. For these trips, the accessibility of the school zone is not as important. On the other hand, group shopping trips (OME HOV) are the most sensitive to accessibility. These relationships between trip type and sensitivity to accessibility are intuitive expected.</p>
 <p><img src="nhb_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 </div>
 
