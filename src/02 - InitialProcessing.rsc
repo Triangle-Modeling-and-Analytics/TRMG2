@@ -555,31 +555,31 @@ Macro "Create Link Networks" (Args)
     auto_nets = null
     auto_nets.sov.filter = "D = 1 and HOV = 'None'"
     auto_nets.hov.filter = "D = 1"
-    for i = 1 to auto_nets.length do
-        name = auto_nets[i][1]
-        
-        filter = auto_nets.(name).filter
-        net_file = output_dir + "/net_" + name + ".net"
+    a_periods = {"AM", "MD", "PM", "NT"}
+    for period in a_periods do
+        for i = 1 to auto_nets.length do
+            name = auto_nets[i][1]
+            
+            filter = auto_nets.(name).filter
+            net_file = output_dir + "/net_" + period + "_" + name + ".net"
 
-        // Build roadway network
-        netObj = CreateObject("Network.Create")
-        netObj.LayerDB = link_dbd
-        netObj.Filter = filter   
-        netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
-        netObj.AddLinkField({Name: "CapacityAM", Field: {"ABAMCapE", "BAAMCapE"}, IsTimeField : false, DefaultValue: 1800})
-        netObj.AddLinkField({Name: "CapacityMD", Field: {"ABMDCapE", "BAMDCapE"}, IsTimeField : false, DefaultValue: 1800})
-        netObj.AddLinkField({Name: "CapacityPM", Field: {"ABPMCapE", "BAPMCapE"}, IsTimeField : false, DefaultValue: 1800})
-        netObj.AddLinkField({Name: "CapacityNT", Field: {"ABNTCapE", "BANTCapE"}, IsTimeField : false, DefaultValue: 1800})
-        netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
-        netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
-        netObj.NetworkName = net_file
-        netObj.Run()
-        netSetObj = null
-        netSetObj = CreateObject("Network.Settings")
-        netSetObj.LayerDB = link_dbd
-        netSetObj.LoadNetwork(net_file)
-        netSetObj.CentroidFilter = "Centroid = 1"
-        netSetObj.Run()
+            // Build roadway network
+            netObj = CreateObject("Network.Create")
+            netObj.LayerDB = link_dbd
+            netObj.Filter = filter   
+            netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
+            netObj.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField : false, DefaultValue: 1800})
+            netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
+            netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+            netObj.NetworkName = net_file
+            netObj.Run()
+            netSetObj = null
+            netSetObj = CreateObject("Network.Settings")
+            netSetObj.LayerDB = link_dbd
+            netSetObj.LoadNetwork(net_file)
+            netSetObj.CentroidFilter = "Centroid = 1"
+            netSetObj.Run()
+        end
     end
 
     // Create the non-motorized networks
