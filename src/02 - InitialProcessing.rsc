@@ -661,31 +661,28 @@ Macro "Create Route Networks" (Args)
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
                 o.AddLinkField({
-                    Name: "FFTime", 
-                    TransitFields: {"FFTime", "FFTime"}, 
+                    Name: "IVTT", 
+                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"}, 
                     NonTransitFields: {"WalkTime", "WalkTime"}
-                })
+                })       
                 o.AddLinkField({
-                    Name: period + "CongTime", 
-                    TransitFields: {"AB_" + period + "Congtime", "BA_" + period + "Congtime"}, 
-                    NonTransitFields: {"WalkTime", "WalkTime"}
+                    Name: "DriveTime", 
+                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"},
+                    NonTransitFields: {"AB" + period + "Time", "BA" + period + "Time"}
                 })
-                o.AddLinkField({Name: "Alpha", NonTransitFields: {"Alpha"}})
-                o.AddLinkField({Name: "Beta", NonTransitFields: {"Beta"}})
-                o.AddLinkField({Name: "Capacity", NonTransitFields: {period + "Capacity"}})
                 o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
                 o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
                 o.UseModes({
                     TransitModeField: "Mode",
                     NonTransitModeField: "Mode"
                 })
-                o.Run()
+                o.Run()       
 
                 // Set transit network settings
                 o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
+                o.UserClasses = {"Class1"}
                 o.CentroidFilter = "Centroid = 1"
-                o.LinkImpedance = period + "CongTime"
-                o.DriveTime = period + "CongTime"
+                o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 999,
                     MaxTransfers = 4
@@ -695,7 +692,7 @@ Macro "Create Route Networks" (Args)
                 o.Combination({CombinationFactor: .1})
                 o.StopTimeFields({
                     InitialPenalty: null,
-                    TransferPenalty: null,
+                    TransferPenalty: "xfer_pen",
                     DwellOn: "dwell_on",
                     DwellOff: "dwell_off"
                 })
@@ -747,8 +744,9 @@ Macro "Create Route Networks" (Args)
                     RouteXFareField: "Fare"
                 })
 
-                // Handle drive access direction
+                // Handle drive access attributes
                 if access_mode = "knr" or access_mode = "pnr" then do
+                    o.DriveTime = "DriveTime"
                     opts = null
                     opts.InUse = true
                     opts.PermitAllWalk = false
@@ -756,14 +754,12 @@ Macro "Create Route Networks" (Args)
                     if access_mode = "knr" 
                         then opts.ParkingNodes = "ID > 0" // any node
                         else opts.ParkingNodes = "PNR = 1"
-                    opts.AlphaField = "Alpha"
-                    opts.BetaField = "Beta"
-                    opts.CapacityField = "Capacity"
                     if period = "PM" 
                         then o.DriveEgress(opts)
                         else o.DriveAccess(opts)
                 end
                 ok = o.Run()
+Throw()
             end
         end
     end
