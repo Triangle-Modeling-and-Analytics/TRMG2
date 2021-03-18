@@ -1,7 +1,7 @@
-mode_name,abbr,mode_id,impedance,net_defs,lb,eb,brt,cr,lr,description
-Non-Transit,nt,1,,.---->,1,1,1,1,1,The net_def fields specify
-Local Bus,lb,2,,.---->,2,1,1,1,1,1: mode is active in network
-Express Bus,eb,3,,.---->,,2,1,1,1,2: mode is required in the network
-Bus Rapid Transit,brt,4,,.---->,,,2,1,1,
-Commuter Rail,cr,5,,.---->,,,,2,1,
-Light Rail,lr,6,,.---->,,,,,2,
+mode_name,mode_id,abbr,impedance,net_defs,lb,eb,brt,cr,lr,description
+Non-Transit,1,nt,,.---->,1,1,1,1,1,The net_def fields specify
+Local Bus,2,lb,,.---->,2,1,1,1,1,1: mode is active in network
+Express Bus,3,eb,,.---->,,2,1,1,1,2: mode is required in the network
+Bus Rapid Transit,4,brt,,.---->,,,2,1,1,
+Commuter Rail,5,cr,,.---->,,,,2,1,
+Light Rail,6,lr,,.---->,,,,,2,
