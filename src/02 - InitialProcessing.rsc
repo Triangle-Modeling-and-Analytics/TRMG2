@@ -10,6 +10,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
     RunMacro("Create Link Networks", Args)
+    RunMacro("Create Route Networks", Args)
 
     return(1)
 EndMacro
@@ -475,6 +476,7 @@ Macro "Other Attributes" (Args)
     links_dbd = Args.Links
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
+    periods = Args.periods
 
     // Add link layer to workspace
     objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
@@ -484,14 +486,22 @@ Macro "Other Attributes" (Args)
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
         {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"},
-        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
-        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"},
         {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
         {"Beta", "Real", 10, 2, , , , "VDF beta value"},
         {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
         {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph"},
-        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"}
+        {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"},
+        {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
+        {"FFTime", "Real", 10, 2, , , , "Free flow travel time"}
     }
+    for period in periods do
+        a_fields = a_fields + {
+            {"AB" + period + "Time", "Real", 10, 2, , , , 
+            "Congested time in the " + period + " period.|Updated after each feedback iteration."},
+            {"BA" + period + "Time", "Real", 10, 2, , , , 
+            "Congested time in the " + period + " period.|Updated after each feedback iteration."}
+        }
+    end
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
 
     // Open parameter table
@@ -505,8 +515,9 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_len, v_ps, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_len, v_ps, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
+            llyr + ".Dir",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             ffs_tbl + ".ModifyPosted",
@@ -526,6 +537,12 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
+    v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
+    v_ba_time = if v_dir = -1 or v_dir = 0 then v_fft
+    for period in periods do
+        SetDataVector(jv + "|", llyr + ".AB" + period + "Time", v_ab_time, )
+        SetDataVector(jv + "|", llyr + ".BA" + period + "Time", v_ba_time, )
+    end
     CloseView(jv)
 
     // DTWB fields
@@ -548,6 +565,7 @@ Macro "Create Link Networks" (Args)
 
     link_dbd = Args.Links
     output_dir = Args.[Output Folder] + "/networks"
+    periods = Args.periods
 
     // Create the auto networks
     // This array could be passed in as an argument to make the function more
@@ -555,8 +573,7 @@ Macro "Create Link Networks" (Args)
     auto_nets = null
     auto_nets.sov.filter = "D = 1 and HOV = 'None'"
     auto_nets.hov.filter = "D = 1"
-    a_periods = {"AM", "MD", "PM", "NT"}
-    for period in a_periods do
+    for period in periods do
         for i = 1 to auto_nets.length do
             name = auto_nets[i][1]
             
@@ -564,15 +581,15 @@ Macro "Create Link Networks" (Args)
             net_file = output_dir + "/net_" + period + "_" + name + ".net"
 
             // Build roadway network
-            netObj = CreateObject("Network.Create")
-            netObj.LayerDB = link_dbd
-            netObj.Filter = filter   
-            netObj.AddLinkField({Name: "FFTIME", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
-            netObj.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField : false, DefaultValue: 1800})
-            netObj.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
-            netObj.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
-            netObj.NetworkName = net_file
-            netObj.Run()
+            o = CreateObject("Network.Create")
+            o.LayerDB = link_dbd
+            o.Filter = filter   
+            o.AddLinkField({Name: "FFTime", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
+            o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField : false, DefaultValue: 1800})
+            o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
+            o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+            o.NetworkName = net_file
+            o.Run()
             netSetObj = null
             netSetObj = CreateObject("Network.Settings")
             netSetObj.LayerDB = link_dbd
@@ -595,12 +612,12 @@ Macro "Create Link Networks" (Args)
         time_field = nm_nets.(name).time_field
         net_file = output_dir + "/net_" + name + ".net"
 
-        netObj = CreateObject("Network.Create")
-        netObj.LayerDB = link_dbd
-        netObj.Filter =  filter
-        netObj.AddLinkField({Name: time_field, Field: {time_field, time_field}, IsTimeField : true})
-        netObj.NetworkName = net_file
-        netObj.Run()
+        o = CreateObject("Network.Create")
+        o.LayerDB = link_dbd
+        o.Filter =  filter
+        o.AddLinkField({Name: time_field, Field: {time_field, time_field}, IsTimeField : true})
+        o.NetworkName = net_file
+        o.Run()
         netSetObj = null
         netSetObj = CreateObject("Network.Settings")
         netSetObj.LayerDB = link_dbd
@@ -608,4 +625,147 @@ Macro "Create Link Networks" (Args)
         netSetObj.CentroidFilter = "Centroid = 1"
         netSetObj.Run()
     end
+endmacro
+
+/*
+
+*/
+
+Macro "Create Route Networks" (Args)
+
+    link_dbd = Args.Links
+    rts_file = Args.Routes
+    output_dir = Args.[Output Folder] + "/networks"
+    periods = Args.periods
+    transit_modes = Args.transit_modes
+    access_modes = Args.access_modes
+    tmode_table = Args.tmode_table
+
+    for period in periods do
+        for transit_mode in transit_modes do
+            for access_mode in access_modes do
+                
+                // create transit network .tnw file
+                file_name = output_dir + "\\tnet_" + period + "_" + access_mode + "_" + transit_mode + ".tnw"
+                o = CreateObject("Network.CreateTransit")
+                o.LayerRS = rts_file
+                o.NetworkName = file_name
+                o.StopToNodeTagField = "Node_ID"
+                o.RouteFilter = period + "Headway > 0"
+                o.IncludeWalkLinks = true
+                o.WalkLinkFilter = "W = 1"
+                if access_mode = "knr" or access_mode = "pnr" then do
+                    o.IncludeDriveLinks = true
+                    o.DriveLinkFilter = "D = 1"
+                end
+                o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
+                o.AddRouteField({Name: "Fare", Field: "Fare"})
+                o.AddLinkField({
+                    Name: "FFTime", 
+                    TransitFields: {"FFTime", "FFTime"}, 
+                    NonTransitFields: {"WalkTime", "WalkTime"}
+                })
+                o.AddLinkField({
+                    Name: period + "CongTime", 
+                    TransitFields: {"AB_" + period + "Congtime", "BA_" + period + "Congtime"}, 
+                    NonTransitFields: {"WalkTime", "WalkTime"}
+                })
+                o.AddLinkField({Name: "Alpha", NonTransitFields: {"Alpha"}})
+                o.AddLinkField({Name: "Beta", NonTransitFields: {"Beta"}})
+                o.AddLinkField({Name: "Capacity", NonTransitFields: {period + "Capacity"}})
+                o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
+                o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                o.UseModes({
+                    TransitModeField: "Mode",
+                    NonTransitModeField: "Mode"
+                })
+                o.Run()
+
+                // Set transit network settings
+                o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
+                o.CentroidFilter = "Centroid = 1"
+                o.LinkImpedance = period + "CongTime"
+                o.DriveTime = period + "CongTime"
+                o.Parameters({
+                    MaxTripCost = 999,
+                    MaxTransfers = 4
+                    // VOT: .2  TODO: determine this value
+                })
+                o.AccessControl({PermitWalkOnly: false})
+                o.Combination({CombinationFactor: .1})
+                o.StopTimeFields({
+                    InitialPenalty: null,
+                    TransferPenalty: null,
+                    DwellOn: "dwell_on",
+                    DwellOff: "dwell_off"
+                })
+                o.RouteTimeFields({Headway: period + "Headway"})
+                o.ModeTable({
+                    TableName: tmode_table,
+                    ModesUsedField: transit_mode,
+                    OnlyCombineSameMode: true,
+                    FreeTransfers: 0
+                })
+                o.TimeGlobals({
+                    Headway: 14,
+                    InitialPenalty: 0,
+                    TransferPenalty: 3,
+                    MaxInitialWait: 60,
+                    MaxTransferWait: 10,
+                    MinInitialWait: 2,
+                    MinTransferWait: 2,
+                    Layover: 5, 
+                    DwellOn: 0.25,
+                    DwellOff: 0.25,
+                    MaxAccessWalk: 45,
+                    MaxEgressWalk: 45,
+                    MaxModalTotal: 240
+                })
+                o.RouteWeights({
+                    Fare: null,
+                    Time: null,
+                    InitialPenalty: null,
+                    TransferPenalty: null,
+                    InitialWait: null,
+                    TransferWeight: null,
+                    Dwelling: null
+                })
+                o.GlobalWeights({
+                    Fare: 1,
+                    Time: 1,
+                    InitialPenalty: 1,
+                    TransferPenalty: 1,
+                    InitialWait: 2,
+                    TransferWeight: 2,
+                    Dwelling: 2,
+                    WalkTimeFactor: 3,
+                    DriveTimeFactor: 0
+                })
+                o.Fare({
+                    Type: "Flat",
+                    RouteFareField: "Fare",
+                    RouteXFareField: "Fare"
+                })
+
+                // Handle drive access direction
+                if access_mode = "knr" or access_mode = "pnr" then do
+                    opts = null
+                    opts.InUse = true
+                    opts.PermitAllWalk = false
+                    opts.AllowWalkAccess = false
+                    if access_mode = "knr" 
+                        then opts.ParkingNodes = "ID > 0" // any node
+                        else opts.ParkingNodes = "PNR = 1"
+                    opts.AlphaField = "Alpha"
+                    opts.BetaField = "Beta"
+                    opts.CapacityField = "Capacity"
+                    if period = "PM" 
+                        then o.DriveEgress(opts)
+                        else o.DriveAccess(opts)
+                end
+                ok = o.Run()
+            end
+        end
+    end
+
 endmacro
