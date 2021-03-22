@@ -17,3 +17,7 @@ CC,Downtown,0,10,4,"CCs set separately. See the ""CCSpeeds"" parameter in the fl
 CC,Urban,0,10,4,
 CC,Suburban,0,10,4,
 CC,Rural,0,10,4,
+TransitOnly,Downtown,0,10,4,
+TransitOnly,Urban,0,10,4,
+TransitOnly,Suburban,0,10,4,
+TransitOnly,Rural,0,10,4,

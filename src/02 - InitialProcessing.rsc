@@ -654,10 +654,6 @@ Macro "Create Route Networks" (Args)
                 o.RouteFilter = period + "Headway > 0"
                 o.IncludeWalkLinks = true
                 o.WalkLinkFilter = "W = 1"
-                if access_mode = "knr" or access_mode = "pnr" then do
-                    o.IncludeDriveLinks = true
-                    o.DriveLinkFilter = "D = 1"
-                end
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
                 o.AddLinkField({
@@ -665,18 +661,24 @@ Macro "Create Route Networks" (Args)
                     TransitFields: {"AB" + period + "Time", "BA" + period + "Time"}, 
                     NonTransitFields: {"WalkTime", "WalkTime"}
                 })       
-                o.AddLinkField({
-                    Name: "DriveTime", 
-                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"},
-                    NonTransitFields: {"AB" + period + "Time", "BA" + period + "Time"}
-                })
                 o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
                 o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                o.AddStopField({Name: "xfer_pen", Field: "xfer_pen"})
                 o.UseModes({
                     TransitModeField: "Mode",
                     NonTransitModeField: "Mode"
                 })
-                o.Run()       
+                if access_mode = "knr" or access_mode = "pnr" then do
+                    o.IncludeDriveLinks = true
+                    o.DriveLinkFilter = "D = 1"
+                    o.AddLinkField({
+                        Name: "DriveTime", 
+                        TransitFields: {"AB" + period + "Time", "BA" + period + "Time"},
+                        NonTransitFields: {"AB" + period + "Time", "BA" + period + "Time"}
+                    })
+                end
+                o.Run()
+                o = null
 
                 // Set transit network settings
                 o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
@@ -759,7 +761,6 @@ Macro "Create Route Networks" (Args)
                         else o.DriveAccess(opts)
                 end
                 ok = o.Run()
-Throw()
             end
         end
     end
