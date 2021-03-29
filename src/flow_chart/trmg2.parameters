@@ -39,7 +39,6 @@
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
-        Args.transit_modes = { Type:"hidden" , "Value": {"lb", "eb", "brt", "cr", "lr"} }
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
         Args.tmode_table = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
     
