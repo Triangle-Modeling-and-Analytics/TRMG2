@@ -66,6 +66,10 @@
 
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
 
+    Section = "Non-Motorized Choice"
+
+        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
+
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
