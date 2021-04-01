@@ -22,15 +22,11 @@ Macro "Calculate NM Attractions" (Args)
     se_vw = OpenTable("se", "FFB", {se_file})
     RunMacro("Create Sum Product Fields", {view: se_vw, factor_file: rate_file})
 
-    fields = {"nm_NHBODS_attr", "nm_Oth_attr"}
-    descriptions = {
-        "NM choice attractions for|the N_HB_OD_S trip type",
-        "NM choice attractions for|all other types"
-    }
+    fields = "nm_Oth_attr"
+    descriptions = "NM choice model attractions"
     RunMacro("Add Field Description", se_vw, fields, descriptions)
 
     CloseView(se_vw)
-
 endmacro
 
 /*
@@ -39,38 +35,8 @@ endmacro
 
 Macro "Calculate NM Logsums" (Args)
 
-    // link_dbd = Args.Links
     output_dir = Args.[Output Folder]
     se_file = Args.SE
-
-    // // SOV Skim
-    // obj = CreateObject("Network.Skims")
-    // obj.Network = output_dir + "/networks/net_AM_sov.net"
-    // obj.LayerDB = link_dbd
-    // obj.Origins = "Centroid = 1" 
-    // obj.Destinations = "Centroid = 1"
-    // obj.Minimize = "FFTime"
-    // obj.AddSkimField({"Length", "All"})
-    // out_files.sov = output_dir + "/accessibility/sov_skim.mtx"
-    // obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Accessiblity Skim"})
-    // ret_value = obj.Run()
-    // // Walk Skim
-    // obj.Network = output_dir + "/networks/net_walk.net"
-    // obj.Minimize = "WalkTime"
-    // out_files.walk = output_dir + "/accessibility/walk_skim.mtx"
-    // obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Accessiblity Skim"})
-    // ret_value = obj.Run()
-
-    // // intrazonals
-    // obj = CreateObject("Distribution.Intrazonal")
-    // obj.SetMatrix(out_files.sov)
-    // obj.OperationType = "Replace"
-    // obj.TreatMissingAsZero = true
-    // obj.Neighbours = 3
-    // obj.Factor = .75
-    // ok = obj.Run()
-    // obj.SetMatrix(out_files.walk)
-    // ok = obj.Run()
 
     skim_file = output_dir + "/accessibility/walk_skim.mtx"
 
@@ -124,7 +90,7 @@ Macro "Apply NM Choice Model" (Args)
 
     for model_file in a_mdl_files do
         {dir, path, model_name, ext} = SplitPath(model_file)
-        
+
         // Apply mc model
         o = CreateObject("Choice.Mode")
         o.ModelFile = model_file
