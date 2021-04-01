@@ -13,7 +13,7 @@ load_census_data <- function(state = "NC", acs_year = 2018){
   library(sf)
   
   # read in the model study area
-  tazs <- st_read("data/input/tazs/tazs 2020-12-08.shp")
+  tazs <- st_read("data/input/tazs/master_tazs.shp")
   suppressWarnings(
     model_boundary <- tazs %>%
       mutate(temp = 1) %>%

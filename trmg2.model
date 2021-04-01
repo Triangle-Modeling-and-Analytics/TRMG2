@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processing"},{"Population Synthesis"},)
+    model = FlowChart({"Initial Processing"},{"Resident Productions"},)
     //
     // Nodes
     //
@@ -20,6 +20,7 @@ Body:
     FlowChartNode(model,"Initial Processing",,,)
     FlowChartNode(model,"Accessibility",,,)
     FlowChartNode(model,"Population Synthesis",,,)
+    FlowChartNode(model,"Resident Productions",,,)
     //
     // Links
     //
@@ -27,14 +28,15 @@ Body:
     //
     FlowChartLink(model,"Initial Processing","Accessibility",True,,)
     FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
+    FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
     Return(model)
 EndMacro
 
 
 Macro "Initial Processing" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"Picture","bmp\\plan_config_v3.bmp"},
-                  {"MacroNames",{"Initial Processing"}}}
+                  {"MacroNames",{"Initial Processing"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 Body:
     ShowMessage('Running: Initial Processing')
     Return(True)
@@ -43,8 +45,8 @@ EndMacro
 
 Macro "Accessibility" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"Picture","bmp\\planskim_v3.bmp"},
-                  {"MacroNames",{"Accessibility"}}}
+                  {"MacroNames",{"Accessibility"}},
+                  {"Picture","bmp\\planskim_v3.bmp"}}
 Body:
     ShowMessage('Running: Accessibility')
     Return(True)
@@ -53,10 +55,19 @@ EndMacro
 
 Macro "Population Synthesis" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"Picture","bmp\\planlanduse_v3.bmp"},
-                  {"MacroNames",{"Population Synthesis"}}}
+                  {"MacroNames",{"Population Synthesis"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 Body:
     ShowMessage('Running: Population Synthesis')
+    Return(True)
+EndMacro
+
+
+Macro "Resident Productions" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Resident Productions"}}}
+Body:
+    ShowMessage('Running: Resident Productions')
     Return(True)
 EndMacro
 

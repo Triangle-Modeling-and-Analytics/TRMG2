@@ -57,12 +57,18 @@ Modes:
 - Bike
 - Walk
 
-The model coefficients below are the result of multiple linear regression with
-a forced intercept at zero. In addition, the model predictions in estimation will
+The model coefficients below are the result of multiple linear regression with a
+forced intercept at zero. In addition, the model predictions in estimation will
 be scaled up to a predicted regional total. As a result of these two factors,
-the r-squared values are not meaningful and are not displayed. Instead, the
-value of the coefficients is in determining the relative effect that various
-home-based trip types have on non-home-based trip generation.
+the displayed r-squared values are not as meaningful. Instead, the value of the
+coefficients is in determining the relative effect that various home-based trip
+types have on non-home-based trip generation.
+
+When reviewing the coefficients below, note their logical consistency: SOV NHB
+trips are most likely to result when the HB trip is SOV or HOV. NHB walk trips
+can be made when a person drives from home, but is more much more likely if they
+walk. These results greatly improve the TRMG2 NHB models compared to traditional
+trip-based construction.
 
 ```{r, include = FALSE}
 trips <- read_csv(
@@ -160,10 +166,6 @@ coeffs_list[type] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
-
-
-
 
 #### Auto Pay
 
@@ -582,6 +584,10 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ## Non-work tours
 
+For many of the NHB trips on non-work tours, the models have two additional
+parameters alpha and beta. These coefficients control the impact of zonal
+accessibility on the models and are discussed in detail in the next section.
+
 ### N_NH_K12_All {.tabset .N_NH_K12_All}
 
 These are non-home-based trips with one trend end at school (K-12). This
@@ -949,7 +955,6 @@ dependent_vars <- c(
   "N_HB_O_All_auto_pay",
   "N_HB_OME_All_bike",
   "N_HB_OME_All_hov",
-  "N_HB_OME_All_other",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_t",
   "N_HB_OME_All_walk",
@@ -1234,9 +1239,30 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ## Boosting charts
 
-The chart below shows the effects of boosting...
+**TODO: Vince add intro**
 
-*TODO: Add details*
+**TODO: Kyle to add transit when skims available**
+
+The chart below shows how accessibility impacts each trip type. The y-axis is a
+simple factor. When the factor is 1, the trip rates will the same as displayed
+in the tables above. A y-value of 0.5 means the trip rates will be reduced by
+50 percent. Conversely, a y-value of 1.5 means that trip rates are increased
+by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB
+making is more likely when traveling to a central business district compared to
+a rural zone.
+
+While no zone in the Triangle region has an auto accessibility below four, walk
+and transit accessibilities can approach zero. If a zone has no transit
+accessibility, the boosted model will ensure that no NHB transit trips are
+produced.
+
+For NHB auto trips, the slope of the line indicates the sensitivity to
+accessibility. For example, the least sensitive trip is the K12 SOV trip, which
+can be made after a parent drops a child off at school. For these trips, the
+accessibility of the school zone is not as important. On the other hand, group
+shopping trips (OME HOV) are the most sensitive to accessibility. These
+relationships between trip type and sensitivity to accessibility are intuitive
+expected.
 
 ```{r}
 tbl <- bind_rows(p_tbl_list)
@@ -1250,9 +1276,6 @@ ggplot(tbl) +
   ) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
-
-
-
 
 ```{r write_output, eval=FALSE}
 output_dir <- "data/output/nhb/"

@@ -60,7 +60,7 @@ to turn the old and new zone layers off.
 ```{r}
 taz_old <- sf::read_sf("data/input/tazs/tazs 2020-11-02.shp") %>%
   st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
-taz_new <- sf::read_sf("data/input/tazs/tazs 2020-12-08.shp") %>%
+taz_new <- sf::read_sf("data/input/tazs/master_tazs.shp") %>%
   st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
 ```
 
