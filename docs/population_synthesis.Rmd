@@ -59,9 +59,9 @@ survey and reweighing the combined records.
 Various aggregate marginals, typically ACS marginals at the census block or
 block group level in the base year or sometimes at higher levels of geography
 for future years provide control totals that the synthesized databases must
-match. It is also a well-accepted practice to fir curves using the census
+match. It is also a well-accepted practice to fit curves using the census
 marginal distributions, which can then be applied to generate marginals at a
-Traffic Analysis Zone (TAZ) level for example. These TAZs are usually smaller
+TAZ level for example. These TAZs are usually smaller
 than census block groups but larger than census blocks.
 
 ![](img/population_synthesis/e77edcda0faee3ffd2ee39c632311b05.png)
@@ -77,10 +77,10 @@ this example, the two classifications of interest are HH by Size and HH by
 Number of Vehicles. The row and column marginals highlighted in yellow are the
 input control totals and the goal of the process is to fill in the cells of the
 matrix (i.e. the values TS1_V0 etc.) such that the row and column totals are
-respected. The value TS1_V0 represent the number of single person, zero car HHs
+respected. The value TS1_V0 represents the number of single person, zero car HHs
 that need to be synthesized for this block group.
 
-!(img/population_synthesis/de720c90d6dd29e992ba740f94bc604e.png)
+![](img/population_synthesis/de720c90d6dd29e992ba740f94bc604e.png)
 
 **Figure 2 IPF**
 
@@ -94,9 +94,9 @@ Nested synthesis will drill all the marginals down to a common geography
 Finally, for each smallest geographic entity, the required number of households
 of each type determined by IPF are sampled or drawn from the surveyed (seed)
 households using externally supplied (initial) weights (generally based on the
-suvey sampling). The selected households are accumulated in a HH output file,
+survey sampling). The selected households are accumulated in a HH output file,
 and all persons living within each sampled household are automatically copied
-into an person output file. Together, the HH and person files comprise the
+into a person output file. Together, the HH and person files comprise the
 synthetic population once the sampling is complete.
 
 The most important drawback of this process is the lack of control on person
@@ -166,7 +166,7 @@ category with three age marginals, then the HH with ID 5 has 1+ vehicles and has
 three persons (two in age category 2 and one in age category 3). Multiplying the
 ‘HH Veh 0’ column vector (cell by cell) with a corresponding weight vector will
 yield the number of HHs with zero vehicles in the zone. This is indicated in the
-‘Column Sum’ row. The ‘Marginals’ row consist of the target values for this
+‘Column Sum’ row. The ‘Marginals’ row consists of the target values for this
 zone.
 
 ![](img/population_synthesis/aa0f6caa036c008d9e503a2bd600e134.png)
@@ -249,16 +249,16 @@ of maintaining fast run times, only the one-dimensional marginals are used to
 form the incidence table. Thus, in the hypothetical example, the incidence table
 has 12 HH columns (as opposed to 64) and 7 person columns (as opposed to 10).
 
-The enhanced TransCAD IPU method has been previously applied successfully for
+The enhanced TransCAD IPU method has been applied successfully for
 the Las Vegas RTC model as well as the California Central Coast ABM model. In
 both cases, not only was the match to the one-dimensional marginals (especially
 the persons) very close but the joint distribution observed from the synthesis
-were also very reasonable. These applications take a fraction of time compared
+was also very reasonable. These applications take a fraction of time compared
 to that reported on similar sized problems with the original IPU method or
 optimization methods.
 
-The next few sections discuss the application of the procedure to TRM and the
-results.
+The next few sections discuss the application of the procedure to the TRM and 
+the results.
 
 Application for the TRM
 =======================
@@ -284,17 +284,17 @@ Several disaggregate curves developed from the ACS 2014-2018 data are used to
 obtain these marginals from zonal average values which are more easily supplied
 for future scenarios than full distributions. The curves determine the
 respective marginal splits based on average HH size, ratio of TAZ income to
-regional TAZ income and average number of workers in the TAZ.
+regional income and average number of workers in the TAZ.
 
 Person marginals matched include
 
 -   Persons by Age Group
 
-    -   Children [0, 18)
+    -   Children (0 < age <= 18)
 
-    -   Adults under 65 [18, 65)
+    -   Adults under 65 (18 < age < 65)
 
-    -   Seniors [65, 130)
+    -   Seniors (age >= 65)
 
 The zone socio economic data contains derived percentages of kids, adults under
 65 and seniors (from ACS data). These are used to compute the three age
@@ -322,12 +322,12 @@ Results
 =======
 
 The population synthesis on TRM generates 731,913 HHs and 1,783,548 persons. The
-number of HHs in the SED data is 731,875 and the population in households is
+number of HHs in the SE data is 731,875 and the population in households is
 1,826,973. The percentage errors are 0.005% on the HHs and 2.38% on the overall
 population. 
 
 The fit to various marginals is illustrated in the following charts. The input
-SED marginals (by TAZ) are on the x-axis while the synthesized marginals
+SE marginals (by TAZ) are on the x-axis while the synthesized marginals
 (aggregated to TAZ) are plotted on the y-axis. Each graph also includes the
 regression line equation, R-squared and the percent RMSE.
 
@@ -386,16 +386,17 @@ the final TRM synthesis and illustrate the efficacy of the IPU.
 Conclusion
 ==========
 
-The updated population synthesis for the TRM is based on TransCAD 9’s synthesis,
-which is a variant of the population synthesis with IPU published in the
-literature. The marginals are at the TAZ level are derived by fitting curves on
-the ACS 2014-2018 data. The ACS PUMS for these years form the seed databases for
-the synthesis procedure. The marginals matched include HH by Size, HH by Number
-of Workers, HH by Income Group and Persons by Age. The population synthesis is
-extremely fast with a run time of 2 minutes and the fit to the marginals is
-great. The resulting synthesis is demonstrative of the person and HH
-characteristic distribution in the TRM region and can be confidently used in the
-application of the state-of-the-art hybrid model for the Triangle Region.
+The updated population synthesis for the TRM is based on the improved population
+synthesis available in TransCAD 9, which is a variant of the population
+synthesis with IPU published in the literature. The TAZ marginals are derived by
+fitting curves on the ACS 2014-2018 data. The ACS PUMS for these years form the
+seed databases for the synthesis procedure. The marginals matched include HH by
+Size, HH by Number of Workers, HH by Income Group and Persons by Age. The
+population synthesis is extremely fast with a run time of 2 minutes and the fit
+to the marginals is great. The resulting synthesis is demonstrative of the
+person and HH characteristic distribution in the TRM region and can be
+confidently used in the application of the state-of-the-art hybrid model for the
+Triangle Region.
 
 References
 ==========
