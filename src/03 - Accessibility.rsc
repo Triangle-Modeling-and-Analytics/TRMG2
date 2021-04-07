@@ -305,7 +305,7 @@ Macro "Access Logsums" (Args)
 
     // SOV Skim
     obj = CreateObject("Network.Skims")
-    obj.Network = output_dir + "/networks/net_sov.net"
+    obj.Network = output_dir + "/networks/net_AM_sov.net"
     obj.LayerDB = link_dbd
     obj.Origins = "Centroid = 1" 
     obj.Destinations = "Centroid = 1"

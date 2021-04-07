@@ -319,7 +319,12 @@ Macro "Create Scenario Route System" (MacroOpts)
   // The tcb method leaves a layer open. Use close all to close it and the map.
   RunMacro("Close All")
 
-  // The new route system is created without attributes. Join them back.
+  // The new route system is created without attributes, but with Time and
+  // Distance fields added. Remove those fields and then join back the originals.
+  vw_temp = OpenTable("vw_temp", "FFB", {Substitute(output_rts_file, ".rts", "R.bin", )})
+  RunMacro("Remove Field", vw_temp, "Time")
+  RunMacro("Remove Field", vw_temp, "Distance")
+  CloseView(vw_temp)
   master_df = CreateObject("df")
   master_df.read_bin(
     Substitute(master_rts_copy, ".rts", "R.bin", )

@@ -420,9 +420,9 @@ div.tocify {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>There are many problems related to non-home-based trips in traditional trip-based models arising from the fact that they are disconnected from the home-based trips with which they comprise complete tours. In order to properly represent non-home-based trips, two spatial distribution or destination/spatial choice models are required to account for both the trip’s origin location and destination location. The four-step model architecture is fundamentally flawed because it produces non-home-based trips from only one trip distribution or spatial choice model.</p>
-<p>To address these problems, the TRM adopts an alternative approach with a simple change to the structure of the trip-based model, running the non-home-based model components after and conditional on the home-based model components instead of in parallel and independently of them as in the traditional four-step model. This relatively simple structural change significantly improves the TRM’s ability to represent non-home-based trips and their response to land use changes and transportation infrastructure investments. Running a NHB distribution or destination choice model after and conditional on home-based destination choices in this approach, provides the required second spatial distribution model to propertly model both the origin and destination of NHB trips.</p>
-<p>Moreover, by generating NHB trips separately by mode based on home-based mode choices, essentially provides information about whether a traveler has a car with them and allows the model, despite its trip-based form, to ensure a reasonable consistency of modes on tour.</p>
-<p>Modes:</p>
+<p>To address these problems, the TRM adopts an alternative approach with a simple change to the structure of the trip-based model, running the non-home-based model components after and conditional on the home-based model components instead of in parallel and independently of them as in the traditional four-step model. This relatively simple structural change significantly improves the TRM’s ability to represent non-home-based trips and their response to land use changes and transportation infrastructure investments. Running a NHB distribution or destination choice model after and conditional on home-based destination choices in this approach, provides the required second spatial distribution model to properly model both the origin and destination of NHB trips.</p>
+<p>In this approach, NHB trips are generated separately by mode based on home-based mode choices. This essentially provides information about whether a traveler has a car with them and allows the model, despite its trip-based form, to ensure a reasonable consistency of modes on tour.</p>
+<p>Available modes include:</p>
 <ul>
 <li>SOV</li>
 <li>HOV</li>
@@ -431,13 +431,15 @@ div.tocify {
 <li>Bike</li>
 <li>Walk</li>
 </ul>
-<p>The model coefficients below are the result of multiple linear regression with a forced intercept at zero. In addition, the model predictions in estimation will be scaled up to a predicted regional total. As a result of these two factors, the displayed r-squared values are not as meaningful. Instead, the value of the coefficients is in determining the relative effect that various home-based trip types have on non-home-based trip generation.</p>
+<p>The model coefficients below are the result of multiple linear regression with a forced intercept at zero. In addition, the model estimation will be scaled up to a predicted regional total. As a result of these two factors, the displayed r-squared values are not as meaningful. Instead, the value of the coefficients is in determining the relative effect that various home-based trip types have on non-home-based trip generation.</p>
 <p>When reviewing the coefficients below, note their logical consistency: SOV NHB trips are most likely to result when the HB trip is SOV or HOV. NHB walk trips can be made when a person drives from home, but is more much more likely if they walk. These results greatly improve the TRMG2 NHB models compared to traditional trip-based construction.</p>
 </div>
 <div id="work-tours" class="section level2">
 <h2>Work tours</h2>
+<p>Each trip type below is a non-homebased trip on a work tour. Each tab shows a mode-specific model that estimates which homebased trips and modes generate that non-homebased trip and mode combination.</p>
 <div id="w_nh_ek12_all" class="section level3 tabset W_NH_EK12_All">
 <h3>W_NH_EK12_All</h3>
+<p>These are non-homebased trips made on a work tour before or after dropping a child off at school. For example, a parent might drop off a child and then get gas before heading to work. The trip between school and the gas station is a W_NH_EK12_All trip.</p>
 <div id="sov" class="section level4">
 <h4>SOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -758,11 +760,11 @@ NA
 </div>
 <div id="auto-pay" class="section level4">
 <h4>Auto Pay</h4>
-<p>No significant presence of this trip type in the survey (0 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+<p>No significant presence of this trip type in the survey (0 samples), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 <div id="transit" class="section level4">
 <h4>Transit</h4>
-<p>No significant presence of this trip type in the survey (3 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+<p>No significant presence of this trip type in the survey (3 samples), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 <div id="walk" class="section level4">
 <h4>Walk</h4>
@@ -835,624 +837,13 @@ NA
 </div>
 <div id="bike" class="section level4">
 <h4>Bike</h4>
-<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was not estimated.</p>
-</div>
-</div>
-<div id="w_nh_o_all" class="section level3 tabset W_NH_O_All">
-<h3>W_NH_O_All</h3>
-<div id="sov-1" class="section level4">
-<h4>SOV</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:left;">
-estimated_as
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-W_HB_EK12_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_EK12_All_auto
-</td>
-<td style="text-align:right;">
-0.0897
-</td>
-<td style="text-align:right;">
-0.0213
-</td>
-<td style="text-align:right;">
-4.2072
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_EK12_All_sov
-</td>
-<td style="text-align:left;">
-W_HB_EK12_All_auto
-</td>
-<td style="text-align:right;">
-0.0897
-</td>
-<td style="text-align:right;">
-0.0213
-</td>
-<td style="text-align:right;">
-4.2072
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_hov
-</td>
-<td style="text-align:right;">
-0.2187
-</td>
-<td style="text-align:right;">
-0.0208
-</td>
-<td style="text-align:right;">
-10.5078
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_sov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_sov
-</td>
-<td style="text-align:right;">
-0.4147
-</td>
-<td style="text-align:right;">
-0.0132
-</td>
-<td style="text-align:right;">
-31.3144
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:right;">
-0.3335
-</td>
-<td style="text-align:right;">
-0.0514
-</td>
-<td style="text-align:right;">
-6.4923
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-r_sq
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-0.4599
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="hov-1" class="section level4">
-<h4>HOV</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:left;">
-estimated_as
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_hov
-</td>
-<td style="text-align:right;">
-0.5070
-</td>
-<td style="text-align:right;">
-0.0177
-</td>
-<td style="text-align:right;">
-28.5811
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_sov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_sov
-</td>
-<td style="text-align:right;">
-0.0950
-</td>
-<td style="text-align:right;">
-0.0113
-</td>
-<td style="text-align:right;">
-8.3866
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:right;">
-0.1758
-</td>
-<td style="text-align:right;">
-0.0439
-</td>
-<td style="text-align:right;">
-4.0016
-</td>
-<td style="text-align:right;">
-0.0001
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_W_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_W_All_hov
-</td>
-<td style="text-align:right;">
-0.0873
-</td>
-<td style="text-align:right;">
-0.0215
-</td>
-<td style="text-align:right;">
-4.0537
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-r_sq
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-0.2790
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="auto-pay-1" class="section level4">
-<h4>Auto Pay</h4>
-<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was not estimated.</p>
-</div>
-<div id="transit-1" class="section level4">
-<h4>Transit</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:left;">
-estimated_as
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-W_HB_EK12_All_walk
-</td>
-<td style="text-align:left;">
-W_HB_EK12_All_walk
-</td>
-<td style="text-align:right;">
-0.2074
-</td>
-<td style="text-align:right;">
-0.0959
-</td>
-<td style="text-align:right;">
-2.1624
-</td>
-<td style="text-align:right;">
-0.0306
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_t
-</td>
-<td style="text-align:left;">
-W_HB_O_All_t
-</td>
-<td style="text-align:right;">
-0.1163
-</td>
-<td style="text-align:right;">
-0.0298
-</td>
-<td style="text-align:right;">
-3.8981
-</td>
-<td style="text-align:right;">
-0.0001
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:right;">
-0.2314
-</td>
-<td style="text-align:right;">
-0.0100
-</td>
-<td style="text-align:right;">
-23.0527
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_W_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_W_All_hov
-</td>
-<td style="text-align:right;">
-0.0120
-</td>
-<td style="text-align:right;">
-0.0049
-</td>
-<td style="text-align:right;">
-2.4560
-</td>
-<td style="text-align:right;">
-0.0141
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-r_sq
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-0.0200
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="walk-1" class="section level4">
-<h4>Walk</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:left;">
-estimated_as
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_hov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_auto
-</td>
-<td style="text-align:right;">
-0.0614
-</td>
-<td style="text-align:right;">
-0.0053
-</td>
-<td style="text-align:right;">
-11.5803
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_sov
-</td>
-<td style="text-align:left;">
-W_HB_O_All_auto
-</td>
-<td style="text-align:right;">
-0.0614
-</td>
-<td style="text-align:right;">
-0.0053
-</td>
-<td style="text-align:right;">
-11.5803
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:left;">
-W_HB_O_All_walk
-</td>
-<td style="text-align:right;">
-0.4046
-</td>
-<td style="text-align:right;">
-0.0243
-</td>
-<td style="text-align:right;">
-16.6531
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_W_All_sov
-</td>
-<td style="text-align:left;">
-W_HB_W_All_sov
-</td>
-<td style="text-align:right;">
-0.0173
-</td>
-<td style="text-align:right;">
-0.0041
-</td>
-<td style="text-align:right;">
-4.2625
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-r_sq
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-0.3691
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="bike-1" class="section level4">
-<h4>Bike</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:left;">
-estimated_as
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All_bike
-</td>
-<td style="text-align:left;">
-W_HB_O_All_bike
-</td>
-<td style="text-align:right;">
-0.0236
-</td>
-<td style="text-align:right;">
-0.0047
-</td>
-<td style="text-align:right;">
-5.0789
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-r_sq
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-0.0082
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
+<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 </div>
 <div id="w_nh_wr_all" class="section level3 tabset W_NH_WR_All">
 <h3>W_NH_WR_All</h3>
-<div id="sov-2" class="section level4">
+<p>These are non-homebased trips made on a work tour where one trip end is related to work, but not the primary work location. A trip made to attend a business meeting is a good example.</p>
+<div id="sov-1" class="section level4">
 <h4>SOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1621,7 +1012,7 @@ NA
 </tbody>
 </table>
 </div>
-<div id="hov-2" class="section level4">
+<div id="hov-1" class="section level4">
 <h4>HOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1770,7 +1161,7 @@ NA
 </tbody>
 </table>
 </div>
-<div id="auto-pay-2" class="section level4">
+<div id="auto-pay-1" class="section level4">
 <h4>Auto Pay</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1859,7 +1250,7 @@ NA
 </tbody>
 </table>
 </div>
-<div id="transit-2" class="section level4">
+<div id="transit-1" class="section level4">
 <h4>Transit</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -2028,7 +1419,7 @@ NA
 </tbody>
 </table>
 </div>
-<div id="walk-2" class="section level4">
+<div id="walk-1" class="section level4">
 <h4>Walk</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -2257,7 +1648,7 @@ NA
 </tbody>
 </table>
 </div>
-<div id="bike-2" class="section level4">
+<div id="bike-1" class="section level4">
 <h4>Bike</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -2367,13 +1758,627 @@ NA
 </table>
 </div>
 </div>
+<div id="w_nh_o_all" class="section level3 tabset W_NH_O_All">
+<h3>W_NH_O_All</h3>
+<p>These are non-homebased trips made on a work tour that are not related to work or dropping off children at school. In effect, these are all other non-homebased trips made on work tours. This would include stopping to get gas on your way from home to work.</p>
+<div id="sov-2" class="section level4">
+<h4>SOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.0897
+</td>
+<td style="text-align:right;">
+0.0213
+</td>
+<td style="text-align:right;">
+4.2072
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_auto
+</td>
+<td style="text-align:right;">
+0.0897
+</td>
+<td style="text-align:right;">
+0.0213
+</td>
+<td style="text-align:right;">
+4.2072
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.2187
+</td>
+<td style="text-align:right;">
+0.0208
+</td>
+<td style="text-align:right;">
+10.5078
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.4147
+</td>
+<td style="text-align:right;">
+0.0132
+</td>
+<td style="text-align:right;">
+31.3144
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.3335
+</td>
+<td style="text-align:right;">
+0.0514
+</td>
+<td style="text-align:right;">
+6.4923
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+r_sq
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.4599
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="hov-2" class="section level4">
+<h4>HOV</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:right;">
+0.5070
+</td>
+<td style="text-align:right;">
+0.0177
+</td>
+<td style="text-align:right;">
+28.5811
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:right;">
+0.0950
+</td>
+<td style="text-align:right;">
+0.0113
+</td>
+<td style="text-align:right;">
+8.3866
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.1758
+</td>
+<td style="text-align:right;">
+0.0439
+</td>
+<td style="text-align:right;">
+4.0016
+</td>
+<td style="text-align:right;">
+0.0001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.0873
+</td>
+<td style="text-align:right;">
+0.0215
+</td>
+<td style="text-align:right;">
+4.0537
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+r_sq
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.2790
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="auto-pay-2" class="section level4">
+<h4>Auto Pay</h4>
+<p>No significant presence of this trip type in the survey (2 samples), and it is not an important source of travel demand. No model was estimated.</p>
+</div>
+<div id="transit-2" class="section level4">
+<h4>Transit</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_EK12_All_walk
+</td>
+<td style="text-align:right;">
+0.2074
+</td>
+<td style="text-align:right;">
+0.0959
+</td>
+<td style="text-align:right;">
+2.1624
+</td>
+<td style="text-align:right;">
+0.0306
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:left;">
+W_HB_O_All_t
+</td>
+<td style="text-align:right;">
+0.1163
+</td>
+<td style="text-align:right;">
+0.0298
+</td>
+<td style="text-align:right;">
+3.8981
+</td>
+<td style="text-align:right;">
+0.0001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.2314
+</td>
+<td style="text-align:right;">
+0.0100
+</td>
+<td style="text-align:right;">
+23.0527
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_hov
+</td>
+<td style="text-align:right;">
+0.0120
+</td>
+<td style="text-align:right;">
+0.0049
+</td>
+<td style="text-align:right;">
+2.4560
+</td>
+<td style="text-align:right;">
+0.0141
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+r_sq
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.0200
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="walk-2" class="section level4">
+<h4>Walk</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_hov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.0614
+</td>
+<td style="text-align:right;">
+0.0053
+</td>
+<td style="text-align:right;">
+11.5803
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_O_All_auto
+</td>
+<td style="text-align:right;">
+0.0614
+</td>
+<td style="text-align:right;">
+0.0053
+</td>
+<td style="text-align:right;">
+11.5803
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:left;">
+W_HB_O_All_walk
+</td>
+<td style="text-align:right;">
+0.4046
+</td>
+<td style="text-align:right;">
+0.0243
+</td>
+<td style="text-align:right;">
+16.6531
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:left;">
+W_HB_W_All_sov
+</td>
+<td style="text-align:right;">
+0.0173
+</td>
+<td style="text-align:right;">
+0.0041
+</td>
+<td style="text-align:right;">
+4.2625
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+r_sq
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.3691
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bike-2" class="section level4">
+<h4>Bike</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:left;">
+estimated_as
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:left;">
+W_HB_O_All_bike
+</td>
+<td style="text-align:right;">
+0.0236
+</td>
+<td style="text-align:right;">
+0.0047
+</td>
+<td style="text-align:right;">
+5.0789
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+r_sq
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.0082
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="non-work-tours" class="section level2">
 <h2>Non-work tours</h2>
-<p>For many of the NHB trips on non-work tours, the models have two additional parameters alpha and beta. These coefficients control the impact of zonal accessibility on the models and are discussed in detail in the next section.</p>
+<p>Each trip type below is a non-homebased trip made on a non-work tour. Each tab shows a mode-specific model that estimates which homebased trips and modes generate that non-homebased trip and mode combination.</p>
+<p>For many of these trip types, the models have two additional parameters alpha and beta. These coefficients control the impact of zonal accessibility on the models and are discussed in detail in the next section.</p>
 <div id="n_nh_k12_all" class="section level3 tabset N_NH_K12_All">
 <h3>N_NH_K12_All</h3>
-<p>These are non-home-based trips with one trend end at school (K-12). This includes children attending school and parents dropping off children at school. The “All” means that this type does not separate short from long duration activities.</p>
+<p>These are non-homebased trips made on a non-work tour with one trip end at school (K-12). This includes children attending school and (non-working) parents dropping off children at school.</p>
 <div id="sov-3" class="section level4">
 <h4>SOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -2714,11 +2719,11 @@ NA
 </div>
 <div id="auto-pay-3" class="section level4">
 <h4>Auto Pay</h4>
-<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was not estimated.</p>
+<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 <div id="transit-3" class="section level4">
 <h4>Transit</h4>
-<p>No significant presence of this trip type in the survey (5 samples), and it is not an important source of travel demand. No model was not estimated.</p>
+<p>No significant presence of this trip type in the survey (5 samples), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 <div id="walk-3" class="section level4">
 <h4>Walk</h4>
@@ -2951,12 +2956,12 @@ NA
 </div>
 <div id="bike-3" class="section level4">
 <h4>Bike</h4>
-<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was not estimated.</p>
+<p>No significant presence of this trip type in the survey (1 sample), and it is not an important source of travel demand. No model was estimated.</p>
 </div>
 </div>
 <div id="n_nh_ome_all" class="section level3 tabset N_NH_OME_All">
 <h3>N_NH_OME_All</h3>
-<p>These non-home-based trips are those where neither end is a K12 school and at least one end is an “OME” activity type. This includes the most common reasons people spend money: shopping, dining, and maintenance activities. The “All” means that this trip includes all activity durations.</p>
+<p>These are non-homebased trips made on a non-work tour where neither trip end is a K12 school and at least one end is an “OME” activity type. This includes the most common reasons people spend money: shopping, dining, and maintenance activities.</p>
 <div id="sov-4" class="section level4">
 <h4>SOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -4274,7 +4279,7 @@ NA
 </div>
 <div id="n_nh_o_all" class="section level3 tabset N_NH_O_All">
 <h3>N_NH_O_All</h3>
-<p>These non-home-based trips are those where neither end is a K12 school or a shopping/dining/maintenance activity (OME). The “All” means that this trip includes all activity durations.</p>
+<p>These non-home-based trips are those where neither end is a K12 school or a shopping/dining/maintenance activity (OME). In effect, these are all other non-homebased trips made on non-work tours. Visiting friends or family at their home is an example of this trip type.</p>
 <div id="sov-5" class="section level4">
 <h4>SOV</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -5375,10 +5380,24 @@ NA
 <h2>Boosting charts</h2>
 <p><strong>TODO: Vince add intro</strong></p>
 <p><strong>TODO: Kyle to add transit when skims available</strong></p>
-<p>The chart below shows how accessibility impacts each trip type. The y-axis is a simple factor. When the factor is 1, the trip rates will the same as displayed in the tables above. A y-value of 0.5 means the trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are increased by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB making is more likely when traveling to a central business district compared to a rural zone.</p>
+<p>The chart below shows how accessibility impacts each trip type. The y-axis is a simple factor. When the factor is 1, the trip rates will be the same as displayed in the tables above. A y-value of 0.5 means the trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are increased by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB making is more likely when traveling to a central business district compared to a rural zone.</p>
 <p>While no zone in the Triangle region has an auto accessibility below four, walk and transit accessibilities can approach zero. If a zone has no transit accessibility, the boosted model will ensure that no NHB transit trips are produced.</p>
-<p>For NHB auto trips, the slope of the line indicates the sensitivity to accessibility. For example, the least sensitive trip is the K12 SOV trip, which can be made after a parent drops a child off at school. For these trips, the accessibility of the school zone is not as important. On the other hand, group shopping trips (OME HOV) are the most sensitive to accessibility. These relationships between trip type and sensitivity to accessibility are intuitive expected.</p>
-<p><img src="nhb_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>For NHB auto trips, the slope of the line indicates the sensitivity to accessibility. For example, the least sensitive trip is the K12 SOV trip, which can be made after a parent drops a child off at school. For these trips, the accessibility of the school zone is not as important. On the other hand, group shopping trips (OME HOV) are the most sensitive to accessibility. These relationships between trip type and sensitivity to accessibility are intuitive.</p>
+<p><img src="nhb_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="chained-nhb-trips" class="section level2 tabset">
+<h2>Chained NHB Trips</h2>
+<p>The models above predict non-home-based trips using home-based trip ends; however, multiple NHB trips can be chained together. Three NHB trips in a row result in a middle trip where neither trip end is coincident with an HB attraction from the same tour. If these chained NHB trips have a different distribution pattern, then HB attractions would not be sufficient to predict the full range of NHB behavior.</p>
+<p>In previous work, Caliper tested this question and repeatedly found that the pattern of these chained NHB trips are not significantly different. Caliper used the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB trip ends were aggregated to the TAZ and correlation was computed. The correlation value of 0.817 confirms that these chained trips in are also highly correlated with HB trip attractions. Their patterns can be adequately captured by the NHB models already estimated. Other than calibration to ensure accurate NHB trip totals, no special handling is needed.</p>
+<p>The two maps below show this correlation visually.</p>
+<div id="hb-attractions" class="section level3">
+<h3>HB Attractions</h3>
+<p><img src="img/nhb/hb_attractions.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="nh-trip-ends" class="section level3">
+<h3>NH Trip Ends</h3>
+<p><img src="img/nhb/nhb_trip_ends.png" width="70%" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 
 <br>

@@ -1455,8 +1455,11 @@ pts <- tibble(
   )
 
 # manual check that they overlap
-# plot(tazs, max.plot = 1)
-# plot(pts, max.plot = 1, add=TRUE)
+# library(leaflet)
+# leaflet() %>%
+#   addProviderTiles("Stamen.TonerLite") %>%
+#   addPolygons(data = tazs) %>%
+#   addMarkers(data = pts[2000:3000, ])
 ```
 
 ```{r, include=FALSE}

@@ -1099,10 +1099,10 @@ Macro "Create Sum Product Fields" (MacroOpts)
       input_field = input_fields[i]
       factor = factors[i]
 
-      output.(output_field  ) = output.(output_field) + nz(input.(input_field)) * factor
+      output.(output_field) = output.(output_field) + nz(input.(input_field)) * factor
     end
   end
-  RunMacro("Add Fields", {view: view, a_fields: a_fields})
+  RunMacro("Add Fields", {view: view, a_fields: a_fields, initial_values: 0})
   SetDataVectors(view + "|", output, )
 
   CloseView(fac_vw)
