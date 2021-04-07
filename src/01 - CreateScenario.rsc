@@ -211,7 +211,7 @@ Macro "Create Scenario Transit" (Args)
   end
   SetView(mode_vw)
   DeleteRecordsInSet(del_set)
-  ExportView(mode_vw + "|", "CSV", Args.tmode_table, , {"CSV Header": true})
+  ExportView(mode_vw + "|", "CSV", Args.tmode_table, , {"CSV Header": "true"})
   CloseView(mode_vw)
 
   CloseMap(map)
