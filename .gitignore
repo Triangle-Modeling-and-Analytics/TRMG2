@@ -6,3 +6,4 @@
 *.xml
 .DS_Store
 data/external/*
+data/interim/tazs.*
