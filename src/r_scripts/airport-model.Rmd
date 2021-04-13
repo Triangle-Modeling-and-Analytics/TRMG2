@@ -1,0 +1,94 @@
+---
+title: "Airport Model"
+output: html_notebook
+---
+
+# Overhead
+```{r overhead, include = FALSE}
+packages_vector <- c("tidyverse",
+                     "sf")
+
+need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
+
+if (length(need_to_install)) install.packages(need_to_install)
+
+for (package in packages_vector) {
+  library(package, character.only = TRUE)
+}
+
+```
+
+# Remote I/O
+```{r remote-io}
+external_dir <- "../../data/external/"
+interim_dir <- "../../data/interim/"
+
+streetlight_filename <- paste0(external_dir, "streetlight/161428_TRM20test5_2016/161428_TRM20test5_2016_od_all.csv")
+streetlight_shapefile <- paste0(external_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
+
+output_production_filename <- paste0(interim_dir, "airport-productions.csv")
+```
+
+# Parameters
+```{r parameters}
+AIRPORT_ZONE <- 1261
+LAT_LNG_EPSG <- 4326
+```
+
+# Data Reads
+```{r read}
+streetlight_df <- read_csv(streetlight_filename, col_types = cols(.default = col_character(),
+                                                                  `Origin Zone ID` = col_integer(),
+                                                                  `Destination Zone ID` = col_integer()))
+
+shapes_sf <- st_read(streetlight_shapefile, crs = LAT_LNG_EPSG)
+```
+
+# Clean Streetlight 
+```{r clean-street}
+clean_street_df <- streetlight_df %>%
+  select(type = `Type of Travel`,
+         orig_zone = `Origin Zone ID`,
+         dest_zone = `Destination Zone ID`,
+         day_type = `Day Type`,
+         day_part = `Day Part`,
+         flow = `Average Daily O-D Traffic (StL Volume)`,
+         duration_sec = `Avg Trip Duration (sec)`) %>%
+  mutate(flow = if_else(flow == "N/A", as.double(NA), as.double(flow))) %>%
+  mutate(duration_sec = if_else(duration_sec == "N/A", as.integer(NA), as.integer(duration_sec)))
+
+centroids_sf <- select(shapes_sf, id, geometry) %>%
+  st_centroid(.)
+
+centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
+  bind_cols(tibble(zone = centroids_sf$id)) %>%
+  mutate(zone = as.integer(zone)) %>%
+  rename(lat = Y, lng = X)
+```
+
+# Reductions
+```{r reductions}
+working_df <- clean_street_df %>%
+  filter(type == "Personal") %>%
+  filter(day_type == "1: Weekday (M-Th)") %>%
+  filter(orig_zone == AIRPORT_ZONE | dest_zone == AIRPORT_ZONE) %>%
+  filter(orig_zone != dest_zone) %>%
+  filter(day_part == "0: All Day (12am-12am)") %>%
+  filter(!is.na(duration_sec)) %>%
+  mutate(production_taz = if_else(orig_zone == AIRPORT_ZONE, dest_zone, orig_zone)) %>%
+  mutate(purpose = if_else(orig_zone == AIRPORT_ZONE, "From Airport", "To Airport")) 
+
+productions_df <- working_df %>%
+  group_by(production_taz) %>%
+  summarize(trips = sum(flow), duration_min = mean(duration_sec)/60.0, .groups = "drop") %>%
+  left_join(., centroids_df, by = c("production_taz" = "zone"))
+
+
+```
+
+# Write
+```{r write}
+write_csv(productions_df, output_production_filename)
+```
+
+
