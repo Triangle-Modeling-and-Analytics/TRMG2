@@ -365,6 +365,7 @@ Macro "Access Logsums" (Args)
             size = GetDataVector(se_vw + "|", size_field, )
             cores.size := size
             cores.util := cores.size * pow(cores.(time_field), alpha) * exp(beta * cores.(time_field))
+            // cores.util := cores.size * exp(kappa * parking_cost) * exp(beta * cores.(time_field)
             cores.util := if cores.size = 0 then 0 else cores.util
             rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
             logsum = Max(0, log(rowsum))

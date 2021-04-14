@@ -23,22 +23,28 @@ The highway and transit networks are critical inputs for any travel model. They
 provide travel time, accessibility, and other impedance information. The Caliper
 team used the various existing data sources from the model stakeholders together 
 with other sources including the TIGER line files and review with satellite 
-imagery in order to fashion a new master network for both roadways and transit.
+imagery in order to fashion a new master layer for both roadways and transit.
 
-## Roadway Network
+This documentation uses the term "network" specifically to refer to the machine-
+readable files (.net and .tnw) TransCAD uses for shortest pathing and assignment.
+The GIS files that planners and modelers review and edit are referred to as
+layers. This language is something Caliper is trying to promote to clarify
+which data component is being referenced.
 
-### Creation of the master network
+## Roadway Layer
 
-Like TRMv6, the TRMG2 model uses a master network that contains all projects
+### Creation of the master layer
+
+Like TRMv6, the TRMG2 model uses a master layer that contains all projects
 stakeholders might consider during transportation plan development (including
-competing ideas). This allows each scenario network to be exported from the
+competing ideas). This allows each scenario layer to be exported from the
 master with little or no manual editing. Information on using the project
 management tool is covered in the user guide.
 
-The previous highway network made heavy use of numeric codes that translated
+The previous highway layer made heavy use of numeric codes that translated
 into values (e.g. a facility type of 1 might signify interstate). For TRMG2,
 these fields now contain the string values directly, which improves
-understanding, usability, and maintenance of the network. It also makes the
+understanding, usability, and maintenance of the layer. It also makes the
 model's GISDK code easier to read.
 
 For these same reasons, the previous "Special" field was broken up into new
@@ -47,13 +53,13 @@ like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It is easier to
 understand a query like "TollType = 'Toll'" compared to "Special = 43". For a
 full enumeration of field names and meanings, see the user guide.
 
-The Caliper team also updated the master network to reflect a 2016 base year,
-the target year for model estimation (the final network is a 2020 base year and
+The Caliper team also updated the master layer to reflect a 2016 base year,
+the target year for model estimation (the final layer is a 2020 base year and
 will be accompanied by a 2020 year model validation process). In other words, if
-you export a scenario network without any projects it will reflect the 2016 road
+you export a scenario layer without any projects it will reflect the 2016 road
 system. This was done by permanently modifying the base attributes of the master
-network with any projects scheduled to be complete by the base year date. This
-did include some road closures, and those links dropped out of the network
+layer with any projects scheduled to be complete by the base year date. This
+did include some road closures, and those links dropped out of the layer
 permanently.
 
 ### Update of count data
@@ -64,16 +70,16 @@ collection effort undertaken specifically for model validation. All counts were
 factored to an Average Weekday Daily Traffic (AWDT) for April 2017.
 
 The previous model used a separate table to hold count data which then had to be
-joined to the network to make comparisons. For TRMG2, the basic count data
-including station ID and daily AWDT were added to the master network directly.
+joined to the layer to make comparisons. For TRMG2, the basic count data
+including station ID and daily AWDT were added to the master layer directly.
 This makes it easier to compare (either manually or in code) between
 model volumes and count data. Additional information (such as hourly counts)
-can still be maintained in a separate table and joined to the network only as
+can still be maintained in a separate table and joined to the layer only as
 needed. 
 
-### Network conflation
+### Link layer conflation
 
-Caliper reviewed every link in the network line layer comparing against satellite
+Caliper reviewed every link in the road line layer comparing against satellite
 imagery. Alignments were adjusted to match the imagery. Many links were adjusted,
 but most adjustments were small. The alignment of many ramps were corrected and 
 collector/distributor systems were added if they were missing. 
@@ -85,7 +91,7 @@ knitr::include_graphics(c("img/networks/capital_before.png","img/networks/capita
 ### Adding all streets
 
 After conflating the existing links to improve alignments with aerials, Caliper
-upgraded the network to include all streets. These additional streets provide
+upgraded the road layer to include all streets. These additional streets provide
 a much better representation of the walk and transit paths travelers actually
 take, and are shown in orange below.
 
@@ -99,28 +105,28 @@ select the gray or orange links depending on what the user wants to do.
 - `PrimaryLink = 1`: Gray links
 - `PrimaryLink = 0`: Orange links
 
-These queries will also be used to make roadway and transit network creation
+These queries will also be used to make roadway and transit layer creation
 easier. The minor streets do not have attribute information and should not be
 included for use by vehicle travel. They will only be used by non-motorized and
 transit travelers.
 
-### Review of the master network
+### Review of the master layer
 
 With all the changes mentioned above, it was important to check that the new
 master projects remained consistent. To be exhaustive, Caliper wrote code to do
-this programmatically. For instance, every project in the old master network had
-its length checked against the new network. Of the well over 1000 projects,
+this programmatically. For instance, every project in the old master layer had
+its length checked against the new layer. Of the well over 1000 projects,
 only 6 had length discrepancies. Each was investigated and corrected as
 necessary.
 
-Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow
+Shortest paths were also built with the TRMv6 and TRMG2 layers using free-flow
 times based on posted speeds. Comparison of the resulting matrices showed that
 overall the RMSE was only 0.25%, which is very small, indicating close
-consistency between the networks. The increased confidence that nothing was
+consistency between the layers. The increased confidence that nothing was
 broken. Additionally, every OD pair with an absolute percentage change greater
 than 30% was reviewed. The largest relative difference was 62% for one OD pair
 (between zone 1535 and 1444); in that case, the review revealed that the new
-network was correct while the original TRMv6 network allowed a U-turn where it
+layer was correct while the original TRMv6 layer allowed a U-turn where it
 should not have. See the before and after images below.
 
 ```{r, echo=FALSE,out.width="49%",  out.height="20%",fig.cap="Pathing before and after",fig.show='hold',fig.align='center'}
@@ -130,7 +136,7 @@ knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_afte
 A small number of OD pairs were reviewed with changes <30%, but each one was
 reasonable.
 
-## Transit Networks
+## Transit Layer
 
 TRMG2 adds a master layer for transit routes along with a project manager
 specially designed to transfer routes accurately between line layers. This
@@ -185,3 +191,61 @@ rts_check %>%
   kable_styling(full_width = FALSE)
 ```
 
+### Transit networking checking {.tabset}
+
+Transit networks are the files TransCAD uses for shortest path, assignment, and
+other procedures (extension: "tnw"). During the model run, the route system file
+is converted into many different networks. In TRMG2, a separate transit network
+file is created for each combination of
+
+- Time of Day
+  - AM
+  - MD
+  - PM
+  - NT
+- Transit Mode
+  - Local Bus
+  - Express Bus
+  - Bus Rapid Transit (if present)
+  - Commuter Rail (if present)
+  - Light Rail (if present)
+- Access Mode
+  - Walk
+  - Kiss-and-Ride (aka drop off)
+  - Park-and-Ride
+  
+Creating separate files facilitates the critical step of auditing the networks.
+The model translates the route, stop, link, and node layers into a transit
+network, and it is important to make sure the networks are behaving
+appropriately. In the TRMG2, for example, the AM and PM PNR networks behave
+differently. In the AM, where trips are primarily from home to destinations like
+work, drive access works in the PA direction: 
+
+1. Drive to a PNR lot
+2. Walk to the bus access stop
+3. Ride the bus to the egress stop
+4. Walk to the final destination
+
+In the PM network, trips are primarily back to home. For this reason, the
+drive access flow is reversed.
+
+1. Walk to the access stop
+2. Ride the bus to the egress stop
+3. Walk to the PNR lot
+4. Drive home
+
+TransCAD can handle this behavior, but it is always important to check that
+the model code is setup correctly. Separate network files allowed the two maps
+below to be created quickly to confirm proper behavior.
+
+#### PNR AM
+
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/networks/pnr_am.png")
+```
+
+#### PNR PM
+
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/networks/pnr_pm.png")
+```
