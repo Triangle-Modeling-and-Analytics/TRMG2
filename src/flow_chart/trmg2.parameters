@@ -38,6 +38,9 @@
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
+        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
+        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        Args.tmode_table = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
     
     Section = "Accessibilities"
 
@@ -62,6 +65,10 @@
     Section = "Resident Productions"
 
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
+
+    Section = "Non-Motorized Choice"
+
+        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
 
     Section = "Numeric Parameters"
     

@@ -180,8 +180,8 @@ Macro "Create Scenario Transit" (Args)
   // Check that no centroids are marked for PNR. This will cause
   // transit skimming to crash.
   opts = null
-  opts.file = Args.[Input Links]
-  {map, {nlyr, llyr}} = RunMacro("Create Map", opts)
+  opts.file = scen_rts
+  {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", opts)
   SetLayer(nlyr)
   qry = "Select * where Centroid = 1 and PNR = 1"
   n = SelectByQuery("check", "several", qry)
@@ -189,6 +189,31 @@ Macro "Create Scenario Transit" (Args)
     "At least one centroid is marked as a PNR node.\n" +
     "Use the following query to find them: 'Centroid = 1 and PNR = 1'"
   )
+
+  // Remove modes from the mode table that don't exist in the scenario. This
+  // will in turn control which networks (tnw) get created.
+  temp_vw = OpenTable("mode", "CSV", {Args.tmode_table, })
+  mode_vw = ExportView(temp_vw + "|", "MEM", "mode_table", , )
+  SetView(mode_vw)
+  del_set = CreateSet("to_delete")
+  CloseView(temp_vw)
+  v_mode_ids = GetDataVector(mode_vw + "|", "mode_id", )
+  for mode_id in v_mode_ids do
+    if mode_id = 1 then continue
+    SetLayer(rlyr)
+    query = "Select * where Mode = " + String(mode_id)
+    n = SelectByQuery("sel", "several", query)
+    if n = 0 then do
+      SetView(mode_vw)
+      rh = LocateRecord(mode_vw + "|", "mode_id", {mode_id}, )
+      SelectRecord(del_set)
+    end
+  end
+  SetView(mode_vw)
+  DeleteRecordsInSet(del_set)
+  ExportView(mode_vw + "|", "CSV", Args.tmode_table, , {"CSV Header": "true"})
+  CloseView(mode_vw)
+
   CloseMap(map)
 EndMacro
 

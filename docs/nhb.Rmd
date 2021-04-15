@@ -17,6 +17,7 @@ options(scipen = 999)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(sf)
 source("R/estimate_nhb.R")
 source("R/utils.R")
 ```
@@ -41,14 +42,14 @@ ability to represent non-home-based trips and their response to land use changes
 and transportation infrastructure investments. Running a NHB distribution or
 destination choice model after and conditional on home-based destination choices
 in this approach, provides the required second spatial distribution model to
-propertly model both the origin and destination of NHB trips.
+properly model both the origin and destination of NHB trips.
 
-Moreover, by generating NHB trips separately by mode based on home-based mode
-choices, essentially provides information about whether a traveler has a car
-with them and allows the model, despite its trip-based form, to ensure a
-reasonable consistency of modes on tour. 
+In this approach, NHB trips are generated separately by mode based on home-based
+mode choices. This essentially provides information about whether a traveler has
+a car with them and allows the model, despite its trip-based form, to ensure a
+reasonable consistency of modes on tour.
 
-Modes:
+Available modes include:
 
 - SOV
 - HOV
@@ -58,7 +59,7 @@ Modes:
 - Walk
 
 The model coefficients below are the result of multiple linear regression with a
-forced intercept at zero. In addition, the model predictions in estimation will
+forced intercept at zero. In addition, the model estimation will
 be scaled up to a predicted regional total. As a result of these two factors,
 the displayed r-squared values are not as meaningful. Instead, the value of the
 coefficients is in determining the relative effect that various home-based trip
@@ -70,9 +71,14 @@ can be made when a person drives from home, but is more much more likely if they
 walk. These results greatly improve the TRMG2 NHB models compared to traditional
 trip-based construction.
 
+```{r, include=FALSE}
+trips_orig <- read_csv(
+  "data/output/_PRIVATE/survey_processing/trips_processed.csv")
+```
+
+
 ```{r, include = FALSE}
-trips <- read_csv(
-  "data/output/_PRIVATE/survey_processing/trips_processed.csv") %>%
+trips <- trips_orig %>%
   mutate(
     mode_simple2 = case_when(
       mode_simple2 == "bus" ~ "t",
@@ -100,7 +106,16 @@ make_table <- function(tbl) {
 
 ## Work tours
 
+Each trip type below is a non-homebased trip on a work tour. Each tab shows a
+mode-specific model that estimates which homebased trips and modes generate that
+non-homebased trip and mode combination.
+
 ### W_NH_EK12_All {.tabset .W_NH_EK12_All}
+
+These are non-homebased trips made on a work tour before or after dropping a
+child off at school. For example, a parent might drop off a child and then get
+gas before heading to work. The trip between school and the gas station is a
+W_NH_EK12_All trip.
 
 #### SOV
 
@@ -170,7 +185,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 #### Auto Pay
 
 No significant presence of this trip type in the survey (0 samples), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, W_NH_EK12_All_auto_pay}
 type <- "W_NH_EK12_All_auto_pay"
@@ -182,7 +197,7 @@ n_records <- trips %>%
 #### Transit
 
 No significant presence of this trip type in the survey (3 samples), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, W_NH_EK12_All_t}
 type <- "W_NH_EK12_All_t"
@@ -220,7 +235,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 #### Bike
 
 No significant presence of this trip type in the survey (2 samples), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, W_NH_EK12_All_bike}
 type <- "W_NH_EK12_All_bike"
@@ -230,169 +245,11 @@ n_records <- trips %>%
 ```
 
 
-### W_NH_O_All {.tabset .W_NH_O_All}
-
-#### SOV
-
-```{r, W_NH_O_All_sov}
-type <- "W_NH_O_All_sov"
-
-# Collapse trip types
-equiv <- list(
-  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto"
-)
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_EK12_All_auto",
-  "W_HB_O_All_hov",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walk"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
-```
-
-#### HOV
-
-```{r, W_NH_O_All_hov}
-type <- "W_NH_O_All_hov"
-
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_hov",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walk",
-  "W_HB_W_All_hov"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
-```
-
-#### Auto Pay
-
-No significant presence of this trip type in the survey (2 samples), and it is
-not an important source of travel demand. No model was not estimated.
-
-```{r, W_NH_O_All_auto_pay}
-type <- "W_NH_O_All_auto_pay"
-n_records <- trips %>%
-  filter(trip_type == type) %>%
-  nrow()
-```
-
-#### Transit
-
-```{r, W_NH_O_All_t}
-type <- "W_NH_O_All_t"
-
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_walk",
-  "W_HB_O_All_t",
-  "W_HB_W_All_hov",
-  "W_HB_EK12_All_walk"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
-```
-
-#### Walk
-
-```{r, W_NH_O_All_walk}
-type <- "W_NH_O_All_walk"
-
-# Collapse trip types
-equiv <- list(
-  "W_HB_O_All_hov" = "W_HB_O_All_auto",
-  "W_HB_O_All_sov" = "W_HB_O_All_auto"
-)
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_auto",
-  "W_HB_O_All_walk",
-  "W_HB_W_All_sov"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
-```
-
-#### Bike
-
-```{r, W_NH_O_All_bike}
-type <- "W_NH_O_All_bike"
-
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_bike"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
-```
-
-
 ### W_NH_WR_All {.tabset .W_NH_WR_All}
+
+These are non-homebased trips made on a work tour where one trip end is related
+to work, but not the primary work location. A trip made to attend a business
+meeting is a good example.
 
 #### SOV
 
@@ -582,18 +439,188 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
+### W_NH_O_All {.tabset .W_NH_O_All}
+
+These are non-homebased trips made on a work tour that are not related to work
+or dropping off children at school. In effect, these are all other non-homebased
+trips made on work tours. This would include stopping to get gas on your way
+from home to work.
+
+#### SOV
+
+```{r, W_NH_O_All_sov}
+type <- "W_NH_O_All_sov"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_EK12_All_auto",
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV
+
+```{r, W_NH_O_All_hov}
+type <- "W_NH_O_All_hov"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_hov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### Auto Pay
+
+No significant presence of this trip type in the survey (2 samples), and it is
+not an important source of travel demand. No model was estimated.
+
+```{r, W_NH_O_All_auto_pay}
+type <- "W_NH_O_All_auto_pay"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+#### Transit
+
+```{r, W_NH_O_All_t}
+type <- "W_NH_O_All_t"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_walk",
+  "W_HB_O_All_t",
+  "W_HB_W_All_hov",
+  "W_HB_EK12_All_walk"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### Walk
+
+```{r, W_NH_O_All_walk}
+type <- "W_NH_O_All_walk"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov" = "W_HB_O_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_auto",
+  "W_HB_O_All_walk",
+  "W_HB_W_All_sov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### Bike
+
+```{r, W_NH_O_All_bike}
+type <- "W_NH_O_All_bike"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_bike"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+
 ## Non-work tours
 
-For many of the NHB trips on non-work tours, the models have two additional
-parameters alpha and beta. These coefficients control the impact of zonal
-accessibility on the models and are discussed in detail in the next section.
+Each trip type below is a non-homebased trip made on a non-work tour. Each tab
+shows a mode-specific model that estimates which homebased trips and modes
+generate that non-homebased trip and mode combination.
+
+For many of these trip types, the models have two additional parameters alpha
+and beta. These coefficients control the impact of zonal accessibility on the
+models and are discussed in detail in the next section.
 
 ### N_NH_K12_All {.tabset .N_NH_K12_All}
 
-These are non-home-based trips with one trend end at school (K-12). This
-includes children attending school and parents dropping off children at school.
-The "All" means that this type does not separate short from long duration
-activities.
+These are non-homebased trips made on a non-work tour with one trip end at
+school (K-12). This includes children attending school and (non-working) parents
+dropping off children at school.
 
 #### SOV
 
@@ -671,7 +698,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 #### Auto Pay
 
 No significant presence of this trip type in the survey (1 sample), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, N_NH_K12_All_auto_pay}
 type <- "N_NH_K12_All_auto_pay"
@@ -684,7 +711,7 @@ n_records <- trips %>%
 #### Transit
 
 No significant presence of this trip type in the survey (5 samples), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, N_NH_K12_All_t}
 type <- "N_NH_K12_All_t"
@@ -734,7 +761,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 #### Bike
 
 No significant presence of this trip type in the survey (1 sample), and it is
-not an important source of travel demand. No model was not estimated.
+not an important source of travel demand. No model was estimated.
 
 ```{r, N_NH_K12_All_bike}
 type <- "N_NH_K12_All_bike"
@@ -745,10 +772,10 @@ n_records <- trips %>%
 
 ### N_NH_OME_All {.tabset .N_NH_OME_All}
 
-These non-home-based trips are those where neither end is a K12 school and at
-least one end is an "OME" activity type. This includes the most common reasons
-people spend money: shopping, dining, and maintenance activities. The "All"
-means that this trip includes all activity durations.
+These are non-homebased trips made on a non-work tour where neither trip end is
+a K12 school and at least one end is an "OME" activity type. This includes the
+most common reasons people spend money: shopping, dining, and maintenance
+activities.
 
 #### SOV
 
@@ -1012,8 +1039,9 @@ p_tbl_list[type] <- list(model3$p_tbl)
 ### N_NH_O_All {.tabset .N_NH_O_All}
 
 These non-home-based trips are those where neither end is a K12 school or
-a shopping/dining/maintenance activity (OME). The "All" means that this trip
-includes all activity durations.
+a shopping/dining/maintenance activity (OME). In effect, these are all other
+non-homebased trips made on non-work tours. Visiting friends or family at their
+home is an example of this trip type.
 
 #### SOV
 
@@ -1244,12 +1272,12 @@ p_tbl_list[type] <- list(model3$p_tbl)
 **TODO: Kyle to add transit when skims available**
 
 The chart below shows how accessibility impacts each trip type. The y-axis is a
-simple factor. When the factor is 1, the trip rates will the same as displayed
-in the tables above. A y-value of 0.5 means the trip rates will be reduced by
-50 percent. Conversely, a y-value of 1.5 means that trip rates are increased
-by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB
-making is more likely when traveling to a central business district compared to
-a rural zone.
+simple factor. When the factor is 1, the trip rates will be the same as
+displayed in the tables above. A y-value of 0.5 means the trip rates will be
+reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are
+increased by 50 percent. Due to this boosting model, the TRMG2 will understand
+that NHB making is more likely when traveling to a central business district
+compared to a rural zone.
 
 While no zone in the Triangle region has an auto accessibility below four, walk
 and transit accessibilities can approach zero. If a zone has no transit
@@ -1261,8 +1289,7 @@ accessibility. For example, the least sensitive trip is the K12 SOV trip, which
 can be made after a parent drops a child off at school. For these trips, the
 accessibility of the school zone is not as important. On the other hand, group
 shopping trips (OME HOV) are the most sensitive to accessibility. These
-relationships between trip type and sensitivity to accessibility are intuitive
-expected.
+relationships between trip type and sensitivity to accessibility are intuitive.
 
 ```{r}
 tbl <- bind_rows(p_tbl_list)
@@ -1276,6 +1303,94 @@ ggplot(tbl) +
   ) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
+## Chained NHB Trips {.tabset}
+
+```{r, include=FALSE}
+tazs <- read_sf("data/input/tazs/master_tazs.shp") %>%
+  st_drop_geometry() %>%
+  select(TAZ = ID)
+```
+
+```{r}
+# distribution patterns
+hb_dist <- trips_orig %>%
+  filter(homebased == "HB") %>%
+  group_by(a_taz) %>%
+  summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
+
+nh_dist <- bind_rows(
+  trips_orig %>%
+    filter(homebased == "NH") %>%
+    select(taz = p_taz, weight = trip_weight_combined),
+  trips_orig %>%
+    filter(homebased == "NH") %>%
+    select(taz = a_taz, weight = trip_weight_combined)
+) %>%
+  group_by(taz) %>%
+  summarize(weight = sum(weight, na.rm = TRUE))
+
+tbl <- tazs %>%
+  left_join(hb_dist, by = c("TAZ" = "a_taz")) %>%
+  rename(hb_trips = weight) %>%
+  replace_na(list(hb_trips = 0)) %>%
+  mutate(hb_trips = hb_trips / sum(hb_trips)) %>%
+  left_join(nh_dist, by = c("TAZ" = "taz")) %>%
+  rename(nh_trips = weight) %>%
+  replace_na(list(nh_trips = 0)) %>%
+  mutate(nh_trips = nh_trips / sum(nh_trips))
+
+corel <- round(cor(tbl$hb_trips, tbl$nh_trips), 3)
+```
+
+```{r}
+seq_check <- trips_orig %>%
+  group_by(personid, tour_num) %>%
+  mutate(is_seq_nhb = case_when(
+    homebased == "HB" ~ 0,
+    lag(homebased) == "HB" ~ 0,
+    lead(homebased) == "HB" ~ 0,
+    TRUE ~ 1
+  )) %>%
+  group_by(trip_type, is_seq_nhb) %>%
+  summarize(count = n()) %>%
+  mutate(pct = round(count / sum(count) * 100, 1)) %>%
+  # filter(is_seq_nhb == 1) %>%
+  arrange(trip_type, is_seq_nhb)
+
+
+```
+
+The models above predict non-home-based trips using home-based trip ends;
+however, multiple NHB trips can be chained together. Three NHB trips in a row
+result in a middle trip where neither trip end is coincident with an HB
+attraction from the same tour. If these chained NHB trips have a different
+distribution pattern, then HB attractions would not be sufficient to predict the
+full range of NHB behavior.
+
+In previous work, Caliper tested this question and repeatedly found that the
+pattern of these chained NHB trips are not significantly different. Caliper used
+the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB
+attractions and NHB trip ends were aggregated to the TAZ and correlation was
+computed. The correlation value of `r corel` confirms that these chained trips
+in are also highly correlated with HB trip attractions. Their patterns can be
+adequately captured by the NHB models already estimated. Other than calibration
+to ensure accurate NHB trip totals, no special handling is needed.
+
+The two maps below show this correlation visually.
+
+### HB Attractions
+
+```{r, out.width="70%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/nhb/hb_attractions.png")
+```
+
+### NH Trip Ends
+
+```{r, out.width="70%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/nhb/nhb_trip_ends.png")
+```
+
 
 ```{r write_output, eval=FALSE}
 output_dir <- "data/output/nhb/"

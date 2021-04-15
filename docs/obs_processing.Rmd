@@ -1,7 +1,7 @@
 ---
 title: "On-board Survey Processing"
 author: "Caliper Corporation"
-date: "11/17/2020"
+date: "March 15, 2021"
 output: 
   html_document
 editor_options: 
@@ -14,5 +14,314 @@ options(dplyr.summarise.inform = FALSE)
 options(scipen = 999)
 
 library(tidyverse)
+library(readxl)
+library(sf)
+```
+
+## Introduction
+
+**TODO: Vince to add general info about the role of o-b surveys**
+
+In the Triangle, a survey of GoTriangle and DCHC transit agencies was collected
+in 2014 while GoTriangle and CAMPO agencies were collected in 2015.
+
+## Combining surveys
+
+Unlike the household surveys, the two transit surveys were collected by different
+companies. Combining the surveys required translating the different field codes
+from each into a combined set of values. The surveys collected the same basic
+information, which made this process easier. Additionally, because different
+routes were collected in each survey, no adjustments to the weights were needed.
+
+```{r, include=FALSE}
+goraleigh_2015_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2015 GoRaleigh Transit On-Board/1_Data - Original (CDM-Smith)/2015TOB_GoRaleigh_Data_Weighted_Final_2016-04-05_CDMSmith.xlsx")
+gotriangle_2014_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2014 GoTriangle Transit On-Board/1_Data - Original/TTA survey data 8-24_reweighted.xlsx")
+```
+
+```{r}
+# combine surveys
+goraleigh_2015 <- goraleigh_2015_raw %>%
+  transmute(
+    agency = AGENCY,
+    route = ROUTE_SURVEYED,
+    weight = EXPANSION_FACTOR,
+    home_lat = HOME_OR_HOTEL_LAT,
+    home_lon = HOME_OR_HOTEL_LON,
+    orig_lat = ORIGIN_LAT,
+    orig_lon = ORIGIN_LON,
+    board_lat = BOARDING_LAT,
+    board_lon = BOARDING_LON,
+    alight_lat = ALIGHTING_LAT,
+    alight_lon = ALIGHTING_LON,
+    dest_lat = DESTIN_LAT,
+    dest_lon = DESTIN_LON,
+    access_mode = case_when(
+      ACCESS_MODE_CODE == 1 ~ "walk",
+      ACCESS_MODE_CODE == 2 ~ "bike",
+      ACCESS_MODE_CODE == 4 ~ "sovpnr",
+      ACCESS_MODE_CODE == 5 ~ "hovpnr",
+      ACCESS_MODE_CODE == 6 ~ "knr",
+      TRUE ~ "other"
+    ),
+    origin_type = case_when(
+      ORIGIN_PLACE_TYPE_CODE == 1 ~ "home",
+      ORIGIN_PLACE_TYPE_CODE == 2 ~ "work",
+      ORIGIN_PLACE_TYPE_CODE == 3 ~ "wr",
+      ORIGIN_PLACE_TYPE_CODE == 4 ~ "univ",
+      ORIGIN_PLACE_TYPE_CODE == 5 ~ "k12",
+      ORIGIN_PLACE_TYPE_CODE == 6 ~ "med",
+      ORIGIN_PLACE_TYPE_CODE %in% 8:9 ~ "ome",
+      TRUE ~ "other"
+    ),
+    dest_type = case_when(
+      DESTIN_PLACE_TYPE_CODE == 1 ~ "home",
+      DESTIN_PLACE_TYPE_CODE == 2 ~ "work",
+      DESTIN_PLACE_TYPE_CODE == 3 ~ "wr",
+      DESTIN_PLACE_TYPE_CODE == 4 ~ "univ",
+      DESTIN_PLACE_TYPE_CODE == 5 ~ "k12",
+      DESTIN_PLACE_TYPE_CODE == 6 ~ "med",
+      DESTIN_PLACE_TYPE_CODE %in% 8:9 ~ "ome",
+      TRUE ~ "other"
+    ),
+    egress_mode = case_when(
+      EGRESS_MODE_CODE == 1 ~ "walk",
+      EGRESS_MODE_CODE == 2 ~ "bike",
+      EGRESS_MODE_CODE == 4 ~ "sovpnr",
+      EGRESS_MODE_CODE == 5 ~ "hovpnr",
+      EGRESS_MODE_CODE == 6 ~ "knr",
+      TRUE ~ "other"
+    ),
+    fare_type = case_when(
+      FARE_DISCOUNTS_CODE == 1 ~ "full",
+      FARE_DISCOUNTS_CODE == 2 ~ "disability",
+      FARE_DISCOUNTS_CODE == 3 ~ "youth",
+      FARE_DISCOUNTS_CODE == 4 ~ "youth_free",
+      FARE_DISCOUNTS_CODE == 5 ~ "senior",
+      FARE_DISCOUNTS_CODE == 6 ~ "senior_free",
+      FARE_DISCOUNTS_CODE == 7 ~ "pass",
+      TRUE ~ "free_route"
+    ),
+    pass = TRANS_PASS_CARD,
+    hh_veh = ifelse(COUNT_VH_HH_CODE == "10P", 10, COUNT_VH_HH_CODE),
+    hh_veh = as.numeric(hh_veh),
+    hh_size = as.numeric(COUNT_MEMBER_HH_CODE),
+    hh_worker = as.numeric(COUNT_EMPLOYED_HH_CODE),
+    employed = ifelse(EMPLOYMENT_STATUS_CODE %in% 1:2, "yes", "no"),
+    student = case_when(
+      EMPLOYMENT_STATUS == 3 ~ "U",
+      EMPLOYMENT_STATUS == 7 ~ "K12",
+      TRUE ~ "no"
+    ),
+    license = ifelse(HAS_DRIVE_LICENSE_CODE == 1, "yes", "no"),
+    age = case_when(
+      AGE_CODE == 1 ~ "child",
+      AGE_CODE < 7 ~ "adult",
+      TRUE ~ "senior"
+    ),
+    income = case_when(
+      INCOME_CODE <= 5 ~ 1,
+      INCOME_CODE <= 9 ~ 2,
+      INCOME_CODE <= 11 ~ 3,
+      TRUE ~ 4
+    ),
+    transfers = ifelse(TRANSFERS_FROM_CODE == "4+", 4, as.numeric(TRANSFERS_FROM_CODE))
+  )
+
+gotriangle_2014 <- gotriangle_2014_raw %>%
+  transmute(
+    agency = agency,
+    route = route_detail,
+    weight = final_weight,
+    home_lat = home_lat,
+    home_lon = home_lon,
+    orig_lat = origin_lat,
+    orig_lon = origin_lon,
+    board_lat = board_lat,
+    board_lon = board_lon,
+    alight_lat = alight_lat,
+    alight_lon = alight_lon,
+    dest_lat = dest_lat,
+    dest_lon = dest_lon,
+    access_mode = case_when(
+      access == "Walk" ~ "walk",
+      access == "Bike" ~ "bike",
+      access == "Drove alone and parked" ~ "sovpnr",
+      access == "Drove or rode with others and parked" ~ "hovpnr",
+      access == "Was dropped off by someone" ~ "knr",
+      TRUE ~ "other"
+    ),
+    origin_type = case_when(
+      origin_type == "Home" ~ "home",
+      origin_type == "Work" ~ "work",
+      origin_type == "College/University" ~ "univ",
+      origin_type == "Shopping / Eating / Dining" ~ "ome",
+      origin_type == "Other work related place" ~ "wr",
+      origin_type == "Medical / Hospital, non work" ~ "med",
+      origin_type == "K-12 school" ~ "k12",
+      TRUE ~ "other"
+    ),
+    dest_type = case_when(
+      dest_type == "Home" ~ "home",
+      dest_type == "Work" ~ "work",
+      dest_type == "College/University" ~ "univ",
+      dest_type == "Shopping / Eating / Dining" ~ "ome",
+      dest_type == "Other work related place" ~ "wr",
+      dest_type == "Medical / Hospital, non work" ~ "med",
+      dest_type == "K-12 school" ~ "k12",
+      TRUE ~ "other"
+    ),
+    egress_mode = case_when(
+      egress == "Walk" ~ "walk",
+      egress == "Bike" ~ "bike",
+      egress == "Drove alone and parked" ~ "sovpnr",
+      egress == "Drove or rode with others and parked" ~ "hovpnr",
+      egress == "Was dropped off by someone" ~ "knr",
+      TRUE ~ "other"
+    ),
+    fare_type = case_when(
+      fare_type == "Pay the full fare (cash fare or regular pass purchased for yourself)" ~ "full",
+      fare_type == "Use a transit pass provided by your employer or university" ~ "pass",
+      fare_type == "Use a transfer from another bus" ~ "xfer",
+      fare_type == "Pay the Youth Fare" ~ "youth",
+      fare_type == "Ride DATA for free with Senior (65+) ID" ~ "senior_free",
+      fare_type == "Pay the Triangle Transit Senior Fare" ~ "senior",
+      fare_type == "Pay the Person with a Disability Fare" ~ "disability",
+      TRUE ~ "free_route"
+    ),
+    pass = pass,
+    hh_veh = hh_veh,
+    hh_size = hh_tot,
+    hh_worker = hh_emp,
+    employed = case_when(
+      employment == "Employed full-time" ~ "yes",
+      employment == "Employed part-time" ~ "yes",
+      TRUE ~ "no"
+    ),
+    student = case_when(
+      student == "Not a student" ~ "no",
+      student == "Yes - K-12th grade" ~ "K12",
+      TRUE ~ "U"
+    ),
+    license = license,
+    age = case_when(
+      age == "18-24" ~ "adult",
+      age == "25-34" ~ "adult",
+      age == "35-44" ~ "adult",
+      age == "45-54" ~ "adult",
+      age == "55-64" ~ "adult",
+      age == "65+" ~ "senior",
+      TRUE ~ "child"
+    ),
+    # The income breaks in this survey don't match up with the others
+    income = case_when(
+      income == "Less than $10,000" ~ 1,
+      income == "$10,000 - $14,999" ~ 1,
+      income == "$15,000 - $19,999" ~ 1,
+      income == "$20,000 - $29,999" ~ 1,
+      income == "$30,000 - $44,999" ~ 1,
+      income == "$45,000 - $59,999" ~ 2,
+      income == "$60,000 - $74,999" ~ 2,
+      income == "$75,000 - $99,999" ~ 3,
+      TRUE ~ 3
+    ),
+    transfers = transfers
+  )
+
+combined <- bind_rows(goraleigh_2015, gotriangle_2014)
+```
+
+## Geocoding
+
+As with the household survey, the transit trip latitude/longitude values were
+translated into TRMG2 TAZs. For a transit trip, this includes the home, origin,
+destination, boarding, and alighting locations.
+
+```{r, include=FALSE}
+tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+```
+
+```{r}
+# create unique list of lat/long points
+pts <- tibble(
+  lng = c(
+    combined$orig_lon,
+    combined$dest_lon,
+    combined$board_lon,
+    combined$alight_lon,
+    combined$home_lon
+  ),
+  lat = c(
+    combined$orig_lat,
+    combined$dest_lat,
+    combined$board_lat,
+    combined$alight_lat,
+    combined$home_lat
+  ),
+) %>%
+  unite(lng_lat, c(lng, lat)) %>%
+  group_by(lng_lat) %>%
+  summarize() %>%
+  separate(lng_lat, into = c("lng", "lat"), sep = "_") %>%
+  filter(lng != "NA") %>%
+  mutate(
+    lng = as.numeric(lng),
+    lat = as.numeric(lat)
+  ) %>%
+  st_as_sf(
+    coords = c("lng", "lat"), 
+    crs = st_crs(tazs),
+    remove = FALSE
+  )
+```
+
+```{r, include=FALSE}
+geocode_points <- pts %>%
+  st_join(tazs %>% select(TAZ = ID)) %>%
+  st_drop_geometry()
+```
+
+```{r}
+add_taz_id <- combined %>%
+  left_join(
+    geocode_points,
+    by = c("home_lon" = "lng", "home_lat" = "lat")
+  ) %>%
+  rename(home_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("orig_lon" = "lng", "orig_lat" = "lat")
+  ) %>%
+  rename(orig_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("board_lon" = "lng", "board_lat" = "lat")
+  ) %>%
+  rename(board_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("alight_lon" = "lng", "alight_lat" = "lat")
+  ) %>%
+  rename(alight_taz = TAZ) %>%
+  left_join(
+    geocode_points,
+    by = c("dest_lon" = "lng", "dest_lat" = "lat")
+  ) %>%
+  rename(dest_taz = TAZ)
+
+add_taz_id %>%
+  select(route, weight, home_taz:dest_taz) %>%
+  head() %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r}
+flip_to_pa <- add_taz_id %>%
+  mutate(
+    pa_flag = ifelse(dest_type == "home", 0, 1),
+    p_taz = ifelse(pa_flag == 1, orig_taz, dest_taz),
+    a_taz = ifelse(pa_flag == 0, orig_taz, dest_taz)
+  )
 ```
 

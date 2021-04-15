@@ -1,5 +1,5 @@
 
-186
+190
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","",,"Sum",
@@ -34,10 +34,11 @@
 "CollegeOn",I,139,4,0,11,0,,"","Total on-campus enrollment for smaller colleges/universities||This does not include NCSU, Duke, UNC, and Central.|Those data are in different fields.",,"Sum",
 "CollegeOff",I,143,4,0,11,0,,"","Total off-campus enrollment for smaller colleges/universities||This does not include NCSU, Duke, UNC, and Central.|Those data are in different fields.",,"Sum",
 "TraumaLevel",I,147,4,0,11,0,,"","Marks hospital zones with trauma level|https://info.ncdhhs.gov/dhsr/EMS/trauma/traumacenter.html",,"Sum",
-"ParkCostW",I,151,4,0,11,0,,"","",,"Sum",
-"ParkCostO",I,155,4,0,11,0,,"","",,"Sum",
-"ParkCostU",I,159,4,0,11,0,,"","",,"Sum",
-"ADT",I,163,4,0,11,0,,"","",,"Sum",
-"PCTCV",I,167,4,0,11,0,,"","",,"Sum",
-"PCTAUTOEE",R,171,8,0,15,4,,"","",,"Sum",
-"PCTCVEE",R,179,8,0,15,4,,"","",,"Sum",
+"ParkDistrict",I,151,4,0,11,0,,"","Parking District||The parking model is applied to TAZs with|a value greater than 0.",,"Sum",
+"ParkCostW",I,155,4,0,11,0,,"","",,"Sum",
+"ParkCostO",I,159,4,0,11,0,,"","",,"Sum",
+"ParkCostU",I,163,4,0,11,0,,"","",,"Sum",
+"ADT",I,167,4,0,11,0,,"","",,"Sum",
+"PCTCV",I,171,4,0,11,0,,"","",,"Sum",
+"PCTAUTOEE",R,175,8,0,15,4,,"","",,"Sum",
+"PCTCVEE",R,183,8,0,15,4,,"","",,"Sum",
