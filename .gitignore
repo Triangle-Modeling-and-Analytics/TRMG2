@@ -4,3 +4,5 @@
 .Ruserdata
 *.xsl
 *.xml
+.DS_Store
+docs/data/_PRIVATE/*

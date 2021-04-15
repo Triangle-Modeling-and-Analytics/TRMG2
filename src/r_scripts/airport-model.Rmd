@@ -1,0 +1,244 @@
+---
+title: "Airport Model"
+output: html_notebook
+---
+
+# Overhead
+```{r overhead, include = FALSE}
+packages_vector <- c("tidyverse",
+                     "sf",
+                     "corrr")
+
+need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
+
+if (length(need_to_install)) install.packages(need_to_install)
+
+for (package in packages_vector) {
+  library(package, character.only = TRUE)
+}
+
+```
+
+# Remote I/O
+```{r remote-io}
+private_dir <- "../../docs/data/_PRIVATE/"
+data_dir <- "../../docs/data/input/"
+
+clean_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
+socec_filename <- paste0(data_dir, "se_data/se_2016.csv")
+socec_other_vars_filename <- paste0(data_dir, "airport/se_2016_other_vars.csv")
+taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
+
+campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
+durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
+
+output_production_filename <- paste0(data_dir, "airport/airport-productions.csv")
+```
+
+# Parameters
+```{r parameters}
+AIRPORT_ZONE <- 1261
+LAT_LNG_EPSG <- 4326
+RDU_ENPLANEMENTS <- 45000
+OUTLIER_MIN <- 200
+```
+
+# Data Reads
+```{r read}
+clean_sl_df <- readRDS(clean_streetlight_filename)
+socec_df <- read_csv(socec_filename, col_types = cols(.default = col_double(),
+                                                      TAZ_NG = col_integer(),
+                                                      County = col_character()))
+
+socec_other_df <- read_csv(socec_other_vars_filename, col_types = cols(.default = col_double(),
+                                                      TAZ = col_integer(),
+                                                      Type = col_character()))
+
+taz_sf <- st_read(taz_shape_filename) %>%
+  st_transform(LAT_LNG_EPSG)
+
+campo_sf <- st_read(campo_sl_shape, crs = LAT_LNG_EPSG)
+durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
+```
+
+# Get Coordinates for Master Zones
+```{r get-coords}
+centroids_sf <- select(taz_sf, taz = ID, county = COUNTY, orig_zone = ORIG_ID, geometry) %>%
+  st_centroid()
+
+centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
+  bind_cols(., tibble(taz = centroids_sf$taz,
+                      county = centroids_sf$county,
+                      orig_zone = centroids_sf$orig_zone)) %>%
+  rename(lat = Y, lng = X)
+
+```
+
+# Get Coordinates for StreetLight TAZs
+```{r}
+c_sf <- campo_sf %>%
+  filter(is_pass == 0) %>%
+  select(id, geometry) %>%
+  st_centroid(.)
+
+d_sf <- durham_sf %>%
+  filter(is_pass == 0) %>%
+  select(id, geometry) %>%
+  st_centroid(.)
+
+sl_centroids_df <- bind_rows(
+  mutate(
+    bind_cols(as_tibble(st_coordinates(c_sf)),
+              tibble(zone = c_sf$id)),
+    source = "campo"),
+  mutate(
+    bind_cols(as_tibble(st_coordinates(d_sf)),
+              tibble(zone = d_sf$id)),
+    source = "durham")) %>%
+  mutate(zone = as.integer(zone)) %>%
+  rename(lat = Y, lng = X)
+
+remove(c_sf, d_sf)
+```
+
+# Find Closest Master TAZ to StreetLight TAZ
+```{r closest}
+working_df <- centroids_df %>%
+  select(master_taz = taz, master_lat = lat, master_lng = lng) %>%
+  full_join(., sl_centroids_df, by = character()) %>%
+  mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
+
+closest_df <- working_df %>%
+  group_by(master_taz, source) %>%
+  summarise(min_dist = min(distance), .groups = "drop") %>%
+  left_join(working_df, closest_df, by = c("master_taz", "source")) %>%
+  filter(distance <= min_dist) %>%
+  select(taz = master_taz,
+         lat = master_lat,
+         lng = master_lng,
+         sl_zone = zone,
+         sl_source = source)
+```
+
+# Reductions
+```{r reductions}
+working_df <- clean_sl_df %>%
+  filter(type == "Personal") %>%
+  filter(day_type == "1: Weekday (M-Th)") %>%
+  filter(orig_pass_through == "no" & dest_pass_through == "no") %>%
+  filter(orig_zone == AIRPORT_ZONE | dest_zone == AIRPORT_ZONE) %>%
+  filter(orig_zone != dest_zone) %>%
+  filter(day_part == "0: All Day (12am-12am)") %>%
+  filter(!is.na(duration_sec)) %>%
+  mutate(production_taz = if_else(orig_zone == AIRPORT_ZONE, dest_zone, orig_zone)) %>%
+  mutate(purpose = if_else(orig_zone == AIRPORT_ZONE, "From Airport", "To Airport"))
+
+productions_df <- working_df %>%
+  group_by(production_taz, source) %>%
+  summarize(airport_productions = sum(flow), duration_min = mean(duration_sec)/60.0, .groups = "drop") %>%
+  left_join(., closest_df, by = c("production_taz" = "sl_zone", "source" = "sl_source")) %>%
+  group_by(taz) %>%
+  summarise(airport_productions = sum(airport_productions),
+            lat = first(lat),
+            lng = first(lng),
+            .groups = "drop") %>%
+  left_join(., socec_df, by = c("taz" = "TAZ_NG")) %>%
+  left_join(., select(socec_other_df, TAZ, Pct_Worker, PctHighEarn), by = c("taz" = "TAZ")) %>%
+  filter(County != "External") %>%
+  mutate(employment = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
+  mutate(workers = Pct_Worker/100.0 * HH_POP) %>%
+  mutate(high_earners = PctHighEarn/100.0 * workers)
+
+```
+
+# Correlations
+```{r correlation}
+correlations_df <- productions_df %>%
+  select(airport_productions,
+         workers,
+         employment,
+         high_earners,
+         HH,
+         MEANINC,
+         Pct_Worker,
+         Stud_GQ,
+         Other_NonInst_GQ,
+         Inst_GQ,
+         Total_POP,
+         Industry,
+         Office,
+         Service_RateHigh,
+         Service_RateLow,
+         Retail,
+         PctHighEarn,
+         ENROLLMENT) %>%
+  correlate() %>%
+  select(term, airport_productions) %>%
+  arrange(-airport_productions)
+
+correlations_df
+```
+
+# Prepare model data
+```{r prep-model}
+model_df <- productions_df %>%
+  mutate(y = if_else(airport_productions > OUTLIER_MIN, OUTLIER_MIN, airport_productions))
+
+adjust_factor <- RDU_ENPLANEMENTS/sum(model_df$y)
+
+model_df <- model_df %>%
+  mutate(y = y * adjust_factor)
+```
+
+
+# Model 01
+```{r model-01}
+model_01 <- lm(y ~ employment + workers,
+               data = model_df)
+
+summary(model_01)
+```
+
+# Model 02
+```{r model-02}
+model_02 <- lm(y ~ workers + high_earners + Service_RateHigh + Industry + Office + Retail,
+               data = model_df)
+
+summary(model_02)
+```
+# Model 03
+```{r model-03}
+model_03 <- lm(y ~ high_earners + employment,
+               data = model_df)
+
+summary(model_03)
+```
+
+# Model 04
+```{r model-04}
+model_04 <- lm(y ~ high_earners + Industry + Office + Service_RateHigh + Retail,
+               data = model_df)
+
+summary(model_04)
+```
+
+
+# Add Model Results
+```{r add-results}
+output_df <- productions_df %>%
+  mutate(observed_productions = if_else(airport_productions < OUTLIER_MIN,
+                                        airport_productions * adjust_factor,
+                                        OUTLIER_MIN * adjust_factor)) %>%
+  mutate(estimated_productions = model_04$coefficients["(Intercept)"] +
+           model_04$coefficients["high_earners"] * high_earners +
+           model_04$coefficients["Industry"] * Industry +
+           model_04$coefficients["Office"] * Office +
+           model_04$coefficients["Service_RateHigh"] * Service_RateHigh +
+           model_04$coefficients["Retail"] * Retail)
+```
+
+
+# Write
+```{r write}
+write_csv(output_df, output_production_filename)
+```
