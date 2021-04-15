@@ -37,7 +37,7 @@ output_production_filename <- paste0(data_dir, "airport/airport-productions.csv"
 
 # Parameters
 ```{r parameters}
-AIRPORT_ZONE <- 1261
+SL_AIRPORT_ZONE <- 1261
 LAT_LNG_EPSG <- 4326
 RDU_ENPLANEMENTS <- 45000
 OUTLIER_MIN <- 200
@@ -63,13 +63,11 @@ durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
 
 # Get Coordinates for Master Zones
 ```{r get-coords}
-centroids_sf <- select(taz_sf, taz = ID, county = COUNTY, orig_zone = ORIG_ID, geometry) %>%
+centroids_sf <- select(taz_sf, taz = ID, geometry) %>%
   st_centroid()
 
 centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
-  bind_cols(., tibble(taz = centroids_sf$taz,
-                      county = centroids_sf$county,
-                      orig_zone = centroids_sf$orig_zone)) %>%
+  bind_cols(., tibble(taz = centroids_sf$taz)) %>%
   rename(lat = Y, lng = X)
 
 ```
@@ -109,15 +107,15 @@ working_df <- centroids_df %>%
   mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
 
 closest_df <- working_df %>%
-  group_by(master_taz, source) %>%
+  group_by(zone, source) %>%
   summarise(min_dist = min(distance), .groups = "drop") %>%
-  left_join(working_df, closest_df, by = c("master_taz", "source")) %>%
+  left_join(working_df, closest_df, by = c("zone", "source")) %>%
   filter(distance <= min_dist) %>%
   select(taz = master_taz,
-         lat = master_lat,
-         lng = master_lng,
          sl_zone = zone,
-         sl_source = source)
+         sl_source = source,
+         distance)
+
 ```
 
 # Reductions
@@ -126,22 +124,20 @@ working_df <- clean_sl_df %>%
   filter(type == "Personal") %>%
   filter(day_type == "1: Weekday (M-Th)") %>%
   filter(orig_pass_through == "no" & dest_pass_through == "no") %>%
-  filter(orig_zone == AIRPORT_ZONE | dest_zone == AIRPORT_ZONE) %>%
+  filter(orig_zone == SL_AIRPORT_ZONE | dest_zone == SL_AIRPORT_ZONE) %>%
   filter(orig_zone != dest_zone) %>%
   filter(day_part == "0: All Day (12am-12am)") %>%
   filter(!is.na(duration_sec)) %>%
-  mutate(production_taz = if_else(orig_zone == AIRPORT_ZONE, dest_zone, orig_zone)) %>%
+  mutate(production_sl_zone = if_else(orig_zone == AIRPORT_ZONE, dest_zone, orig_zone)) %>%
   mutate(purpose = if_else(orig_zone == AIRPORT_ZONE, "From Airport", "To Airport"))
 
 productions_df <- working_df %>%
-  group_by(production_taz, source) %>%
+  group_by(production_sl_zone, source) %>%
   summarize(airport_productions = sum(flow), duration_min = mean(duration_sec)/60.0, .groups = "drop") %>%
-  left_join(., closest_df, by = c("production_taz" = "sl_zone", "source" = "sl_source")) %>%
+  left_join(., closest_df, by = c("production_sl_zone" = "sl_zone", "source" = "sl_source")) %>%
   group_by(taz) %>%
-  summarise(airport_productions = sum(airport_productions),
-            lat = first(lat),
-            lng = first(lng),
-            .groups = "drop") %>%
+  summarise(airport_productions = sum(airport_productions), .groups = "drop") %>%
+  left_join(., centroids_df, by = c("taz")) %>%
   left_join(., socec_df, by = c("taz" = "TAZ_NG")) %>%
   left_join(., select(socec_other_df, TAZ, Pct_Worker, PctHighEarn), by = c("taz" = "TAZ")) %>%
   filter(County != "External") %>%
