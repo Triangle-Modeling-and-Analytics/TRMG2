@@ -31,6 +31,7 @@ ext_nodes_shape_filename <- paste0(data_dir, "ieei/ext_nodes.shp")
 campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
 
+output_filename <- paste0(data_dir, "ieei/examine-ieei-flows.csv")
 ```
 
 # Parameters
@@ -59,13 +60,11 @@ durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
 
 # Get Coordinates for Master Zones
 ```{r get-coords}
-centroids_sf <- select(taz_sf, taz = ID, county = COUNTY, orig_zone = ORIG_ID, geometry) %>%
+centroids_sf <- select(taz_sf, taz = ID, geometry) %>%
   st_centroid()
 
 centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
-  bind_cols(., tibble(taz = centroids_sf$taz,
-                      county = centroids_sf$county,
-                      orig_zone = centroids_sf$orig_zone)) %>%
+  bind_cols(., tibble(taz = centroids_sf$taz)) %>%
   rename(lat = Y, lng = X)
 
 ```
@@ -109,44 +108,37 @@ working_df <- centroids_df %>%
   mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
 
 closest_df <- working_df %>%
-  group_by(master_taz, source) %>%
+  group_by(zone, source) %>%
   summarise(min_dist = min(distance), .groups = "drop") %>%
-  left_join(working_df, ., by = c("master_taz", "source")) %>%
+  left_join(working_df, ., by = c("zone", "source")) %>%
   filter(distance <= min_dist) %>%
   select(taz = master_taz,
-         lat = master_lat,
-         lng = master_lng,
          sl_zone = zone,
          sl_source = source) %>%
-  filter(taz %in% internal_taz_vector)
+  mutate(taz = as.integer(taz)) %>%
+  filter(taz %in% internal_taz_vector) 
 ```
 
 # Match External Stations
 ```{r external-stations}
 external_centroids_df <- as_tibble(st_coordinates(ext_nodes_sf)) %>%
-  bind_cols(tibble(master_taz = ext_nodes_sf$ID)) %>%
-  rename(master_lat = Y, master_lng = X)
+  bind_cols(tibble(taz = ext_nodes_sf$ID)) %>%
+  rename(lat = Y, lng = X)
 
-working_df <- full_join(external_centroids_df, sl_centroids_df, by = character()) %>%
+working_df <- external_centroids_df %>%
+  select(master_taz = taz, master_lat = lat, master_lng = lng) %>%
+  full_join(., sl_centroids_df, by = character()) %>%
   mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
 
 closest_ext_df <- working_df %>%
-  group_by(master_taz, source) %>%
+  group_by(zone, source) %>%
   summarise(min_dist = min(distance), .groups = "drop") %>%
-  left_join(working_df, ., by = c("master_taz", "source")) %>%
+  left_join(working_df, ., by = c("zone", "source")) %>%
   filter(distance <= min_dist) %>%
   select(taz = master_taz,
-         lat = master_lat,
-         lng = master_lng,
          sl_zone = zone,
          sl_source = source) %>%
-  left_join(., select(socec_df, TAZ_NG, ADT), by = c("taz" = "TAZ_NG")) %>%
-  group_by(sl_zone, sl_source) %>%
-  mutate(adt_share = ADT / sum(ADT)) %>%
-  ungroup() %>%
-  mutate(adt_share = replace_na(adt_share, 0.0)) %>%
-  select(-ADT)
-  
+  mutate(taz = as.integer(taz))
 ```
 
 
@@ -155,42 +147,48 @@ closest_ext_df <- working_df %>%
 working_df <- clean_sl_df %>%
   filter(type == "Personal") %>%
   filter(day_type == "1: Weekday (M-Th)") %>%
+  filter(flow > 0) %>%
   filter(orig_pass_through == "yes" | dest_pass_through == "yes") %>%
   filter(orig_zone != dest_zone) %>%
   mutate(purpose = "Missing") %>%
   mutate(purpose = if_else(orig_pass_through == "yes" & dest_pass_through == "yes", "XX", purpose)) %>%
   mutate(purpose = if_else(orig_pass_through == "yes" & dest_pass_through == "no", "IX", purpose)) %>%
-  mutate(purpose = if_else(orig_pass_through == "no" & dest_pass_through == "yes", "XI", purpose)) 
+  mutate(purpose = if_else(orig_pass_through == "no" & dest_pass_through == "yes", "XI", purpose)) %>%
+  left_join(., closest_df, by = c("orig_zone" = "sl_zone", "source" = "sl_source")) %>%
+  mutate(orig_taz = if_else(purpose == "IX", taz, as.integer(NA))) %>%
+  select(-taz) %>%
+  left_join(., closest_df, by = c("dest_zone" = "sl_zone", "source" = "sl_source")) %>%
+  mutate(dest_taz = if_else(purpose == "XI", taz, as.integer(NA))) %>%
+  select(-taz) %>%
+  left_join(., closest_ext_df, by = c("orig_zone" = "sl_zone", "source" = "sl_source")) %>%
+  mutate(orig_taz = if_else(purpose %in% c("XX", "XI"), taz, orig_taz)) %>%
+  select(-taz) %>%
+  left_join(., closest_ext_df, by = c("dest_zone" = "sl_zone", "source" = "sl_source")) %>%
+  mutate(dest_taz = if_else(purpose %in% c("XX", "IX"), taz, dest_taz)) %>%
+  select(-taz) %>%
+  left_join(., centroids_df, by = c("orig_taz" = "taz")) %>%
+  mutate(orig_lat = if_else(purpose == "IX", lat, as.double(NA))) %>%
+  mutate(orig_lng = if_else(purpose == "IX", lng, as.double(NA))) %>%
+  select(-lat, -lng) %>%
+  left_join(., centroids_df, by = c("dest_taz" = "taz")) %>%
+  mutate(dest_lat = if_else(purpose == "XI", lat, as.double(NA))) %>%
+  mutate(dest_lng = if_else(purpose == "XI", lng, as.double(NA))) %>%
+  select(-lat, -lng) %>%
+  left_join(., external_centroids_df, by = c("orig_taz" = "taz")) %>%
+  mutate(orig_lat = if_else(purpose %in% c("XI", "XX"), lat, orig_lat)) %>%
+  mutate(orig_lng = if_else(purpose %in% c("XI", "XX"), lng, orig_lng)) %>%
+  select(-lat, -lng) %>%
+  left_join(., external_centroids_df, by = c("dest_taz" = "taz")) %>%
+  mutate(dest_lat = if_else(purpose %in% c("IX", "XX"), lat, dest_lat)) %>%
+  mutate(dest_lng = if_else(purpose %in% c("IX", "XX"), lng, dest_lng)) %>%
+  select(-lat, -lng) %>%
+  left_join(., select(socec_df, TAZ_NG, orig_county = County, orig_ADT = ADT), by = c("orig_taz" = "TAZ_NG")) %>%
+  left_join(., select(socec_df, TAZ_NG, dest_county = County, dest_ADT = ADT), by = c("dest_taz" = "TAZ_NG"))
 
-# START HERE
-# need to use the internal zones for the "I" leg
-# need to use the external zones for the "X" leg
-# discard those that do not match
+```
 
-# apportion flows to external stations
-temp_df <- working_df %>%
-  left_join(., closest_ext_df, by = c("orig_zone" = "sl_zone", "source" = "sl_source"))
-
-sum_df <- working_df %>%
-  group_by(day_part, purpose) %>%
-  summarise(flow = sum(flow), .groups = "drop")
-
-sum_df
-
-sum_df <- working_df %>%
-  filter(day_part == "0: All Day (12am-12am)") %>%
-  filter(purpose %in% c("XI", "XX")) %>%
-  group_by(orig_zone, source) %>%
-  summarise(flow = sum(flow), .groups = "drop")
-
-sum_df
-
-names_df <- working_df %>%
-  mutate(o_len = str_length(orig_name)) %>%
-  filter(o_len > 4) %>%
-  group_by(orig_name, source) %>%
-  summarise(count = n(), .groups = "drop")
-
-names_df
+# Write
+```{r write}
+write_csv(working_df, output_filename)
 ```
 
