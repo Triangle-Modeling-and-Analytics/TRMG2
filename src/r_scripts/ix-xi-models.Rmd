@@ -1,0 +1,196 @@
+---
+title: "IX/XI/XX Models"
+output: html_notebook
+---
+
+# Overhead
+```{r overhead, include = FALSE}
+packages_vector <- c("tidyverse",
+                     "sf")
+
+need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
+
+if (length(need_to_install)) install.packages(need_to_install)
+
+for (package in packages_vector) {
+  library(package, character.only = TRUE)
+}
+
+```
+
+# Remote I/O
+```{r remote-io}
+private_dir <- "../../docs/data/_PRIVATE/"
+data_dir <- "../../docs/data/input/"
+
+clean_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
+socec_filename <- paste0(data_dir, "se_data/se_2016.csv")
+taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
+ext_nodes_shape_filename <- paste0(data_dir, "ieei/ext_nodes.shp")
+
+campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
+durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
+
+```
+
+# Parameters
+```{r parameters}
+LAT_LNG_EPSG <- 4326
+```
+
+# Data Reads
+```{r read}
+clean_sl_df <- readRDS(clean_streetlight_filename)
+socec_df <- read_csv(socec_filename, col_types = cols(.default = col_double(),
+                                                      TAZ_NG = col_integer(),
+                                                      TAZ_TRM_6.2 = col_integer(),
+                                                      Type = col_character(),
+                                                      County = col_character()))
+
+taz_sf <- st_read(taz_shape_filename) %>%
+  st_transform(LAT_LNG_EPSG)
+
+ext_nodes_sf <- st_read(ext_nodes_shape_filename) %>%
+  st_transform(LAT_LNG_EPSG)
+
+campo_sf <- st_read(campo_sl_shape, crs = LAT_LNG_EPSG)
+durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
+```
+
+# Get Coordinates for Master Zones
+```{r get-coords}
+centroids_sf <- select(taz_sf, taz = ID, county = COUNTY, orig_zone = ORIG_ID, geometry) %>%
+  st_centroid()
+
+centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
+  bind_cols(., tibble(taz = centroids_sf$taz,
+                      county = centroids_sf$county,
+                      orig_zone = centroids_sf$orig_zone)) %>%
+  rename(lat = Y, lng = X)
+
+```
+
+# Get Coordinates for StreetLight TAZs
+```{r}
+c_sf <- campo_sf %>%
+  filter(is_pass == 0) %>%
+  select(id, geometry) %>%
+  st_centroid(.)
+
+d_sf <- durham_sf %>%
+  filter(is_pass == 0) %>%
+  select(id, geometry) %>%
+  st_centroid(.)
+
+sl_centroids_df <- bind_rows(
+  mutate(
+    bind_cols(as_tibble(st_coordinates(c_sf)),
+              tibble(zone = c_sf$id)),
+    source = "campo"),
+  mutate(
+    bind_cols(as_tibble(st_coordinates(d_sf)),
+              tibble(zone = d_sf$id)),
+    source = "durham")) %>%
+  mutate(zone = as.integer(zone)) %>%
+  rename(lat = Y, lng = X)
+
+remove(c_sf, d_sf)
+```
+
+# Find Closest Master TAZ to StreetLight TAZ
+```{r closest}
+internal_taz_vector <- socec_df %>%
+  filter(County != "External") %>%
+  .$TAZ_NG
+
+working_df <- centroids_df %>%
+  select(master_taz = taz, master_lat = lat, master_lng = lng) %>%
+  full_join(., sl_centroids_df, by = character()) %>%
+  mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
+
+closest_df <- working_df %>%
+  group_by(master_taz, source) %>%
+  summarise(min_dist = min(distance), .groups = "drop") %>%
+  left_join(working_df, ., by = c("master_taz", "source")) %>%
+  filter(distance <= min_dist) %>%
+  select(taz = master_taz,
+         lat = master_lat,
+         lng = master_lng,
+         sl_zone = zone,
+         sl_source = source) %>%
+  filter(taz %in% internal_taz_vector)
+```
+
+# Match External Stations
+```{r external-stations}
+external_centroids_df <- as_tibble(st_coordinates(ext_nodes_sf)) %>%
+  bind_cols(tibble(master_taz = ext_nodes_sf$ID)) %>%
+  rename(master_lat = Y, master_lng = X)
+
+working_df <- full_join(external_centroids_df, sl_centroids_df, by = character()) %>%
+  mutate(distance = sqrt((master_lat - lat)**2 + (master_lng - lng)**2))
+
+closest_ext_df <- working_df %>%
+  group_by(master_taz, source) %>%
+  summarise(min_dist = min(distance), .groups = "drop") %>%
+  left_join(working_df, ., by = c("master_taz", "source")) %>%
+  filter(distance <= min_dist) %>%
+  select(taz = master_taz,
+         lat = master_lat,
+         lng = master_lng,
+         sl_zone = zone,
+         sl_source = source) %>%
+  left_join(., select(socec_df, TAZ_NG, ADT), by = c("taz" = "TAZ_NG")) %>%
+  group_by(sl_zone, sl_source) %>%
+  mutate(adt_share = ADT / sum(ADT)) %>%
+  ungroup() %>%
+  mutate(adt_share = replace_na(adt_share, 0.0)) %>%
+  select(-ADT)
+  
+```
+
+
+# Reductions
+```{r reductions}
+working_df <- clean_sl_df %>%
+  filter(type == "Personal") %>%
+  filter(day_type == "1: Weekday (M-Th)") %>%
+  filter(orig_pass_through == "yes" | dest_pass_through == "yes") %>%
+  filter(orig_zone != dest_zone) %>%
+  mutate(purpose = "Missing") %>%
+  mutate(purpose = if_else(orig_pass_through == "yes" & dest_pass_through == "yes", "XX", purpose)) %>%
+  mutate(purpose = if_else(orig_pass_through == "yes" & dest_pass_through == "no", "IX", purpose)) %>%
+  mutate(purpose = if_else(orig_pass_through == "no" & dest_pass_through == "yes", "XI", purpose)) 
+
+# START HERE
+# need to use the internal zones for the "I" leg
+# need to use the external zones for the "X" leg
+# discard those that do not match
+
+# apportion flows to external stations
+temp_df <- working_df %>%
+  left_join(., closest_ext_df, by = c("orig_zone" = "sl_zone", "source" = "sl_source"))
+
+sum_df <- working_df %>%
+  group_by(day_part, purpose) %>%
+  summarise(flow = sum(flow), .groups = "drop")
+
+sum_df
+
+sum_df <- working_df %>%
+  filter(day_part == "0: All Day (12am-12am)") %>%
+  filter(purpose %in% c("XI", "XX")) %>%
+  group_by(orig_zone, source) %>%
+  summarise(flow = sum(flow), .groups = "drop")
+
+sum_df
+
+names_df <- working_df %>%
+  mutate(o_len = str_length(orig_name)) %>%
+  filter(o_len > 4) %>%
+  group_by(orig_name, source) %>%
+  summarise(count = n(), .groups = "drop")
+
+names_df
+```
+
