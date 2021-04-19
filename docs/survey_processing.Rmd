@@ -1597,10 +1597,11 @@ prep_for_eda <- add_se_data %>%
     tod = case_when(
       departure_time < 7*60 ~ "NT",
       departure_time < 9*60 ~ "AM",
-      departure_time < (3 + 12)*60 ~ "MD",
-      departure_time < (6 + 12)*60 ~ "PM",
+      departure_time < (3 + 12)*60 + 30 ~ "MD",
+      departure_time < (6 + 12)*60 + 15 ~ "PM",
       TRUE ~ "NT"
-    )
+    ),
+    pk_op = ifelse(tod %in% c("AM", "PM"), "PK", "OP")
   )
 ```
 
