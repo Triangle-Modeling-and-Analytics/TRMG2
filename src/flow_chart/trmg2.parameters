@@ -66,6 +66,10 @@
 
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
 
+    Section = "Time of Day"
+
+        Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }        
+    
     Section = "Non-Motorized Choice"
 
         Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }

@@ -22,6 +22,7 @@ Body:
     FlowChartNode(model,"Population Synthesis",,,)
     FlowChartNode(model,"Resident Productions",,,)
     FlowChartNode(model,"NonMotorized Choice",,,)
+    FlowChartNode(model,"Time of Day",,,)
     //
     // Links
     //
@@ -30,7 +31,8 @@ Body:
     FlowChartLink(model,"Initial Processing","Accessibility",True,,)
     FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
     FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
-    FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
+    FlowChartLink(model,"Resident Productions","Time of Day",True,,)
+    FlowChartLink(model,"Time of Day","NonMotorized Choice",True,,)
     Return(model)
 EndMacro
 
@@ -82,3 +84,11 @@ Body:
     Return(True)
 EndMacro
 
+
+Macro "Time of Day" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Time of Day"}}}
+Body:
+    ShowMessage('Running: Time of Day')
+    Return(True)
+EndMacro

@@ -445,86 +445,35 @@ period_tbl %>%
 ```{r calc_tod_trip_factors}
 tod_factors <- tripTbl %>%
   filter(tour_type != "H") %>%
-  group_by(Period = tod, Purpose = trip_type) %>%
+  group_by(tod, trip_type) %>%
   summarise(Trips = sum(trip_weight_combined)) %>%
-  group_by(Purpose) %>%
+  group_by(trip_type) %>%
   mutate(
-    Percent = round(Trips / sum(Trips), 3),
+    factor = round(Trips / sum(Trips), 3),
     # ensure unity
-    temp = ifelse(Period == "NT", 0, Percent),
-    Percent = ifelse(Period == "NT", 1 - sum(temp), Percent)
+    temp = ifelse(tod == "NT", 0, factor),
+    factor = ifelse(tod == "NT", 1 - sum(temp), factor)
   ) %>%
-  select(Purpose, Period, Percent) %>%
-  arrange(Purpose, Period)
+  select(trip_type, tod, factor) %>%
+  arrange(trip_type, tod)
 
 tod_factors %>%
   ungroup() %>%
-  mutate(Percent = percent(Percent, accuracy = .1)) %>%
-  # filter(Purpose %in% c("W_HB_W_All", "N_HB_K12_All")) %>%
-  spread(key = Period, value = Percent) %>%
+  mutate(
+    factor = percent(factor, accuracy = .1),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
+  ) %>%
+  # filter(trip_type %in% c("W_HB_W_All", "N_HB_K12_All")) %>%
+  spread(key = tod, value = factor) %>%
+  rename(`Trip Type` = trip_type) %>%
   kable() %>%
   kable_styling(full_width = FALSE)
-```
 
-```{r create crosswalk table for model}
-# # Create a table for non-resident purposes (CV, SUT, MUT, and IEEI)
-# # Use HBO for these purposes
-# other_tbl <- tibble(
-#   Purpose = c("CV", "SUT", "MUT", "IEEI"),
-#   equiv = c("HBO", "HBO", "HBO", "HBO")
-# )
-# other_tbl <- merge(other_tbl, unique(tod_factors$Period)) %>%
-#   rename(Period = y) %>%
-#   left_join(tod_factors, by = c("equiv" = "Purpose", "Period" = "Period")) %>%
-#   select(-equiv) %>%
-#   arrange(Purpose, Period)
-# 
-# # Combine other and tod tables
-# out_tbl <- bind_rows(tod_factors, other_tbl) %>% 
-#   ungroup()
-# 
-# # Create a duplicate table for attractions and add it to other_tbl
-# attr_tbl <- out_tbl %>%
-#   mutate(Purpose = paste0(Purpose, "a"))
-# out_tbl <- bind_rows(out_tbl, attr_tbl) %>%
-#   arrange(Purpose, Period)
-# 
-# # Repeat the HBW and HBO factors for each market segment
-# temp <- out_tbl %>%
-#   filter(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa")) %>%
-#   merge(tibble(market = c("v0", "ilvi", "ilvs", "ihvi", "ihvs"))) %>%
-#   mutate(Purpose = paste(Purpose, market, sep = "_")) %>%
-#   select(-market)
-# 
-# out_tbl <- out_tbl %>%
-#   filter(!(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa"))) %>%
-#   bind_rows(temp) %>%
-#   arrange(Purpose)
-# 
-# # Create standard format table used by "Field Crosswalk" macro in model
-# out_tbl <- out_tbl %>%
-#   mutate(
-#     to_desc = paste(
-#       "Time of Day", 
-#       "Generation fields split into time period", 
-#       "See time_of_day_factors.csv for rates", 
-#       sep = "|"
-#     ),
-#     to_field = paste0(Purpose, "_", Period)
-#   ) %>%
-#   select(to_field, to_desc, from_field = Purpose, from_factor = Percent, Period)
-# 
-# # Create a description field for the table
-# desc <- vector(mode = "character", length = nrow(out_tbl))
-# desc[1] = "Used by 'Field Crosswalk' macro"
-# desc[2] = "to_field = to_field + from_field * from_factor"
-# desc[3] = "The 'to_desc' gets placed in the TC field description"
-# desc[5] = "Non-resident purposes use HBO factors"
-# desc[6] = "'Period' column included to facilitate manual summary/review"
-# desc[8] = "CREATION: table created by TimeOfDay.Rmd"
-# out_tbl$Description <- desc
-# 
-# tod_tbl <- out_tbl
+# Create a description field for the table
+desc <- vector(mode = "character", length = nrow(tod_factors))
+desc[1] = "Used to split daily resident productions"
+desc[2] = "into period-specific values"
+tod_factors$Description <- desc
 ```
 
 # Directionality factors
@@ -890,9 +839,7 @@ higher but acceptable.
 # model.
 
 # TOD factors
-tod_tbl %>%
-  mutate(from_factor = round(from_factor, 3)) %>%
-  write_csv("../master/tod/time_of_day_factors.csv")
+write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 
 # Directionality factors. HBU gets appended by University.Rmd.
 write_csv(pa_tbl , "../master/directionality/directionality_factors.csv")
