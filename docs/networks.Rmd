@@ -136,6 +136,23 @@ knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_afte
 A small number of OD pairs were reviewed with changes <30%, but each one was
 reasonable.
 
+### Tolls
+
+Tolling is an important policy lever for the Triangle. The Triangle Expressway
+is an approximately 18 mile long freeway that charges a toll. In addition, the
+region is considering additional toll facilities include high-occupancy toll
+(HOT) lanes in the future.
+
+Toll rates were collected from the [NC Quick Pass
+website](https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx).
+The listed prices were used to come up with an average cost per mile of $0.21.
+
+```{r}
+# note: price is .32/mile for those without transponders. Weighting on
+# turnpike to provide a breakdown of transponder use.
+```
+
+
 ## Transit Layer
 
 TRMG2 adds a master layer for transit routes along with a project manager

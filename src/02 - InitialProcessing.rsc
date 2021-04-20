@@ -482,6 +482,9 @@ Macro "Other Attributes" (Args)
     objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
     {nlyr, llyr} = objLyrs.Layers
     a_fields = {
+        {"TollCost", "Real", 10, 2, , , , "TollRate * Length"},
+        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2"},
+        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -515,11 +518,12 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_len, v_ps, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_len, v_ps, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".Length",
             llyr + ".PostedSpeed",
+            llyr + ".TollRate",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
@@ -530,6 +534,9 @@ Macro "Other Attributes" (Args)
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
+    v_tollcost = v_tollrate * v_len
+    v_tollcost_sut = v_tollcost * 2
+    v_tollcost_mut = v_tollcost * 4
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -537,6 +544,9 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
+    SetDataVector(jv + "|", llyr + ".TollCost", v_tollcost, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
     v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
     v_ba_time = if v_dir = -1 or v_dir = 0 then v_fft
     for period in periods do
