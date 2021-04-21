@@ -3,6 +3,10 @@ Freeway,Downtown,2250,2000
 Freeway,Urban,2300,2100
 Freeway,Suburban,2350,2100
 Freeway,Rural,2400,2200
+Superstreet,Downtown,1100,1000
+Superstreet,Urban,1100,1000
+Superstreet,Suburban,1100,1000
+Superstreet,Rural,1100,1000
 Arterial,Downtown,860,800
 Arterial,Urban,860,800
 Arterial,Suburban,780,700
