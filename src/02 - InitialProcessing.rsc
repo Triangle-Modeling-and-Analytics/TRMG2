@@ -594,10 +594,13 @@ Macro "Create Link Networks" (Args)
             o = CreateObject("Network.Create")
             o.LayerDB = link_dbd
             o.Filter = filter   
-            o.AddLinkField({Name: "FFTime", Field: {"FFTime", "FFTime"}, IsTimeField : true, DefaultValue: 1800})
-            o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField : false, DefaultValue: 1800})
-            o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField : false, DefaultValue: 0.15})
-            o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField : false, DefaultValue: 4.})
+            o.AddLinkField({Name: "FFTime", Field: {"FFTime", "FFTime"}, IsTimeField: true})
+            o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField: false})
+            o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField: false, DefaultValue: 0.15})
+            o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField: false, DefaultValue: 4.})
+            o.AddLinkField({Name: "TollCost", Field: "TollCost", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
             o.NetworkName = net_file
             o.Run()
             netSetObj = null

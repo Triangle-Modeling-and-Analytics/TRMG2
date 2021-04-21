@@ -61,6 +61,7 @@ Macro "Create Folder Structure" (Args)
     "/directionality",
     "/assignment",
     "/assignment/transit",
+    "/assignment/roadway",
     "/_summary",
   }
 

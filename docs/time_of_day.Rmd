@@ -444,7 +444,7 @@ period_tbl %>%
 
 ```{r calc_tod_trip_factors}
 tod_factors <- tripTbl %>%
-  filter(tour_type != "H") %>%
+  filter(tour_type != "H", homebased == "HB") %>%
   group_by(tod, trip_type) %>%
   summarise(Trips = sum(trip_weight_combined)) %>%
   group_by(trip_type) %>%
