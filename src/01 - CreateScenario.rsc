@@ -62,7 +62,7 @@ Macro "Create Folder Structure" (Args)
     "/assignment",
     "/assignment/transit",
     "/assignment/roadway",
-    "/_summary",
+    "/_summaries",
   }
 
   for d = 1 to a_dir.length do

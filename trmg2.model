@@ -24,6 +24,7 @@ Body:
     FlowChartNode(model,"NonMotorized Choice",,,)
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
+    FlowChartNode(model,"Summaries",,,)
     //
     // Links
     //
@@ -100,6 +101,15 @@ Macro "Roadway Assignment" (Args,Result)
                   {"MacroNames",{"Roadway Assignment"}}}
 Body:
     ShowMessage('Running: Roadway Assignment')
+    Return(True)
+EndMacro
+
+
+Macro "Summaries" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Summaries"}}}
+Body:
+    ShowMessage('Running: Summaries')
     Return(True)
 EndMacro
 

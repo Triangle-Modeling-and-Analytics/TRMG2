@@ -853,6 +853,60 @@ Macro "Spatial Join" (MacroOpts)
 EndMacro
 
 /*
+Renames a field in a TC view
+
+Inputs
+  view_name
+    String
+    Name of view to modify
+
+  current_name
+    String
+    Name of field to rename
+
+  new_name
+    String
+    New name to use
+*/
+
+Macro "Rename Field" (view_name, current_name, new_name)
+
+  // Argument Check
+  if view_name = null then Throw("Rename Field: 'view_name' not provided")
+  if current_name = null then Throw("Rename Field: 'current_name' not provided")
+  if new_name = null then Throw("Rename Field: 'new_name' not provided")
+
+  // Get and modify the field info array
+  a_str = GetTableStructure(view_name)
+  field_modified = "false"
+  for s = 1 to a_str.length do
+    a_field = a_str[s]
+    field_name = a_field[1]
+
+    // Add original field name to end of field array
+    a_field = a_field + {field_name}
+
+    // rename field if it's the current field
+    if field_name = current_name then do
+      a_field[1] = new_name
+      field_modified = "true"
+    end
+
+    a_str[s] = a_field
+  end
+
+  // Modify the table
+  ModifyTable(view_name, a_str)
+
+  // Throw error if no field was modified
+  if !field_modified
+    then Throw(
+      "Rename Field: Field '" + current_name +
+      "' not found in view '" + view_name + "'"
+    )
+EndMacro
+
+/*
 Removes a field from a view/layer
 
 Input
@@ -1107,3 +1161,157 @@ Macro "Create Sum Product Fields" (MacroOpts)
 
   CloseView(fac_vw)
 endmacro
+
+/*
+An alternative to to the JoinTableToLayer() GISDK function, which replaces
+the existing bin file with a new one (losing original fields).
+This version allows you to permanently append new fields while keeping the old.
+
+Inputs
+  * masterFile
+    * String
+    * Full path of master geographic or binary file
+  * mID
+    * String
+    * Name of master field to use for join.
+  * slaveFile
+    * String
+    * Full path of slave table.  Can be FFB or CSV.
+  * sID
+    * String
+    * Name of slave field to use for join.
+  * overwrite
+    * Boolean
+    * Whether or not to replace any existing
+    * fields with joined values.  Defaults to true.
+    * If false, the fields will be added with ":1".
+
+Returns
+Nothing. Permanently appends the slave data to the master table.
+
+Example application
+- Loading assignment results to a link layer
+- Attaching an SE data table to a TAZ layer
+*/
+
+Macro "Join Table To Layer" (masterFile, mID, slaveFile, sID, overwrite)
+
+  if overwrite = null then overwrite = "True"
+
+  // Determine master file type
+  path = SplitPath(masterFile)
+  if path[4] = ".dbd" then type = "dbd"
+  else if path[4] = ".bin" then type = "bin"
+  else Throw("Master file must be .dbd or .bin")
+
+  // Open the master file
+  if type = "dbd" then do
+    {nlyr, master} = GetDBLayers(masterFile)
+    master = AddLayerToWorkspace(master, masterFile, master)
+    nlyr = AddLayerToWorkspace(nlyr, masterFile, nlyr)
+  end else do
+    masterDCB = Substitute(masterFile, ".bin", ".DCB", )
+    master = OpenTable("master", "FFB", {masterFile, })
+  end
+
+  // Determine slave table type and open
+  path = SplitPath(slaveFile)
+  if path[4] = ".csv" then s_type = "CSV"
+  else if path[4] = ".bin" then s_type = "FFB"
+  else Throw("Slave file must be .bin or .csv")
+  slave = OpenTable("slave", s_type, {slaveFile, })
+
+  // If mID is the same as sID, rename sID
+  if mID = sID then do
+    // Can only modify FFB tables.  If CSV, must convert.
+    if s_type = "CSV" then do
+      tempBIN = GetTempFileName("*.bin")
+      ExportView(slave + "|", "FFB", tempBIN, , )
+      CloseView(slave)
+      slave = OpenTable("slave", "FFB", {tempBIN, })
+    end
+
+    str = GetTableStructure(slave)
+    for s = 1 to str.length do
+      str[s] = str[s] + {str[s][1]}
+
+      str[s][1] = if str[s][1] = sID then "slave" + sID
+        else str[s][1]
+    end
+    ModifyTable(slave, str)
+    sID = "slave" + sID
+  end
+
+  // Remove existing fields from master if overwriting
+  if overwrite then do
+    {a_mFields, } = GetFields(master, "All")
+    {a_sFields, } = GetFields(slave, "All")
+
+    for f = 1 to a_sFields.length do
+      field = a_sFields[f]
+      if field <> sID & ArrayPosition(a_mFields, {field}, ) <> 0
+        then RunMacro("Remove Field", master, field)
+    end
+  end
+
+  // Join master and slave. Export to a temporary binary file.
+  jv = JoinViews("perma jv", master + "." + mID, slave + "." + sID, )
+  SetView(jv)
+  a_path = SplitPath(masterFile)
+  tempBIN = a_path[1] + a_path[2] + "temp.bin"
+  tempDCB = a_path[1] + a_path[2] + "temp.DCB"
+  ExportView(jv + "|", "FFB", tempBIN, , )
+  CloseView(jv)
+  CloseView(master)
+  CloseView(slave)
+
+  // Swap files.  Master DBD files require a different approach
+  // from bin files, as the links between the various database
+  // files are more complicated.
+  if type = "dbd" then do
+    // Join the tempBIN to the DBD. Remove Length/Dir fields which
+    // get duplicated by the DBD.
+    opts = null
+    opts.Ordinal = "True"
+    JoinTableToLayer(masterFile, master, "FFB", tempBIN, tempDCB, mID, opts)
+    master = AddLayerToWorkspace(master, masterFile, master)
+    nlyr = AddLayerToWorkspace(nlyr, masterFile, nlyr)
+    RunMacro("Remove Field", master, "Length:1")
+    RunMacro("Remove Field", master, "Dir:1")
+
+    // Re-export the table to clean up the bin file
+    new_dbd = a_path[1] + a_path[2] + a_path[3] + "_temp" + a_path[4]
+    {l_names, l_specs} = GetFields(master, "All")
+    {n_names, n_specs} = GetFields(nlyr, "All")
+    opts = null
+    opts.[Field Spec] = l_specs
+    opts.[Node Name] = nlyr
+    opts.[Node Field Spec] = n_specs
+    ExportGeography(master + "|", new_dbd, opts)
+    DropLayerFromWorkspace(master)
+    DropLayerFromWorkspace(nlyr)
+    DeleteDatabase(masterFile)
+    CopyDatabase(new_dbd, masterFile)
+    DeleteDatabase(new_dbd)
+
+    // Remove the sID field
+    master = AddLayerToWorkspace(master, masterFile, master)
+    RunMacro("Remove Field", master, sID)
+    DropLayerFromWorkspace(master)
+
+    // Delete the temp binary files
+    DeleteFile(tempBIN)
+    DeleteFile(tempDCB)
+  end else do
+    // Remove the master bin files and rename the temp bin files
+    DeleteFile(masterFile)
+    DeleteFile(masterDCB)
+    RenameFile(tempBIN, masterFile)
+    RenameFile(tempDCB, masterDCB)
+
+    // Remove the sID field
+    view = OpenTable("view", "FFB", {masterFile})
+    RunMacro("Remove Field", view, sID)
+    CloseView(view)
+  end
+EndMacro
