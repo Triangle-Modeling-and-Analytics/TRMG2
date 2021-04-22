@@ -540,7 +540,7 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
-    SetDataVector(jv + "|", llyr + ".Alpha", v_beta, )
+    SetDataVector(jv + "|", llyr + ".Beta", v_beta, )
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
@@ -608,6 +608,7 @@ Macro "Create Link Networks" (Args)
             netSetObj.LayerDB = link_dbd
             netSetObj.LoadNetwork(net_file)
             netSetObj.CentroidFilter = "Centroid = 1"
+            netSetObj.LinkTollFilter = "TollType = 'Toll'"
             netSetObj.Run()
         end
     end

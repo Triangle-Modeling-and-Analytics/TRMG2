@@ -78,5 +78,6 @@
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
         Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
+        Args.FeedbackIteration = { "Type":"hidden" , "Value":1}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
