@@ -7,7 +7,7 @@ Macro "Summaries" (Args)
 
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
-    // RunMacro("Create Count Difference Map", Args)
+    RunMacro("Create Count Difference Map", Args)
     return(1)
 endmacro
 
@@ -237,7 +237,7 @@ EndMacro
 
 */
 
-Macro "Create Count Difference Map"
+Macro "Create Count Difference Map" (Args)
   
   output_dir = Args.[Output Folder]
   hwy_dbd = Args.Links
