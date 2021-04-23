@@ -13,7 +13,7 @@ TRMG2 Master Network
 "DTWB",C,141,9,0,9,0,,"","Drive/Transit/Walk/Bike|Which high level modes are allowed?||T: Transit Only|DT: Drive and Transit|WB: Walk and Bike only|etc.",,"Copy",
 "HOV",C,150,9,0,9,0,,"","None: No occupancy restriction|HOV2: Requires at least 2 occupants to use|HOV3: Requires at least 3 occupants to use",,"Copy",
 "TollType",C,159,9,0,9,0,,"","Free: no tolls|HOT: tolls but HOV is free|Toll: everyone pays a toll",,"Copy",
-"TollRate",R,168,8,0,10,2,,"","Toll price in dollars per mile",,"Sum",
+"TollRate",R,168,8,0,10,2,,"","Toll price in dollars per mile for 2-axle vehicles||The model will automatically apply 2x this rate to|SUT and 4x this rate to MUT.",,"Sum",
 "CountID",C,176,16,0,16,0,,"","The CVG/VLM ID of the count",,"Copy",
 "DailyVolume",I,192,4,0,8,0,,"","The AWDT volume",,"Copy",
 "special_temp",I,196,4,0,8,0,,"","Hanging on to this field temporarily until I determine|how to mark toll/hov/hot links",,"Copy",
