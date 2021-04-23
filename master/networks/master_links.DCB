@@ -15,7 +15,7 @@ TRMG2 Master Network
 "TollType",C,159,9,0,9,0,,"","Free: no tolls|HOT: tolls but HOV is free|Toll: everyone pays a toll",,"Copy",
 "TollRate",R,168,8,0,10,2,,"","Toll price in dollars per mile for 2-axle vehicles||The model will automatically apply 2x this rate to|SUT and 4x this rate to MUT.",,"Sum",
 "CountID",C,176,16,0,16,0,,"","The CVG/VLM ID of the count",,"Copy",
-"DailyVolume",I,192,4,0,8,0,,"","The AWDT volume",,"Copy",
+"DailyCount",I,192,4,0,8,0,,"","The AWDT count volume",,"Copy",
 "special_temp",I,196,4,0,8,0,,"","Hanging on to this field temporarily until I determine|how to mark toll/hov/hot links",,"Copy",
 "parklink_temp",I,200,4,0,8,0,,"","Keeping this temp field for now to keep track of parking|lot links",,"Copy",
 "p1ID",C,204,16,0,16,0,,"","Project Field|Project ID",,"Copy",
