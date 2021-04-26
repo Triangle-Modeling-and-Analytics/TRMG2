@@ -1400,8 +1400,9 @@ Macro "Count Difference Map" (macro_opts)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
   // Create map
-  map = RunMacro("G30 new map", hwy_dbd)
-  {nlyr, vw} = GetDBLayers(hwy_dbd)
+  {map, {nlyr, vw}} = RunMacro("Create Map", {file: hwy_dbd})
+  // map = RunMacro("G30 new map", hwy_dbd)
+  // {nlyr, vw} = GetDBLayers(hwy_dbd)
   SetLayer(vw)
   MinimizeWindow(GetWindowName())
 
@@ -1416,7 +1417,8 @@ Macro "Count Difference Map" (macro_opts)
     {"MDD","Integer",8,,,,, "Maximum Desirable Deviation"},
     {"ExceedMDD","Integer",8,,,,, "If link exceeds MDD"}
   }
-  RunMacro("TCB Add View Fields", {vw, a_fields})
+  // RunMacro("TCB Add View Fields", {vw, a_fields})
+  RunMacro("Add Fields", {view: vw, a_fields: a_fields})
 
   // Create data frame
   df = CreateObject("df")
