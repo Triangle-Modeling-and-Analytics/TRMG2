@@ -6,3 +6,4 @@
 *.xml
 .DS_Store
 docs/data/_PRIVATE/*
+docs/site_libs/*
