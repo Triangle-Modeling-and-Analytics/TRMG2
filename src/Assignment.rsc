@@ -4,9 +4,53 @@
 
 Macro "Roadway Assignment" (Args)
 
+    // RunMacro("VOT Split", Args)
     RunMacro("Run Roadway Assignment", Args)
     // RunMacro("Update Link Congested Times", Args)
     return(1)
+endmacro
+
+/*
+This borrows the NCSTM approach to split OD matrices into distinct values of
+time. This is based both on the distance of the trip and the average HH incomes
+in the origin and destination zones.
+
+TODO: Finish
+*/
+
+Macro "VOT Split" (Args)
+
+    se_file = Args.SE
+    // vot_params = 
+    periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Directory] + "/assignment/roadway/iter_" + String(iter)
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    {v_hh, v_inc} = GetDataVectors(
+        se_vw + "|", {"HH","Median_Inc"}, 
+        {{"Sort Order",{{"ID","Ascending"}}}}
+    )
+
+    for period in periods do
+        // TODO: change to actual file name
+        input_file = assn_dir + "TOT" + period + "_OD_conv_tod.mtx"
+        output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
+        
+        input = CreateObject("Matrix")
+        input.LoadMatrix(input_file)
+        input.AddCores("income")
+        input.CloneMatrixStructure({
+            MatrixFile: output_file,
+            MatrixLabel: "ODs by Value of Time",
+            Matrices: {"test"}
+        })
+
+        output = CreateObject("Matrix")
+        input.LoadMatrix(output_file)
+    end
+
+    CloseView(se_vw)
 endmacro
 
 /*
