@@ -111,7 +111,7 @@ easier. The minor streets do not have attribute information and should not be
 included for use by vehicle travel. They will only be used by non-motorized and
 transit travelers.
 
-### Review of the master layer
+### Review of All Streets
 
 With all the changes mentioned above, it was important to check that the new
 master projects remained consistent. To be exhaustive, Caliper wrote code to do
@@ -136,6 +136,15 @@ knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_afte
 
 A small number of OD pairs were reviewed with changes <30%, but each one was
 reasonable.
+
+### Posted speed and lanes review
+
+In addition to checks on the conflation and addition of all streets, Caliper
+also reviewed the network for attribute correctness. For this review, Caliper
+used [NCDOTs Road Characteristics
+layer](https://connect.ncdot.gov/resources/gis/Pages/GIS-Data-Layers.aspx). This
+was overlaid with the master layer to visually check for discrepancies. Google
+Streeview was also used occasionally to check lanes and speed limit signs.
 
 ### Tolls
 
