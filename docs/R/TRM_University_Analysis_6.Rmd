@@ -74,7 +74,7 @@ The NCSU survey data was used to develop trip production rates for on-campus and
 The NCSU survey data set did not include any [double check] Inter-Campus (UCC) trips, which is the model's 6th trip purpose. 
 
 #### Exploratory Analysis 
-Figure 1 shows the average number of trips per student per day for each of the 5 trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data.  Figure 2 presents the same information based on weighted data.The NCSU survey includes person weights [description of the weighting]
+Figure 1 shows the average number of trips per student per day for each of the 5 trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data.  Figure 2 presents the same information based on weighted data.The person weights included in the NCSU survey were developed based on residence locations (on-campus vs. off-campus), credit hours (full-time vs. part-time) and class status (undergraduate vs. graduate).
 
 *[change y axis to proportion to compare on and off campus]
 *The distribution is skewed to the right, with most students making few trips and a few students making many trips per day.  

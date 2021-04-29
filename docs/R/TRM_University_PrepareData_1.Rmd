@@ -16,8 +16,8 @@ for (package in packages_vector){
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-#working directory [delete before submitting]
+```{}[delete before submitting]
+#working directory 
 TRM<-"C:/Users/vamerlynck/Documents/TriangleTDM/data" #github repo
 setwd(TRM)
 
@@ -42,62 +42,65 @@ se_filename<-"se_2016.csv"
 
 ```
 
-```{}
-#{r remote-io} [make active before submitting]
-input_dir <- "../data/input/"
-output_dir<-"../data/output/"
 
-#put script in docs/R
+##FILE LOCATIONS
+```{r remote-io}
 
-#survey data is located here? paste0(input_dir,/_PRIVATE)
-NCSUsurvey_name<-"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls"
-ODU_name<-"ODU1_adjustedNtrips.sav"  
-UVA_name<-"UVA1_adjustedNtrips.sav"   
-VCU_name<-"VCU1_adjustedNtrips.sav"
-VT_name<-"VT1_adjustedNtrips.sav"
-ODUw_name<-"snVDOTCORRADINO_ODU_2010_with weight.sav"  
-VTw_name<-"snVDOTCORRADINO_VT_2010_with weight.sav"
-dictUVA_name<-"datadictionary.xlsx"
+private_dir <- "../data/input/_PRIVATE/"
+data_dir<-"../data/input/"
+output_dir <-"../data/output/"
 
-#taz boundaries
-taz_shape_file_name<-paste0(input_dir,"tazs/master_tazs.shp") # doublecheck if correct version
+#surveys
+NCSUsurvey_name<-paste0(private_dir,"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls")
+ODU_name<-paste0(private_dir,"ODU1_adjustedNtrips.sav") 
+UVA_name<-paste0(private_dir,"UVA1_adjustedNtrips.sav")
+VCU_name<-paste0(private_dir,"VCU1_adjustedNtrips.sav")
+VT_name<-paste0(private_dir,"VT1_adjustedNtrips.sav")
+ODUw_name<-paste0(private_dir,"snVDOTCORRADINO_ODU_2010_with weight.sav") 
+VTw_name<-paste0(private_dir,"snVDOTCORRADINO_VT_2010_with weight.sav")
+dictUVA_name<-paste0(private_dir,"datadictionary.xlsx")
+
+#zonal
+taz_shape_file_name<-paste0(data_dir,"tazs/master_tazs.shp")
+#adjacency_filename <-"Adjacent.csv"
 
 #socioeconomics
-se_filename<-paste0(output_dir,"se_2016.csv") # doublecheck if correct version
+se_filename<-paste0(data_dir,"se_data/se_2016.csv")
 
 ```
 
 
-#Survey Files
-The NCSU survey by ___() serves as the basis for the estimation of trip generation rates for students from the Triangle Region's 4 main universities: NCSU,UNC-CH,Duke and NCCU. Findings from surveys of students from 4 universities in Virginia, as summarized in Khattak et al (), were used to verify the rates.
+##READ FILES
+A survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014 serves as the basis for the estimation of trip generation rates for students from the Triangle Region's 4 main universities: NCSU,UNC-CH,Duke and NCCU. Findings from surveys of students from 4 universities in Virginia, as summarized in Khattak et al (2012), were used to verify the rates.
 ```{r}
-#NCSU
-#NCSUtabs<-excel_sheets(survey)
-NCSU_Person_df<-read_excel(survey,"Person")
-NCSU_Trip_df<-read_excel(survey,"Trip")
-NCSU_Place_df<-read_excel(survey,"Place")
-NCSU_DDtemp_df<-read_excel(survey,"Dictionary")
+#NCSU surveys
+NCSU_Person_df<-read_excel(NCSUsurvey_name,"Person")
+NCSU_Trip_df<-read_excel(NCSUsurvey_name,"Trip")
+NCSU_Place_df<-read_excel(NCSUsurvey_name,"Place")
+NCSU_DDtemp_df<-read_excel(NCSUsurvey_name,"Dictionary")
 NCSU_DataDictionary_df<-NCSU_DDtemp_df[-c(2:3),]
+
 
 # join person and trip data (place data already included in trip data)
 NCSU_All_df<- NCSU_Person_df %>% 
-  full_join(NCSU_Trip_df, by="Person_ID")
+full_join(NCSU_Trip_df, by="Person_ID")
 
 
-#UVA   
-#ODU_df<-S_ODUw %>%  
- # read.spss(to.data.frame = TRUE)
-#VT_df<-S_VTw %>% 
-#  read.spss(to.data.frame = TRUE)
-#ODU_0_df<-S_ODU %>%  
-#  read.spss(to.data.frame = TRUE)
-#VCU_0_df<-S_VCU %>%  
-#  read.spss(to.data.frame = TRUE)
-#UVA_0_df<-S_UVA %>%  
-#  read.spss(to.data.frame = TRUE)
-#VT_0_df<-S_VT %>%  
-#  read.spss(to.data.frame = TRUE)
-#UVA_dd_df<-read_excel(dictUVA,"UVA1")
+#Virginia surveys
+ODU_df<-ODUw_name %>% 
+read.spss(to.data.frame = TRUE)
+VT_df<-VTw_name %>% 
+read.spss(to.data.frame = TRUE)
+ODU_0_df<-ODU_name %>%  
+read.spss(to.data.frame = TRUE)
+VCU_0_df<-VCU_name %>%  
+read.spss(to.data.frame = TRUE)
+UVA_0_df<-UVA_name %>%  
+read.spss(to.data.frame = TRUE)
+VT_0_df<-VT_name %>%  
+read.spss(to.data.frame = TRUE)
+UVA_dd_df<-read_excel(dictUVA,"UVA1")
+
 
 #Zonal
 taz_sf <- st_read(taz_shape_file_name, stringsAsFactors = FALSE)
@@ -106,10 +109,10 @@ adjacency<-read_csv(adjacency_filename)
 adjacency$TAZ<-as.character(adjacency$TAZ)
 
 ```
-
-#Trip-level data
-##step 1 - assign trip locations to TAZs
-Assign each start and end locations from NCSU survey to TAZs
+## PREPARE DATA
+### TRIP-LEVEL DATA
+#### step 1 - assign trip locations to TAZs
+Assign start and end locations from NCSU survey to TAZs
 ```{r}
 # join trip locations to tazs
 PLANAR_EPSG <- 3857
@@ -134,13 +137,12 @@ dest_tazs_df <- NCSU_All_df %>%
 
 ```
 
-##step 2 - recode/create new variables 
+#### step 2 - recode/create new variables 
+Recode and add new variables as follows:
 
-Recoded/New variables as follows:
-
-###Origin TAZ and Destination TAZ 
+##### Origin TAZ and Destination TAZ 
 Add ID_o and ID_d based on Step 1
-###Trip Purpose
+##### Trip Purpose
 The model will include the following trip purposes segmented by on-campus and off-campus students:
 •	Home-Based-Campus (UHC)
 •	Home-Based-Other (UHO)
@@ -148,12 +150,12 @@ The model will include the following trip purposes segmented by on-campus and of
 •	On-Campus (UC1)
 •	Inter-Campus (UCC)
 •	University student Other-Other (UOO)
-### Production - Attraction
+##### Production - Attraction
 The Production trip end is home, campus (if home is not a trip end), or origin (if neither home or campus are a trip end).
-### Distance
+##### Distance
 A variable named "Distance" is used to indicate respondents who live in TAZs that are adjacent to the NCSU campus TAZs or TAZs that are adjacent to the adjacent TAZs (Distance==1)
-### Mode
-Primary Mode ########################
+##### Mode
+For respondents who reported multiple modes, Mode_1 was assumed to be the primary mode. The survey includes  Drive and car passenger are combined into a single mode named car. 
 
 ```{r}
 
@@ -187,12 +189,6 @@ NCSUtemp_df<- NCSU_All_df %>%
       End_PlaceType=="Home" ~ "P",
       Start_PlaceType!="Home"& Start_PlaceType!="North Carolina State University" & End_PlaceType=="North Carolina State University"~ "P",
       TRUE ~ "A"),
-
-    #TAZ_P = as.numeric(case_when(
-     # Origin_PA=="P" ~ ID_o,TRUE ~ ID_d)),
-    
-    #TAZ_A = as.numeric(case_when(
-     # Origin_PA=="A" ~ ID_o,TRUE ~ ID_d)),
     
     TAZ_P = case_when(
       Origin_PA=="P" ~ ID.x,TRUE ~ ID.y),
@@ -208,9 +204,10 @@ NCSUtemp_df<- NCSU_All_df %>%
     
     Primary_Mode = as.factor(Mode_1),
     Bicycle = if_else(Primary_Mode == "Bicycle",1,0),
-    Bus = if_else(Primary_Mode == "Public Bus / Private Shuttle",1,0),
-    Car = if_else((Primary_Mode == "Driver - Auto / Van / Truck" | Primary_Mode == "Passenger - Auto / Van / Truck"),1,0),
-    Walk = if_else(Primary_Mode == "Walk", 1,0))
+    Bus = if_else(Primary_Mode == "Public Bus / Private Shuttle" | "Other, wolfline",1,0),
+    Car = if_else(Primary_Mode == "Driver - Auto / Van / Truck" |  Primary_Mode == "Driver - Auto / Van / Truck, Other" | Primary_Mode == "Passenger - Auto / Van / Truck",1,0),
+    Walk = if_else(Primary_Mode == "Walk", 1,0),
+    Other = if_else(Primary_Mode == "Other" | Primary_Mode == "Other, Longboard" | Primary_Mode == "Other"))
     
     
 
