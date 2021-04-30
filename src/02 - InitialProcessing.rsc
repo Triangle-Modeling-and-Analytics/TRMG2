@@ -270,49 +270,30 @@ Macro "Capacity" (Args)
     // Create a map and add fields to be filled in
     {map, {node_lyr, link_lyr}} = RunMacro("Create Map", {file: link_dbd})
     a_fields =  {
-        {"AreaType2", "Character", 10, ,,,, 
-        "Area type used for link cap/speed lookup|Rural links marked with ML/TL"},
         {"capd_phpl", "Integer", 10, ,,,, 
         "LOS D capacity per hour per lane|LOS E is used for assignment."},
         {"cape_phpl", "Integer", 10, ,,,, 
-        "LOS E capacity per hour per lane|LOS E is used for assignment."},
-        {"MLHighway", "Integer", 10, ,,,, "If road is a rural multi-lane highway"},
-        {"TLHighway", "Integer", 10, ,,,, "If road is a rural two-lane highway"}
+        "LOS E capacity per hour per lane|LOS E is used for assignment."}
     }
     RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
     {link_fields, link_specs} = RunMacro("Get Fields", {view_name: link_lyr})
 
-    // Assign facility type to ramps
+    // // Assign facility type to ramps
+    SetLayer(link_lyr)
     ramp_query = "Select * where HCMType = 'Ramp'"
-    fac_field = "HCMType"
-    a_ft_priority = {"Freeway", "Arterial", "Collector"}
-    RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
-
-    // Update area type to identify ML and TL rural highways
-    data = GetDataVectors(
-        link_lyr + "|",
-        {"HCMType", "AreaType", "ABLanes", "BALanes", "Dir"},
-        {OptArray: TRUE}
-    )
-    lanes = nz(data.ABLanes) + nz(data.BALanes)
-    type = if lanes = 0 then ""
-        else if data.HCMType <> "Arterial" and data.HCMType <> "Collector" then ""
-        else if data.AreaType <> "Rural" then ""
-        else if lanes = 2 and data.Dir = 0 then "TL"
-        else "ML"
-    new_areatype = data.AreaType + type
-    ml_flag = if type = "ML" then 1 else null
-    tl_flag = if type = "TL" then 1 else null
-    SetDataVector(link_lyr + "|", "AreaType2", new_areatype, )
-    SetDataVector(link_lyr + "|", "MLHighway", ml_flag, )
-    SetDataVector(link_lyr + "|", "TLHighway", tl_flag, )
+    n = SelectByQuery("sel", "several", ramp_query)
+    if n > 0 then do
+        fac_field = "HCMType"
+        a_ft_priority = {"Freeway", "Arterial", "Collector", "Superstreet", "MLHighway", "TLHighway"}
+        RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
+    end
 
     // Add hourly capacity to link layer
     cap_vw = OpenTable("cap", "CSV", {cap_file})
     {cap_fields, cap_specs} = RunMacro("Get Fields", {view_name: cap_vw})
     jv = JoinViewsMulti(
         "jv", 
-        {link_specs.HCMType, link_specs.AreaType2},
+        {link_specs.HCMType, link_specs.AreaType},
         {cap_specs.HCMType, cap_specs.AreaType},
         null
     )
@@ -513,7 +494,7 @@ Macro "Other Attributes" (Args)
     // Join based on AreaType and HCMType
     jv = JoinViewsMulti(
         "jv",
-        {llyr + ".AreaType2", llyr + ".HCMType"},
+        {llyr + ".AreaType", llyr + ".HCMType"},
         {ffs_tbl + ".AreaType", ffs_tbl + ".HCMType"},
     )
 
