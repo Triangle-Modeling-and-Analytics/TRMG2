@@ -19,40 +19,40 @@ in the origin and destination zones.
 TODO: Finish
 */
 
-Macro "VOT Split" (Args)
+// Macro "VOT Split" (Args)
 
-    se_file = Args.SE
-    // vot_params = 
-    periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Directory] + "/assignment/roadway/iter_" + String(iter)
+//     se_file = Args.SE
+//     // vot_params = 
+//     periods = Args.periods
+//     iter = Args.FeedbackIteration
+//     assn_dir = Args.[Output Directory] + "/assignment/roadway/iter_" + String(iter)
 
-    se_vw = OpenTable("se", "FFB", {se_file})
-    {v_hh, v_inc} = GetDataVectors(
-        se_vw + "|", {"HH","Median_Inc"}, 
-        {{"Sort Order",{{"ID","Ascending"}}}}
-    )
+//     se_vw = OpenTable("se", "FFB", {se_file})
+//     {v_hh, v_inc} = GetDataVectors(
+//         se_vw + "|", {"HH","Median_Inc"}, 
+//         {{"Sort Order",{{"ID","Ascending"}}}}
+//     )
 
-    for period in periods do
-        // TODO: change to actual file name
-        input_file = assn_dir + "TOT" + period + "_OD_conv_tod.mtx"
-        output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
+//     for period in periods do
+//         // TODO: change to actual file name
+//         input_file = assn_dir + "TOT" + period + "_OD_conv_tod.mtx"
+//         output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
         
-        input = CreateObject("Matrix")
-        input.LoadMatrix(input_file)
-        input.AddCores("income")
-        input.CloneMatrixStructure({
-            MatrixFile: output_file,
-            MatrixLabel: "ODs by Value of Time",
-            Matrices: {"test"}
-        })
+//         input = CreateObject("Matrix")
+//         input.LoadMatrix(input_file)
+//         input.AddCores("income")
+//         input.CloneMatrixStructure({
+//             MatrixFile: output_file,
+//             MatrixLabel: "ODs by Value of Time",
+//             Matrices: {"test"}
+//         })
 
-        output = CreateObject("Matrix")
-        input.LoadMatrix(output_file)
-    end
+//         output = CreateObject("Matrix")
+//         input.LoadMatrix(output_file)
+//     end
 
-    CloseView(se_vw)
-endmacro
+//     CloseView(se_vw)
+// endmacro
 
 /*
 
@@ -116,7 +116,7 @@ Macro "Run Roadway Assignment" (Args)
             Demand: "SOV",
             PCE: 1,
             VOI: 1,
-            LinkTollField: "TollCost"
+            LinkTollField: "TollCostSOV"
         }
         if hov_exists then class_opts = class_opts + {ExclusionFilter: "HOV <> 'None'"}
         o.AddClass(class_opts)
@@ -124,7 +124,7 @@ Macro "Run Roadway Assignment" (Args)
             Demand: "HOV",
             PCE: 1,
             VOI: 1,
-            LinkTollField: "TollCost"
+            LinkTollField: "TollCostHOV"
         })
         class_opts = {
             Demand: "SUT",
