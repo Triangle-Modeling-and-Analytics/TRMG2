@@ -36,6 +36,8 @@ Macro "Load Link Layer" (Args)
         {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
         for field_name in field_names do
             if field_name = "ID1" then continue
+            // Remove the field if it already exists before renaming
+            RunMacro("Remove Field", llyr, field_name + "_" + period)
             RunMacro("Rename Field", llyr, field_name, field_name + "_" + period)
         end
 

@@ -1401,10 +1401,7 @@ Macro "Count Difference Map" (macro_opts)
 
   // Create map
   {map, {nlyr, vw}} = RunMacro("Create Map", {file: hwy_dbd})
-  // map = RunMacro("G30 new map", hwy_dbd)
-  // {nlyr, vw} = GetDBLayers(hwy_dbd)
   SetLayer(vw)
-  MinimizeWindow(GetWindowName())
 
   // Add fields for mapping
   a_fields = {
@@ -1513,27 +1510,27 @@ Macro "Count Difference Map" (macro_opts)
     }
   )
 
-    // Set color theme line styles and colors
-    line_colors =	{
-      ColorRGB(17733,30069,46260),
-      ColorRGB(29812,44461,53713),
-      ColorRGB(43947,55769,59881),
-      ColorRGB(0,0,0),
-      ColorRGB(65278,57568,37008),
-      ColorRGB(65021,44718,24929),
-      ColorRGB(62708,28013,17219),
-      ColorRGB(55255,12336,10023)
-    }
-    solidline = LineStyle({{{1, -1, 0}}})
-    // This one puts black borders around the line
-    /*dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})*/
+  // Set color theme line styles and colors
+  line_colors =	{
+    ColorRGB(17733,30069,46260),
+    ColorRGB(29812,44461,53713),
+    ColorRGB(43947,55769,59881),
+    ColorRGB(0,0,0),
+    ColorRGB(65278,57568,37008),
+    ColorRGB(65021,44718,24929),
+    ColorRGB(62708,28013,17219),
+    ColorRGB(55255,12336,10023)
+  }
+  solidline = LineStyle({{{1, -1, 0}}})
+  // This one puts black borders around the line
+  /*dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})*/
 
-    for i = 1 to 8 do
-      class_id = GetLayer() +"|" + cTheme + "|" + String(i)
-      SetLineStyle(class_id, dualline)
-      SetLineColor(class_id, line_colors[i])
-      SetLineWidth(class_id, 2)
-    end
+  for i = 1 to 8 do
+    class_id = GetLayer() +"|" + cTheme + "|" + String(i)
+    SetLineStyle(class_id, dualline)
+    SetLineColor(class_id, line_colors[i])
+    SetLineWidth(class_id, 2)
+  end
 
   // Change the labels of the classes (how the divisions appear in the legend)
   labels = {
@@ -1570,6 +1567,8 @@ Macro "Count Difference Map" (macro_opts)
   str1 = "XXXXXXXX"
   solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
   SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+  SetLayerVisibility(map + "|" + nlyr, "false")
 
   // Save map
   RedrawMap(map)
