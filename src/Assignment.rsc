@@ -4,9 +4,10 @@
 
 Macro "Roadway Assignment" (Args)
 
+    // TODO: implement vot split
     // RunMacro("VOT Split", Args)
     RunMacro("Run Roadway Assignment", Args)
-    // RunMacro("Update Link Congested Times", Args)
+    RunMacro("Update Link Congested Times", Args)
     return(1)
 endmacro
 
@@ -159,18 +160,25 @@ endmacro
 After assignment, this macro updates the link layer congested time fields.
 */
 
-// Macro "Update Link Congested Times" (Args)
+Macro "Update Link Congested Times" (Args)
 
-//     hwy_dbd = Args.Links
-//     periods = Args.periods
-//     feedback_iter = Args.FeedbackIteration
-//     assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    hwy_dbd = Args.Links
+    periods = Args.periods
+    feedback_iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
 
-//     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
     
-//     for period in periods do
-//         assn_dir + "\\roadway_assignment_" + period + ".bin"
-//     end
+    for period in periods do
+        assn_file = assn_dir + "\\roadway_assignment_" + period + ".bin"
+        assn_vw = OpenTable("assn", "FFB", {assn_file})
+        jv = JoinViews("jv", llyr + ".ID", assn_vw + ".ID1", )
+        {v_ab, v_ba} = GetDataVectors(jv + "|", {assn_vw + ".AB_Time", assn_vw + ".BA_Time"}, )
+        SetDataVector(jv + "|", llyr + ".AB" + period + "Time", v_ab, )
+        SetDataVector(jv + "|", llyr + ".BA" + period + "Time", v_ba, )
+        CloseView(jv)
+        CloseView(assn_vw)
+    end
 
-//     CloseMap(map)
-// endmacro
+    CloseMap(map)
+endmacro

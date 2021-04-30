@@ -481,9 +481,9 @@ Macro "Other Attributes" (Args)
     for period in periods do
         a_fields = a_fields + {
             {"AB" + period + "Time", "Real", 10, 2, , , , 
-            "Congested time in the " + period + " period.|Updated after each feedback iteration."},
+            "Congested time in the " + period + " period.|Updated after each assignment."},
             {"BA" + period + "Time", "Real", 10, 2, , , , 
-            "Congested time in the " + period + " period.|Updated after each feedback iteration."}
+            "Congested time in the " + period + " period.|Updated after each assignment."}
         }
     end
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
