@@ -25,6 +25,7 @@ Body:
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Summaries",,,)
+    FlowChartNode(model,"Skimming",,,)
     //
     // Links
     //
@@ -110,6 +111,15 @@ Macro "Summaries" (Args,Result)
                   {"MacroNames",{"Summaries"}}}
 Body:
     ShowMessage('Running: Summaries')
+    Return(True)
+EndMacro
+
+
+Macro "Skimming" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Skimming"}}}
+Body:
+    ShowMessage('Running: Skimming')
     Return(True)
 EndMacro
 
