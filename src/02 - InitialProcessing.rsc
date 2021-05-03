@@ -514,9 +514,7 @@ Macro "Other Attributes" (Args)
             },
         )
     // v_ffs = v_ps + v_mod
-    v_ffs = if v_type = "TransitOnly"
-        then v_ps
-        else v_ps + v_mod
+    v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
