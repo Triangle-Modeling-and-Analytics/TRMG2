@@ -1590,3 +1590,37 @@ Macro "Get Transit Modes" (mode_csv)
     CloseView(mode_vw)
     return(transit_modes)
 endmacro
+
+/*
+Transposes all cores in a matrix file.
+
+Inputs
+  * `mtx_file`
+    * String
+    * Full path to matrix file to be transposed
+  * `label`
+    * Optional string
+    * Label for the resuling, transposed matrix
+    
+Returns
+  Nothing. The matrix file provided will have all cores transposed.
+*/
+
+Macro "Transpose Matrix" (mtx_file, label)
+  if mtx_file = null then Throw("Transpose Matrix: `mtx_file` not provided")
+  if GetFileInfo(mtx_file) = null then Throw(
+    "Transpose Matrix: `mtx_file` not found\n" +
+    "(" + mtx_file + ")"
+  )
+
+  {drive, folder, file, ext} = SplitPath(mtx_file)
+  inv_matrix = drive + folder + file + "_inv" + ext
+  mtx = OpenMatrix(mtx_file, )
+  opts = null
+  opts.[File Name] = inv_matrix
+  opts.label = label
+  TransposeMatrix(mtx, opts)
+  mtx = null
+  DeleteFile(mtx_file)
+  RenameFile(inv_matrix, mtx_file)
+EndMacro
