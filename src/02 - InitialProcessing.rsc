@@ -500,9 +500,10 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_len, v_ps, v_tolltype, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
+            llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             llyr + ".TollType",
@@ -512,7 +513,10 @@ Macro "Other Attributes" (Args)
             ffs_tbl + ".Beta"
             },
         )
-    v_ffs = v_ps + v_mod
+    // v_ffs = v_ps + v_mod
+    v_ffs = if v_type = "TransitOnly"
+        then v_ps
+        else v_ps + v_mod
     v_fft = v_len / v_ffs * 60
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
@@ -670,6 +674,7 @@ Macro "Create Route Networks" (Args)
                     TransitModeField: "Mode",
                     NonTransitModeField: "Mode"
                 })
+                // Drive attributes for network creation
                 if access_mode = "knr" or access_mode = "pnr" then do
                     o.IncludeDriveLinks = true
                     o.DriveLinkFilter = "D = 1"
@@ -748,7 +753,7 @@ Macro "Create Route Networks" (Args)
                     RouteXFareField: "Fare"
                 })
 
-                // Handle drive access attributes
+                // Drive attributes for network settings
                 if access_mode = "knr" or access_mode = "pnr" then do
                     o.DriveTime = "DriveTime"
                     opts = null
