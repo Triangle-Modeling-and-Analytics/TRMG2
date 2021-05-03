@@ -641,14 +641,10 @@ Macro "Create Route Networks" (Args)
     access_modes = Args.access_modes
     tmode_table = Args.tmode_table
 
-    mode_vw = OpenTable("mode", "CSV", {tmode_table})
-    a_mode_id = V2A(GetDataVector(mode_vw + "|", "mode_id", ))
-    transit_modes = V2A(GetDataVector(mode_vw + "|", "abbr", ))
-    CloseView(mode_vw)
+    transit_modes = RunMacro("Get Transit Modes", tmode_table)
 
     for period in periods do
         for transit_mode in transit_modes do
-            if transit_mode = "nt" then continue
             for access_mode in access_modes do
                 
                 // create transit network .tnw file

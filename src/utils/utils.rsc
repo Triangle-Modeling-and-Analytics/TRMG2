@@ -1576,3 +1576,17 @@ Macro "Count Difference Map" (macro_opts)
   SaveMap(map, output_file)
   CloseMap(map)
 EndMacro
+
+/*
+Uses the mode table to get the transit modes in the model. Exclude "nt"
+(non-transit) as a mode.
+*/
+
+Macro "Get Transit Modes" (mode_csv)
+    mode_vw = OpenTable("mode", "CSV", {mode_csv})
+    transit_modes = V2A(GetDataVector(mode_vw + "|", "abbr", ))
+    pos = transit_modes.position("nt")
+    transit_modes = ExcludeArrayElements(transit_modes, pos, 1)
+    CloseView(mode_vw)
+    return(transit_modes)
+endmacro
