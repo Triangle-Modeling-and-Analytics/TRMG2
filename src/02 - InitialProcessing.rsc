@@ -449,19 +449,19 @@ Macro "Set CC Speeds" (Args)
 EndMacro
 
 /*
-Other important fields like FFS and FFT, walk time, etc.
+Other important fields like FFS and FFT, walk time, etc. Also determines which
+nodes can be KNR.
 */
 
 Macro "Other Attributes" (Args)
     
-    links_dbd = Args.Links
+    rts_file = Args.Routes
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
 
-    // Add link layer to workspace
-    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
-    {nlyr, llyr} = objLyrs.Layers
+    {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
+    
     a_fields = {
         {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
@@ -551,7 +551,24 @@ Macro "Other Attributes" (Args)
     set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
     SetDataVectors(llyr + "|", set, )
 
+    // Limit the possible KNR nodes to within a certain distance of transit
+    // routes. This speeds up knr skimming by not having to consider unrealistic
+    // paths.
+    route_buffer = .25
+    a_fields = {
+        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(within " + String(route_buffer) + " of a transit route)"}
+    }
+    RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
+    SetLayer(llyr)
+    SelectByQuery("drive_links", "several", "Select * where D = 1")
+    SetLayer(nlyr)
+    SelectByLinks("drive_nodes", "several", "drive_links", )
+    n = SelectByVicinity ("knr", "several", rlyr + "|", route_buffer, {'Source And': "drive_nodes"})
+    v = Vector(n, "Long", {Constant: 1})
+    SetDataVector(nlyr + "|knr", "KNR", v, )
+
     CloseView(ffs_tbl)
+    CloseMap(map)
 EndMacro
 
 /*
@@ -759,7 +776,7 @@ Macro "Create Route Networks" (Args)
                     opts.PermitAllWalk = false
                     opts.AllowWalkAccess = false
                     if access_mode = "knr" 
-                        then opts.ParkingNodes = "ID > 0" // any node
+                        then opts.ParkingNodes = "KNR = 1"
                         else opts.ParkingNodes = "PNR = 1"
                     if period = "PM" 
                         then o.DriveEgress(opts)
@@ -769,5 +786,4 @@ Macro "Create Route Networks" (Args)
             end
         end
     end
-
 endmacro
