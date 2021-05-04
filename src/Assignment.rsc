@@ -169,13 +169,26 @@ Macro "Update Link Congested Times" (Args)
 
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
     
+    dirs = {"AB", "BA"}
+
     for period in periods do
         assn_file = assn_dir + "\\roadway_assignment_" + period + ".bin"
         assn_vw = OpenTable("assn", "FFB", {assn_file})
         jv = JoinViews("jv", llyr + ".ID", assn_vw + ".ID1", )
-        {v_ab, v_ba} = GetDataVectors(jv + "|", {assn_vw + ".AB_Time", assn_vw + ".BA_Time"}, )
-        SetDataVector(jv + "|", llyr + ".AB" + period + "Time", v_ab, )
-        SetDataVector(jv + "|", llyr + ".BA" + period + "Time", v_ba, )
+
+        for dir in dirs do
+            old_field = llyr + ".AB" + period + "Time"
+            new_field = assn_vw + "." + dir + "_Time"
+            v_old = GetDataVector(jv + "|", old_field, )
+            v_new = GetDataVector(jv + "|", new_field, )
+            // This check keeps TransitOnly links and any others not included
+            // in assignment from having their times replaced with nulls.
+            v_new = if v_new = null
+                then v_old
+                else v_new
+            SetDataVector(jv + "|", old_field, v_new, )
+        end
+
         CloseView(jv)
         CloseView(assn_vw)
     end
