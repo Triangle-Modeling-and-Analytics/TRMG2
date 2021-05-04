@@ -132,7 +132,8 @@ Macro "Transit Skims" (Args)
                     MatrixLabel : label, 
                     Compression: true, ColumnMajor: false
                 })   
-                ok = obj.Run()
+                obj.Run()
+                obj = null
 
                 // Flip to AP format in the PM period
                 if period = "PM" then do
