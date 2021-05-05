@@ -15,6 +15,7 @@ options(scipen = 999)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(scales)
 ```
 
 ## Introduction
@@ -110,7 +111,7 @@ easier. The minor streets do not have attribute information and should not be
 included for use by vehicle travel. They will only be used by non-motorized and
 transit travelers.
 
-### Review of the master layer
+### Review of All Streets
 
 With all the changes mentioned above, it was important to check that the new
 master projects remained consistent. To be exhaustive, Caliper wrote code to do
@@ -135,6 +136,83 @@ knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_afte
 
 A small number of OD pairs were reviewed with changes <30%, but each one was
 reasonable.
+
+### Posted speed and lanes review
+
+In addition to checks on the conflation and addition of all streets, Caliper
+also reviewed the network for attribute correctness. For this review, Caliper
+used [NCDOTs Road Characteristics
+layer](https://connect.ncdot.gov/resources/gis/Pages/GIS-Data-Layers.aspx). This
+was overlaid with the master layer to visually check for discrepancies. Google
+Streeview was also used occasionally to check lanes and speed limit signs.
+
+### Tolls
+
+Tolling is an important policy lever for the Triangle. The Triangle Expressway
+is an approximately 18 mile long freeway that charges a toll. In addition, the
+region is considering additional toll facilities include high-occupancy toll
+(HOT) lanes in the future.
+
+Toll rates were collected from the [NC Quick Pass
+website](https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx).
+The listed prices were used to come up with an average cost per mile for 2-axle
+vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more
+axles pay four times that rate.
+
+```{r}
+# 2016
+tribble(
+  ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
+  "Transponder",    "$3.25", 17.8,             "$0.183",
+  "By Mail",        "$5.00", 17.8,             "$0.281"
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+
+# TODO: update to 2020 toll rates when updating base year to 2020
+
+# # 2020
+# tribble(
+#   ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
+#   "Transponder",    "$3.60", 17.8,             "$0.202",
+#   "By Mail",        "$5.52", 17.8,             "$0.310"
+# ) %>%
+#   kable() %>%
+#   kable_styling(full_width = FALSE)
+```
+
+The TRMG2 does not model transponder ownership; therefore, a blended rate must
+be calculated that accurately represents the mix of vehicles using the facility.
+To support that calculation, the stakeholders collected information on total
+transactions by transponder and by mail. Caliper used this metric to calculate
+the percentage split as shown below. Unfortunately, this info was not available
+by class, so the total percentage is used for all axle classes.
+
+```{r}
+df <- tibble(
+  method = c("Transponder", "By Mail"),
+  total_trans = c(26360672, 18883195)
+) %>%
+  mutate(
+    pct = percent(total_trans / sum(total_trans))
+  )
+
+df %>%
+  rename(
+    Method = method,
+    `Total Transactions` = total_trans,
+    Percent = pct
+  ) %>%
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+The final weighted toll rate for 2-axle vehicles is $0.22/mi.
+
+```{r}
+# TODO: update for 2020
+# The final weighted toll rate for 2-axle vehicles is $0.25/mi.
+```
 
 ## Transit Layer
 

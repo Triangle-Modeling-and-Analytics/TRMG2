@@ -18,6 +18,7 @@ library(chron)
 library(plotly)
 library(knitr)
 library(kableExtra)
+library(scales)
 ```
 
 # Introduction
@@ -423,141 +424,56 @@ avg_tim %>%
   kable_styling(full_width = FALSE)
 ```
 
-```{r}
-# Stop knitting here for now
-knitr::knit_exit()
-```
-
-```{r add_tod_to_tripTbl}
-# tripTbl is modified to include a tod column for use in the following
-# sections
-breaks <- c(am_peak_from, am_peak_to, pm_peak_from, pm_peak_to)
-breaks <- as.numeric(breaks) * 1440
-labels <- c("AM", "MD", "PM")
-
-tripTbl <- tripTbl %>%
-  group_by(tod = cut(departure_time, breaks = breaks, labels = labels)) %>%
-  ungroup() %>%
-  mutate(
-    tod = as.character(tod),
-    tod = ifelse(is.na(tod), "NT", tod),
-    # Use factors to set display order in table
-    tod = factor(
-      tod,
-      levels = c("AM", "MD", "PM", "NT"),
-      ordered = TRUE
-      ),
-    # Include a PK/OP definition for distribution/mode models to use
-    pk_op = ifelse(tod %in% c("AM", "PM"), "PK", "OP")
-    )
-```
-
-
 # Time of day factors
 With the periods defined, the percent of trips produced by purpose and time of
 day must be determined. These factors are calculated based on the departure
 time of each trip rather than using the trips in motion table. This ensures
 that each trip is only counted once, regardless of duration, and that it is
 included in the right period. These factors are used to divide the daily person
-trips created during trip generation into time of day (by purpose). IEEI trips
-are assumed to behave like HBO trips.
+trips created during trip generation into time of day (by purpose).
 
 Directionality factors are calculated separately in the next section. As a
-reference, the time period definition is shown again first.
+reference, the time period definition is shown again first followed by the TOD
+factors.
 
 ```{r}
 period_tbl %>%
-  kable2(caption = "Final Period Definitions")
+  kable() %>%
+  kable_styling(full_width = FALSE)
 ```
 
 ```{r calc_tod_trip_factors}
 tod_factors <- tripTbl %>%
-  group_by(Period = tod, Purpose = final_purp_g) %>%
-  summarise(Trips = sum(hhrkwt0)) %>%
-  group_by(Purpose) %>%
+  filter(tour_type != "H", homebased == "HB") %>%
+  group_by(tod, trip_type) %>%
+  summarise(Trips = sum(trip_weight_combined)) %>%
+  group_by(trip_type) %>%
   mutate(
-    Percent = round(Trips / sum(Trips), 3),
+    factor = round(Trips / sum(Trips), 3),
     # ensure unity
-    temp = ifelse(Period == "NT", 0, Percent),
-    Percent = ifelse(Period == "NT", 1 - sum(temp), Percent)
+    temp = ifelse(tod == "NT", 0, factor),
+    factor = ifelse(tod == "NT", 1 - sum(temp), factor)
   ) %>%
-  select(Purpose, Period, Percent) %>%
-  arrange(Purpose, Period)
-
-purp_levels <- c("HBW", "HBSC", "HBSH", "HBU", "HBO", "NHBW", "NHBO")
+  select(trip_type, tod, factor) %>%
+  arrange(trip_type, tod)
 
 tod_factors %>%
   ungroup() %>%
   mutate(
-    Percent = percent(Percent),
-    Purpose = factor(
-      Purpose,
-      levels = c(purp_levels),
-      ordered = TRUE
-    )) %>%
-  spread(key = Period, value = Percent) %>%
-  kable2(digits = 3, caption = "Time of Day Factors by Purpose")
-```
-
-```{r create crosswalk table for model}
-# Create a table for non-resident purposes (CV, SUT, MUT, and IEEI)
-# Use HBO for these purposes
-other_tbl <- tibble(
-  Purpose = c("CV", "SUT", "MUT", "IEEI"),
-  equiv = c("HBO", "HBO", "HBO", "HBO")
-)
-other_tbl <- merge(other_tbl, unique(tod_factors$Period)) %>%
-  rename(Period = y) %>%
-  left_join(tod_factors, by = c("equiv" = "Purpose", "Period" = "Period")) %>%
-  select(-equiv) %>%
-  arrange(Purpose, Period)
-
-# Combine other and tod tables
-out_tbl <- bind_rows(tod_factors, other_tbl) %>% 
-  ungroup()
-
-# Create a duplicate table for attractions and add it to other_tbl
-attr_tbl <- out_tbl %>%
-  mutate(Purpose = paste0(Purpose, "a"))
-out_tbl <- bind_rows(out_tbl, attr_tbl) %>%
-  arrange(Purpose, Period)
-
-# Repeat the HBW and HBO factors for each market segment
-temp <- out_tbl %>%
-  filter(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa")) %>%
-  merge(tibble(market = c("v0", "ilvi", "ilvs", "ihvi", "ihvs"))) %>%
-  mutate(Purpose = paste(Purpose, market, sep = "_")) %>%
-  select(-market)
-
-out_tbl <- out_tbl %>%
-  filter(!(Purpose %in% c("HBW", "HBWa", "HBO", "HBOa"))) %>%
-  bind_rows(temp) %>%
-  arrange(Purpose)
-
-# Create standard format table used by "Field Crosswalk" macro in model
-out_tbl <- out_tbl %>%
-  mutate(
-    to_desc = paste(
-      "Time of Day", 
-      "Generation fields split into time period", 
-      "See time_of_day_factors.csv for rates", 
-      sep = "|"
-    ),
-    to_field = paste0(Purpose, "_", Period)
+    factor = percent(factor, accuracy = .1),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
   ) %>%
-  select(to_field, to_desc, from_field = Purpose, from_factor = Percent, Period)
+  # filter(trip_type %in% c("W_HB_W_All", "N_HB_K12_All")) %>%
+  spread(key = tod, value = factor) %>%
+  rename(`Trip Type` = trip_type) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
 
 # Create a description field for the table
-desc <- vector(mode = "character", length = nrow(out_tbl))
-desc[1] = "Used by 'Field Crosswalk' macro"
-desc[2] = "to_field = to_field + from_field * from_factor"
-desc[3] = "The 'to_desc' gets placed in the TC field description"
-desc[5] = "Non-resident purposes use HBO factors"
-desc[6] = "'Period' column included to facilitate manual summary/review"
-desc[8] = "CREATION: table created by TimeOfDay.Rmd"
-out_tbl$Description <- desc
-
-tod_tbl <- out_tbl
+desc <- vector(mode = "character", length = nrow(tod_factors))
+desc[1] = "Used to split daily resident productions"
+desc[2] = "into period-specific values"
+tod_factors$Description <- desc
 ```
 
 # Directionality factors
@@ -569,11 +485,11 @@ occurs. As a result, before highway trip assignment can take place, the PA
 format must be converted to "Origin/Destination" (OD) format. In this format, a
 trip from work to home starts at work and ends at home.
 
-This conversion is accomplished using factors stratified by time of day and
-purpose. As an example, the majority of HBW trips in the AM start at home
-and end at work. As a result, PA-to-OD factor ("PA factor" for short) would be
-above 50% (> .5). In the PM period, this trend is usually reversed, and the PA
-factor would be less than 50% (< .5).
+This conversion is accomplished using factors stratified by time of day and trip
+type. As an example, the majority of W_HB_W_All (i.e. HBW) trips in the AM start
+at home and end at work. As a result, the PA-to-OD factor would be above 0.5. In
+the PM period, this trend is usually reversed, and the PA factor would be less
+than 0.5.
 
 These factors can be calculated directly from the survey by comparing the number
 of home-based trips that start at home to the number home-based trips that start
@@ -581,143 +497,164 @@ elsewhere. By definition, non-home-based trips are the same in either format;
 their PA factors are set to .5. The same treatment is applied to commercial
 vehicles, trucks, and external trips.
 
-Finally, directionality factors are applied after the distribution and modal
-models. At that point, the purposes are collapsed due to sample size
+Directionality factors are applied after the distribution and modal
+models. At that point, trip types are collapsed due to sample size
 limitations in the household survey. As a result, the factors must be estimated
 using the matching, more-aggregate purposes.
 
+*TODO: Calculate these after aggregate models are specified*
+
 ```{r calc_pa_factors}
-# Calculate a pa field
-tripTbl <- tripTbl %>%
-  mutate(pa = ifelse(dest_blk == home_blk & orig_blk != home_blk, "AP", "PA"))
-
-pa_tbl <- tripTbl %>%
-  group_by(Purpose = final_purp_d, Period = tod, pa) %>%
-  summarise(Trips = sum(hhrkwt0)) %>%
-  group_by(Purpose, Period) %>%
-  mutate(
-    Value = round(Trips / sum(Trips), 3),
-    # Set NHB purposes to .5
-    Value = ifelse(
-      # Check for first letter = "N" or "n"
-      grepl("^N", Purpose, ignore.case = TRUE),
-      .5,
-      Value
-    )
-  ) %>%
-  filter(pa == "PA") %>%
-  select(Purpose, Period, Value) %>%
-  ungroup() %>%
-  mutate(Purpose = factor(
-    Purpose, levels = c("HBW", "HBO", "HBSC", "HBSH", "NHB"), ordered = TRUE
-  )) %>%
-  arrange(Purpose)
-
-pa_tbl %>%
-  spread(key = Period, value = Value) %>%
-  kable2(digits = 2, caption = "PA Factors by Purpose and Time of Day")
+# # Calculate a pa field
+# tripTbl <- tripTbl %>%
+#   mutate(pa = ifelse(dest_blk == home_blk & orig_blk != home_blk, "AP", "PA"))
+# 
+# pa_tbl <- tripTbl %>%
+#   group_by(Purpose = final_purp_d, Period = tod, pa) %>%
+#   summarise(Trips = sum(hhrkwt0)) %>%
+#   group_by(Purpose, Period) %>%
+#   mutate(
+#     Value = round(Trips / sum(Trips), 3),
+#     # Set NHB purposes to .5
+#     Value = ifelse(
+#       # Check for first letter = "N" or "n"
+#       grepl("^N", Purpose, ignore.case = TRUE),
+#       .5,
+#       Value
+#     )
+#   ) %>%
+#   filter(pa == "PA") %>%
+#   select(Purpose, Period, Value) %>%
+#   ungroup() %>%
+#   mutate(Purpose = factor(
+#     Purpose, levels = c("HBW", "HBO", "HBSC", "HBSH", "NHB"), ordered = TRUE
+#   )) %>%
+#   arrange(Purpose)
+# 
+# pa_tbl %>%
+#   spread(key = Period, value = Value) %>%
+#   kable2(digits = 2, caption = "PA Factors by Purpose and Time of Day")
 ```
 
 ```{r add other purps and desc, warning=FALSE}
-# Add rows for NHBNR, CV, SUT, MUT, and IEEI. They are all 50/50.
-v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
-for (type in v_types){
-  template <- pa_tbl %>%
-    filter(Purpose == "NHB") %>%
-    mutate(Purpose = type)
-  
-  pa_tbl <- bind_rows(pa_tbl, template)
-}
-pa_tbl <- pa_tbl %>%
-  mutate(Purpose = factor(
-    Purpose, levels = c(
-      "HBW",
-      "HBO",
-      "HBSC",
-      "HBSH",
-      "NHB",
-      v_types
-    ), ordered = TRUE
-  )) %>%
-  arrange(Purpose)
-
-# add description column
-v_desc <- vector(mode = "character", nrow(pa_tbl))
-v_desc[1] <- "Percent of trips in PA direction by purpose and tod"
-v_desc[2] <- "CREATION: this file created by rmarkdown"
-pa_tbl$Description <- v_desc
+# # Add rows for NHBNR, CV, SUT, MUT, and IEEI. They are all 50/50.
+# v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
+# for (type in v_types){
+#   template <- pa_tbl %>%
+#     filter(Purpose == "NHB") %>%
+#     mutate(Purpose = type)
+#   
+#   pa_tbl <- bind_rows(pa_tbl, template)
+# }
+# pa_tbl <- pa_tbl %>%
+#   mutate(Purpose = factor(
+#     Purpose, levels = c(
+#       "HBW",
+#       "HBO",
+#       "HBSC",
+#       "HBSH",
+#       "NHB",
+#       v_types
+#     ), ordered = TRUE
+#   )) %>%
+#   arrange(Purpose)
+# 
+# # add description column
+# v_desc <- vector(mode = "character", nrow(pa_tbl))
+# v_desc[1] <- "Percent of trips in PA direction by purpose and tod"
+# v_desc[2] <- "CREATION: this file created by rmarkdown"
+# pa_tbl$Description <- v_desc
 ```
 
 # Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
 trip matrices are converted to vehicles using occupancy factors. These factors
 are calculated from the household survey, which includes information on the
-party size of each trip. The rates below meet expectations.
+party size of each trip. The rates below meet expectations. The mode categories
+used are defined as follows:
+
+- da: Drive Alone
+- sr2: Shared ride with 2 people
+- sr3: Shared ride with 3+ people
+
+Vehicle occupancies for da and sr2 modes are 1.0 and 2.0, respectively. The
+table below shows the occupancies calculated for sr3.
+
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
-  filter(mode %in% c("auto", "shared2", "shared3")) %>%
+  filter(tour_type != "H", !is.na(mode_simple2)) %>%
+  filter(mode_simple2 %in% c("sov", "hov")) %>%
   mutate(
+    party_size = num_hh_members + num_nonhh,
     mode = case_when(
-      mode == "auto" ~ "da",
-      mode == "shared2" ~ "sr2",
-      mode == "shared3" ~ "sr3"
-    ),
-    party_size = num_on_trip
+      mode_simple2 == "sov" ~ "da",
+      party_size == 2 ~ "sr2",
+      TRUE ~ "sr3"
+    )
   ) %>%
-  group_by(Purpose = final_purp_d, Period = tod, Mode = mode) %>%
-  summarise(Value = round(weighted.mean(party_size, w = hhrkwt0), 3)) %>%
+  group_by(trip_type, tod, mode) %>%
+  mutate(
+    Value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    Samples = n(),
+  ) %>%
+  # Low samples for some rows leads to high factors (e.g. 4.9). If the sample size
+  # is low, use the daily average.
+  group_by(trip_type, mode) %>%
+  mutate(
+    daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    Value = ifelse(Samples < 30, daily_value, Value)
+  ) %>%
+  group_by(Purpose = trip_type, Period = tod, Mode = mode) %>%
+  slice(1) %>%
+  select(Purpose, Period, Mode, Value, Samples) %>%
   ungroup() %>%
-  mutate(Purpose = factor(
-    Purpose, levels = c(
-      "HBW",
-      "HBO",
-      "HBSC",
-      "HBSH",
-      "NHB",
-      v_types
-    ), ordered = TRUE
-  )) %>%
   arrange(Purpose, Period, Mode) %>%
   select(Purpose, Mode, Period, Value)
 
 occ_tbl %>%
   spread(key = Period, value = Value) %>%
-  kable2(digits = 2, caption = "Occupancy Factors by Purpose and Time of Day")
+  filter(Mode == "sr3") %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
 
-# Repeat occupancy factors by market segment to match model
-# matrix core names
-occ1 <- occ_tbl %>%
-  filter(Purpose %in% c("HBW", "HBO")) %>%
-  merge(c("v0", "ilvi", "ilvs", "ihvi", "ihvs")) %>%
-  select(Purpose, Segment = y, Mode, Period, Value)
-occ2 <- occ_tbl %>%
-  filter(!(Purpose %in% c("HBW", "HBO"))) %>%
-  mutate(Segment = "all") %>%
-  select(Purpose, Segment, Mode, Period, Value)
-occ_tbl <- bind_rows(occ1, occ2) %>%
-  arrange(Purpose, Segment, Mode, Period)
+# TODO: create parameter table
 
-
-# No need to add CV, IX, etc. By not being in the table, it's the same
-# as if they were and had a factor of 1.
-
-# add description column
-v_desc <- vector(mode = "character", nrow(occ_tbl))
-v_desc[1] <- "Vehicle occupancy rates (per/veh)"
-v_desc[2] <- "CREATION: this file created by TimeOfDay.Rmd and University.Rmd"
-occ_tbl$Description <- v_desc
+# # Repeat occupancy factors by market segment to match model
+# # matrix core names
+# occ1 <- occ_tbl %>%
+#   filter(Purpose %in% c("HBW", "HBO")) %>%
+#   merge(c("v0", "ilvi", "ilvs", "ihvi", "ihvs")) %>%
+#   select(Purpose, Segment = y, Mode, Period, Value)
+# occ2 <- occ_tbl %>%
+#   filter(!(Purpose %in% c("HBW", "HBO"))) %>%
+#   mutate(Segment = "all") %>%
+#   select(Purpose, Segment, Mode, Period, Value)
+# occ_tbl <- bind_rows(occ1, occ2) %>%
+#   arrange(Purpose, Segment, Mode, Period)
+# 
+# 
+# # No need to add CV, IX, etc. By not being in the table, it's the same
+# # as if they were and had a factor of 1.
+# 
+# # add description column
+# v_desc <- vector(mode = "character", nrow(occ_tbl))
+# v_desc[1] <- "Vehicle occupancy rates (per/veh)"
+# v_desc[2] <- "CREATION: this file created by TimeOfDay.Rmd and University.Rmd"
+# occ_tbl$Description <- v_desc
 ```
 
 
 # Period capacity factors
-In aggregate, period-based assignment regimes, hourly capacities must be
+In aggregate period assignment regimes, hourly capacities must be
 converted to period capacities in a manner that accurately captures the balance
 of congestion. In the real world, the hourly capacity of a road is generally
 the same throughout the day; it is the demand that changes. This change in
-demand causes congestion levels to change throughout the day. Consider the
+demand causes congestion levels to change over time. Consider the
 stylized example below of a real world street segment.
 
 ## Qualitative example
+
+Note that capacity remains fixed while demand changes.
 
 ```{r}
 real_world <- tibble(
@@ -727,7 +664,9 @@ real_world <- tibble(
 ) %>%
   mutate(Percent = round(Demand / Capacity * 100, 2))
 
-real_world %>% kable2(caption = "Example of Real-World Behavior")
+real_world %>% 
+  kable() %>%
+  kable_styling(full_width = FALSE)
 
 plot_ly(
   real_world,
@@ -739,8 +678,8 @@ plot_ly(
   )
 ```
 
-Now consider how the same situation is represented in a period assignment if the
-model simply adds up the capacity and demand of each hour.
+The easiest way to represent this in a period assignment would be to add up the
+total capacity and total demand from each hour.
 
 ```{r}
 model_period <- tibble(
@@ -749,7 +688,9 @@ model_period <- tibble(
   Demand = c(sum(real_world$Demand))
 )
 
-model_period %>% kable2(caption = "Initial Model Representation")
+model_period %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
 
 plot_ly(
   model_period,
@@ -761,15 +702,16 @@ plot_ly(
   )
 ```
 
-In this representation, no one experiences congestion. In the real world,
-nearly half the vehicles in the period experience congested conditions between
-7:00 am and 8:00 am. This discrepency can cause numerous errors in the model,
-including:
+In this simple representation, no one experiences congestion. This does not
+match the real world graph, which shows that nearly half the vehicles in the
+period experience congested conditions. This occurs between 7:00 am and 8:00 am.
+This discrepancy between the real world and a naive period representation can
+cause numerous errors in the model, including:
 
-  * Longer trip lengths
-  * Incorrect route choices
-  * Lower diversion to transit
-  * Incorrect link assignment
+- Longer trip lengths
+- Incorrect route choices
+- Lower diversion to transit
+- Incorrect link assignment
 
 The period capacity factor (PCF) corrects for this, and is the inverse of a
 similar concept from traffic engineering: the peak hour factor (PHF). In traffic
@@ -790,7 +732,7 @@ Taking the inverse gives a PCF of:
 
 $$PCF = 1 / .474 = 2.11$$
 
-Finally, the period capacity that most-accurately reflects congestion would be:
+The period capacity that most-accurately reflects congestion would be:
 
 $$Period Capacity = 1050 * 2.11 = 2215$$
 
@@ -807,9 +749,13 @@ final_period <- final_period %>%
 
 plot_ly(
   final_period,
-  x = ~PCF, y = ~Demand, type = "bar", name = "Demand"
+  x = ~PCF, y = ~Demand, type = "bar", name = "Demand", 
+  marker = list(color = "ff7f0e")
 ) %>%
-  add_trace(x = ~PCF, y = ~Capacity, type = "bar", name = "Capacity") %>%
+  add_trace(
+    x = ~PCF, y = ~Capacity, type = "bar", name = "Capacity",
+    marker = list(color = "1f77b4")
+  ) %>%
   layout(
     title = "Final Model Representation",
     xaxis = list(title = ""),
@@ -820,17 +766,24 @@ plot_ly(
 final_period %>%
   mutate(
     Capacity = Demand + Capacity,
-    Percent = round(Demand / Capacity * 100, 2)
+    `% of Capacity` = round(Demand / Capacity * 100, 2)
   ) %>%
-  kable2(caption = "Final Model Representation")
+  kable() %>%
+  kable_styling(full_width = FALSE)
 ```
-
 
 ## Calculation from survey
 The PCFs for the model can be calculated from the trips in motion table using
 the same approach. The results are shown in the table below.
 
 ```{r calc_pcf}
+breaks <- c(am_peak_from, am_peak_to, pm_peak_from, pm_peak_to)
+breaks <- as.numeric(breaks) * 1440
+labels <- c("AM", "MD", "PM")
+
+# an = function(n, len) c(seq.int(n), rep(n, len-n))
+n = an(60 / bin_size, nrow(timTbl))
+
 pcf_tbl <- timTbl %>%
   group_by(tod = cut(time, breaks = breaks, labels = labels)) %>%
   ungroup() %>%
@@ -846,7 +799,8 @@ pcf_tbl <- timTbl %>%
     ) %>%
   group_by(tod) %>%
   mutate(
-    all_trips_in_hour = rollapplyr(AllTrips, 60 / bin_size, sum, partial = TRUE)
+    # all_trips_in_hour = rollapplyr(AllTrips, 60 / bin_size, sum, partial = TRUE)
+    all_trips_in_hour = frollsum(AllTrips, an(60 / bin_size, n()), na.rm = TRUE, adaptive = TRUE)
   ) %>%
   summarise(
     PHF = max(all_trips_in_hour) / sum(AllTrips),
@@ -868,14 +822,15 @@ total <- round(sum(pcf_tbl$PCF), 2)
 
 pcf_tbl %>%
   rename(`Length (hrs)` = Length, `Model Capacity (hrs)` = PCF) %>%
-  kable2(digits = 2, caption = "Model Peak Capacity Factors (PCFs)")
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
 ```
 
 A [general
 guideline](https://www.fhwa.dot.gov/planning/tmip/publications/other_reports/validation_and_reasonableness_2010/ch08.cfm)
 to follow suggests the model should provide 8-12 hours of capacity per day. The
 PCFs calculated directly from the survey data provide `r total`. This is slightly
-higher, but still acceptable.
+higher but acceptable.
 
 
 ```{r write param tables, eval=FALSE}
@@ -884,9 +839,7 @@ higher, but still acceptable.
 # model.
 
 # TOD factors
-tod_tbl %>%
-  mutate(from_factor = round(from_factor, 3)) %>%
-  write_csv("../master/tod/time_of_day_factors.csv")
+write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 
 # Directionality factors. HBU gets appended by University.Rmd.
 write_csv(pa_tbl , "../master/directionality/directionality_factors.csv")
@@ -900,8 +853,8 @@ write_csv(
     select(TOD = Period, Value = PCF) %>%
     mutate(
       Description = paste("Hours of capacity in", TOD, "period", sep = " "),
-      Value = round(Value, 5)
+      Value = round(Value, 3)
     ),
-  "../master/networks/period_capacity_factors.csv"
+  "data/output/tod/period_capacity_factors.csv"
 )
 ```

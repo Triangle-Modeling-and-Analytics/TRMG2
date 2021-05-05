@@ -293,8 +293,9 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
 endmacro
 
 /*
-These skims/logsums are not part of feedback or convergence. Instead, they are
-used to generate a log sum estimate for use as an accessibility measure.
+These skims are created outside the feedback loop to calculate accessibility
+measures. Bike/walk are not updated via feedback, so will remain unchanged.
+SOV is overwritten during feedback.
 */
 
 Macro "Access Logsums" (Args)
@@ -311,25 +312,33 @@ Macro "Access Logsums" (Args)
     obj.Destinations = "Centroid = 1"
     obj.Minimize = "FFTime"
     obj.AddSkimField({"Length", "All"})
-    out_files.sov = output_dir + "/accessibility/sov_skim.mtx"
-    obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Accessiblity Skim"})
+    out_files.sov = output_dir + "/skimming/roadway/sov_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Skim"})
     ret_value = obj.Run()
     // Walk Skim
     obj.Network = output_dir + "/networks/net_walk.net"
     obj.Minimize = "WalkTime"
-    out_files.walk = output_dir + "/accessibility/walk_skim.mtx"
-    obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Accessiblity Skim"})
+    out_files.walk = output_dir + "/skimming/nonmotorized/walk_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Skim"})
+    ret_value = obj.Run()
+    // Bike Skim
+    obj.Network = output_dir + "/networks/net_bike.net"
+    obj.Minimize = "BikeTime"
+    out_files.bike = output_dir + "/skimming/nonmotorized/walk_skim.mtx"
+    obj.OutputMatrix({MatrixFile: out_files.bike, Matrix: "Bike Skim"})
     ret_value = obj.Run()
 
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
-    obj.SetMatrix(out_files.sov)
     obj.OperationType = "Replace"
     obj.TreatMissingAsZero = true
     obj.Neighbours = 3
     obj.Factor = .75
+    obj.SetMatrix(out_files.sov)
     ok = obj.Run()
     obj.SetMatrix(out_files.walk)
+    ok = obj.Run()
+    obj.SetMatrix(out_files.bike)
     ok = obj.Run()
 
     // Calculate logsums
