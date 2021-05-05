@@ -14,31 +14,6 @@ for (package in packages_vector){
   library(package, character.only = TRUE)
 }
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{}[delete before submitting]
-#working directory 
-TRM<-"C:/Users/vamerlynck/Documents/TriangleTDM/data" #github repo
-setwd(TRM)
-
-#survey data
-survey<-"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls"
-S_ODU<-"ODU1_adjustedNtrips.sav"  
-S_UVA<-"UVA1_adjustedNtrips.sav"   
-S_VCU<-"VCU1_adjustedNtrips.sav"
-
-S_VT<-"VT1_adjustedNtrips.sav"
-S_ODUw<-"snVDOTCORRADINO_ODU_2010_with weight.sav"  
-S_VTw<-"snVDOTCORRADINO_VT_2010_with weight.sav"
-dictUVA<-"datadictionary.xlsx"
-
-#taz boundaries
-#taz_shape_file_name<-"master_taz.shp" # complete file but join does not work 
-taz_shape_file_name<-"master_tazs.shp" # file with missing tazs?
-adjacency_filename <-"Adjacent.csv"
-
-#socioeconomics
-se_filename<-"se_2016.csv"
 
 ```
 
@@ -48,7 +23,7 @@ se_filename<-"se_2016.csv"
 
 private_dir <- "../data/input/_PRIVATE/"
 data_dir<-"../data/input/"
-output_dir <-"../data/output/"
+prepared_data_dir<-"../data/input/university/"
 
 #surveys
 NCSUsurvey_name<-paste0(private_dir,"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls")
@@ -65,7 +40,7 @@ taz_shape_file_name<-paste0(data_dir,"tazs/master_tazs.shp")
 #adjacency_filename <-"Adjacent.csv"
 
 #socioeconomics
-se_filename<-paste0(data_dir,"se_data/se_2016.csv")
+se_filename<-paste0(data_dir,"se_data/se_2016.csv") # replace with master_tazs.bin converted to csv
 
 ```
 
@@ -99,14 +74,14 @@ UVA_0_df<-UVA_name %>%
 read.spss(to.data.frame = TRUE)
 VT_0_df<-VT_name %>%  
 read.spss(to.data.frame = TRUE)
-UVA_dd_df<-read_excel(dictUVA,"UVA1")
+UVA_dd_df<-read_excel(dictUVA_name,"UVA1")
 
 
 #Zonal
 taz_sf <- st_read(taz_shape_file_name, stringsAsFactors = FALSE)
 socioecon <-read_csv(se_filename)   
-adjacency<-read_csv(adjacency_filename)
-adjacency$TAZ<-as.character(adjacency$TAZ)
+#adjacency<-read_csv(adjacency_filename)
+#adjacency$TAZ<-as.character(adjacency$TAZ)
 
 ```
 ## PREPARE DATA
@@ -155,7 +130,7 @@ The Production trip end is home, campus (if home is not a trip end), or origin (
 ##### Distance
 A variable named "Distance" is used to indicate respondents who live in TAZs that are adjacent to the NCSU campus TAZs or TAZs that are adjacent to the adjacent TAZs (Distance==1)
 ##### Mode
-For respondents who reported multiple modes, Mode_1 was assumed to be the primary mode. The survey includes  Drive and car passenger are combined into a single mode named car. 
+For respondents who reported multiple modes, Mode_1 was assumed to be the primary mode.  Drive and car passenger are combined into a single mode named car. 
 
 ```{r}
 
@@ -178,74 +153,35 @@ NCSUtemp_df<- NCSU_All_df %>%
     Start_PlaceType=="Off-campus Workplace" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
     Start_PlaceType=="Other" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
     End_PlaceType=="Other" & Start_PlaceType=="Off-campus Workplace" ~ "UOO"), 
-    
     Origin_PA = case_when(
       Start_PlaceType=="Home" ~ "P",
       End_PlaceType!="Home" & Start_PlaceType=="North Carolina State University"~ "P",
       End_PlaceType!="Home" & End_PlaceType!="North Carolina State University"~ "P",
       TRUE ~ "A"),
-    
     Destination_PA = case_when(
       End_PlaceType=="Home" ~ "P",
       Start_PlaceType!="Home"& Start_PlaceType!="North Carolina State University" & End_PlaceType=="North Carolina State University"~ "P",
       TRUE ~ "A"),
-    
     TAZ_P = case_when(
       Origin_PA=="P" ~ ID.x,TRUE ~ ID.y),
-    
     TAZ_A = case_when(
       Origin_PA=="A" ~ ID.x,TRUE ~ ID.y),
-    
-    
-    Distance = case_when(
-      Start_PlaceType=="Home" & (ID.x %in% adjacency$TAZ) ~ "1",
-      End_PlaceType=="Home" & (ID.y %in% adjacency$TAZ) ~ "1",
-      TRUE ~ "0"),
-    
     Primary_Mode = as.factor(Mode_1),
     Bicycle = if_else(Primary_Mode == "Bicycle",1,0),
-    Bus = if_else(Primary_Mode == "Public Bus / Private Shuttle" | "Other, wolfline",1,0),
-    Car = if_else(Primary_Mode == "Driver - Auto / Van / Truck" |  Primary_Mode == "Driver - Auto / Van / Truck, Other" | Primary_Mode == "Passenger - Auto / Van / Truck",1,0),
+    Bus = if_else((Primary_Mode == "Public Bus / Private Shuttle" | Primary_Mode == "Other, wolfline"),1,0),
+    Car = if_else((Primary_Mode == "Driver - Auto / Van / Truck" |  Primary_Mode == "Driver - Auto / Van / Truck, Other" | Primary_Mode == "Passenger - Auto / Van / Truck"),1,0),
     Walk = if_else(Primary_Mode == "Walk", 1,0),
-    Other = if_else(Primary_Mode == "Other" | Primary_Mode == "Other, Longboard" | Primary_Mode == "Other"))
-    
-    
+    Other = if_else((Primary_Mode == "Other" | Primary_Mode == "Other, Longboard" | Primary_Mode == "Motorcycle / Motorized Moped or Scooter"),1,0))
 
-#checks [to be deleted before submitting]
 
-PA_check<-NCSUtemp_df%>%
-  count(Trip_Purpose,Start_PlaceType,Origin_PA,End_PlaceType,Destination_PA)
-PA_check
 
-Trip_Purpose_oncampus_check<-NCSUtemp_df %>%
-  filter(On_campus==1)%>%
-  count(Trip_Purpose)
-Trip_Purpose_oncampus_check
-
-Trip_Purpose_offcampus_check<-NCSUtemp_df %>%
-  filter(On_campus==0)%>%
-  count(Trip_Purpose)
-Trip_Purpose_offcampus_check
-
-NCSUtemp_df%>% 
-  count(Mode_1)%>% 
-  print()
-NCSUtemp_df%>% 
-  count(Mode_2)%>% 
-  print()
-NCSUtemp_df%>% 
-  count(Mode_3)%>% 
-  print()
-t<-table(NCSUtemp_df$Mode_1,NCSUtemp_df$Mode_2)
-as.data.frame(t)%>% 
-  print()
 ```
 
 
 ```{r}
 
 Trip_subset_df<-NCSUtemp_df  %>% 
-  filter(Finished==1) %>%
+  filter(Finished==1 & Derived_minus_stated>=-1) %>%
   select(Person_ID,
          On_campus,
          Start_PlaceID,
@@ -261,7 +197,12 @@ Trip_subset_df<-NCSUtemp_df  %>%
          Trip_Purpose,
          Purpose,
          Primary_Mode,
-         Distance,
+         Bicycle,
+         Bus,
+         Car,
+         Walk,
+         Other,
+         #Distance,
          Weight)
 
 
@@ -270,6 +211,8 @@ Trip_subset_df<-NCSUtemp_df  %>%
 #Person-level data
 ```{r}
 Person_subset_df<-NCSU_Person_df %>%
+  filter(Finished==1,
+         Derived_minus_stated>=-1)%>%
   select(Person_ID,
          On_campus,
          Class_status,
@@ -280,6 +223,7 @@ Person_subset_df<-NCSU_Person_df %>%
          Not_to_campus_weekdays,
          Stated_trip_rate,
          Derived_trip_rate,
+         Derived_minus_stated,
          Graduate,
          Full_time, 
          Weight) %>%
@@ -328,7 +272,7 @@ TotalBuildingS_NCCU
 
 
 # Distribution of BuildingS by TAZ
-socioecon2 <- socioecon %>%
+socioecon2_df <- socioecon %>%
    mutate(Share_Bldg_NCSU=BuildingS_NCSU/TotalBuildingS_NCSU, 
          Share_Bldg_UNC=BuildingS_UNC/TotalBuildingS_UNC,
          Share_Bldg_DUKE=BuildingS_DUKE/TotalBuildingS_DUKE,
@@ -360,7 +304,7 @@ Productions_df<-Trip_subset_df %>%
   group_by(Person_ID, 
            Trip_Purpose, 
            On_campus,
-           Distance,
+           #Distance,
            Primary_Mode) %>%
   summarize(Trips=n()) %>%
   left_join(Person_subset_df, by="Person_ID")%>% 
@@ -377,7 +321,7 @@ Productions_df<-Trip_subset_df %>%
          Primary_Mode,
          Trip_Purpose,
          On_campus,
-         Distance,
+         #Distance,
          Graduate, 
          Full_time,
          Weight,
@@ -392,7 +336,7 @@ Productions_df<-Trip_subset_df %>%
 Productions_forregression_df<-Productions_df%>%
    group_by(Person_ID,
            On_campus, 
-           Distance,
+           #Distance,
            Graduate, 
            Full_time,
            Job_on,
@@ -427,34 +371,56 @@ Attractions_df<-Trip_subset_df %>%
 
 
   
-
-Attractions_byTAZ_df<-Attractions_df %>% 
+#TEMP##################################################
+Attractions_byTAZbySegment_df<-Attractions_df %>% 
+  ungroup()%>%
+  select(TAZ_A,On_campus,Trip_Purpose,Trips,Trips_Weighted)%>%
+  filter(Trip_Purpose=="UHO"| Trip_Purpose=="UCO"|Trip_Purpose=="UOO")%>%
   group_by(TAZ_A,
            On_campus,
            Trip_Purpose)%>%
-  right_join(socioecon2,by=c("TAZ_A" ="TAZ_NG")) %>% # right join to include the TAZs with 0 trips
-  filter(
-    #Trips_Weighted!=0,
-    #TOT_EMP1!=0,
-    #HH!=0,
-    #TOT_POP1!=0,
-    !is.na(Trips_Weighted),
-    !is.na(TOT_EMP1),
-    !is.na(HH),
-    !is.na(TOT_POP1),
-    (Trip_Purpose=="UHO"|
-       Trip_Purpose=="UCO"|
-       Trip_Purpose=="UOO"))%>%
-  mutate(Total_W_Trips=sum(Trips_Weighted))
+  right_join(.,socioecon2,by=c("TAZ_A" ="TAZ_NG"))%>%
+  mutate(Total_W_Trips=sum(Trips_Weighted),
+         On_UHOTrips=if_else(Trip_Purpose=="UHO" & On_campus==1,Trips,as.integer(0)),
+         On_UCOTrips=if_else(Trip_Purpose=="UCO"& On_campus==1 ,Trips,as.integer(0)),
+         On_UOOTrips=if_else(Trip_Purpose=="UOO" & On_campus==1,Trips,as.integer(0)),
+         W_On_UHOTrips=if_else(Trip_Purpose=="UHO"& On_campus==1,Trips_Weighted,0),
+         W_On_UCOTrips=if_else(Trip_Purpose=="UCO" & On_campus==1,Trips_Weighted,0),
+         W_On_UOOTrips=if_else(Trip_Purpose=="UOO" & On_campus==1,Trips_Weighted,0),
+         Off_UHOTrips=if_else(Trip_Purpose=="UHO" & On_campus==0,Trips,as.integer(0)),
+         Off_UCOTrips=if_else(Trip_Purpose=="UCO"& On_campus==0,Trips,as.integer(0)),
+         Off_UOOTrips=if_else(Trip_Purpose=="UOO" & On_campus==0,Trips,as.integer(0)),
+         W_Off_UHOTrips=if_else(Trip_Purpose=="UHO"& On_campus==0,Trips_Weighted,0),
+         W_Off_UCOTrips=if_else(Trip_Purpose=="UCO" & On_campus==0,Trips_Weighted,0),
+         W_Off_UOOTrips=if_else(Trip_Purpose=="UOO" & On_campus==0,Trips_Weighted,0)) 
 
+
+Attractions_byTAZfinal_df<-Attractions_byTAZbySegment_df%>%
+  ungroup()%>%
+  select(TAZ_A,
+         On_UHOTrips,
+         On_UCOTrips,
+         On_UOOTrips,
+         W_On_UHOTrips,
+         W_On_UCOTrips,
+         W_On_UOOTrips,
+         Off_UHOTrips,
+         Off_UCOTrips,
+         Off_UOOTrips,
+         W_Off_UHOTrips,
+         W_Off_UCOTrips,
+         W_Off_UOOTrips)%>%
+  group_by(TAZ_A)%>%
+  summarize_all(sum)%>%
+  right_join(.,socioecon2_df,by=c("TAZ_A" ="TAZ_NG"))
+  
 #summaries
-Trips_withoutTAZ<-sum(is.na(Attractions_df$TAZ_A))
+
 Trips_byTAZ <-Attractions_df%>%
   group_by(TAZ_A)%>%
   summarize(W_Total_Trips=round(sum(Trips_Weighted),digits=2), Trips=round(sum(Trips),digits=2))%>%
   arrange(-W_Total_Trips)
 
-Trips_withoutTAZ
 
 Trips_byTAZ
  
@@ -462,10 +428,13 @@ Trips_byTAZ
 
 #Outputs
 ```{r}
-write_rds(Productions_df,"Productions_df.RDS")
-write_rds(Attractions_df,"Attractions_df.RDS")
-write_rds(Productions_forregression_df,"Productions_forregression_df.RDS")
-write_rds(Attractions_byTAZ_df,"Attractions_byTAZ_df.RDS")
-write_rds(Trip_subset_df,"Trip_subset_df.RDS")
-write_rds(Person_subset_df,"Person_subset_df.RDS")
+write_rds(Productions_df,paste0(private_dir, "Productions_df.RDS"))
+write_rds(Attractions_df,paste0(private_dir,"Attractions_df.RDS"))
+write_rds(Productions_forregression_df,paste0(private_dir,"Productions_forregression_df.RDS"))
+write_rds(Attractions_byTAZ_df,paste0(private_dir,"Attractions_byTAZ_df.RDS"))
+write_rds(Attractions_byTAZbySegment_df,paste0(private_dir,"Attractions_byTAZbySegment_df.RDS"))
+write_rds(Attractions_byTAZfinal_df,paste0(private_dir,"Attractions_byTAZfinal_df.RDS"))
+write_rds(Trip_subset_df, paste0(private_dir,"Trip_subset_df.RDS"))
+write_rds(Person_subset_df,paste0(private_dir,"Person_subset_df.RDS"))
+write_rds(socioecon2_df,paste0(prepared_data_dir,"socioecon2_df.RDS"))
 ```
