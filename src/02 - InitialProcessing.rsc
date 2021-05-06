@@ -551,19 +551,13 @@ Macro "Other Attributes" (Args)
     set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
     SetDataVectors(llyr + "|", set, )
 
-    // Limit the possible KNR nodes to within a certain distance of transit
-    // routes. This speeds up knr skimming by not having to consider unrealistic
-    // paths.
-    route_buffer = .25
+    // Limit the possible KNR nodes to those with bus stops on them
     a_fields = {
-        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(within " + String(route_buffer) + " of a transit route)"}
+        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"}
     }
     RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
-    SetLayer(llyr)
-    SelectByQuery("drive_links", "several", "Select * where D = 1")
     SetLayer(nlyr)
-    SelectByLinks("drive_nodes", "several", "drive_links", )
-    n = SelectByVicinity ("knr", "several", rlyr + "|", route_buffer, {'Source And': "drive_nodes"})
+    n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280)
     v = Vector(n, "Long", {Constant: 1})
     SetDataVector(nlyr + "|knr", "KNR", v, )
 
