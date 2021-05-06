@@ -1,9 +1,4 @@
----
-title: "TRM_University_PrepareData"
-output: html_notebook
----
-
-```{r setup, include=FALSE}
+# Packages ---------------------------------------------------------------------
 packages_vector <- c("tidyverse",
                      "readxl",
                      "sf",
@@ -14,17 +9,20 @@ for (package in packages_vector){
   library(package, character.only = TRUE)
 }
 knitr::opts_chunk$set(echo = TRUE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
 
-```
 
-
-##FILE LOCATIONS
-```{r remote-io}
-
+# Remote I/O -------------------------------------------------------------------
 private_dir <- "../data/input/_PRIVATE/"
 data_dir<-"../data/input/"
 prepared_data_dir<-"../data/input/university/"
 
+# Parameters -------------------------------------------------------------------
+PLANAR_EPSG <- 3857
+LATLON_EPSG <- 4326
+
+# Data Reads -------------------------------------------------------------------
 #surveys
 NCSUsurvey_name<-paste0(private_dir,"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls")
 ODU_name<-paste0(private_dir,"ODU1_adjustedNtrips.sav") 
@@ -42,12 +40,7 @@ taz_shape_file_name<-paste0(data_dir,"tazs/master_tazs.shp")
 #socioeconomics
 se_filename<-paste0(data_dir,"se_data/se_2016.csv") # replace with master_tazs.bin converted to csv
 
-```
-
-
-##READ FILES
-A survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014 serves as the basis for the estimation of trip generation rates for students from the Triangle Region's 4 main universities: NCSU,UNC-CH,Duke and NCCU. Findings from surveys of students from 4 universities in Virginia, as summarized in Khattak et al (2012), were used to verify the rates.
-```{r}
+# Data Reads -------------------------------------------------------------------
 #NCSU surveys
 NCSU_Person_df<-read_excel(NCSUsurvey_name,"Person")
 NCSU_Trip_df<-read_excel(NCSUsurvey_name,"Trip")
@@ -55,27 +48,24 @@ NCSU_Place_df<-read_excel(NCSUsurvey_name,"Place")
 NCSU_DDtemp_df<-read_excel(NCSUsurvey_name,"Dictionary")
 NCSU_DataDictionary_df<-NCSU_DDtemp_df[-c(2:3),]
 
-
 # join person and trip data (place data already included in trip data)
 NCSU_All_df<- NCSU_Person_df %>% 
-full_join(NCSU_Trip_df, by="Person_ID")
-
+  full_join(NCSU_Trip_df, by="Person_ID")
 
 #Virginia surveys
 ODU_df<-ODUw_name %>% 
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 VT_df<-VTw_name %>% 
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 ODU_0_df<-ODU_name %>%  
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 VCU_0_df<-VCU_name %>%  
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 UVA_0_df<-UVA_name %>%  
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 VT_0_df<-VT_name %>%  
-read.spss(to.data.frame = TRUE)
+  read.spss(to.data.frame = TRUE)
 UVA_dd_df<-read_excel(dictUVA_name,"UVA1")
-
 
 #Zonal
 taz_sf <- st_read(taz_shape_file_name, stringsAsFactors = FALSE)
@@ -83,15 +73,7 @@ socioecon <-read_csv(se_filename)
 #adjacency<-read_csv(adjacency_filename)
 #adjacency$TAZ<-as.character(adjacency$TAZ)
 
-```
-## PREPARE DATA
-### TRIP-LEVEL DATA
-#### step 1 - assign trip locations to TAZs
-Assign start and end locations from NCSU survey to TAZs
-```{r}
-# join trip locations to tazs
-PLANAR_EPSG <- 3857
-LATLON_EPSG <- 4326
+# Assign survey responses to TAZ------------------------------------------------
 taz_join_sf <- st_transform(taz_sf, PLANAR_EPSG)
 
 orig_tazs_df <- NCSU_All_df %>% 
@@ -110,30 +92,7 @@ dest_tazs_df <- NCSU_All_df %>%
   st_transform(., PLANAR_EPSG) %>%
   st_join(., taz_join_sf, join = st_intersects)
 
-```
-
-#### step 2 - recode/create new variables 
-Recode and add new variables as follows:
-
-##### Origin TAZ and Destination TAZ 
-Add ID_o and ID_d based on Step 1
-##### Trip Purpose
-The model will include the following trip purposes segmented by on-campus and off-campus students:
-•	Home-Based-Campus (UHC)
-•	Home-Based-Other (UHO)
-•	Campus-Based-Other (UCO)
-•	On-Campus (UC1)
-•	Inter-Campus (UCC)
-•	University student Other-Other (UOO)
-##### Production - Attraction
-The Production trip end is home, campus (if home is not a trip end), or origin (if neither home or campus are a trip end).
-##### Distance
-A variable named "Distance" is used to indicate respondents who live in TAZs that are adjacent to the NCSU campus TAZs or TAZs that are adjacent to the adjacent TAZs (Distance==1)
-##### Mode
-For respondents who reported multiple modes, Mode_1 was assumed to be the primary mode.  Drive and car passenger are combined into a single mode named car. 
-
-```{r}
-
+# New/Recoded variables survey data---------------------------------------------
 NCSUtemp_df<- NCSU_All_df %>% 
   left_join(orig_tazs_df, by="Start_PlaceID")%>% 
   left_join(dest_tazs_df,by="End_PlaceID")%>%
@@ -141,18 +100,23 @@ NCSUtemp_df<- NCSU_All_df %>%
     #ID_o=as.character(ID.x),
     #ID_d=as.character(ID.y),
     Trip_Purpose=case_when(
-    Start_PlaceType=="Home" & End_PlaceType=="Home" ~ "99",
-    Start_PlaceType=="Home" & End_PlaceType=="North Carolina State University" ~ "UHC", 
-    End_PlaceType=="Home" & Start_PlaceType=="North Carolina State University" ~ "UHC",
-    Start_PlaceType=="Home" & End_PlaceType!="North Carolina State University" ~ "UHO",
-    End_PlaceType=="Home" & Start_PlaceType!="North Carolina State University" ~ "UHO",
-    Start_PlaceType!="Home" & Start_PlaceType != "North Carolina State University"  & End_PlaceType=="North Carolina State University" ~ "UCO",
-    End_PlaceType!="Home" & End_PlaceType != "North Carolina State University" & Start_PlaceType=="North Carolina State University" ~ "UCO",
-    Start_PlaceType=="North Carolina State University" & End_PlaceType=="North Carolina State University" ~ "UC1",
-    Start_PlaceType=="Other" & End_PlaceType=="Other" ~ "UOO",
-    Start_PlaceType=="Off-campus Workplace" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
-    Start_PlaceType=="Other" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
-    End_PlaceType=="Other" & Start_PlaceType=="Off-campus Workplace" ~ "UOO"), 
+      Start_PlaceType=="Home" & End_PlaceType=="Home" ~ "99",
+      Start_PlaceType=="Home" & End_PlaceType=="North Carolina State University" ~ "UHC", 
+      End_PlaceType=="Home" & Start_PlaceType=="North Carolina State University" ~ "UHC",
+      Start_PlaceType=="Home" & End_PlaceType!="North Carolina State University" ~ "UHO",
+      End_PlaceType=="Home" & Start_PlaceType!="North Carolina State University" ~ "UHO",
+      Start_PlaceType!="Home" & Start_PlaceType != "North Carolina State University"  & End_PlaceType=="North Carolina State University" ~ "UCO",
+      End_PlaceType!="Home" & End_PlaceType != "North Carolina State University" & Start_PlaceType=="North Carolina State University" ~ "UCO",
+      Start_PlaceType=="North Carolina State University" & End_PlaceType=="North Carolina State University" ~ "UC1",
+      Start_PlaceType=="Other" & End_PlaceType=="Other" ~ "UOO",
+      Start_PlaceType=="Off-campus Workplace" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
+      Start_PlaceType=="Other" & End_PlaceType=="Off-campus Workplace" ~ "UOO",
+      End_PlaceType=="Other" & Start_PlaceType=="Off-campus Workplace" ~ "UOO"),
+    UHC=if_else(Trip_Purpose=="UHC", 1,0),
+    UHO=if_else(Trip_Purpose=="UHO", 1,0),
+    UCO=if_else(Trip_Purpose=="UCO", 1,0),
+    UC1=if_else(Trip_Purpose=="UC1", 1,0),
+    UOO=if_else(Trip_Purpose=="UOO", 1,0),
     Origin_PA = case_when(
       Start_PlaceType=="Home" ~ "P",
       End_PlaceType!="Home" & Start_PlaceType=="North Carolina State University"~ "P",
@@ -167,49 +131,19 @@ NCSUtemp_df<- NCSU_All_df %>%
     TAZ_A = case_when(
       Origin_PA=="A" ~ ID.x,TRUE ~ ID.y),
     Primary_Mode = as.factor(Mode_1),
+    Primary_Mode = case_when(Primary_Mode == "Bicycle" ~ "Bicycle",
+                             Primary_Mode == "Public Bus / Private Shuttle" | Primary_Mode == "Other, wolfline" ~ "Bus",
+                             Primary_Mode == "Driver - Auto / Van / Truck" |  Primary_Mode == "Driver - Auto / Van / Truck, Other" | Primary_Mode == "Passenger - Auto / Van / Truck" ~ "Car",
+                             Primary_Mode == "Walk" ~ "Walk",
+                             Primary_Mode == "Other" | Primary_Mode == "Other, Longboard" | Primary_Mode == "Motorcycle / Motorized Moped or Scooter" ~ "Other"),
+      
     Bicycle = if_else(Primary_Mode == "Bicycle",1,0),
-    Bus = if_else((Primary_Mode == "Public Bus / Private Shuttle" | Primary_Mode == "Other, wolfline"),1,0),
-    Car = if_else((Primary_Mode == "Driver - Auto / Van / Truck" |  Primary_Mode == "Driver - Auto / Van / Truck, Other" | Primary_Mode == "Passenger - Auto / Van / Truck"),1,0),
+    Bus = if_else(Primary_Mode == "Bus",1,0),
+    Car = if_else(Primary_Mode == "Car",1,0),
     Walk = if_else(Primary_Mode == "Walk", 1,0),
-    Other = if_else((Primary_Mode == "Other" | Primary_Mode == "Other, Longboard" | Primary_Mode == "Motorcycle / Motorized Moped or Scooter"),1,0))
+    Other = if_else(Primary_Mode == "Other",1,0),
+    rename(On_campus=On_campus.x))
 
-
-
-```
-
-
-```{r}
-
-Trip_subset_df<-NCSUtemp_df  %>% 
-  filter(Finished==1 & Derived_minus_stated>=-1) %>%
-  select(Person_ID,
-         On_campus,
-         Start_PlaceID,
-         Start_PlaceType,
-         End_PlaceID,
-         End_PlaceType, 
-         TAZ_o=ID.x,
-         TAZ_d=ID.y,
-         Origin_PA,
-         Destination_PA,
-         TAZ_P,
-         TAZ_A,
-         Trip_Purpose,
-         Purpose,
-         Primary_Mode,
-         Bicycle,
-         Bus,
-         Car,
-         Walk,
-         Other,
-         #Distance,
-         Weight)
-
-
-```
-
-#Person-level data
-```{r}
 Person_subset_df<-NCSU_Person_df %>%
   filter(Finished==1,
          Derived_minus_stated>=-1)%>%
@@ -227,23 +161,20 @@ Person_subset_df<-NCSU_Person_df %>%
          Graduate,
          Full_time, 
          Weight) %>%
-mutate(Job = case_when(Employed=="No" ~ "0",
-                    Employed=="Yes, both on and off campus" ~ "3",
-                    Employed=="Yes, off campus" ~ "2",
-                    Employed=="Yes, on campus" ~ "1"),
-       Job_on= case_when(Employed== "Yes, on campus" ~ 1,
-                         Employed== "Yes, both on and off campus" ~ 1,
-                         TRUE ~ 0),
-       Job_off =case_when(Employed== "Yes, off campus" ~ 1,
-                         Employed== "Yes, both on and off campus" ~ 1,
-                         TRUE ~ 0),
-       Permit = case_when(Have_parking_permit=="Yes" ~ 1,
-                          TRUE ~ 0))
+  mutate(Job = case_when(Employed=="No" ~ "0",
+                         Employed=="Yes, both on and off campus" ~ "3",
+                         Employed=="Yes, off campus" ~ "2",
+                         Employed=="Yes, on campus" ~ "1"),
+         Job_on = case_when(Employed== "Yes, on campus" ~ 1,
+                           Employed== "Yes, both on and off campus" ~ 1,
+                           TRUE ~ 0),
+         Job_off = case_when(Employed== "Yes, off campus" ~ 1,
+                            Employed== "Yes, both on and off campus" ~ 1,
+                            TRUE ~ 0),
+         Permit = case_when(Have_parking_permit=="Yes" ~ 1,
+                            TRUE ~ 0))
 
-```
-
-#Socioeconomics
-```{r}
+# New/Recoded variables socioeconomic data--------------------------------------
 # Total BuildingS per university
 TotalBuildingS_NCSU <-socioecon %>% 
   filter(!is.na(BuildingS_NCSU)) %>% 
@@ -270,77 +201,79 @@ TotalBuildingS_UNC
 TotalBuildingS_DUKE
 TotalBuildingS_NCCU
 
-
 # Distribution of BuildingS by TAZ
 socioecon2_df <- socioecon %>%
-   mutate(Share_Bldg_NCSU=BuildingS_NCSU/TotalBuildingS_NCSU, 
+  mutate(Share_Bldg_NCSU=BuildingS_NCSU/TotalBuildingS_NCSU, 
          Share_Bldg_UNC=BuildingS_UNC/TotalBuildingS_UNC,
          Share_Bldg_DUKE=BuildingS_DUKE/TotalBuildingS_DUKE,
          Share_Bldg_NCCU=BuildingS_NCCU/TotalBuildingS_NCCU)
 
-# test -- delete
-TAZs_with_buildings<-socioecon2%>%
-  mutate(DUKE=if_else(Share_Bldg_DUKE>0,1,0), 
-NCSU=if_else(Share_Bldg_NCSU>0,1,0),
-NCCU=if_else(Share_Bldg_NCCU>0,1,0),
-UNC=if_else(Share_Bldg_UNC>0,1,0))%>%
-  filter(!is.na(DUKE),!is.na(NCSU),!is.na(NCCU),!is.na(UNC))%>%
-  summarize(NCSU_sum=sum(NCSU),
-            NCCU_sum=sum(NCCU),
-            UNC_sum=sum(UNC),
-            DUKE_sum=sum(DUKE))
 
-TAZs_with_buildings
+# Datasets for analysis --------------------------------------------------------
+Trip_subset_df<-NCSUtemp_df  %>% 
+  filter(Finished==1 & Derived_minus_stated>=-1) %>%
+  select(Person_ID,
+         On_campus,
+         Start_PlaceID,
+         Start_PlaceType,
+         End_PlaceID,
+         End_PlaceType, 
+         TAZ_o=ID.x,
+         TAZ_d=ID.y,
+         Origin_PA,
+         Destination_PA,
+         TAZ_P,
+         TAZ_A,
+         Trip_Purpose,
+         Purpose,
+         Primary_Mode,
+         Bicycle,
+         Bus,
+         Car,
+         Walk,
+         Other,
+         #Distance,
+         Weight)
 
-
-
-```
-
-#Datasets for analysis
-```{r}
 Productions_df<-Trip_subset_df %>%   
   filter(Trip_Purpose!="99" & 
            !is.na(Trip_Purpose))%>% 
   group_by(Person_ID, 
-           Trip_Purpose, 
            On_campus,
            #Distance,
+           Trip_Purpose, 
            Primary_Mode) %>%
   summarize(Trips=n()) %>%
   left_join(Person_subset_df, by="Person_ID")%>% 
-  mutate(Trips_Weighted= Trips * Weight,
-         UHC=if_else(Trip_Purpose=="UHC", 1,0),
-         UHO=if_else(Trip_Purpose=="UHO", 1,0),
-         UCO=if_else(Trip_Purpose=="UCO", 1,0),
-         UC1=if_else(Trip_Purpose=="UC1", 1,0),
-         UOO=if_else(Trip_Purpose=="UOO", 1,0))%>%
-  rename(On_campus=On_campus.x)%>%
+  mutate(Trips_Weighted= Trips * Weight)%>%
   select(Person_ID,
-         Trips,
-         Trips_Weighted,
-         Primary_Mode,
-         Trip_Purpose,
          On_campus,
          #Distance,
-         Graduate, 
-         Full_time,
-         Weight,
-         Job_on,
-         Job_off, 
+         Trip_Purpose,
          UHC,
          UHO,
          UCO,
          UC1,
-         UOO)
+         UOO,
+         Trips,
+         Trips_Weighted,
+         Primary_Mode,
+         Graduate, 
+         Full_time,
+         Job_on,
+         Job_off,
+         Permit,
+         Weight)
 
 Productions_forregression_df<-Productions_df%>%
-   group_by(Person_ID,
+  group_by(Person_ID,
            On_campus, 
            #Distance,
            Graduate, 
            Full_time,
            Job_on,
-           Job_off, 
+           Job_off,
+           Permit,
            UHC,
            UHO,
            UCO,
@@ -369,9 +302,6 @@ Attractions_df<-Trip_subset_df %>%
          UOO=if_else(Trip_Purpose=="UOO", 1,0))%>%
   rename(On_campus=On_campus.x)
 
-
-  
-#TEMP##################################################
 Attractions_byTAZbySegment_df<-Attractions_df %>% 
   ungroup()%>%
   select(TAZ_A,On_campus,Trip_Purpose,Trips,Trips_Weighted)%>%
@@ -394,7 +324,6 @@ Attractions_byTAZbySegment_df<-Attractions_df %>%
          W_Off_UCOTrips=if_else(Trip_Purpose=="UCO" & On_campus==0,Trips_Weighted,0),
          W_Off_UOOTrips=if_else(Trip_Purpose=="UOO" & On_campus==0,Trips_Weighted,0)) 
 
-
 Attractions_byTAZfinal_df<-Attractions_byTAZbySegment_df%>%
   ungroup()%>%
   select(TAZ_A,
@@ -413,21 +342,9 @@ Attractions_byTAZfinal_df<-Attractions_byTAZbySegment_df%>%
   group_by(TAZ_A)%>%
   summarize_all(sum)%>%
   right_join(.,socioecon2_df,by=c("TAZ_A" ="TAZ_NG"))
-  
-#summaries
-
-Trips_byTAZ <-Attractions_df%>%
-  group_by(TAZ_A)%>%
-  summarize(W_Total_Trips=round(sum(Trips_Weighted),digits=2), Trips=round(sum(Trips),digits=2))%>%
-  arrange(-W_Total_Trips)
 
 
-Trips_byTAZ
- 
-```
-
-#Outputs
-```{r}
+# Output -----------------------------------------------------------------------
 write_rds(Productions_df,paste0(private_dir, "Productions_df.RDS"))
 write_rds(Attractions_df,paste0(private_dir,"Attractions_df.RDS"))
 write_rds(Productions_forregression_df,paste0(private_dir,"Productions_forregression_df.RDS"))
@@ -437,4 +354,3 @@ write_rds(Attractions_byTAZfinal_df,paste0(private_dir,"Attractions_byTAZfinal_d
 write_rds(Trip_subset_df, paste0(private_dir,"Trip_subset_df.RDS"))
 write_rds(Person_subset_df,paste0(private_dir,"Person_subset_df.RDS"))
 write_rds(socioecon2_df,paste0(prepared_data_dir,"socioecon2_df.RDS"))
-```
