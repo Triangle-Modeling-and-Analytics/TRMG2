@@ -98,12 +98,12 @@ Macro "Transit Skims" (Args)
 
     rts_file = Args.Routes
     periods = Args.periods
-    tmode_table = Args.tmode_table
+    TransModeTable = Args.TransModeTable
     access_modes = Args.access_modes
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/transit"
 
-    transit_modes = RunMacro("Get Transit Modes", tmode_table)
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
 
     for period in periods do
         for mode in transit_modes do

@@ -652,9 +652,9 @@ Macro "Create Route Networks" (Args)
     output_dir = Args.[Output Folder] + "/networks"
     periods = Args.periods
     access_modes = Args.access_modes
-    tmode_table = Args.tmode_table
+    TransModeTable = Args.TransModeTable
 
-    transit_modes = RunMacro("Get Transit Modes", tmode_table)
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
 
     for period in periods do
         for transit_mode in transit_modes do
@@ -716,7 +716,7 @@ Macro "Create Route Networks" (Args)
                 })
                 o.RouteTimeFields({Headway: period + "Headway"})
                 o.ModeTable({
-                    TableName: tmode_table,
+                    TableName: TransModeTable,
                     ModesUsedField: transit_mode,
                     OnlyCombineSameMode: true,
                     FreeTransfers: 0
