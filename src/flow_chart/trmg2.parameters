@@ -41,6 +41,7 @@
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
         Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
+        Args.TransponderRatio = { "Type":"double" , "Value":0.58, "Description":"Ratio of vehicles with a toll transponder (0-1)" }
     
     Section = "Accessibilities"
 

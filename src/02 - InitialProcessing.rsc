@@ -459,6 +459,7 @@ Macro "Other Attributes" (Args)
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
+    trans_ratio = Args.TransponderRatio
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
@@ -500,25 +501,27 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate_t, v_tollrate_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             llyr + ".TollType",
-            llyr + ".TollRate",
+            llyr + ".TollRateT",
+            llyr + ".TollRateNT",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
             },
         )
-    // v_ffs = v_ps + v_mod
     v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
+    // Determine weighted average toll rate based on transponder usage
+    v_tollrate = v_tollrate_t * trans_ratio + v_tollrate_nt * (1 - trans_ratio)
     v_tollcost_sov = v_tollrate * v_len
     v_tollcost_sut = v_tollcost_sov * 2
     v_tollcost_mut = v_tollcost_sov * 4
