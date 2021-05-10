@@ -279,135 +279,132 @@ Macro "Create Count Difference Map" (Args)
 EndMacro
 
 /*
-Creates V/C maps for each time period.
+Creates V/C maps for each time period and LOS (D and E)
 */
 
 Macro "VOC Maps" (Args)
 
   hwy_dbd = Args.Links
-  a_periods = Args.periods + {"Daily"}
+  periods = Args.periods + {"Daily"}
   output_dir = Args.[Output Folder] + "/_summaries/maps"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+  levels = {"D", "E"}
 
-  for p = 1 to a_periods.length do
-    period = a_periods[p]
+  for period in periods do
+    for los in levels do
 
-    mapFile = output_dir + "/voc_" + period + ".map"
+      mapFile = output_dir + "/voc_" + period + "_LOS" + los + "_" + ".map"
 
-    //Create a new, blank map
-    {nlyr,llyr} = GetDBLayers(hwy_dbd)
-    a_info = GetDBInfo(hwy_dbd)
-    maptitle = period + " V/C"
-    map = CreateMap(maptitle,{
-      {"Scope",a_info[1]},
-      {"Auto Project","True"}
-    })
-    MinimizeWindow(GetWindowName())
+      //Create a new, blank map
+      {nlyr,llyr} = GetDBLayers(hwy_dbd)
+      a_info = GetDBInfo(hwy_dbd)
+      maptitle = period + " V/C"
+      map = CreateMap(maptitle,{
+        {"Scope",a_info[1]},
+        {"Auto Project","True"}
+      })
+      MinimizeWindow(GetWindowName())
 
-    //Add highway layer to the map
-    llyr = AddLayer(map,llyr,hwy_dbd,llyr)
-    RunMacro("G30 new layer default settings", llyr)
-    SetArrowheads(llyr + "|", "None")
-    SetLayer(llyr)
+      //Add highway layer to the map
+      llyr = AddLayer(map,llyr,hwy_dbd,llyr)
+      RunMacro("G30 new layer default settings", llyr)
+      SetArrowheads(llyr + "|", "None")
+      SetLayer(llyr)
 
-    // Dualized Scaled Symbol Theme (from Caliper Support - not in Help)
-  	flds = {llyr+".AB_Flow_" + period}
-  	opts = null
-  	opts.Title = period + " Flow"
-  	opts.[Data Source] = "All"
-  	opts.[Minimum Size] = 1
-  	opts.[Maximum Size] = 10
-  	theme_name = CreateContinuousTheme("Flows", flds, opts)
-    // Set color to white to make it disappear in legend
-    dual_colors = {ColorRGB(65535,65535,65535)}
-    // without black outlines
-  	/*dual_linestyles = {LineStyle({{{1, -1, 0}}})}  */
-    // with black outlines
-    dual_linestyles = {LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})}
-  	// dual_labels = {"AB/BA " + period + " VOL"}
-  	dual_linesizes = {0}
-  	SetThemeLineStyles(theme_name , dual_linestyles)
-  	//SetThemeClassLabels(theme_name , dual_labels)
-  	SetThemeLineColors(theme_name , dual_colors)
-  	SetThemeLineWidths(theme_name , dual_linesizes)
-  	ShowTheme(, theme_name)
+      // Dualized Scaled Symbol Theme (from Caliper Support - not in Help)
+      flds = {llyr+".AB_Flow_" + period}
+      opts = null
+      opts.Title = period + " Flow"
+      opts.[Data Source] = "All"
+      opts.[Minimum Size] = 1
+      opts.[Maximum Size] = 10
+      theme_name = CreateContinuousTheme("Flows", flds, opts)
+      // Set color to white to make it disappear in legend
+      dual_colors = {ColorRGB(65535,65535,65535)}
+      dual_linestyles = {LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})}
+      dual_linesizes = {0}
+      SetThemeLineStyles(theme_name , dual_linestyles)
+      SetThemeLineColors(theme_name , dual_colors)
+      SetThemeLineWidths(theme_name , dual_linesizes)
+      ShowTheme(, theme_name)
 
-    // Apply color theme based on the V/C
-    num_classes = 4
-    theme_title = if period = "Daily"
-      then "Max V/C (LOS D)"
-      else period + " V/C (LOS D)"
-    cTheme = CreateTheme(
-      theme_title, llyr+".AB_VOCD_" + period, "Manual",
-      num_classes,
-      {
-        {"Values",{
-          {0.0,"True",0.6,"False"},
-          {0.6,"True",0.75,"False"},
-          {0.75,"True",0.9,"False"},
-          {0.9,"True",100,"False"}
-          }},
-        {"Other", "False"}
+      // Apply color theme based on the V/C
+      num_classes = 4
+      theme_title = if period = "Daily"
+        then "Max V/C (LOS " + los + ")"
+        else period + " V/C (LOS " + los + ")"
+      cTheme = CreateTheme(
+        theme_title, llyr+".AB_VOC" + los + "_" + period, "Manual",
+        num_classes,
+        {
+          {"Values",{
+            {0.0,"True",0.6,"False"},
+            {0.6,"True",0.75,"False"},
+            {0.75,"True",0.9,"False"},
+            {0.9,"True",100,"False"}
+            }},
+          {"Other", "False"}
+        }
+      )
+
+      line_colors =	{
+        ColorRGB(10794, 52428, 17733),
+        ColorRGB(63736, 63736, 3084),
+        ColorRGB(65535, 32896, 0),
+        ColorRGB(65535, 0, 0)
       }
-    )
+      dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
 
-    line_colors =	{
-      ColorRGB(10794, 52428, 17733),
-      ColorRGB(63736, 63736, 3084),
-      ColorRGB(65535, 32896, 0),
-      ColorRGB(65535, 0, 0)
-    }
-    dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
+      for i = 1 to num_classes do
+          class_id = llyr +"|" + cTheme + "|" + String(i)
+          SetLineStyle(class_id, dualline)
+          SetLineColor(class_id, line_colors[i])
+          SetLineWidth(class_id, 2)
+      end
 
-    for i = 1 to num_classes do
-        class_id = llyr +"|" + cTheme + "|" + String(i)
-        SetLineStyle(class_id, dualline)
-        SetLineColor(class_id, line_colors[i])
-        SetLineWidth(class_id, 2)
+      // Change the labels of the classes for legend
+      labels = {
+        "Congestion Free (VC < .6)",
+        "Moderate Traffic (VC .60 to .75)",
+        "Heavy Traffic (VC .75 to .90)",
+        "Stop and Go (VC > .90)"
+      }
+      SetThemeClassLabels(cTheme, labels)
+      ShowTheme(,cTheme)
+
+      // Hide centroid connectors
+      SetLayer(llyr)
+      ccquery = "Select * where HCMType = 'CC'"
+      n1 = SelectByQuery ("CCs", "Several", ccquery,)
+      if n1 > 0 then SetDisplayStatus(llyr + "|CCs", "Invisible")
+
+      // Configure Legend
+      SetLegendDisplayStatus(llyr + "|", "False")
+      RunMacro("G30 create legend", "Theme")
+      subtitle = if period = "Daily"
+        then "Daily Flow + Max V/C"
+        else period + " Period"
+      SetLegendSettings (
+        GetMap(),
+        {
+          "Automatic",
+          {0, 1, 0, 0, 1, 4, 0},
+          {1, 1, 1},
+          {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
+          {"", subtitle}
+        }
+      )
+      str1 = "XXXXXXXX"
+      solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+      SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+      // Refresh Map Window
+      RedrawMap(map)
+
+      // Save map
+      RestoreWindow(GetWindowName())
+      SaveMap(map, mapFile)
+      CloseMap(map)
     end
-
-    // Change the labels of the classes for legend
-    labels = {
-      "Congestion Free (VC < .6)",
-      "Moderate Traffic (VC .60 to .75)",
-      "Heavy Traffic (VC .75 to .90)",
-      "Stop and Go (VC > .90)"
-    }
-    SetThemeClassLabels(cTheme, labels)
-    ShowTheme(,cTheme)
-
-    // Hide centroid connectors
-    SetLayer(llyr)
-    ccquery = "Select * where HCMType = 'CC'"
-    n1 = SelectByQuery ("CCs", "Several", ccquery,)
-    if n1 > 0 then SetDisplayStatus(llyr + "|CCs", "Invisible")
-
-    // Configure Legend
-    SetLegendDisplayStatus(llyr + "|", "False")
-    RunMacro("G30 create legend", "Theme")
-    subtitle = if period = "Daily"
-      then "Daily Flow + Max V/C"
-      else period + " Period"
-    SetLegendSettings (
-      GetMap(),
-      {
-        "Automatic",
-        {0, 1, 0, 0, 1, 4, 0},
-        {1, 1, 1},
-        {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
-        {"", subtitle}
-      }
-    )
-    str1 = "XXXXXXXX"
-    solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
-    SetLegendOptions (GetMap(), {{"Background Style", solid}})
-
-    // Refresh Map Window
-    RedrawMap(map)
-
-    // Save map
-    RestoreWindow(GetWindowName())
-    SaveMap(map, mapFile)
-    CloseMap(map)
   end
 EndMacro
