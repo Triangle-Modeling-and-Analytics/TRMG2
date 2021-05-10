@@ -200,6 +200,7 @@ Macro "Create Scenario Transit" (Args)
   SetView(mode_vw)
   del_set = CreateSet("to_delete")
   CloseView(temp_vw)
+  DeleteFile(Substitute(Args.tmode_table, ".csv", ".dcc", ))
   v_mode_ids = GetDataVector(mode_vw + "|", "mode_id", )
   for mode_id in v_mode_ids do
     if mode_id = 1 then continue
