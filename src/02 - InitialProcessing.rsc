@@ -777,6 +777,7 @@ Macro "Create Route Networks" (Args)
                         else o.DriveAccess(opts)
                 end
                 ok = o.Run()
+                o = null
             end
         end
     end
