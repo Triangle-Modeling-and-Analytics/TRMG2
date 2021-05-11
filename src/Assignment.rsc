@@ -19,40 +19,69 @@ in the origin and destination zones.
 TODO: Finish
 */
 
-// Macro "VOT Split" (Args)
+Macro "VOT Split" (Args)
 
-//     se_file = Args.SE
-//     // vot_params = 
-//     periods = Args.periods
-//     iter = Args.FeedbackIteration
-//     assn_dir = Args.[Output Directory] + "/assignment/roadway/iter_" + String(iter)
+    se_file = Args.SE
+    // vot_params = 
+    periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Directory] + "/assignment/roadway/iter_" + String(iter)
+    skim_dir = Args.[Output Directory] + "/skims/roadway"
 
-//     se_vw = OpenTable("se", "FFB", {se_file})
-//     {v_hh, v_inc} = GetDataVectors(
-//         se_vw + "|", {"HH","Median_Inc"}, 
-//         {{"Sort Order",{{"ID","Ascending"}}}}
-//     )
+    se_vw = OpenTable("se", "FFB", {se_file})
+    {v_hh, v_inc} = GetDataVectors(
+        se_vw + "|", {"HH","Median_Inc"}, 
+        {{"Sort Order",{{"ID","Ascending"}}}}
+    )
 
-//     for period in periods do
-//         // TODO: change to actual file name
-//         input_file = assn_dir + "TOT" + period + "_OD_conv_tod.mtx"
-//         output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
+    for period in periods do
+        // TODO: change to actual file name
+        input_file = assn_dir + "TOT" + period + "_OD_conv_tod.mtx"
+        output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
+        skim_file = skim_dir + "/skim_sov_" + period + ".mtx"
         
-//         input = CreateObject("Matrix")
-//         input.LoadMatrix(input_file)
-//         input.AddCores("income")
-//         input.CloneMatrixStructure({
-//             MatrixFile: output_file,
-//             MatrixLabel: "ODs by Value of Time",
-//             Matrices: {"test"}
-//         })
+        skim = CreateObject("Matrix")
+        skim.LoadMatrix(skim_file)
 
-//         output = CreateObject("Matrix")
-//         input.LoadMatrix(output_file)
-//     end
+        // Create output copy
+        input = CreateObject("Matrix")
+        input.LoadMatrix(input_file)
+        veh_classes = input.CoreNames
+        input.CloneMatrixStructure({
+            MatrixFile: output_file,
+            MatrixLabel: "ODs by Value of Time",
+            Matrices: {"test"}
+        })
 
-//     CloseView(se_vw)
-// endmacro
+        // Calculate weighted income
+        output = CreateObject("Matrix")
+        output.LoadMatrix(output_file)
+        output.AddCores({"hh", "wgtinc", "otemp", "dtemp"})
+        cores = output.data.cores
+        cores.otemp := v_hh
+        v_hh.rowbased = "false"
+        cores.dtemp := v_hh
+        v_hh.rowbased = true
+        cores.hh := cores.otemp + cores.dtemp
+        v_tothhinc = v_inc/100 * v_hh
+		cores.otemp    := v_tothhinc
+		v_tothhinc.rowbased = false
+		cores.dtemp    := v_tothhinc
+		v_tothhinc.rowbased = true
+		cores.wgtinc    := (cores.otemp + cores.dtemp) / cores.hh
+        output.DropCores({"hh", "otemp", "dtemp"})
+
+        output.AddCores({"lognorm", "zscore"})
+        for class in veh_classes do
+            for i = 1 to 5 do
+                
+            end
+        end
+        output.DropCores({"lognorm", "zscore"})
+    end
+
+    CloseView(se_vw)
+endmacro
 
 /*
 
