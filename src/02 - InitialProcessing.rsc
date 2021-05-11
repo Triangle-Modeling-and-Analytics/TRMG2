@@ -270,49 +270,30 @@ Macro "Capacity" (Args)
     // Create a map and add fields to be filled in
     {map, {node_lyr, link_lyr}} = RunMacro("Create Map", {file: link_dbd})
     a_fields =  {
-        {"AreaType2", "Character", 10, ,,,, 
-        "Area type used for link cap/speed lookup|Rural links marked with ML/TL"},
         {"capd_phpl", "Integer", 10, ,,,, 
         "LOS D capacity per hour per lane|LOS E is used for assignment."},
         {"cape_phpl", "Integer", 10, ,,,, 
-        "LOS E capacity per hour per lane|LOS E is used for assignment."},
-        {"MLHighway", "Integer", 10, ,,,, "If road is a rural multi-lane highway"},
-        {"TLHighway", "Integer", 10, ,,,, "If road is a rural two-lane highway"}
+        "LOS E capacity per hour per lane|LOS E is used for assignment."}
     }
     RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
     {link_fields, link_specs} = RunMacro("Get Fields", {view_name: link_lyr})
 
-    // Assign facility type to ramps
+    // // Assign facility type to ramps
+    SetLayer(link_lyr)
     ramp_query = "Select * where HCMType = 'Ramp'"
-    fac_field = "HCMType"
-    a_ft_priority = {"Freeway", "Arterial", "Collector"}
-    RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
-
-    // Update area type to identify ML and TL rural highways
-    data = GetDataVectors(
-        link_lyr + "|",
-        {"HCMType", "AreaType", "ABLanes", "BALanes", "Dir"},
-        {OptArray: TRUE}
-    )
-    lanes = nz(data.ABLanes) + nz(data.BALanes)
-    type = if lanes = 0 then ""
-        else if data.HCMType <> "Arterial" and data.HCMType <> "Collector" then ""
-        else if data.AreaType <> "Rural" then ""
-        else if lanes = 2 and data.Dir = 0 then "TL"
-        else "ML"
-    new_areatype = data.AreaType + type
-    ml_flag = if type = "ML" then 1 else null
-    tl_flag = if type = "TL" then 1 else null
-    SetDataVector(link_lyr + "|", "AreaType2", new_areatype, )
-    SetDataVector(link_lyr + "|", "MLHighway", ml_flag, )
-    SetDataVector(link_lyr + "|", "TLHighway", tl_flag, )
+    n = SelectByQuery("sel", "several", ramp_query)
+    if n > 0 then do
+        fac_field = "HCMType"
+        a_ft_priority = {"Freeway", "Arterial", "Collector", "Superstreet", "MLHighway", "TLHighway"}
+        RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
+    end
 
     // Add hourly capacity to link layer
     cap_vw = OpenTable("cap", "CSV", {cap_file})
     {cap_fields, cap_specs} = RunMacro("Get Fields", {view_name: cap_vw})
     jv = JoinViewsMulti(
         "jv", 
-        {link_specs.HCMType, link_specs.AreaType2},
+        {link_specs.HCMType, link_specs.AreaType},
         {cap_specs.HCMType, cap_specs.AreaType},
         null
     )
@@ -468,21 +449,23 @@ Macro "Set CC Speeds" (Args)
 EndMacro
 
 /*
-Other important fields like FFS and FFT, walk time, etc.
+Other important fields like FFS and FFT, walk time, etc. Also determines which
+nodes can be KNR.
 */
 
 Macro "Other Attributes" (Args)
     
-    links_dbd = Args.Links
+    rts_file = Args.Routes
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
+    trans_ratio = Args.TransponderRatio
 
-    // Add link layer to workspace
-    objLyrs = CreateObject("AddDBLayers", {FileName: links_dbd})
-    {nlyr, llyr} = objLyrs.Layers
+    {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
+    
     a_fields = {
-        {"TollCost", "Real", 10, 2, , , , "TollRate * Length"},
+        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length"},
+        {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
         {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2"},
         {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
@@ -500,9 +483,9 @@ Macro "Other Attributes" (Args)
     for period in periods do
         a_fields = a_fields + {
             {"AB" + period + "Time", "Real", 10, 2, , , , 
-            "Congested time in the " + period + " period.|Updated after each feedback iteration."},
+            "Congested time in the " + period + " period.|Updated after each assignment."},
             {"BA" + period + "Time", "Real", 10, 2, , , , 
-            "Congested time in the " + period + " period.|Updated after each feedback iteration."}
+            "Congested time in the " + period + " period.|Updated after each assignment."}
         }
     end
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
@@ -513,17 +496,20 @@ Macro "Other Attributes" (Args)
     // Join based on AreaType and HCMType
     jv = JoinViewsMulti(
         "jv",
-        {llyr + ".AreaType2", llyr + ".HCMType"},
+        {llyr + ".AreaType", llyr + ".HCMType"},
         {ffs_tbl + ".AreaType", ffs_tbl + ".HCMType"},
     )
 
     // Perform calculations
-    {v_dir, v_len, v_ps, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate_t, v_tollrate_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
+            llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
-            llyr + ".TollRate",
+            llyr + ".TollType",
+            llyr + ".TollRateT",
+            llyr + ".TollRateNT",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
@@ -534,9 +520,12 @@ Macro "Other Attributes" (Args)
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
-    v_tollcost = v_tollrate * v_len
-    v_tollcost_sut = v_tollcost * 2
-    v_tollcost_mut = v_tollcost * 4
+    // Determine weighted average toll rate based on transponder usage
+    v_tollrate = v_tollrate_t * trans_ratio + v_tollrate_nt * (1 - trans_ratio)
+    v_tollcost_sov = v_tollrate * v_len
+    v_tollcost_sut = v_tollcost_sov * 2
+    v_tollcost_mut = v_tollcost_sov * 4
+    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_sov
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -544,7 +533,8 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
-    SetDataVector(jv + "|", llyr + ".TollCost", v_tollcost, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_sov, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hot, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
     v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
@@ -564,7 +554,18 @@ Macro "Other Attributes" (Args)
     set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
     SetDataVectors(llyr + "|", set, )
 
+    // Limit the possible KNR nodes to those with bus stops on them
+    a_fields = {
+        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"}
+    }
+    RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
+    SetLayer(nlyr)
+    n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280)
+    v = Vector(n, "Long", {Constant: 1})
+    SetDataVector(nlyr + "|knr", "KNR", v, )
+
     CloseView(ffs_tbl)
+    CloseMap(map)
 EndMacro
 
 /*
@@ -595,10 +596,12 @@ Macro "Create Link Networks" (Args)
             o.LayerDB = link_dbd
             o.Filter = filter   
             o.AddLinkField({Name: "FFTime", Field: {"FFTime", "FFTime"}, IsTimeField: true})
+            o.AddLinkField({Name: "CongTime", Field: {"AB" + period + "Time", "BA" + period + "Time"}, IsTimeField: true})
             o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField: false})
             o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField: false, DefaultValue: 0.15})
             o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField: false, DefaultValue: 4.})
-            o.AddLinkField({Name: "TollCost", Field: "TollCost", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV", Field: "TollCostSOV", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV", Field: "TollCostHOV", IsTimeField: false})
             o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
             o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
             o.NetworkName = net_file
@@ -652,16 +655,12 @@ Macro "Create Route Networks" (Args)
     output_dir = Args.[Output Folder] + "/networks"
     periods = Args.periods
     access_modes = Args.access_modes
-    tmode_table = Args.tmode_table
+    TransModeTable = Args.TransModeTable
 
-    mode_vw = OpenTable("mode", "CSV", {tmode_table})
-    a_mode_id = V2A(GetDataVector(mode_vw + "|", "mode_id", ))
-    transit_modes = V2A(GetDataVector(mode_vw + "|", "abbr", ))
-    CloseView(mode_vw)
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
 
     for period in periods do
         for transit_mode in transit_modes do
-            if transit_mode = "nt" then continue
             for access_mode in access_modes do
                 
                 // create transit network .tnw file
@@ -687,6 +686,7 @@ Macro "Create Route Networks" (Args)
                     TransitModeField: "Mode",
                     NonTransitModeField: "Mode"
                 })
+                // Drive attributes for network creation
                 if access_mode = "knr" or access_mode = "pnr" then do
                     o.IncludeDriveLinks = true
                     o.DriveLinkFilter = "D = 1"
@@ -719,7 +719,7 @@ Macro "Create Route Networks" (Args)
                 })
                 o.RouteTimeFields({Headway: period + "Headway"})
                 o.ModeTable({
-                    TableName: tmode_table,
+                    TableName: TransModeTable,
                     ModesUsedField: transit_mode,
                     OnlyCombineSameMode: true,
                     FreeTransfers: 0
@@ -765,7 +765,7 @@ Macro "Create Route Networks" (Args)
                     RouteXFareField: "Fare"
                 })
 
-                // Handle drive access attributes
+                // Drive attributes for network settings
                 if access_mode = "knr" or access_mode = "pnr" then do
                     o.DriveTime = "DriveTime"
                     opts = null
@@ -773,15 +773,15 @@ Macro "Create Route Networks" (Args)
                     opts.PermitAllWalk = false
                     opts.AllowWalkAccess = false
                     if access_mode = "knr" 
-                        then opts.ParkingNodes = "ID > 0" // any node
+                        then opts.ParkingNodes = "KNR = 1"
                         else opts.ParkingNodes = "PNR = 1"
                     if period = "PM" 
                         then o.DriveEgress(opts)
                         else o.DriveAccess(opts)
                 end
                 ok = o.Run()
+                o = null
             end
         end
     end
-
 endmacro

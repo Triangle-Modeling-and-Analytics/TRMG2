@@ -50,7 +50,9 @@ Macro "Create Folder Structure" (Args)
     "/tazs",
     "/sedata",
     "/networks",
-    "/skims",
+    "/skims/roadway",
+    "/skims/transit",
+    "/skims/nonmotorized",
     "/external",
     "/university",
     "/resident/disagg_model",
@@ -193,11 +195,12 @@ Macro "Create Scenario Transit" (Args)
 
   // Remove modes from the mode table that don't exist in the scenario. This
   // will in turn control which networks (tnw) get created.
-  temp_vw = OpenTable("mode", "CSV", {Args.tmode_table, })
+  temp_vw = OpenTable("mode", "CSV", {Args.TransModeTable, })
   mode_vw = ExportView(temp_vw + "|", "MEM", "mode_table", , )
   SetView(mode_vw)
   del_set = CreateSet("to_delete")
   CloseView(temp_vw)
+  DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
   v_mode_ids = GetDataVector(mode_vw + "|", "mode_id", )
   for mode_id in v_mode_ids do
     if mode_id = 1 then continue
@@ -212,7 +215,7 @@ Macro "Create Scenario Transit" (Args)
   end
   SetView(mode_vw)
   DeleteRecordsInSet(del_set)
-  ExportView(mode_vw + "|", "CSV", Args.tmode_table, , {"CSV Header": "true"})
+  ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
   CloseView(mode_vw)
 
   CloseMap(map)

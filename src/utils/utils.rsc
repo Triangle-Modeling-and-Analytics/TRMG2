@@ -1400,10 +1400,8 @@ Macro "Count Difference Map" (macro_opts)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
   // Create map
-  map = RunMacro("G30 new map", hwy_dbd)
-  {nlyr, vw} = GetDBLayers(hwy_dbd)
+  {map, {nlyr, vw}} = RunMacro("Create Map", {file: hwy_dbd})
   SetLayer(vw)
-  MinimizeWindow(GetWindowName())
 
   // Add fields for mapping
   a_fields = {
@@ -1416,7 +1414,8 @@ Macro "Count Difference Map" (macro_opts)
     {"MDD","Integer",8,,,,, "Maximum Desirable Deviation"},
     {"ExceedMDD","Integer",8,,,,, "If link exceeds MDD"}
   }
-  RunMacro("TCB Add View Fields", {vw, a_fields})
+  // RunMacro("TCB Add View Fields", {vw, a_fields})
+  RunMacro("Add Fields", {view: vw, a_fields: a_fields})
 
   // Create data frame
   df = CreateObject("df")
@@ -1511,27 +1510,27 @@ Macro "Count Difference Map" (macro_opts)
     }
   )
 
-    // Set color theme line styles and colors
-    line_colors =	{
-      ColorRGB(17733,30069,46260),
-      ColorRGB(29812,44461,53713),
-      ColorRGB(43947,55769,59881),
-      ColorRGB(0,0,0),
-      ColorRGB(65278,57568,37008),
-      ColorRGB(65021,44718,24929),
-      ColorRGB(62708,28013,17219),
-      ColorRGB(55255,12336,10023)
-    }
-    solidline = LineStyle({{{1, -1, 0}}})
-    // This one puts black borders around the line
-    /*dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})*/
+  // Set color theme line styles and colors
+  line_colors =	{
+    ColorRGB(17733,30069,46260),
+    ColorRGB(29812,44461,53713),
+    ColorRGB(43947,55769,59881),
+    ColorRGB(0,0,0),
+    ColorRGB(65278,57568,37008),
+    ColorRGB(65021,44718,24929),
+    ColorRGB(62708,28013,17219),
+    ColorRGB(55255,12336,10023)
+  }
+  solidline = LineStyle({{{1, -1, 0}}})
+  // This one puts black borders around the line
+  /*dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})*/
 
-    for i = 1 to 8 do
-      class_id = GetLayer() +"|" + cTheme + "|" + String(i)
-      SetLineStyle(class_id, dualline)
-      SetLineColor(class_id, line_colors[i])
-      SetLineWidth(class_id, 2)
-    end
+  for i = 1 to 8 do
+    class_id = GetLayer() +"|" + cTheme + "|" + String(i)
+    SetLineStyle(class_id, dualline)
+    SetLineColor(class_id, line_colors[i])
+    SetLineWidth(class_id, 2)
+  end
 
   // Change the labels of the classes (how the divisions appear in the legend)
   labels = {
@@ -1569,9 +1568,59 @@ Macro "Count Difference Map" (macro_opts)
   solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
   SetLegendOptions (GetMap(), {{"Background Style", solid}})
 
+  SetLayerVisibility(map + "|" + nlyr, "false")
+
   // Save map
   RedrawMap(map)
   RestoreWindow(GetWindowName())
   SaveMap(map, output_file)
   CloseMap(map)
+EndMacro
+
+/*
+Uses the mode table to get the transit modes in the model. Exclude "nt"
+(non-transit) as a mode.
+*/
+
+Macro "Get Transit Modes" (mode_csv)
+    mode_vw = OpenTable("mode", "CSV", {mode_csv})
+    transit_modes = V2A(GetDataVector(mode_vw + "|", "abbr", ))
+    pos = transit_modes.position("nt")
+    transit_modes = ExcludeArrayElements(transit_modes, pos, 1)
+    CloseView(mode_vw)
+    return(transit_modes)
+endmacro
+
+/*
+Transposes all cores in a matrix file.
+
+Inputs
+  * `mtx_file`
+    * String
+    * Full path to matrix file to be transposed
+  * `label`
+    * Optional string
+    * Label for the resuling, transposed matrix
+    
+Returns
+  Nothing. The matrix file provided will have all cores transposed.
+*/
+
+Macro "Transpose Matrix" (mtx_file, label)
+  if mtx_file = null then Throw("Transpose Matrix: `mtx_file` not provided")
+  if GetFileInfo(mtx_file) = null then Throw(
+    "Transpose Matrix: `mtx_file` not found\n" +
+    "(" + mtx_file + ")"
+  )
+
+  {drive, folder, file, ext} = SplitPath(mtx_file)
+  inv_matrix = drive + folder + file + "_inv" + ext
+  mtx = OpenMatrix(mtx_file, )
+  opts = null
+  opts.[File Name] = inv_matrix
+  opts.label = label
+  TransposeMatrix(mtx, opts)
+  mtx = null
+  DeleteFile(mtx_file)
+  RenameFile(inv_matrix, mtx_file)
 EndMacro
