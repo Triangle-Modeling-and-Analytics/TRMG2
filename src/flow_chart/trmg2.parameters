@@ -31,53 +31,68 @@
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
-        Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural", 45},
-                                                     {"Suburban", 35},
-                                                     {"Urban", 25},
-                                                     {"Downtown", 15}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
+        Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
+                                                    {"Suburban",35},
+                                                    {"Urban",25},
+                                                    {"Downtown",15}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
-        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
-        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        Args.periods = { "Type":"hidden" , "Value":{"AM","MD","PM","NT"} }
+        Args.access_modes = { "Type":"hidden" , "Value":{"w","knr","pnr"} }
         Args.tmode_table = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
     
     Section = "Accessibilities"
-
+    
         Args.[Access Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\attraction_rates.csv", "Description":"Attraction rates used for accessibility calculations." }
-
+    
     Section = "Population Synthesis|Input"
-
+    
         Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }        
+        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"%RMSE value" }
-
+    
     Section = "Population Synthesis|Output"
-
+    
         Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized HHs] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized Persons] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-
+    
     Section = "Resident Productions"
-
-        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
-
+    
+        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
+    
     Section = "Time of Day"
-
-        Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }        
+    
+        Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
     
     Section = "Non-Motorized Choice"
-
+    
         Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
+    
+    Section = "Parking Model|Coefficients"
+    
+        Args.ParkWalkCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.03,-0.03,-0.0367,-0.0367},
+                                                          {"BetaCost",-0.21,-0.21,-0.1833,-0.1833}}, "Caption":"Destination Choice coefficients for 'Park and Walk' mode", "Style":"ParkingCoeffs" }
+        Args.ParkShuttleCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.02635,-0.02635,-0.0275,-0.0275},
+                                                             {"BetaCost",-0.125,-0.125,-0.11,-0.11},
+                                                             {"BetaHeadway",-0.0075,-0.0075,-0.009167,-0.009167}}, "Caption":"Destination Choice coefficients for 'Park and Shuttle' mode", "Style":"ParkingCoeffs" }
+        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-0.4050,-0.4050,-0.2200,-0.2200}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
+
+    Section = "Parking Model|Output"
+    
+        Args.[Parking DC Util Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCUtility.mtx", "Caption":"Parking Destination Choice Utility Matrix" }
+        Args.[Parking DC Prob Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx", "Caption":"Parking Destination Choice Probability Matrix" }
+        Args.[Parking Logsums Table] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin", "Caption":"Parking Logsums Table" }
 
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
         Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
-        Args.FeedbackIteration = { "Type":"hidden" , "Value":1}
+        Args.FeedbackIteration = { "Type":"hidden" , "Value":1 }
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }

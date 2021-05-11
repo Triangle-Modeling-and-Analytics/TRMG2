@@ -1,4 +1,3 @@
-
 /**
   The macro "trmg2" holds the definition for the graphical flowchart of this model,
   with steps and links connecting steps.
@@ -11,7 +10,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processing"},{"NonMotorized Choice"},)
+    model = FlowChart({"Initial Processing"},{"Parking Model"},)
     //
     // Nodes
     //
@@ -25,6 +24,7 @@ Body:
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Summaries",,,)
+    FlowChartNode(model,"Parking Model",,,)
     //
     // Links
     //
@@ -35,6 +35,7 @@ Body:
     FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
     FlowChartLink(model,"Resident Productions","Time of Day",True,,)
     FlowChartLink(model,"Time of Day","NonMotorized Choice",True,,)
+    FlowChartLink(model,"NonMotorized Choice","Parking Model",True,,)
     Return(model)
 EndMacro
 
@@ -113,3 +114,11 @@ Body:
     Return(True)
 EndMacro
 
+
+Macro "Parking Model" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Parking Model"}}}
+Body:
+    ShowMessage('Running: Parking Model')
+    Return(True)
+EndMacro
