@@ -9,6 +9,7 @@ Macro "Summaries" (Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
+    RunMacro("Summarize by FT and AT", Args)
     return(1)
 endmacro
 
@@ -407,4 +408,18 @@ Macro "VOC Maps" (Args)
       CloseMap(map)
     end
   end
+EndMacro
+
+/*
+Summarize highway stats like VMT and VHT
+*/
+
+Macro "Summarize by FT and AT" (Args)
+
+  opts.hwy_dbd = Args.Links
+  out_dir = Args.[Output Folder]
+  opts.output_dir = out_dir + "/_summaries"
+  RunMacro("Link Summary by FT and AT", opts)
+
+  RunMacro("Close All")
 EndMacro
