@@ -578,7 +578,7 @@ used are defined as follows:
 - HOV3: 3+ person occupancy
 
 Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancy calculated for sr3.
+table below shows the occupancy calculated for HOV3.
 
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
