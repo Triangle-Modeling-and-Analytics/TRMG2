@@ -173,6 +173,25 @@ hh_add_flags <- hh_combined %>%
     )
   ) %>%
   relocate(hh_income_midpt, .after = hh_income_broad)
+
+# Create an income column that marks each household with the income bins
+# developed for the disaggregate model.
+hh_add_income_final <- hh_add_flags %>%
+  mutate(
+    hh_inc_final = case_when(
+      hh_income_broad == 1 ~ 1,
+      hh_income_broad <= 3 ~ 2,
+      hh_income_broad == 4 ~ 3,
+      TRUE ~ 4
+    ),
+    hh_inc_final_lab = case_when(
+      hh_inc_final == 1 ~ "25k",
+      hh_inc_final == 2 ~ "75k",
+      hh_inc_final == 3 ~ "150k",
+      hh_inc_final == 4 ~ "150k+"
+    )
+  ) %>%
+  relocate(hh_inc_final:hh_inc_final_lab, .after = hh_income_midpt)
 ```
 
 ### Person table
@@ -276,7 +295,7 @@ per_combined <- bind_rows(
   prep_per_2018
 ) %>%
   left_join(
-    hh_add_flags %>% select(hhid, hh_weight_combined),
+    hh_add_income_final %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
@@ -293,7 +312,7 @@ per_add_flags <- per_combined %>%
     is_worker = replace_na(is_worker, 0)
   )
 
-hh_add_seniors <- hh_add_flags %>%
+hh_add_seniors <- hh_add_income_final %>%
   left_join(
     per_add_flags %>%
       group_by(hhid) %>%
@@ -2046,8 +2065,10 @@ eda_scheme6 %>%
   kable() %>%
   kable_styling() %>%
   row_spec(which(eda_scheme6$homebased == "NH"), background = "lightgray")
+```
 
-add_trip_type <- scheme6 %>%
+```{r}
+add_obs_trip_type <- scheme6 %>%
   unite(
     c(tour_type, homebased, purp_scheme, dur_scheme),
     col = "trip_type",
@@ -2059,7 +2080,14 @@ add_trip_type <- scheme6 %>%
     purp_scheme == "OME" ~ "HBShop",
     TRUE ~ "HBO"
   ))
+
+add_inc_groups <- add_obs_trip_type %>%
+  left_join(
+    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab),
+    by = "hhid"
+  )
 ```
+
 
 For example, the table above shows that if a person is a workers, they are more
 likely to take trips on work tours and less likely to take trips on non-work
@@ -2151,7 +2179,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  add_trip_type,
+  add_inc_groups,
   "data/output/_PRIVATE/survey_processing/trips_processed.csv",
   na = ""
 )
