@@ -325,3 +325,14 @@ flip_to_pa <- add_taz_id %>%
   )
 ```
 
+```{r}
+# calculate the transfer rate
+xfer_rate <- weighted.mean(flip_to_pa$transfers, flip_to_pa$weight, na.rm = TRUE)
+surveyed_trips <- sum(flip_to_pa$weight, na.rm = TRUE)
+total_boardings <- surveyed_trips * (1 + xfer_rate)
+```
+
+```{r}
+write_csv(flip_to_pa, "data/output/_PRIVATE/obs_processing/obs_processed.csv")
+```
+
