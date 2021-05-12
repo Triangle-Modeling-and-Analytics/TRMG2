@@ -995,10 +995,12 @@ mode_equiv %>%
 simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
   mutate(
-    mode_simple2 = case_when(
+    mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
+      mode_simple == "other_auto" ~ "auto_pay",
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
-      grepl("auto", mode_simple) & party_size > 1 ~ "hov",
+      grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
+      grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
       TRUE ~ mode_simple
     )
   )
@@ -1008,7 +1010,7 @@ The chart below shows the expanded trips by mode.
 
 ```{r}
 temp <- simplify_mode %>%
-  group_by(Mode = mode_simple2) %>%
+  group_by(Mode = mode_final) %>%
   summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
 ggplot(data = temp, aes(
   x = reorder(Mode, -weight), y = weight, fill = Mode,
@@ -1760,7 +1762,7 @@ eda_scheme2 %>%
     `Is Child (r)` = r_is_kid,
     `Zonal Employment (r)` = r_emp,
     `AM (%)` = pct_AM,
-    `HOV (%)` = pct_hov,
+    `HOV2 (%)` = pct_hov2,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
@@ -2038,7 +2040,7 @@ eda_scheme6 %>%
     `Is Child (r)` = r_is_kid,
     `Zonal Employment (r)` = r_emp,
     `AM (%)` = pct_AM,
-    `HOV (%)` = pct_hov,
+    `HOV2 (%)` = pct_hov2,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
@@ -2050,7 +2052,13 @@ add_trip_type <- scheme6 %>%
     c(tour_type, homebased, purp_scheme, dur_scheme),
     col = "trip_type",
     remove = FALSE
-  )
+  ) %>%
+  mutate(obs_purpose = case_when(
+    homebased == "NH" ~ "NHB",
+    purp_scheme == "W" ~ "HBW",
+    purp_scheme == "OME" ~ "HBShop",
+    TRUE ~ "HBO"
+  ))
 ```
 
 For example, the table above shows that if a person is a workers, they are more
