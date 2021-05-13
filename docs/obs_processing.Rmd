@@ -325,3 +325,27 @@ flip_to_pa <- add_taz_id %>%
   )
 ```
 
+```{r}
+# calculate the transfer rate
+xfer_rate <- weighted.mean(flip_to_pa$transfers, flip_to_pa$weight, na.rm = TRUE)
+surveyed_trips <- sum(flip_to_pa$weight, na.rm = TRUE)
+total_boardings <- surveyed_trips * (1 + xfer_rate)
+```
+
+```{r}
+add_trip_purp <- flip_to_pa %>%
+  mutate(obs_purpose = case_when(
+    origin_type == "home" & dest_type == "work" ~ "HBW",
+    origin_type == "work" & dest_type == "home" ~ "HBW",
+    origin_type == "home" & dest_type == "ome" ~ "HBShop",
+    origin_type == "ome" & dest_type == "home" ~ "HBShop",
+    origin_type != "home" & dest_type != "home" ~ "NHB",
+    TRUE ~ "HBO"
+  ))
+```
+
+
+```{r}
+write_csv(add_trip_purp, "data/output/_PRIVATE/obs_processing/obs_processed.csv")
+```
+

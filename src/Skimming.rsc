@@ -1,4 +1,21 @@
 /*
+temp macro to get congested skims. called from menu.
+TODO: delete
+*/
+
+Macro "get cong skims" (Args)
+    
+    RunMacro("Initial Processing", Args)
+    RunMacro("Roadway Assignment", Args)
+    RunMacro("Create Link Networks", Args)
+    RunMacro("Create Route Networks", Args)
+    RunMacro("Skimming", Args)
+    RunMacro("Summaries", Args)
+
+    ShowMessage("Done")
+endmacro
+
+/*
 
 */
 
@@ -8,6 +25,7 @@ Macro "Skimming" (Args)
 
     // TODO: move this network updating into the feedback step when it exists
     if feedback_iteration > 1 then do
+        RunMacro("Calculate Bus Speeds", Args)
         RunMacro("Create Link Networks", Args)
         RunMacro("Create Route Networks", Args)
     end
@@ -81,12 +99,12 @@ Macro "Transit Skims" (Args)
 
     rts_file = Args.Routes
     periods = Args.periods
-    tmode_table = Args.tmode_table
+    TransModeTable = Args.TransModeTable
     access_modes = Args.access_modes
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/transit"
 
-    transit_modes = RunMacro("Get Transit Modes", tmode_table)
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
 
     for period in periods do
         for mode in transit_modes do

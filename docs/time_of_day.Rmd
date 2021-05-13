@@ -573,24 +573,20 @@ are calculated from the household survey, which includes information on the
 party size of each trip. The rates below meet expectations. The mode categories
 used are defined as follows:
 
-- da: Drive Alone
-- sr2: Shared ride with 2 people
-- sr3: Shared ride with 3+ people
+- SOV: Single occupancy
+- HOV2: 2-person occupancy
+- HOV3: 3+ person occupancy
 
-Vehicle occupancies for da and sr2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancies calculated for sr3.
+Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
+table below shows the occupancy calculated for HOV3.
 
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
-  filter(tour_type != "H", !is.na(mode_simple2)) %>%
-  filter(mode_simple2 %in% c("sov", "hov")) %>%
+  filter(tour_type != "H", !is.na(mode_final)) %>%
+  filter(mode_final %in% c("sov", "hov2", "hov3")) %>%
   mutate(
     party_size = num_hh_members + num_nonhh,
-    mode = case_when(
-      mode_simple2 == "sov" ~ "da",
-      party_size == 2 ~ "sr2",
-      TRUE ~ "sr3"
-    )
+    mode = mode_final
   ) %>%
   group_by(trip_type, tod, mode) %>%
   mutate(
@@ -613,7 +609,7 @@ occ_tbl <- tripTbl %>%
 
 occ_tbl %>%
   spread(key = Period, value = Value) %>%
-  filter(Mode == "sr3") %>%
+  filter(Mode == "hov3") %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
 

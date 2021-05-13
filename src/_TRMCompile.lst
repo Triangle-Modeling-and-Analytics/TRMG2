@@ -5,7 +5,9 @@
 05 - Resident Productions.rsc
 06 - Time of Day.rsc
 07 - NonMotorized.rsc
-Assignment.rsc
+08 - Parking.rsc
+Roadway Assignment.rsc
+Transit Assignment.rsc
 Summaries.rsc
 Skimming.rsc
 utils/utils.rsc

@@ -155,14 +155,15 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
     mutate(
       mode_summary = map(data, function(df) {
         df %>%
-          group_by(mode_simple2) %>%
+          group_by(mode_final) %>%
+          filter(mode_final != "XXX") %>%
           summarize(total = sum(trip_weight_combined, na.rm = TRUE)) %>%
           mutate(
             pct = round(total / sum(total) * 100, 1),
-            mode_simple2 = paste0("pct_", mode_simple2)
+            mode_final = paste0("pct_", mode_final)
           ) %>%
           select(-total) %>%
-          pivot_wider(names_from = "mode_simple2", values_from = "pct")
+          pivot_wider(names_from = "mode_final", values_from = "pct")
       }),
       tod_summary = map(data, function(df) {
         df %>%
@@ -241,7 +242,7 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
       })
     ) %>%
     unnest(cols = c(tod_summary, mode_summary)) %>%
-    mutate(across(pct_bike:pct_other, ~ifelse(is.na(.x), 0, .x))) %>%
+    mutate(across(pct_walkbike:pct_other, ~ifelse(is.na(.x), 0, .x))) %>%
     select(-data)
   
   final <- eda_tbl %>%
@@ -252,8 +253,8 @@ person_eda <- function(trip_df, tour_type = "tour_type", homebased = "homebased"
     ) %>%
     arrange(desc(tour_type), homebased, purpose, duration) %>%
     relocate(
-      c(pct_sov, pct_hov, pct_auto_pay, pct_bus, pct_school_bus, pct_walk,
-        pct_bike, pct_other),
+      c(pct_sov, pct_hov2, pct_hov3, pct_auto_pay, pct_bus, pct_school_bus,
+        pct_walkbike, pct_other),
       .after = r_hhveh
     ) %>%
     relocate(pct_NT, .after = pct_PM)

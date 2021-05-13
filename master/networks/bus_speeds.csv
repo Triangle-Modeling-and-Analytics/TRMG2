@@ -1,0 +1,21 @@
+HCMType,AreaType,speed1pk,speed2pk,fac1pk,fac2pk,const2pk,defaultpk,speed1op,speed2op,fac1op,fac2op,const2op,defaultop,Description
+Freeway,Downtown,15,70,1,1,0,70,15,70,1,1,0,70,The following formula is applied separately for pk and op
+Freeway,Urban,15,70,1,1,0,70,15,70,1,1,0,70,bus_speed = if speed < speed1 then speed * fac1 else if speed < speed2 then speed * fac2 + const2 else default
+Freeway,Suburban,15,70,1,1,0,70,15,70,1,1,0,70,
+Freeway,Rural,15,70,1,1,0,70,15,70,1,1,0,70,
+MLHighway,Downtown,15,70,1,1,0,70,15,70,1,1,0,70,
+MLHighway,Urban,15,70,1,1,0,70,15,70,1,1,0,70,
+MLHighway,Suburban,15,70,1,1,0,70,15,70,1,1,0,70,
+MLHighway,Rural,15,70,1,1,0,70,15,70,1,1,0,70,
+TLHighway,Downtown,15,70,1,1,0,70,15,70,1,1,0,70,
+TLHighway,Urban,15,70,1,1,0,70,15,70,1,1,0,70,
+TLHighway,Suburban,15,70,1,1,0,70,15,70,1,1,0,70,
+TLHighway,Rural,15,70,1,1,0,70,15,70,1,1,0,70,
+Arterial,Downtown,15,40,0.514523,0.381,2.0163,17.4,15,40,0.551867,0.262,4.3589,14.79,
+Arterial,Urban,15,40,0.514523,0.381,2.0163,17.4,15,40,0.551867,0.262,4.3589,14.79,
+Arterial,Suburban,15,40,0.493776,0.425,1.042,17.96,20,40,0.421875,0.473,-1.0017,17.83,
+Arterial,Rural,25,55,0.3275,0.646,-7.9411,27.59,25,55,0.3275,0.646,-7.9411,27.59,
+Collector,Downtown,15,40,0.514523,0.381,2.0163,17.4,15,40,0.551867,0.262,4.3589,14.79,
+Collector,Urban,15,40,0.514523,0.381,2.0163,17.4,15,40,0.551867,0.262,4.3589,14.79,
+Collector,Suburban,15,40,0.493776,0.425,1.042,17.96,20,40,0.421875,0.473,-1.0017,17.83,
+Collector,Rural,25,55,0.3275,0.646,-7.9411,27.59,25,55,0.3275,0.646,-7.9411,27.59,
