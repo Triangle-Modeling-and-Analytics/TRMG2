@@ -312,19 +312,19 @@ Macro "Access Logsums" (Args)
     obj.Destinations = "Centroid = 1"
     obj.Minimize = "FFTime"
     obj.AddSkimField({"Length", "All"})
-    out_files.sov = output_dir + "/skimming/roadway/sov_skim.mtx"
+    out_files.sov = output_dir + "/skims/roadway/accessibility_sov_AM.mtx"
     obj.OutputMatrix({MatrixFile: out_files.sov, Matrix: "SOV Skim"})
     ret_value = obj.Run()
     // Walk Skim
     obj.Network = output_dir + "/networks/net_walk.net"
     obj.Minimize = "WalkTime"
-    out_files.walk = output_dir + "/skimming/nonmotorized/walk_skim.mtx"
+    out_files.walk = output_dir + "/skims/nonmotorized/walk_skim.mtx"
     obj.OutputMatrix({MatrixFile: out_files.walk, Matrix: "Walk Skim"})
     ret_value = obj.Run()
     // Bike Skim
     obj.Network = output_dir + "/networks/net_bike.net"
     obj.Minimize = "BikeTime"
-    out_files.bike = output_dir + "/skimming/nonmotorized/walk_skim.mtx"
+    out_files.bike = output_dir + "/skims/nonmotorized/walk_skim.mtx"
     obj.OutputMatrix({MatrixFile: out_files.bike, Matrix: "Bike Skim"})
     ret_value = obj.Run()
 
