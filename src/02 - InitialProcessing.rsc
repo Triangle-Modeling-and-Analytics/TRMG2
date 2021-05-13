@@ -723,6 +723,13 @@ Macro "Create Route Networks" (Args)
 
     for period in periods do
         for transit_mode in transit_modes do
+
+            // Busses will use the bus speed equations, but rail/brt will use
+            // stop dwell times.
+            if transit_mode = "lb" or transit_mode = "eb" 
+                then use_dwell = "false"
+                else use_dwell = "true"
+
             for access_mode in access_modes do
                 
                 // create transit network .tnw file
@@ -736,13 +743,16 @@ Macro "Create Route Networks" (Args)
                 o.WalkLinkFilter = "W = 1"
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
+                if use_dwell then suffix = "Time" else suffix = "BusTime"
                 o.AddLinkField({
                     Name: "IVTT", 
-                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"}, 
+                    TransitFields: {"AB" + period + suffix, "BA" + period + suffix}, 
                     NonTransitFields: {"WalkTime", "WalkTime"}
-                })       
-                o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
-                o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                })
+                if use_dwell then do
+                    o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
+                    o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                end
                 o.AddStopField({Name: "xfer_pen", Field: "xfer_pen"})
                 o.UseModes({
                     TransitModeField: "Mode",
@@ -759,7 +769,6 @@ Macro "Create Route Networks" (Args)
                     })
                 end
                 o.Run()
-                // o = null
 
                 // Set transit network settings
                 o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
@@ -773,20 +782,11 @@ Macro "Create Route Networks" (Args)
                 })
                 o.AccessControl({PermitWalkOnly: false})
                 o.Combination({CombinationFactor: .1})
-                o.StopTimeFields({
+                stop_time_opts = {
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen",
-                    DwellOn: "dwell_on",
-                    DwellOff: "dwell_off"
-                })
-                o.RouteTimeFields({Headway: period + "Headway"})
-                o.ModeTable({
-                    TableName: TransModeTable,
-                    ModesUsedField: transit_mode,
-                    OnlyCombineSameMode: true,
-                    FreeTransfers: 0
-                })
-                o.TimeGlobals({
+                    TransferPenalty: "xfer_pen"
+                }
+                time_global_opts = {
                     Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 3,
@@ -795,11 +795,31 @@ Macro "Create Route Networks" (Args)
                     MinInitialWait: 2,
                     MinTransferWait: 2,
                     Layover: 5, 
-                    DwellOn: 0.25,
-                    DwellOff: 0.25,
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
                     MaxModalTotal: 240
+                }
+                if use_dwell then do
+                    stop_time_opts = stop_time_opts + {
+                        DwellOn: "dwell_on",
+                        DwellOff: "dwell_off"
+                    }
+                    if transit_mode = "brt"
+                        then dwell_time = 1 // 1 minute stop time brt assumption
+                        else dwell_time = 5 // 5 minute stop time rail assumption
+                    time_global_opts = time_global_opts + {
+                        DwellOn: dwell_time / 2,
+                        DwellOff: dwell_time / 2
+                    }
+                end
+                o.StopTimeFields(stop_time_opts)
+                o.TimeGlobals(time_global_opts)
+                o.RouteTimeFields({Headway: period + "Headway"})
+                o.ModeTable({
+                    TableName: TransModeTable,
+                    ModesUsedField: transit_mode,
+                    OnlyCombineSameMode: true,
+                    FreeTransfers: 0
                 })
                 o.RouteWeights({
                     Fare: null,
