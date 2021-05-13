@@ -9,6 +9,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
+    RunMacro("Calculate Bus Speeds", Args)
     RunMacro("Create Link Networks", Args)
     RunMacro("Create Route Networks", Args)
 
@@ -567,6 +568,67 @@ Macro "Other Attributes" (Args)
     CloseView(ffs_tbl)
     CloseMap(map)
 EndMacro
+
+/*
+
+*/
+
+Macro "Calculate Bus Speeds" (Args)
+
+    csv = Args.[Input Folder] + "\\networks\\bus_speeds.csv"
+    link_dbd = Args.Links
+    periods = Args.periods
+    dirs = {"AB", "BA"}
+
+    eq_vw = OpenTable("bus_eqs", "CSV", {csv})
+    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: link_dbd})
+    a_fields = null
+    for period in periods do
+        for dir in dirs do
+            a_fields = a_fields + {{
+                dir + period + "BusTime", "Real", 10, 2, , , ,
+                "The time it takes a bus to travel the link.|" + 
+                "Is a function of auto speeds."
+            }}
+        end
+    end
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+    {, eq_specs} = RunMacro("Get Fields", {view_name: eq_vw})
+    {, llyr_specs} = RunMacro("Get Fields", {view_name: llyr})
+    
+    jv = JoinViewsMulti(
+        "jv",
+        {llyr_specs.HCMType, llyr_specs.AreaType},
+        {eq_specs.HCMType, eq_specs.AreaType}, 
+    )
+
+    v_length = GetDataVector(jv + "|", "Length", )
+    for period in periods do
+        pkop = if period = "AM" or period = "PM" then "pk" else "op"
+        speed1 = GetDataVector(jv + "|", eq_specs.("speed1" + pkop), )
+        speed2 = GetDataVector(jv + "|", eq_specs.("speed2" + pkop), )
+        fac1 = GetDataVector(jv + "|", eq_specs.("fac1" + pkop), )
+        fac2 = GetDataVector(jv + "|", eq_specs.("fac2" + pkop), )
+        const2 = GetDataVector(jv + "|", eq_specs.("const2" + pkop), )
+        dflt = GetDataVector(jv + "|", eq_specs.("default" + pkop), )
+
+        for dir in dirs do
+            v_auto_time = GetDataVector(jv + "|", dir + period + "Time", )
+            v_auto_speed = v_length / (v_auto_time / 60)
+            v_bus_speed = if v_auto_speed < speed1 
+                then v_auto_speed * fac1
+                else if v_auto_speed < speed2
+                    then v_auto_speed * fac2 + const2
+                    else dflt
+            v_bus_time = v_length / v_bus_speed * 60
+            SetDataVector(jv + "|", dir + period + "BusTime", v_bus_time, )
+        end
+    end
+
+    CloseView(jv)
+    CloseView(eq_vw)
+    CloseMap(map)
+endmacro
 
 /*
 Creates the various link-based (non-transit) networks. Driving, walking, etc.
