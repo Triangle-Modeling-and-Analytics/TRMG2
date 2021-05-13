@@ -50,7 +50,9 @@ Macro "Create Folder Structure" (Args)
     "/tazs",
     "/sedata",
     "/networks",
-    "/skims",
+    "/skims/roadway",
+    "/skims/transit",
+    "/skims/nonmotorized",
     "/external",
     "/university",
     "/resident/disagg_model",
@@ -61,7 +63,8 @@ Macro "Create Folder Structure" (Args)
     "/directionality",
     "/assignment",
     "/assignment/transit",
-    "/_summary",
+    "/assignment/roadway",
+    "/_summaries",
   }
 
   for d = 1 to a_dir.length do
