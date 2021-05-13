@@ -18,33 +18,32 @@ for (package in packages_vector) {
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/_PRIVATE/"
 data_dir <- "data/input/"
+output_dir <- "data/output/"
 
 clean_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
-socec_filename <- paste0(data_dir, "se_data/se_2016.csv")
-socec_other_vars_filename <- paste0(data_dir, "airport/se_2016_other_vars.csv")
+socec_filename <- paste0(data_dir, "airport/se_2016.csv")
 taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
+distance_skim_filename <- paste0(data_dir, "airport/distance-skim.RDS")
 
 campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
 
-output_production_filename <- paste0(data_dir, "airport/airport-productions.csv")
+output_production_filename <- paste0(output_dir, "airport/airport-productions.csv")
 
 # Parameters -------------------------------------------------------------------
 SL_AIRPORT_ZONE <- 1261
 AIRPORT_TAZ <- 1261
 LAT_LNG_EPSG <- 4326
-RDU_ENPLANEMENTS <- 45000
+RDU_ENPLANEMENTS <- 15343
 OUTLIER_MIN <- 200
 
 # Data Reads -------------------------------------------------------------------
 clean_sl_df <- readRDS(clean_streetlight_filename)
 socec_df <- read_csv(socec_filename, col_types = cols(.default = col_double(),
-                                                      TAZ_NG = col_integer(),
-                                                      County = col_character()))
+                                                      TAZ = col_integer(),
+                                                      Type = col_character()))
 
-socec_other_df <- read_csv(socec_other_vars_filename, col_types = cols(.default = col_double(),
-                                                                       TAZ = col_integer(),
-                                                                       Type = col_character()))
+distance_df <- readRDS(distance_skim_filename)
 
 taz_sf <- st_read(taz_shape_filename) %>%
   st_transform(LAT_LNG_EPSG)
@@ -101,17 +100,6 @@ closest_df <- working_df %>%
          sl_source = source,
          distance)
 
-# Crow Flies Distance to Airport -----------------------------------------------
-distance_df <- centroids_df %>%
-  filter(taz == AIRPORT_TAZ) %>%
-  rename(origin_taz = taz, air_lat = lat, air_lng = lng) %>%
-  full_join(., centroids_df, by = character()) %>%
-  rowwise() %>%
-  mutate(distance_meters = geosphere::distm(c(air_lat, air_lng), c(lat, lng), fun = distHaversine)) %>%
-  ungroup() %>%
-  mutate(distance_miles = conv_unit(distance_meters, from = "m", to = "mi")) %>%
-  select(taz, dist_to_airport_miles = distance_miles)
-
 # Reductions -------------------------------------------------------------------
 working_df <- clean_sl_df %>%
   filter(type == "Personal") %>%
@@ -131,10 +119,9 @@ productions_df <- working_df %>%
   group_by(taz) %>%
   summarise(airport_productions = sum(airport_productions), .groups = "drop") %>%
   left_join(., centroids_df, by = c("taz")) %>%
-  left_join(., socec_df, by = c("taz" = "TAZ_NG")) %>%
-  left_join(., select(socec_other_df, TAZ, Pct_Worker, PctHighEarn), by = c("taz" = "TAZ")) %>%
-  left_join(., distance_df, by = c("taz")) %>%
-  filter(County != "External") %>%
+  left_join(., socec_df, by = c("taz" = "TAZ")) %>%
+  left_join(., select(distance_df, taz = orig, dist_to_airport_miles = distance), by = c("taz")) %>%
+  filter(Type == "Internal") %>%
   mutate(employment = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
   mutate(workers = Pct_Worker/100.0 * HH_POP) %>%
   mutate(high_earners = PctHighEarn/100.0 * workers) %>%
@@ -149,7 +136,7 @@ correlations_df <- productions_df %>%
          high_earn_distance,
          dist_to_airport_miles,
          HH,
-         MEANINC,
+         Median_Inc,
          Pct_Worker,
          Stud_GQ,
          Other_NonInst_GQ,
@@ -161,7 +148,7 @@ correlations_df <- productions_df %>%
          Service_RateLow,
          Retail,
          PctHighEarn,
-         ENROLLMENT) %>%
+         BuildingS_NCSU) %>%
   correlate() %>%
   select(term, airport_productions) %>%
   arrange(-airport_productions)
@@ -170,7 +157,7 @@ correlations_df <- productions_df %>%
 model_df <- productions_df %>%
   mutate(y = if_else(airport_productions > OUTLIER_MIN, OUTLIER_MIN, airport_productions))
 
-adjust_factor <- RDU_ENPLANEMENTS/sum(model_df$y)
+adjust_factor <- (RDU_ENPLANEMENTS * 2.0)/sum(model_df$y)
 
 model_df <- model_df %>%
   mutate(y = y * adjust_factor)
@@ -193,13 +180,10 @@ output_df <- productions_df %>%
   mutate(observed_productions = if_else(airport_productions < OUTLIER_MIN,
                                         airport_productions * adjust_factor,
                                         OUTLIER_MIN * adjust_factor)) %>%
-  mutate(estimated_productions = model_04$coefficients["(Intercept)"] +
-           model_04$coefficients["high_earners"] * high_earners +
-           model_04$coefficients["high_earn_distance"] * high_earn_distance +
-           model_04$coefficients["Industry"] * Industry +
-           model_04$coefficients["Office"] * Office +
-           model_04$coefficients["Service_RateHigh"] * Service_RateHigh +
-           model_04$coefficients["Retail"] * Retail) %>%
+  mutate(estimated_productions = model_03$coefficients["(Intercept)"] +
+           model_03$coefficients["high_earners"] * high_earners +
+           model_03$coefficients["high_earn_distance"] * high_earn_distance +
+           model_03$coefficients["employment"] * employment) %>%
   mutate(estimated_productions = if_else(estimated_productions < 0.0, 
                                          0.0,
                                          estimated_productions))
@@ -222,3 +206,38 @@ diurnal_df <- clean_sl_df %>%
   summarise(trips = sum(flow), .groups = "drop") %>%
   group_by(purpose) %>%
   mutate(share = trips/sum(trips))
+
+# convert to model time periods
+diurnal_cross_df <- crossing(tibble(hour = seq(from = 0, to = 23)),
+                               tibble(minute = seq(from = 0, to = 60))) %>%
+  mutate(decimal_time = hour + minute/60.0) %>%
+  mutate(sl_period = case_when(
+    hour < 6 ~ "1: Early AM (12am-6am)",
+    hour < 10 ~ "2: Peak AM (6am-10am)",
+    hour < 15 ~  "3: Mid-Day (10am-3pm)",
+    hour < 19 ~ "4: Peak PM (3pm-7pm)",
+    TRUE ~ "5: Late PM (7pm-12am)"
+  )) %>%
+  mutate(model_period = case_when(
+    hour < 7 ~ "NT",
+    hour < 9 ~ "AM",
+    decimal_time < 15.5 ~  "MD",
+    decimal_time < 18.25 ~ "PM",
+    TRUE ~ "NT"
+  )) %>%
+  group_by(sl_period, model_period) %>%
+  summarise(count_of_minutes = n(), .groups = "drop") %>%
+  group_by(sl_period) %>%
+  mutate(share_of_model_in_sl = count_of_minutes / sum(count_of_minutes)) %>%
+  ungroup() %>%
+  select(-count_of_minutes)
+
+model_diurnals_df <- left_join(diurnal_df, diurnal_cross_df, by = c("day_part" = "sl_period")) %>%
+  mutate(model_share = share * share_of_model_in_sl) %>%
+  mutate(model_trips = trips * share_of_model_in_sl) %>%
+  group_by(purpose, model_period) %>%
+  summarise(share = sum(model_share), trips = sum(model_trips), .groups = "drop") %>%
+  left_join(., tibble(model_period = c("AM", "MD", "PM", "NT"), order = c(1,2,3,4)), by = c("model_period")) %>%
+  arrange(purpose, order) %>%
+  mutate(direction = if_else(purpose == "From Airport", "A to P", "P to A")) %>%
+  select(purpose, direction, period = model_period, share)

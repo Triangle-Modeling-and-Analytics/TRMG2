@@ -128,23 +128,28 @@ adjusted R-squared improves from `r round(summary(model_01)$adj.r.squared, 3)` t
 print_model(model_02)
 ```
 
-`Model 03` combines employment into a single category. The outcomes are logical,
-but the adjusted R-squared decreases to `r round(summary(model_03)$adj.r.squared,3)`. 
+`Model 03` combines employment into a single category and drops the `workers` variable. 
+The outcomes are logical, but the adjusted R-squared decreases to `r round(summary(model_03)$adj.r.squared,3)`. 
+Dropping `workers` makes the interpretation easier, i.e, you do not need to
+know the number of workers in the TAZ to understand the coefficients. 
 
 #### Model 03
 ```{r}
 print_model(model_03)
 ```
 
-The final and selected model, `Model 04`, removes `workers` from `Model 03`, which
-results in a slightly more parsimonious model, and allows for an easier interpretation
-of the high earner variable with the distance interaction, i.e., you do not need to
-know the number of workers in the TAZ to understand the coefficients. 
+`Model 04` expands the employment categories from `Model 03`. 
 
 #### Model 04
 ```{r}
 print_model(model_04)
 ```
+
+`Model 03` is selected as the preferred model, primarily due to the non-intuitive
+coefficents on employment sectors in `Model 04`. Specifically, it is not obvious
+why the `Industry` employment category would generate more air travel than the 
+`Office` employment category (comparing `r model_04$coefficients["Industry"]` to
+`r model_04$coefficients["Office"]`. 
 
 ### Predicted Productions
 The map below plots the predicted airport productions. In model application, the
@@ -167,11 +172,38 @@ productions.
 knitr::include_graphics("img/airport/scatter_plot.png")
 ```
 
+The chart below shows the adjusted observed and estimated trip length frequency
+distributions for movements to the airport. The model estimates slightly
+longer trips than the StreetLight data. This is expected because the StreetLight
+data will, in many cases, fail to capture the true origin of the movement, misunderstanding
+stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.
+
+```{r, out.width="80%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/airport/trip_length_frequency.png")
+```
+
 ## Diurnal Factors
 The table below summarizes the production to airport and airport to production
 trips by time of day, based on the StreetLight data. 
 
-### P to A Diurnal Factors
+### P to A Diurnal Factors from StreetLight
+```{r}
+direction <- "To Airport"
+
+df <- diurnal_df %>%
+  select(-trips) %>%
+  filter(purpose == direction) %>%
+  bind_rows(., tibble(purpose = c(direction),
+                      day_part = c("All"),
+                      share = c(sum(.$share))))
+
+df %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE) 
+```
+
+
+### A to P Diurnal Factors from StreetLight
 ```{r}
 direction <- "From Airport"
 
@@ -188,21 +220,45 @@ df %>%
   
 ```
 
-### A to P Diurnal Factors
-```{r}
-direction <- "To Airport"
+The time periods used for the StreetLight extraction do not directly align with
+the time periods used for the updated travel model. By assuming a uniform distribution
+across the StreetLight time periods, we can create the below diurnal factors using
+the StreetLight data and model time periods. 
 
-df <- diurnal_df %>%
-  select(-trips) %>%
-  filter(purpose == direction) %>%
-  bind_rows(., tibble(purpose = c(direction),
-                      day_part = c("All"),
+### P to A Travel Model Diurnal Factors
+```{r}
+label <- "To Airport"
+
+df <- model_diurnals_df %>%
+  filter(purpose == label) %>%
+  bind_rows(., tibble(purpose = c(label),
+                      direction = c("P to A"),
+                      period = c("All"),
                       share = c(sum(.$share))))
 
 df %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE) 
 ```
+
+
+### A to P Travel Model Diurnal Factors
+```{r}
+label <- "From Airport"
+
+df <- model_diurnals_df %>%
+  filter(purpose == label) %>%
+  bind_rows(., tibble(purpose = c(label),
+                      direction = c("A to P"),
+                      period = c("All"),
+                      share = c(sum(.$share))))
+
+df %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE) 
+  
+```
+
 
 ## Mode Choice
 The StreetLight Data does not provide insight to the mode choice decision made
