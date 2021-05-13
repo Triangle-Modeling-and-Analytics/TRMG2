@@ -8,10 +8,10 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
   # Determine the correct logsum to use and create a table
   v <- str_split(trip_type, "_")[[1]]
   logsum_type <- ifelse(
-    v[length(v)] %in% c("sov", "hov", "pay", "auto"), "sov", NA
+    v[length(v)] %in% c("sov", "hov2", "hov3", "pay", "auto"), "sov", NA
   )
   logsum_type <- ifelse(
-    v[length(v)] %in% c("walk", "bike"), "walk", logsum_type
+    v[length(v)] == "walkbike", "walk", logsum_type
   )
   # TODO: change this to bus once that logsum is available
   logsum_type <- ifelse(
@@ -181,10 +181,10 @@ apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
   # Determine the correct logsum to use and create a table
   v <- str_split(trip_type, "_")[[1]]
   logsum_type <- ifelse(
-    v[length(v)] %in% c("sov", "hov", "pay", "auto"), "sov", NA
+    v[length(v)] %in% c("sov", "hov2", "hov3", "pay", "auto"), "sov", NA
   )
   logsum_type <- ifelse(
-    v[length(v)] %in% c("walk", "bike"), "walk", logsum_type
+    v[length(v)] == "walkbike", "walk", logsum_type
   )
   # TODO: change this to bus once that logsum is available
   logsum_type <- ifelse(

@@ -32,6 +32,19 @@
         Value:   {{-10,2},{-5,5},{0,15},{5,25},{10,25},{15,15},{20,10},{25,3}} // Default initial value, if the parameter is set to null in the model file 
     })
 
+    Styles.ParkingCoeffs = Pme.Table({ 
+            "Columns":{
+                        {Name:"Coefficient Name", Type:"string",  "Fixed":"true", "Width":150},
+                        {Name:"CBD Work", Type:"real",  "Fixed":"false"},
+                        {Name:"CBD NonWork",   Type:"real",    "Fixed":"false"},
+                        {Name:"Univ Work", Type:"real",  "Fixed":"false"},
+                        {Name:"Univ NonWork",   Type:"real",    "Fixed":"false"}
+                      },
+            "Values":"Columns",
+            "Height":4,
+            "MaxRows": 3
+        })
+
     Styles.IntRange   = Pme.IntRange({Min: 1, Max: 100})
     Styles.RealRange  = Pme.RealRange({Min: 1.5 , Max: 99.5})
     Styles.DropList   = Pme.DropList()

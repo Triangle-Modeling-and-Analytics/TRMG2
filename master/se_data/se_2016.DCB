@@ -1,5 +1,5 @@
 
-190
+202
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","",,"Sum",
@@ -36,9 +36,12 @@
 "TraumaLevel",I,147,4,0,11,0,,"","Marks hospital zones with trauma level|https://info.ncdhhs.gov/dhsr/EMS/trauma/traumacenter.html",,"Sum",
 "ParkDistrict",I,151,4,0,11,0,,"","Parking District||The parking model is applied to TAZs with|a value greater than 0.",,"Sum",
 "ParkCostW",I,155,4,0,11,0,,"","Parking cost paid by people on work trips",,"Sum",
-"ParkCostU",I,163,4,0,11,0,,"","Parking cost paid by people on university trips",,"Sum",
-"ParkCostO",I,159,4,0,11,0,,"","Parking cost paid by people on trips that|are neither work nor university",,"Sum",
-"ADT",I,167,4,0,11,0,,"","",,"Sum",
-"PCTCV",I,171,4,0,11,0,,"","",,"Sum",
-"PCTAUTOEE",R,175,8,0,15,4,,"","",,"Sum",
-"PCTCVEE",R,183,8,0,15,4,,"","",,"Sum",
+"ParkCostU",I,159,4,0,11,0,,"","Parking cost paid by people on university trips",,"Sum",
+"ParkCostO",I,163,4,0,11,0,,"","Parking cost paid by people on trips that|are neither work nor university",,"Sum",
+"EmpSpaces",I,167,4,0,11,0,,"","Number of parking spaces for employees",,"Sum",
+"StudSpaces",I,171,4,0,11,0,,"","Number of parking spaces for students",,"Sum",
+"OtherSpaces",I,175,4,0,11,0,,"","Number of parking spaces for visitors/other",,"Sum",
+"AWDT",I,179,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
+"PCTCV",I,183,4,0,11,0,,"","Percent of AWDT that are commercial vehicles|(external centroids only)",,"Sum",
+"PCTAUTOEE",R,187,8,0,15,4,,"","Percent of auto volume that pass through region|Auto volume = AWDT * (1 - PCTCV)|(external centroids only)",,"Sum",
+"PCTCVEE",R,195,8,0,15,4,,"","Percent of CV volume that pass through region|CV volume = AWDT * PCTCV|(external centroids only)",,"Sum",

@@ -1624,3 +1624,62 @@ Macro "Transpose Matrix" (mtx_file, label)
   DeleteFile(mtx_file)
   RenameFile(inv_matrix, mtx_file)
 EndMacro
+
+/*
+This macro summarizes link-level fields into scenario-level statistics.
+Summaries include VMT, VHT, and delay.
+
+Inputs (all in a named array)
+  * `hwy_dbd`
+    * String
+    * Full path of the line geographic file of highway links. This should be the
+    * "loaded" network, such that the assignment results are included.
+  * `output_dir`
+    * String
+    * Full path of output directory where the final csv will be written
+  * `at_field`
+    * Optional string
+    * Field name containing area type information
+    * Defaults to "AreaType"
+  * `ft_field`
+    * Optional string
+    * Field name containing facility type information
+    * Defaults to "HCMType"
+  * `summary_fields`
+    * Optional array of strings
+    * Describes the names of the fields to sum up for each metric
+    * Defaults to {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
+*/
+
+Macro "Link Summary by FT and AT" (MacroOpts)
+
+  // Extract arguments from named array
+  hwy_dbd = MacroOpts.hwy_dbd
+  output_dir = MacroOpts.output_dir
+  at_field = MacroOpts.at_field
+  ft_field = MacroOpts.ft_field
+  summary_fields = MacroOpts.summary_fields
+
+  // Argument checking
+  if hwy_dbd = null then Throw("'hwy_dbd' not provided")
+  if output_dir = null then Throw("'output_dir' not provided")
+  if at_field = null then at_field = "AreaType"
+  if ft_field = null then ft_field = "HCMType"
+  if summary_fields = null then do
+    summary_fields = {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
+  end
+
+  // Open the highway link layer and read into a data frame
+  objLyrs = CreateObject("AddDBLayers", {FileName: LineDB})
+  {nlyr, llyr} = objLyrs.Layers
+  hwy_df = CreateObject("df")
+  opts = null
+  opts.view = llyr
+  opts.fields = {ft_field, at_field} + summary_fields
+  hwy_df.read_view(opts)
+
+  // Summarize by ft and at
+  hwy_df.group_by({ft_field, at_field})
+  hwy_df.summarize(summary_fields, "sum")
+  hwy_df.write_csv(output_dir + "/link_summary_by_FT_and_AT.csv")
+EndMacro

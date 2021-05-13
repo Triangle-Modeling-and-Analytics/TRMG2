@@ -60,8 +60,8 @@ In the Triangle, the marginal distribution curves estimated are:
 
   * Size (1-4+)
   * Income
-    * Low: \$0 - \$34,999
-    * Medium-Low: \$35,000 - \$74,999
+    * Low: \$0 - \$24,999
+    * Medium-Low: \$25,000 - \$74,999
     * Medium-High: \$75,000 - \$149,999
     * High: \$150,000 and above
   * Workers (0-3+)
@@ -402,14 +402,14 @@ inc_histo <- acs_bg %>%
     inc = gsub("p", "", inc),
     inc = as.numeric(inc),
     inc = case_when(
-      inc <= 35 ~ "0-35",
-      inc <= 75 ~ "35-75",
+      inc <= 25 ~ "0-25",
+      inc <= 75 ~ "25-75",
       inc <= 150 ~ "75-150",
       TRUE ~ "150+",
     ),
     inc = factor(
       inc,
-      levels = c("0-35", "35-75", "75-150", "150+"),
+      levels = c("0-25", "25-75", "75-150", "150+"),
       ordered = TRUE
     )
   ) %>%
@@ -443,8 +443,8 @@ income <- acs_bg %>%
   filter(hh_tot > 0, !is.na(inc_med)) %>%
   mutate(
     inc_ratio = inc_med / regional_median,
-    incL = inc10 + inc15 + inc20 + inc25 + inc30 + inc35,
-    incML = inc40 + inc45 + inc50 + inc60 + inc75,
+    incL = inc10 + inc15 + inc20 + inc25,
+    incML = inc30 + inc35 + inc40 + inc45 + inc50 + inc60 + inc75,
     incMH = inc100 + inc125 + inc150,
     incH =  inc200 + inc200p
   ) %>%
@@ -455,11 +455,14 @@ income <- acs_bg %>%
 ```
 
 The prediction metric used for income is the median income of the zone divided
-by the regional median (`r paste0("$", format(regional_median, big.mark = ","))`). This provides an estimation range on a similar scale as
-the other variables for convenience ( e.g. 0.2 - 3.0 instead of \$0 - \$250,000).
+by the regional median (`r paste0("$", format(regional_median, big.mark =
+","))`). This provides an estimation range on a similar scale as the other
+variables for convenience ( e.g. 0.2 - 3.0 instead of \$0 - \$250,000).
 
-The chart below shows the distribution of model and Census data. The model has zones without households (and thus zero median income), but otherwise the
-distributions are similar, particularly allowing for the slightly different levels of aggregation.
+The chart below shows the distribution of model and Census data. The model has
+zones without households (and thus zero median income), but otherwise the
+distributions are similar, particularly allowing for the slightly different
+levels of aggregation.
 
 ```{r}
 plot_ly() %>%

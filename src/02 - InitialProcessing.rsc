@@ -9,6 +9,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
+    RunMacro("Calculate Bus Speeds", Args)
     RunMacro("Create Link Networks", Args)
     RunMacro("Create Route Networks", Args)
 
@@ -459,6 +460,7 @@ Macro "Other Attributes" (Args)
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
+    trans_ratio = Args.TransponderRatio
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
@@ -500,25 +502,27 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate_t, v_tollrate_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             llyr + ".TollType",
-            llyr + ".TollRate",
+            llyr + ".TollRateT",
+            llyr + ".TollRateNT",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
             },
         )
-    // v_ffs = v_ps + v_mod
     v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
+    // Determine weighted average toll rate based on transponder usage
+    v_tollrate = v_tollrate_t * trans_ratio + v_tollrate_nt * (1 - trans_ratio)
     v_tollcost_sov = v_tollrate * v_len
     v_tollcost_sut = v_tollcost_sov * 2
     v_tollcost_mut = v_tollcost_sov * 4
@@ -551,25 +555,80 @@ Macro "Other Attributes" (Args)
     set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
     SetDataVectors(llyr + "|", set, )
 
-    // Limit the possible KNR nodes to within a certain distance of transit
-    // routes. This speeds up knr skimming by not having to consider unrealistic
-    // paths.
-    route_buffer = .25
+    // Limit the possible KNR nodes to those with bus stops on them
     a_fields = {
-        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(within " + String(route_buffer) + " of a transit route)"}
+        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"}
     }
     RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
-    SetLayer(llyr)
-    SelectByQuery("drive_links", "several", "Select * where D = 1")
     SetLayer(nlyr)
-    SelectByLinks("drive_nodes", "several", "drive_links", )
-    n = SelectByVicinity ("knr", "several", rlyr + "|", route_buffer, {'Source And': "drive_nodes"})
+    n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280)
     v = Vector(n, "Long", {Constant: 1})
     SetDataVector(nlyr + "|knr", "KNR", v, )
 
     CloseView(ffs_tbl)
     CloseMap(map)
 EndMacro
+
+/*
+
+*/
+
+Macro "Calculate Bus Speeds" (Args)
+
+    csv = Args.[Input Folder] + "\\networks\\bus_speeds.csv"
+    link_dbd = Args.Links
+    periods = Args.periods
+    dirs = {"AB", "BA"}
+
+    eq_vw = OpenTable("bus_eqs", "CSV", {csv})
+    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: link_dbd})
+    a_fields = null
+    for period in periods do
+        for dir in dirs do
+            a_fields = a_fields + {{
+                dir + period + "BusTime", "Real", 10, 2, , , ,
+                "The time it takes a bus to travel the link.|" + 
+                "Is a function of auto speeds."
+            }}
+        end
+    end
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+    {, eq_specs} = RunMacro("Get Fields", {view_name: eq_vw})
+    {, llyr_specs} = RunMacro("Get Fields", {view_name: llyr})
+    
+    jv = JoinViewsMulti(
+        "jv",
+        {llyr_specs.HCMType, llyr_specs.AreaType},
+        {eq_specs.HCMType, eq_specs.AreaType}, 
+    )
+
+    v_length = GetDataVector(jv + "|", "Length", )
+    for period in periods do
+        pkop = if period = "AM" or period = "PM" then "pk" else "op"
+        speed1 = GetDataVector(jv + "|", eq_specs.("speed1" + pkop), )
+        speed2 = GetDataVector(jv + "|", eq_specs.("speed2" + pkop), )
+        fac1 = GetDataVector(jv + "|", eq_specs.("fac1" + pkop), )
+        fac2 = GetDataVector(jv + "|", eq_specs.("fac2" + pkop), )
+        const2 = GetDataVector(jv + "|", eq_specs.("const2" + pkop), )
+        dflt = GetDataVector(jv + "|", eq_specs.("default" + pkop), )
+
+        for dir in dirs do
+            v_auto_time = GetDataVector(jv + "|", dir + period + "Time", )
+            v_auto_speed = v_length / (v_auto_time / 60)
+            v_bus_speed = if v_auto_speed < speed1 
+                then v_auto_speed * fac1
+                else if v_auto_speed < speed2
+                    then v_auto_speed * fac2 + const2
+                    else dflt
+            v_bus_time = v_length / v_bus_speed * 60
+            SetDataVector(jv + "|", dir + period + "BusTime", v_bus_time, )
+        end
+    end
+
+    CloseView(jv)
+    CloseView(eq_vw)
+    CloseMap(map)
+endmacro
 
 /*
 Creates the various link-based (non-transit) networks. Driving, walking, etc.
@@ -658,12 +717,19 @@ Macro "Create Route Networks" (Args)
     output_dir = Args.[Output Folder] + "/networks"
     periods = Args.periods
     access_modes = Args.access_modes
-    tmode_table = Args.tmode_table
+    TransModeTable = Args.TransModeTable
 
-    transit_modes = RunMacro("Get Transit Modes", tmode_table)
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
 
     for period in periods do
         for transit_mode in transit_modes do
+
+            // Busses will use the bus speed equations, but rail/brt will use
+            // stop dwell times.
+            if transit_mode = "lb" or transit_mode = "eb" 
+                then use_dwell = "false"
+                else use_dwell = "true"
+
             for access_mode in access_modes do
                 
                 // create transit network .tnw file
@@ -677,13 +743,16 @@ Macro "Create Route Networks" (Args)
                 o.WalkLinkFilter = "W = 1"
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
+                if use_dwell then suffix = "Time" else suffix = "BusTime"
                 o.AddLinkField({
                     Name: "IVTT", 
-                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"}, 
+                    TransitFields: {"AB" + period + suffix, "BA" + period + suffix}, 
                     NonTransitFields: {"WalkTime", "WalkTime"}
-                })       
-                o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
-                o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                })
+                if use_dwell then do
+                    o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
+                    o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
+                end
                 o.AddStopField({Name: "xfer_pen", Field: "xfer_pen"})
                 o.UseModes({
                     TransitModeField: "Mode",
@@ -700,7 +769,6 @@ Macro "Create Route Networks" (Args)
                     })
                 end
                 o.Run()
-                // o = null
 
                 // Set transit network settings
                 o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
@@ -714,20 +782,11 @@ Macro "Create Route Networks" (Args)
                 })
                 o.AccessControl({PermitWalkOnly: false})
                 o.Combination({CombinationFactor: .1})
-                o.StopTimeFields({
+                stop_time_opts = {
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen",
-                    DwellOn: "dwell_on",
-                    DwellOff: "dwell_off"
-                })
-                o.RouteTimeFields({Headway: period + "Headway"})
-                o.ModeTable({
-                    TableName: tmode_table,
-                    ModesUsedField: transit_mode,
-                    OnlyCombineSameMode: true,
-                    FreeTransfers: 0
-                })
-                o.TimeGlobals({
+                    TransferPenalty: "xfer_pen"
+                }
+                time_global_opts = {
                     Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 3,
@@ -736,11 +795,31 @@ Macro "Create Route Networks" (Args)
                     MinInitialWait: 2,
                     MinTransferWait: 2,
                     Layover: 5, 
-                    DwellOn: 0.25,
-                    DwellOff: 0.25,
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
                     MaxModalTotal: 240
+                }
+                if use_dwell then do
+                    stop_time_opts = stop_time_opts + {
+                        DwellOn: "dwell_on",
+                        DwellOff: "dwell_off"
+                    }
+                    if transit_mode = "brt"
+                        then dwell_time = 1 // 1 minute stop time brt assumption
+                        else dwell_time = 5 // 5 minute stop time rail assumption
+                    time_global_opts = time_global_opts + {
+                        DwellOn: dwell_time / 2,
+                        DwellOff: dwell_time / 2
+                    }
+                end
+                o.StopTimeFields(stop_time_opts)
+                o.TimeGlobals(time_global_opts)
+                o.RouteTimeFields({Headway: period + "Headway"})
+                o.ModeTable({
+                    TableName: TransModeTable,
+                    ModesUsedField: transit_mode,
+                    OnlyCombineSameMode: true,
+                    FreeTransfers: 0
                 })
                 o.RouteWeights({
                     Fare: null,
@@ -783,6 +862,7 @@ Macro "Create Route Networks" (Args)
                         else o.DriveAccess(opts)
                 end
                 ok = o.Run()
+                o = null
             end
         end
     end

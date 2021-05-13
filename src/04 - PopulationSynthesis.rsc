@@ -161,7 +161,7 @@ endMacro
         * HH Dimensions are:
             * HH By Size - 1, 2, 3 and 4+
             * HH By Workers - 0, 1, 2 and 3+
-            * HH By Income Category - 1: [0, 35000); 2: [35000, 75000); 3. [75000, 150000); 4. 150000+
+            * HH By Income Category - 1: [0, 25000); 2: [25000, 75000); 3. [75000, 150000); 4. 150000+
         * For Persons, a match to the total population (HH_POP) by TAZ is attempted via the IPU (Iterational Proportional Update) option using:
             * Age - Three categories. Kids: [0, 17], AdultsUnder65: [18, 64], Seniors: 65+.
 */
