@@ -34,9 +34,11 @@ Macro "Calc Accessibility Attractions" (Args)
         "employment_attr",
         "gs_home_attr",
         "gs_work_attr",
-        "gs_other_attr"
+        "gs_other_attr",
+        "hospital_attr"
     }
     descriptions = {
+        "Attractions for access calc",
         "Attractions for access calc",
         "Attractions for access calc",
         "Attractions for access calc",
@@ -342,7 +344,7 @@ Macro "Access Logsums" (Args)
     ok = obj.Run()
 
     // Calculate logsums
-    a_types = {"General", "Nearby", "Employment"}
+    a_types = {"General", "Nearby", "Employment", "Hospital"}
     a_modes = {"walk", "sov"}
     alphas.General = -.93
     betas.General = -.09
@@ -350,6 +352,8 @@ Macro "Access Logsums" (Args)
     // alphas.Nearby = -1.35
     // betas.Nearby = -.1
     // Calibrated based on gravity model
+    alphas.Hospital = -2.05
+    betas.Hospital = -.06
     alphas.Nearby = -2.05
     betas.Nearby = -.06
     alphas.Employment = -.3
