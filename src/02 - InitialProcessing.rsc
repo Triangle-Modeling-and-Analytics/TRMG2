@@ -812,6 +812,11 @@ Macro "Create Route Networks" (Args)
                         DwellOn: dwell_time / 2,
                         DwellOff: dwell_time / 2
                     }
+                end else do
+                    time_global_opts = time_global_opts + {
+                        DwellOn: 0,
+                        DwellOff: 0
+                    }
                 end
                 o.StopTimeFields(stop_time_opts)
                 o.TimeGlobals(time_global_opts)
