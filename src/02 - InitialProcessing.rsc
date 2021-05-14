@@ -621,6 +621,7 @@ Macro "Calculate Bus Speeds" (Args)
                     then v_auto_speed * fac2 + const2
                     else dflt
             v_bus_time = v_length / v_bus_speed * 60
+            v_bus_time = if v_bus_time = null then v_auto_time else v_bus_time
             SetDataVector(jv + "|", dir + period + "BusTime", v_bus_time, )
         end
     end
