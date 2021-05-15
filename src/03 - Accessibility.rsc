@@ -352,7 +352,7 @@ Macro "Access Logsums" (Args)
     // alphas.Nearby = -1.35
     // betas.Nearby = -.1
     // Calibrated based on gravity model
-    alphas.Hospital = -2.05
+    alphas.Hospital = -1.5
     betas.Hospital = -.06
     alphas.Nearby = -2.05
     betas.Nearby = -.06
