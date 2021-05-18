@@ -1683,3 +1683,42 @@ Macro "Link Summary by FT and AT" (MacroOpts)
   hwy_df.summarize(summary_fields, "sum")
   hwy_df.write_csv(output_dir + "/link_summary_by_FT_and_AT.csv")
 EndMacro
+
+/*
+Reads a file with name/value pairs and returns a named array
+
+Inputs
+  * `file`
+    * String
+    * Path of the parameter file to read
+  * `names`
+    * Optional string (default: "Name")
+    * Field name that holds parameter names
+  * `values`
+    * Optional string (default: "Value")
+    * Field name that holds parameter values
+*/
+
+Macro "Read Parameter File" (MacroOpts)
+
+  file = MacroOpts.file
+  names = MacroOpts.names
+  values = MacroOpts.values
+
+  {drive, folder, name, ext} = SplitPath(file)
+  allowed_extensions = {".csv", ".bin"}
+  if allowed_extensions.position(ext) = 0 then Throw("'file' must be a CSV or FFB")
+  if names = null then names = "Name"
+  if values = null then values = "Value"
+
+  type = if ext = ".csv" then "CSV" else "FFB"
+  vw = OpenTable("params", type, {file})
+  v_names = GetDataVector(vw + "|", names, )
+  v_values = GetDataVector(vw + "|", values, )
+
+  for i = 1 to v_names.length do
+    result.(v_names[i]) = v_values[i]
+  end
+
+  return(result)
+endmacro
