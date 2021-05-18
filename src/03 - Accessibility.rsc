@@ -326,7 +326,7 @@ Macro "Access Logsums" (Args)
     // Bike Skim
     obj.Network = output_dir + "/networks/net_bike.net"
     obj.Minimize = "BikeTime"
-    out_files.bike = output_dir + "/skims/nonmotorized/walk_skim.mtx"
+    out_files.bike = output_dir + "/skims/nonmotorized/bike_skim.mtx"
     obj.OutputMatrix({MatrixFile: out_files.bike, Matrix: "Bike Skim"})
     ret_value = obj.Run()
 
