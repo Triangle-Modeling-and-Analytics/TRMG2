@@ -17,7 +17,7 @@ input_filename <- paste0(private_dir, "AMSOVDistanceSkim.csv")
 output_filename <- paste0(output_dir, "airport/distance-skim.RDS")
 
 # Parameters -------------------------------------------------------------------
-AIRPORT_TAZ <- 1261
+AIRPORT_TAZ <- 2369
 
 # Data Reads -------------------------------------------------------------------
 skim_df <- read_csv(input_filename, 

@@ -33,9 +33,8 @@ output_production_filename <- paste0(output_dir, "airport/airport-productions.cs
 
 # Parameters -------------------------------------------------------------------
 SL_AIRPORT_ZONE <- 1261
-AIRPORT_TAZ <- 1261
+AIRPORT_TAZ <- 2369
 LAT_LNG_EPSG <- 4326
-RDU_ENPLANEMENTS <- 15343
 OUTLIER_MIN <- 200
 
 # Data Reads -------------------------------------------------------------------
@@ -53,6 +52,9 @@ campo_sf <- st_read(campo_sl_shape, crs = LAT_LNG_EPSG)
 durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
 
 hotels_df <- readRDS(hotel_filename)
+
+# Enplanements -----------------------------------------------------------------
+rdu_enplanements <- filter(socec_df, TAZ == AIRPORT_TAZ)$RDU_ENPLANE
 
 # TAZ Coordinates --------------------------------------------------------------
 centroids_sf <- select(taz_sf, taz = ID, geometry) %>%
@@ -163,7 +165,7 @@ correlations_df <- productions_df %>%
 model_df <- productions_df %>%
   mutate(y = if_else(airport_productions > OUTLIER_MIN, OUTLIER_MIN, airport_productions))
 
-adjust_factor <- (RDU_ENPLANEMENTS * 2.0)/sum(model_df$y)
+adjust_factor <- (rdu_enplanements * 2.0)/sum(model_df$y)
 
 model_df <- model_df %>%
   mutate(y = y * adjust_factor)

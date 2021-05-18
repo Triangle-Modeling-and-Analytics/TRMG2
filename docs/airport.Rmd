@@ -1,7 +1,7 @@
 ---
 title: "Airport"
 author: "Caliper Corporation"
-date: "April 26, 2021"
+date: "May 18, 2021"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -19,27 +19,12 @@ options(scipen = 999)
 
 ## Introduction
 
-Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured
-by the air passenger model. 
+Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured by the air passenger model. 
 
-A limited amount of data on air passengers is available and the modeling approach 
-is therefore straightforward and requires a handful of assumptions. 
-The available data is passive movements recordedfrom StreetLight Data. The benefits
-of this data is they provide a reasonable signal of movements to/from the airport. 
-The drawbacks of this data include the following:
-* It does not distinguish between airport employees and air passengers. 
-* It cannot distinguish between trip legs, for example the movement from home to
-an off-airport parking location and the movement from the off-airport parking location
-to the airport terminal. 
+A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: *It does not distinguish between airport employees and air passengers.* It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region. 
 
 ## StreetLight Data Summaries
-The map below shows the distribution of trip productions to RDU per the StreetLight
-data. As expected, the data shows large amounts of activity in the zones surrounding
-the airport. For an air passenger model, we are less interested in the movement 
-from, say, the off-airport parking facility to the airport, than we are the movement
-from a home or workplace to the off-airport parking facility. Ideally, an airport
-model would explicitly represent each movement. For the simple model being developed
-here, we want to focus on the primary (and longer) movement.
+The map below shows the distribution of trip productions to RDU per the StreetLight data. As expected, the data shows large amounts of activity in the zones surrounding the airport. For an air passenger model, we are less interested in the movement from, say, the off-airport parking facility to the airport, than we are the movement from a home or workplace to the off-airport parking facility. Ideally, an airport model would explicitly represent each movement. For the simple model being developed here, we want to focus on the primary (and longer) movement.
 
 ### StreetLight "Raw" Productions
 
@@ -47,10 +32,7 @@ here, we want to focus on the primary (and longer) movement.
 knitr::include_graphics("img/airport/streetlight_productions.png")
 ```
 
-To ameliorate the impact of near-airport movements on the estimation of production
-models intended to locate the "true" origin of air passenger movements, we censor
-the StreetLight productions to a maximum value of `r OUTLIER_MIN`. The map of 
-truncated productions is shown in the map below. 
+To ameliorate the impact of near-airport movements on the estimation of production models intended to locate the "true" origin of air passenger movements, we censor the "raw" StreetLight productions to a maximum value of `r OUTLIER_MIN`. The map of truncated productions is shown in the map below. (Because the "raw" values are scaled to match the RDU enplanements, the map below shows some locations with a value larger than `r OUTLIER_MIN`). 
 
 ### StreetLight Censored Productions
 
@@ -59,15 +41,9 @@ knitr::include_graphics("img/airport/streetlight_productions_censored.png")
 ```
 
 ## Production Modeling
-The goal of the air passenger production model is to generate travel from home and
-employment locations to the airport. Because all trips are destined to RDU, the 
-production model acts as both a trip generation and trip distribution model. 
+The goal of the air passenger production model is to generate travel from home and employment locations to the airport. Because all trips are destined to RDU, the production model acts as both a trip generation and trip distribution model. 
 
-To begin the data exploration and model estimation stage, we summarize the correlations
-between the socio-economic data expected to be relevant and airport productions. These
-correlations are shown in the table below. Note that a number of variables that would
-be useful to the production model, such as hotel rooms, are not available in the
-socio-economic data.
+To begin the data exploration and model estimation stage, we summarize the correlations between the socio-economic data expected to be relevant and airport productions. These correlations are shown in the table below.
 
 ### Correlations
 ```{r}
@@ -76,25 +52,14 @@ correlations_df %>%
   kable_styling(full_width = FALSE)
 ```
 
-The above table shows correlations between airport productions and the variables
-we would expect and like to be correlated with airport productions, including workers,
-high income persons, and employment. 
+The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers,high income persons, and employment. 
 
-Using the correlations as a guide, we estimate a series of linear regression models 
-in a search for a parsimonious balance between model fit and logical coefficients. 
+Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients. 
 
 ### Model Estimation Results {.tabset .MODEL}
-Numerous model estimations were conducted to find the preferred specification shown
-below. The preferred specification includes `high earners`, which is the number of
-high earners in each TAZ. A second term that interacts high earners with distance 
-to the airport is included as well, which reduces the number of productions for 
-high earners at greater distances from the airport.
+Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes `high earners`, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.
 
-The preferred specification includes `employment` which captures movements to/from
-work locations to the airport. The preferred specification collapses the employment
-categories. Specifications with employment separated by industry did not always 
-reveal logical coefficients (e.g., a larger coefficient on industrial employment
-than office employment). 
+The preferred specification includes `employment` which captures movements to/from work locations to the airport. The preferred specification collapses the employment categories. Specifications with employment separated by industry did not always reveal logical coefficients (e.g., a larger coefficient on industrial employment than office employment). 
 
 Other, non-preferred specifications are included in the tabs below. 
 
@@ -140,39 +105,26 @@ print_model(model_04)
 ```
 
 ### Predicted Productions
-The map below plots the predicted airport productions. In model application, the
-calculated productions will be scaled to airport attractions, which is the number
-of enplanements at RDU entered by the model user. The current chart assumes `r RDU_ENPLANEMENTS`
-enplanements. It is also possible for the regression model to return a negative
-number of enplanements due to the negative coefficient on the high earner and distance
-interaction term. These productions have been censored at zero and will need to 
-be similarly censored in model application. 
+The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes `r rdu_enplanements` daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application. 
 
 ```{r, out.width="100%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/airport/estimated_productions.png")
 ```
 
-The chart below plots the adjusted observed productions (truncated at `r OUTLIER_MIN`
-times the scaling necessary to matche the target attractions) against the estimated 
-productions.
+The chart below plots the adjusted observed productions (truncated at `r OUTLIER_MIN` times the scaling necessary to matche the target attractions) against the estimated productions.
 
 ```{r, out.width="80%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/airport/scatter_plot.png")
 ```
 
-The chart below shows the adjusted observed and estimated trip length frequency
-distributions for movements to the airport. The model estimates slightly
-longer trips than the StreetLight data. This is expected because the StreetLight
-data will, in many cases, fail to capture the true origin of the movement, misunderstanding
-stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.
+The chart below shows the adjusted observed and estimated trip length frequency distributions for movements to the airport. The model estimates longer trips than the StreetLight data. This is expected because the StreetLight data will, in many cases, fail to capture the true origin of the movement, misunderstanding stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.
 
 ```{r, out.width="80%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/airport/trip_length_frequency.png")
 ```
 
 ## Diurnal Factors
-The table below summarizes the production to airport and airport to production
-trips by time of day, based on the StreetLight data. 
+The table below summarizes the production to airport and airport to production trips by time of day, based on the StreetLight data. 
 
 ### P to A Diurnal Factors from StreetLight
 ```{r}
@@ -208,10 +160,7 @@ df %>%
   
 ```
 
-The time periods used for the StreetLight extraction do not directly align with
-the time periods used for the updated travel model. By assuming a uniform distribution
-across the StreetLight time periods, we can create the below diurnal factors using
-the StreetLight data and model time periods. 
+The time periods used for the StreetLight extraction do not directly align with the time periods used for the updated travel model. By assuming a uniform distribution across the StreetLight time periods, we can create the below diurnal factors using the StreetLight data and model time periods. 
 
 ### P to A Travel Model Diurnal Factors
 ```{r}
@@ -249,13 +198,7 @@ df %>%
 
 
 ## Mode Choice
-The StreetLight Data does not provide insight to the mode choice decision made
-by air passengers. As such, no information is available to base a mode choice model
-on. We therefore will add the airport trips to the home-based other trip purpose
-prior to mode choice and use the home-based other model to simulate the mode choice
-decision for air passengers.
-
-###
+The StreetLight Data does not provide insight to the mode choice decision made by air passengers. As such, no information is available to base a mode choice model on. We therefore will add the airport trips to the home-based other trip purpose prior to mode choice and use the home-based other model to simulate the mode choice decision for air passengers.
 
 
 

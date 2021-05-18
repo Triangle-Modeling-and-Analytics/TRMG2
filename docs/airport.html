@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-04-26" />
+<meta name="date" content="2021-05-18" />
 
 <title>Airport</title>
 
@@ -379,7 +379,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Airport</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">April 26, 2021</h4>
+<h4 class="date">May 18, 2021</h4>
 
 </div>
 
@@ -387,7 +387,7 @@ div.tocify {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured by the air passenger model.</p>
-<p>A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: * It does not distinguish between airport employees and air passengers. * It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal.</p>
+<p>A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: <em>It does not distinguish between airport employees and air passengers.</em> It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region.</p>
 </div>
 <div id="streetlight-data-summaries" class="section level2">
 <h2>StreetLight Data Summaries</h2>
@@ -395,7 +395,7 @@ div.tocify {
 <div id="streetlight-raw-productions" class="section level3">
 <h3>StreetLight “Raw” Productions</h3>
 <p><img src="img/airport/streetlight_productions.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>To ameliorate the impact of near-airport movements on the estimation of production models intended to locate the “true” origin of air passenger movements, we censor the StreetLight productions to a maximum value of 200. The map of truncated productions is shown in the map below.</p>
+<p>To ameliorate the impact of near-airport movements on the estimation of production models intended to locate the “true” origin of air passenger movements, we censor the “raw” StreetLight productions to a maximum value of 200. The map of truncated productions is shown in the map below. (Because the “raw” values are scaled to match the RDU enplanements, the map below shows some locations with a value larger than 200).</p>
 </div>
 <div id="streetlight-censored-productions" class="section level3">
 <h3>StreetLight Censored Productions</h3>
@@ -405,7 +405,7 @@ div.tocify {
 <div id="production-modeling" class="section level2">
 <h2>Production Modeling</h2>
 <p>The goal of the air passenger production model is to generate travel from home and employment locations to the airport. Because all trips are destined to RDU, the production model acts as both a trip generation and trip distribution model.</p>
-<p>To begin the data exploration and model estimation stage, we summarize the correlations between the socio-economic data expected to be relevant and airport productions. These correlations are shown in the table below. Note that a number of variables that would be useful to the production model, such as hotel rooms, are not available in the socio-economic data.</p>
+<p>To begin the data exploration and model estimation stage, we summarize the correlations between the socio-economic data expected to be relevant and airport productions. These correlations are shown in the table below.</p>
 <div id="correlations" class="section level3">
 <h3>Correlations</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -518,14 +518,6 @@ Total_POP
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earn_distance
-</td>
-<td style="text-align:right;">
-0.071
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Median_Inc
 </td>
 <td style="text-align:right;">
@@ -566,6 +558,14 @@ Inst_GQ
 </tr>
 <tr>
 <td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Stud_GQ
 </td>
 <td style="text-align:right;">
@@ -577,7 +577,7 @@ Stud_GQ
 dist_to_airport_miles
 </td>
 <td style="text-align:right;">
--0.135
+-0.234
 </td>
 </tr>
 <tr>
@@ -590,7 +590,7 @@ NA
 </tr>
 </tbody>
 </table>
-<p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers, high income persons, and employment.</p>
+<p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers,high income persons, and employment.</p>
 <p>Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients.</p>
 </div>
 <div id="model-estimation-results" class="section level3 tabset MODEL">
@@ -623,10 +623,10 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-4.0319
+5.4539
 </td>
 <td style="text-align:right;">
-4.4617
+6.1304
 </td>
 <td style="text-align:right;">
 0
@@ -637,10 +637,10 @@ p.value
 employment
 </td>
 <td style="text-align:right;">
-0.0142
+0.0133
 </td>
 <td style="text-align:right;">
-16.4178
+15.7455
 </td>
 <td style="text-align:right;">
 0
@@ -651,10 +651,10 @@ employment
 high_earn_distance
 </td>
 <td style="text-align:right;">
--0.0027
+-0.0051
 </td>
 <td style="text-align:right;">
--10.1157
+-14.7273
 </td>
 <td style="text-align:right;">
 0
@@ -665,10 +665,10 @@ high_earn_distance
 high_earners
 </td>
 <td style="text-align:right;">
-0.1611
+0.1315
 </td>
 <td style="text-align:right;">
-14.3533
+20.2635
 </td>
 <td style="text-align:right;">
 0
@@ -679,7 +679,7 @@ high_earners
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2272
+0.2686
 </td>
 <td style="text-align:right;">
 NA
@@ -795,13 +795,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-0.4955
+1.4671
 </td>
 <td style="text-align:right;">
-0.5168
+1.5752
 </td>
 <td style="text-align:right;">
-0.6054
+0.1154
 </td>
 </tr>
 <tr>
@@ -809,10 +809,10 @@ p.value
 high_earn_distance
 </td>
 <td style="text-align:right;">
--0.0029
+-0.0053
 </td>
 <td style="text-align:right;">
--10.8953
+-16.0683
 </td>
 <td style="text-align:right;">
 0.0000
@@ -823,10 +823,10 @@ high_earn_distance
 high_earners
 </td>
 <td style="text-align:right;">
-0.1405
+0.1027
 </td>
 <td style="text-align:right;">
-11.6115
+12.1976
 </td>
 <td style="text-align:right;">
 0.0000
@@ -837,13 +837,13 @@ high_earners
 hotel_rooms
 </td>
 <td style="text-align:right;">
--0.0407
+-0.0071
 </td>
 <td style="text-align:right;">
--0.5344
+-0.0969
 </td>
 <td style="text-align:right;">
-0.5932
+0.9228
 </td>
 </tr>
 <tr>
@@ -851,10 +851,10 @@ hotel_rooms
 Industry
 </td>
 <td style="text-align:right;">
-0.0341
+0.0344
 </td>
 <td style="text-align:right;">
-8.0535
+8.4089
 </td>
 <td style="text-align:right;">
 0.0000
@@ -865,10 +865,10 @@ Industry
 Office
 </td>
 <td style="text-align:right;">
-0.0135
+0.0126
 </td>
 <td style="text-align:right;">
-8.9028
+8.5698
 </td>
 <td style="text-align:right;">
 0.0000
@@ -879,10 +879,10 @@ Office
 Retail
 </td>
 <td style="text-align:right;">
-0.0350
+0.0336
 </td>
 <td style="text-align:right;">
-11.1705
+11.0723
 </td>
 <td style="text-align:right;">
 0.0000
@@ -893,10 +893,10 @@ Retail
 Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0594
+0.0559
 </td>
 <td style="text-align:right;">
-6.1565
+5.9880
 </td>
 <td style="text-align:right;">
 0.0000
@@ -907,10 +907,10 @@ Service_RateHigh
 workers
 </td>
 <td style="text-align:right;">
-0.0143
+0.0183
 </td>
 <td style="text-align:right;">
-4.0896
+5.3790
 </td>
 <td style="text-align:right;">
 0.0000
@@ -921,7 +921,7 @@ workers
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2883
+0.3339
 </td>
 <td style="text-align:right;">
 NA
@@ -958,13 +958,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-2.0344
+3.3970
 </td>
 <td style="text-align:right;">
-2.3070
+3.9278
 </td>
 <td style="text-align:right;">
-0.0212
+0.0001
 </td>
 </tr>
 <tr>
@@ -972,10 +972,10 @@ p.value
 high_earn_distance
 </td>
 <td style="text-align:right;">
--0.0027
+-0.0051
 </td>
 <td style="text-align:right;">
--10.4521
+-15.3203
 </td>
 <td style="text-align:right;">
 0.0000
@@ -986,10 +986,10 @@ high_earn_distance
 high_earners
 </td>
 <td style="text-align:right;">
-0.1629
+0.1335
 </td>
 <td style="text-align:right;">
-15.0695
+21.4401
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1000,10 +1000,10 @@ high_earners
 Industry
 </td>
 <td style="text-align:right;">
-0.0320
+0.0317
 </td>
 <td style="text-align:right;">
-7.5841
+7.7504
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1014,10 +1014,10 @@ Industry
 Office
 </td>
 <td style="text-align:right;">
-0.0127
+0.0117
 </td>
 <td style="text-align:right;">
-8.4280
+7.9367
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1028,10 +1028,10 @@ Office
 Retail
 </td>
 <td style="text-align:right;">
-0.0366
+0.0357
 </td>
 <td style="text-align:right;">
-11.7341
+11.7986
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1042,10 +1042,10 @@ Retail
 Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0607
+0.0577
 </td>
 <td style="text-align:right;">
-6.2719
+6.1372
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1056,7 +1056,7 @@ Service_RateHigh
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2828
+0.3245
 </td>
 <td style="text-align:right;">
 NA
@@ -1071,11 +1071,11 @@ NA
 </div>
 <div id="predicted-productions" class="section level3">
 <h3>Predicted Productions</h3>
-<p>The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes 15343 enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application.</p>
+<p>The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes 15343 daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application.</p>
 <p><img src="img/airport/estimated_productions.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>The chart below plots the adjusted observed productions (truncated at 200 times the scaling necessary to matche the target attractions) against the estimated productions.</p>
 <p><img src="img/airport/scatter_plot.png" width="80%" style="display: block; margin: auto;" /></p>
-<p>The chart below shows the adjusted observed and estimated trip length frequency distributions for movements to the airport. The model estimates slightly longer trips than the StreetLight data. This is expected because the StreetLight data will, in many cases, fail to capture the true origin of the movement, misunderstanding stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.</p>
+<p>The chart below shows the adjusted observed and estimated trip length frequency distributions for movements to the airport. The model estimates longer trips than the StreetLight data. This is expected because the StreetLight data will, in many cases, fail to capture the true origin of the movement, misunderstanding stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.</p>
 <p><img src="img/airport/trip_length_frequency.png" width="80%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
@@ -1445,9 +1445,6 @@ All
 <div id="mode-choice" class="section level2">
 <h2>Mode Choice</h2>
 <p>The StreetLight Data does not provide insight to the mode choice decision made by air passengers. As such, no information is available to base a mode choice model on. We therefore will add the airport trips to the home-based other trip purpose prior to mode choice and use the home-based other model to simulate the mode choice decision for air passengers.</p>
-<div id="section" class="section level3">
-<h3></h3>
-</div>
 </div>
 
 <br>
