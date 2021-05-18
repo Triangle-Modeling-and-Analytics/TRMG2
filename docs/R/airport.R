@@ -24,6 +24,7 @@ clean_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
 socec_filename <- paste0(data_dir, "airport/se_2016.csv")
 taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
 distance_skim_filename <- paste0(data_dir, "airport/distance-skim.RDS")
+hotel_filename <- paste0(private_dir, "hotels.RDS")
 
 campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
@@ -50,6 +51,8 @@ taz_sf <- st_read(taz_shape_filename) %>%
 
 campo_sf <- st_read(campo_sl_shape, crs = LAT_LNG_EPSG)
 durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
+
+hotels_df <- readRDS(hotel_filename)
 
 # TAZ Coordinates --------------------------------------------------------------
 centroids_sf <- select(taz_sf, taz = ID, geometry) %>%
@@ -120,6 +123,8 @@ productions_df <- working_df %>%
   summarise(airport_productions = sum(airport_productions), .groups = "drop") %>%
   left_join(., centroids_df, by = c("taz")) %>%
   left_join(., socec_df, by = c("taz" = "TAZ")) %>%
+  left_join(., hotels_df, by = c("taz" = "TAZ")) %>%
+  mutate(hotel_rooms = replace_na(hotel_rooms, 0L)) %>%
   left_join(., select(distance_df, taz = orig, dist_to_airport_miles = distance), by = c("taz")) %>%
   filter(Type == "Internal") %>%
   mutate(employment = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
@@ -134,6 +139,7 @@ correlations_df <- productions_df %>%
          employment,
          high_earners,
          high_earn_distance,
+         hotel_rooms,
          dist_to_airport_miles,
          HH,
          Median_Inc,
@@ -166,7 +172,7 @@ model_df <- model_df %>%
 model_01 <- lm(y ~ employment + workers,
                data = model_df)
 
-model_02 <- lm(y ~ workers + high_earners + Service_RateHigh + Industry + Office + Retail + high_earn_distance,
+model_02 <- lm(y ~ workers + high_earners + Service_RateHigh + Industry + Office + Retail + high_earn_distance + hotel_rooms,
                data = model_df)
 
 model_03 <- lm(y ~ high_earners + high_earn_distance + employment,

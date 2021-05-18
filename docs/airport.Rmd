@@ -83,9 +83,21 @@ high income persons, and employment.
 Using the correlations as a guide, we estimate a series of linear regression models 
 in a search for a parsimonious balance between model fit and logical coefficients. 
 
-### Model Summaries
-`Model 01` includes two variables, total employment and number of workers. Both
-have positive and significant coefficients. 
+### Model Estimation Results {.tabset .MODEL}
+Numerous model estimations were conducted to find the preferred specification shown
+below. The preferred specification includes `high earners`, which is the number of
+high earners in each TAZ. A second term that interacts high earners with distance 
+to the airport is included as well, which reduces the number of productions for 
+high earners at greater distances from the airport.
+
+The preferred specification includes `employment` which captures movements to/from
+work locations to the airport. The preferred specification collapses the employment
+categories. Specifications with employment separated by industry did not always 
+reveal logical coefficients (e.g., a larger coefficient on industrial employment
+than office employment). 
+
+Other, non-preferred specifications are included in the tabs below. 
+
 
 ```{r}
 print_model <- function(model) {
@@ -107,49 +119,25 @@ print_model <- function(model) {
 }
 ```
 
-
-#### Model 01
-```{r}
-print_model(model_01)
-```
-
-`Model 02` adds high earners, which is the number of high earners in each TAZ. A 
-second term that interacts high earners with distance to the airport is included
-as well, which reduces the number of productions for high earners at greater distances
-from the airport. `Model 02` also includes employment by employment category. 
-
-The model includes logical coefficients: all are positive except the interaction
-between high earners and distance. Each of the coefficients are significant. The
-adjusted R-squared improves from `r round(summary(model_01)$adj.r.squared, 3)` to
-`r round(summary(model_02)$adj.r.squared, 3)`.
-
-#### Model 02
-```{r}
-print_model(model_02)
-```
-
-`Model 03` combines employment into a single category and drops the `workers` variable. 
-The outcomes are logical, but the adjusted R-squared decreases to `r round(summary(model_03)$adj.r.squared,3)`. 
-Dropping `workers` makes the interpretation easier, i.e, you do not need to
-know the number of workers in the TAZ to understand the coefficients. 
-
-#### Model 03
-```{r}
+#### Preferred
+```{r, MODEL_PREFERRED}
 print_model(model_03)
 ```
 
-`Model 04` expands the employment categories from `Model 03`. 
-
-#### Model 04
-```{r}
-print_model(model_04)
+#### Model 01
+```{r, MODEL_01}
+print_model(model_01)
 ```
 
-`Model 03` is selected as the preferred model, primarily due to the non-intuitive
-coefficents on employment sectors in `Model 04`. Specifically, it is not obvious
-why the `Industry` employment category would generate more air travel than the 
-`Office` employment category (comparing `r model_04$coefficients["Industry"]` to
-`r model_04$coefficients["Office"]`. 
+#### Model 02
+```{r, MODEL_02}
+print_model(model_02)
+```
+
+#### Model 03
+```{r, MODEL_03}
+print_model(model_04)
+```
 
 ### Predicted Productions
 The map below plots the predicted airport productions. In model application, the

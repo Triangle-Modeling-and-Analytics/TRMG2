@@ -534,6 +534,14 @@ Median_Inc
 </tr>
 <tr>
 <td style="text-align:left;">
+hotel_rooms
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 BuildingS_NCSU
 </td>
 <td style="text-align:right;">
@@ -585,9 +593,104 @@ NA
 <p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers, high income persons, and employment.</p>
 <p>Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients.</p>
 </div>
-<div id="model-summaries" class="section level3">
-<h3>Model Summaries</h3>
-<p><code>Model 01</code> includes two variables, total employment and number of workers. Both have positive and significant coefficients.</p>
+<div id="model-estimation-results" class="section level3 tabset MODEL">
+<h3 class="tabset MODEL">Model Estimation Results</h3>
+<p>Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes <code>high earners</code>, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.</p>
+<p>The preferred specification includes <code>employment</code> which captures movements to/from work locations to the airport. The preferred specification collapses the employment categories. Specifications with employment separated by industry did not always reveal logical coefficients (e.g., a larger coefficient on industrial employment than office employment).</p>
+<p>Other, non-preferred specifications are included in the tabs below.</p>
+<div id="preferred" class="section level4">
+<h4>Preferred</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+4.0319
+</td>
+<td style="text-align:right;">
+4.4617
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+employment
+</td>
+<td style="text-align:right;">
+0.0142
+</td>
+<td style="text-align:right;">
+16.4178
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.0027
+</td>
+<td style="text-align:right;">
+-10.1157
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earners
+</td>
+<td style="text-align:right;">
+0.1611
+</td>
+<td style="text-align:right;">
+14.3533
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.2272
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="model-01" class="section level4">
 <h4>Model 01</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -613,13 +716,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-0.8009
+0.8272
 </td>
 <td style="text-align:right;">
-0.7920
+0.8193
 </td>
 <td style="text-align:right;">
-0.4285
+0.4127
 </td>
 </tr>
 <tr>
@@ -627,10 +730,10 @@ p.value
 employment
 </td>
 <td style="text-align:right;">
-0.0153
+0.0152
 </td>
 <td style="text-align:right;">
-17.2013
+17.1890
 </td>
 <td style="text-align:right;">
 0.0000
@@ -644,7 +747,7 @@ workers
 0.0248
 </td>
 <td style="text-align:right;">
-13.2679
+13.2575
 </td>
 <td style="text-align:right;">
 0.0000
@@ -655,7 +758,7 @@ workers
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.1853
+0.1850
 </td>
 <td style="text-align:right;">
 NA
@@ -666,8 +769,6 @@ NA
 </tr>
 </tbody>
 </table>
-<p><code>Model 02</code> adds high earners, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport. <code>Model 02</code> also includes employment by employment category.</p>
-<p>The model includes logical coefficients: all are positive except the interaction between high earners and distance. Each of the coefficients are significant. The adjusted R-squared improves from 0.185 to 0.289.</p>
 </div>
 <div id="model-02" class="section level4">
 <h4>Model 02</h4>
@@ -694,13 +795,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-0.4512
+0.4955
 </td>
 <td style="text-align:right;">
-0.4703
+0.5168
 </td>
 <td style="text-align:right;">
-0.6382
+0.6054
 </td>
 </tr>
 <tr>
@@ -708,10 +809,10 @@ p.value
 high_earn_distance
 </td>
 <td style="text-align:right;">
--0.0028
+-0.0029
 </td>
 <td style="text-align:right;">
--10.8651
+-10.8953
 </td>
 <td style="text-align:right;">
 0.0000
@@ -722,10 +823,10 @@ high_earn_distance
 high_earners
 </td>
 <td style="text-align:right;">
-0.1404
+0.1405
 </td>
 <td style="text-align:right;">
-11.5899
+11.6115
 </td>
 <td style="text-align:right;">
 0.0000
@@ -733,13 +834,27 @@ high_earners
 </tr>
 <tr>
 <td style="text-align:left;">
+hotel_rooms
+</td>
+<td style="text-align:right;">
+-0.0407
+</td>
+<td style="text-align:right;">
+-0.5344
+</td>
+<td style="text-align:right;">
+0.5932
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Industry
 </td>
 <td style="text-align:right;">
-0.0342
+0.0341
 </td>
 <td style="text-align:right;">
-8.0670
+8.0535
 </td>
 <td style="text-align:right;">
 0.0000
@@ -753,7 +868,7 @@ Office
 0.0135
 </td>
 <td style="text-align:right;">
-8.9067
+8.9028
 </td>
 <td style="text-align:right;">
 0.0000
@@ -764,10 +879,10 @@ Office
 Retail
 </td>
 <td style="text-align:right;">
-0.0351
+0.0350
 </td>
 <td style="text-align:right;">
-11.1714
+11.1705
 </td>
 <td style="text-align:right;">
 0.0000
@@ -778,10 +893,10 @@ Retail
 Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0596
+0.0594
 </td>
 <td style="text-align:right;">
-6.1726
+6.1565
 </td>
 <td style="text-align:right;">
 0.0000
@@ -795,7 +910,7 @@ workers
 0.0143
 </td>
 <td style="text-align:right;">
-4.0747
+4.0896
 </td>
 <td style="text-align:right;">
 0.0000
@@ -806,7 +921,7 @@ workers
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2887
+0.2883
 </td>
 <td style="text-align:right;">
 NA
@@ -817,7 +932,6 @@ NA
 </tr>
 </tbody>
 </table>
-<p><code>Model 03</code> combines employment into a single category and drops the <code>workers</code> variable. The outcomes are logical, but the adjusted R-squared decreases to 0.227. Dropping <code>workers</code> makes the interpretation easier, i.e, you do not need to know the number of workers in the TAZ to understand the coefficients.</p>
 </div>
 <div id="model-03" class="section level4">
 <h4>Model 03</h4>
@@ -844,27 +958,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-4.0159
+2.0344
 </td>
 <td style="text-align:right;">
-4.4368
+2.3070
 </td>
 <td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-employment
-</td>
-<td style="text-align:right;">
-0.0142
-</td>
-<td style="text-align:right;">
-16.4265
-</td>
-<td style="text-align:right;">
-0
+0.0212
 </td>
 </tr>
 <tr>
@@ -875,87 +975,7 @@ high_earn_distance
 -0.0027
 </td>
 <td style="text-align:right;">
--10.0975
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-high_earners
-</td>
-<td style="text-align:right;">
-0.1612
-</td>
-<td style="text-align:right;">
-14.3379
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
-0.2274
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-<p><code>Model 04</code> expands the employment categories from <code>Model 03</code>.</p>
-</div>
-<div id="model-04" class="section level4">
-<h4>Model 04</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-variable
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<em>intercept</em>
-</td>
-<td style="text-align:right;">
-2.0128
-</td>
-<td style="text-align:right;">
-2.2789
-</td>
-<td style="text-align:right;">
-0.0228
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-high_earn_distance
-</td>
-<td style="text-align:right;">
--0.0027
-</td>
-<td style="text-align:right;">
--10.4323
+-10.4521
 </td>
 <td style="text-align:right;">
 0.0000
@@ -969,7 +989,7 @@ high_earners
 0.1629
 </td>
 <td style="text-align:right;">
-15.0533
+15.0695
 </td>
 <td style="text-align:right;">
 0.0000
@@ -983,7 +1003,7 @@ Industry
 0.0320
 </td>
 <td style="text-align:right;">
-7.5904
+7.5841
 </td>
 <td style="text-align:right;">
 0.0000
@@ -997,7 +1017,7 @@ Office
 0.0127
 </td>
 <td style="text-align:right;">
-8.4321
+8.4280
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1008,10 +1028,10 @@ Office
 Retail
 </td>
 <td style="text-align:right;">
-0.0367
+0.0366
 </td>
 <td style="text-align:right;">
-11.7415
+11.7341
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1022,10 +1042,10 @@ Retail
 Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0608
+0.0607
 </td>
 <td style="text-align:right;">
-6.2770
+6.2719
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1036,7 +1056,7 @@ Service_RateHigh
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2830
+0.2828
 </td>
 <td style="text-align:right;">
 NA
@@ -1047,7 +1067,6 @@ NA
 </tr>
 </tbody>
 </table>
-<p><code>Model 03</code> is selected as the preferred model, primarily due to the non-intuitive coefficents on employment sectors in <code>Model 04</code>. Specifically, it is not obvious why the <code>Industry</code> employment category would generate more air travel than the <code>Office</code> employment category (comparing 0.032044 to 0.0127476.</p>
 </div>
 </div>
 <div id="predicted-productions" class="section level3">
