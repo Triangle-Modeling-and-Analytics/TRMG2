@@ -1,10 +1,10 @@
-Field,nm_Oth_attr,Description
-HH,0.0011,These are the attraction rates used by the non-motorized choice model.
-K12,0.0003,"Each column is a home-based trip type, and these attractions are used"
-StudGQ_NCSU,0.0016,to calculate gravity model logums.
-StudGQ_UNC,0.0016,
-StudGQ_DUKE,0.0016,NHBODS: Attractions for the N_HB_OD_S trip type
-StudGQ_NCCU,0.0016,NHBOth: Attractions for all other trip types
-Stud_GQ,0.0016,
-Retail,0.0007,
-TotalEmp,0.0003,
+Field,nm_all_attr,Description
+wHH,0.01,This file creates the attractions used by the non-motorized binary
+wK12,0.0025,choice model
+wStudGQ_NCSU,0.0109,
+wStudGQ_UNC,0.0109,
+wStudGQ_DUKE,0.0109,
+wStudGQ_NCCU,0.0109,
+wCollegeOn,0.0109,
+wRetail,0.0063,
+wTotalEmp,0.0005,

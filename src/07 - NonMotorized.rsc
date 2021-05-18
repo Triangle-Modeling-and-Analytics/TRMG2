@@ -5,7 +5,7 @@
 Macro "NonMotorized" (Args)
 
     RunMacro("Calculate NM Attractions", Args)
-    RunMacro("Calculate NM Logsums", Args)
+    // RunMacro("Calculate NM Logsums", Args)
 
     return(1)
 endmacro
@@ -20,6 +20,32 @@ Macro "Calculate NM Attractions" (Args)
     rate_file = Args.[NM Attr Rates]
 
     se_vw = OpenTable("se", "FFB", {se_file})
+
+    // Calculate the interaction fields needed for NM attractions
+    a_fields = {
+        "HH",
+        "K12",
+        "StudGQ_NCSU",
+        "StudGQ_UNC",
+        "StudGQ_DUKE",
+        "StudGQ_NCCU",
+        "CollegeOn",
+        "Retail",
+        "TotalEmp"
+    }
+    v_walkability = GetDataVector(se_vw + "|", "Walkability", )
+    for field in a_fields do
+        new_name = "w" + field
+        a_fields_to_add = a_fields_to_add + {
+            {new_name, "Real", 10, 2, , , , field + " * Walkability|~'Walkable attractors'|Used in NM choice model"}            
+        }
+        v = GetDataVector(se_vw + "|", field, )
+        data.(new_name) = v * v_walkability
+    end
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
+    SetDataVectors(se_vw + "|", data, )
+
+    // Calculate non-motorized attractions
     RunMacro("Create Sum Product Fields", {view: se_vw, factor_file: rate_file})
 
     fields = "nm_Oth_attr"
@@ -41,10 +67,11 @@ Macro "Calculate NM Logsums" (Args)
     skim_file = output_dir + "/accessibility/walk_skim.mtx"
 
     // Calculate logsums
-    a_types = {"NHBODS", "Oth"}
+    // a_types = {"NHBODS", "Oth"}
+    a_types = {"Oth"}
     a_modes = {"walk"}
-    alphas.NHBODS = -.4629
-    betas.NHBODS = -.1085
+    // alphas.NHBODS = -.4629
+    // betas.NHBODS = -.1085
     alphas.Oth = .5630
     betas.Oth = -.1896
     for type in a_types do
