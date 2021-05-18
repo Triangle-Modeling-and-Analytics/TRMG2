@@ -214,6 +214,34 @@ The final weighted toll rate for 2-axle vehicles is $0.22/mi.
 # The final weighted toll rate for 2-axle vehicles is $0.25/mi.
 ```
 
+```{r, include=FALSE}
+# Leta provided toll data in May from turnpike. Use it to generate more
+# accurate usage rates by period.
+toll_csv <- read_csv("data/input/_Private/toll/toll_data.csv")
+```
+
+```{r}
+toll_summary <- toll_csv %>%
+  filter(!(day %in% c("Sun", "Sat"))) %>%
+  pivot_longer(prepaid_1:postpaid_3, names_to = "temp", values_to = "count") %>%
+  separate(temp, into = c("type", "class")) %>%
+  mutate(period = case_when(
+    hour < 6 ~ "NT",
+    hour <= 9 ~ "AM",
+    hour <= 14 ~ "MD",
+    hour <= 18 ~ "PM",
+    TRUE ~ "NT"
+  )) %>%
+  # group_by(period, class, type) %>%
+  group_by(class, type) %>%
+  summarize(count = sum(count)) %>%
+  mutate(pct = count / sum(count)) %>%
+  filter(type == "prepaid") %>%
+  # select(period, class, pct)
+  select(class, pct)
+```
+
+
 ## Transit Layer
 
 TRMG2 adds a master layer for transit routes along with a project manager
