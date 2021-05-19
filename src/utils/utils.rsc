@@ -1809,9 +1809,9 @@ Macro "Accessibility Calculator" (MacroOpts)
     b = S2R(v_params[b_pos])
     c = S2R(v_params[c_pos])
 
+    // Calculate logsum
     skim = CreateObject("Matrix")
     skim.LoadMatrix(skim_file)
-
     skim.AddCores({"size", "util"})
     cores = skim.data.cores
     size = GetDataVector(table_vw + "|", out_field + "_attr", )
@@ -1820,14 +1820,15 @@ Macro "Accessibility Calculator" (MacroOpts)
     cores.util := if cores.size = 0 then 0 else cores.util
     rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
     logsum = Max(0, log(rowsum))
-    SetDataVector(table_vw + "|", out_field, logsum, )
-    skim.DropCores({"size", "util"})
-
-    field = out_field
+    
+    // Put logsum into table
     {drive, folder, name, ext} = SplitPath(params)
     description = "A logsum-based accessibility measure|See " + 
       name + ext + " for more details"
-    RunMacro("Add Field Description", table_vw, field, description)
+    a_field = {{out_field, "Real", 10, 2, , , , description}}
+    RunMacro("Add Fields", {view: table_vw, a_fields: a_field})
+    SetDataVector(table_vw + "|", out_field, logsum, )
+    skim.DropCores({"size", "util"})
   end
 
   CloseView(table_vw)

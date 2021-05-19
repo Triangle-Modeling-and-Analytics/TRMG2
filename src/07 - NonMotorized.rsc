@@ -4,67 +4,9 @@
 
 Macro "NonMotorized" (Args)
 
-    RunMacro("Calculate NM Interaction Fields", Args)
-    RunMacro("Calculate NM Logsum Accessibilities", Args)
+    // RunMacro("Apply NM Choice Model", Args)
 
     return(1)
-endmacro
-
-/*
-
-*/
-
-Macro "Calculate NM Interaction Fields" (Args)
-
-    se_file = Args.SE
-    rate_file = Args.[NM Attr Rates]
-
-    se_vw = OpenTable("se", "FFB", {se_file})
-
-    // Calculate the interaction fields needed for NM attractions
-    a_fields = {
-        "HH",
-        "K12",
-        "StudGQ_NCSU",
-        "StudGQ_UNC",
-        "StudGQ_DUKE",
-        "StudGQ_NCCU",
-        "CollegeOn",
-        "Retail",
-        "TotalEmp"
-    }
-    v_walkability = GetDataVector(se_vw + "|", "Walkability", )
-    for field in a_fields do
-        new_name = "w" + field
-        a_fields_to_add = a_fields_to_add + {
-            {new_name, "Real", 10, 2, , , , field + " * Walkability|~'Walkable attractors'|Used in NM choice model"}            
-        }
-        v = GetDataVector(se_vw + "|", field, )
-        data.(new_name) = v * v_walkability
-    end
-    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
-    SetDataVectors(se_vw + "|", data, )
-
-    CloseView(se_vw)
-endmacro
-
-/*
-
-*/
-
-Macro "Calculate NM Logsum Accessibilities" (Args)
-
-    se_file = Args.SE
-    param_file = Args.[NM Accessibilities]
-    skim_dir = Args.[Output Folder] + "\\skims"
-    sov_skim = skim_dir + "\\roadway\\skim_sov_AM.mtx"
-    walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
-
-    RunMacro("Accessibility Calculator", {
-        table: se_file,
-        params: param_file,
-        skims: {sov: sov_skim, walk: walk_skim}
-    })
 endmacro
 
 /*

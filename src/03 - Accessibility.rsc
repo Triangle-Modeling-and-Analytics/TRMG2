@@ -8,9 +8,10 @@ Macro "Accessibility" (Args)
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
     RunMacro("Calc Intersection Approach Density", Args)
     RunMacro("Calc Walkability Score", Args)
-    RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    RunMacro("Calculate NM Interaction Terms", Args)
     RunMacro("Create Accessibility Skims", Args)
     RunMacro("Calculate Logsum Accessibilities", Args)
+    RunMacro("Calc Percent of Zone Near Bus Stop", Args)
 
     return(1)
 endmacro
@@ -220,64 +221,45 @@ Macro "Calc Walkability Score" (Args)
     CloseView(se_vw)
 endmacro
 
-
 /*
-Determines what percent of each zone is within a certain distance of
-bus stops.
+The walk accessibility metric has special attraction fields that
+are calculated by interacting the basic SE data fields with the
+walkability score. This can be intepreted as the 'walkable' attractions
+in the zone. In other words, highly walkable zones with lots of stuff
+in them will look most attractive.
 */
 
-Macro "Calc Percent of Zone Near Bus Stop" (Args)
+Macro "Calculate NM Interaction Terms" (Args)
 
-    route_file = Args.Routes
-    taz_file = Args.TAZs
     se_file = Args.SE
 
-    // Create map/views
-    {map, {route_lyr, stop_lyr, , node_lyr, link_lyr}} = RunMacro("Create Map", {file: route_file})
-    {taz_lyr} = GetDBLayers(taz_file)
-    taz_lyr = AddLayer(map, taz_lyr, taz_file, taz_lyr, )
-    taz_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
-    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
     se_vw = OpenTable("se", "FFB", {se_file})
-    RunMacro("Add Fields", {view: se_vw, a_fields: taz_fields})
 
-    // Buffer and intersect
-    SetLayer(stop_lyr)
-    buffer_dbd = GetTempFileName(".dbd")
-    buff_lyr = "buffer"
-    CreateBuffers(buffer_dbd, buff_lyr, {}, "Value", {.25}, {Interior: "Merged", Exterior: "Merged"})
-    buff_lyr = AddLayer(map, buff_lyr, buffer_dbd, buff_lyr, )
-    intersection_file = GetTempFileName(".bin")
-    ComputeIntersectionPercentages({taz_lyr, buff_lyr}, intersection_file, )
-    int_vw = OpenTable("int", "FFB", {intersection_file})
+    // Calculate the interaction fields needed for NM attractions
+    a_fields = {
+        "HH",
+        "K12",
+        "StudGQ_NCSU",
+        "StudGQ_UNC",
+        "StudGQ_DUKE",
+        "StudGQ_NCCU",
+        "CollegeOn",
+        "Retail",
+        "TotalEmp"
+    }
+    v_walkability = GetDataVector(se_vw + "|", "Walkability", )
+    for field in a_fields do
+        new_name = "w" + field
+        a_fields_to_add = a_fields_to_add + {
+            {new_name, "Real", 10, 2, , , , field + " * Walkability|~'Walkable attractors'|Used in walk accessibility calculation"}
+        }
+        v = GetDataVector(se_vw + "|", field, )
+        data.(new_name) = v * v_walkability
+    end
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
+    SetDataVectors(se_vw + "|", data, )
 
-    // Munge intersection table into a form that can be joined to the se table
-    a_fields =  {{"count", "Integer", 10, ,,,, }}
-    RunMacro("Add Fields", {view: int_vw, a_fields: a_fields})
-    agg_vw = SelfAggregate("agg", int_vw + ".Area_1", )
-    jv = JoinViews("jv", int_vw + ".Area_1", agg_vw + ".[GroupedBy(Area_1)]", )
-    v_count = GetDataVector(jv + "|", agg_vw + ".[Count(int)]", )
-    SetDataVector(jv + "|", int_vw + ".count", v_count, )
-    CloseView(jv)
-    CloseView(agg_vw)
-    SetView(int_vw)
-    v_pct = GetDataVector(int_vw + "|", "Percent_1", )
-    v_a2 = GetDataVector(int_vw + "|", "Area_2", )
-    v_pct = if v_a2 = 0 then 1 - v_pct else v_pct
-    SetDataVector(int_vw + "|", "Percent_1", v_pct, )
-    query = "Select * where Area_2 = 0 and count = 2"
-    n = SelectByQuery("to_delete", "several", query)
-    if n > 0 then DeleteRecordsInSet("to_delete")
-
-    // Add to se data table
-    jv = JoinViews("jv", se_vw + ".TAZ", int_vw + ".Area_1", )
-    v_pct = GetDataVector(jv + "|", "Percent_1", )
-    SetDataVector(jv + "|", "PctNearBusStop", v_pct, )
-    CloseView(jv)
-
-    CloseView(int_vw)
     CloseView(se_vw)
-    CloseMap(map)
 endmacro
 
 /*
@@ -341,10 +323,68 @@ Macro "Calculate Logsum Accessibilities" (Args)
     sov_skim = skim_dir + "\\roadway\\accessibility_sov_AM.mtx"
     walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
 
-
     RunMacro("Accessibility Calculator", {
         table: se_file,
         params: param_file,
         skims: {sov: sov_skim, walk: walk_skim}
     })
+endmacro
+
+/*
+Determines what percent of each zone is within a certain distance of
+bus stops.
+*/
+
+Macro "Calc Percent of Zone Near Bus Stop" (Args)
+
+    route_file = Args.Routes
+    taz_file = Args.TAZs
+    se_file = Args.SE
+
+    // Create map/views
+    {map, {route_lyr, stop_lyr, , node_lyr, link_lyr}} = RunMacro("Create Map", {file: route_file})
+    {taz_lyr} = GetDBLayers(taz_file)
+    taz_lyr = AddLayer(map, taz_lyr, taz_file, taz_lyr, )
+    taz_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
+    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
+    se_vw = OpenTable("se", "FFB", {se_file})
+    RunMacro("Add Fields", {view: se_vw, a_fields: taz_fields})
+
+    // Buffer and intersect
+    SetLayer(stop_lyr)
+    buffer_dbd = GetTempFileName(".dbd")
+    buff_lyr = "buffer"
+    CreateBuffers(buffer_dbd, buff_lyr, {}, "Value", {.25}, {Interior: "Merged", Exterior: "Merged"})
+    buff_lyr = AddLayer(map, buff_lyr, buffer_dbd, buff_lyr, )
+    intersection_file = GetTempFileName(".bin")
+    ComputeIntersectionPercentages({taz_lyr, buff_lyr}, intersection_file, )
+    int_vw = OpenTable("int", "FFB", {intersection_file})
+
+    // Munge intersection table into a form that can be joined to the se table
+    a_fields =  {{"count", "Integer", 10, ,,,, }}
+    RunMacro("Add Fields", {view: int_vw, a_fields: a_fields})
+    agg_vw = SelfAggregate("agg", int_vw + ".Area_1", )
+    jv = JoinViews("jv", int_vw + ".Area_1", agg_vw + ".[GroupedBy(Area_1)]", )
+    v_count = GetDataVector(jv + "|", agg_vw + ".[Count(int)]", )
+    SetDataVector(jv + "|", int_vw + ".count", v_count, )
+    CloseView(jv)
+    CloseView(agg_vw)
+    SetView(int_vw)
+    v_pct = GetDataVector(int_vw + "|", "Percent_1", )
+    v_a2 = GetDataVector(int_vw + "|", "Area_2", )
+    v_pct = if v_a2 = 0 then 1 - v_pct else v_pct
+    SetDataVector(int_vw + "|", "Percent_1", v_pct, )
+    query = "Select * where Area_2 = 0 and count = 2"
+    n = SelectByQuery("to_delete", "several", query)
+    if n > 0 then DeleteRecordsInSet("to_delete")
+
+    // Add to se data table
+    jv = JoinViews("jv", se_vw + ".TAZ", int_vw + ".Area_1", )
+    v_pct = GetDataVector(jv + "|", "Percent_1", )
+    SetDataVector(jv + "|", "PctNearBusStop", v_pct, )
+    CloseView(jv)
+
+    CloseView(int_vw)
+    CloseView(se_vw)
+    CloseMap(map)
 endmacro

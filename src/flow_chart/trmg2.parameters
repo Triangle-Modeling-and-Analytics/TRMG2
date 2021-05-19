@@ -71,11 +71,6 @@
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
     
-    Section = "Non-Motorized Choice"
-    
-        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\nm_attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
-        Args.[NM Accessibilities] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\nm_accessibilities.csv", "Description":"Attraction rates used for non-motorized choice." }
-    
     Section = "Parking Model|Coefficients"
     
         Args.ParkWalkCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.03,-0.03,-0.0367,-0.0367},
