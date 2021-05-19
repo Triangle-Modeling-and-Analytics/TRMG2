@@ -478,12 +478,13 @@ tod_factors$Description <- desc
 
 # Directionality factors
 For most steps in a trip-based model, the trips are said to be in
-"Production/Attraction" (PA) format. This simply means that all home-based
-trips start at home and end somewhere else. This simplification of reality is
-done for a number of reasons in the model, but is not actually how travel
-occurs. As a result, before highway trip assignment can take place, the PA
-format must be converted to "Origin/Destination" (OD) format. In this format, a
-trip from work to home starts at work and ends at home.
+"Production/Attraction" (PA) format. In this format, all home-based trips are
+considered to start at home and end somewhere else (even if the person is
+actually traveling back home). This simplification of reality is done for a
+number of reasons in the model, but is not actually how travel occurs. As a
+result, before highway trip assignment can take place, the PA format must be
+converted to "Origin/Destination" (OD) format. In this format, a trip from work
+to home starts at work and ends at home.
 
 This conversion is accomplished using factors stratified by time of day and trip
 type. As an example, the majority of W_HB_W_All (i.e. HBW) trips in the AM start
@@ -493,7 +494,34 @@ than 0.5.
 
 These factors can be calculated directly from the survey by comparing the number
 of home-based trips that start at home to the number home-based trips that start
-elsewhere. By definition, non-home-based trips are the same in either format;
+elsewhere. The table below shows the directionality factors calculated from
+the survey.
+
+```{r calc_pa_factors}
+direction_tbl <- tripTbl %>%
+  filter(homebased == "HB", tour_type != "H") %>%
+  group_by(tour_type, tod, pa_flag) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  mutate(
+    pct = trips / sum(trips),
+    pa_flag = ifelse(pa_flag == 1, "PA", "AP"),
+    pa_flag = factor(pa_flag, levels = c("PA", "AP"), ordered = TRUE),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
+  ) %>%
+  select(-trips) %>%
+  arrange(tour_type, tod, pa_flag)
+
+direction_tbl %>%
+  pivot_wider(
+    names_from = "tod", values_from = "pct"
+  ) %>%
+  mutate(tour_type = ifelse(tour_type == "N", "NonWork", "Work")) %>%
+  rename(`Tour Type` = tour_type, Direction = pa_flag) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+By definition, non-home-based trips are the same in either format;
 their PA factors are set to .5. The same treatment is applied to commercial
 vehicles, trucks, and external trips.
 
@@ -502,69 +530,39 @@ models. At that point, trip types are collapsed due to sample size
 limitations in the household survey. As a result, the factors must be estimated
 using the matching, more-aggregate purposes.
 
-*TODO: Calculate these after aggregate models are specified*
+## Treatment of skims
 
-```{r calc_pa_factors}
-# # Calculate a pa field
-# tripTbl <- tripTbl %>%
-#   mutate(pa = ifelse(dest_blk == home_blk & orig_blk != home_blk, "AP", "PA"))
-# 
-# pa_tbl <- tripTbl %>%
-#   group_by(Purpose = final_purp_d, Period = tod, pa) %>%
-#   summarise(Trips = sum(hhrkwt0)) %>%
-#   group_by(Purpose, Period) %>%
-#   mutate(
-#     Value = round(Trips / sum(Trips), 3),
-#     # Set NHB purposes to .5
-#     Value = ifelse(
-#       # Check for first letter = "N" or "n"
-#       grepl("^N", Purpose, ignore.case = TRUE),
-#       .5,
-#       Value
-#     )
-#   ) %>%
-#   filter(pa == "PA") %>%
-#   select(Purpose, Period, Value) %>%
-#   ungroup() %>%
-#   mutate(Purpose = factor(
-#     Purpose, levels = c("HBW", "HBO", "HBSC", "HBSH", "NHB"), ordered = TRUE
-#   )) %>%
-#   arrange(Purpose)
-# 
-# pa_tbl %>%
-#   spread(key = Period, value = Value) %>%
-#   kable2(digits = 2, caption = "PA Factors by Purpose and Time of Day")
-```
+In the TRMG2, the directionality factors are also used to improve skims. In a
+traditional model, an AM skim is often used for all peak trips while a MD skim
+is used for off-peak. TRMG2 does independent feedback by time of day, which
+required Caliper to adjust each period skim to account for directionality.
 
-```{r add other purps and desc, warning=FALSE}
-# # Add rows for NHBNR, CV, SUT, MUT, and IEEI. They are all 50/50.
-# v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
-# for (type in v_types){
-#   template <- pa_tbl %>%
-#     filter(Purpose == "NHB") %>%
-#     mutate(Purpose = type)
-#   
-#   pa_tbl <- bind_rows(pa_tbl, template)
-# }
-# pa_tbl <- pa_tbl %>%
-#   mutate(Purpose = factor(
-#     Purpose, levels = c(
-#       "HBW",
-#       "HBO",
-#       "HBSC",
-#       "HBSH",
-#       "NHB",
-#       v_types
-#     ), ordered = TRUE
-#   )) %>%
-#   arrange(Purpose)
-# 
-# # add description column
-# v_desc <- vector(mode = "character", nrow(pa_tbl))
-# v_desc[1] <- "Percent of trips in PA direction by purpose and tod"
-# v_desc[2] <- "CREATION: this file created by rmarkdown"
-# pa_tbl$Description <- v_desc
-```
+The easiest way to explain the adjustment is using the PM period as an example.
+From the table above, 95% of work trips in the PM are traveling back home. At
+the same time, trip productions estimated by the model (still in PA format)
+see skim times from home to work, which are near free-flow speed. The simplest
+treatment (and one done in Caliper's previous work) is to transpose the PM
+skim. In this way, the trips in zone 1 actually see skim times for travel to
+instead of from zone 1.
+
+This simple treatment is adequate for some models, but the Triangle has a large
+amount of non-work travel in the PM peak. The table above shows us that these
+trips have a more balanced directionality. Many of these trips are traveling
+in the less congested direction. As a consequence, Caliper created weighted
+average skims using the PA/AP factors. For any ij pair of zones, the travel time
+is computed as:
+
+$$TT_{avg} = (f_{pa} * TT_{ij} + f_{ap} * TT_{ji}) / 2$$
+
+Where:  
+$TT_{avg}$ is the average travel time from zone i to j;
+$f_{pa}$ is the PA factor;
+$TT_{ij}$ is the travel time from zone i to j;
+$f_{ap}$ is the AP factor; and
+$TT_{ap}$ is the travel time from zone j to i.
+
+With this approach, the travel time skim gives a balanced look at travel
+impedance in the region and will improve destination and mode choice predictions.
 
 # Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
@@ -837,8 +835,8 @@ higher but acceptable.
 # TOD factors
 write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 
-# Directionality factors. HBU gets appended by University.Rmd.
-write_csv(pa_tbl , "../master/directionality/directionality_factors.csv")
+# Directionality factors
+write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
 
 # Occupancy factors. HBU gets appended by University.Rmd
 write_csv(occ_tbl , "../master/directionality/veh_occ_factors.csv")
