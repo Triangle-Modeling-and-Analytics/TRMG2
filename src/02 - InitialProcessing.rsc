@@ -778,8 +778,8 @@ Macro "Create Route Networks" (Args)
                 o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 999,
-                    MaxTransfers = 4
-                    // VOT: .2  TODO: determine this value
+                    MaxTransfers = 4,
+                    VOT = .1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({PermitWalkOnly: false})
                 o.Combination({CombinationFactor: .1})
