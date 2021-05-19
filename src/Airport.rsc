@@ -10,21 +10,19 @@ Macro "Airport" (Args)
 endmacro
 
 /*
-Regression model for airport production: 
-(4.3687 + 0.0254 * employment - 0.0034 * high_earn_distance + 0.1880 * high_earners)
+
 */
 
 Macro "Airport Production" (Args)
     
 	se_file = Args.SE
 	skim_dir = Args.[Output Folder] + "\\skims\\roadway\\"
-	
-	AIRPORT_ENPLANEMENTS = 45000		// TODO-AK: get this from flowchart parameter
-	AIRPORT_ZONE = 2369                 // TODO-AK: get this from flowchart parameter
+	airport_model_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport model csv file)
 	
 	// TODO-AK: delete the hard-coded paths (used for testing)
 	se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
 	skim_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\"
+	airport_model_file = "D:\\Models\\TRMG2\\master\\airport\\airport_model.csv"
 	
 	se_vw = OpenTable("se", "FFB", {se_file})
 	
@@ -44,13 +42,22 @@ Macro "Airport Production" (Args)
 		{OptArray: TRUE}
 	)
 	
+	// find airport taz (one with positive enplanement field)
+	SetView(se_vw)
+	n = SelectByQuery("airport_taz", "Several", "Select * where RDU_ENPLANE > 0",)
+	airport_zone = GetDataVector(se_vw + "|airport_taz", "TAZ", )
+	airport_zone = airport_zone[1]
+	airport_enplanement = GetDataVector(se_vw + "|airport_taz", "RDU_ENPLANE", )
+	airport_enplanement = airport_enplanement[1]
+	
 	taz_vec = data.TAZ
 	
+	// get distance to airport zone
 	skim_mat = skim_dir + "skim_sov_MD.mtx"
 	mat = CreateObject("Matrix")
 	mat.LoadMatrix(skim_mat)
 	cores = mat.data.cores
-	distance_array = GetMatrixValues(cores.[Length (Skim)], V2A(taz_vec), {AIRPORT_ZONE})
+	distance_array = GetMatrixValues(cores.[Length (Skim)], V2A(taz_vec), {airport_zone})
 	cores = null
 	mat = null
 	
@@ -60,19 +67,26 @@ Macro "Airport Production" (Args)
 	
 	dist_to_airport_miles = A2V(dist_to_airport_miles)
 	
+	// get variables for regression
 	tot_emp = data.Industry + data.Office + data.Service_RateLow + data.Service_RateHigh + data.Retail
 	workers = data.HH_POP * data.Pct_Worker/100
 	high_earners = workers * data.PctHighEarn/100
 	high_earn_distance = high_earners * dist_to_airport_miles
 	
-	//TODO-AK: Ask Kyle on how he prefers the coefficient saved/read
-	airport_productions = 4.3687 + (0.0254 * tot_emp) - (0.0034 * high_earn_distance) + (0.1880 * high_earners)
+	// read airport model file for coefficients
+	coeff_vw = OpenTable("coeff_vw", "CSV", {airport_model_file})
+	coeff = GetDataVector(coeff_vw + "|", "coefficient", )
+	
+	// compute airport productions
+	// TODO-AK: look for better way to do this. this assumes a fixed order for variables in the csv file. 
+	airport_productions = coeff[1] + (coeff[2] * tot_emp) + (coeff[3] * high_earn_distance) + (coeff[4] * high_earners)
+	
 	airport_productions = if (airport_productions < 0) then 0 else airport_productions
-	airport_productions = airport_productions * AIRPORT_ENPLANEMENTS / airport_productions.sum()
+	airport_productions = airport_productions * airport_enplanement / airport_productions.sum()
 	
 	a_fields = {
-        {"AirportProd", "Real", 10, 2, , , , "airport productions"}
-    }
+		{"AirportProd", "Real", 10, 2, , , , "airport productions"}
+	}
 	RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 	
 	SetView(se_vw)
@@ -93,9 +107,7 @@ Macro "Airport TOD" (Args)
 	trips_dir = Args.[Output Folder] + "\\assignment\\"		// TODO-AK: change the trips dir to where the trip matrices will be stored. 
 	airport_tod_factor_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport tod factors)
 	periods = Args.periods
-	
-	AIRPORT_ZONE = 2369                                     // TODO-AK: get this from flowchart parameter
-		
+			
 	// TODO-AK: delete these hard-coded paths (used for testing)
 	se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
 	hwy_dbd = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\networks\\scenario_links.dbd"
@@ -109,6 +121,10 @@ Macro "Airport TOD" (Args)
 	se_vw = OpenTable("se", "FFB", {se_file})
 
 	SetView(se_vw)
+	n = SelectByQuery("airport_taz", "Several", "Select * where RDU_ENPLANE > 0",)
+	airport_zone = GetDataVector(se_vw + "|airport_taz", "TAZ", )
+	airport_zone = airport_zone[1]
+	
 	airport_productions = GetDataVector(se_vw + "|", "AirportProd", )
 
 	// create empty matrix from node layer
@@ -134,21 +150,13 @@ Macro "Airport TOD" (Args)
 	
 	mc = CreateMatrixCurrency(mat, "Trips", , , )
 
-	// P2A Trips
+	// PA Trips
 	rows = V2A(centroid_ids)
-	cols = {AIRPORT_ZONE}
+	cols = {airport_zone}
 	for i = 1 to centroid_ids.length do 
 	    pa_trips = pa_trips + {{airport_productions[i]}}
 	end
 	SetMatrixValues(mc, rows, cols, {"Copy", pa_trips}, )
-	
-	// A2P Trips
-	rows = V2A(centroid_ids)
-	cols = {AIRPORT_ZONE}
-	for i = 1 to centroid_ids.length do 
-	    ap_trips = ap_trips + {{airport_productions[i]}}
-	end
-	SetMatrixValues(mc, rows, cols, {"Add", ap_trips}, )
 	
 	tmat = TransposeMatrix(mat, {{"File Name", airport_transpose_matrix},{"Label", "Airport Transposed Trips"}, {"Type", "Double"}})
 	
@@ -178,10 +186,14 @@ Macro "Airport TOD" (Args)
 		tcores = tmat.data.cores
 		
 		cores.("Trips_" + period) := Nz(cores.Trips) * pa_factor + Nz(tcores.Trips) * ap_factor
+		
+		cores = null
+		tcores = null
 	end
 	
-	cores = null
-	tcores = null
+	// drop the PA trip core
+	mat.DropCores({"Trips"})
+
 	mat = null
 	tmat = null
 	CloseView(fac_vw)
