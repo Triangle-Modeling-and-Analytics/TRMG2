@@ -1814,6 +1814,12 @@ Macro "Accessibility Calculator" (MacroOpts)
     logsum = Max(0, log(rowsum))
     SetDataVector(table_vw + "|", out_field, logsum, )
     skim.DropCores({"size", "util"})
+
+    field = out_field
+    {drive, folder, name, ext} = SplitPath(params)
+    description = "A logsum-based accessibility measure|See " + 
+      name + ext + " for more details"
+    RunMacro("Add Field Description", table_vw, field, description)
   end
 
   CloseView(table_vw)

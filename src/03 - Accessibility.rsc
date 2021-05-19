@@ -358,23 +358,4 @@ Macro "Calculate Logsum Accessibilities" (Args)
         params: param_file,
         skims: {sov: sov_skim, walk: walk_skim}
     })
-
-    // Add descriptions
-    se_vw = OpenTable("se", "FFB", {se_file})
-    fields = {
-        "access_general_sov",
-        "access_nearby_sov",
-        "access_nearby_walk",
-        "access_employment_sov",
-        "access_hospital_sov"
-    }
-    descriptions = {
-        "logsum-based accessibility measure",
-        "logsum-based accessibility measure",
-        "logsum-based accessibility measure",
-        "logsum-based accessibility measure",
-        "logsum-based accessibility measure"
-    }
-    RunMacro("Add Field Description", se_vw, fields, descriptions)
-    CloseView(se_vw)
 endmacro
