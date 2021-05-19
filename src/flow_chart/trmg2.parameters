@@ -73,7 +73,8 @@
     
     Section = "Non-Motorized Choice"
     
-        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
+        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\nm_attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
+        Args.[NM Accessibilities] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\nm_accessibilities.csv", "Description":"Attraction rates used for non-motorized choice." }
     
     Section = "Parking Model|Coefficients"
     
