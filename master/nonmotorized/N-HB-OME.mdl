@@ -6,17 +6,17 @@ model label=NM_N-HB-OME version=1.5
   field name=Walkability
   source name=Data1 type=Survey primary=True origins=True destinations=True view=NMestimation set=Selection idfield=ID origfield=p_taz destfield=p_taz weightfield=trip_weight_combined
   segment name=*
-    term name=VehPerAdult coefficient=-1.88805
-    term name=WalkAccessibility coefficient=0.666299
-    term name=IsWorker coefficient=0.296511
+    term name=VehPerAdult coefficient=-1.93693
+    term name=WalkAccessibility coefficient=0.547638
+    term name=IsWorker coefficient=0.311869
     term name=IncomePerCapita coefficient=0.000008
-    term name=Walkability coefficient=6.38249
+    term name=Walkability coefficient=7.29904
     choice source=Data1 spec=IsNM
     alternative name=Motorized id=0
-    alternative name=NonMotorized id=1 asc=-2.57783
+    alternative name=NonMotorized id=1 asc=-2.58353
       data source=Data1 spec=veh_per_adult term=VehPerAdult type=Table
-      data source=Data1 spec=Oth_access_walk term=WalkAccessibility type=Table
       data source=Data1 spec=is_worker term=IsWorker type=Table
       data source=Data1 spec=income_per_capita term=IncomePerCapita type=Table
       data source=Data1 spec=Walkability term=Walkability type=Table
+      data source=Data1 spec=NewAccess term=WalkAccessibility type=Table
 
