@@ -1732,3 +1732,90 @@ Macro "Read Parameter File" (MacroOpts)
 
   return(result)
 endmacro
+
+/*
+Inputs
+  * `table`
+    * String
+    * File name of table where accessibilities will be added (.bin)
+  * `params`
+    * String
+    * File name of parameter file (.csv)
+  * `skims`
+    * Named array
+    * Each named value contains a file path and a core name. For example:
+      * skims.sov.file = "C:\\my_skim.mtx"
+      * skims.sov.core = "Length (Skim)"
+*/
+
+Macro "Accessibility Calculator" (MacroOpts)
+
+  table = MacroOpts.table
+  params = MacroOpts.params
+  skims = MacroOpts.skims
+
+  if table = null then Throw("Accessibility Calculator: 'table' not provided")
+  if params = null then Throw("Accessibility Calculator: 'params' not provided")
+  
+  table_vw = OpenTable("acc_temp", "FFB", {table})
+  
+  // Create a sum product table from the size terms in the parameter table
+  // and run that macro
+  param_vw = OpenTable("acc_temp", "CSV", {params})
+  {out_fields, } = GetFields(param_vw, "All")
+  first_col = out_fields[1]
+  SetView(param_vw)
+  query = "Select * where " + first_col + " <> 'skim'" +
+    " and " + first_col + " <> 'core'" +
+    " and " + first_col + " <> 'b'" + 
+    " and " + first_col + " <> 'c'"
+  SelectByQuery("sel", "several", query)
+  attr_bin = GetTempFileName("*.bin")
+  ExportView(param_vw + "|sel", "FFB", attr_bin, , {"CSV Header": "true"})
+  attr_vw = OpenTable("attr_vw", "FFB", {attr_bin})
+  strct = GetTableStructure(attr_vw, {{"Include Original", "True"}})
+  dim new[strct.length]
+  new[1] = strct[1]
+  for i = 2 to strct.length do
+    new[i] = strct[i]
+    new[i][2] = "Real"
+    new[i][4] = 2
+  end
+  ModifyTable(attr_vw, new)
+  CloseView(attr_vw)
+  RunMacro("Create Sum Product Fields", {view: table_vw, factor_file: attr_bin})
+
+  // Remove first and last column (param names and description info)
+  out_fields = ExcludeArrayElements(out_fields, 1, 1)
+  out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
+  // TODO: flip back to vector.position() after bug fix
+  a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
+  skim_pos = a_first_col.position("skim")
+  core_pos = a_first_col.position("core")
+  b_pos = a_first_col.position("b")
+  c_pos = a_first_col.position("c")
+  for out_field in out_fields do
+    v_params = GetDataVector(param_vw + "|", out_field, )
+    skim_file = skims.(v_params[skim_pos])
+    skim_core = v_params[core_pos]
+    b = S2R(v_params[b_pos])
+    c = S2R(v_params[c_pos])
+
+    skim = CreateObject("Matrix")
+    skim.LoadMatrix(skim_file)
+
+    skim.AddCores({"size", "util"})
+    cores = skim.data.cores
+    size = GetDataVector(table_vw + "|", out_field, )
+    cores.size := size
+    cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
+    cores.util := if cores.size = 0 then 0 else cores.util
+    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    logsum = Max(0, log(rowsum))
+    SetDataVector(table_vw + "|", out_field, logsum, )
+    skim.DropCores({"size", "util"})
+  end
+
+  CloseView(table_vw)
+  CloseView(param_vw)
+endmacro
