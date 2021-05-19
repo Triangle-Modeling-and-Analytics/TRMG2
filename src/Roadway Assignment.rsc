@@ -67,8 +67,6 @@ Macro "VOT Split" (Args)
 		cores.dtemp    := v_tothhinc
 		v_tothhinc.rowbased = true
 		cores.wgtinc    := (cores.otemp + cores.dtemp) / cores.hh
-        // TODO: remove this line after fixing the underlying matrix class issues
-        SetMatrixCore(output.MatrixHandle, "SOV")
         output.DropCores({"hh", "otemp", "dtemp"})
 
         output.AddCores({"lognorm", "zscore"})
@@ -108,7 +106,6 @@ Macro "VOT Split" (Args)
                 end
 
                 // Cleanup
-                SetMatrixCore(output.MatrixHandle, out_core) // TODO: remove this line when matrix bug fixed
                 for i = 1 to 5 do
                     cumu_prob = veh_class + "_VOT" + i2s(i) + "_cumuprob"
                     prob_core = veh_class + "_VOT" + i2s(i) + "_prob"
@@ -128,8 +125,6 @@ Macro "VOT Split" (Args)
                 cores.(out_core) := cores.(veh_class) * weight
             end
         end
-        // TODO: remove this line when matrix bug fixed
-        SetMatrixCore(output.MatrixHandle, out_core)
         output.DropCores({"lognorm", "zscore", "wgtinc"})
     end
 
@@ -165,8 +160,6 @@ Macro "erf_normdist" (matrix, out_corename)
 	cores.(out_corename) := cores.normdist
 
 	//Cleanup
-    // TODO: remove this line after core dropping issue resolved
-    SetMatrixCore(matrix.MatrixHandle, out_corename)
     matrix.DropCores({"sign", "x", "t", "erf", "normdist"})
 endMacro
 
