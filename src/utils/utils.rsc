@@ -1125,7 +1125,13 @@ Macro "2S" (thing)
 EndMacro
 
 /*
-
+Inputs
+  * `view`
+    * String
+    * Name of view where fields will be added
+  * `factor_file`
+    * String
+    * File path for factor file (csv or bin)
 */
 
 Macro "Create Sum Product Fields" (MacroOpts)
@@ -1134,8 +1140,12 @@ Macro "Create Sum Product Fields" (MacroOpts)
   factor_file = MacroOpts.factor_file
 
   if factor_file = null then Throw("'factor_file' not provided")
+  {drive, folder, name, ext} = SplitPath(factor_file)
+  if ext = ".csv" then type = "CSV"
+  else if ext = ".bin" then type = "FFB"
+  else Throw("Create Sum Product Fields: `factor_file` must be CSV or FFB")
 
-  fac_vw = OpenTable("factors", "CSV", {factor_file})
+  fac_vw = OpenTable("factors", type, {factor_file})
   {names, } = GetFields(fac_vw, "All")
 
   input_fields = GetDataVector(fac_vw + "|", names[1], )
