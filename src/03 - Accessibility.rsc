@@ -26,22 +26,11 @@ Macro "Calc GS and Walkability Attractions" (Args)
     rate_file = Args.[Access Attr Rates]
 
     se_vw = OpenTable("se", "FFB", {se_file})
-    RunMacro("Create Sum Product Fields", {view: se_vw, factor_file: rate_file})
-
-    fields = {
-        "walkability_attr",
-        "gs_home_attr",
-        "gs_work_attr",
-        "gs_other_attr"
-    }
-
-    descriptions = {
-        "Attractions used for Walkability calculation",
-        "Attractions used for the Gini-Simpson Diversity Index",
-        "Attractions used for the Gini-Simpson Diversity Index",
-        "Attractions used for the Gini-Simpson Diversity Index"
-    }
-    RunMacro("Add Field Description", se_vw, fields, descriptions)
+    {drive, folder, name, ext} = SplitPath(rate_file)
+    RunMacro("Create Sum Product Fields", {
+        view: se_vw, factor_file: rate_file,
+        field_desc: "GS and Walkability Attractions|See " + name + ext + " for details."
+    })
 
     CloseView(se_vw)
 endmacro

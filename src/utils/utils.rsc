@@ -1132,12 +1132,16 @@ Inputs
   * `factor_file`
     * String
     * File path for factor file (csv or bin)
+  * `field_desc`
+    * Optional string
+    * If included, will be added as the field description for new fields
 */
 
 Macro "Create Sum Product Fields" (MacroOpts)
 
   view = MacroOpts.view
   factor_file = MacroOpts.factor_file
+  field_desc = MacroOpts.field_desc
 
   if factor_file = null then Throw("'factor_file' not provided")
   {drive, folder, name, ext} = SplitPath(factor_file)
@@ -1155,7 +1159,7 @@ Macro "Create Sum Product Fields" (MacroOpts)
   output_fields = ExcludeArrayElements(output_fields, output_fields.length, 1)
 
   for output_field in output_fields do
-    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , }}
+    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , field_desc}}
     output.(output_field) = Vector(input[1][2].length, "Real", {Constant: 0})
     factors = nz(GetDataVector(fac_vw + "|", output_field, ))
     
@@ -1778,17 +1782,21 @@ Macro "Accessibility Calculator" (MacroOpts)
   new[1] = strct[1]
   for i = 2 to strct.length do
     new[i] = strct[i]
+    new[i][1] = new[i][1] + "_attr"
     new[i][2] = "Real"
     new[i][4] = 2
   end
   ModifyTable(attr_vw, new)
   CloseView(attr_vw)
-  RunMacro("Create Sum Product Fields", {view: table_vw, factor_file: attr_bin})
+  RunMacro("Create Sum Product Fields", {
+    view: table_vw, factor_file: attr_bin, 
+    field_desc: "attractions for accessibility calculation"
+  })
 
   // Remove first and last column (param names and description info)
   out_fields = ExcludeArrayElements(out_fields, 1, 1)
   out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
-  // TODO: flip back to vector.position() after bug fix
+  // TODO: use vector.position() after bug fix
   a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
   skim_pos = a_first_col.position("skim")
   core_pos = a_first_col.position("core")
@@ -1806,7 +1814,7 @@ Macro "Accessibility Calculator" (MacroOpts)
 
     skim.AddCores({"size", "util"})
     cores = skim.data.cores
-    size = GetDataVector(table_vw + "|", out_field, )
+    size = GetDataVector(table_vw + "|", out_field + "_attr", )
     cores.size := size
     cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
     cores.util := if cores.size = 0 then 0 else cores.util
