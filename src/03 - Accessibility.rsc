@@ -9,14 +9,15 @@ Macro "Accessibility" (Args)
     RunMacro("Calc Intersection Approach Density", Args)
     RunMacro("Calc Walkability Score", Args)
     RunMacro("Calc Percent of Zone Near Bus Stop", Args)
-    RunMacro("Access Logsums", Args)
+    RunMacro("Create Accessibility Skims", Args)
+    RunMacro("Calculate Logsum Accessibilities", Args)
 
     return(1)
 endmacro
 
 /*
-Calculate the attraction rates for all but the GSIndex measure, which needs a 
-slightly different calculation.
+Calculate attractions that will be used for the Walkability model
+and the Gini-Simpson Diversity Index calculation.
 */
 
 Macro "Calc Accessibility Attractions" (Args)
@@ -29,23 +30,16 @@ Macro "Calc Accessibility Attractions" (Args)
 
     fields = {
         "walkability_attr",
-        "general_attr",
-        "nearby_attr",
-        "employment_attr",
         "gs_home_attr",
         "gs_work_attr",
-        "gs_other_attr",
-        "hospital_attr"
+        "gs_other_attr"
     }
+
     descriptions = {
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc",
-        "Attractions for access calc"
+        "Attractions used for Walkability calculation",
+        "Attractions used for the Gini-Simpson Diversity Index",
+        "Attractions used for the Gini-Simpson Diversity Index",
+        "Attractions used for the Gini-Simpson Diversity Index"
     }
     RunMacro("Add Field Description", se_vw, fields, descriptions)
 
@@ -56,7 +50,10 @@ endmacro
 The Gini-Simpson Diversity Index is a measure of mixed use. If a zone only has
 one type of 'thing' (households or specific emp type), it will have a score
 of 0. As the number of different uses increases, the score rises to a max
-of 1.
+of 1. In TRMG2, there are three 'things', which are the three attraction types:
+  * gs_home_attr
+  * gs_work_attr
+  * gs_other_attr
 */
 
 Macro "Calc Gini-Simpson Diversity Index" (Args)
@@ -296,15 +293,13 @@ endmacro
 
 /*
 These skims are created outside the feedback loop to calculate accessibility
-measures. Bike/walk are not updated via feedback, so will remain unchanged.
-SOV is overwritten during feedback.
+measures based on logsums.
 */
 
-Macro "Access Logsums" (Args)
+Macro "Create Accessibility Skims" (Args)
 
     link_dbd = Args.Links
     output_dir = Args.[Output Folder]
-    se_file = Args.SE
 
     // SOV Skim
     obj = CreateObject("Network.Skims")
@@ -342,47 +337,44 @@ Macro "Access Logsums" (Args)
     ok = obj.Run()
     obj.SetMatrix(out_files.bike)
     ok = obj.Run()
+endmacro
 
-    // Calculate logsums
-    a_types = {"General", "Nearby", "Employment", "Hospital"}
-    a_modes = {"walk", "sov"}
-    alphas.General = -.93
-    betas.General = -.09
-    // Original
-    // alphas.Nearby = -1.35
-    // betas.Nearby = -.1
-    // Calibrated based on gravity model
-    alphas.Hospital = -1.5
-    betas.Hospital = -.06
-    alphas.Nearby = -2.05
-    betas.Nearby = -.06
-    alphas.Employment = -.3
-    betas.Employment = -.07
-    for type in a_types do
-        size_field = Lower(type) + "_attr"
-        alpha = alphas.(type)
-        beta = betas.(type)
+/*
+This macro calculates an array of logsum-based accessibility measures and
+stores them on the SE table.
+*/
 
-        for mode in a_modes do
-            output_field = type + "Accessibility_" + mode
-            matrix = out_files.(mode)
-            if mode = "sov" then time_field = "FFTIME" else time_field = "WalkTime"
-            
-            m = CreateObject("Matrix")
-            m.LoadMatrix(matrix)
-            m.AddCores({"size", "util"})
-            cores = m.data.cores
-            se_vw = OpenTable("se", "FFB", {se_file})
-            a_fields =  {{output_field, "Real", 10, 2,,,, "logsum of a simple gravity model"}}
-            RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-            size = GetDataVector(se_vw + "|", size_field, )
-            cores.size := size
-            cores.util := cores.size * pow(cores.(time_field), alpha) * exp(beta * cores.(time_field))
-            // cores.util := cores.size * exp(kappa * parking_cost) * exp(beta * cores.(time_field)
-            cores.util := if cores.size = 0 then 0 else cores.util
-            rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
-            logsum = Max(0, log(rowsum))
-            SetDataVector(se_vw + "|", output_field, logsum, )
-        end
-    end
+Macro "Calculate Logsum Accessibilities" (Args)
+
+    se_file = Args.SE
+    param_file = Args.[Input Folder] + "\\accessibility\\accessibilities.csv"
+    skim_dir = Args.[Output Folder] + "\\skims"
+    sov_skim = skim_dir + "\\roadway\\accessibility_sov_AM.mtx"
+    walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
+
+
+    RunMacro("Accessibility Calculator", {
+        table: se_file,
+        params: param_file,
+        skims: {sov: sov_skim, walk: walk_skim}
+    })
+
+    // Add descriptions
+    se_vw = OpenTable("se", "FFB", {se_file})
+    fields = {
+        "access_general_sov",
+        "access_nearby_sov",
+        "access_nearby_walk",
+        "access_employment_sov",
+        "access_hospital_sov"
+    }
+    descriptions = {
+        "logsum-based accessibility measure",
+        "logsum-based accessibility measure",
+        "logsum-based accessibility measure",
+        "logsum-based accessibility measure",
+        "logsum-based accessibility measure"
+    }
+    RunMacro("Add Field Description", se_vw, fields, descriptions)
+    CloseView(se_vw)
 endmacro
