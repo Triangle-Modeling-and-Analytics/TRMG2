@@ -552,7 +552,7 @@ in the less congested direction. As a consequence, Caliper created weighted
 average skims using the PA/AP factors. For any ij pair of zones, the travel time
 is computed as:
 
-$$TT_{avg} = (f_{pa} * TT_{ij} + f_{ap} * TT_{ji}) / 2$$
+$$TT_{avg} = f_{pa} * TT_{ij} + f_{ap} * TT_{ji}$$
 
 Where:  
 $TT_{avg}$ is the average travel time from zone i to j;
