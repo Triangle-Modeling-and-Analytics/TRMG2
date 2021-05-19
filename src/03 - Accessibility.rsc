@@ -4,7 +4,7 @@ Calls various macros that calculate different accessibility measures.
 
 Macro "Accessibility" (Args)
 
-    RunMacro("Calc Accessibility Attractions", Args)
+    RunMacro("Calc GS and Walkability Attractions", Args)
     RunMacro("Calc Gini-Simpson Diversity Index", Args)
     RunMacro("Calc Intersection Approach Density", Args)
     RunMacro("Calc Walkability Score", Args)
@@ -20,7 +20,7 @@ Calculate attractions that will be used for the Walkability model
 and the Gini-Simpson Diversity Index calculation.
 */
 
-Macro "Calc Accessibility Attractions" (Args)
+Macro "Calc GS and Walkability Attractions" (Args)
 
     se_file = Args.SE
     rate_file = Args.[Access Attr Rates]
