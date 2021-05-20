@@ -719,8 +719,8 @@ Macro "Create Route Networks" (Args)
     for period in periods do
         for transit_mode in transit_modes do
 
-            // Busses will use the bus speed equations, but rail/brt will use
-            // stop dwell times.
+            // Busses use the bus speed equations, but rail/brt will use
+            // auto times + stop dwell times.
             if transit_mode = "lb" or transit_mode = "eb" 
                 then use_dwell = "false"
                 else use_dwell = "true"
@@ -738,7 +738,7 @@ Macro "Create Route Networks" (Args)
                 o.WalkLinkFilter = "W = 1"
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
-                if use_dwell then suffix = "Time" else suffix = "BusTime"
+                if use_dwell then suffix = "Time" else suffix = Upper(transit_mode) + "Time"
                 o.AddLinkField({
                     Name: "IVTT", 
                     TransitFields: {"AB" + period + suffix, "BA" + period + suffix}, 
