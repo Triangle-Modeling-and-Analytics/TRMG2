@@ -364,8 +364,39 @@ add_trip_purp <- flip_to_pa %>%
   ))
 ```
 
+```{r, include=FALSE}
+equiv_tbl <- read_csv("data/input/obs_processing/route_name_equiv.csv")
+```
 
 ```{r}
-write_csv(add_trip_purp, "data/output/_PRIVATE/obs_processing/obs_processed.csv")
+add_mode <- add_trip_purp %>%
+  left_join(equiv_tbl, by = "route") %>%
+  mutate(mode = ifelse(mode == 2, "local", "express"))
+```
+
+```{r}
+# process obs into tables 
+library(caliperR)
+source("R/create_obs_matrices.R")
+temp <- add_mode %>%
+  mutate(
+    access_mode = case_when(
+      access_mode %in% c("walk", "bike") ~ "w",
+      grepl("pnr", access_mode) ~ "pnr",
+      grepl("knr", access_mode) ~ "knr",
+      TRUE ~ "other"
+    ),
+    mode = ifelse(mode == "local", "lb", "eb")
+  ) %>%
+  filter(access_mode != "other", !is.na(mode)) %>%
+  group_by(board_time, access_mode, mode) %>%
+  nest()
+
+create_obs_matrices(temp)
+```
+
+
+```{r}
+write_csv(add_mode, "data/output/_PRIVATE/obs_processing/obs_processed.csv")
 ```
 
