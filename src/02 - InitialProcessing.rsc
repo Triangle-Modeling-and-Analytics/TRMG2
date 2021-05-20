@@ -579,17 +579,21 @@ Macro "Calculate Bus Speeds" (Args)
     link_dbd = Args.Links
     periods = Args.periods
     dirs = {"AB", "BA"}
+    modes = {"lb", "eb"}
 
     eq_vw = OpenTable("bus_eqs", "CSV", {csv})
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: link_dbd})
+    {, , name, ext} = SplitPath(csv)
     a_fields = null
     for period in periods do
         for dir in dirs do
-            a_fields = a_fields + {{
-                dir + period + "BusTime", "Real", 10, 2, , , ,
-                "The time it takes a bus to travel the link.|" + 
-                "Is a function of auto speeds."
-            }}
+            for mode in modes do
+                a_fields = a_fields + {{
+                    dir + period + Upper(mode) + "Time", "Real", 10, 2, , , ,
+                    "The time it takes " + mode + " to travel the link.|" + 
+                    "See " + name + ext + " for details"
+                }}
+            end
         end
     end
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
@@ -602,32 +606,22 @@ Macro "Calculate Bus Speeds" (Args)
         {eq_specs.HCMType, eq_specs.AreaType}, 
     )
 
-    v_length = GetDataVector(jv + "|", "Length", )
+    v_length = GetDataVector(jv + "|", llyr_specs.[Length], )
     for period in periods do
-        pkop = if period = "AM" or period = "PM" then "pk" else "op"
-        speed1 = GetDataVector(jv + "|", eq_specs.("speed1" + pkop), )
-        speed2 = GetDataVector(jv + "|", eq_specs.("speed2" + pkop), )
-        fac1 = GetDataVector(jv + "|", eq_specs.("fac1" + pkop), )
-        fac2 = GetDataVector(jv + "|", eq_specs.("fac2" + pkop), )
-        const2 = GetDataVector(jv + "|", eq_specs.("const2" + pkop), )
-        dflt = GetDataVector(jv + "|", eq_specs.("default" + pkop), )
-
         for dir in dirs do
-            v_auto_time = GetDataVector(jv + "|", dir + period + "Time", )
+            v_auto_time = GetDataVector(jv + "|", llyr_specs.(dir + period + "Time"), )
             v_auto_speed = v_length / (v_auto_time / 60)
-            v_bus_speed = if v_auto_speed < speed1 
-                then v_auto_speed * fac1
-                else if v_auto_speed < speed2
-                    then v_auto_speed * fac2 + const2
-                    else dflt
-            v_bus_time = v_length / v_bus_speed * 60
-            v_bus_time = if v_bus_time = null then v_auto_time else v_bus_time
-            SetDataVector(jv + "|", dir + period + "BusTime", v_bus_time, )
+            for mode in modes do
+                v_fac = GetDataVector(jv + "|", eq_specs.(mode + "_fac"), )
+                v_speed = v_auto_speed * v_fac
+                v_time = v_length / v_speed * 60
+                v_time = if v_time = null then v_auto_time else v_time
+                SetDataVector(jv + "|", llyr_specs.(dir + period + Upper(mode) + "Time"), v_time, )
+            end
         end
     end
 
     CloseView(jv)
-    CloseView(eq_vw)
     CloseMap(map)
 endmacro
 
