@@ -481,10 +481,10 @@ For most steps in a trip-based model, the trips are said to be in
 "Production/Attraction" (PA) format. In this format, all home-based trips are
 considered to start at home and end somewhere else (even if the person is
 actually traveling back home). This simplification of reality is done for a
-number of reasons in the model, but is not actually how travel occurs. As a
-result, before highway trip assignment can take place, the PA format must be
-converted to "Origin/Destination" (OD) format. In this format, a trip from work
-to home starts at work and ends at home.
+number of reasons related to model estimation, but is not actually how travel
+occurs. As a result, before highway assignment can take place, the PA
+format must be converted to "Origin/Destination" (OD) format. In this format, a
+trip from work to home starts at work and ends at home.
 
 This conversion is accomplished using factors stratified by time of day and trip
 type. As an example, the majority of W_HB_W_All (i.e. HBW) trips in the AM start
@@ -494,29 +494,28 @@ than 0.5.
 
 These factors can be calculated directly from the survey by comparing the number
 of home-based trips that start at home to the number home-based trips that start
-elsewhere. The table below shows the directionality factors calculated from
-the survey.
+elsewhere. The table below shows the PA factors calculated from the survey by
+trip type.
 
 ```{r calc_pa_factors}
 direction_tbl <- tripTbl %>%
   filter(homebased == "HB", tour_type != "H") %>%
-  group_by(tour_type, tod, pa_flag) %>%
+  group_by(trip_type, tod, pa_flag) %>%
   summarize(trips = sum(trip_weight_combined)) %>%
   mutate(
     pct = trips / sum(trips),
-    pa_flag = ifelse(pa_flag == 1, "PA", "AP"),
-    pa_flag = factor(pa_flag, levels = c("PA", "AP"), ordered = TRUE),
     tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
   ) %>%
-  select(-trips) %>%
-  arrange(tour_type, tod, pa_flag)
+  filter(pa_flag == 1) %>%
+  select(-trips, -pa_flag) %>%
+  rename(pa_fac = pct) %>%
+  arrange(trip_type, tod)
 
 direction_tbl %>%
   pivot_wider(
-    names_from = "tod", values_from = "pct"
+    names_from = "tod", values_from = "pa_fac"
   ) %>%
-  mutate(tour_type = ifelse(tour_type == "N", "NonWork", "Work")) %>%
-  rename(`Tour Type` = tour_type, Direction = pa_flag) %>%
+  rename(`Trip Type` = trip_type) %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
 ```
@@ -532,37 +531,46 @@ using the matching, more-aggregate purposes.
 
 ## Treatment of skims
 
-In the TRMG2, the directionality factors are also used to improve skims. In a
-traditional model, an AM skim is often used for all peak trips while a MD skim
-is used for off-peak. TRMG2 does independent feedback by time of day, which
-required Caliper to adjust each period skim to account for directionality.
+In the TRMG2, the directionality factors are used to further improve the
+period-specific skims. The easiest way to explain the improvement is using the PM
+period as an example. 
 
-The easiest way to explain the adjustment is using the PM period as an example.
-From the table above, 95% of work trips in the PM are traveling back home. At
-the same time, trip productions estimated by the model (still in PA format)
-see skim times from home to work, which are near free-flow speed. The simplest
-treatment (and one done in Caliper's previous work) is to transpose the PM
-skim. In this way, the trips in zone 1 actually see skim times for travel to
-instead of from zone 1.
+In the PM period, 95% of home-based work trips in the survey are traveling back
+home. Trip productions estimated by the model are in PA format and, with a
+traditional approach, would see skim times from home to work, which are near
+free-flow speed. This unrealistic representation of travel time would cause
+incorrect mode and destination choices to be predicted.
 
-This simple treatment is adequate for some models, but the Triangle has a large
-amount of non-work travel in the PM peak. The table above shows us that these
-trips have a more balanced directionality. Many of these trips are traveling
-in the less congested direction. As a consequence, Caliper created weighted
-average skims using the PA/AP factors. For any ij pair of zones, the travel time
-is computed as:
+To properly represent aggregate travel times, the PA and AP directions must be
+combined using a weighted average as shown below:
 
-$$TT_{avg} = f_{pa} * TT_{ij} + f_{ap} * TT_{ji}$$
+$$TT_{avg} = f_{pa} * TT_{ij} + (1 - f_{pa}) * TT_{ji}$$
 
 Where:  
 $TT_{avg}$ is the average travel time from zone i to j;
 $f_{pa}$ is the PA factor;
-$TT_{ij}$ is the travel time from zone i to j;
-$f_{ap}$ is the AP factor; and
-$TT_{ap}$ is the travel time from zone j to i.
+$TT_{ij}$ is the travel time from zone i to j; and
+$TT_{ji}$ is the travel time from zone j to i.
 
-With this approach, the travel time skim gives a balanced look at travel
-impedance in the region and will improve destination and mode choice predictions.
+The table below shows the directional factors used to average skims. Note that
+for non-home-based trips and all off-peak trips, a simple 50/50 split was used.
+For home-based trips in the off-peak, the survey showed that the directionality
+was close enough to 50/50 that the extra complexity was not warranted.
+
+```{r, include = FALSE}
+skim_facs <- read_csv("../master/resident/tod/directionality_skim_factors.csv")
+```
+
+```{r}
+skim_facs %>%
+  rename(
+    Period = period, Homebased = homebased, `Tour Type` = tour_type, 
+    PA = pa, AP = ap
+  ) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
 
 # Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
