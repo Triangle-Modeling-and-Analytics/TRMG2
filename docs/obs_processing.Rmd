@@ -374,8 +374,10 @@ add_mode <- add_trip_purp %>%
   mutate(mode = ifelse(mode == 2, "local", "express"))
 ```
 
-```{r}
-# process obs into tables 
+```{r, eval=FALSE}
+# This code chunk was used to create transit matrices for a test assignment.
+# It does not need to be run each time the page is knit, but is kept as
+# a reference.
 library(caliperR)
 source("R/create_obs_matrices.R")
 temp <- add_mode %>%
