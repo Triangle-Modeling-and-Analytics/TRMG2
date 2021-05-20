@@ -51,6 +51,15 @@ goraleigh_2015 <- goraleigh_2015_raw %>%
     orig_lon = ORIGIN_LON,
     board_lat = BOARDING_LAT,
     board_lon = BOARDING_LON,
+    board_time = case_when(
+      TIME_ON %in% c("6:00 - 7:00 am", "7:00 - 8:00 am", "8:00 - 9:30 am") ~ "AM",
+      TIME_ON %in% c("3:30 - 4:30 pm", "4:30 - 5:30 pm", "5:30 - 6:30 pm") ~ "PM",
+      TIME_ON %in% c(
+        "9:30 - 10:30 am", "10:30 - 11:30 am", "11:30 am - 12:30 pm", 
+        "12:30 - 1:30 pm", "1:30 - 2:30 pm", "2:30 - 3:30 pm"
+      ) ~ "MD",
+      TRUE ~ "NT"
+    ),
     alight_lat = ALIGHTING_LAT,
     alight_lon = ALIGHTING_LON,
     dest_lat = DESTIN_LAT,
@@ -138,6 +147,17 @@ gotriangle_2014 <- gotriangle_2014_raw %>%
     orig_lon = origin_lon,
     board_lat = board_lat,
     board_lon = board_lon,
+    board_time = case_when(
+      board_time %in% c("8 - 9 a.m.", "6 - 7 a.m.", "7 - 8 a.m.") ~ "AM",
+      board_time %in% c(
+        "1 - 2 p.m.", "3 - 3:30 p.m", "9 - 10 a.m.", "10 - 11 a.m.", 
+        "2 - 3 p.m.", "11 - 12 p.m.", "12 - 1 p.m."
+      ) ~ "MD",
+      board_time %in% c(
+        "3:30 - 4 p.m.", "5 - 6 p.m.", "4 - 5 p.m.", "6 - 6:30 p.m."
+      ) ~ "PM",
+      TRUE ~ "NT"
+    ),
     alight_lat = alight_lat,
     alight_lon = alight_lon,
     dest_lat = dest_lat,
