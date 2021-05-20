@@ -216,7 +216,7 @@ Macro "Create Scenario Transit" (Args)
   DeleteRecordsInSet(del_set)
   ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
   CloseView(mode_vw)
-  DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc"))
+  DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
 
   CloseMap(map)
 EndMacro
