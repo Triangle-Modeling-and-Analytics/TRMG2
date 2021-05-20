@@ -70,6 +70,7 @@
     Section = "Time of Day"
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
+        Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
     
     Section = "Parking Model|Coefficients"
     
