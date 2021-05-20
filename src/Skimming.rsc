@@ -93,71 +93,49 @@ Macro "Roadway Skims" (Args)
 endmacro
 
 /*
-This macro uses the directionality factors to create skims that are a weighted
+This macro uses directionality factors to create skims that are a weighted
 average of the PA and AP travel time.
 */
 
 Macro "Create Average Roadway Skims" (Args)
 
-    factor_tbl = Args.DirectionFactors
+    factor_tbl = Args.DirectionFactorsSkims
     skim_dir = Args.[Output Folder] + "/skims/roadway"
+    modes = {"sov", "hov"}
 
     factor_vw = OpenTable("factor_vw", "CSV", {factor_tbl})
-    fields = {"tour_type", "tod"}
-    {v_type, v_tod} = GetDataVectors(factor_vw + "|", fields, )
-    v_type = SortVector(v_type, {Unique: "true"})
-    v_tod = SortVector(v_tod, {Unique: "true"})
-    a_modes = {"sov", "hov"}
+    rh = GetFirstRecord(factor_vw + "|", )
+    while rh <> null do
+        tod = factor_vw.period
+        hb = factor_vw.homebased
+        tour_type = factor_vw.tour_type
+        pa_fac = factor_vw.pa
+        ap_fac = factor_vw.ap
 
-    // Homebased skims
-    for tod in v_tod do
-        
-        if tod = "AM" or tod = "PM" 
-            then types = v_type
-            else types = {"ALL"}
+        for mode in modes do
+            in_skim = skim_dir + "/skim_" + mode + "_" + tod + ".mtx"
+            trans_skim = Substitute(in_skim, ".mtx", "_t.mtx", )
+            out_skim = skim_dir + "/avg_skim_" + hb + "_" + tour_type + "_" + mode + "_" + tod + ".mtx"
 
-        for type in types do
-            
-            // Get the PA/AP factors
-            if tod = "AM" or tod = "PM" then do
-                SetView(factor_vw)
-                query = "Select * where tour_type = '" + type + "' and tod = '" + tod + "'"
-                SelectByQuery("sel", "several", query)
-                LocateRecord(factor_vw + "|sel", "pa_flag", {"PA"}, )
-                pa_fac = factor_vw.pct
-                LocateRecord(factor_vw + "|sel", "pa_flag", {"AP"}, )
-                ap_fac = factor_vw.pct
-                type_affix = "HB" + type
-            end else do
-                pa_fac = .5
-                ap_fac = .5
-                type_affix = type
+            CopyFile(in_skim, out_skim)
+            out_m = CreateObject("Matrix")
+            out_m.LoadMatrix(out_skim)
+            out_cores = out_m.data.cores
+            TransposeMatrix(out_m.MatrixHandle, {"File Name": trans_skim, Label: "transposed"})
+            t_m = CreateObject("Matrix")
+            t_m.LoadMatrix(trans_skim)
+            t_cores = t_m.data.cores
+
+            for core in out_m.CoreNames do
+                out_cores.(core) := pa_fac * out_cores.(core) + ap_fac * t_cores.(core)
             end
-
-            for mode in a_modes do
-                in_skim = skim_dir + "/skim_" + mode + "_" + tod + ".mtx"
-                trans_skim = skim_dir + "/skim_" + mode + "_" + tod + "_t.mtx"
-                out_skim = skim_dir + "/skim_" + type_affix + "_" + tod + "_" + mode + ".mtx"
-
-                CopyFile(in_skim, out_skim)
-                out_m = CreateObject("Matrix")
-                out_m.LoadMatrix(out_skim)
-                out_cores = out_m.data.cores
-                TransposeMatrix(out_m.MatrixHandle, {"File Name": trans_skim, Label: "transposed"})
-                t_m = CreateObject("Matrix")
-                t_m.LoadMatrix(trans_skim)
-                t_cores = t_m.data.cores
-
-                for core in out_m.CoreNames do
-                    out_cores.(core) := pa_fac * out_cores.(core) + ap_fac * t_cores.(core)
-                end
-                t_m = null
-                t_cores = null
-                DeleteFile(trans_skim)
-            end
+            t_m = null
+            t_cores = null
+            DeleteFile(trans_skim)
         end
-    end
 
+        rh = GetNextRecord(factor_vw + "|", , )
+    end
     CloseView(factor_vw)
 endmacro
 

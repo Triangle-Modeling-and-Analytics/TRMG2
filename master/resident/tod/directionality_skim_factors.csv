@@ -1,0 +1,9 @@
+period,homebased,tour_type,pa,ap
+AM,HB,W,0.995,0.005
+AM,HB,N,0.799,0.201
+AM,NHB,All,0.5,0.5
+PM,HB,W,0.046,0.954
+PM,HB,N,0.421,0.579
+PM,NHB,All,0.5,0.5
+MD,All,All,0.5,0.5
+NT,All,All,0.5,0.5
