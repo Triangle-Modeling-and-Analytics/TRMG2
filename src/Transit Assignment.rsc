@@ -97,7 +97,7 @@ Macro "Aggregate Transit Assignment Results" (Args)
         for suffix in suffixes do
             if suffix = "" then do
                 files = a.flow
-                dest_file = assn_dir + "/" + period + "_Flow.csv" 
+                dest_file = assn_dir + "/" + period + "_flow.csv" 
             end else do
                 files = a.(suffix)
                 dest_file = assn_dir + "/" + period + suffix + ".csv" 

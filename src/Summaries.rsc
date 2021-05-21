@@ -10,6 +10,7 @@ Macro "Summaries" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Transit Summary", Args)
     return(1)
 endmacro
 
@@ -422,4 +423,22 @@ Macro "Summarize by FT and AT" (Args)
   RunMacro("Link Summary by FT and AT", opts)
 
   RunMacro("Close All")
+EndMacro
+
+/*
+Summarizes transit assignment.
+*/
+
+Macro "Transit Summary" (Args)
+  
+  scen_dir = Args.[Scenario Folder]
+  out_dir  =Args.[Output Folder]
+  assn_dir = out_dir + "/assignment/transit"
+  
+  opts = null
+  RunMacro("Summarize Transit", {
+    transit_asn_dir: assn_dir,
+    output_dir: out_dir + "/_summaries",
+    loaded_network: Args.Links
+  })
 EndMacro

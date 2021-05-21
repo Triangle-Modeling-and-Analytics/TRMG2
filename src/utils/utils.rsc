@@ -1834,3 +1834,142 @@ Macro "Accessibility Calculator" (MacroOpts)
   CloseView(table_vw)
   CloseView(param_vw)
 endmacro
+
+/*
+Summarizes transit outputs
+
+Inputs (all in a named array)
+  * `transit_asn_dir`
+    * The directory where the outputs from pathfinder assignment are located.
+  * `output_dir`
+    * Where all summary CSVs will be written.
+  * `loaded_network`
+    * The geographic database file (.dbd) that will have transit data appended.
+
+Returns
+  * Nothing. Creates `boardings_and_alightings`, `transit_flow_by_link`,
+    and `passenger_miles_and_hours` csv tables.
+*/
+
+Macro "Summarize Transit" (MacroOpts)
+  
+  // Argument extraction
+  transit_asn_dir = MacroOpts.transit_asn_dir
+  output_dir = MacroOpts.output_dir
+  loaded_network = MacroOpts.loaded_network
+  
+  // Argument checking
+  if transit_asn_dir = null 
+    then Throw("Summarize Transit:\n`transit_asn_dir` not provided")
+  if output_dir = null 
+    then Throw("Summarize Transit:\n`output_dir` not provided")
+  RunMacro("Create Directory", output_dir)
+  if loaded_network = null 
+    then Throw("Summarize Transit:\n`loaded_network` not provided")
+  if GetFileInfo(loaded_network) = null
+    then Throw("Summarize Transit:\n`loaded_network` does not exist")
+  
+  tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
+
+  // Summarize total ridership (total boardings)
+  onoff = tables.onoff
+  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
+  onoff.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  onoff.colnames(opts)
+  daily = onoff.copy()
+  daily.group_by("route")
+  daily.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route"} + cols_to_summarize
+  daily.colnames(opts)
+  daily.mutate("access", "All")
+  daily.mutate("mode", "All")
+  daily.mutate("tod", "Daily")
+  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.bind_rows(onoff)
+  daily.write_csv(output_dir + "/boardings_and_alightings.csv")
+
+  // aggregate transit flow by link and join to layer
+  agg = tables.agg
+  agg.group_by("ID1")
+  cols_to_summarize = agg.colnames({start: "AB_TransitFlow", stop: "BA_Drive_Flow"})
+  agg.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"ID1"} + cols_to_summarize
+  agg.colnames(opts)
+  agg_file = output_dir + "/transit_flow_by_link.csv"
+  agg.write_csv(agg_file)
+  RunMacro("Join Table To Layer", loaded_network, "ID", agg_file, "ID1")
+  
+  // Passenger miles and hours
+  flow = tables.flow
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate(
+    "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
+  flow.group_by("Route")
+  flow.summarize({"pass_hours", "pass_miles"}, "sum")
+  flow.rename(
+    {"Route", "sum_pass_hours", "sum_pass_miles"},
+    {"route", "pass_hours", "pass_miles"})
+  flow_file = output_dir + "/passenger_miles_and_hours.csv"
+  flow.write_csv(flow_file)
+EndMacro
+
+/*
+The GT transit assignment macro "Pathfinder Assignment" does some basic
+aggregation of the transit outputs and writes out CSV files. The transit
+summary macro uses this function to collect the names of all those outputs
+files in `transit_asn_dir`.
+
+Inputs
+  * `transit_asn_dir`
+    * The directory where the outputs from "Pathfinder Assignment" are located.
+    
+Returns
+  * Named array of four data frames
+    * `onoff`
+      * All files found starting with "OnOff". These files have boarding and
+        alighting info by stop and route.
+    * `agg`
+      * Transit and non transit flows by link ID.
+    * `flow`
+      * Route level flows between stops.
+    * `walk`
+      * Non-transit and walk access flow by link.
+      * Mainly ignored as this data is also contained in `agg`.
+*/
+
+Macro "Get Transit Output Tables" (transit_asn_dir)
+  
+  if transit_asn_dir = null 
+    then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
+  transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
+  
+  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  for file in files do
+    df = CreateObject("df", file)
+    
+    if Position(file, "onoff") <> 0 then do
+      if onoff = null then onoff = df.copy()
+      else onoff.bind_rows(df)
+    end else if Position(file, "linkflow") <> 0 then do
+      if agg = null then agg = df.copy()
+      else agg.bind_rows(df)
+    end else if Position(file, "walkflow") <> 0 then do
+      if walk = null then walk = df.copy()
+      else walk.bind_rows(df)
+    end else if Position(file, "flow") <> 0 then do
+      if flow = null then flow = df.copy()
+      else flow.bind_rows(df)
+    end
+  end
+  
+  result.onoff = onoff
+  result.agg = agg
+  result.walk = walk
+  result.flow = flow
+  return(result)
+EndMacro
