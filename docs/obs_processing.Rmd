@@ -374,6 +374,14 @@ add_mode <- add_trip_purp %>%
   mutate(mode = ifelse(mode == 2, "local", "express"))
 ```
 
+## OBS Assignment
+
+As a check on both the on-board survey processing and the model's route network,
+the on-board survey was assigned. This involved processing the survey into the
+appropriate matrices by time of day, transit mode, and accesss mode. The model
+assignment macros in TransCAD were used to assign these to the route system, and
+the results were compared to reported ridership by route.
+
 ```{r, eval=FALSE}
 # This code chunk was used to create transit matrices for a test assignment.
 # It does not need to be run each time the page is knit, but is kept as
@@ -397,8 +405,37 @@ temp <- add_mode %>%
 create_obs_matrices(temp)
 ```
 
+```{r, include=FALSE}
+model_boardings <- read_csv(
+  "data/input/obs_processing/model_boardings_and_alightings.csv") %>%
+  filter(tod == "Daily") %>%
+  select(rts_name, model_boardings = On)
+
+reported_boardings <- read_excel(
+  "data/input/obs_processing/reported_ridership.xlsx", sheet = "reported")
+reported_equiv <- read_excel(
+  "data/input/obs_processing/reported_ridership.xlsx", sheet = "equiv")
+```
 
 ```{r}
+comparison <- reported_equiv %>%
+  left_join(reported_boardings, by = c("reported_route" = "route")) %>%
+  group_by(reported_route) %>%
+  mutate(
+    count = n(),
+    ridership_2016 = ridership_2016 / count
+  ) %>%
+  ungroup() %>%
+  select(model_route, reported = ridership_2016) %>%
+  left_join(model_boardings, by = c("model_route" = "rts_name")) %>%
+  filter(!is.na(model_boardings), !is.na(reported))
+
+# Metrics::rmse(comparison$model_boardings, comparison$reported) / mean(comparison$reported)
+```
+
+
+```{r, eval=FALSE}
 write_csv(add_mode, "data/output/_PRIVATE/obs_processing/obs_processed.csv")
+write_csv(comparison, "data/output/obs_processing/ridership_comparison.csv")
 ```
 
