@@ -428,7 +428,12 @@ comparison <- reported_equiv %>%
   ungroup() %>%
   select(model_route, reported = ridership_2016) %>%
   left_join(model_boardings, by = c("model_route" = "rts_name")) %>%
-  filter(!is.na(model_boardings), !is.na(reported))
+  filter(!is.na(model_boardings), !is.na(reported)) %>%
+  mutate(
+    diff = model_boardings - reported,
+    abs_diff = abs(diff),
+    pct_diff = round(diff / reported * 100, 2)
+  )
 
 # Metrics::rmse(comparison$model_boardings, comparison$reported) / mean(comparison$reported)
 ```
