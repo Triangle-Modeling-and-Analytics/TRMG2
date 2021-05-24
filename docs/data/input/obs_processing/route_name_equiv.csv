@@ -1,0 +1,227 @@
+route,route_short,rts_name,mode
+Route 2: Falls of Neuse- INBOUND toward Downtown,GoRaleigh:2:CCW,CAT 2-8:FallsOfNeuse-SixFrksSta,2
+Route 1: Capital- OUTBOUND toward Triangle Town Center,GoRaleigh:1:OB,CAT 1 OB:TriTCen,2
+C-Tran: Route 2: COUNTERCLOCKWISE,C-Tran:2:CCW,CTRAN 2 Maynard Loop Two CTR,2
+C-Tran: Route 4: OUTBOUND toward NC Hwy 55,C-Tran:6,CTRAN 6-4 WB:BuckJones-HighHouse,2
+C-Tran: Route 5: INBOUND toward Train Station,C-Tran:5,CTRAN 5-3 NB:Kildaire-Harrison,2
+Route 3: Glascock- OUTBOUND toward Crabtree at Timber,GoRaleigh:16,CAT 16-3:RexHosp-Crabtree,2
+C-Tran: Route 3: OUTBOUND toward Harrison Square,C-Tran:3,CTRAN 3-5 SB:Harrison-Kildaire,2
+Route 400: Wake Tech Express [40X]: OUTBOUND toward Wake Tech,GoRaleigh:400:OB,CAT 40X SB:MooreSq-WakeTech,3
+Route 5: Biltmore Hills- OUTBOUND toward Sanderford at Idlewood Village,GoRaleigh:11,CAT 11-5:Trailwd Hills-Sanderford,2
+Route 1: Capital- INBOUND toward Downtown,GoRaleigh:1:IB,CAT 1 IB:TriTCen,2
+Route 16: Oberlin- OUTBOUND toward Rex Hospital,GoRaleigh:3,CAT 3-16:Crabtree-RexHosp,2
+Route 150: Trawick Link [15L]: OUTBOUND toward Buffaloe at Dunwood,GoRaleigh:150:Loop,CAT 15L,2
+Go Tri: Route 900 [CRX]- INBOUND toward Chapel Hill,GoTriangle:900:IB,TT CRX WB,3
+Route 6: Crabtree- OUTBOUND toward Townridge Shopping Center,GoRaleigh:6:OB,CAT 6 OB,2
+Route 5: Biltmore Hills- INBOUND toward Downtown,GoRaleigh:5,CAT 5-11:Sanderford-Trailwd Hills,2
+Route 8: Six Forks - OUTBOUND toward North Hills at Northclift,GoRaleigh:8:CW,CAT 8-2:SixFrksSta-FallsOfNeuse,2
+Go Tri: Route 100- INBOUND toward Downtown,GoTriangle:100:IB,TT 100 EB:RTC-Moore Sq,2
+Route 50: R-Line- CIRCULAR,GoRaleigh:50:Loop,CAT R-LINE,2
+Go Tri: Route 105- INBOUND toward Downtown,GoTriangle:105:IB,TT 105 EB:RTP-Moore Sq,3
+WolfLine: Route 9: LOOP,Wolfline:9:Loop,NCSU 9:GreekVillage,2
+WolfLine: Route 8: LOOP,Wolfline:8:Loop,NCSU 8:SoutheastLoop,2
+Route 18: Worthdale- INBOUND toward Downtown,GoRaleigh:18:IB,CAT 18 IB:WalnutCreekSC-Dwntwn,2
+Route 70: Carolina Pines [7L]: EASTBOUND toward Southgate Plaza,GoRaleigh:70:EB,CAT 7L EB:RaleighOSC-SouthgateSC,2
+Route 19: Apollo Heights- OUTBOUND toward Swinburne at Kidd,GoRaleigh:7,CAT 7-19:ShopsatGarner-WCSS,2
+C-Tran: Route 6: INBOUND toward Train Station,C-Tran:6,CTRAN 6-4 WB:BuckJones-HighHouse,2
+WolfLine: Route 10: LOOP,Wolfline:10:Loop,NCSU 10:Southside Circulator,2
+Go Tri: Route 201- INBOUND toward North Raleigh,GoTriangle:201:IB,,
+Route 19: Apollo Heights- INBOUND toward Downtown,GoRaleigh:19,CAT 19-7:WCSS-ShopsatGarner,2
+Route 6: Crabtree- INBOUND toward Downtown,GoRaleigh:6:IB,CAT 6 IB,2
+Route 7: South Saunders- INBOUND toward Downtown,GoRaleigh:7,CAT 7-19:ShopsatGarner-WCSS,2
+Go Tri: Route 301- OUTBOUND toward Cary,GoTriangle:301:OB,TT 301 WB:Moore Sq-RTP,2
+WolfLine: Route 11: LOOP,Wolfline:11:Loop,NCSU 11:VillageLink,2
+Go Tri: Route 901 [DRX]- OUTBOUND toward Downtown,GoTriangle:901:OB,TT DRX EB:Durham-Raleigh,3
+C-Tran: Route 1: CLOCKWISE,C-Tran:1:CW,CTRAN 1 Maynard Loop One CLK,2
+Route 4: Rex Hospital- INBOUND toward Downtown,GoRaleigh:4,CAT 4-22:Towne North to Hadley,2
+C-Tran: Route 5: OUTBOUND toward Crescent Commons Drive,C-Tran:3,CTRAN 3-5 SB:Harrison-Kildaire,2
+WolfLine: Route 7: LOOP,Wolfline:7:Loop,NCSU 7:WolfVillage-BrooksHall,2
+Route 8: Six Forks - INBOUND toward Downtown,GoRaleigh:8:CW,CAT 8-2:SixFrksSta-FallsOfNeuse,2
+WolfLine: Route 2/21: LOOP,Wolfline:2:WB,NCSU 2 WB,2
+C-Tran: Route 6: OUTBOUND toward Plaza West,C-Tran:6,CTRAN 6-4 WB:BuckJones-HighHouse,2
+Route 18: Worthdale- OUTBOUND toward Bus Way,GoRaleigh:18:OB,CAT 18 OB:Dwntwn-WalnutCreekSC,2
+WolfLine: Route 6: LOOP,Wolfline:6:EB,NCSU 6 EB:CarterFinley-ScottHall,2
+WolfLine: Route 3: LOOP,Wolfline:3:Loop,NCSU 3:Engineering,2
+Route 150: Trawick Link [15L]: INBOUND toward Wake Med Center,GoRaleigh:150:Loop,CAT 15L,2
+Route 110: Buck Jones [11L]: INBOUND toward NCSU,GoRaleigh:110:IB,CAT 11L IB:Shaub&Sandlin-CatesMO,2
+Route 10: Longview- OUTBOUND toward Chatham at Bertie,GoRaleigh:12,CAT 12-10:Method-Bertie,2
+Route 12: Method- OUTBOUND toward Method at Beryl,GoRaleigh:10,CAT 10-12:Bertie-Method,2
+Route 250: Triangle Town Center [25L] - CIRCULAR,GoRaleigh:250:SB,CAT 25L SB,2
+Route 15: WakeMed- OUTBOUND toward Wake Medical,GoRaleigh:15:OB,CAT 15 OB,2
+Route 7: South Saunders- OUTBOUND toward Shoppes at Garner,GoRaleigh:19,CAT 19-7:WCSS-ShopsatGarner,2
+Go Tri: Route 300- EASTBOUND toward Downtown,GoTriangle:300:EB,TT 300 EB:RTP-Moore Squ,3
+WolfLine: Route 5: LOOP,Wolfline:5:Loop,NCSU 5:VarsityPL-DHLibrary,2
+Route 700: Brier Creek Express [70X]: OUTBOUND toward Brier Creek Shopping Center,GoRaleigh:700:OB,CAT 70X NB:CrabtreeVM-LittleBrier,3
+Route 60: Wake Forest Express [WRX]: INBOUND toward Downtown,GoRaleigh:60:IB,CAT WRX IB:Wake Forest-Raleigh,3
+Route 12: Method- INBOUND toward Downtown,GoRaleigh:12,CAT 12-10:Method-Bertie,2
+Route 4: Rex Hospital- OUTBOUND toward Towne North Shopping Center,GoRaleigh:22,CAT 22-4:Hadley to Towne North,2
+Route 11: Avent Ferry- OUTBOUND toward Trailwood Hills,GoRaleigh:5,CAT 5-11:Sanderford-Trailwd Hills,2
+Route 240: North Crosstown [24L]: WESTBOUND toward North Hills Mall,GoRaleigh:240:WB,CAT 24L WB:Cptl&Sprgfor-NHilMal,2
+Route 230: Millbrook Crosstown [23L]: INBOUND toward Crabtree Valley Mall,GoRaleigh:230:IB,CAT 23L WB:MilBrk&CBlvd-CtreeVM,2
+Go Tri: Route 901 [DRX]- INBOUND toward Durham Station,GoTriangle:901:IB,TT DRX WB:Raleigh-Durham,3
+Route 13: Chavis Heights- OUTBOUND toward Holmes at Bragg,GoRaleigh:21,CAT 21-13:LakeWheeler-Holmes,2
+Route 11: Avent Ferry- INBOUND toward Downtown,GoRaleigh:11,CAT 11-5:Trailwd Hills-Sanderford,2
+Route 230: Millbrook Crosstown [23L]: OUTBOUND toward New Hope at Capital,GoRaleigh:230:OB,CAT 23L EB:CtreeVM-MilBrk&CBlvd,2
+Route 62: Wake Forest Loop [60]: CIRCULAR,GoRaleigh:62:Loop,Wake Forest Loop,2
+Route 15: WakeMed- INBOUND toward Downtown,GoRaleigh:15:IB,CAT 15 IB,2
+Route 70: Carolina Pines [7L]: WESTBOUND toward Trailwood Hills,GoRaleigh:70:WB,CAT 7L WB:SouthgateSC-RaleighOSC,2
+Route 13: Chavis Heights- INBOUND toward Downtown,GoRaleigh:13,CAT 13-21:Holmes-LakeWheeler,2
+WolfLine: Route 1: LOOP,Wolfline:1:Loop,NCSU 1:AventF&Gorman-DHLibrar,2
+Go Tri: Route 300- WESTBOUND toward Cary,GoTriangle:300:WB,TT 300 WB:Moore Sq-RTP,3
+Route 3: Glascock- INBOUND toward Downtown,GoRaleigh:3,CAT 3-16:Crabtree-RexHosp,2
+Go Tri: Route 301- INBOUND toward Downtown,GoTriangle:301:IB,TT 301 EB:RTP-Moore Sq,2
+Go Tri: Route 100- OUTBOUND toward RTC,GoTriangle:100:OB,TT 100 WB:Moore Sq-RTC,2
+C-Tran: Route 4: INBOUND toward Train Station,C-Tran:4,CTRAN 4-6 EB:HighHouse-BuckJones,2
+Go Tri: Route 47- CIRCULAR,GoTriangle:47:Loop,TT 47 SH:Trans Ctr-RTI,2
+Route 76: Johnston County Express [JCX]: INBOUND toward Downtown,GoRaleigh:76:IB,CAT JCX IB:Johnston Co.-Raleigh,3
+Route 2: Falls of Neuse- OUTBOUND Bent Tree Plaza,GoRaleigh:2:CCW,CAT 2-8:FallsOfNeuse-SixFrksSta,2
+Route 22: State Street- INBOUND toward Downtown,GoRaleigh:22,CAT 22-4:Hadley to Towne North,2
+Route 21: Caraleigh- OUTBOUND toward Maywood at Lake Wheeler,GoRaleigh:13,CAT 13-21:Holmes-LakeWheeler,2
+Route 55: Poole Road Express- INBOUND toward Downtown,GoRaleigh:55:IB,CAT 55X IB:Poole-Moore Sq,3
+Route 22: State Street- OUTBOUND toward Hadley at Dandridge,GoRaleigh:4,CAT 4-22:Towne North to Hadley,2
+Go Tri: Route 900 [CRX]- OUTBOUND toward Downtown,GoTriangle:900:OB,TT CRX EB:Chapel Hill-Raleigh,3
+Route 77: Clayton Express [CLX]: INBOUND toward Downtown,GoRaleigh:77:IB,CLX IB: Clayton-Raleigh Exp,3
+Route 16: Oberlin- INBOUND toward Downtown,GoRaleigh:16,CAT 16-3:RexHosp-Crabtree,2
+Route 21: Caraleigh- INBOUND toward Downtown,GoRaleigh:21,CAT 21-13:LakeWheeler-Holmes,2
+Go Tri: Route 305- OUTBOUND toward Lake Pine,GoTriangle:305:OB,TT 305 OB:Moore Sq-Apex,2
+Go Tri: Route 42- CIRCULAR,GoTriangle:42:Loop,TT 42 SH:Trans Ctr-IBM,2
+Route 110: Buck Jones [11L]: OUTBOUND toward Schaub at Sandlin,GoRaleigh:110:OB,CAT 11L OB:MorrillCates-Shaub&SA,2
+Route 60: Wake Forest Express [WRX]: OUTBOUND toward Wake Forest,GoRaleigh:60:OB,CAT WRX OB:Raleigh-WF,3
+Route 10: Longview- INBOUND toward Downtown,GoRaleigh:10,CAT 10-12:Bertie-Method,2
+Go Tri: Route 311- INBOUND toward RTC,GoTriangle:311:IB,TT 311 NB:ApexTownHall-RTP,2
+Route 400: Wake Tech Express [40X]: INBOUND toward Downtown,GoRaleigh:400:IB,CAT 40X NB: Wake Tech-MooreSq,3
+Route 77: Clayton Express [CLX]: OUTBOUND toward Clayton Towne Plaza,GoRaleigh:77:OB,CLX OB: Raleigh-Clayton Exp,3
+Route 240: North Crosstown [24L]: EASTBOUND toward Spring Forest at Capital,GoRaleigh:240:EB,CAT 24L EB:NHilMal-Cptl&Sprgfor,2
+Go Tri: Route 201- OUTBOUND toward RTC,GoTriangle:201:OB,TT 201 WB:Millbrook-RTP,3
+Route 700: Brier Creek Express [70X]: INBOUND toward Crabtree Valley Mall,GoRaleigh:700:IB,CAT 70X SB:LittleBrier-CrabtreeVM,3
+Go Tri: Route 105- OUTBOUND toward RTC,GoTriangle:105:OB,TT 105 WB:Moore Sq-RTP,3
+C-Tran: Route 3: INBOUND toward Train Station,C-Tran:3,CTRAN 3-5 SB:Harrison-Kildaire,2
+Go Tri: Route 311- OUTBOUND toward APEX,GoTriangle:311:OB,TT 311 SB:RTP-ApexTownHall,2
+Route 102: Garner [102]: INBOUND toward Downtown,GoRaleigh:102:IB,TT 102 IB,2
+Go Tri: Route 305- INBOUND toward Downtown,GoTriangle:305:IB,TT 305 IB:Apex-Moore Sq,2
+Route 76: Johnston County Express [JCX]: OUTBOUND toward Cleveland Crossing Shopping Center,GoRaleigh:76:OB,CAT JCX OB:Raleigh-Johnston Co.,3
+Route 64: Zebulon/ Wendell Express [ZWX]: INBOUND toward Downtown,GoRaleigh:64:IB,CAT ZWX IB:Zebulon-Raleigh,3
+Go Tri: Route 49- CIRCULAR,GoTriangle:49:Loop,TT 49 SH: RTP,2
+Route 55: Poole Road Express- OUTBOUND toward Poole Road P&R,GoRaleigh:55:OB,,
+Route 63: Knightdale Express [KRX]: OUTBOUND toward Knightdale,GoRaleigh:63:OB,CAT KRX OB:Raleigh-Knightdale,3
+Route 78: Fuquay Varina Express [FRX]: INBOUND toward Downtown,GoRaleigh:78:IB,FRX IB,3
+Route 78: Fuquay Varina Express [FRX]: OUTBOUND toward South Park Fuquay,GoRaleigh:78:OB,FRX OB,3
+Go Tri: Route 46- CIRCULAR,GoTriangle:46:Loop,TT 46 SH:Trans Ctr-E RTP,2
+Route 102: Garner [102]: OUTBOUND toward White Oak Shopping Center,GoRaleigh:102:OB,TT 102 OB:Moore Sq-Garner,2
+Route 63: Knightdale Express [KRX]: INBOUND toward Downtown,GoRaleigh:63:IB,CAT KRX IB:Knightdale-Raleigh,3
+Route 64: Zebulon/ Wendell Express [ZWX]: OUTBOUND toward Zebulon P&R,GoRaleigh:64:OB,CAT ZWX OB:Raleigh-Zebulon,3
+DATA 1 [Outbound],GoDurham:3A,DATA 3-1A IB:Mdlnd-Hillndal,2
+DATA 1 [Inbound],GoDurham:1A,DATA 1A-3 OB:Hillndal-Mdlnd,2
+DATA 10 [Inbound],GoDurham:10A,DATA 10A-8 IB:NHopeCmn-DrhmTech,2
+DATA 10 [Outbound],GoDurham:8,DATA 8-10A OB:DrhmTech-NHopeCmn,2
+DATA 10A [Outbound],GoDurham:8,DATA 8-10A OB:DrhmTech-NHopeCmn,2
+DATA 10A [Inbound],GoDurham:10A,DATA 10A-8 IB:NHopeCmn-DrhmTech,2
+DATA 10B [Inbound],GoDurham:10B:IB,DATA 10B IB:Pickett-Downtown,2
+DATA 10B [Outbound],GoDurham:10B:OB,DATA 10B OB:Downtown-Pickett,2
+DATA 11 [Outbound],GoDurham:11:OB,DATA 11 OB:Downtown-Bennett,2
+DATA 11 [Inbound],GoDurham:11:IB,DATA 11 IB:Bennett-Downtown,2
+DATA 12 [Inbound],GoDurham:14,DATA 14-12 IB:SPT-Downtown,2
+DATA 12 [Outbound],GoDurham:12,DATA 12-14 OB:Downtown-SPT,2
+DATA 14 [NC 54 P&R -> Southpoint Mall],GoDurham:12,DATA 12-14 OB:Downtown-SPT,2
+DATA 14 [Soutpoint Mall -> NC 54],GoDurham:14,DATA 14-12 IB:SPT-Downtown,2
+DATA 15 [Outbound],GoDurham:15:OB,DATA 15 OB:Downtown-Briercreek,2
+DATA 15 [Inbound],GoDurham:15:IB,DATA 15 IB:Briercreek-Downtown,2
+DATA 16 [Outbound],GoDurham:16A:OB,DATA 16A OB:Downtown-MSprng,2
+DATA 16 [Inbound],GoDurham:16A:IB,DATA 16A IB:MSprng-Downtown,2
+DATA 16A [Outbound],GoDurham:16A:OB,DATA 16A OB:Downtown-MSprng,2
+DATA 16A [Inbound],GoDurham:16A:IB,DATA 16A IB:MSprng-Downtown,2
+DATA 16B [Outbound],GoDurham:16B:OB,DATA 16B OB:Downtown-Rummel,2
+DATA 16B [Inbound],GoDurham:16B:IB,DATA 16B IB:Rummel-Downtown,2
+DATA 1A [Outbound],GoDurham:3A,DATA 3-1A IB:Mdlnd-Hillndal,2
+DATA 1A [Inbound],GoDurham:1A,DATA 1A-3 OB:Hillndal-Mdlnd,2
+DATA 2 [Inbound],GoDurham:2A,DATA 2A-4 IB:Angier-Horton,2
+DATA 2 [Outbound],GoDurham:4B,DATA 4-2B OB:Horton-Raynor,2
+DATA 2A [Outbound],GoDurham:4A,DATA 4-2A OB:Horton-Angier,2
+DATA 2A [Inbound],GoDurham:2A,DATA 2A-4 IB:Angier-Horton,2
+DATA 2B [Inbound],GoDurham:2B,DATA 2B-4 IB:Raynor-Horton,2
+DATA 2B [Outbound],GoDurham:4B,DATA 4-2B OB:Horton-Raynor,2
+DATA 3 [Inbound],GoDurham:3A,DATA 3-1A IB:Mdlnd-Hillndal,2
+DATA 3 [Outbound],GoDurham:1A,DATA 1A-3 OB:Hillndal-Mdlnd,2
+DATA 4 [Outbound],GoDurham:2A,DATA 2A-4 IB:Angier-Horton,2
+DATA 4 [Inbound],GoDurham:4A,DATA 4-2A OB:Horton-Angier,2
+TTA 400 [Durham Station -> UNC Hospitals],GoTriangle:400:WB,TT 400 WB:Durham-NHC-Chapel Hill,2
+TTA 400 [UNC Hospitals -> Durham Station],GoTriangle:400:EB,TT 400 EB:Chapel Hill-NHC-Durham,2
+TTA 405 [Durham Station -> UNC Hospitals],GoTriangle:405:WB,TT 405 WB:Durham-Chapel Hill,3
+TTA 405 [UNC Hospitals -> Durham Station],GoTriangle:405:EB,TT 405 EB:Chapel Hill-Durham,3
+TTA 420 [Chapel Hill -> Hillborough],GoTriangle:420:NB,TT 420 NB:Chap Hill-Hillsb,2
+TTA 420 [Hillsborough -> Chapel Hill],GoTriangle:420:SB,TT 420 SB:Hillsb-Chap Hill,2
+DATA 5 [Outbound],GoDurham:6,DATA 6-5 IB:Cnstitutn-StrtsSPt,2
+DATA 5 [Inbound],GoDurham:5,DATA 5-6 OB:StrtsSPt-Cnstitutn,2
+DATA 6 [Outbound],GoDurham:5,DATA 5-6 OB:StrtsSPt-Cnstitutn,2
+DATA 6 [Inbound],GoDurham:6,DATA 6-5 IB:Cnstitutn-StrtsSPt,2
+DATA 6B [Outbound],GoDurham:5B,DATA 5-6B OB:StrtsSPt-Sparger,2
+DATA 6B [Inbound],GoDurham:6B,DATA 6B-5 IB:Sparger-StrtsSPt,2
+DATA 7 [Inbound],GoDurham:7:IB,DATA 7 IB:MLKRxb-Downtown,2
+DATA 7 [Outbound],GoDurham:7:OB,DATA 7 OB:Downtown-MLKRoxb,2
+TTA 700 [Regional Transit Center -> Durham Station],GoTriangle:700:WB,TT 700 WB:RTC-Durham,2
+TTA 700 [Durham Station -> Regional Transit Center],GoTriangle:700:EB,TT 700 EB:Durham-RTC,2
+DATA 8 [Outbound],GoDurham:10A,DATA 10A-8 IB:NHopeCmn-DrhmTech,2
+DATA 8 [Inbound],GoDurham:8,DATA 8-10A OB:DrhmTech-NHopeCmn,2
+TTA 800 [UNC Hospitals -> Regional Transit Center],GoTriangle:800:EB,TT 800 EB,3
+TTA 800 [Regional Transit Center -> UNC Hospitals],GoTriangle:800:WB,TT 800 WB:RTC-Southpoint-CH,3
+TTA 805 [Regional Transit Center -> UNC Hospitals],GoTriangle:805:WB,TT 805 WB:RTC-Woodcroft-CH,2
+TTA 805 [UNC Hospitals -> Regional Transit Center],GoTriangle:805:EB,TT 805 EB:CH-Woodcroft-RTC,2
+DATA 9 [Inbound],GoDurham:9A:IB,DATA 9A IB:Horton-Downtown,2
+DATA 9 [Outbound],GoDurham:9A:OB,DATA 9A OB:Downtown-Horton,2
+DATA 9A [Outbound],GoDurham:9A:OB,DATA 9A OB:Downtown-Horton,2
+DATA 9A [Inbound],GoDurham:9A:IB,DATA 9A IB:Horton-Downtown,2
+DATA 9B [Outbound],GoDurham:9B:OB,DATA 9B OB:Downtown-N High,2
+DATA 9B [Inbound],GoDurham:9B:IB,DATA 9B IB:N High-Downtown,2
+CHT A [Weiner St -> Southern Human Services],CHT:A:NB,CHT A NB:Weiner-SHS,2
+CHT A [Southern Human Services ->Weiner St],CHT:A:SB,CHT A SB:SHS-Weiner,2
+DATA BCC [Outbound],GoDurham:BCC:OB,DATA BCC WB:Golden Belt-Duke,2
+DATA BCC [Inbound],GoDurham:BCC:IB,DATA BCC EB:Duke-Golden Belt,2
+CHT CCX [Chatham P&R -> Student Union],CHT:CCX:IB,CHT CCX IB:Chatham-ChapelHill,2
+CHT CCX [Student Union  -> Chatham P&R],CHT:CCX:OB,CHT CCX OB:ChapelHill-Chatham,2
+CHT CL [UNC -> Sagebrook],CHT:CL:OB,CHT CL OB: UNCHosp-WaldenGrnflds,2
+CHT CL [Sagebrook -> UNC],CHT:CL:IB,CHT CL IB: WaldenGrnflds-UNCHosp,2
+CHT CM [Family Med. Center -> Jones Ferry P&R],CHT:CM:IB,CHT CM IB:FamPrac-JonesFerry,2
+CHT CM [Jones Ferry P&R -> Family Med. Center],CHT:CM:OB,CHT CM OB:JonesFerry-FamPrac,2
+CHT CPX [Carrboro Plaza P&R -> UNC],CHT:CPX:EB,CHT CPX EB,3
+CHT CPX [UNC -> Carrboro Plaza P&R],CHT:CPX:WB,CHT CPX WB,3
+TTA CRX [CH -> Ral],GoTriangle:900:OB,TT CRX EB:Chapel Hill-Raleigh,3
+TTA CRX [Ral -> CH],GoTriangle:900:IB,TT CRX WB,3
+CHT CW [Jones Ferry P&R ->UNC],CHT:CW:OB,CHT CW OB:JonesFerry-Pittsboro,2
+CHT CW [UNC -> Jones Ferry P&R],CHT:CW:IB,CHT CW IB:Pittsboro-JonesFerry,2
+CHT D [Smith Level -> Old Sterling],CHT:D:OB,CHT D OB:SmithLevel-Providence,2
+CHT D [Old Sterling -> Smith Level],CHT:D:IB,CHT D IB:Providence-SmithLevel,2
+TTA DRX [Dur -> Ral],GoTriangle:901:OB,TT DRX EB:Durham-Raleigh,3
+TTA DRX [Ral -> Dur],GoTriangle:901:IB,TT DRX WB:Raleigh-Durham,3
+CHT DX [UNC/Hospital -> Old Durham Rd],CHT:DX:OB,CHT DX OB:UNC-ProvRdEastowne,3
+CHT DX [Old Durham Rd -> UNC/Hospital],CHT:DX:IB,CHT DX IB:Providence-UNC,3
+CHT F [Colony Woods Dr -> McDougle School],CHT:F:IB,CHT F IB:ColonyWoods-McDougle,2
+CHT F [McDougle School -> Colony Woods Dr],CHT:F:OB,CHT F OB:McDougle-ColonyWoods,2
+CHT FCX [UNC Hospital -> FC P&R],CHT:FCX:IB,CHT FCX IB:Pittsboro-FridayCntr,3
+CHT FCX [ FC P&R -> UNC Hospital],CHT:FCX:OB,CHT FCX OB:FridayCntr-Pittsboro,3
+CHT G [University Mall -> Booker Creek],CHT:G:OB,CHT G OB:UnivtoBooker,2
+CHT G [Booker Creek -> University Mall],CHT:G:IB,CHT G IB:BookerCreek-Univ,2
+CHT HS [Morris Grove -> Downtown CH],CHT:HS:OB,CHT HS OB:MGElem-Varsity,2
+CHT HS [Downtown CH -> Morris Grove],CHT:HS:IB,CHT HS IB:VarsityTheater-MGElem,2
+CHT HU [UNC Hospitals -> Hedrick Building],CHT:HU:IB,CHT HUX IB:UNCHosp-HedrickBldg,3
+CHT HU [Hedrick Building -> UNC Hospitals],CHT:HU:OB,CHT HUX OB:HedrickBldg-UNCHosp,3
+CHT J [Jones Ferry -> Rock Haven Rd],CHT:J:IB,CHT J IB:JonesFerry-RockCrkApt,2
+CHT J [Rock Haven Rd. -> Jones Ferry],CHT:J:OB,CHT J OB:RckCrkApts-JonesFerry,2
+CHT JFX [AM service (loop)],CHT:JFX:IB,CHT JFX IB:JonesFerryPNR-UNC,3
+CHT JFX [PM service (loop)],CHT:JFX:OB,CHT JFX OB:UNC-JonesFerryPNR,3
+CHT N [Estes Park -> Family Med. Center],CHT:N:IB,CHT N IB:EstsParkApt-FamilyPract,2
+CHT N [Family Med. Center -> Estes Park],CHT:N:OB,CHT N OB:FamilyPract-EstsPrkApt,2
+CHT NS [Southern Village P&R -> Eubanks P&R],CHT:NS:IB,CHT NS IB:SVillage-Eubanks,2
+CHT NS [Eubanks P&R -> Southern Village P&R],CHT:NS:OB,CHT NS OB:Eubanks-SVillage,2
+CHT NU [UNC Hospitals -> RR Lot],CHT:NU:IB,CHT NU IB:UNCHosp-PR Lot,2
+CHT NU [RR Lot -> UNC Hospitals],CHT:NU:OB,CHT NU OB: PRLot-UNCHosp,2
+CHT PX [Pittsboro to UNC Hospital],CHT:PX:IB,CHT PX IB:Pittsboro-UNCHosp,2
+CHT PX [UNC Hospital to Pittsboro],CHT:PX:OB,CHT PX OB:UNCHosp-Pittsboro,2
+DATA RSX,GoDurham:RSX:OB,DATA RSX OB: Robertson EXP,3
+CHT RU [loop],CHT:RU:Loop,CHT RU,2
+CHT S [NC 54 P&R -> UNC Hospitals],CHT:S:OB,CHT S OB:FridayCntr-UNCHosp,2
+CHT S [UNC Hospitals -> NC 54 P&R],CHT:S:IB,CHT S IB:UNCHosp-FridayCntr,2
+CHT T [ECHHS -> UNC Hospitals],CHT:T:OB,CHT T OB:ECHHS-UNC Hosp,2
+CHT T [UNC Hospitals-> ECHHS],CHT:T:IB,CHT T IB:UNCHosp-ECHHghSch,2
+CHT U [loop],CHT:U:Loop,CHT U,2
+CHT V [Southern Village P&R -> Meadowmont],CHT:V:OB,CHT V OB:SVillage-Meadowmont,2
+CHT V [Meadowmont -> Southern Village P&R],CHT:V:IB,CHT V IB:Meadowmont-SVillage,2

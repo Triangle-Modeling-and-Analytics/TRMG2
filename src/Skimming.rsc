@@ -30,6 +30,7 @@ Macro "Skimming" (Args)
         RunMacro("Create Route Networks", Args)
     end
     RunMacro("Roadway Skims", Args)
+    RunMacro("Create Average Roadway Skims", Args)
     RunMacro("Transit Skims", Args)
 
     return(1)
@@ -89,6 +90,53 @@ Macro "Roadway Skims" (Args)
             end
         end
     end
+endmacro
+
+/*
+This macro uses directionality factors to create skims that are a weighted
+average of the PA and AP travel time.
+*/
+
+Macro "Create Average Roadway Skims" (Args)
+
+    factor_tbl = Args.DirectionFactorsSkims
+    skim_dir = Args.[Output Folder] + "/skims/roadway"
+    modes = {"sov", "hov"}
+
+    factor_vw = OpenTable("factor_vw", "CSV", {factor_tbl})
+    rh = GetFirstRecord(factor_vw + "|", )
+    while rh <> null do
+        tod = factor_vw.period
+        hb = factor_vw.homebased
+        tour_type = factor_vw.tour_type
+        pa_fac = factor_vw.pa
+        ap_fac = factor_vw.ap
+
+        for mode in modes do
+            in_skim = skim_dir + "/skim_" + mode + "_" + tod + ".mtx"
+            trans_skim = Substitute(in_skim, ".mtx", "_t.mtx", )
+            out_skim = skim_dir + "/avg_skim_" + hb + "_" + tour_type + "_" + mode + "_" + tod + ".mtx"
+
+            CopyFile(in_skim, out_skim)
+            out_m = CreateObject("Matrix")
+            out_m.LoadMatrix(out_skim)
+            out_cores = out_m.data.cores
+            TransposeMatrix(out_m.MatrixHandle, {"File Name": trans_skim, Label: "transposed"})
+            t_m = CreateObject("Matrix")
+            t_m.LoadMatrix(trans_skim)
+            t_cores = t_m.data.cores
+
+            for core in out_m.CoreNames do
+                out_cores.(core) := pa_fac * out_cores.(core) + ap_fac * t_cores.(core)
+            end
+            t_m = null
+            t_cores = null
+            DeleteFile(trans_skim)
+        end
+
+        rh = GetNextRecord(factor_vw + "|", , )
+    end
+    CloseView(factor_vw)
 endmacro
 
 /*

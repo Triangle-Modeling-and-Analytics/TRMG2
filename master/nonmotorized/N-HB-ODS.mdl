@@ -5,24 +5,21 @@ model label=NM_N-HB-ODS version=1.5
   field name=HHwKids
   field name=NoAutos
   field name=IncomePerCapita
-  field name=WalkAccess
   source name=Data1 type=Survey primary=True origins=True destinations=True view=NMestimation set=Selection idfield=ID origfield=p_taz destfield=p_taz weightfield=trip_weight_combined
   segment name=*
-    term name=IsSenior coefficient=-0.360952
-    term name=IsWorker coefficient=-0.189161
-    term name=Walkability coefficient=0.277113
-    term name=HHwKids coefficient=-0.578368
-    term name=NoAutos coefficient=0.888372
+    term name=IsSenior coefficient=-0.361298
+    term name=IsWorker coefficient=-0.188259
+    term name=Walkability coefficient=0.517794
+    term name=HHwKids coefficient=-0.579603
+    term name=NoAutos coefficient=0.890337
     term name=IncomePerCapita coefficient=0.00001
-    term name=WalkAccess coefficient=0.018237
     choice source=Data1 spec=IsNM
     alternative name=Motorized id=0
-    alternative name=NonMotorized id=1 asc=-0.197531
+    alternative name=NonMotorized id=1 asc=-0.22062
       data source=Data1 spec=is_senior term=IsSenior type=Table
       data source=Data1 spec=is_worker term=IsWorker type=Table
       data source=Data1 spec=Walkability term=Walkability type=Table
       data source=Data1 spec=HHwKids term=HHwKids type=Table
       data source=Data1 spec=NoAutos term=NoAutos type=Table
       data source=Data1 spec=income_per_capita term=IncomePerCapita type=Table
-      data source=Data1 spec=Oth_access_walk term=WalkAccess type=Table
 

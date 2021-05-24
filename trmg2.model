@@ -1,3 +1,4 @@
+
 /**
   The macro "trmg2" holds the definition for the graphical flowchart of this model,
   with steps and links connecting steps.
@@ -26,6 +27,7 @@ Body:
     FlowChartNode(model,"Summaries",,,)
     FlowChartNode(model,"Parking Model",,,)
     FlowChartNode(model,"Skimming",,,)
+    FlowChartNode(model,"Transit Assignment",,,)
     //
     // Links
     //
@@ -132,3 +134,13 @@ Body:
     ShowMessage('Running: Skimming')
     Return(True)
 EndMacro
+
+
+Macro "Transit Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Transit Assignment"}}}
+Body:
+    ShowMessage('Running: Transit Assignment')
+    Return(True)
+EndMacro
+

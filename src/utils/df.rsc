@@ -561,53 +561,20 @@ Class "df" (tbl, desc, groups)
     * file
       * String
       * full path of csv file
-    * append
-      * True/False
-      * Whether to append to an existing csv (defaults to false)
   */
-  Macro "write_csv" (file, append) do
+  Macro "write_csv" (file) do
 
     // Check for required arguments
     if file = null then Throw("write_csv: no file provided")
     if Right(file, 3) <> "csv"
       then Throw("write_csv: file name must end with '.csv'")
-    if append <> null and !self.in(append, {"a", "w"})
-      then Throw("write_csv: 'append' must be either 'a', 'w', or null")
 
     // Check validity of table
     self.check()
 
-    // Open a csv file for writing
-    if append then file = OpenFile(file, "a")
-    else file = OpenFile(file, "w")
-
-    // Write the row of column names
-    colnames = self.colnames()
-    for i = 1 to colnames.length do
-      if i = 1 then firstLine = colnames[i]
-      else firstLine = firstLine + "," + colnames[i]
-    end
-    WriteLine(file, firstLine)
-
-    // Write each remaining row
-    for r = 1 to self.nrow() do
-      line = null
-      for c = 1 to colnames.length do
-        colname = colnames[c]
-
-        vec = self.get_col(colname)
-        type = vec.type
-
-        strVal = if type = "string" then vec[r]
-        else String(vec[r])
-
-        line = if c = 1 then strVal
-        else line + "," + strVal
-      end
-      WriteLine(file, line)
-    end
-
-    CloseFile(file)
+    // Create a view and export to bin
+    vw = self.create_view()
+    ExportView(vw + "|", "CSV", file, , {"CSV Header": "true"})
   EndItem
 
   /*doc

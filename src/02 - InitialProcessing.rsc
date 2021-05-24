@@ -460,15 +460,17 @@ Macro "Other Attributes" (Args)
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
-    trans_ratio = Args.TransponderRatio
+    trans_ratio_auto = Args.TransponderRatioAuto
+    trans_ratio_sut = Args.TransponderRatioSUT
+    trans_ratio_mut = Args.TransponderRatioMUT
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length"},
+        {"TollCostSOV", "Real", 10, 2, , , , "AutoTollRate * Length|Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4"},
+        {"TollCostSUT", "Real", 10, 2, , , , "SUTTollRate * Length * 2|Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "MUTTollRate * Length * 4|Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -522,11 +524,13 @@ Macro "Other Attributes" (Args)
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     // Determine weighted average toll rate based on transponder usage
-    v_tollrate = v_tollrate_t * trans_ratio + v_tollrate_nt * (1 - trans_ratio)
-    v_tollcost_sov = v_tollrate * v_len
-    v_tollcost_sut = v_tollcost_sov * 2
-    v_tollcost_mut = v_tollcost_sov * 4
-    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_sov
+    v_tollrate_auto = v_tollrate_t * trans_ratio_auto + v_tollrate_nt * (1 - trans_ratio_auto)
+    v_tollrate_sut = v_tollrate_t * trans_ratio_sut + v_tollrate_nt * (1 - trans_ratio_sut)
+    v_tollrate_mut = v_tollrate_t * trans_ratio_mut + v_tollrate_nt * (1 - trans_ratio_mut)
+    v_tollcost_auto = v_tollrate_auto * v_len
+    v_tollcost_sut = v_tollrate_sut * v_len * 2
+    v_tollcost_mut = v_tollrate_mut * v_len * 4
+    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_auto
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -534,7 +538,7 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
-    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_sov, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
     SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hot, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
@@ -579,17 +583,21 @@ Macro "Calculate Bus Speeds" (Args)
     link_dbd = Args.Links
     periods = Args.periods
     dirs = {"AB", "BA"}
+    modes = {"lb", "eb"}
 
     eq_vw = OpenTable("bus_eqs", "CSV", {csv})
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: link_dbd})
+    {, , name, ext} = SplitPath(csv)
     a_fields = null
     for period in periods do
         for dir in dirs do
-            a_fields = a_fields + {{
-                dir + period + "BusTime", "Real", 10, 2, , , ,
-                "The time it takes a bus to travel the link.|" + 
-                "Is a function of auto speeds."
-            }}
+            for mode in modes do
+                a_fields = a_fields + {{
+                    dir + period + Upper(mode) + "Time", "Real", 10, 2, , , ,
+                    "The time it takes " + mode + " to travel the link.|" + 
+                    "See " + name + ext + " for details"
+                }}
+            end
         end
     end
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
@@ -602,31 +610,22 @@ Macro "Calculate Bus Speeds" (Args)
         {eq_specs.HCMType, eq_specs.AreaType}, 
     )
 
-    v_length = GetDataVector(jv + "|", "Length", )
+    v_length = GetDataVector(jv + "|", llyr_specs.[Length], )
     for period in periods do
-        pkop = if period = "AM" or period = "PM" then "pk" else "op"
-        speed1 = GetDataVector(jv + "|", eq_specs.("speed1" + pkop), )
-        speed2 = GetDataVector(jv + "|", eq_specs.("speed2" + pkop), )
-        fac1 = GetDataVector(jv + "|", eq_specs.("fac1" + pkop), )
-        fac2 = GetDataVector(jv + "|", eq_specs.("fac2" + pkop), )
-        const2 = GetDataVector(jv + "|", eq_specs.("const2" + pkop), )
-        dflt = GetDataVector(jv + "|", eq_specs.("default" + pkop), )
-
         for dir in dirs do
-            v_auto_time = GetDataVector(jv + "|", dir + period + "Time", )
+            v_auto_time = GetDataVector(jv + "|", llyr_specs.(dir + period + "Time"), )
             v_auto_speed = v_length / (v_auto_time / 60)
-            v_bus_speed = if v_auto_speed < speed1 
-                then v_auto_speed * fac1
-                else if v_auto_speed < speed2
-                    then v_auto_speed * fac2 + const2
-                    else dflt
-            v_bus_time = v_length / v_bus_speed * 60
-            SetDataVector(jv + "|", dir + period + "BusTime", v_bus_time, )
+            for mode in modes do
+                v_fac = GetDataVector(jv + "|", eq_specs.(mode + "_fac"), )
+                v_speed = v_auto_speed * v_fac
+                v_time = v_length / v_speed * 60
+                v_time = if v_time = null then v_auto_time else v_time
+                SetDataVector(jv + "|", llyr_specs.(dir + period + Upper(mode) + "Time"), v_time, )
+            end
         end
     end
 
     CloseView(jv)
-    CloseView(eq_vw)
     CloseMap(map)
 endmacro
 
@@ -724,8 +723,8 @@ Macro "Create Route Networks" (Args)
     for period in periods do
         for transit_mode in transit_modes do
 
-            // Busses will use the bus speed equations, but rail/brt will use
-            // stop dwell times.
+            // Busses use the bus speed equations, but rail/brt will use
+            // auto times + stop dwell times.
             if transit_mode = "lb" or transit_mode = "eb" 
                 then use_dwell = "false"
                 else use_dwell = "true"
@@ -743,7 +742,7 @@ Macro "Create Route Networks" (Args)
                 o.WalkLinkFilter = "W = 1"
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
-                if use_dwell then suffix = "Time" else suffix = "BusTime"
+                if use_dwell then suffix = "Time" else suffix = Upper(transit_mode) + "Time"
                 o.AddLinkField({
                     Name: "IVTT", 
                     TransitFields: {"AB" + period + suffix, "BA" + period + suffix}, 
@@ -777,8 +776,8 @@ Macro "Create Route Networks" (Args)
                 o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 999,
-                    MaxTransfers = 4
-                    // VOT: .2  TODO: determine this value
+                    MaxTransfers = 4,
+                    VOT = .1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({PermitWalkOnly: false})
                 o.Combination({CombinationFactor: .1})
@@ -810,6 +809,11 @@ Macro "Create Route Networks" (Args)
                     time_global_opts = time_global_opts + {
                         DwellOn: dwell_time / 2,
                         DwellOff: dwell_time / 2
+                    }
+                end else do
+                    time_global_opts = time_global_opts + {
+                        DwellOn: 0,
+                        DwellOff: 0
                     }
                 end
                 o.StopTimeFields(stop_time_opts)
