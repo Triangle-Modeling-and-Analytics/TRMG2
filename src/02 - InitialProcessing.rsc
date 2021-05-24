@@ -588,11 +588,17 @@ Macro "Calculate Bus Speeds" (Args)
     eq_vw = OpenTable("bus_eqs", "CSV", {csv})
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: link_dbd})
     {, , name, ext} = SplitPath(csv)
-    a_fields = null
+    a_speed_fields = null
+    a_time_fields = null
     for period in periods do
         for dir in dirs do
             for mode in modes do
-                a_fields = a_fields + {{
+                a_speed_fields = a_speed_fields + {{
+                    dir + period + Upper(mode) + "Speed", "Real", 10, 2, , , ,
+                    "The speed " + mode + " travels on the link.|" + 
+                    "See " + name + ext + " for details"
+                }}
+                a_time_fields = a_time_fields + {{
                     dir + period + Upper(mode) + "Time", "Real", 10, 2, , , ,
                     "The time it takes " + mode + " to travel the link.|" + 
                     "See " + name + ext + " for details"
@@ -600,7 +606,8 @@ Macro "Calculate Bus Speeds" (Args)
             end
         end
     end
-    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+    RunMacro("Add Fields", {view: llyr, a_fields: a_speed_fields})
+    RunMacro("Add Fields", {view: llyr, a_fields: a_time_fields})
     {, eq_specs} = RunMacro("Get Fields", {view_name: eq_vw})
     {, llyr_specs} = RunMacro("Get Fields", {view_name: llyr})
     
@@ -619,11 +626,15 @@ Macro "Calculate Bus Speeds" (Args)
                 v_fac = GetDataVector(jv + "|", eq_specs.(mode + "_fac"), )
                 v_speed = v_auto_speed * v_fac
                 v_time = v_length / v_speed * 60
+                // handle links without auto times (e.g. transit only)
                 v_time = if v_time = null then v_auto_time else v_time
-                SetDataVector(jv + "|", llyr_specs.(dir + period + Upper(mode) + "Time"), v_time, )
+                v_speed = v_length / (v_time / 60)
+                data.(llyr_specs.(dir + period + Upper(mode) + "Speed")) = v_speed
+                data.(llyr_specs.(dir + period + Upper(mode) + "Time")) = v_time
             end
         end
     end
+    SetDataVectors(jv + "|", data, )
 
     CloseView(jv)
     CloseMap(map)
