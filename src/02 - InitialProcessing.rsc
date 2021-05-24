@@ -460,15 +460,17 @@ Macro "Other Attributes" (Args)
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
     periods = Args.periods
-    trans_ratio = Args.TransponderRatio
+    trans_ratio_auto = Args.TransponderRatioAuto
+    trans_ratio_sut = Args.TransponderRatioSUT
+    trans_ratio_mut = Args.TransponderRatioMUT
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length"},
+        {"TollCostSOV", "Real", 10, 2, , , , "AutoTollRate * Length|Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4"},
+        {"TollCostSUT", "Real", 10, 2, , , , "SUTTollRate * Length * 2|Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "MUTTollRate * Length * 4|Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -522,11 +524,13 @@ Macro "Other Attributes" (Args)
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     // Determine weighted average toll rate based on transponder usage
-    v_tollrate = v_tollrate_t * trans_ratio + v_tollrate_nt * (1 - trans_ratio)
-    v_tollcost_sov = v_tollrate * v_len
-    v_tollcost_sut = v_tollcost_sov * 2
-    v_tollcost_mut = v_tollcost_sov * 4
-    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_sov
+    v_tollrate_auto = v_tollrate_t * trans_ratio_auto + v_tollrate_nt * (1 - trans_ratio_auto)
+    v_tollrate_sut = v_tollrate_t * trans_ratio_sut + v_tollrate_nt * (1 - trans_ratio_sut)
+    v_tollrate_mut = v_tollrate_t * trans_ratio_mut + v_tollrate_nt * (1 - trans_ratio_mut)
+    v_tollcost_auto = v_tollrate_auto * v_len
+    v_tollcost_sut = v_tollrate_sut * v_len * 2
+    v_tollcost_mut = v_tollrate_mut * v_len * 4
+    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_auto
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -534,7 +538,7 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
-    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_sov, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
     SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hot, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )

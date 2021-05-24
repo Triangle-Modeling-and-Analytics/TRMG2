@@ -181,38 +181,11 @@ tribble(
 #   kable_styling(full_width = FALSE)
 ```
 
-The TRMG2 does not model transponder ownership; therefore, a blended rate must
-be calculated that accurately represents the mix of vehicles using the facility.
-To support that calculation, the stakeholders collected information on total
-transactions by transponder and by mail. Caliper used this metric to calculate
-the percentage split as shown below. Unfortunately, this info was not available
-by class, so the total percentage is used for all axle classes.
-
-```{r}
-df <- tibble(
-  method = c("Transponder", "By Mail"),
-  total_trans = c(26360672, 18883195)
-) %>%
-  mutate(
-    pct = percent(total_trans / sum(total_trans))
-  )
-
-df %>%
-  rename(
-    Method = method,
-    `Total Transactions` = total_trans,
-    Percent = pct
-  ) %>%
-  kable(format.args = list(big.mark = ",")) %>%
-  kable_styling(full_width = FALSE)
-```
-
-The final weighted toll rate for 2-axle vehicles is $0.22/mi.
-
-```{r}
-# TODO: update for 2020
-# The final weighted toll rate for 2-axle vehicles is $0.25/mi.
-```
+The TRMG2 does not predict transponder ownership, but instead has parameters
+that can be modified during scenario testing. For the base year, the parameters
+were calculated using data obtained from NC Turnpike Authority. These allowed
+transponder utilization to be calculated by vehicle class as shown in the table
+below.
 
 ```{r, include=FALSE}
 # Leta provided toll data in May from turnpike. Use it to generate more
@@ -235,11 +208,30 @@ toll_summary <- toll_csv %>%
   # group_by(period, class, type) %>%
   group_by(class, type) %>%
   summarize(count = sum(count)) %>%
-  mutate(pct = count / sum(count)) %>%
+  mutate(
+    class = case_when(
+      class == 1 ~ "Auto",
+      class == 2 ~ "SUT",
+      TRUE ~ "MUT"
+    ),
+    pct = round(count / sum(count) * 100, 0)
+  ) %>%
   filter(type == "prepaid") %>%
   # select(period, class, pct)
   select(class, pct)
+
+toll_summary %>%
+  rename(`Vechile Class` = class, `Transponder %` = pct) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
 ```
+
+```{r}
+# TODO: update for 2020
+# The final weighted toll rate for 2-axle vehicles is $0.25/mi.
+```
+
+
 
 
 ## Transit Layer
