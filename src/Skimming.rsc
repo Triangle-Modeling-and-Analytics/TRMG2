@@ -140,10 +140,21 @@ Macro "Create Average Roadway Skims" (Args)
 endmacro
 
 /*
+Creates the various transit skims needed by the model. The `override` argument
+allows only some skims to be created. This is useful for earlier model steps
+like accessibility calculations.
 
+Inputs
+  * Args: standard args array
+  * overrides
+    * named array containing overrides for the following:
+      * periods
+      * transit_modes
+      * access_modes
+    * If provided, only these skims will be created. Used by accessibility.
 */
 
-Macro "Transit Skims" (Args)
+Macro "Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
     periods = Args.periods
@@ -153,13 +164,17 @@ Macro "Transit Skims" (Args)
     out_dir = Args.[Output Folder] + "/skims/transit"
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+    
+    // overrides
+    if overrides.periods <> null then periods = overrides.periods
+    if overrides.transit_modes <> null then transit_modes = overrides.transit_modes
+    if overrides.access_modes <> null then access_modes = overrides.access_modes
 
     for period in periods do
         for mode in transit_modes do
             for access in access_modes do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
-
                 obj = CreateObject("Network.TransitSkims")
                 obj.Method = "PF"
                 obj.LayerRS = rts_file
