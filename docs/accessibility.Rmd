@@ -91,16 +91,16 @@ knitr::include_graphics("img/accessibility/bus_stop_prox.png")
 knitr::include_graphics("img/accessibility/walkability.png")
 ```
 
-### Logsum SOV
+### Transit Access
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/logsums_nearby_sov.png")
+knitr::include_graphics("img/accessibility/transit_access.png")
 ```
 
-### Logsum Walk
+### Walk Access
 
 ```{r, out.width="50%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/logsums_nearby_walk.png")
+knitr::include_graphics("img/accessibility/walk_access.png")
 ```
 
 ## Details
@@ -190,7 +190,7 @@ model %>%
   kable_styling(full_width = FALSE)
 ```
 
-### Logsums
+### Logsum Accessibilities
 
 Logsums can be considered as a weighted average accessibility. While logsums are
 most often discussed in relation to mode choice and destination choice models,
@@ -199,39 +199,30 @@ formulation as a proxy and to avoid endogeneity problems from simultaneously
 estimating destination choice models including logsums of those same and other
 destination choice models.
 
-$$A_i = ln(\sum_j S_jt_{ijm}^{\alpha}e^{\beta t^{ijm}})$$
+$$A_i = ln(\sum_j S_jt_{ijm}^{\beta}e^{\gamma t^{ijm}})$$
 
 Where:  
 $A_i$: Accessibility of zone i  
 $t_{ijm}$: Travel time between zone i and j by mode m  
 $S_j$: Attractions in zone j (size term)
 
-The primary purpose for these mode-specific accessibility values is to inform
-the non-home-based models. For instance, a non-home-based transit trip is likely
-to occur in areas with high transit accessibility. More importantly, they cannot
-occur in areas with no transit access.
+Accessibility logsums are useful for many steps of the model. One example is the non-home-based production models. A non-home-based walk trip is more likely
+to occur in areas with high walk accessibility, and they are less likely in area
+with poor access.
 
 ```{r, include=FALSE}
-tbl <- read_csv("../master/accessibility/attraction_rates.csv")
+tbl <- read_csv("../master/accessibility/accessibilities.csv")
 ```
 
-In addition to calculating accessibility logsums by mode, three different size
-term formulations were used to capture different types of access. Those three
-types are:
-
-- General: A balanced accessibility to various land uses
-- Nearby: An accessibility that weights land uses more heavily that generate
-  shorter trips (e.g. retail)
-- Employment: A measure of accessibility to employment/jobs
-
-The rates for the size term in each of the above types of accessibility are
-shown in the table below.
+The TRMG2 makes use of a fairly generic function for calculating multiple
+accessibility variables. The table below presents two as examples. The first
+four rows detail which skims, cores, and decay parameters to use. The remaining
+rows show the attraction rates for the size variable calculation.
 
 ```{r}
 tbl %>%
-  select(Field, General = general_attr, Nearby = nearby_attr, 
-         Employment = employment_attr) %>%
-  filter(!str_detect(Field, "Building")) %>%
+  select(Param, access_general_sov, access_transit) %>%
+  filter(access_general_sov != "0" | access_transit != "0") %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 ```
