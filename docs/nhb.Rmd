@@ -1147,7 +1147,7 @@ dependent_vars <- c(
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(
   trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
+  boost = TRUE
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
@@ -1450,7 +1450,7 @@ dependent_vars <- c(
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(
   trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
+  boost = TRUE
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)

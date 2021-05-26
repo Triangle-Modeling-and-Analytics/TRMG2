@@ -295,6 +295,13 @@ Macro "Create Accessibility Skims" (Args)
     out_files.bike = output_dir + "/skims/nonmotorized/bike_skim.mtx"
     obj.OutputMatrix({MatrixFile: out_files.bike, Matrix: "Bike Skim"})
     ret_value = obj.Run()
+    // Transit Skim
+    overrides = {
+        periods: {"AM"},
+        access_modes: {"w"},
+        transit_modes: {"lb"}
+    }
+    RunMacro("Transit Skims", Args, overrides)
 
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
@@ -322,11 +329,12 @@ Macro "Calculate Logsum Accessibilities" (Args)
     skim_dir = Args.[Output Folder] + "\\skims"
     sov_skim = skim_dir + "\\roadway\\accessibility_sov_AM.mtx"
     walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
+    transit_skim = skim_dir + "\\transit\\skim_AM_w_lb.mtx"
 
     RunMacro("Accessibility Calculator", {
         table: se_file,
         params: param_file,
-        skims: {sov: sov_skim, walk: walk_skim}
+        skims: {sov: sov_skim, walk: walk_skim, transit: transit_skim}
     })
 endmacro
 
