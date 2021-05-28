@@ -1533,7 +1533,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 **TODO: Vince add intro**
 
-**TODO: Kyle to add transit when skims available**
+**TODO: Kyle to remove transit boosting given reverse relationship**
 
 The chart below shows how accessibility impacts each trip type. The y-axis is a
 simple factor. When the factor is 1, the trip rates will be the same as

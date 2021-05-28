@@ -192,6 +192,16 @@ hh_add_income_final <- hh_add_flags %>%
     )
   ) %>%
   relocate(hh_inc_final:hh_inc_final_lab, .after = hh_income_midpt)
+
+hh_add_choice_markets <- hh_add_income_final %>%
+  mutate(
+    veh_sufficient = ifelse(num_vehicles < num_adults, "vi", "vs"),
+    choice_segment = case_when(
+      num_vehicles == 0 ~ "v0",
+      hh_inc_final <= 2 ~ paste0("il", veh_sufficient),
+      TRUE ~ paste0("ih", veh_sufficient)
+    )
+  )
 ```
 
 ### Person table
@@ -295,7 +305,7 @@ per_combined <- bind_rows(
   prep_per_2018
 ) %>%
   left_join(
-    hh_add_income_final %>% select(hhid, hh_weight_combined),
+    hh_add_choice_markets %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
@@ -312,7 +322,7 @@ per_add_flags <- per_combined %>%
     is_worker = replace_na(is_worker, 0)
   )
 
-hh_add_seniors <- hh_add_income_final %>%
+hh_add_seniors <- hh_add_choice_markets %>%
   left_join(
     per_add_flags %>%
       group_by(hhid) %>%
@@ -2081,9 +2091,9 @@ add_obs_trip_type <- scheme6 %>%
     TRUE ~ "HBO"
   ))
 
-add_inc_groups <- add_obs_trip_type %>%
+add_hh_data <- add_obs_trip_type %>%
   left_join(
-    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab),
+    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab, choice_segment),
     by = "hhid"
   )
 ```
@@ -2179,7 +2189,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  add_inc_groups,
+  add_hh_data,
   "data/output/_PRIVATE/survey_processing/trips_processed.csv",
   na = ""
 )
