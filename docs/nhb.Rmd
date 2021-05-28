@@ -1147,7 +1147,7 @@ dependent_vars <- c(
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(
   trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = TRUE
+  boost = FALSE
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
@@ -1450,7 +1450,7 @@ dependent_vars <- c(
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(
   trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = TRUE
+  boost = FALSE
 )
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
@@ -1533,20 +1533,25 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 **TODO: Vince add intro**
 
-**TODO: Kyle to remove transit boosting given reverse relationship**
-
-The chart below shows how accessibility impacts each trip type. The y-axis is a
+The chart below shows how accessibility impacts each trip type and mode combination. The y-axis is a
 simple factor. When the factor is 1, the trip rates will be the same as
 displayed in the tables above. A y-value of 0.5 means the trip rates will be
 reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are
 increased by 50 percent. Due to this boosting model, the TRMG2 will understand
-that NHB making is more likely when traveling to a central business district
+that NHB trip making is more likely when traveling to a central business district
 compared to a rural zone.
 
 While no zone in the Triangle region has an auto accessibility below four, walk
-and transit accessibilities can approach zero. If a zone has no transit
-accessibility, the boosted model will ensure that no NHB transit trips are
-produced.
+accessibilities can approach zero. If a zone has limited walk accessibility, the
+boosted model will ensure that few (if any) NHB walk trips are produced. 
+
+This same approach was attempted for transit, but was discarded after it
+returned spurious results These counter-intuitive results are likely due to the
+nature of the transit production models, which are driven by homebased transit
+trips. These can only occur where transit access exists. By contrast, walk
+production models are influenced heavily by drive modes, which are common in all
+zones regardless of walk accessibility. This is why the walk models benefit from
+accessibility boosting while transit do not.
 
 For NHB auto trips, the slope of the line indicates the sensitivity to
 accessibility. For example, the least sensitive trip is the K12 SOV trip, which
@@ -1633,13 +1638,14 @@ distribution pattern, then HB attractions would not be sufficient to predict the
 full range of NHB behavior.
 
 In previous work, Caliper tested this question and repeatedly found that the
-pattern of these chained NHB trips are not significantly different. Caliper used
-the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB
-attractions and NHB trip ends were aggregated to the TAZ and correlation was
-computed. The correlation value of `r corel` confirms that these chained trips
-in are also highly correlated with HB trip attractions. Their patterns can be
-adequately captured by the NHB models already estimated. Other than calibration
-to ensure accurate NHB trip totals, no special handling is needed.
+pattern of the chained NHB trip ends are not significantly different in
+distribution compared to home-based trip ends. Caliper used the Triangle survey
+to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB
+trip ends were aggregated to the TAZ and correlation was computed. The
+correlation value of `r corel` confirms that these chained trips in are also
+highly correlated with HB trip attractions. Their patterns can be adequately
+captured by the NHB models already estimated. Other than calibration to ensure
+accurate NHB trip totals, no special handling is needed.
 
 The two maps below show this correlation visually.
 
