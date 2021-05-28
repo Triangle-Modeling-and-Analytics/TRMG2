@@ -115,7 +115,7 @@ Macro "Create Average Roadway Skims" (Args)
         for mode in modes do
             in_skim = skim_dir + "/skim_" + mode + "_" + tod + ".mtx"
             trans_skim = Substitute(in_skim, ".mtx", "_t.mtx", )
-            out_skim = skim_dir + "/avg_skim_" + hb + "_" + tour_type + "_" + mode + "_" + tod + ".mtx"
+            out_skim = skim_dir + "/avg_skim_" + tod + "_" + tour_type + "_" + hb + "_" + mode + ".mtx"
 
             CopyFile(in_skim, out_skim)
             out_m = CreateObject("Matrix")
