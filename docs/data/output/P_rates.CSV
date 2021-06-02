@@ -1,0 +1,11 @@
+segment,Trip_Purpose,Production Rate,Sample Size
+On_campus Students,UC1,4.48174252856685,150
+On_campus Students,UCC,0.3844820798293996,150
+On_campus Students,UCO,0.6499983927390284,150
+On_campus Students,UHC,1.1949620143546855,150
+On_campus Students,UHO,0.2563899075614835,150
+Off_campus Students,UC1,0.8083442736012184,186
+Off_campus Students,UCC,0.18262772042250214,186
+Off_campus Students,UCO,0.7946485173271971,186
+Off_campus Students,UHC,1.7136536982014996,186
+Off_campus Students,UHO,1.2404173715489883,186

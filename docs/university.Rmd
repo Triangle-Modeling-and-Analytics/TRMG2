@@ -1,0 +1,391 @@
+---
+title: "University"
+author: "Caliper Corporation"
+date: "5/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+source("R/university_productions3.R")
+#source("R/university_attractions2.R")
+#source("R/university_distribution.R")
+#source("R/university_modechoice.R")
+
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+```
+
+## Introduction  
+
+The University Model captures the on- and off-campus travel behavior of students of the Triangle Region's four main universities:  North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of `r enrollment_total`, with `r enrollment_NCSU` students at NCSU, `r enrollment_UNC` at UNC, `r enrollment_Duke` at Duke and `r enrollment_NCCU` at NCCU.  
+
+```{r enrollment,echo=FALSE}
+enrollment_NCSU<-socioecon2_df %>% filter(!is.na(StudGQ_NCSU),!is.na(StudOff_NCSU))%>% summarize(total=sum(StudGQ_NCSU,StudOff_NCSU))%>%pull(total)
+enrollment_UNC<-socioecon2_df %>% filter(!is.na(StudGQ_UNC),!is.na(StudOff_UNC))%>% summarize(total=sum(StudGQ_UNC,StudOff_UNC))%>%pull(total)
+enrollment_Duke<-socioecon2_df %>% filter(!is.na(StudGQ_DUKE),!is.na(StudOff_DUKE))%>% summarize(total=sum(StudGQ_DUKE,StudOff_DUKE))%>%pull(total)
+enrollment_NCCU<-socioecon2_df %>% filter(!is.na(StudGQ_NCCU),!is.na(StudOff_NCCU))%>% summarize(total=sum(StudGQ_NCCU,StudOff_NCCU))%>%pull(total)
+enrollment_total<-enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollment_NCCU
+```
+
+
+On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips and most of those trips are expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time while graduate students are more likely to reside off-campus.
+
+The model is segmented by on-campus and off-campus student and by the following trip purposes:
+
+* Home-Based-Campus (UHC)  
+*	Home-Based-Other (UHO)  
+*	Campus-Based-Other (UCO)  
+*	On-Campus (UC1)  
+*	Inter-Campus (UCC)  
+*	University student Other-Other (UOO)  
+
+## TRIP GENERATION  
+
+### TRIP PRODUCTION RATES  
+
+#### Sources  
+
+##### 2014 NCSU Survey  
+
+
+```{r survey_overview, echo = FALSE}
+Respondents_On_campus <-surveyRespondents_ResidenceClass_df %>%
+  group_by(On_campus) %>%
+  filter(On_campus==1) %>%
+  summarize (sum=sum(n)) %>%
+  pull()
+Respondents_Off_campus <-surveyRespondents_ResidenceClass_df %>%
+  group_by(On_campus) %>%
+  filter(On_campus==0) %>%
+  summarize (sum=sum(n)) %>%
+  pull()
+Respondent_Off_Campus_Weighted<-SurveyRespondent_Residence_Weighted_df %>%
+  filter(On_campus==0)%>%
+  pull()  
+Respondent_On_Campus_Weighted<-SurveyRespondent_Residence_Weighted_df %>%
+  filter(On_campus==1)%>%
+  pull()
+
+Survey_Total_Weighted_Trips<-Trip_subset_df %>% filter(!is.na(Weight)) %>% summarize(sum(Weight))
+```
+
+The trip production rates were developed based on a survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014.   
+After removing respondents who did not finish the survey and respondents with a mismatch of more than 1 between the stated number of trips and the number of trips for which they provided a description, the total number of complete and valid samples consists of  `r Respondents_On_campus` on-campus students and `r Respondents_Off_campus` and off-campus students. The breakdown by graduate and undergraduate students is presented in the table below. These respondents reported a combined `r nrow(Trip_subset_df)` trips.
+
+```{r,echo=FALSE}
+surveyRespondents_ResidenceClass_df %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+The NCSU survey dataset includes person weights which were developed by ITRE based on residence locations (on-campus vs. off-campus), credit hours (full-time vs. part-time) and class status (undergraduate vs. graduate).  A total of `r Respondent_On_Campus_Weighted` on_campus and `r Respondent_Off_Campus_Weighted` off-campus records were assigned a weight. Based on the survey, the NCSU student population made a total of `r Survey_Total_Weighted_Trips` trips in 2016.
+
+
+
+##### 2012 Virginia Surveys   
+The trip production rates developed based on the NCSU survey were verified using trip rates based on surveys of students from 4 universities in Virginia conducted in 2009 and repeated for two of the universities in 2010, as summarized in Khattak et al. (2012). The first round of surveys obtained a sample size of 2784. The sample size of the second round was 2596.
+
+#### Segmentation   
+
+The NCSU survey data was used to develop trip production rates for on-campus and off-campus students for 5 of the model's trip purposes.  
+
+* Home-Based-Campus (UHC): P = Home  
+* Home-Based-Other (UHO): P = Home  
+* Campus-Based-Other(UCO): P = Campus  
+* On-Campus (UC1): P = Campus  
+* University student Other-Other (UOO): P = Origin 
+* Campus to Campus (UCC): P = Origin
+
+
+#### Exploratory Analysis 
+
+Figure 1 shows the average number of trips per student per day for each of the 5 trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data. 
+The distribution is skewed to the right, with most students making few trips and a few students making many trips per day.There appears to be more variability in the number of trips reported by on-campus students, especially in UC1 and UCH, which are trips that both start and end on campus for on-campus students. 
+
+
+```{r,echo=FALSE}
+Triprates_histogram<-Productions_df %>% 
+  group_by(Person_ID,
+           Trip_Purpose, 
+           On_campus)%>%
+  summarize(Trips_per_student=sum(Trips),.groups = "drop")%>%
+  group_by(On_campus) %>% 
+  ggplot(aes(Trips_per_student, fill=Trip_Purpose)) + 
+  geom_histogram(bins=20) + 
+  facet_grid(Trip_Purpose~On_campus)
+
+Triprates_histogram + labs(title = "Figure 1 - Trips per student by purpose", 
+                          subtitle="for off-campus (On_campus==0) and on-campus (On_campus==1) students", 
+                          caption = ("Source: NCSU survey (unweighted)"))
+```
+
+To develop production rates, two methods were explored: cross-classification and regression. Explanatory variables in regression models tested included student characteristics such as class status (undergraduate and graduate), on and/or off-campus employment, credit hours (full-time or part-time), car availability as these were expected and/or shown by other research to affect university trip production rates.  Because these explanatory variables are not part of the future year socioeconomic datasets, application of these models would not be feasible.  The cross-classification findings are discussed below.
+
+#### Cross-classification  
+
+As part of the cross-classification approach, daily trips per student reported in the NCSU survey were classified based on the following criteria:  
+1) place of residence: on-campus or off-campus  
+2) trip purpose: UHC, UHO, UCO, UC1 or UOO   
+3) mode: walk, bike, bus (includes public bus and shuttle), drive, carpool and other  
+
+Production rates were developed based on raw data and based on weighted data. The rates based on the weighted data are very similar to the rates based on the raw data.  
+
+Based on the weighted data, the average daily trips rate is `r w_avg_trips_df[,"w_avg_trips"]`.  On-campus students make an average of `r w_avg_trips_byres_df[2,"w_avg_trips"]` trips per day while off- campus students make an average of `r w_avg_trips_byres_df[1,"w_avg_trips"]` trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.
+
+
+##### Trip Rates by Place of Residence and Trip Purpose  
+```{r , echo=FALSE}
+w_avg_trips_df<-Person_subset_df%>%
+  filter(!is.na(Weight))%>%
+  mutate(w_trips=Derived_trip_rate * Weight)%>%
+  summarize(w_total_trips=sum(w_trips),
+            w_respondents=sum(Weight),
+            w_avg_trips=w_total_trips/w_respondents,
+            respondents=n(),
+            .groups = "drop")
+
+w_avg_trips_byres_df<-Person_subset_df%>%
+  filter(!is.na(Weight))%>%
+  mutate(w_trips=Derived_trip_rate * Weight)%>%
+  group_by(On_campus)%>%
+  summarize(w_total_trips=sum(w_trips),
+            w_respondents=sum(Weight),
+            w_avg_trips=w_total_trips/w_respondents,
+            respondents=n(),
+            .groups = "drop")
+
+on_campus_w_respondents<-w_avg_trips_byres_df %>%
+  filter(On_campus==1)%>%
+  select(w_respondents)%>%
+  pull()
+
+on_campus_sample<-w_avg_trips_byres_df %>%
+  filter(On_campus==1)%>%
+  select(respondents)%>%
+  pull()
+
+off_campus_w_respondents<-w_avg_trips_byres_df %>%
+  filter(On_campus==0)%>%
+  select(w_respondents)%>%
+  pull()
+
+off_campus_sample<-w_avg_trips_byres_df %>%
+  filter(On_campus==0)%>%
+  select(respondents)%>%
+  pull()
+```
+
+
+##### UOO Trip Rates by Mode  
+Trip production rates by mode will be used to estimate a trip production rate for UOO trips based on the relationship between trip production by mode for UOO trips and for UHO and UCO trips.  SCOPE: "The UOO trips should be generated separately by mode as a function of (or rate per) UHO and UCO off-campus trip ends by mode and optionally a nearby accessibility variable (provided by Caliper).  UOO trip generation and distribution models will therefore be implemented to run at the end of the university model after the other trip purposes"
+
+```{r test, echo=FALSE}
+
+kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
+
+kable(avg_trips_UOO_df[,avg_trips_UOO_col],caption ="UOO Trip Rates by Mode",col.names=headers)
+```
+
+
+##### Conclusion Trip Production
+
+Comparison to Khattak et al (2012)
+
+Consistent with our findings, Khattak et al found that students who reside on-campus make more trips (especially on-campus trips) than those who reside off-campus and that they walk more and drive less than off-campus students. They estimate production trip rates that were somewhat lower than the production rates selected for this study. During first round of surveys at ODU, VT, UVA and VCU, daily trip rates ranged from 4.4 to 4.9.  For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT. 
+
+```{r,echo=FALSE}
+
+
+P_rates_df %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+Trip productions by TAZ were estimated by applying the trip production rates as follows:  
+On-Campus Students:  
+* UC1 Productions =  
+Share of campus buildings in TAZ * enrollment *  UC1 On-campus production rate  
+* UCO Productions=  
+Share of campus buildings in TAZ * enrollment *  UCO On-campus production rate  
+* UHC Productions =   
+Number of students in student group quarters in *   UHC On-campus production rate  
+* UHO Productions =  
+Number of students in student group quarters *   UHO On-campus production rate  
+* UCC Productions =  
+Number of students in student group quarters *   UCC On-campus production rate
+
+Off-Campus Students:  
+* UC1 Productions =  
+Share of campus buildings in TAZ * enrollment *  UC1 Off-campus production rate  
+* UCO Productions =  
+Share of campus buildings in TAZ * enrollment *  UCO Off-campus production rate  
+* UHC Productions =  
+Number of students in off-campus housing  *   UHC Off-campus production rate  
+* UHO Productions =   
+Number of students in off-campus housing *   UHO Off-campus production rate  
+* UCC Productions =  
+Number of students in off-campus housing *   UCC Off-campus production rate
+
+
+```{r}
+Summary_Productions_df %>%
+  kable(digits = 0) %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+###  TRIP ATTRACTION RATES 
+
+#### Sources
+
+As the trip production rates, trip attraction rates for off-campus attractions (UHO and UCO) were developed based on a survey of NCSU students conducted by ITRE for NCDOT in 2014. For UHO trips by off-campus students, both trips ends are off-campus. The number of trip attractions is estimated as a function of the land use of the zone.  For UCO trips and for UHO trips by on-campus students, the production end is the campus. Therefore, in addition to land use variables of the attraction zone, the attraction model for these segments also considers distance between the zone and campus.
+
+For on-campus attractions (UHC,UC1), the attractions are distributed among campus zones proportional to the distribution of the building square feet. 
+
+#### Exploratory Analysis  
+
+##### Correlations  
+Correlations between the university attractions by TAZ and TAZ land use characteristics are presented below. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. (The number of students in student group quarters is also relatively highly correlated with trips by off-campus students - can they be in off-campus zones?) For trips by off-campus students, off-campus students has the highest correlation coefficient.  
+```{r,echo=FALSE}
+correlations_df %>% 
+ select(term,W_Trips, W_On_Trips, W_Off_Trips) %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+#### Regression Models
+
+```{r, echo=FALSE}
+print_model <- function(model) {
+  df <- tibble(variable = colnames(model$model),
+               estimate = model$coefficients,
+               statistic = coef(summary(model))[, "t value"],
+               p.value = coef(summary(model))[, "Pr(>|t|)"]) %>%
+    mutate(variable = if_else(variable == "y", "_intercept_", variable)) %>%
+    arrange(variable) %>%
+    bind_rows(., tibble(variable = c("Adjusted R-squared"),
+                        estimate = summary(model)$adj.r.squared,
+                        statistic = as.double(NA),
+                        p.value = as.double(NA))) %>%
+    kable(digits = 4) %>%
+    kable_styling(full_width = FALSE)
+  
+  return(df)
+  
+}
+```
+
+##### UCO trips by On-campus students
+
+The first model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The dataset used to estimate this model includes all TAZs, except those for which UCO on-campus attractions are N/A. The coefficients have the expected signs. 
+```{r, echo=FALSE}
+print_model(lm_modelOn_UCOTrips_2)
+AttractionModel_UCO_On_df<-tidy(lm_modelOn_UCOTrips_2) %>%
+  mutate(segment="UCO_On") %>% 
+  select(segment,term,estimate)
+plot_lm_modelOn_UCOTrips_2 <- apply_lm_modelOn_UCOTrips_2 %>%
+    ggplot(aes(W_On_UCOTrips,Predicted)) +
+    geom_point()
+plot_lm_modelOn_UCOTrips_2
+```
+
+The second model adds the distance between the TAZ and campus to the first model. The distance between the TAZ and campus is calculated as the average straight line distance between the TAZ and the centroids of the different NCSU campus TAZs. (confirm campus definition).  As expected, attractions decrease as the distance increases. 
+```{r,echo=FALSE}
+print_model(lm_modelOn_UCOTrips_3)
+AttractionModel2_UCO_On_df<-tidy(lm_modelOn_UCOTrips_3) %>%
+  mutate(segment="UCO_On") %>% 
+  select(segment,term,estimate)
+plot_lm_modelOn_UCOTrips_3 <- apply_lm_modelOn_UCOTrips_3 %>%
+  ggplot(aes(W_On_UCOTrips,Predicted)) +
+  geom_point()
+plot_lm_modelOn_UCOTrips_3
+```
+The third model is estimated using only TAZs with UCO trips.
+```{r,echo=FALSE}
+print_model(selTAZ_lm_modelOn_UCOTrips_2)
+plot_lm_modelOn_UCOTrips_2 <- apply_selTAZ_lm_modelOn_UCOTrips_2 %>%
+  ggplot(aes(W_On_UCOTrips,Predicted)) +
+  geom_point()
+plot_lm_modelOn_UCOTrips_2
+```
+
+##### UHO trips by On-campus students
+As UCO trips by on-campus students, UHO trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ and the number of retail jobs. Including distance in the UHO on-campus models results in illogical coefficients. 
+```{r,echo=FALSE}
+print_model(lm_modelOn_UHOTrips_1)
+AttractionModel_UHO_On_df<- tidy(lm_modelOn_UHOTrips_1)%>%
+  mutate(segment="UHO_On") %>% 
+  select(segment,term,estimate)
+```
+
+Limiting the dataset to only TAZs to which on-campus students made UHO trips does not improve the model.
+
+```{r,echo=FALSE}
+print_model(selTAZ_lm_modelOn_UHOTrips_1)
+
+```
+
+##### UcO trips by Off-campus students
+As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location.
+```{r,echo=FALSE}
+print_model(lm_modelOff_UCOTrips_1)
+AttractionModel_UCO_Off_df<-tidy(lm_modelOff_UCOTrips_1) %>%
+  mutate(segment="UCO_Off") %>% 
+  select(segment,term,estimate)
+```
+Adding distance 
+
+```{r,echo=FALSE}
+print_model(lm_modelOff_UCOTrips_2)
+AttractionModel2_UCO_Off_df<-tidy(lm_modelOn_UCOTrips_2) %>%
+  mutate(segment="UCO_Off") %>% 
+  select(segment,term,estimate)
+```
+This model is estimated based on a dataset that only includes Taz with UCO trips from off-campus students. 
+
+```{r, echo=FALSE}
+print_model(selTAZ_lm_modelOff_UCOTrips_1)
+```
+
+#####  UHO Trips by Off-campus students  
+UHO trips by off-campus students have two off-campus trip ends. 
+```{r, echo=FALSE}
+print_model(lm_modelOA_non_1)
+AttractionModel_UHO_Off_df<-tidy(lm_modelOA_non_1) %>% 
+  mutate(segment="UHO_Off") %>% 
+  select(segment,term,estimate)
+
+```
+
+####  Conclusion Trip Attraction
+
+The tables below present the off-campus attraction models without distance and with distance. For the UHO On campus segment, adding distance to campus to the model gives illogical signs so a distance model was not included for that segment. There is also no distance model for the UHO off-campus student segment because the production end of those trips is off-campus.
+```{r,echo=FALSE}
+Attractionmodels_combined_df<-rbind(AttractionModel_UCO_On_df,AttractionModel_UHO_On_df,AttractionModel_UCO_Off_df,
+                                    AttractionModel_UHO_Off_df)
+
+Attractionmodels_overview_df<-Attractionmodels_combined_df %>%
+  pivot_wider(segment,names_from="term",values_from="estimate")%>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+Attractionmodels_overview_df
+
+Attractionmodels2_combined_df<-rbind(AttractionModel2_UCO_On_df,AttractionModel2_UCO_Off_df)
+
+Attractionmodels2_overview_df<-Attractionmodels2_combined_df %>%
+  pivot_wider(segment,names_from="term",values_from="estimate")%>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+Attractionmodels2_overview_df
+
+
+```
+
+
+```{r,echo=FALSE}
+## TRIP DISTRIBUTION  
+
+## MODE CHOICE
