@@ -1125,17 +1125,31 @@ Macro "2S" (thing)
 EndMacro
 
 /*
-
+Inputs
+  * `view`
+    * String
+    * Name of view where fields will be added
+  * `factor_file`
+    * String
+    * File path for factor file (csv or bin)
+  * `field_desc`
+    * Optional string
+    * If included, will be added as the field description for new fields
 */
 
 Macro "Create Sum Product Fields" (MacroOpts)
 
   view = MacroOpts.view
   factor_file = MacroOpts.factor_file
+  field_desc = MacroOpts.field_desc
 
   if factor_file = null then Throw("'factor_file' not provided")
+  {drive, folder, name, ext} = SplitPath(factor_file)
+  if ext = ".csv" then type = "CSV"
+  else if ext = ".bin" then type = "FFB"
+  else Throw("Create Sum Product Fields: `factor_file` must be CSV or FFB")
 
-  fac_vw = OpenTable("factors", "CSV", {factor_file})
+  fac_vw = OpenTable("factors", type, {factor_file})
   {names, } = GetFields(fac_vw, "All")
 
   input_fields = GetDataVector(fac_vw + "|", names[1], )
@@ -1145,7 +1159,7 @@ Macro "Create Sum Product Fields" (MacroOpts)
   output_fields = ExcludeArrayElements(output_fields, output_fields.length, 1)
 
   for output_field in output_fields do
-    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , }}
+    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , field_desc}}
     output.(output_field) = Vector(input[1][2].length, "Real", {Constant: 0})
     factors = nz(GetDataVector(fac_vw + "|", output_field, ))
     
@@ -1682,4 +1696,280 @@ Macro "Link Summary by FT and AT" (MacroOpts)
   hwy_df.group_by({ft_field, at_field})
   hwy_df.summarize(summary_fields, "sum")
   hwy_df.write_csv(output_dir + "/link_summary_by_FT_and_AT.csv")
+EndMacro
+
+/*
+Reads a file with name/value pairs and returns a named array
+
+Inputs
+  * `file`
+    * String
+    * Path of the parameter file to read
+  * `names`
+    * Optional string (default: "Name")
+    * Field name that holds parameter names
+  * `values`
+    * Optional string (default: "Value")
+    * Field name that holds parameter values
+*/
+
+Macro "Read Parameter File" (MacroOpts)
+
+  file = MacroOpts.file
+  names = MacroOpts.names
+  values = MacroOpts.values
+
+  {drive, folder, name, ext} = SplitPath(file)
+  allowed_extensions = {".csv", ".bin"}
+  if allowed_extensions.position(ext) = 0 then Throw("'file' must be a CSV or FFB")
+  if names = null then names = "Name"
+  if values = null then values = "Value"
+
+  type = if ext = ".csv" then "CSV" else "FFB"
+  vw = OpenTable("params", type, {file})
+  v_names = GetDataVector(vw + "|", names, )
+  v_values = GetDataVector(vw + "|", values, )
+
+  for i = 1 to v_names.length do
+    result.(v_names[i]) = v_values[i]
+  end
+
+  return(result)
+endmacro
+
+/*
+Inputs
+  * `table`
+    * String
+    * File name of table where accessibilities will be added (.bin)
+  * `params`
+    * String
+    * File name of parameter file (.csv)
+  * `skims`
+    * Named array
+    * Each named value contains a file path and a core name. For example:
+      * skims.sov.file = "C:\\my_skim.mtx"
+      * skims.sov.core = "Length (Skim)"
+*/
+
+Macro "Accessibility Calculator" (MacroOpts)
+
+  table = MacroOpts.table
+  params = MacroOpts.params
+  skims = MacroOpts.skims
+
+  if table = null then Throw("Accessibility Calculator: 'table' not provided")
+  if params = null then Throw("Accessibility Calculator: 'params' not provided")
+  
+  table_vw = OpenTable("acc_temp", "FFB", {table})
+  
+  // Create a sum product table from the size terms in the parameter table
+  // and run that macro
+  param_vw = OpenTable("acc_temp", "CSV", {params})
+  {out_fields, } = GetFields(param_vw, "All")
+  first_col = out_fields[1]
+  SetView(param_vw)
+  query = "Select * where " + first_col + " <> 'skim'" +
+    " and " + first_col + " <> 'core'" +
+    " and " + first_col + " <> 'b'" + 
+    " and " + first_col + " <> 'c'"
+  SelectByQuery("sel", "several", query)
+  attr_bin = GetTempFileName("*.bin")
+  ExportView(param_vw + "|sel", "FFB", attr_bin, , {"CSV Header": "true"})
+  attr_vw = OpenTable("attr_vw", "FFB", {attr_bin})
+  strct = GetTableStructure(attr_vw, {{"Include Original", "True"}})
+  dim new[strct.length]
+  new[1] = strct[1]
+  for i = 2 to strct.length do
+    new[i] = strct[i]
+    new[i][1] = new[i][1] + "_attr"
+    new[i][2] = "Real"
+    new[i][4] = 2
+  end
+  ModifyTable(attr_vw, new)
+  CloseView(attr_vw)
+  RunMacro("Create Sum Product Fields", {
+    view: table_vw, factor_file: attr_bin, 
+    field_desc: "attractions for accessibility calculation"
+  })
+
+  // Remove first and last column (param names and description info)
+  out_fields = ExcludeArrayElements(out_fields, 1, 1)
+  out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
+  // TODO: use vector.position() after bug fix
+  a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
+  skim_pos = a_first_col.position("skim")
+  core_pos = a_first_col.position("core")
+  b_pos = a_first_col.position("b")
+  c_pos = a_first_col.position("c")
+  for out_field in out_fields do
+    v_params = GetDataVector(param_vw + "|", out_field, )
+    skim_file = skims.(v_params[skim_pos])
+    skim_core = v_params[core_pos]
+    b = S2R(v_params[b_pos])
+    c = S2R(v_params[c_pos])
+
+    // Calculate logsum
+    skim = CreateObject("Matrix")
+    skim.LoadMatrix(skim_file)
+    skim.AddCores({"size", "util"})
+    cores = skim.data.cores
+    size = GetDataVector(table_vw + "|", out_field + "_attr", )
+    cores.size := size
+    cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
+    cores.util := if cores.size = 0 then 0 else cores.util
+    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    logsum = Max(0, log(rowsum))
+    
+    // Put logsum into table
+    {drive, folder, name, ext} = SplitPath(params)
+    description = "A logsum-based accessibility measure|See " + 
+      name + ext + " for more details"
+    a_field = {{out_field, "Real", 10, 2, , , , description}}
+    RunMacro("Add Fields", {view: table_vw, a_fields: a_field})
+    SetDataVector(table_vw + "|", out_field, logsum, )
+    skim.DropCores({"size", "util"})
+  end
+
+  CloseView(table_vw)
+  CloseView(param_vw)
+endmacro
+
+/*
+Summarizes transit outputs
+
+Inputs (all in a named array)
+  * `transit_asn_dir`
+    * The directory where the outputs from pathfinder assignment are located.
+  * `output_dir`
+    * Where all summary CSVs will be written.
+  * `loaded_network`
+    * The geographic database file (.dbd) that will have transit data appended.
+
+Returns
+  * Nothing. Creates `boardings_and_alightings`, `transit_flow_by_link`,
+    and `passenger_miles_and_hours` csv tables.
+*/
+
+Macro "Summarize Transit" (MacroOpts)
+  
+  // Argument extraction
+  transit_asn_dir = MacroOpts.transit_asn_dir
+  output_dir = MacroOpts.output_dir
+  loaded_network = MacroOpts.loaded_network
+  
+  // Argument checking
+  if transit_asn_dir = null 
+    then Throw("Summarize Transit:\n`transit_asn_dir` not provided")
+  if output_dir = null 
+    then Throw("Summarize Transit:\n`output_dir` not provided")
+  RunMacro("Create Directory", output_dir)
+  if loaded_network = null 
+    then Throw("Summarize Transit:\n`loaded_network` not provided")
+  if GetFileInfo(loaded_network) = null
+    then Throw("Summarize Transit:\n`loaded_network` does not exist")
+  
+  tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
+
+  // Summarize total ridership (total boardings)
+  onoff = tables.onoff
+  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
+  onoff.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  onoff.colnames(opts)
+  daily = onoff.copy()
+  daily.group_by("route")
+  daily.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route"} + cols_to_summarize
+  daily.colnames(opts)
+  daily.mutate("access", "All")
+  daily.mutate("mode", "All")
+  daily.mutate("tod", "Daily")
+  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.bind_rows(onoff)
+  daily.write_csv(output_dir + "/boardings_and_alightings.csv")
+
+  // aggregate transit flow by link and join to layer
+  agg = tables.agg
+  agg.group_by("ID1")
+  cols_to_summarize = agg.colnames({start: "AB_TransitFlow", stop: "BA_Drive_Flow"})
+  agg.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"ID1"} + cols_to_summarize
+  agg.colnames(opts)
+  agg_file = output_dir + "/transit_flow_by_link.csv"
+  agg.write_csv(agg_file)
+  RunMacro("Join Table To Layer", loaded_network, "ID", agg_file, "ID1")
+  
+  // Passenger miles and hours
+  flow = tables.flow
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate(
+    "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
+  flow.group_by("Route")
+  flow.summarize({"pass_hours", "pass_miles"}, "sum")
+  flow.rename(
+    {"Route", "sum_pass_hours", "sum_pass_miles"},
+    {"route", "pass_hours", "pass_miles"})
+  flow_file = output_dir + "/passenger_miles_and_hours.csv"
+  flow.write_csv(flow_file)
+EndMacro
+
+/*
+The GT transit assignment macro "Pathfinder Assignment" does some basic
+aggregation of the transit outputs and writes out CSV files. The transit
+summary macro uses this function to collect the names of all those outputs
+files in `transit_asn_dir`.
+
+Inputs
+  * `transit_asn_dir`
+    * The directory where the outputs from "Pathfinder Assignment" are located.
+    
+Returns
+  * Named array of four data frames
+    * `onoff`
+      * All files found starting with "OnOff". These files have boarding and
+        alighting info by stop and route.
+    * `agg`
+      * Transit and non transit flows by link ID.
+    * `flow`
+      * Route level flows between stops.
+    * `walk`
+      * Non-transit and walk access flow by link.
+      * Mainly ignored as this data is also contained in `agg`.
+*/
+
+Macro "Get Transit Output Tables" (transit_asn_dir)
+  
+  if transit_asn_dir = null 
+    then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
+  transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
+  
+  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  for file in files do
+    df = CreateObject("df", file)
+    
+    if Position(file, "onoff") <> 0 then do
+      if onoff = null then onoff = df.copy()
+      else onoff.bind_rows(df)
+    end else if Position(file, "linkflow") <> 0 then do
+      if agg = null then agg = df.copy()
+      else agg.bind_rows(df)
+    end else if Position(file, "walkflow") <> 0 then do
+      if walk = null then walk = df.copy()
+      else walk.bind_rows(df)
+    end else if Position(file, "flow") <> 0 then do
+      if flow = null then flow = df.copy()
+      else flow.bind_rows(df)
+    end
+  end
+  
+  result.onoff = onoff
+  result.agg = agg
+  result.walk = walk
+  result.flow = flow
+  return(result)
 EndMacro

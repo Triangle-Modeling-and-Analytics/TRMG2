@@ -385,9 +385,6 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
-    </li>
-    <li>
       <a href="population_synthesis.html">Synthesis</a>
     </li>
     <li>
@@ -444,13 +441,13 @@ div.tocify {
 <h3>Walkability</h3>
 <p><img src="img/accessibility/walkability.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="logsum-sov" class="section level3">
-<h3>Logsum SOV</h3>
-<p><img src="img/accessibility/logsums_nearby_sov.png" width="50%" style="display: block; margin: auto;" /></p>
+<div id="transit-access" class="section level3">
+<h3>Transit Access</h3>
+<p><img src="img/accessibility/transit_access.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="logsum-walk" class="section level3">
-<h3>Logsum Walk</h3>
-<p><img src="img/accessibility/logsums_nearby_walk.png" width="50%" style="display: block; margin: auto;" /></p>
+<div id="walk-access" class="section level3">
+<h3>Walk Access</h3>
+<p><img src="img/accessibility/walk_access.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="details" class="section level2">
@@ -543,220 +540,216 @@ Constant (walk)
 </tbody>
 </table>
 </div>
-<div id="logsums" class="section level3">
-<h3>Logsums</h3>
+<div id="logsum-accessibilities" class="section level3">
+<h3>Logsum Accessibilities</h3>
 <p>Logsums can be considered as a weighted average accessibility. While logsums are most often discussed in relation to mode choice and destination choice models, the logsums used for these accessibility measures are based on a simpler gravity formulation as a proxy and to avoid endogeneity problems from simultaneously estimating destination choice models including logsums of those same and other destination choice models.</p>
-<p><br /><span class="math display"><em>A</em><sub><em>i</em></sub> = <em>l</em><em>n</em>(∑<sub><em>j</em></sub><em>S</em><sub><em>j</em></sub><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub><sup><em>α</em></sup><em>e</em><sup><em>β</em><em>t</em><sup><em>i</em><em>j</em><em>m</em></sup></sup>)</span><br /></p>
+<p><br /><span class="math display"><em>A</em><sub><em>i</em></sub> = <em>l</em><em>n</em>(∑<sub><em>j</em></sub><em>S</em><sub><em>j</em></sub><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub><sup><em>β</em></sup><em>e</em><sup><em>γ</em><em>t</em><sup><em>i</em><em>j</em><em>m</em></sup></sup>)</span><br /></p>
 <p>Where:<br />
 <span class="math inline"><em>A</em><sub><em>i</em></sub></span>: Accessibility of zone i<br />
 <span class="math inline"><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub></span>: Travel time between zone i and j by mode m<br />
 <span class="math inline"><em>S</em><sub><em>j</em></sub></span>: Attractions in zone j (size term)</p>
-<p>The primary purpose for these mode-specific accessibility values is to inform the non-home-based models. For instance, a non-home-based transit trip is likely to occur in areas with high transit accessibility. More importantly, they cannot occur in areas with no transit access.</p>
-<p>In addition to calculating accessibility logsums by mode, three different size term formulations were used to capture different types of access. Those three types are:</p>
-<ul>
-<li>General: A balanced accessibility to various land uses</li>
-<li>Nearby: An accessibility that weights land uses more heavily that generate shorter trips (e.g. retail)</li>
-<li>Employment: A measure of accessibility to employment/jobs</li>
-</ul>
-<p>The rates for the size term in each of the above types of accessibility are shown in the table below.</p>
+<p>Accessibility logsums are useful for many steps of the model. One example is the non-home-based production models. A non-home-based walk trip is more likely to occur in areas with high walk accessibility, and they are less likely in area with poor access.</p>
+<p>The TRMG2 makes use of a fairly generic function for calculating multiple accessibility variables. The table below presents two as examples. The first four rows detail which skims, cores, and decay parameters to use. The remaining rows show the attraction rates for the size variable calculation.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Field
+Param
 </th>
-<th style="text-align:right;">
-General
+<th style="text-align:left;">
+access_general_sov
 </th>
-<th style="text-align:right;">
-Nearby
-</th>
-<th style="text-align:right;">
-Employment
+<th style="text-align:left;">
+access_transit
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
+skim
+</td>
+<td style="text-align:left;">
+sov
+</td>
+<td style="text-align:left;">
+transit
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+core
+</td>
+<td style="text-align:left;">
+FFTime
+</td>
+<td style="text-align:left;">
+Total Time
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+b
+</td>
+<td style="text-align:left;">
+-0.93
+</td>
+<td style="text-align:left;">
+-2.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+c
+</td>
+<td style="text-align:left;">
+-0.09
+</td>
+<td style="text-align:left;">
+-0.06
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 HH
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 1.9
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+1.9
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 K12
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 1.5
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+1.5
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_NCSU
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_UNC
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_DUKE
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_NCCU
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 CollegeOn
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 CollegeOff
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Retail
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 18.7
 </td>
-<td style="text-align:right;">
-4.1
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+18.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Service_RateLow
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.6
 </td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+5.6
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Service_RateHigh
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.6
 </td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+5.6
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Office
 </td>
-<td style="text-align:right;">
-3.0
+<td style="text-align:left;">
+3
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Industry
 </td>
-<td style="text-align:right;">
-3.0
+<td style="text-align:left;">
+3
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+3
 </td>
 </tr>
 </tbody>

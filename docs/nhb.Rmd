@@ -52,7 +52,8 @@ reasonable consistency of modes on tour.
 Available modes include:
 
 - SOV
-- HOV
+- HOV2
+- HOV3+
 - Auto Pay
 - Transit
 - Bike
@@ -80,11 +81,11 @@ trips_orig <- read_csv(
 ```{r, include = FALSE}
 trips <- trips_orig %>%
   mutate(
-    mode_simple2 = case_when(
-      mode_simple2 == "bus" ~ "t",
-      TRUE ~ mode_simple2
+    mode_nhb = case_when(
+      mode_final == "bus" ~ "t",
+      TRUE ~ mode_final
     ),
-    trip_type = paste0(trip_type, "_", mode_simple2)
+    trip_type = paste0(trip_type, "_", mode_nhb)
   ) %>%
   filter(!is.na(p_taz) & !is.na(a_taz))
 
@@ -101,7 +102,7 @@ make_table <- function(tbl) {
     kable_styling(full_width = FALSE)
 }
 
-# unique(trips$mode_simple2)
+# unique(trips$mode_nhb)
 ```
 
 ## Work tours
@@ -124,8 +125,13 @@ type <- "W_NH_EK12_All_sov"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_W_All_hov" = "W_HB_W_All_auto",
-  "W_HB_W_All_sov" = "W_HB_W_All_auto"
+  "W_HB_W_All_hov2" = "W_HB_W_All_auto",
+  "W_HB_W_All_hov3" = "W_HB_W_All_auto",
+  "W_HB_W_All_sov" = "W_HB_W_All_auto",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov",
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
 
 # Restrict dependent variables
@@ -133,7 +139,7 @@ dependent_vars <- c(
   "W_HB_EK12_All_hov",
   "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walk",
+  "W_HB_O_All_walkbike",
   "W_HB_W_All_auto"
 )
 
@@ -150,15 +156,18 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### HOV
+#### HOV2
 
-```{r, W_NH_EK12_All_hov}
-type <- "W_NH_EK12_All_hov"
+```{r, W_NH_EK12_All_hov2}
+type <- "W_NH_EK12_All_hov2"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_O_All_hov" = "W_HB_O_All_auto",
-  "W_HB_O_All_sov" = "W_HB_O_All_auto"
+  "W_HB_O_All_hov2" = "W_HB_O_All_auto",
+  "W_HB_O_All_hov3" = "W_HB_O_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
 )
 
 # Restrict dependent variables
@@ -166,7 +175,40 @@ dependent_vars <- c(
   "W_HB_O_All_auto",
   "W_HB_EK12_All_hov",
   "W_HB_EK12_All_sov",
-  "W_HB_O_All_walk"
+  "W_HB_O_All_walkbike"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV3+
+
+```{r, W_NH_EK12_All_hov}
+type <- "W_NH_EK12_All_hov3"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov2" = "W_HB_O_All_auto",
+  "W_HB_O_All_hov3" = "W_HB_O_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_auto",
+  "W_HB_EK12_All_hov"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -206,17 +248,17 @@ n_records <- trips %>%
   nrow()
 ```
 
-#### Walk
+#### Non-motorized (walk/bike)
 
-```{r, W_NH_EK12_All_walk}
-type <- "W_NH_EK12_All_walk"
+```{r, W_NH_EK12_All_walkbike}
+type <- "W_NH_EK12_All_walkbike"
 
 # Collapse trip types
 equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "W_HB_EK12_All_walk"
+  "W_HB_EK12_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -232,16 +274,16 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
+```{r, W_NH_EK12_All_bike}
 #### Bike
 
-No significant presence of this trip type in the survey (2 samples), and it is
-not an important source of travel demand. No model was estimated.
-
-```{r, W_NH_EK12_All_bike}
-type <- "W_NH_EK12_All_bike"
-n_records <- trips %>%
-  filter(trip_type == type) %>%
-  nrow()
+# No significant presence of this trip type in the survey (2 samples), and it is
+# not an important source of travel demand. No model was estimated.
+# 
+# type <- "W_NH_EK12_All_bike"
+# n_records <- trips %>%
+#   filter(trip_type == type) %>%
+#   nrow()
 ```
 
 
@@ -258,9 +300,11 @@ type <- "W_NH_WR_All_sov"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
   "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
-  "W_HB_W_All_hov" = "W_HB_W_All_auto",
+  "W_HB_W_All_hov2" = "W_HB_W_All_auto",
+  "W_HB_W_All_hov3" = "W_HB_W_All_auto",
   "W_HB_W_All_sov" = "W_HB_W_All_auto"
 )
 
@@ -268,7 +312,7 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_EK12_All_auto",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walk",
+  "W_HB_O_All_walkbike",
   "W_HB_W_All_auto"
 )
 
@@ -285,21 +329,62 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### HOV
+#### HOV2
 
-```{r, W_NH_WR_All_hov}
-type <- "W_NH_WR_All_hov"
+```{r, W_NH_WR_All_hov2}
+type <- "W_NH_WR_All_hov2"
 
 # Collapse trip types
-equiv <- NULL
+equiv <- list(
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov",
+  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
+  "W_HB_W_All_hov3" = "W_HB_W_All_hov",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
+)
 
 # Restrict dependent variables
 dependent_vars <- c(
   'W_HB_O_All_hov',
   'W_HB_W_All_hov',
   'W_HB_O_All_sov',
-  'W_HB_EK12_All_hov',
-  'W_HB_O_All_walk'
+  'W_HB_EK12_All_hov'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV3+
+
+```{r, W_NH_WR_All_hov3}
+type <- "W_NH_WR_All_hov3"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov",
+  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
+  "W_HB_W_All_hov3" = "W_HB_W_All_hov",
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'W_HB_O_All_hov',
+  'W_HB_W_All_hov',
+  'W_HB_EK12_All_hov'
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -349,16 +434,17 @@ type <- "W_NH_WR_All_t"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_W_All_walk" = "W_HB_WO_All_walk",
-  "W_HB_O_All_walk" = "W_HB_WO_All_walk"
+  "W_HB_W_All_walkbike" = "W_HB_WO_All_walkbike",
+  "W_HB_O_All_walkbike" = "W_HB_WO_All_walkbike",
+  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
+  "W_HB_W_All_hov3" = "W_HB_W_All_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "W_HB_WO_All_walk",
+  "W_HB_WO_All_walkbike",
   "W_HB_O_All_t",
   "W_HB_W_All_t",
-  "W_HB_O_All_sov",
   "W_HB_W_All_hov"
 )
 
@@ -375,27 +461,26 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### Walk
+#### Non-motorized
 
-```{r, W_NH_WR_All_walk}
-type <- "W_NH_WR_All_walk"
+```{r, W_NH_WR_All_walkbike}
+type <- "W_NH_WR_All_walkbike"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_EK12_All_bike" = "W_HB_EK12_All_nm",
-  "W_HB_EK12_All_walk" = "W_HB_EK12_All_nm"
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "W_HB_EK12_All_nm",
+  "W_HB_EK12_All_walkbike",
   "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walk",
-  "W_HB_W_All_bike",
+  "W_HB_O_All_walkbike",
   "W_HB_W_All_sov",
   "W_HB_W_All_t",
-  "W_HB_W_All_walk"
+  "W_HB_W_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -411,32 +496,34 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### Bike
+
 
 ```{r, W_NH_WR_All_bike}
-type <- "W_NH_WR_All_bike"
+#### Bike
 
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_bike",
-  "W_HB_O_All_sov",
-  "W_HB_W_All_bike"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+# type <- "W_NH_WR_All_bike"
+# 
+# # Collapse trip types
+# equiv <- NULL
+# 
+# # Restrict dependent variables
+# dependent_vars <- c(
+#   "W_HB_O_All_bike",
+#   "W_HB_O_All_sov",
+#   "W_HB_W_All_bike"
+# )
+# 
+# # model1 <- estimate_nhb(trips, type)
+# # model2 <- estimate_nhb(trips, type, equiv = equiv)
+# model3 <- estimate_nhb(trips, type, equiv = equiv, 
+#                        dependent_vars = dependent_vars)
+# 
+# zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+# coeff_tbl <- model3$tbl %>%
+#   add_row(term = "r_sq", estimate = zonal_result$r_sq)
+# coeffs_list[type] <- list(coeff_tbl)
+# make_table(coeff_tbl)
+# p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 ### W_NH_O_All {.tabset .W_NH_O_All}
@@ -453,8 +540,11 @@ type <- "W_NH_O_All_sov"
 
 # Collapse trip types
 equiv <- list(
-  "W_HB_EK12_All_hov" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto"
+  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
+  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
 
 # Restrict dependent variables
@@ -462,7 +552,7 @@ dependent_vars <- c(
   "W_HB_EK12_All_auto",
   "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walk"
+  "W_HB_O_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -478,20 +568,52 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### HOV
+#### HOV2
 
-```{r, W_NH_O_All_hov}
-type <- "W_NH_O_All_hov"
+```{r, W_NH_O_All_hov2}
+type <- "W_NH_O_All_hov2"
+
+# Collapse trip types
+equiv <- list(
+  "W_HB_O_All_hov2" = "W_HB_O_All_hov",
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "W_HB_O_All_hov",
+  "W_HB_O_All_sov",
+  "W_HB_O_All_walkbike",
+  "W_HB_W_All_hov2"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+
+#### HOV3+
+
+```{r, W_NH_O_All_hov3}
+type <- "W_NH_O_All_hov3"
 
 # Collapse trip types
 equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "W_HB_O_All_hov",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walk",
-  "W_HB_W_All_hov"
+  "W_HB_O_All_hov2",
+  "W_HB_O_All_hov3",
+  "W_HB_W_All_hov3"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -525,14 +647,17 @@ n_records <- trips %>%
 type <- "W_NH_O_All_t"
 
 # Collapse trip types
-equiv <- NULL
+equiv <- list(
+  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
+  "W_HB_W_All_hov3" = "W_HB_W_All_hov"
+)
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "W_HB_O_All_walk",
+  "W_HB_O_All_walkbike",
   "W_HB_O_All_t",
   "W_HB_W_All_hov",
-  "W_HB_EK12_All_walk"
+  "W_HB_EK12_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -548,10 +673,10 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### Walk
+#### Non-motorized
 
-```{r, W_NH_O_All_walk}
-type <- "W_NH_O_All_walk"
+```{r, W_NH_O_All_walkbike}
+type <- "W_NH_O_All_walkbike"
 
 # Collapse trip types
 equiv <- list(
@@ -562,7 +687,7 @@ equiv <- list(
 # Restrict dependent variables
 dependent_vars <- c(
   "W_HB_O_All_auto",
-  "W_HB_O_All_walk",
+  "W_HB_O_All_walkbike",
   "W_HB_W_All_sov"
 )
 
@@ -579,30 +704,32 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### Bike
+
 
 ```{r, W_NH_O_All_bike}
-type <- "W_NH_O_All_bike"
+#### Bike
 
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_O_All_bike"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+# type <- "W_NH_O_All_bike"
+# 
+# # Collapse trip types
+# equiv <- NULL
+# 
+# # Restrict dependent variables
+# dependent_vars <- c(
+#   "W_HB_O_All_bike"
+# )
+# 
+# # model1 <- estimate_nhb(trips, type)
+# # model2 <- estimate_nhb(trips, type, equiv = equiv)
+# model3 <- estimate_nhb(trips, type, equiv = equiv, 
+#                        dependent_vars = dependent_vars)
+# 
+# zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+# coeff_tbl <- model3$tbl %>%
+#   add_row(term = "r_sq", estimate = zonal_result$r_sq)
+# coeffs_list[type] <- list(coeff_tbl)
+# make_table(coeff_tbl)
+# p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 
@@ -631,13 +758,18 @@ type <- "N_NH_K12_All_sov"
 equiv <- list(
   "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
-  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
-  
-  "N_HB_OME_All_hov" = "N_HB_OME_All_auto",
+  "N_HB_OD_Long_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_auto",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_auto",
   "N_HB_OME_All_sov" = "N_HB_OME_All_auto",
-  "N_HB_OMED_All_hov" = "N_HB_OME_All_auto",
-  "N_HB_OMED_All_sov" = "N_HB_OME_All_auto"
+  "N_HB_OMED_All_hov2" = "N_HB_OME_All_auto",
+  "N_HB_OMED_All_hov3" = "N_HB_OME_All_auto",
+  "N_HB_OMED_All_sov" = "N_HB_OME_All_auto",
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_hov",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_hov"
 )
 
 # Restrict dependent variables
@@ -664,20 +796,60 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 
 
-#### HOV
+#### HOV2
 
-```{r, N_NH_K12_All_hov}
-type <- "N_NH_K12_All_hov"
+```{r, N_NH_K12_All_hov2}
+type <- "N_NH_K12_All_hov2"
 
 # Collapse trip types
-equiv <- NULL
+equiv <- list(
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "N_HB_K12_All_hov2",
+  "N_HB_K12_All_hov3",
+  "N_HB_OD_Long_hov",
+  "N_HB_OD_Short_hov2",
+  "N_HB_OD_Short_hov3",
+  "N_HB_K12_All_school_bus"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV3+
+
+```{r, N_NH_K12_All_hov3}
+type <- "N_NH_K12_All_hov3"
+
+# Collapse trip types
+equiv <- list(
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_hov",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_hov"
+)
 
 # Restrict dependent variables
 dependent_vars <- c(
   "N_HB_K12_All_hov",
-  "N_HB_OD_Long_hov",
-  "N_HB_OD_Short_hov",
-  "N_HB_K12_All_school_bus"
+  "N_HB_OD_Long_hov2",
+  "N_HB_OD_Long_hov3",
+  "N_HB_OD_Short_hov2",
+  "N_HB_OD_Short_hov3"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -720,25 +892,27 @@ n_records <- trips %>%
   nrow()
 ```
 
-#### Walk
+#### Non-motorized
 
-```{r, N_NH_K12_All_walk}
-type <- "N_NH_K12_All_walk"
+```{r, N_NH_K12_All_walkbike}
+type <- "N_NH_K12_All_walkbike"
 
 # Collapse trip types
 equiv <- list(
   "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
-  "N_HB_K12_All_hov" = "N_HB_K12_All_auto"
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_auto",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_Short_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   "N_HB_K12_All_auto",
   "N_HB_K12_All_school_bus",
-  "N_HB_K12_All_walk",
+  "N_HB_K12_All_walkbike",
   "N_HB_OD_Short_hov",
-  "N_HB_K12_All_bike",
-  "N_HB_OD_Short_walk"
+  "N_HB_OD_Short_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -756,18 +930,16 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-
-
-#### Bike
-
-No significant presence of this trip type in the survey (1 sample), and it is
-not an important source of travel demand. No model was estimated.
-
 ```{r, N_NH_K12_All_bike}
-type <- "N_NH_K12_All_bike"
-n_records <- trips %>%
-  filter(trip_type == type) %>%
-  nrow()
+#### Bike
+# 
+# No significant presence of this trip type in the survey (1 sample), and it is
+# not an important source of travel demand. No model was estimated.
+# 
+# type <- "N_NH_K12_All_bike"
+# n_records <- trips %>%
+#   filter(trip_type == type) %>%
+#   nrow()
 ```
 
 ### N_NH_OME_All {.tabset .N_NH_OME_All}
@@ -784,10 +956,14 @@ type <- "N_NH_OME_All_sov"
 
 # Collapse trip types
 equiv <- list(
-  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
-  "N_HB_OME_All_hov" = "N_HB_OME_All_hov",
-  "N_HB_OMED_All_hov" = "N_HB_OME_All_hov"
+  "N_HB_OD_Long_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_hov3" = "N_HB_OME_All_hov"
 )
 
 # Restrict dependent variables.
@@ -818,10 +994,10 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### HOV
+#### HOV2
 
-```{r, N_NH_OME_All_hov}
-type <- "N_NH_OME_All_hov"
+```{r, N_NH_OME_All_hov2}
+type <- "N_NH_OME_All_hov2"
 
 # Collapse trip types
 equiv <- list(
@@ -829,15 +1005,17 @@ equiv <- list(
   "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
   "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_walk" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
-  "N_HB_OMED_All_walk" = "N_HB_All_All_nonauto"
+  "N_HB_OMED_All_walkbike" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_hov"
 )
 
 # Restrict dependent variables
@@ -846,12 +1024,60 @@ dependent_vars <- c(
   # "N_HB_K12_All_hov",
   # "N_HB_K12_All_sov",
   "N_HB_OD_All_sov",
-  "N_HB_OD_Long_hov",
-  "N_HB_OD_Short_hov",
+  "N_HB_OD_Long_hov2",
+  "N_HB_OD_Short_hov2",
   "N_HB_OME_All_hov",
   "N_HB_OME_All_sov",
-  "N_HB_OMED_All_auto_pay",
-  "N_HB_OMED_All_hov"
+  "N_HB_OMED_All_hov2"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV3+
+
+```{r, N_NH_OME_All_hov3}
+type <- "N_NH_OME_All_hov3"
+
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_walkbike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_walkbike" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_walkbike" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_walkbike" = "N_HB_All_All_nonauto"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  # K12 removed due to preserve consistency
+  # "N_HB_K12_All_hov",
+  # "N_HB_K12_All_sov",
+  "N_HB_OD_Long_hov3",
+  "N_HB_OD_Short_hov2",
+  "N_HB_OD_Short_hov3",
+  "N_HB_OME_All_hov2",
+  "N_HB_OME_All_hov3",
+  "N_HB_OME_All_sov",
+  "N_HB_OMED_All_hov3"
   # "N_HB_All_All_nonauto"
 )
 
@@ -876,30 +1102,12 @@ p_tbl_list[type] <- list(model3$p_tbl)
 type <- "N_NH_OME_All_auto_pay"
 
 # Collapse trip types
-equiv <- equiv <- list(
-  "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_walk" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_walk" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_walk" = "N_HB_All_All_nonauto",
-  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
-  "N_HB_OMED_All_walk" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_hov" = "N_HB_All_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_All_All_hov",
-  "N_HB_OME_All_hov" = "N_HB_All_All_hov",
-  "N_HB_OMED_All_hov" = "N_HB_All_All_hov"
-)
+equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_OD_Long_auto_pay",
   "N_HB_OD_Short_auto_pay",
-  "N_HB_OME_All_auto_pay",
-  "N_HB_OMED_All_auto_pay"
+  "N_HB_OME_All_auto_pay"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -932,7 +1140,7 @@ dependent_vars <- c(
   "N_HB_OD_Long_t",
   "N_HB_OD_Short_t",
   "N_HB_OME_All_t",
-  "N_HB_OME_All_walk"
+  "N_HB_OME_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -950,12 +1158,10 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
+#### Non-motorized
 
-
-#### Walk
-
-```{r, N_NH_OME_All_walk}
-type <- "N_NH_OME_All_walk"
+```{r, N_NH_OME_All_walkbike}
+type <- "N_NH_OME_All_walkbike"
 
 # Collapse trip types
 equiv <- c(
@@ -963,28 +1169,32 @@ equiv <- c(
   "N_HB_OMED_All_auto_pay" = "N_HB_O_All_auto_pay",
   "N_HB_OD_Long_auto_pay" = "N_HB_O_All_auto_pay",
   "N_HB_OD_Short_auto_pay" = "N_HB_O_All_auto_pay",
-  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_All_hov",
   "N_HB_OD_Short_t" = "N_HB_OD_All_t",
   "N_HB_OD_Long_t" = "N_HB_OD_All_t",
-  "N_HB_OMED_All_walk" = "N_HB_OME_All_walk",
-  "N_HB_OME_All_walk" = "N_HB_OME_All_walk"
+  "N_HB_OMED_All_walkbike" = "N_HB_OME_All_walkbike",
+  "N_HB_OME_All_walkbike" = "N_HB_OME_All_walkbike",
+  "N_HB_OMED_All_hov2" = "N_HB_OMED_All_hov",
+  "N_HB_OMED_All_hov3" = "N_HB_OMED_All_hov",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   "N_HB_K12_All_t",
-  "N_HB_OD_All_hov",
   "N_HB_OD_All_t",
-  "N_HB_OD_Long_walk",
+  "N_HB_OD_Long_walkbike",
   "N_HB_OD_Short_sov",
-  "N_HB_OD_Short_walk",
+  "N_HB_OD_Short_walkbike",
   "N_HB_O_All_auto_pay",
-  "N_HB_OME_All_bike",
   "N_HB_OME_All_hov",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_t",
-  "N_HB_OME_All_walk",
+  "N_HB_OME_All_walkbike",
   "N_HB_OMED_All_hov"
 )
 
@@ -1003,37 +1213,39 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### Bike
+
 
 ```{r, N_NH_OME_All_bike}
-type <- "N_NH_OME_All_bike"
+#### Bike
 
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  # K12 removed due to preserve consistency
-  # "N_HB_K12_All_bike",
-  "N_HB_OD_Long_bike",
-  "N_HB_OD_Long_t",
-  "N_HB_OD_Short_bike",
-  "N_HB_OME_All_bike"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(
-  trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
-)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+# type <- "N_NH_OME_All_bike"
+# 
+# # Collapse trip types
+# equiv <- NULL
+# 
+# # Restrict dependent variables
+# dependent_vars <- c(
+#   # K12 removed due to preserve consistency
+#   # "N_HB_K12_All_bike",
+#   "N_HB_OD_Long_bike",
+#   "N_HB_OD_Long_t",
+#   "N_HB_OD_Short_bike",
+#   "N_HB_OME_All_bike"
+# )
+# 
+# # model1 <- estimate_nhb(trips, type)
+# # model2 <- estimate_nhb(trips, type, equiv = equiv)
+# model3 <- estimate_nhb(
+#   trips, type, equiv = equiv, dependent_vars = dependent_vars,
+#   boost = FALSE
+# )
+# 
+# zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+# coeff_tbl <- model3$tbl %>%
+#   add_row(term = "r_sq", estimate = zonal_result$r_sq)
+# coeffs_list[type] <- list(coeff_tbl)
+# make_table(coeff_tbl)
+# p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 ### N_NH_O_All {.tabset .N_NH_O_All}
@@ -1050,14 +1262,19 @@ type <- "N_NH_O_All_sov"
 
 # Collapse trip types
 equiv <- c(
-  "N_HB_K12_All_hov" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_auto",
   "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
-  "N_HB_OD_Long_hov" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_hov" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_All_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_All_hov",
   "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
-  "N_HB_OMED_All_hov" = "N_HB_OME_All_hov",
-  "N_HB_OME_All_hov" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OMED_All_hov3" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_hov",
   "N_HB_OMED_All_sov" = "N_HB_OME_All_sov",
   "N_HB_OME_All_sov" = "N_HB_OME_All_sov"
 )
@@ -1068,6 +1285,52 @@ dependent_vars <- c(
   # "N_HB_K12_All_auto",
   "N_HB_OD_All_hov",
   "N_HB_OD_All_sov",
+  "N_HB_OME_All_sov"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(
+  trips, type, equiv = equiv, dependent_vars = dependent_vars,
+  boost = TRUE
+)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### HOV2
+
+```{r, N_NH_O_All_hov2}
+type <- "N_NH_O_All_hov2"
+
+# Collapse trip types
+equiv <- c(
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_auto",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_auto",
+  "N_HB_OD_Long_sov" = "N_HB_OD_Long_auto",
+  "N_HB_OMED_All_hov2" = "N_HB_OMED_All_hov",
+  "N_HB_OMED_All_hov3" = "N_HB_OMED_All_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_Short_hov",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "N_HB_OD_Long_auto",
+  "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_sov",
+  # "N_HB_K12_All_auto",
+  "N_HB_OMED_All_hov",
   "N_HB_OME_All_sov",
   "N_HB_OME_All_hov"
 )
@@ -1087,28 +1350,32 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-#### HOV
+#### HOV3+
 
-```{r, N_NH_O_All_hov}
-type <- "N_NH_O_All_hov"
+```{r, N_NH_O_All_hov3}
+type <- "N_NH_O_All_hov3"
 
 # Collapse trip types
 equiv <- c(
-  "N_HB_K12_All_hov" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov2" = "N_HB_K12_All_auto",
+  "N_HB_K12_All_hov3" = "N_HB_K12_All_auto",
   "N_HB_K12_All_sov" = "N_HB_K12_All_auto",
-  "N_HB_OD_Long_hov" = "N_HB_OD_Long_auto",
-  "N_HB_OD_Long_sov" = "N_HB_OD_Long_auto"
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_auto",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_auto",
+  "N_HB_OD_Long_sov" = "N_HB_OD_Long_auto",
+  "N_HB_OME_All_sov" = "N_HB_OME_All",
+  "N_HB_OME_All_hov2" = "N_HB_OME_All",
+  "N_HB_OME_All_hov3" = "N_HB_OME_All"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   "N_HB_OD_Long_auto",
-  "N_HB_OD_Short_hov",
-  "N_HB_OME_All_hov",
+  "N_HB_OD_Short_hov2",
+  "N_HB_OD_Short_hov3",
+  "N_HB_OME_All",
   "N_HB_OD_Short_sov",
-  # "N_HB_K12_All_auto",
-  "N_HB_OMED_All_hov",
-  "N_HB_OME_All_sov"
+  "N_HB_K12_All_auto"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -1125,7 +1392,6 @@ coeffs_list[type] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
-
 
 
 #### Auto Pay
@@ -1174,9 +1440,9 @@ dependent_vars <- c(
   "N_HB_OD_Short_t",
   "N_HB_OMED_All_t",
   # K12 removed due to preserve consistency
-  # "N_HB_K12_All_walk",
+  # "N_HB_K12_All_walkbike",
   "N_HB_OME_All_t",
-  "N_HB_OD_Short_walk",
+  "N_HB_OD_Short_walkbike",
   "N_HB_OD_Short_sov"
 )
 
@@ -1197,10 +1463,10 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 
 
-#### Walk
+#### Non-motorized
 
-```{r, N_NH_O_All_walk}
-type <- "N_NH_O_All_walk"
+```{r, N_NH_O_All_walkbike}
+type <- "N_NH_O_All_walkbike"
 
 # Collapse trip types
 equiv <- c(
@@ -1210,12 +1476,12 @@ equiv <- c(
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_hov2",
+  "N_HB_OD_Short_hov3",
   "N_HB_OD_OME_sov",
-  "N_HB_OD_Short_walk",
-  "N_HB_OME_All_walk",
-  "N_HB_OD_Long_walk",
-  "N_HB_OD_Short_t"
+  "N_HB_OD_Short_walkbike",
+  "N_HB_OME_All_walkbike",
+  "N_HB_OD_Long_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -1233,56 +1499,59 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-
-
+```{r, N_NH_O_All_bike}
 #### Bike
 
-```{r, N_NH_O_All_bike}
-type <- "N_NH_O_All_bike"
-
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "N_HB_OD_Long_bike",
-  "N_HB_OD_Short_bike",
-  "N_HB_OME_All_bike"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(
-  trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
-)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+# type <- "N_NH_O_All_bike"
+# 
+# # Collapse trip types
+# equiv <- NULL
+# 
+# # Restrict dependent variables
+# dependent_vars <- c(
+#   "N_HB_OD_Long_bike",
+#   "N_HB_OD_Short_bike",
+#   "N_HB_OME_All_bike"
+# )
+# 
+# # model1 <- estimate_nhb(trips, type)
+# # model2 <- estimate_nhb(trips, type, equiv = equiv)
+# model3 <- estimate_nhb(
+#   trips, type, equiv = equiv, dependent_vars = dependent_vars,
+#   boost = FALSE
+# )
+# 
+# zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+# coeff_tbl <- model3$tbl %>%
+#   add_row(term = "r_sq", estimate = zonal_result$r_sq)
+# coeffs_list[type] <- list(coeff_tbl)
+# make_table(coeff_tbl)
+# p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 ## Boosting charts
 
 **TODO: Vince add intro**
 
-**TODO: Kyle to add transit when skims available**
-
-The chart below shows how accessibility impacts each trip type. The y-axis is a
+The chart below shows how accessibility impacts each trip type and mode combination. The y-axis is a
 simple factor. When the factor is 1, the trip rates will be the same as
 displayed in the tables above. A y-value of 0.5 means the trip rates will be
 reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are
 increased by 50 percent. Due to this boosting model, the TRMG2 will understand
-that NHB making is more likely when traveling to a central business district
+that NHB trip making is more likely when traveling to a central business district
 compared to a rural zone.
 
 While no zone in the Triangle region has an auto accessibility below four, walk
-and transit accessibilities can approach zero. If a zone has no transit
-accessibility, the boosted model will ensure that no NHB transit trips are
-produced.
+accessibilities can approach zero. If a zone has limited walk accessibility, the
+boosted model will ensure that few (if any) NHB walk trips are produced. 
+
+This same approach was attempted for transit, but was discarded after it
+returned spurious results These counter-intuitive results are likely due to the
+nature of the transit production models, which are driven by homebased transit
+trips. These can only occur where transit access exists. By contrast, walk
+production models are influenced heavily by drive modes, which are common in all
+zones regardless of walk accessibility. This is why the walk models benefit from
+accessibility boosting while transit do not.
 
 For NHB auto trips, the slope of the line indicates the sensitivity to
 accessibility. For example, the least sensitive trip is the K12 SOV trip, which
@@ -1369,13 +1638,14 @@ distribution pattern, then HB attractions would not be sufficient to predict the
 full range of NHB behavior.
 
 In previous work, Caliper tested this question and repeatedly found that the
-pattern of these chained NHB trips are not significantly different. Caliper used
-the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB
-attractions and NHB trip ends were aggregated to the TAZ and correlation was
-computed. The correlation value of `r corel` confirms that these chained trips
-in are also highly correlated with HB trip attractions. Their patterns can be
-adequately captured by the NHB models already estimated. Other than calibration
-to ensure accurate NHB trip totals, no special handling is needed.
+pattern of the chained NHB trip ends are not significantly different in
+distribution compared to home-based trip ends. Caliper used the Triangle survey
+to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB
+trip ends were aggregated to the TAZ and correlation was computed. The
+correlation value of `r corel` confirms that these chained trips in are also
+highly correlated with HB trip attractions. Their patterns can be adequately
+captured by the NHB models already estimated. Other than calibration to ensure
+accurate NHB trip totals, no special handling is needed.
 
 The two maps below show this correlation visually.
 

@@ -1,18 +1,19 @@
-Field,walkability_attr,general_attr,nearby_attr,employment_attr,gs_home_attr,gs_work_attr,gs_other_attr,Description
-HH,1.9,1.9,0.5,0,6.5,0,1.9,These are the attraction rates used for the various access measures
-K12,1.5,1.5,0,0,0,1.5,0,walkability: propensity to walk
-StudGQ_NCSU,5.7,5.7,0,0,2.1,0,0,gsindex: mixed use index calculation
-StudGQ_UNC,5.7,5.7,0,0,2.1,0,0,general: general accessibility
-StudGQ_DUKE,5.7,5.7,0,0,2.1,0,0,nearby: nearby accessibility
-StudGQ_NCCU,5.7,5.7,0,0,2.1,0,0,employment: accessibility to employment
-CollegeOn,5.7,5.7,0,0,2.1,3.6,0,
-CollegeOff,5.7,5.7,0,0,0,3.6,0,
-BuildingS_NCSU,0,0,0,0,0,19.3,0,
-BuildingS_UNC,0,0,0,0,0,18.7,0,
-BuildingS_DUKE,0,0,0,0,0,10.2,0,
-BuildingS_NCCU,0,0,0,0,0,33.7,0,
-Retail,18.7,18.7,4.1,1,0,1.5,17.2,
-Service_RateLow,5.6,5.6,1.2,1,0,1.5,4.1,
-Service_RateHigh,5.6,5.6,1.2,1,0,1.5,4.1,
-Office,3,3,0.5,1,0,1.5,4.1,
-Industry,3,3,0.5,1,0,1.5,1.5,
+Field,walkability_attr,gs_home_attr,gs_work_attr,gs_other_attr,Description
+HH,1.9,6.5,0,1.9,These are the attraction rates used for the various access measures
+K12,1.5,0,1.5,0,walkability: propensity to walk
+StudGQ_NCSU,5.7,2.1,0,0,gsindex: mixed use index calculation
+StudGQ_UNC,5.7,2.1,0,0,general: general accessibility
+StudGQ_DUKE,5.7,2.1,0,0,nearby: nearby accessibility
+StudGQ_NCCU,5.7,2.1,0,0,employment: accessibility to employment
+CollegeOn,5.7,2.1,3.6,0,
+CollegeOff,5.7,0,3.6,0,
+BuildingS_NCSU,0,0,19.3,0,
+BuildingS_UNC,0,0,18.7,0,
+BuildingS_DUKE,0,0,10.2,0,
+BuildingS_NCCU,0,0,33.7,0,
+Retail,18.7,0,1.5,17.2,
+Service_RateLow,5.6,0,1.5,4.1,
+Service_RateHigh,5.6,0,1.5,4.1,
+Office,3,0,1.5,4.1,
+Industry,3,0,1.5,1.5,
+Hospital,0,0,0,0,

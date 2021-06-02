@@ -6,7 +6,8 @@
 06 - Time of Day.rsc
 07 - NonMotorized.rsc
 08 - Parking.rsc
-Assignment.rsc
+Roadway Assignment.rsc
+Transit Assignment.rsc
 Summaries.rsc
 Skimming.rsc
 utils/utils.rsc

@@ -1,0 +1,31 @@
+Param,access_general_sov,access_nearby_sov,access_walk,access_transit,access_employment_sov,access_hospital_sov,Description
+skim,sov,sov,walk,transit,sov,sov,defines which skim will be used
+core,FFTime,FFTime,WalkTime,Total Time,FFTime,FFTime,defines which skim core to use
+b,-0.93,-2.05,0.563,-2.05,-0.3,-1.5,defines the beta (b) parameter for the gamma function
+c,-0.09,-0.06,-0.1896,-0.06,-0.07,-0.06,defines the gamma (c) parameter for the gamma function
+HH,1.9,0.5,0,1.9,0,0,All fields below here create the size/attracation fields
+K12,1.5,0,0,1.5,0,0,using a sumproduct approach
+StudGQ_NCSU,5.7,0,0,5.7,0,0,
+StudGQ_UNC,5.7,0,0,5.7,0,0,
+StudGQ_DUKE,5.7,0,0,5.7,0,0,
+StudGQ_NCCU,5.7,0,0,5.7,0,0,
+CollegeOn,5.7,0,0,5.7,0,0,
+CollegeOff,5.7,0,0,5.7,0,0,
+BuildingS_NCSU,0,0,0,0,0,0,
+BuildingS_UNC,0,0,0,0,0,0,
+BuildingS_DUKE,0,0,0,0,0,0,
+BuildingS_NCCU,0,0,0,0,0,0,
+Retail,18.7,4.1,0,18.7,1,0,
+Service_RateLow,5.6,1.2,0,5.6,1,0,
+Service_RateHigh,5.6,1.2,0,5.6,1,0,
+Office,3,0.5,0,3,1,0,
+Industry,3,0.5,0,3,1,0,
+Hospital,0,0,0,0,0,10,
+wHH,0,0,0.037543,0,0,0,
+wK12,0,0,0.005133,0,0,0,
+wStudGQ_NCSU,0,0,0.021174,0,0,0,
+wStudGQ_UNC,0,0,0.021174,0,0,0,
+wStudGQ_DUKE,0,0,0.021174,0,0,0,
+wStudGQ_NCCU,0,0,0.021174,0,0,0,
+wCollegeOn,0,0,0.021174,0,0,0,
+wRetail,0,0,0.007263,0,0,0,

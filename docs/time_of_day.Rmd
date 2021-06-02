@@ -478,10 +478,11 @@ tod_factors$Description <- desc
 
 # Directionality factors
 For most steps in a trip-based model, the trips are said to be in
-"Production/Attraction" (PA) format. This simply means that all home-based
-trips start at home and end somewhere else. This simplification of reality is
-done for a number of reasons in the model, but is not actually how travel
-occurs. As a result, before highway trip assignment can take place, the PA
+"Production/Attraction" (PA) format. In this format, all home-based trips are
+considered to start at home and end somewhere else (even if the person is
+actually traveling back home). This simplification of reality is done for a
+number of reasons related to model estimation, but is not actually how travel
+occurs. As a result, before highway assignment can take place, the PA
 format must be converted to "Origin/Destination" (OD) format. In this format, a
 trip from work to home starts at work and ends at home.
 
@@ -493,7 +494,33 @@ than 0.5.
 
 These factors can be calculated directly from the survey by comparing the number
 of home-based trips that start at home to the number home-based trips that start
-elsewhere. By definition, non-home-based trips are the same in either format;
+elsewhere. The table below shows the PA factors calculated from the survey by
+trip type.
+
+```{r calc_pa_factors}
+direction_tbl <- tripTbl %>%
+  filter(homebased == "HB", tour_type != "H") %>%
+  group_by(trip_type, tod, pa_flag) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  mutate(
+    pct = trips / sum(trips),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
+  ) %>%
+  filter(pa_flag == 1) %>%
+  select(-trips, -pa_flag) %>%
+  rename(pa_fac = pct) %>%
+  arrange(trip_type, tod)
+
+direction_tbl %>%
+  pivot_wider(
+    names_from = "tod", values_from = "pa_fac"
+  ) %>%
+  rename(`Trip Type` = trip_type) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+By definition, non-home-based trips are the same in either format;
 their PA factors are set to .5. The same treatment is applied to commercial
 vehicles, trucks, and external trips.
 
@@ -502,69 +529,48 @@ models. At that point, trip types are collapsed due to sample size
 limitations in the household survey. As a result, the factors must be estimated
 using the matching, more-aggregate purposes.
 
-*TODO: Calculate these after aggregate models are specified*
+## Treatment of skims
 
-```{r calc_pa_factors}
-# # Calculate a pa field
-# tripTbl <- tripTbl %>%
-#   mutate(pa = ifelse(dest_blk == home_blk & orig_blk != home_blk, "AP", "PA"))
-# 
-# pa_tbl <- tripTbl %>%
-#   group_by(Purpose = final_purp_d, Period = tod, pa) %>%
-#   summarise(Trips = sum(hhrkwt0)) %>%
-#   group_by(Purpose, Period) %>%
-#   mutate(
-#     Value = round(Trips / sum(Trips), 3),
-#     # Set NHB purposes to .5
-#     Value = ifelse(
-#       # Check for first letter = "N" or "n"
-#       grepl("^N", Purpose, ignore.case = TRUE),
-#       .5,
-#       Value
-#     )
-#   ) %>%
-#   filter(pa == "PA") %>%
-#   select(Purpose, Period, Value) %>%
-#   ungroup() %>%
-#   mutate(Purpose = factor(
-#     Purpose, levels = c("HBW", "HBO", "HBSC", "HBSH", "NHB"), ordered = TRUE
-#   )) %>%
-#   arrange(Purpose)
-# 
-# pa_tbl %>%
-#   spread(key = Period, value = Value) %>%
-#   kable2(digits = 2, caption = "PA Factors by Purpose and Time of Day")
+In the TRMG2, the directionality factors are used to further improve the
+period-specific skims. The easiest way to explain the improvement is using the PM
+period as an example. 
+
+In the PM period, 95% of home-based work trips in the survey are traveling back
+home. Trip productions estimated by the model are in PA format and, with a
+traditional approach, would see skim times from home to work, which are near
+free-flow speed. This unrealistic representation of travel time would cause
+incorrect mode and destination choices to be predicted.
+
+To properly represent aggregate travel times, the PA and AP directions must be
+combined using a weighted average as shown below:
+
+$$TT_{avg} = f_{pa} * TT_{ij} + (1 - f_{pa}) * TT_{ji}$$
+
+Where:  
+$TT_{avg}$ is the average travel time from zone i to j;
+$f_{pa}$ is the PA factor;
+$TT_{ij}$ is the travel time from zone i to j; and
+$TT_{ji}$ is the travel time from zone j to i.
+
+The table below shows the directional factors used to average skims. Note that
+for non-home-based trips and all off-peak trips, a simple 50/50 split was used.
+For home-based trips in the off-peak, the survey showed that the directionality
+was close enough to 50/50 that the extra complexity was not warranted.
+
+```{r, include = FALSE}
+skim_facs <- read_csv("../master/resident/tod/directionality_skim_factors.csv")
 ```
 
-```{r add other purps and desc, warning=FALSE}
-# # Add rows for NHBNR, CV, SUT, MUT, and IEEI. They are all 50/50.
-# v_types <- c("NHBNR", "CV", "SUT", "MUT", "IEEI")
-# for (type in v_types){
-#   template <- pa_tbl %>%
-#     filter(Purpose == "NHB") %>%
-#     mutate(Purpose = type)
-#   
-#   pa_tbl <- bind_rows(pa_tbl, template)
-# }
-# pa_tbl <- pa_tbl %>%
-#   mutate(Purpose = factor(
-#     Purpose, levels = c(
-#       "HBW",
-#       "HBO",
-#       "HBSC",
-#       "HBSH",
-#       "NHB",
-#       v_types
-#     ), ordered = TRUE
-#   )) %>%
-#   arrange(Purpose)
-# 
-# # add description column
-# v_desc <- vector(mode = "character", nrow(pa_tbl))
-# v_desc[1] <- "Percent of trips in PA direction by purpose and tod"
-# v_desc[2] <- "CREATION: this file created by rmarkdown"
-# pa_tbl$Description <- v_desc
+```{r}
+skim_facs %>%
+  rename(
+    Period = period, Homebased = homebased, `Tour Type` = tour_type, 
+    PA = pa, AP = ap
+  ) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
 ```
+
 
 # Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
@@ -573,24 +579,20 @@ are calculated from the household survey, which includes information on the
 party size of each trip. The rates below meet expectations. The mode categories
 used are defined as follows:
 
-- da: Drive Alone
-- sr2: Shared ride with 2 people
-- sr3: Shared ride with 3+ people
+- SOV: Single occupancy
+- HOV2: 2-person occupancy
+- HOV3: 3+ person occupancy
 
-Vehicle occupancies for da and sr2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancies calculated for sr3.
+Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
+table below shows the occupancy calculated for HOV3.
 
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
-  filter(tour_type != "H", !is.na(mode_simple2)) %>%
-  filter(mode_simple2 %in% c("sov", "hov")) %>%
+  filter(tour_type != "H", !is.na(mode_final)) %>%
+  filter(mode_final %in% c("sov", "hov2", "hov3")) %>%
   mutate(
     party_size = num_hh_members + num_nonhh,
-    mode = case_when(
-      mode_simple2 == "sov" ~ "da",
-      party_size == 2 ~ "sr2",
-      TRUE ~ "sr3"
-    )
+    mode = mode_final
   ) %>%
   group_by(trip_type, tod, mode) %>%
   mutate(
@@ -613,7 +615,7 @@ occ_tbl <- tripTbl %>%
 
 occ_tbl %>%
   spread(key = Period, value = Value) %>%
-  filter(Mode == "sr3") %>%
+  filter(Mode == "hov3") %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
 
@@ -841,8 +843,8 @@ higher but acceptable.
 # TOD factors
 write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 
-# Directionality factors. HBU gets appended by University.Rmd.
-write_csv(pa_tbl , "../master/directionality/directionality_factors.csv")
+# Directionality factors
+write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
 
 # Occupancy factors. HBU gets appended by University.Rmd
 write_csv(occ_tbl , "../master/directionality/veh_occ_factors.csv")

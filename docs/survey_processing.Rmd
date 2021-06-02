@@ -173,6 +173,35 @@ hh_add_flags <- hh_combined %>%
     )
   ) %>%
   relocate(hh_income_midpt, .after = hh_income_broad)
+
+# Create an income column that marks each household with the income bins
+# developed for the disaggregate model.
+hh_add_income_final <- hh_add_flags %>%
+  mutate(
+    hh_inc_final = case_when(
+      hh_income_broad == 1 ~ 1,
+      hh_income_broad <= 3 ~ 2,
+      hh_income_broad == 4 ~ 3,
+      TRUE ~ 4
+    ),
+    hh_inc_final_lab = case_when(
+      hh_inc_final == 1 ~ "25k",
+      hh_inc_final == 2 ~ "75k",
+      hh_inc_final == 3 ~ "150k",
+      hh_inc_final == 4 ~ "150k+"
+    )
+  ) %>%
+  relocate(hh_inc_final:hh_inc_final_lab, .after = hh_income_midpt)
+
+hh_add_choice_markets <- hh_add_income_final %>%
+  mutate(
+    veh_sufficient = ifelse(num_vehicles < num_adults, "vi", "vs"),
+    choice_segment = case_when(
+      num_vehicles == 0 ~ "v0",
+      hh_inc_final <= 2 ~ paste0("il", veh_sufficient),
+      TRUE ~ paste0("ih", veh_sufficient)
+    )
+  )
 ```
 
 ### Person table
@@ -276,7 +305,7 @@ per_combined <- bind_rows(
   prep_per_2018
 ) %>%
   left_join(
-    hh_add_flags %>% select(hhid, hh_weight_combined),
+    hh_add_choice_markets %>% select(hhid, hh_weight_combined),
     by = "hhid"
   ) %>%
   filter(!is.na(hh_weight_combined))
@@ -293,7 +322,7 @@ per_add_flags <- per_combined %>%
     is_worker = replace_na(is_worker, 0)
   )
 
-hh_add_seniors <- hh_add_flags %>%
+hh_add_seniors <- hh_add_choice_markets %>%
   left_join(
     per_add_flags %>%
       group_by(hhid) %>%
@@ -352,7 +381,6 @@ prep_trip_2016 <- trips_2016_raw %>%
   ) %>%
   select(-c(
     tripweight1:tripweight4,
-    transit_access:transit_passtype, 
     o_activity_derived, d_activity_derived, tollroad_cost, 
     tollroad_cost_dontknow, trip_flag, gpsfact_age, gpsfact_inc, gpsfact_purp
   ))
@@ -391,7 +419,6 @@ prep_trip_2018 <- trips_2018_raw %>%
     destination_taz, destination_campus, destination_region,
     departure_string, arrival_string, o_activity_itre, o_activity_final,
     d_activity_itre, d_activity_final,
-    transit_access:transit_passtype, 
     quality_flag, trip_weight_2018
   )) %>%
   rename(o_activity_2018 = o_activity, d_activity_2018 = d_activity)
@@ -995,11 +1022,27 @@ mode_equiv %>%
 simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
   mutate(
-    mode_simple2 = case_when(
+    mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
+      mode_simple == "other_auto" ~ "auto_pay",
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
-      grepl("auto", mode_simple) & party_size > 1 ~ "hov",
+      grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
+      grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
       TRUE ~ mode_simple
+    ),
+    access_mode = case_when(
+      transit_access %in% c(1, 2, 7) ~ "w",
+      transit_access == 3 ~ "pnr",
+      transit_access %in% 4:5 ~ "knr",
+      transit_access == 6 ~ "xfer",
+      transit_access == 8 ~ "other"
+    ),
+    egress_mode = case_when(
+      transit_egress %in% c(1, 2, 7) ~ "w",
+      transit_egress == 3 ~ "pnr",
+      transit_egress %in% 4:5 ~ "knr",
+      transit_egress == 6 ~ "xfer",
+      transit_egress == 8 ~ "other"
     )
   )
 ```
@@ -1008,7 +1051,7 @@ The chart below shows the expanded trips by mode.
 
 ```{r}
 temp <- simplify_mode %>%
-  group_by(Mode = mode_simple2) %>%
+  group_by(Mode = mode_final) %>%
   summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
 ggplot(data = temp, aes(
   x = reorder(Mode, -weight), y = weight, fill = Mode,
@@ -1400,7 +1443,9 @@ flip_to_pa <- xfer_linked_out %>%
     p_activity = ifelse(pa_flag == 1, o_activity, d_activity),
     a_activity = ifelse(pa_flag == 0, o_activity, d_activity),
     p_act_dur = ifelse(pa_flag == 1, o_act_dur, d_act_dur),
-    a_act_dur = ifelse(pa_flag == 0, o_act_dur, d_act_dur)
+    a_act_dur = ifelse(pa_flag == 0, o_act_dur, d_act_dur),
+    p_access_mode = ifelse(pa_flag == 1, access_mode, egress_mode),
+    p_egress_mode = ifelse(pa_flag == 0, access_mode, egress_mode)
   )
 ```
 
@@ -1760,7 +1805,7 @@ eda_scheme2 %>%
     `Is Child (r)` = r_is_kid,
     `Zonal Employment (r)` = r_emp,
     `AM (%)` = pct_AM,
-    `HOV (%)` = pct_hov,
+    `HOV2 (%)` = pct_hov2,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
@@ -2038,20 +2083,35 @@ eda_scheme6 %>%
     `Is Child (r)` = r_is_kid,
     `Zonal Employment (r)` = r_emp,
     `AM (%)` = pct_AM,
-    `HOV (%)` = pct_hov,
+    `HOV2 (%)` = pct_hov2,
     `Trip Length` = wAvgTrpLen
   ) %>%
   kable() %>%
   kable_styling() %>%
   row_spec(which(eda_scheme6$homebased == "NH"), background = "lightgray")
+```
 
-add_trip_type <- scheme6 %>%
+```{r}
+add_obs_trip_type <- scheme6 %>%
   unite(
     c(tour_type, homebased, purp_scheme, dur_scheme),
     col = "trip_type",
     remove = FALSE
+  ) %>%
+  mutate(obs_purpose = case_when(
+    homebased == "NH" ~ "NHB",
+    purp_scheme == "W" ~ "HBW",
+    purp_scheme == "OME" ~ "HBShop",
+    TRUE ~ "HBO"
+  ))
+
+add_hh_data <- add_obs_trip_type %>%
+  left_join(
+    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab, choice_segment),
+    by = "hhid"
   )
 ```
+
 
 For example, the table above shows that if a person is a workers, they are more
 likely to take trips on work tours and less likely to take trips on non-work
@@ -2143,7 +2203,7 @@ write_csv(
   na = ""
 )
 write_csv(
-  add_trip_type,
+  add_hh_data,
   "data/output/_PRIVATE/survey_processing/trips_processed.csv",
   na = ""
 )

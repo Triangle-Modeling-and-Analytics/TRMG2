@@ -25,10 +25,12 @@ Macro "Skimming" (Args)
 
     // TODO: move this network updating into the feedback step when it exists
     if feedback_iteration > 1 then do
+        RunMacro("Calculate Bus Speeds", Args)
         RunMacro("Create Link Networks", Args)
         RunMacro("Create Route Networks", Args)
     end
     RunMacro("Roadway Skims", Args)
+    RunMacro("Create Average Roadway Skims", Args)
     RunMacro("Transit Skims", Args)
 
     return(1)
@@ -91,10 +93,68 @@ Macro "Roadway Skims" (Args)
 endmacro
 
 /*
-
+This macro uses directionality factors to create skims that are a weighted
+average of the PA and AP travel time.
 */
 
-Macro "Transit Skims" (Args)
+Macro "Create Average Roadway Skims" (Args)
+
+    factor_tbl = Args.DirectionFactorsSkims
+    skim_dir = Args.[Output Folder] + "/skims/roadway"
+    modes = {"sov", "hov"}
+
+    factor_vw = OpenTable("factor_vw", "CSV", {factor_tbl})
+    rh = GetFirstRecord(factor_vw + "|", )
+    while rh <> null do
+        tod = factor_vw.period
+        hb = factor_vw.homebased
+        tour_type = factor_vw.tour_type
+        pa_fac = factor_vw.pa
+        ap_fac = factor_vw.ap
+
+        for mode in modes do
+            in_skim = skim_dir + "/skim_" + mode + "_" + tod + ".mtx"
+            trans_skim = Substitute(in_skim, ".mtx", "_t.mtx", )
+            out_skim = skim_dir + "/avg_skim_" + tod + "_" + tour_type + "_" + hb + "_" + mode + ".mtx"
+
+            CopyFile(in_skim, out_skim)
+            out_m = CreateObject("Matrix")
+            out_m.LoadMatrix(out_skim)
+            out_cores = out_m.data.cores
+            TransposeMatrix(out_m.MatrixHandle, {"File Name": trans_skim, Label: "transposed"})
+            t_m = CreateObject("Matrix")
+            t_m.LoadMatrix(trans_skim)
+            t_cores = t_m.data.cores
+
+            for core in out_m.CoreNames do
+                out_cores.(core) := pa_fac * out_cores.(core) + ap_fac * t_cores.(core)
+            end
+            t_m = null
+            t_cores = null
+            DeleteFile(trans_skim)
+        end
+
+        rh = GetNextRecord(factor_vw + "|", , )
+    end
+    CloseView(factor_vw)
+endmacro
+
+/*
+Creates the various transit skims needed by the model. The `override` argument
+allows only some skims to be created. This is useful for earlier model steps
+like accessibility calculations.
+
+Inputs
+  * Args: standard args array
+  * overrides
+    * named array containing overrides for the following:
+      * periods
+      * transit_modes
+      * access_modes
+    * If provided, only these skims will be created. Used by accessibility.
+*/
+
+Macro "Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
     periods = Args.periods
@@ -104,13 +164,17 @@ Macro "Transit Skims" (Args)
     out_dir = Args.[Output Folder] + "/skims/transit"
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+    
+    // overrides
+    if overrides.periods <> null then periods = overrides.periods
+    if overrides.transit_modes <> null then transit_modes = overrides.transit_modes
+    if overrides.access_modes <> null then access_modes = overrides.access_modes
 
     for period in periods do
         for mode in transit_modes do
             for access in access_modes do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
-
                 obj = CreateObject("Network.TransitSkims")
                 obj.Method = "PF"
                 obj.LayerRS = rts_file
