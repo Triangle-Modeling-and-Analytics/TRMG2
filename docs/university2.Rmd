@@ -75,7 +75,7 @@ Survey_Total_Weighted_Trips<-Trip_subset_df %>% filter(!is.na(Weight)) %>% summa
 The trip production rates were developed based on a survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014.   
 After removing respondents who did not finish the survey and respondents with a mismatch of more than 1 between the stated number of trips and the number of trips for which they provided a description, the total number of complete and valid samples consists of  `r Respondents_On_campus` on-campus students and `r Respondents_Off_campus` and off-campus students. The breakdown by graduate and undergraduate students is presented in the table below. These respondents reported a combined `r nrow(Trip_subset_df)` trips.
 
-```{r,echo=FALSE}
+```{r survey overview2,echo=FALSE}
 surveyRespondents_ResidenceClass_df %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
@@ -107,8 +107,8 @@ Figure 1 shows the average number of trips per student per day for each of the 5
 The distribution is skewed to the right, with most students making few trips and a few students making many trips per day.There appears to be more variability in the number of trips reported by on-campus students, especially in UC1 and UCH, which are trips that both start and end on campus for on-campus students. 
 
 
-```{r,echo=FALSE}
-Triprates_histogram<-Productions_df %>% 
+```{r histogram,echo=FALSE}
+Triprates_histogram<-Productions_bymode_df %>% 
   group_by(Person_ID,
            Trip_Purpose, 
            On_campus)%>%
@@ -137,62 +137,6 @@ Production rates were developed based on raw data and based on weighted data. Th
 Based on the weighted data, the average daily trips rate is `r w_avg_trips_df[,"w_avg_trips"]`.  On-campus students make an average of `r w_avg_trips_byres_df[2,"w_avg_trips"]` trips per day while off- campus students make an average of `r w_avg_trips_byres_df[1,"w_avg_trips"]` trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.
 
 
-##### Trip Rates by Place of Residence and Trip Purpose  
-```{r , echo=FALSE}
-w_avg_trips_df<-Person_subset_df%>%
-  filter(!is.na(Weight))%>%
-  mutate(w_trips=Derived_trip_rate * Weight)%>%
-  summarize(w_total_trips=sum(w_trips),
-            w_respondents=sum(Weight),
-            w_avg_trips=w_total_trips/w_respondents,
-            respondents=n(),
-            .groups = "drop")
-
-w_avg_trips_byres_df<-Person_subset_df%>%
-  filter(!is.na(Weight))%>%
-  mutate(w_trips=Derived_trip_rate * Weight)%>%
-  group_by(On_campus)%>%
-  summarize(w_total_trips=sum(w_trips),
-            w_respondents=sum(Weight),
-            w_avg_trips=w_total_trips/w_respondents,
-            respondents=n(),
-            .groups = "drop")
-
-on_campus_w_respondents<-w_avg_trips_byres_df %>%
-  filter(On_campus==1)%>%
-  select(w_respondents)%>%
-  pull()
-
-on_campus_sample<-w_avg_trips_byres_df %>%
-  filter(On_campus==1)%>%
-  select(respondents)%>%
-  pull()
-
-off_campus_w_respondents<-w_avg_trips_byres_df %>%
-  filter(On_campus==0)%>%
-  select(w_respondents)%>%
-  pull()
-
-off_campus_sample<-w_avg_trips_byres_df %>%
-  filter(On_campus==0)%>%
-  select(respondents)%>%
-  pull()
-```
-
-
-##### UOO Trip Rates by Mode  
-Trip production rates by mode will be used to estimate a trip production rate for UOO trips based on the relationship between trip production by mode for UOO trips and for UHO and UCO trips.  SCOPE: "The UOO trips should be generated separately by mode as a function of (or rate per) UHO and UCO off-campus trip ends by mode and optionally a nearby accessibility variable (provided by Caliper).  UOO trip generation and distribution models will therefore be implemented to run at the end of the university model after the other trip purposes"
-
-```{r test, echo=FALSE}
-
-kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
-
-kable(avg_trips_UOO_df[,avg_trips_UOO_col],caption ="UOO Trip Rates by Mode",col.names=headers)
-```
-
-
-##### Conclusion Trip Production
-
 Comparison to Khattak et al (2012)
 
 Consistent with our findings, Khattak et al found that students who reside on-campus make more trips (especially on-campus trips) than those who reside off-campus and that they walk more and drive less than off-campus students. They estimate production trip rates that were somewhat lower than the production rates selected for this study. During first round of surveys at ODU, VT, UVA and VCU, daily trip rates ranged from 4.4 to 4.9.  For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT. 
@@ -203,6 +147,15 @@ Consistent with our findings, Khattak et al found that students who reside on-ca
 P_rates_df %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
+```
+##### UOO Trip Rates by Mode  
+Trip production rates by mode will be used to estimate a trip production rate for UOO trips based on the relationship between trip production by mode for UOO trips and for UHO and UCO trips.  SCOPE: "The UOO trips should be generated separately by mode as a function of (or rate per) UHO and UCO off-campus trip ends by mode and optionally a nearby accessibility variable (provided by Caliper).  UOO trip generation and distribution models will therefore be implemented to run at the end of the university model after the other trip purposes"
+
+```{r test, echo=FALSE}
+
+kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
+
+kable(avg_trips_UOO_df[,avg_trips_UOO_col],caption ="UOO Trip Rates by Mode",col.names=headers)
 ```
 
 Trip productions by TAZ were estimated by applying the trip production rates as follows:  
@@ -291,7 +244,7 @@ plot_Model_OnCampusUCO_2
 The second model adds the distance between the TAZ and campus to the first model. The distance between the TAZ and campus is calculated as the average straight line distance between the TAZ and the centroids of the different NCSU campus TAZs. (confirm campus definition).  As expected, attractions decrease as the distance increases. 
 ```{r,echo=FALSE}
 
-
+# to be completed
 ```
 The third model is estimated using only TAZs with UCO trips.
 ```{r,echo=FALSE}
