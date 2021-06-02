@@ -103,6 +103,7 @@ Macro "Parking Destination Choice"(Args)
     se_vw = OpenTable("scenario_se", "FFB", {Args.SE})
     modify = CreateObject("CC.ModifyTableOperation", se_vw)
     modify.FindOrAddField("ParkCost", "Real", 12, 2, )
+    modify.FindOrAddField("ParkSize", "Real", 12, 2, )
     modify.Apply()
 
     // Loop over, run DC model and write to utility matrix
@@ -111,7 +112,7 @@ Macro "Parking Destination Choice"(Args)
         for destType in destTypes do
             for tourType in tourTypes do
                 // Fill appropriate parking cost field in 'ParkCost' field
-                RunMacro("Parking: Fill Cost", {View: se_vw, DestType: destType, TourType: tourType})
+                RunMacro("Parking: Fill Fields", {View: se_vw, DestType: destType, TourType: tourType})
 
                 // Modify template model and run DC model (Note SE View is assumed to be open here)
                 retDC = RunMacro("Parking: Evaluate DC", Args, {Mode: mode, DestType: destType, TourType: tourType})
@@ -129,6 +130,7 @@ Macro "Parking Destination Choice"(Args)
 
     // Remove temp field from se_table
     modify.DropField("ParkCost")
+    modify.DropField("ParkSize")
     modify.Apply()
 
     CloseView(se_vw)
@@ -140,19 +142,29 @@ endMacro
 /*
     Macro that fill the appropriate park cost field into the common field called 'ParkCost' before running the destination choice model
 */
-Macro "Parking: Fill Cost"(spec)
+Macro "Parking: Fill Fields"(spec)
     // Get approprioate parking cost field
-    if spec.DestType = 'Univ' then      // 'Univ' ('Work' or 'NonWork')
-        parkCost = 'ParkCostU'
-    else if spec.TourType = 'Work' then // 'CBD' and 'Work'
+    if spec.TourType = 'Work' then do// 'CBD' and 'Work' or 'Univ' and 'Work'
         parkCost = 'ParkCostW'
-    else                                // 'CBD' and 'Other'
+        spacesFld = 'EmpSpaces'
+    end
+    else if spec.DestType = 'Univ' then do     // 'Univ' and 'NonWork')
+        parkCost = 'ParkCostU'
+        spacesFld = 'StudSpaces'
+    end
+    else do                               // 'CBD' and 'NonWork'
         parkCost = 'ParkCostO'
+        spacesFld = 'OtherSpaces'
+    end
 
     // Copy case specific parking cost values into temporary 'ParkCost' field in SE Data
     se_vw = spec.View
-    v = GetDataVector(se_vw + "|", parkCost,)
-    SetDataVector(se_vw + "|", "ParkCost", v,)    
+    vecs = GetDataVectors(se_vw + "|", {parkCost, spacesFld},)
+
+    vecsSet = null
+    vecsSet.ParkCost = vecs[1]/100
+    vecsSet.ParkSize = if vecs[2] > 0 then log(vecs[2]) else -99
+    SetDataVectors(se_vw + "|", vecsSet,)    
 endMacro
 
 
