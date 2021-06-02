@@ -4,6 +4,7 @@ packages_vector <- c("tidyverse",
                      "kableExtra"
                      
 )
+
 need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
 if (length(need_to_install)) install.packages(need_to_install)
 for (package in packages_vector){
@@ -17,7 +18,7 @@ options(scipen = 999)
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/input/_PRIVATE/"
 input_dir <-"data/input/university/"
-univ_dir<-"data/output/"
+univ_dir<-"data/output/university/"
 
 trip_subset_filename <- paste0(private_dir,"Trip_subset_df.RDS")
 
@@ -83,13 +84,6 @@ zonetozonedistance_UC1_histogram
 # Mode 
 # also split by Have_car
 
-#mode_barchart <-trip_subset_df %>%
-  filter(Trip_Purpose !="99") %>%
-  group_by(On_campus,Trip_Purpose) %>%
-  ggplot(aes(Primary_Mode, fill=Primary_Mode)) +
-  geom_bar() +
-  facet_grid(On_campus ~ Trip_Purpose)
-#mode_barchart
 
 trips_bypurpose_oncampus<-trip_subset_df %>%
   filter(Trip_Purpose !="99") %>%
@@ -127,12 +121,12 @@ trips_bypurpose_oncampus_pct<-trip_subset_df %>%
   filter(On_campus == 1) %>%
   group_by(Trip_Purpose)%>%
   summarize(Total = n(),
-            Bicycle = sum(Bicycle)/count * 100,
-            Walk = sum(Walk)/count * 100,
-            Car = sum(Car)/count * 100,
-            Carpool = sum(Carpool)/count * 100,
-            Bus = sum(Bus)/count * 100,
-            Other = sum(Other)/count * 100) %>%
+            Bicycle = sum(Bicycle)/Total * 100,
+            Walk = sum(Walk)/Total * 100,
+            Car = sum(Car)/Total * 100,
+            Carpool = sum(Carpool)/Total * 100,
+            Bus = sum(Bus)/Total * 100,
+            Other = sum(Other)/Total * 100) %>%
   kable(digits = 1) %>%
   kable_styling(full_width = FALSE)
 
@@ -142,12 +136,12 @@ trips_bypurpose_offcampus<-trip_subset_df %>%
   filter(!is.na(Walk)) %>%
   group_by(Trip_Purpose)%>%
   summarize(Total = n(),
-            Bicycle = sum(Bicycle)/count * 100,
-            Walk = sum(Walk)/count * 100,
-            Car = sum(Car)/count * 100,
-            Carpool = sum(Carpool)/count * 100,
-            Bus = sum(Bus)/count * 100,
-            Other = sum(Other)/count * 100) %>%
+            Bicycle = sum(Bicycle)/Total * 100,
+            Walk = sum(Walk)/Total * 100,
+            Car = sum(Car)/Total * 100,
+            Carpool = sum(Carpool)/Total * 100,
+            Bus = sum(Bus)/Total * 100,
+            Other = sum(Other)/Total * 100) %>%
   kable(digits = 1) %>%
   kable_styling(full_width = FALSE)
 

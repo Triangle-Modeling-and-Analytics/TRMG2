@@ -18,7 +18,7 @@ options(scipen = 999)
 
 private_dir <- "data/input/_PRIVATE/"
 input_dir <-"data/input/university/"
-univ_dir<-"data/output/"
+univ_dir<-"data/output/university/"
 
 # Data Reads -------------------------------------------------------------------
 
@@ -26,16 +26,16 @@ Attractions_byTAZbySegment_df<-readRDS(paste0(private_dir,"Attractions_byTAZbySe
 Attractions_byTAZ_df<-readRDS(paste0(private_dir,"Attractions_byTAZ_df.RDS"))
 Trip_subset_df<-readRDS(paste0(private_dir,"Trip_subset_df.RDS"))
 Person_subset_df<-readRDS(paste0(private_dir,"Person_subset_df.RDS"))
-socioecon2_df<-readRDS(paste0(univ_dir,"socioecon3_df.RDS"))
-distance_TAZcampus_df<-socioecon2_df %>% select(TAZ,
-                                                NCSU_min_distance, 
-                                                NCSU_avg_distance,
-                                                UNC_min_distance, 
-                                                UNC_avg_distance,
-                                                Duke_min_distance, 
-                                                Duke_avg_distance,
-                                                NCCU_min_distance, 
-                                                NCCU_avg_distance)
+socioecon2_df<-readRDS(paste0(input_dir,"socioecon2_df.RDS"))
+#distance_TAZcampus_df<-socioecon2_df %>% select(TAZ,
+#                                                NCSU_min_distance, 
+#                                                NCSU_avg_distance,
+#                                                UNC_min_distance, 
+#                                                UNC_avg_distance,
+#                                                Duke_min_distance, 
+#                                                Duke_avg_distance,
+#                                                NCCU_min_distance, 
+#                                                NCCU_avg_distance)
 
 # Correlations -----------------------------------------------------------------
 correlations_df <- Attractions_byTAZ_df %>%
@@ -145,15 +145,15 @@ plot_Model_OnCampusUCO_3 <- apply_Model_OnCampusUCO_3 %>%
 Model_Oncampus_UHO_1= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = Attractions_byTAZ_df)
 tidy(Model_Oncampus_UHO_1)
 
-Model_Oncampus_UHO_2= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
-tidy(Model_Oncampus_UHO_2)
+#Model_Oncampus_UHO_2= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
+#tidy(Model_Oncampus_UHO_2)
 
 ### UHO Trips by On-Campus Students based on TAZs with UHO trips
 
 OnCampusUHOTrips_df<- Attractions_byTAZ_df %>%
   filter(OnCampusStudents_UHOTrips>0)
 
-Model_Oncampus_UHO_3= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = OnCampusUHOTrips_df)
+Model_Oncampus_UHO_3= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU  , data = OnCampusUHOTrips_df)
 tidy(Model_Oncampus_UHO_3)
 
 Model_Oncampus_UHO_4 = lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = OnCampusUHOTrips_df)
@@ -164,8 +164,8 @@ tidy(Model_Oncampus_UHO_4)
 Model_Offcampus_UCO_1= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail , data = Attractions_byTAZ_df)
 tidy(Model_Offcampus_UCO_1)
 
-Model_Offcampus_UCO_2= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
-summary(Model_Offcampus_UCO_2)
+#Model_Offcampus_UCO_2= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
+#summary(Model_Offcampus_UCO_2)
 
 ### UCO Trips by Off-Campus Students based on TAZs with UHO trips
 

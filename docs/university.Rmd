@@ -8,7 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 
 source("R/university_productions3.R")
-#source("R/university_attractions2.R")
+source("R/university_attractions3.R")
+source("R/university_surveysummary.R")
 #source("R/university_distribution.R")
 #source("R/university_modechoice.R")
 
@@ -251,9 +252,10 @@ For on-campus attractions (UHC,UC1), the attractions are distributed among campu
 Correlations between the university attractions by TAZ and TAZ land use characteristics are presented below. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. (The number of students in student group quarters is also relatively highly correlated with trips by off-campus students - can they be in off-campus zones?) For trips by off-campus students, off-campus students has the highest correlation coefficient.  
 ```{r,echo=FALSE}
 correlations_df %>% 
- select(term,W_Trips, W_On_Trips, W_Off_Trips) %>%
+ select(term,AllStudents_Trips, OnCampusStudents_Trips, OffCampusStudents_Trips) %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
+
 ```
 
 #### Regression Models
@@ -282,81 +284,58 @@ print_model <- function(model) {
 
 The first model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The dataset used to estimate this model includes all TAZs, except those for which UCO on-campus attractions are N/A. The coefficients have the expected signs. 
 ```{r, echo=FALSE}
-print_model(lm_modelOn_UCOTrips_2)
-AttractionModel_UCO_On_df<-tidy(lm_modelOn_UCOTrips_2) %>%
-  mutate(segment="UCO_On") %>% 
-  select(segment,term,estimate)
-plot_lm_modelOn_UCOTrips_2 <- apply_lm_modelOn_UCOTrips_2 %>%
-    ggplot(aes(W_On_UCOTrips,Predicted)) +
-    geom_point()
-plot_lm_modelOn_UCOTrips_2
+print_model(Model_OnCampusUCO_2)
+plot_Model_OnCampusUCO_2
 ```
 
 The second model adds the distance between the TAZ and campus to the first model. The distance between the TAZ and campus is calculated as the average straight line distance between the TAZ and the centroids of the different NCSU campus TAZs. (confirm campus definition).  As expected, attractions decrease as the distance increases. 
 ```{r,echo=FALSE}
-print_model(lm_modelOn_UCOTrips_3)
-AttractionModel2_UCO_On_df<-tidy(lm_modelOn_UCOTrips_3) %>%
-  mutate(segment="UCO_On") %>% 
-  select(segment,term,estimate)
-plot_lm_modelOn_UCOTrips_3 <- apply_lm_modelOn_UCOTrips_3 %>%
-  ggplot(aes(W_On_UCOTrips,Predicted)) +
-  geom_point()
-plot_lm_modelOn_UCOTrips_3
+
+
 ```
 The third model is estimated using only TAZs with UCO trips.
 ```{r,echo=FALSE}
-print_model(selTAZ_lm_modelOn_UCOTrips_2)
-plot_lm_modelOn_UCOTrips_2 <- apply_selTAZ_lm_modelOn_UCOTrips_2 %>%
-  ggplot(aes(W_On_UCOTrips,Predicted)) +
-  geom_point()
-plot_lm_modelOn_UCOTrips_2
+print_model(Model_OnCampusUCO_3)
+
 ```
 
 ##### UHO trips by On-campus students
 As UCO trips by on-campus students, UHO trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ and the number of retail jobs. Including distance in the UHO on-campus models results in illogical coefficients. 
 ```{r,echo=FALSE}
-print_model(lm_modelOn_UHOTrips_1)
-AttractionModel_UHO_On_df<- tidy(lm_modelOn_UHOTrips_1)%>%
-  mutate(segment="UHO_On") %>% 
-  select(segment,term,estimate)
+print_model(Model_Oncampus_UHO_1)
+
 ```
 
 Limiting the dataset to only TAZs to which on-campus students made UHO trips does not improve the model.
 
 ```{r,echo=FALSE}
-print_model(selTAZ_lm_modelOn_UHOTrips_1)
+print_model(Model_Oncampus_UHO_4)
 
 ```
 
 ##### UcO trips by Off-campus students
 As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location.
 ```{r,echo=FALSE}
-print_model(lm_modelOff_UCOTrips_1)
-AttractionModel_UCO_Off_df<-tidy(lm_modelOff_UCOTrips_1) %>%
-  mutate(segment="UCO_Off") %>% 
-  select(segment,term,estimate)
+print_model(Model_Offcampus_UCO_1)
+
+
 ```
 Adding distance 
 
 ```{r,echo=FALSE}
-print_model(lm_modelOff_UCOTrips_2)
-AttractionModel2_UCO_Off_df<-tidy(lm_modelOn_UCOTrips_2) %>%
-  mutate(segment="UCO_Off") %>% 
-  select(segment,term,estimate)
+
 ```
 This model is estimated based on a dataset that only includes Taz with UCO trips from off-campus students. 
 
 ```{r, echo=FALSE}
-print_model(selTAZ_lm_modelOff_UCOTrips_1)
+print_model(Model_Offcampus_UCO_3)
 ```
 
 #####  UHO Trips by Off-campus students  
 UHO trips by off-campus students have two off-campus trip ends. 
 ```{r, echo=FALSE}
-print_model(lm_modelOA_non_1)
-AttractionModel_UHO_Off_df<-tidy(lm_modelOA_non_1) %>% 
-  mutate(segment="UHO_Off") %>% 
-  select(segment,term,estimate)
+print_model(Model_Offcampus_UHO_2)
+
 
 ```
 
@@ -364,22 +343,6 @@ AttractionModel_UHO_Off_df<-tidy(lm_modelOA_non_1) %>%
 
 The tables below present the off-campus attraction models without distance and with distance. For the UHO On campus segment, adding distance to campus to the model gives illogical signs so a distance model was not included for that segment. There is also no distance model for the UHO off-campus student segment because the production end of those trips is off-campus.
 ```{r,echo=FALSE}
-Attractionmodels_combined_df<-rbind(AttractionModel_UCO_On_df,AttractionModel_UHO_On_df,AttractionModel_UCO_Off_df,
-                                    AttractionModel_UHO_Off_df)
-
-Attractionmodels_overview_df<-Attractionmodels_combined_df %>%
-  pivot_wider(segment,names_from="term",values_from="estimate")%>%
-  kable(digits = 3) %>%
-  kable_styling(full_width = FALSE)
-Attractionmodels_overview_df
-
-Attractionmodels2_combined_df<-rbind(AttractionModel2_UCO_On_df,AttractionModel2_UCO_Off_df)
-
-Attractionmodels2_overview_df<-Attractionmodels2_combined_df %>%
-  pivot_wider(segment,names_from="term",values_from="estimate")%>%
-  kable(digits = 3) %>%
-  kable_styling(full_width = FALSE)
-Attractionmodels2_overview_df
 
 
 ```
