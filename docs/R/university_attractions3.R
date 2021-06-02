@@ -103,163 +103,97 @@ StudOffNCSU_Trip_OffCampus_pl
 LogStudOffNCSU_LogTrip_OffCampus_pl
 
 
-# Data for off-campus attraction models ---------------------------------------
-# all tazs
-All_fromcampus_ON_df<-Attractions_byTAZ_df%>%
-  filter(!is.na(W_On_UCOTrips) & !is.na(W_On_UHOTrips))%>%
-           mutate(W_OAtrips_fromCampus=W_On_UCOTrips +  W_On_UHOTrips)%>%
-           left_join(distance_TAZcampus_df,by=c("TAZ_A" = "TAZ"))
-
-All_fromcampus_OFF_df<-Attractions_byTAZ_df%>%
-  filter(!is.na(W_Off_UCOTrips))%>%
-  left_join(distance_TAZcampus_df,by=c("TAZ_A" = "TAZ"))
-
-All_fromoffcampus_OFF_df<-Attractions_byTAZ_df%>%
- filter(!is.na(W_Off_UHOTrips))
-
-# only tazs with trips for that purpose
-UCO_ON_df<-Attractions_byTAZ_df%>%
-  filter(W_On_UCOTrips>0)%>%
-  left_join(distance_TAZcampus_df,by=c("TAZ_A" = "TAZ"))
-
-UCO_OFF_df<-Attractions_byTAZ_df%>%
-  filter(W_Off_UCOTrips>0)%>%
-  left_join(distance_TAZcampus_df,by=c("TAZ_A" = "TAZ"))
-
-UHO_ON_df<-Attractions_byTAZ_df%>%
-  filter(W_On_UHOTrips>0)%>%
-  left_join(distance_TAZcampus_df,by=c("TAZ_A" = "TAZ"))
-
-UHO_OFF_df<-Attractions_byTAZ_df%>%
-  filter(W_Off_UHOTrips>0)
 
 
 # Regression models ------------------------------------------------------------
-# Are there group quarters in  off-campus zones - zones are mixed campus-non-campus or 
-# do group quarters include off-campus students?
+ 
 
 # Productions on-campus & Attractions off-campus --------------------------------
 ### UCO Trips by On-Campus Students estimated with full dataset
 Model_OnCampusUCO_1 = lm(OnCampusStudents_UCOTrips ~ StudOff_NCSU, data = Attractions_byTAZ_df)
 tidy(Model_OnCampusUCO_1)
+
 Model_OnCampusUCO_2 = lm(OnCampusStudents_UCOTrips ~ StudOff_NCSU + Retail,  data = Attractions_byTAZ_df)
 tidy(Model_OnCampusUCO_2)
 
-  Intercept_lm_modelOn_UCOTrips_2<- tidy(lm_modelOn_UCOTrips_2) %>%
-    filter(term=="(Intercept)") %>% 
-    select(estimate) %>% 
-    pull(estimate)
-  StudOff_NCSU_lm_modelOn_UCOTrips_2<- tidy(lm_modelOn_UCOTrips_2) %>%
-    filter(term=="StudOff_NCSU") %>% 
-    select(estimate) %>% 
-    pull(estimate)
-  Retail_lm_modelOn_UCOTrips_2<- tidy(lm_modelOn_UCOTrips_2) %>%
-    filter(term=="Retail") %>% 
-    select(estimate) %>% 
-    pull(estimate)
+apply_Model_OnCampusUCO_2 <- Attractions_byTAZ_df %>% 
+    mutate(Predicted = Model_OnCampusUCO_2$coefficients["(Intercept)"] + Model_OnCampusUCO_2$coefficients["StudOff_NCSU"] * StudOff_NCSU + Model_OnCampusUCO_2$coefficients["Retail"] * Retail)
   
-  apply_lm_modelOn_UCOTrips_2 <- Attractions_byTAZ_df %>% 
-    mutate(Predicted=Intercept_lm_modelOn_UCOTrips_2 + StudOff_NCSU_lm_modelOn_UCOTrips_2 * StudOff_NCSU + Retail_lm_modelOn_UCOTrips_2 * Retail) %>%
-    mutate(Predicted2=lm_modelOn_UCOTrips_2model_03$coefficients["(Intercept)"] 
-  plot_lm_modelOn_UCOTrips_2 <- apply_lm_modelOn_UCOTrips_2 %>%
-    ggplot(aes(W_On_UCOTrips,Predicted)) +
+plot_Model_OnCampusUCO_2 <- apply_Model_OnCampusUCO_2 %>%
+    ggplot(aes(OnCampusStudents_UCOTrips,Predicted)) +
     geom_point()
 
 
-lm_modelOn_UCOTrips_3= lm(W_On_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = All_fromcampus_ON_df)
-summary(lm_modelOn_UCOTrips_3)
-
-Intercept_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="(Intercept)") %>% 
-  select(estimate) %>% 
-  pull(estimate)
-StudOff_NCSU_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="StudOff_NCSU") %>% 
-  select(estimate) %>% 
-  pull(estimate)
-Retail_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="Retail") %>% 
-  select(estimate) %>% 
-  pull(estimate)
-
-apply_lm_modelOn_UCOTrips_3 <- Attractions_byTAZ_df %>% 
-  mutate(Predicted=Intercept_lm_modelOn_UCOTrips_3 + StudOff_NCSU_lm_modelOn_UCOTrips_3 * StudOff_NCSU + Retail_lm_modelOn_UCOTrips_3 * Retail)
-plot_lm_modelOn_UCOTrips_3 <- apply_lm_modelOn_UCOTrips_3 %>%
-  ggplot(aes(W_On_UCOTrips,Predicted)) +
-  geom_point()
-
-glm_modelOn_UCOTrips_1 = glm(W_On_UCOTrips ~ StudOff_NCSU, family=poisson, data = All_fromcampus_ON_df)
-summary(glm_modelOn_UCOTrips_1)
-
-glm_modelOn_UCOTrips_2 = glm(W_On_UCOTrips ~ StudOff_NCSU + Retail, family=poisson, data = All_fromcampus_ON_df)
-summary(glm_modelOn_UCOTrips_2)
 
 ### UCO Trips by On-Campus Students estimated based on TAZs with UCO Trips
 
-selTAZ_lm_modelOn_UCOTrips_2 = lm(W_On_UCOTrips ~ StudOff_NCSU, data = UCO_ON_df)
-summary(lm_modelOn_UCOTrips_2)
+OnCampusUCOTrips_df<- Attractions_byTAZ_df %>%
+  filter(OnCampusStudents_UCOTrips>0)
 
-selTAZ_lm_modelOn_UCOTrips_3= lm(W_On_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = UCO_ON_df)
-summary(selTAZ_lm_modelOn_UCOTrips_3)
+Model_OnCampusUCO_3 = lm(OnCampusStudents_UCOTrips ~ StudOff_NCSU + Retail,  data = OnCampusUCOTrips_df)
+tidy(Model_OnCampusUCO_3)
 
-Intercept_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="(Intercept)") %>% 
-  select(estimate) %>% 
-  pull(estimate)
-StudOff_NCSU_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="StudOff_NCSU") %>% 
-  select(estimate) %>% 
-  pull(estimate)
-Retail_lm_modelOn_UCOTrips_3<- tidy(lm_modelOn_UCOTrips_3) %>%
-  filter(term=="Retail") %>% 
-  select(estimate) %>% 
-  pull(estimate)
+apply_Model_OnCampusUCO_3 <- Attractions_byTAZ_df %>% 
+  mutate(Predicted = Model_OnCampusUCO_3$coefficients["(Intercept)"] + Model_OnCampusUCO_3$coefficients["StudOff_NCSU"] * StudOff_NCSU + Model_OnCampusUCO_3$coefficients["Retail"] * Retail)
 
-apply_lm_modelOn_UCOTrips_3 <- Attractions_byTAZ_df %>% 
-  mutate(Predicted=Intercept_lm_modelOn_UCOTrips_3 + StudOff_NCSU_lm_modelOn_UCOTrips_3 * StudOff_NCSU + Retail_lm_modelOn_UCOTrips_3 * Retail)
-plot_lm_modelOn_UCOTrips_3 <- apply_lm_modelOn_UCOTrips_3 %>%
-  ggplot(aes(W_On_UCOTrips,Predicted)) +
+plot_Model_OnCampusUCO_3 <- apply_Model_OnCampusUCO_3 %>%
+  ggplot(aes(OnCampusStudents_UCOTrips,Predicted)) +
   geom_point()
 
 ### UHO Trips by On-Campus Students 
 
-lm_modelOn_UHOTrips_1= lm(W_On_UHOTrips ~ StudOff_NCSU + Retail , data = All_fromcampus_ON_df)
-summary(lm_modelOn_UHOTrips_1)
+Model_Oncampus_UHO_1= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = Attractions_byTAZ_df)
+tidy(Model_Oncampus_UHO_1)
 
-lm_modelOn_UHOTrips_2= lm(W_On_UHOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = All_fromcampus_ON_df)
-summary(lm_modelOn_UHOTrips_2)
+Model_Oncampus_UHO_2= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
+tidy(Model_Oncampus_UHO_2)
 
-selTAZ_lm_modelOn_UHOTrips_1= lm(W_On_UHOTrips ~ StudOff_NCSU + Retail , data = UHO_ON_df)
-summary(selTAZ_lm_modelOn_UHOTrips_1)
+### UHO Trips by On-Campus Students based on TAZs with UHO trips
 
-selTAZ_lm_modelOn_UHOTrips_2= lm(W_On_UHOTrips ~ StudOff_NCSU + Retail , data = UHO_ON_df)
-summary(selTAZ_lm_modelOn_UHOTrips_1)
+OnCampusUHOTrips_df<- Attractions_byTAZ_df %>%
+  filter(OnCampusStudents_UHOTrips>0)
+
+Model_Oncampus_UHO_3= lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = OnCampusUHOTrips_df)
+tidy(Model_Oncampus_UHO_3)
+
+Model_Oncampus_UHO_4 = lm(OnCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = OnCampusUHOTrips_df)
+tidy(Model_Oncampus_UHO_4)
 
 ### UCO Trips by Off-Campus Students
 
-lm_modelOff_UCOTrips_1= lm(W_Off_UCOTrips ~ StudOff_NCSU + Retail , data = All_fromcampus_OFF_df)
-summary(lm_modelOff_UCOTrips_1)
+Model_Offcampus_UCO_1= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail , data = Attractions_byTAZ_df)
+tidy(Model_Offcampus_UCO_1)
 
-lm_modelOff_UCOTrips_2= lm(W_Off_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = All_fromcampus_OFF_df)
-summary(lm_modelOff_UCOTrips_2)
+Model_Offcampus_UCO_2= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail + NCSU_avg_distance, data = Attractions_byTAZ_df)
+summary(Model_Offcampus_UCO_2)
 
-selTAZ_lm_modelOff_UCOTrips_1= lm(W_Off_UCOTrips ~ StudOff_NCSU + Retail, data = UCO_OFF_df)
-summary(selTAZ_lm_modelOff_UCOTrips_1)
+### UCO Trips by Off-Campus Students based on TAZs with UHO trips
+
+OffCampusUCOTrips_df<- Attractions_byTAZ_df %>%
+  filter(OffCampusStudents_UCOTrips>0)
+
+Model_Offcampus_UCO_3= lm(OffCampusStudents_UCOTrips ~ StudOff_NCSU + Retail, data = OffCampusUCOTrips_df)
+summary(Model_Offcampus_UCO_3)
 
 
 # Regression models - Production and Attraction Off-campus-----------------------------------------------------------
 
 ### UHO Trips by Off-Campus Students
-lm_modelOA_non_1 = lm(W_Off_UHOTrips ~ StudOff_NCSU , data = All_fromoffcampus_OFF_df)
-summary(lm_modelOA_non_1)
+Model_Offcampus_UHO_1 = lm(OffCampusStudents_UHOTrips ~ StudOff_NCSU , data = Attractions_byTAZ_df)
+tidy(Model_Offcampus_UHO_1)
 
-lm_modelOA_non_2 = lm(W_Off_UHOTrips ~ StudOff_NCSU + Retail , data = All_fromoffcampus_OFF_df)
-summary(lm_modelOA_non_2)
+Model_Offcampus_UHO_2 = lm(OffCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = Attractions_byTAZ_df)
+tidy(Model_Offcampus_UHO_2)
 
-lm_modelOA_non_3 = lm(W_Off_UHOTrips ~ StudOff_NCSU + Retail + employment, data = All_fromoffcampus_OFF_df)
-summary(lm_modelOA_non_3)
+Model_Offcampus_UHO_3 = lm(OffCampusStudents_UHOTrips ~ StudOff_NCSU + Retail + employment, data = Attractions_byTAZ_df)
+tidy(Model_Offcampus_UHO_3)
 
-selTAZ_lm_modelOA_non_1 = lm(W_Off_UHOTrips ~ StudOff_NCSU + Retail , data = UHO_OFF_df)
-summary(selTAZ_lm_modelOA_non_1)
+### UHO Trips by Off-Campus Students based on TAZs wiht UHO trips 
+
+OffCampusUHOTrips_df<- Attractions_byTAZ_df %>%
+  filter(OffCampusStudents_UHOTrips>0)
+
+Model_Offcampus_UHO_4 = lm(OffCampusStudents_UHOTrips ~ StudOff_NCSU + Retail , data = OffCampusUHOTrips_df)
+tidy(Model_Offcampus_UHO_4)
 
 
