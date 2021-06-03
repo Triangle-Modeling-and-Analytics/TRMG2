@@ -57,9 +57,9 @@ Macro "Create Production Features" (Args)
         hh_specs.HHWorkers,
         per_specs.EmploymentStatus,
         per_specs.Age,
-        se_specs.GeneralAccessibility_sov,
-        se_specs.NearbyAccessibility_sov,
-        se_specs.EmploymentAccessibility_sov
+        se_specs.access_general_sov,
+        se_specs.access_nearby_sov,
+        se_specs.access_employment_sov
     },)
 
     data.(per_specs.is_senior) = if v_age >= 65 then 1 else 0
