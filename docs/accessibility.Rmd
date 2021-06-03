@@ -103,9 +103,13 @@ knitr::include_graphics("img/accessibility/transit_access.png")
 knitr::include_graphics("img/accessibility/walk_access.png")
 ```
 
-## Details
+### TNC Wait Time
 
-### Intersection Approach Density
+```{r, out.width="50%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/accessibility/tnc_wait.png")
+```
+
+## Intersection Approach Density
 
 Intersection approach density is an important measure of walk accessibility that
 does not require parcel level zones or place data. It is used as a component of
@@ -122,7 +126,7 @@ Within each zone, the total number of these approaches was summed and then
 divided by the zonal area to arrive at a density which measures both the average
 block size or density and street network connectivity.
 
-### Gini-Simpson Index (D)
+## Gini-Simpson Index (D)
 
 The Gini-Simpson Index is a diversity index used for measuring the diversity of
 many types of phenomenon in various social sciences (such as income and racial
@@ -138,7 +142,7 @@ types (g); where we have taken types simply as home, work, and other activities:
 knitr::include_graphics("img/accessibility/GiniSimpsonD.png")
 ```
 
-### Stop Proximity
+## Stop Proximity
 
 This is a common metric in travel models given its power at describing zonal
 accessibility to transit. In the TRMG2, the percent of each zone within 1/4 mile
@@ -149,7 +153,7 @@ in to Apex to give an illustration of how this calculation works.
 knitr::include_graphics("img/accessibility/bus_stop_detail.png")
 ```
 
-### Walkability
+## Walkability
 
 For each zone, a binary choice model was applied to determine the propensity to
 walk for trips originating in that zone. Simple by design, it does not consider
@@ -190,7 +194,7 @@ model %>%
   kable_styling(full_width = FALSE)
 ```
 
-### Logsum Accessibilities
+## Logsum Accessibilities
 
 Logsums can be considered as a weighted average accessibility. While logsums are
 most often discussed in relation to mode choice and destination choice models,
@@ -227,4 +231,35 @@ tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
+## TNC Variables
 
+To support proper handling in mode choice, the TNC services (e.g. Uber and Lyft)
+need appropriate values for fare and initial wait times. Both were estimated as
+functions of accessibility, and are calculated during this step of the model.
+
+The linear regression model for fare was estimated from the survey and is shown
+below.
+
+$$Fare = 4.00 + 0.70 * length + 0.25 * time$$
+
+Where:
+
+$Fare$: Fare ($)  
+$length$: Trip distance (mi)  
+$time$: Trip time (min)
+
+```{r, out.width="75%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/accessibility/tnc_fare_regression.png")
+```
+
+The wait time (shown in a map above), is a function of general accessibility as
+shown below:
+
+$$Wait_{OP} = 45.10 - 1534.4 / A_g + 13030.36 / A_g^2$$
+
+Where:
+
+$Wait_{op}$: Off-peak period wait time (min)  
+$A_g$: General accessibility
+
+In the peak period, 3.5 minutes are added to the wait time.
