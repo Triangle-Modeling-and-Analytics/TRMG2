@@ -310,11 +310,18 @@ Macro "Create Accessibility Skims" (Args)
     obj.TreatMissingAsZero = true
     obj.Neighbours = 3
     obj.Factor = .75
-    obj.SetMatrix(out_files.sov)
+    // TODO: clean up if this class is modified to do all cores by default
+    obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "FFTime"})
     ok = obj.Run()
-    obj.SetMatrix(out_files.walk)
+    obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "Length (Skim)"})
     ok = obj.Run()
-    obj.SetMatrix(out_files.bike)
+    obj.SetMatrix({MatrixFile: out_files.walk, Matrix: "WalkTime"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.walk, Matrix: "Length (Skim)"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.bike, Matrix: "BikeTime"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.bike, Matrix: "Length (Skim)"})
     ok = obj.Run()
 endmacro
 

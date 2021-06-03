@@ -94,7 +94,7 @@ endmacro
 
 /*
 This macro uses directionality factors to create skims that are a weighted
-average of the PA and AP travel time.
+average of the PA and AP travel time. It also calculates auto pay fare price.
 */
 
 Macro "Create Average Roadway Skims" (Args)
@@ -132,6 +132,11 @@ Macro "Create Average Roadway Skims" (Args)
             t_m = null
             t_cores = null
             DeleteFile(trans_skim)
+
+            // Auto pay fare
+            out_m.AddCores({"auto_pay_fare"})
+            out_cores = out_m.data.cores
+            out_cores.auto_pay_fare := 4 + .7 * out_cores.[Length (Skim)] + .25 * out_cores.CongTime
         end
 
         rh = GetNextRecord(factor_vw + "|", , )
