@@ -81,6 +81,11 @@ Macro "Roadway Skims" (Args)
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
             end
+
+            // Auto pay fare
+            m.AddCores({"auto_pay_fare"})
+            cores = m.data.cores
+            cores.auto_pay_fare := 4 + .7 * cores.[Length (Skim)] + .25 * cores.CongTime
         end
     end
 endmacro
@@ -125,11 +130,6 @@ Macro "Create Average Roadway Skims" (Args)
             t_m = null
             t_cores = null
             DeleteFile(trans_skim)
-
-            // Auto pay fare
-            out_m.AddCores({"auto_pay_fare"})
-            out_cores = out_m.data.cores
-            out_cores.auto_pay_fare := 4 + .7 * out_cores.[Length (Skim)] + .25 * out_cores.CongTime
         end
 
         rh = GetNextRecord(factor_vw + "|", , )
