@@ -352,7 +352,7 @@ prep_trip_2016 <- trips_2016_raw %>%
     hhID = as.character(hhID),
     personid = paste0(hhID, personNum),
     tripNum = str_pad(tripNum, 3, "left", "0"),
-    tripid = paste0(hhID, personid, tripNum),
+    tripid = paste0(hhID, personNum, tripNum),
     mode = case_when(
       mode == 1 ~ "own_car",
       mode == 2 & mode_othauto == 1 ~ "work_car",
@@ -430,9 +430,10 @@ trip_combined <- bind_rows(
   mutate(
     hhid = as.numeric(hhid),
     personnum = as.numeric(personnum),
-    tripnum = as.numeric(tripnum)
+    tripnum = as.numeric(tripnum),
+    seqtripid = seq(from = 1, to = n(), by = 1)
   ) %>%
-  select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
+  select(hhid, personid, tripid, personnum, tripnum, seqtripid, everything()) %>%
   left_join(
     per_add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
     by = "personid"
