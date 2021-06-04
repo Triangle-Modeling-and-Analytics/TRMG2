@@ -81,13 +81,6 @@ Macro "Roadway Skims" (Args)
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
             end
-        
-            // Flip to AP format in the PM period
-            if period = "PM" then do
-                m = null
-                label = label + " transposed to AP"
-                RunMacro("Transpose Matrix", out_file, label)
-            end
         end
     end
 endmacro
