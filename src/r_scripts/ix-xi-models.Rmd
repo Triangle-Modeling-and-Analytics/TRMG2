@@ -6,6 +6,7 @@ output: html_notebook
 # Overhead
 ```{r overhead, include = FALSE}
 packages_vector <- c("tidyverse",
+                     "corrr",
                      "sf")
 
 need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
@@ -28,6 +29,7 @@ clean_ee_streetlight_filename <- paste0(private_dir, "clean-itre-streetlight.rds
 socec_filename <- paste0(data_dir, "ieei/se_2016.csv")
 taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
 ext_nodes_shape_filename <- paste0(data_dir, "ieei/ext_nodes.shp")
+distance_skim_filename <- paste0(data_dir, "ieei/distance-skim.RDS")
 
 campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
@@ -44,6 +46,7 @@ LAT_LNG_EPSG <- 4326
 ```{r read}
 sl_ie_df <- readRDS(clean_ie_streetlight_filename)
 sl_ee_df <- readRDS(clean_ee_streetlight_filename)
+dist_df <- readRDS(distance_skim_filename)
 
 socec_df <- read_csv(socec_filename, col_types = cols(.default = col_double(),
                                                       TAZ = col_integer(),
@@ -203,55 +206,65 @@ combined_df <- bind_rows(working_df, bind_ee_df)
 
 ```
 
-# Make Seed
-```{r seed}
-seed_df <- expand_grid(orig_taz = socec_df$TAZ, dest_taz = socec_df$TAZ) %>%
-  mutate(orig_internal = orig_taz %in% internal_taz_vector) %>%
-  mutate(dest_internal = dest_taz %in% internal_taz_vector) %>%
-  filter(!(orig_internal & dest_internal)) %>%
-  mutate(ext_station = if_else(orig_internal, dest_taz, orig_taz)) %>%
-  mutate(purpose = "XX") %>%
-  mutate(purpose = if_else(orig_internal, "IX", purpose)) %>%
-  mutate(purpose = if_else(dest_internal, "XI", purpose)) %>%
-  filter(orig_taz != dest_taz) %>%
-  left_join(., select(combined_df, -purpose), by = c("orig_taz", "dest_taz")) %>%
-  mutate(seed = if_else(is.na(flow), 1.0, flow))
-```
+# Obtain External shares at each station
+```{r external-shares}
+working_df <- combined_df %>%
+  filter(purpose == "XX" & source == "itre") %>%
+  filter(orig_taz != dest_taz) 
 
-# Make Output
-```{r output}
-adjust_df <- seed_df %>%
-  group_by(ext_station) %>%
-  summarise(volume = sum(seed), .groups = "drop") %>%
-  left_join(., select(socec_df, ext_station = TAZ, ADT), by = c("ext_station")) %>%
-  mutate(adjust = ADT / volume) %>%
-  select(ext_station, adjust)
+temp_orig_df <- working_df %>%
+  group_by(orig_name, orig_taz, day_type, day_part) %>%
+  summarise(orig_flow = sum(flow), .groups = "drop") %>%
+  select(ext_station = orig_taz, station_name = orig_name, day_type, day_part, orig_flow)
+
+ext_shares_df <- working_df %>%
+  group_by(dest_name, dest_taz, day_type, day_part) %>%
+  summarise(dest_flow = sum(flow), .groups = "drop") %>%
+  select(ext_station = dest_taz, station_name = dest_name, day_type, day_part, dest_flow) %>%
+  left_join(., temp_orig_df, by = c("ext_station", "station_name", "day_type", "day_part")) %>%
+  left_join(., select(socec_df, ext_station = TAZ, ADT, PCTAUTOEE), by = c("ext_station")) %>%
+  mutate(ee_flow = orig_flow + dest_flow) %>%
+  mutate(pct_auto_ee = 100.0 * ee_flow / ADT) %>%
+  select(-orig_flow, -dest_flow)
   
-output_df <- left_join(seed_df, adjust_df, by = c("ext_station")) %>%
-  mutate(flow_estimate = seed * adjust) %>%
-  left_join(., select(socec_df, ext_station = TAZ, PCTAUTOEE, ADT), by = c("ext_station")) %>%
-  left_join(., centroids_df, by = c("orig_taz" = "taz")) %>%
-  mutate(orig_lat = if_else(purpose == "IX", lat, as.double(NA))) %>%
-  mutate(orig_lng = if_else(purpose == "IX", lng, as.double(NA))) %>%
-  select(-lat, -lng) %>%
-  left_join(., centroids_df, by = c("dest_taz" = "taz")) %>%
-  mutate(dest_lat = if_else(purpose == "XI", lat, as.double(NA))) %>%
-  mutate(dest_lng = if_else(purpose == "XI", lng, as.double(NA))) %>%
-  select(-lat, -lng) %>%
-  left_join(., external_centroids_df, by = c("orig_taz" = "taz")) %>%
-  mutate(orig_lat = if_else(purpose %in% c("XI", "XX"), lat, orig_lat)) %>%
-  mutate(orig_lng = if_else(purpose %in% c("XI", "XX"), lng, orig_lng)) %>%
-  select(-lat, -lng) %>%
-  left_join(., external_centroids_df, by = c("dest_taz" = "taz")) %>%
-  mutate(dest_lat = if_else(purpose %in% c("IX", "XX"), lat, dest_lat)) %>%
-  mutate(dest_lng = if_else(purpose %in% c("IX", "XX"), lng, dest_lng)) %>%
-  select(-lat, -lng)
+remove(working_df, temp_orig_df)
 ```
 
+# Estimate Attractions at the district level
+```{r estimate-ix-attractions}
+join_taz_df <- tibble(taz = taz_sf$ID, district = taz_sf$DISTRICT)
 
+join_socec_df <- socec_df %>%
+  mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
+  select(taz = TAZ, emp, pop = Total_POP) %>%
+  left_join(., join_taz_df, by = c("taz")) %>%
+  group_by(district) %>%
+  summarise(pop = sum(pop), emp = sum(emp), .groups = "drop")
 
-# Write
-```{r write}
-write_csv(output_df, output_filename)
+estimation_df <- combined_df %>%
+  filter(purpose %in% c("IX", "XI")) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district), by = c("dest_taz")) %>%
+  mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
+  group_by(source, type, district) %>%
+  summarize(trips = sum(flow), .groups = "drop") %>%
+  left_join(., join_socec_df, by = c("district"))
+
+correlations_df <- estimation_df %>%
+  select(trips, pop, emp) %>%
+  correlate()
+
+# START HERE. Trips are negatively correlated with population and employment. 
+# Try with 21 districts to see if that's better
+# Then move to markdown and make documentation
+
+model_01 <- lm(trips ~ pop + emp, data = estimation_df)
+ 
+summary(model_01) 
+
+model_02 <- lm(trips ~ pop, data = estimation_df)
+
+summary(model_02)
 ```
+
 

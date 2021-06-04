@@ -65,10 +65,10 @@ working_df <- flow_df %>%
          day_part = `Day Part`,
          orig_pass_through = `Origin Zone Is Pass-Through`,
          dest_pass_through = `Destination Zone Is Pass-Through`,
-         flow = `O-D Traffic (StL Index)`,
+         flow = `O-D Traffic (Calibrated Index)`,
          duration_sec = `Avg Trip Duration (sec)`) %>%
   mutate(flow = if_else(flow == "N/A", as.double(NA), as.double(flow))) %>%
-  mutate(duration_sec = if_else(duration_sec == "N/A", as.integer(NA), as.integer(duration_sec)))
+  mutate(duration_sec = if_else(duration_sec == "N/A" | is.na(duration_sec), as.integer(NA), as.integer(duration_sec)))
 
 join_df <- cross_df %>%
   select(taz = ID, sl_zone = TRMv6_NodeID)
@@ -81,6 +81,7 @@ output_df <- left_join(working_df, join_df, by = c("orig_zone" = "sl_zone")) %>%
   filter(!is.na(dest_taz)) %>%
   select(-orig_zone, -dest_zone)
 ```
+
 
 # Write
 ```{r write}
