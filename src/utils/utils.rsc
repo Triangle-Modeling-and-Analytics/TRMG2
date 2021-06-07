@@ -1734,6 +1734,7 @@ Macro "Read Parameter File" (MacroOpts)
     result.(v_names[i]) = v_values[i]
   end
 
+  CloseView(vw)
   return(result)
 endmacro
 

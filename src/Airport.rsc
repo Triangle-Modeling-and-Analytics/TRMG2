@@ -17,7 +17,7 @@ Macro "Airport Production" (Args)
     
 	se_file = Args.SE
 	skim_dir = Args.[Output Folder] + "\\skims\\roadway\\"
-	airport_model_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport model csv file)
+	airport_model_file = Args.[Input Folder] + "\\airport\\airport_model.csv"
 	
 	se_vw = OpenTable("se", "FFB", {se_file})
 	
@@ -69,12 +69,21 @@ Macro "Airport Production" (Args)
 	high_earn_distance = high_earners * dist_to_airport_miles
 	
 	// read airport model file for coefficients
-	coeff_vw = OpenTable("coeff_vw", "CSV", {airport_model_file})
-	coeff = GetDataVector(coeff_vw + "|", "coefficient", )
+	// coeff_vw = OpenTable("coeff_vw", "CSV", {airport_model_file})
+	// coeff = GetDataVector(coeff_vw + "|", "coefficient", )
+	coeffs = RunMacro("Read Parameter File", {
+		file: airport_model_file,
+		names: "variable",
+		values: "coefficient"
+	})
 	
 	// compute airport productions
 	// TODO-AK: look for better way to do this. this assumes a fixed order for variables in the csv file. 
-	airport_productions = coeff[1] + (coeff[2] * tot_emp) + (coeff[3] * high_earn_distance) + (coeff[4] * high_earners)
+	// airport_productions = coeff[1] + (coeff[2] * tot_emp) + (coeff[3] * high_earn_distance) + (coeff[4] * high_earners)
+	airport_productions = coeffs.intercept + 
+		coeffs.employment * tot_emp + 
+		coeffs.high_earn_distance * high_earn_distance +
+		coeffs.high_earner * high_earners
 	
 	airport_productions = if (airport_productions < 0) then 0 else airport_productions
 	airport_productions = airport_productions * airport_enplanement / airport_productions.sum()
@@ -99,8 +108,8 @@ Macro "Airport TOD" (Args)
     
 	se_file = Args.SE
 	hwy_dbd = Args.Links
-	trips_dir = Args.[Output Folder] + "\\assignment\\"		// TODO-AK: change the trips dir to where the trip matrices will be stored. 
-	airport_tod_factor_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport tod factors)
+	trips_dir = Args.[Output Folder] + "\\airport\\"
+	airport_tod_factor_file = Args.[Input Folder] + "\\airport\\airport_diurnals.csv"
 	periods = Args.periods
 	
 	airport_matrix = trips_dir + "Airport_Trips.mtx"
@@ -135,7 +144,6 @@ Macro "Airport TOD" (Args)
 	opts.RowIndexName = "TAZ"
 	opts.ColIndexName = "TAZ"
 	mat = obj.CreateFromArrays(opts)
-	
 	mc = CreateMatrixCurrency(mat, "Trips", , , )
 
 	// PA Trips
@@ -146,7 +154,11 @@ Macro "Airport TOD" (Args)
 	end
 	SetMatrixValues(mc, rows, cols, {"Copy", pa_trips}, )
 	
-	tmat = TransposeMatrix(mat, {{"File Name", airport_transpose_matrix},{"Label", "Airport Transposed Trips"}, {"Type", "Double"}})
+	tmat = TransposeMatrix(mat, {
+		{"File Name", airport_transpose_matrix},
+		{"Label", "Airport Transposed Trips"}, 
+		{"Type", "Double"}}
+	)
 	
 	mc = null
 	mat = null
@@ -156,7 +168,6 @@ Macro "Airport TOD" (Args)
 	
 	mat = CreateObject("Matrix")
 	mat.LoadMatrix(airport_matrix)
-	
 	tmat = CreateObject("Matrix")
 	tmat.LoadMatrix(airport_transpose_matrix)
 	
@@ -172,20 +183,12 @@ Macro "Airport TOD" (Args)
 		mat.AddCores({"Trips_" + period})
 		cores = mat.data.cores
 		tcores = tmat.data.cores
-		
 		cores.("Trips_" + period) := Nz(cores.Trips) * pa_factor + Nz(tcores.Trips) * ap_factor
-		
-		cores = null
-		tcores = null
 	end
 	
-	// drop the PA trip core
-	mat.DropCores({"Trips"})
-
-	mat = null
-	tmat = null
 	CloseView(fac_vw)
-	
+	mat.DropCores({"Trips"})
+	tmat = null
+	tcores = null
 	DeleteFile(airport_transpose_matrix)
-	
 endmacro
