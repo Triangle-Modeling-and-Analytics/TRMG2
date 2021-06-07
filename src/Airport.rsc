@@ -19,11 +19,6 @@ Macro "Airport Production" (Args)
 	skim_dir = Args.[Output Folder] + "\\skims\\roadway\\"
 	airport_model_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport model csv file)
 	
-	// TODO-AK: delete the hard-coded paths (used for testing)
-	se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-	skim_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\"
-	airport_model_file = "D:\\Models\\TRMG2\\master\\airport\\airport_model.csv"
-	
 	se_vw = OpenTable("se", "FFB", {se_file})
 	
 	data = GetDataVectors(
@@ -107,13 +102,6 @@ Macro "Airport TOD" (Args)
 	trips_dir = Args.[Output Folder] + "\\assignment\\"		// TODO-AK: change the trips dir to where the trip matrices will be stored. 
 	airport_tod_factor_file = Args.[Output Folder]			// TODO-AK: change the dir to parameters (airport tod factors)
 	periods = Args.periods
-			
-	// TODO-AK: delete these hard-coded paths (used for testing)
-	se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-	hwy_dbd = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\networks\\scenario_links.dbd"
-	trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\assignment\\"
-	airport_tod_factor_file = "D:\\Models\\TRMG2\\master\\airport\\airport_diurnals.csv"
-	periods = {"AM", "MD", "PM", "NT"}
 	
 	airport_matrix = trips_dir + "Airport_Trips.mtx"
 	airport_transpose_matrix = trips_dir + "Airport_Transpose_Trips.mtx"
