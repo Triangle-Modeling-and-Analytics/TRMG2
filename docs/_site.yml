@@ -17,8 +17,6 @@ navbar:
       menu:
         - text: "Accessibility"
           href: accessibility.html
-        - text: "Dissaggregation"
-          href: generation_disaggregation.html
         - text: "Synthesis"
           href: population_synthesis.html
         - text: "Time of Day"

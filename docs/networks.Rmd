@@ -15,6 +15,7 @@ options(scipen = 999)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(scales)
 ```
 
 ## Introduction
@@ -110,7 +111,7 @@ easier. The minor streets do not have attribute information and should not be
 included for use by vehicle travel. They will only be used by non-motorized and
 transit travelers.
 
-### Review of the master layer
+### Review of All Streets
 
 With all the changes mentioned above, it was important to check that the new
 master projects remained consistent. To be exhaustive, Caliper wrote code to do
@@ -135,6 +136,120 @@ knitr::include_graphics(c("img/networks/path_before.png","img/networks/path_afte
 
 A small number of OD pairs were reviewed with changes <30%, but each one was
 reasonable.
+
+### Posted speed and lanes review
+
+In addition to checks on the conflation and addition of all streets, Caliper
+also reviewed the network for attribute correctness. For this review, Caliper
+used [NCDOTs Road Characteristics
+layer](https://connect.ncdot.gov/resources/gis/Pages/GIS-Data-Layers.aspx). This
+was overlaid with the master layer to visually check for discrepancies. Google
+Streeview was also used occasionally to check lanes and speed limit signs.
+
+### Tolls
+
+Tolling is an important policy lever for the Triangle. The Triangle Expressway
+is an approximately 18 mile long freeway that charges a toll. In addition, the
+region is considering additional toll facilities include high-occupancy toll
+(HOT) lanes in the future.
+
+Toll rates were collected from the [NC Quick Pass
+website](https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx).
+The listed prices were used to come up with an average cost per mile for 2-axle
+vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more
+axles pay four times that rate.
+
+```{r}
+# 2016
+tribble(
+  ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
+  "Transponder",    "$3.25", 17.8,             "$0.183",
+  "By Mail",        "$5.00", 17.8,             "$0.281"
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+
+# TODO: update to 2020 toll rates when updating base year to 2020
+
+# # 2020
+# tribble(
+#   ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
+#   "Transponder",    "$3.60", 17.8,             "$0.202",
+#   "By Mail",        "$5.52", 17.8,             "$0.310"
+# ) %>%
+#   kable() %>%
+#   kable_styling(full_width = FALSE)
+```
+
+The TRMG2 does not predict transponder ownership, but instead has parameters
+that can be modified during scenario testing. For the base year, the parameters
+were calculated using data obtained from NC Turnpike Authority. These allowed
+transponder utilization to be calculated by vehicle class as shown in the table
+below.
+
+```{r, include=FALSE}
+# Leta provided toll data in May from turnpike. Use it to generate more
+# accurate usage rates by period.
+toll_csv <- read_csv("data/input/_Private/toll/toll_data.csv")
+```
+
+```{r}
+toll_summary <- toll_csv %>%
+  filter(!(day %in% c("Sun", "Sat"))) %>%
+  pivot_longer(prepaid_1:postpaid_3, names_to = "temp", values_to = "count") %>%
+  separate(temp, into = c("type", "class")) %>%
+  mutate(period = case_when(
+    hour < 6 ~ "NT",
+    hour <= 9 ~ "AM",
+    hour <= 14 ~ "MD",
+    hour <= 18 ~ "PM",
+    TRUE ~ "NT"
+  )) %>%
+  # group_by(period, class, type) %>%
+  group_by(class, type) %>%
+  summarize(count = sum(count)) %>%
+  mutate(
+    class = case_when(
+      class == 1 ~ "Auto",
+      class == 2 ~ "SUT",
+      TRUE ~ "MUT"
+    ),
+    pct = round(count / sum(count) * 100, 0)
+  ) %>%
+  filter(type == "prepaid") %>%
+  # select(period, class, pct)
+  select(class, pct)
+
+toll_summary %>%
+  rename(`Vechile Class` = class, `Transponder %` = pct) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r}
+# TODO: update for 2020
+# The final weighted toll rate for 2-axle vehicles is $0.25/mi.
+```
+
+### Bus Speeds
+
+For express and local buses, the TRMG2 uses factors to determine bus speeds
+based on auto speeds. The table below shows the factors, which vary by roadway
+classification and area type, and were borrowed from the [SCAG
+model](https://scag.ca.gov/data-tools-modeling) in California. These were then
+reviewed for reasonableness by local transit agencies.
+
+```{r, include=FALSE}
+bus_spd_tbl <- read_csv("../master/networks/bus_speeds.csv")
+```
+
+```{r}
+bus_spd_tbl %>%
+  select(-Description) %>%
+  rename(`Local Bus Factor` = lb_fac, `Express Bus Factor` = eb_fac) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
 
 ## Transit Layer
 

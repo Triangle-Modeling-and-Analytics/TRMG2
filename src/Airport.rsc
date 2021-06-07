@@ -44,10 +44,10 @@ Macro "Airport Production" (Args)
 	
 	// find airport taz (one with positive enplanement field)
 	SetView(se_vw)
-	n = SelectByQuery("airport_taz", "Several", "Select * where RDU_ENPLANE > 0",)
+	n = SelectByQuery("airport_taz", "Several", "Select * where Enplanements > 0",)
 	airport_zone = GetDataVector(se_vw + "|airport_taz", "TAZ", )
 	airport_zone = airport_zone[1]
-	airport_enplanement = GetDataVector(se_vw + "|airport_taz", "RDU_ENPLANE", )
+	airport_enplanement = GetDataVector(se_vw + "|airport_taz", "Enplanements", )
 	airport_enplanement = airport_enplanement[1]
 	
 	taz_vec = data.TAZ
@@ -121,7 +121,7 @@ Macro "Airport TOD" (Args)
 	se_vw = OpenTable("se", "FFB", {se_file})
 
 	SetView(se_vw)
-	n = SelectByQuery("airport_taz", "Several", "Select * where RDU_ENPLANE > 0",)
+	n = SelectByQuery("airport_taz", "Several", "Select * where Enplanements > 0",)
 	airport_zone = GetDataVector(se_vw + "|airport_taz", "TAZ", )
 	airport_zone = airport_zone[1]
 	

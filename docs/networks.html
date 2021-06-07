@@ -385,9 +385,6 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
-    </li>
-    <li>
       <a href="population_synthesis.html">Synthesis</a>
     </li>
     <li>
@@ -462,8 +459,8 @@ All-Streets Network
 </ul>
 <p>These queries will also be used to make roadway and transit layer creation easier. The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers.</p>
 </div>
-<div id="review-of-the-master-layer" class="section level3">
-<h3>Review of the master layer</h3>
+<div id="review-of-all-streets" class="section level3">
+<h3>Review of All Streets</h3>
 <p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master layer had its length checked against the new layer. Of the well over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
 <p>Shortest paths were also built with the TRMv6 and TRMG2 layers using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the layers. The increased confidence that nothing was broken. Additionally, every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new layer was correct while the original TRMv6 layer allowed a U-turn where it should not have. See the before and after images below.</p>
 <div class="figure" style="text-align: center">
@@ -473,6 +470,406 @@ Pathing before and after
 </p>
 </div>
 <p>A small number of OD pairs were reviewed with changes &lt;30%, but each one was reasonable.</p>
+</div>
+<div id="posted-speed-and-lanes-review" class="section level3">
+<h3>Posted speed and lanes review</h3>
+<p>In addition to checks on the conflation and addition of all streets, Caliper also reviewed the network for attribute correctness. For this review, Caliper used <a href="https://connect.ncdot.gov/resources/gis/Pages/GIS-Data-Layers.aspx">NCDOTs Road Characteristics layer</a>. This was overlaid with the master layer to visually check for discrepancies. Google Streeview was also used occasionally to check lanes and speed limit signs.</p>
+</div>
+<div id="tolls" class="section level3">
+<h3>Tolls</h3>
+<p>Tolling is an important policy lever for the Triangle. The Triangle Expressway is an approximately 18 mile long freeway that charges a toll. In addition, the region is considering additional toll facilities include high-occupancy toll (HOT) lanes in the future.</p>
+<p>Toll rates were collected from the <a href="https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx">NC Quick Pass website</a>. The listed prices were used to come up with an average cost per mile for 2-axle vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more axles pay four times that rate.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Payment Method
+</th>
+<th style="text-align:left;">
+Cost
+</th>
+<th style="text-align:right;">
+Distance (mi)
+</th>
+<th style="text-align:left;">
+Rate
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Transponder
+</td>
+<td style="text-align:left;">
+$3.25
+</td>
+<td style="text-align:right;">
+17.8
+</td>
+<td style="text-align:left;">
+$0.183
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+By Mail
+</td>
+<td style="text-align:left;">
+$5.00
+</td>
+<td style="text-align:right;">
+17.8
+</td>
+<td style="text-align:left;">
+$0.281
+</td>
+</tr>
+</tbody>
+</table>
+<p>The TRMG2 does not predict transponder ownership, but instead has parameters that can be modified during scenario testing. For the base year, the parameters were calculated using data obtained from NC Turnpike Authority. These allowed transponder utilization to be calculated by vehicle class as shown in the table below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Vechile Class
+</th>
+<th style="text-align:right;">
+Transponder %
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Auto
+</td>
+<td style="text-align:right;">
+72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUT
+</td>
+<td style="text-align:right;">
+70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUT
+</td>
+<td style="text-align:right;">
+76
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bus-speeds" class="section level3">
+<h3>Bus Speeds</h3>
+<p>For express and local buses, the TRMG2 uses factors to determine bus speeds based on auto speeds. The table below shows the factors, which vary by roadway classification and area type, and were borrowed from the <a href="https://scag.ca.gov/data-tools-modeling">SCAG model</a> in California. These were then reviewed for reasonableness by local transit agencies.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+HCMType
+</th>
+<th style="text-align:left;">
+AreaType
+</th>
+<th style="text-align:right;">
+Local Bus Factor
+</th>
+<th style="text-align:right;">
+Express Bus Factor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="transit-layer" class="section level2">

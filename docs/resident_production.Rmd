@@ -19,6 +19,7 @@ library(pscl)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(mlr)
 ```
 
 ## Introduction
@@ -83,7 +84,7 @@ est_tbl <- person_df %>%
     N_HB_K12_All = as.integer(N_HB_K12_All)
   ) %>%
   left_join(
-    logsum %>% select(TAZ, access = GeneralAccessibility_sov),
+    logsum %>% select(TAZ, access = access_general_sov),
     by = c("p_taz" = "TAZ")
   ) %>%
   group_by(hhid) %>%
@@ -403,9 +404,9 @@ est_tbl <- person_df %>%
     logsum %>%
       transmute(
         TAZ = TAZ, 
-        g_access = GeneralAccessibility_sov,
-        n_access = NearbyAccessibility_sov,
-        e_access = EmploymentAccessibility_sov
+        g_access = access_general_sov,
+        n_access = access_nearby_sov,
+        e_access = access_employment_sov
       ),
     by = c("p_taz" = "TAZ")
   ) %>%
