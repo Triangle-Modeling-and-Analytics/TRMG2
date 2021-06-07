@@ -4654,53 +4654,13 @@ N_HB_OME_All_walkbike
 </tr>
 <tr>
 <td style="text-align:left;">
-alpha
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-1.0393
-</td>
-<td style="text-align:right;">
-0.0042
-</td>
-<td style="text-align:right;">
--13.8303
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-gamma
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
--0.0397
-</td>
-<td style="text-align:right;">
-0.0040
-</td>
-<td style="text-align:right;">
--9.8675
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 r_sq
 </td>
 <td style="text-align:left;">
 NA
 </td>
 <td style="text-align:right;">
-0.0403
+0.0419
 </td>
 <td style="text-align:right;">
 NA
@@ -6312,53 +6272,13 @@ N_HB_OMED_All_t
 </tr>
 <tr>
 <td style="text-align:left;">
-alpha
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-1.0090
-</td>
-<td style="text-align:right;">
-0.0060
-</td>
-<td style="text-align:right;">
--27.7691
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-gamma
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
--0.0148
-</td>
-<td style="text-align:right;">
-0.0058
-</td>
-<td style="text-align:right;">
--2.5485
-</td>
-<td style="text-align:right;">
-0.0108
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 r_sq
 </td>
 <td style="text-align:left;">
 NA
 </td>
 <td style="text-align:right;">
-0.0429
+0.0437
 </td>
 <td style="text-align:right;">
 NA
@@ -6607,16 +6527,16 @@ NA
 <div id="boosting-charts" class="section level2">
 <h2>Boosting charts</h2>
 <p><strong>TODO: Vince add intro</strong></p>
-<p><strong>TODO: Kyle to remove transit boosting given reverse relationship</strong></p>
-<p>The chart below shows how accessibility impacts each trip type. The y-axis is a simple factor. When the factor is 1, the trip rates will be the same as displayed in the tables above. A y-value of 0.5 means the trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are increased by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB making is more likely when traveling to a central business district compared to a rural zone.</p>
-<p>While no zone in the Triangle region has an auto accessibility below four, walk and transit accessibilities can approach zero. If a zone has no transit accessibility, the boosted model will ensure that no NHB transit trips are produced.</p>
+<p>The chart below shows how accessibility impacts each trip type and mode combination. The y-axis is a simple factor. When the factor is 1, the trip rates will be the same as displayed in the tables above. A y-value of 0.5 means the trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are increased by 50 percent. Due to this boosting model, the TRMG2 will understand that NHB trip making is more likely when traveling to a central business district compared to a rural zone.</p>
+<p>While no zone in the Triangle region has an auto accessibility below four, walk accessibilities can approach zero. If a zone has limited walk accessibility, the boosted model will ensure that few (if any) NHB walk trips are produced.</p>
+<p>This same approach was attempted for transit, but was discarded after it returned spurious results These counter-intuitive results are likely due to the nature of the transit production models, which are driven by homebased transit trips. These can only occur where transit access exists. By contrast, walk production models are influenced heavily by drive modes, which are common in all zones regardless of walk accessibility. This is why the walk models benefit from accessibility boosting while transit do not.</p>
 <p>For NHB auto trips, the slope of the line indicates the sensitivity to accessibility. For example, the least sensitive trip is the K12 SOV trip, which can be made after a parent drops a child off at school. For these trips, the accessibility of the school zone is not as important. On the other hand, group shopping trips (OME HOV) are the most sensitive to accessibility. These relationships between trip type and sensitivity to accessibility are intuitive.</p>
 <p><img src="nhb_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="chained-nhb-trips" class="section level2 tabset">
 <h2>Chained NHB Trips</h2>
 <p>The models above predict non-home-based trips using home-based trip ends; however, multiple NHB trips can be chained together. Three NHB trips in a row result in a middle trip where neither trip end is coincident with an HB attraction from the same tour. If these chained NHB trips have a different distribution pattern, then HB attractions would not be sufficient to predict the full range of NHB behavior.</p>
-<p>In previous work, Caliper tested this question and repeatedly found that the pattern of these chained NHB trips are not significantly different. Caliper used the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB trip ends were aggregated to the TAZ and correlation was computed. The correlation value of 0.817 confirms that these chained trips in are also highly correlated with HB trip attractions. Their patterns can be adequately captured by the NHB models already estimated. Other than calibration to ensure accurate NHB trip totals, no special handling is needed.</p>
+<p>In previous work, Caliper tested this question and repeatedly found that the pattern of the chained NHB trip ends are not significantly different in distribution compared to home-based trip ends. Caliper used the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB trip ends were aggregated to the TAZ and correlation was computed. The correlation value of 0.817 confirms that these chained trips in are also highly correlated with HB trip attractions. Their patterns can be adequately captured by the NHB models already estimated. Other than calibration to ensure accurate NHB trip totals, no special handling is needed.</p>
 <p>The two maps below show this correlation visually.</p>
 <div id="hb-attractions" class="section level3">
 <h3>HB Attractions</h3>

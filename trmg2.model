@@ -28,6 +28,7 @@ Body:
     FlowChartNode(model,"Parking Model",,,)
     FlowChartNode(model,"Skimming",,,)
     FlowChartNode(model,"Transit Assignment",,,)
+    FlowChartNode(model,"Airport",,,)
     //
     // Links
     //
@@ -145,6 +146,15 @@ Macro "Transit Assignment" (Args,Result)
                   {"MacroNames",{"Transit Assignment"}}}
 Body:
     ShowMessage('Running: Transit Assignment')
+    Return(True)
+EndMacro
+
+
+Macro "Airport" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                 {"MacroNames",{"Airport"}}}
+Body:
+    ShowMessage('Running: Airport')
     Return(True)
 EndMacro
 

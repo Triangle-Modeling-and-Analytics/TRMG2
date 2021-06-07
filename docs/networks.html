@@ -567,6 +567,310 @@ MUT
 </tbody>
 </table>
 </div>
+<div id="bus-speeds" class="section level3">
+<h3>Bus Speeds</h3>
+<p>For express and local buses, the TRMG2 uses factors to determine bus speeds based on auto speeds. The table below shows the factors, which vary by roadway classification and area type, and were borrowed from the <a href="https://scag.ca.gov/data-tools-modeling">SCAG model</a> in California. These were then reviewed for reasonableness by local transit agencies.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+HCMType
+</th>
+<th style="text-align:left;">
+AreaType
+</th>
+<th style="text-align:right;">
+Local Bus Factor
+</th>
+<th style="text-align:right;">
+Express Bus Factor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="transit-layer" class="section level2">
 <h2>Transit Layer</h2>

@@ -352,7 +352,7 @@ prep_trip_2016 <- trips_2016_raw %>%
     hhID = as.character(hhID),
     personid = paste0(hhID, personNum),
     tripNum = str_pad(tripNum, 3, "left", "0"),
-    tripid = paste0(hhID, personid, tripNum),
+    tripid = paste0(hhID, personNum, tripNum),
     mode = case_when(
       mode == 1 ~ "own_car",
       mode == 2 & mode_othauto == 1 ~ "work_car",
@@ -381,7 +381,6 @@ prep_trip_2016 <- trips_2016_raw %>%
   ) %>%
   select(-c(
     tripweight1:tripweight4,
-    transit_access:transit_passtype, 
     o_activity_derived, d_activity_derived, tollroad_cost, 
     tollroad_cost_dontknow, trip_flag, gpsfact_age, gpsfact_inc, gpsfact_purp
   ))
@@ -420,7 +419,6 @@ prep_trip_2018 <- trips_2018_raw %>%
     destination_taz, destination_campus, destination_region,
     departure_string, arrival_string, o_activity_itre, o_activity_final,
     d_activity_itre, d_activity_final,
-    transit_access:transit_passtype, 
     quality_flag, trip_weight_2018
   )) %>%
   rename(o_activity_2018 = o_activity, d_activity_2018 = d_activity)
@@ -432,9 +430,10 @@ trip_combined <- bind_rows(
   mutate(
     hhid = as.numeric(hhid),
     personnum = as.numeric(personnum),
-    tripnum = as.numeric(tripnum)
+    tripnum = as.numeric(tripnum),
+    seqtripid = seq(from = 1, to = n(), by = 1)
   ) %>%
-  select(hhid, personid, tripid, personnum, tripnum, everything()) %>%
+  select(hhid, personid, tripid, personnum, tripnum, seqtripid, everything()) %>%
   left_join(
     per_add_flags %>% select(personid, age, is_child, is_senior, is_worker, school),
     by = "personid"
@@ -1031,6 +1030,20 @@ simplify_mode <- det_work_place %>%
       grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
       grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
       TRUE ~ mode_simple
+    ),
+    access_mode = case_when(
+      transit_access %in% c(1, 2, 7) ~ "w",
+      transit_access == 3 ~ "pnr",
+      transit_access %in% 4:5 ~ "knr",
+      transit_access == 6 ~ "xfer",
+      transit_access == 8 ~ "other"
+    ),
+    egress_mode = case_when(
+      transit_egress %in% c(1, 2, 7) ~ "w",
+      transit_egress == 3 ~ "pnr",
+      transit_egress %in% 4:5 ~ "knr",
+      transit_egress == 6 ~ "xfer",
+      transit_egress == 8 ~ "other"
     )
   )
 ```
@@ -1431,7 +1444,9 @@ flip_to_pa <- xfer_linked_out %>%
     p_activity = ifelse(pa_flag == 1, o_activity, d_activity),
     a_activity = ifelse(pa_flag == 0, o_activity, d_activity),
     p_act_dur = ifelse(pa_flag == 1, o_act_dur, d_act_dur),
-    a_act_dur = ifelse(pa_flag == 0, o_act_dur, d_act_dur)
+    a_act_dur = ifelse(pa_flag == 0, o_act_dur, d_act_dur),
+    p_access_mode = ifelse(pa_flag == 1, access_mode, egress_mode),
+    p_egress_mode = ifelse(pa_flag == 0, access_mode, egress_mode)
   )
 ```
 

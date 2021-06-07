@@ -12,6 +12,7 @@ Macro "Accessibility" (Args)
     RunMacro("Create Accessibility Skims", Args)
     RunMacro("Calculate Logsum Accessibilities", Args)
     RunMacro("Calc Percent of Zone Near Bus Stop", Args)
+    RunMacro("Calculate TNC Wait Time", Args)
 
     return(1)
 endmacro
@@ -309,11 +310,18 @@ Macro "Create Accessibility Skims" (Args)
     obj.TreatMissingAsZero = true
     obj.Neighbours = 3
     obj.Factor = .75
-    obj.SetMatrix(out_files.sov)
+    // TODO: clean up if this class is modified to do all cores by default
+    obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "FFTime"})
     ok = obj.Run()
-    obj.SetMatrix(out_files.walk)
+    obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "Length (Skim)"})
     ok = obj.Run()
-    obj.SetMatrix(out_files.bike)
+    obj.SetMatrix({MatrixFile: out_files.walk, Matrix: "WalkTime"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.walk, Matrix: "Length (Skim)"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.bike, Matrix: "BikeTime"})
+    ok = obj.Run()
+    obj.SetMatrix({MatrixFile: out_files.bike, Matrix: "Length (Skim)"})
     ok = obj.Run()
 endmacro
 
@@ -395,4 +403,25 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     CloseView(int_vw)
     CloseView(se_vw)
     CloseMap(map)
+endmacro
+
+/*
+Calculates the average wait time for an Uber/Lyft for each zone
+*/
+
+Macro "Calculate TNC Wait Time" (Args)
+
+    se_file = Args.SE
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields =  {
+        {"PKTNCWait", "Real", 10, 2,,,, "TNC wait time in the peak"},
+        {"OPTNCWait", "Real", 10, 2,,,, "TNC wait time in the off peak"}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    v_access = GetDataVector(se_vw + "|", "access_general_sov", )
+    v_op_wait = 43.10 - 1534.4 / v_access + 13030.36 / pow(v_access, 2) + 2
+    v_pk_wait = v_op_wait + 3.5
+    SetDataVector(se_vw + "|", "PKTNCWait", v_pk_wait, )
+    SetDataVector(se_vw + "|", "OPTNCWait", v_op_wait, )
 endmacro

@@ -81,20 +81,18 @@ Macro "Roadway Skims" (Args)
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
             end
-        
-            // Flip to AP format in the PM period
-            if period = "PM" then do
-                m = null
-                label = label + " transposed to AP"
-                RunMacro("Transpose Matrix", out_file, label)
-            end
+
+            // Auto pay fare
+            m.AddCores({"auto_pay_fare"})
+            cores = m.data.cores
+            cores.auto_pay_fare := 4 + .7 * cores.[Length (Skim)] + .25 * cores.CongTime
         end
     end
 endmacro
 
 /*
 This macro uses directionality factors to create skims that are a weighted
-average of the PA and AP travel time.
+average of the PA and AP travel time. It also calculates auto pay fare price.
 */
 
 Macro "Create Average Roadway Skims" (Args)
