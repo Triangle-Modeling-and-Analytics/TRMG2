@@ -69,8 +69,6 @@ Macro "Airport Production" (Args)
 	high_earn_distance = high_earners * dist_to_airport_miles
 	
 	// read airport model file for coefficients
-	// coeff_vw = OpenTable("coeff_vw", "CSV", {airport_model_file})
-	// coeff = GetDataVector(coeff_vw + "|", "coefficient", )
 	coeffs = RunMacro("Read Parameter File", {
 		file: airport_model_file,
 		names: "variable",
@@ -78,8 +76,6 @@ Macro "Airport Production" (Args)
 	})
 	
 	// compute airport productions
-	// TODO-AK: look for better way to do this. this assumes a fixed order for variables in the csv file. 
-	// airport_productions = coeff[1] + (coeff[2] * tot_emp) + (coeff[3] * high_earn_distance) + (coeff[4] * high_earners)
 	airport_productions = coeffs.intercept + 
 		coeffs.employment * tot_emp + 
 		coeffs.high_earn_distance * high_earn_distance +
@@ -88,9 +84,7 @@ Macro "Airport Production" (Args)
 	airport_productions = if (airport_productions < 0) then 0 else airport_productions
 	airport_productions = airport_productions * airport_enplanement / airport_productions.sum()
 	
-	a_fields = {
-		{"AirportProd", "Real", 10, 2, , , , "airport productions"}
-	}
+	a_fields = {{"AirportProd", "Real", 10, 2, , , , "airport productions"}}
 	RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 	
 	SetView(se_vw)
