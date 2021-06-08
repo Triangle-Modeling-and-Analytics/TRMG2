@@ -10,8 +10,8 @@ for (package in packages_vector) {
 }
 
 # Remote I/O -------------------------------------------------------------------
-private_dir <- "../../docs/data/_PRIVATE/"
-output_dir <- "../../docs/data/input/"
+private_dir <- "data/_PRIVATE/"
+output_dir <- "data/input/"
 
 input_filename <- paste0(private_dir, "AMSOVDistanceSkim.csv")
 output_filename <- paste0(output_dir, "ieei/distance-skim.RDS")

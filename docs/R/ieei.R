@@ -1,13 +1,9 @@
----
-title: "IX/XI/XX Models"
-output: html_notebook
----
-
-# Overhead
-```{r overhead, include = FALSE}
+# Packages ---------------------------------------------------------------------
 packages_vector <- c("tidyverse",
                      "corrr",
-                     "sf")
+                     "sf",
+                     "kableExtra",
+                     "knitr")
 
 need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
 
@@ -17,12 +13,10 @@ for (package in packages_vector) {
   library(package, character.only = TRUE)
 }
 
-```
 
-# Remote I/O
-```{r remote-io}
-private_dir <- "../../docs/data/_PRIVATE/"
-data_dir <- "../../docs/data/input/"
+# Remote I/O -------------------------------------------------------------------
+private_dir <- "data/_PRIVATE/"
+data_dir <- "data/input/"
 
 clean_ie_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
 clean_ee_streetlight_filename <- paste0(private_dir, "clean-itre-streetlight.rds")
@@ -35,15 +29,11 @@ campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapef
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
 
 output_filename <- paste0(data_dir, "ieei/estimated-flows.csv")
-```
 
-# Parameters
-```{r parameters}
+# Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
-```
 
-# Data Reads
-```{r read}
+# Data Reads -------------------------------------------------------------------
 sl_ie_df <- readRDS(clean_ie_streetlight_filename)
 sl_ee_df <- readRDS(clean_ee_streetlight_filename)
 dist_df <- readRDS(distance_skim_filename)
@@ -60,10 +50,12 @@ ext_nodes_sf <- st_read(ext_nodes_shape_filename) %>%
 
 campo_sf <- st_read(campo_sl_shape, crs = LAT_LNG_EPSG)
 durham_sf <- st_read(durham_sl_shape, crs = LAT_LNG_EPSG)
-```
 
-# Get Coordinates for Master Zones
-```{r get-coords}
+# Resolve geographies ----------------------------------------------------------
+number_of_external <- socec_df %>%
+  filter(Type == "External") %>%
+  nrow(.)
+
 centroids_sf <- select(taz_sf, taz = ID, geometry) %>%
   st_centroid()
 
@@ -71,10 +63,6 @@ centroids_df <- as_tibble(st_coordinates(centroids_sf)) %>%
   bind_cols(., tibble(taz = centroids_sf$taz)) %>%
   rename(lat = Y, lng = X)
 
-```
-
-# Get Coordinates for StreetLight TAZs
-```{r}
 c_sf <- campo_sf %>%
   filter(is_pass == 0) %>%
   select(id, geometry) %>%
@@ -98,10 +86,7 @@ sl_centroids_df <- bind_rows(
   rename(lat = Y, lng = X)
 
 remove(c_sf, d_sf)
-```
 
-# Find Closest Master TAZ to StreetLight TAZ
-```{r closest}
 internal_taz_vector <- socec_df %>%
   filter(Type == "Internal") %>%
   .$TAZ
@@ -121,10 +106,7 @@ closest_df <- working_df %>%
          sl_source = source) %>%
   mutate(taz = as.integer(taz)) %>%
   filter(taz %in% internal_taz_vector) 
-```
 
-# Match External Stations
-```{r external-stations}
 external_centroids_df <- as_tibble(st_coordinates(ext_nodes_sf)) %>%
   bind_cols(tibble(taz = ext_nodes_sf$ID)) %>%
   rename(lat = Y, lng = X)
@@ -143,11 +125,8 @@ closest_ext_df <- working_df %>%
          sl_zone = zone,
          sl_source = source) %>%
   mutate(taz = as.integer(taz))
-```
 
-
-# IE-Reductions
-```{r reductions}
+# Create single data frame -----------------------------------------------------
 working_ie_df <- sl_ie_df %>%
   filter(type == "Personal") %>%
   filter(day_type == "1: Weekday (M-Th)") %>%
@@ -187,10 +166,6 @@ working_ie_df <- sl_ie_df %>%
   mutate(dest_lng = if_else(purpose %in% c("IX", "XX"), lng, dest_lng)) %>%
   select(-lat, -lng)
 
-```
-
-# Combine IE with EE
-```{r combine}
 working_df <- working_ie_df %>%
   filter(day_part == "0: All Day (12am-12am)") %>%
   select(-orig_zone, -dest_zone, -orig_lat, -orig_lng, -dest_lat, -dest_lng) %>%
@@ -204,10 +179,9 @@ bind_ee_df <- sl_ee_df %>%
 
 combined_df <- bind_rows(working_df, bind_ee_df)
 
-```
+remove(working_df, working_ie_df, bind_ee_df)
 
-# Obtain External shares at each station
-```{r external-shares}
+# External station shares ------------------------------------------------------
 working_df <- combined_df %>%
   filter(purpose == "XX" & source == "itre") %>%
   filter(orig_taz != dest_taz) 
@@ -225,13 +199,11 @@ ext_shares_df <- working_df %>%
   left_join(., select(socec_df, ext_station = TAZ, ADT, PCTAUTOEE), by = c("ext_station")) %>%
   mutate(ee_flow = orig_flow + dest_flow) %>%
   mutate(pct_auto_ee = 100.0 * ee_flow / ADT) %>%
-  select(-orig_flow, -dest_flow)
-  
-remove(working_df, temp_orig_df)
-```
+  select(-orig_flow, -dest_flow, -day_type, -day_part)
 
-# Estimate Attractions at the district level
-```{r estimate-ix-attractions}
+remove(working_df, temp_orig_df)
+
+# Internal attraction model ----------------------------------------------------
 join_taz_df <- tibble(taz = taz_sf$ID, district = taz_sf$DISTRICT)
 
 join_socec_df <- socec_df %>%
@@ -259,12 +231,9 @@ correlations_df <- estimation_df %>%
 # Then move to markdown and make documentation
 
 model_01 <- lm(trips ~ pop + emp, data = estimation_df)
- 
+
 summary(model_01) 
 
 model_02 <- lm(trips ~ pop, data = estimation_df)
 
 summary(model_02)
-```
-
-

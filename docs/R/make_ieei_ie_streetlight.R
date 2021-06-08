@@ -1,10 +1,4 @@
----
-title: "Clean StreetLight Data"
-output: html_notebook
----
-
-# Overhead
-```{r overhead, include = FALSE}
+# Packages ---------------------------------------------------------------------
 packages_vector <- c("tidyverse")
 
 need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
@@ -15,37 +9,27 @@ for (package in packages_vector) {
   library(package, character.only = TRUE)
 }
 
-```
-
-# Remote I/O
-```{r remote-io}
-private_dir <- "../../docs/data/_PRIVATE/"
+# Remote I/O -------------------------------------------------------------------
+private_dir <- "data/_PRIVATE/"
 
 campo_sl_filename <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/161428_TRM20test5_2016_od_all.csv")
 durham_sl_filename <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/164792_TRM20_2016_All_od_all.csv")
 
 output_clean_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
-```
 
-# Parameters
-```{r parameters}
+# Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
-```
 
-# Data Reads
-```{r read}
+# Data Reads -------------------------------------------------------------------
 campo_df <- read_csv(campo_sl_filename, col_types = cols(.default = col_character(),
-                                                                  `Origin Zone ID` = col_integer(),
-                                                                  `Destination Zone ID` = col_integer()))
+                                                         `Origin Zone ID` = col_integer(),
+                                                         `Destination Zone ID` = col_integer()))
 
 durham_df <- read_csv(durham_sl_filename, col_types = cols(.default = col_character(),
-                                                                  `Origin Zone ID` = col_integer(),
-                                                                  `Destination Zone ID` = col_integer()))
+                                                           `Origin Zone ID` = col_integer(),
+                                                           `Destination Zone ID` = col_integer()))
 
-```
-
-# Clean Streetlight 
-```{r clean-street}
+# Reductions -------------------------------------------------------------------
 output_df <- bind_rows(mutate(campo_df, source = "campo"), 
                        mutate(durham_df, source = "durham")) %>%
   select(source,
@@ -63,10 +47,7 @@ output_df <- bind_rows(mutate(campo_df, source = "campo"),
   mutate(flow = if_else(flow == "N/A", as.double(NA), as.double(flow))) %>%
   mutate(duration_sec = if_else(duration_sec == "N/A", as.integer(NA), as.integer(duration_sec)))
 
-```
-
-# Write
-```{r write}
+# Write ------------------------------------------------------------------------
 saveRDS(output_df, file = output_clean_streetlight_filename)
-```
+
 

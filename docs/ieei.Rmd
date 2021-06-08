@@ -1,0 +1,43 @@
+---
+title: "Internal/External"
+author: "Caliper Corporation"
+date: "May 18, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+source("R/ieei.R")
+
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+```
+
+## Introduction
+
+Travel from outside the Triangle model's geographic boundaries to locations inside the model's boundaries are referred to as "external-internal" trips; movements from inside the boundary to outside are "internal-external" trips; and movements through the region are referred to as "external-external" trips. Together, these movements are referred to here as "ieei" travel. This document discusses their improvements.
+
+## External-external (EE)
+The best available data source for movements through the modeling region is StreetLight Data extracting by ITRE. An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix. 
+
+The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step. 
+
+The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are `r number_of_external` external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (`pct_auto_ee`) with the existing shares (`PCTAUTOEE`) stored in the socio-economic data file.
+
+### EE Traffic Shares
+```{r}
+ext_shares_df %>%
+  kableExtra::kable(digits = 1) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+## Internal-external (IE) and External-internal (EI)
+
+
+
+
+

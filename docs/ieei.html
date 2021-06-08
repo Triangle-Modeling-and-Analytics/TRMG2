@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-05-18" />
+
+<title>Internal/External</title>
+
+<script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+
+
+
+
+
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-home-based</a>
+    </li>
+    <li>
+      <a href="airport.html">Airport</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Internal/External</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">May 18, 2021</h4>
+
+</div>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Travel from outside the Triangle model’s geographic boundaries to locations inside the model’s boundaries are referred to as “external-internal” trips; movements from inside the boundary to outside are “internal-external” trips; and movements through the region are referred to as “external-external” trips. Together, these movements are referred to here as “ieei” travel. This document discusses their improvements.</p>
+</div>
+<div id="external-external-ee" class="section level2">
+<h2>External-external (EE)</h2>
+<p>The best available data source for movements through the modeling region is StreetLight Data extracting by ITRE. An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix.</p>
+<p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step.</p>
+<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares with the existing shares stored in the socio-economic data file.</p>
+<div id="ee-traffic-shares" class="section level3">
+<h3>EE Traffic Shares</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+ext_station
+</th>
+<th style="text-align:left;">
+station_name
+</th>
+<th style="text-align:right;">
+ADT
+</th>
+<th style="text-align:right;">
+PCTAUTOEE
+</th>
+<th style="text-align:right;">
+ee_flow
+</th>
+<th style="text-align:right;">
+pct_auto_ee
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3235
+</td>
+<td style="text-align:left;">
+2859 (NC 86-NC 86 N))
+</td>
+<td style="text-align:right;">
+8000
+</td>
+<td style="text-align:right;">
+14.975
+</td>
+<td style="text-align:right;">
+306
+</td>
+<td style="text-align:right;">
+3.825
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3236
+</td>
+<td style="text-align:left;">
+2860 (US 158-Leasburg Rd)
+</td>
+<td style="text-align:right;">
+2200
+</td>
+<td style="text-align:right;">
+1.961
+</td>
+<td style="text-align:right;">
+320
+</td>
+<td style="text-align:right;">
+14.545
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3237
+</td>
+<td style="text-align:left;">
+2861 (NC 57-Semora Rd)
+</td>
+<td style="text-align:right;">
+5100
+</td>
+<td style="text-align:right;">
+1.963
+</td>
+<td style="text-align:right;">
+470
+</td>
+<td style="text-align:right;">
+9.216
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3242
+</td>
+<td style="text-align:left;">
+2866 (US 501-Boston Rd)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+1.148
+</td>
+<td style="text-align:right;">
+422
+</td>
+<td style="text-align:right;">
+10.821
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3243
+</td>
+<td style="text-align:left;">
+2867 (NC 49-Virgilina Rd)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+2.023
+</td>
+<td style="text-align:right;">
+83
+</td>
+<td style="text-align:right;">
+3.458
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3248
+</td>
+<td style="text-align:left;">
+2872 (US 158-US Hwy 158 W)
+</td>
+<td style="text-align:right;">
+3100
+</td>
+<td style="text-align:right;">
+19.633
+</td>
+<td style="text-align:right;">
+414
+</td>
+<td style="text-align:right;">
+13.355
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3252
+</td>
+<td style="text-align:left;">
+2876 I-85 (NB)
+</td>
+<td style="text-align:right;">
+35000
+</td>
+<td style="text-align:right;">
+70.123
+</td>
+<td style="text-align:right;">
+454
+</td>
+<td style="text-align:right;">
+1.297
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3253
+</td>
+<td style="text-align:left;">
+2877 (US 15-US Hwy 15 S)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+24.118
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+1.646
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3254
+</td>
+<td style="text-align:left;">
+2878 (NC 96-NC Hwy 96 S)
+</td>
+<td style="text-align:right;">
+4100
+</td>
+<td style="text-align:right;">
+18.412
+</td>
+<td style="text-align:right;">
+217
+</td>
+<td style="text-align:right;">
+5.293
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3257
+</td>
+<td style="text-align:left;">
+2881 (US 1-Us1 Hwy)
+</td>
+<td style="text-align:right;">
+12000
+</td>
+<td style="text-align:right;">
+26.363
+</td>
+<td style="text-align:right;">
+593
+</td>
+<td style="text-align:right;">
+4.942
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3260
+</td>
+<td style="text-align:left;">
+2884 (NC 39-NC 39 Hwy N)
+</td>
+<td style="text-align:right;">
+4200
+</td>
+<td style="text-align:right;">
+7.233
+</td>
+<td style="text-align:right;">
+428
+</td>
+<td style="text-align:right;">
+10.190
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3261
+</td>
+<td style="text-align:left;">
+2885 (US 401-US 401 Hwy N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+15.352
+</td>
+<td style="text-align:right;">
+244
+</td>
+<td style="text-align:right;">
+8.133
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3263
+</td>
+<td style="text-align:left;">
+2887 (NC 561-NC 561 Hwy)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+8.809
+</td>
+<td style="text-align:right;">
+85
+</td>
+<td style="text-align:right;">
+1.771
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3265
+</td>
+<td style="text-align:left;">
+2889 (NC 56-NC 56 Hwy E)
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+8.969
+</td>
+<td style="text-align:right;">
+348
+</td>
+<td style="text-align:right;">
+12.889
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3272
+</td>
+<td style="text-align:left;">
+2896 (NC 98-NC 98)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+7.997
+</td>
+<td style="text-align:right;">
+196
+</td>
+<td style="text-align:right;">
+6.533
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3273
+</td>
+<td style="text-align:left;">
+2897 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+25000
+</td>
+<td style="text-align:right;">
+51.355
+</td>
+<td style="text-align:right;">
+696
+</td>
+<td style="text-align:right;">
+2.784
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3277
+</td>
+<td style="text-align:left;">
+2901 (US 264-US 264 W)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+44.158
+</td>
+<td style="text-align:right;">
+482
+</td>
+<td style="text-align:right;">
+1.662
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3278
+</td>
+<td style="text-align:left;">
+2902 (SR 1105/US 264 Alt-US 264a)
+</td>
+<td style="text-align:right;">
+1900
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+1.684
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3280
+</td>
+<td style="text-align:left;">
+2904 (NC 42-NC 42 Hwy E)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+0.744
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3281
+</td>
+<td style="text-align:left;">
+2905 (I-95-I-95)
+</td>
+<td style="text-align:right;">
+26000
+</td>
+<td style="text-align:right;">
+75.000
+</td>
+<td style="text-align:right;">
+8794
+</td>
+<td style="text-align:right;">
+33.823
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3298
+</td>
+<td style="text-align:left;">
+2925 (I-95 South, Johnston Co)
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+45.938
+</td>
+<td style="text-align:right;">
+9513
+</td>
+<td style="text-align:right;">
+16.689
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3299
+</td>
+<td style="text-align:left;">
+2926 (US 301-S Wall St)
+</td>
+<td style="text-align:right;">
+6400
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+434
+</td>
+<td style="text-align:right;">
+6.781
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3301
+</td>
+<td style="text-align:left;">
+2928 (SR 1703-Red Hill Church Rd)
+</td>
+<td style="text-align:right;">
+4300
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+1011
+</td>
+<td style="text-align:right;">
+23.512
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3302
+</td>
+<td style="text-align:left;">
+2929 (NC 55-NC 55 E)
+</td>
+<td style="text-align:right;">
+5500
+</td>
+<td style="text-align:right;">
+6.928
+</td>
+<td style="text-align:right;">
+1168
+</td>
+<td style="text-align:right;">
+21.236
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3303
+</td>
+<td style="text-align:left;">
+2930 (US 421-US 421 S)
+</td>
+<td style="text-align:right;">
+13000
+</td>
+<td style="text-align:right;">
+9.877
+</td>
+<td style="text-align:right;">
+7274
+</td>
+<td style="text-align:right;">
+55.954
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3305
+</td>
+<td style="text-align:left;">
+2932 (US 401-421/NC 27-210-N Main St)
+</td>
+<td style="text-align:right;">
+32000
+</td>
+<td style="text-align:right;">
+9.671
+</td>
+<td style="text-align:right;">
+6744
+</td>
+<td style="text-align:right;">
+21.075
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3306
+</td>
+<td style="text-align:left;">
+2933 (NC 42-NC 42 Hwy)
+</td>
+<td style="text-align:right;">
+2300
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+47
+</td>
+<td style="text-align:right;">
+2.043
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3308
+</td>
+<td style="text-align:left;">
+2935 (US 1-US 1)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+24.991
+</td>
+<td style="text-align:right;">
+866
+</td>
+<td style="text-align:right;">
+2.986
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3309
+</td>
+<td style="text-align:left;">
+2936 (US 15-501/NC 87-NC 87 S)
+</td>
+<td style="text-align:right;">
+7500
+</td>
+<td style="text-align:right;">
+25.325
+</td>
+<td style="text-align:right;">
+914
+</td>
+<td style="text-align:right;">
+12.187
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3313
+</td>
+<td style="text-align:left;">
+2940 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+21000
+</td>
+<td style="text-align:right;">
+19.392
+</td>
+<td style="text-align:right;">
+209
+</td>
+<td style="text-align:right;">
+0.995
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3317
+</td>
+<td style="text-align:left;">
+2944 (NC 87-NC 87 N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+24.240
+</td>
+<td style="text-align:right;">
+790
+</td>
+<td style="text-align:right;">
+26.333
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3318
+</td>
+<td style="text-align:left;">
+2945 (SR 1005-Old Greensboro Rd)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+1.200
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3329
+</td>
+<td style="text-align:left;">
+2955 (NC 49)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+15.749
+</td>
+<td style="text-align:right;">
+416
+</td>
+<td style="text-align:right;">
+17.333
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+
+</body>
+</html>
