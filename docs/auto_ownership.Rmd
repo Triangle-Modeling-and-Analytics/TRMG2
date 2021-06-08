@@ -1,0 +1,52 @@
+---
+title: "Auto Ownership"
+author: "Caliper Corporation"
+date: "6/8/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(mltools)
+library(data.table)
+```
+
+```{r, include=FALSE}
+hh <- read_csv("data/output/_PRIVATE/survey_processing/hh_processed.csv")
+```
+
+```{r}
+# 1-hot encode variables so they can be alternative specific
+create_factors <- hh %>%
+  mutate(
+    ID = seq(1, n(), 1),
+    kid_per_adult = num_children / num_adults,
+    num_vehicles = ifelse(num_vehicles >= 3, 3, num_vehicles),
+    num_adults = ifelse(num_adults >= 4, 4, num_adults),
+    num_workers = ifelse(num_workers >= 3, 3, num_workers),
+    num_children = ifelse(num_children >= 2, 2, num_children),
+    num_seniors = ifelse(num_seniors >= 2, 2, num_seniors),
+    num_adults = as.factor(num_adults),
+    num_workers = as.factor(num_workers),
+    num_children = as.factor(num_children),
+    num_seniors = as.factor(num_seniors),
+    hh_inc_final = as.factor(hh_inc_final)
+  ) %>%
+  relocate(ID, .before = "hhid") %>%
+  as.data.table()
+est_tbl <- one_hot(create_factors)
+
+# Model estimation done in TransCAD. Write the estimation table out to a
+# workspace not in the repo
+write_csv(
+  est_tbl, "../../working_files/auto_ownership/hh_processed.csv",
+  na = ""
+)
+```
+

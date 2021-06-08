@@ -4,9 +4,39 @@
 
 Macro "NonMotorized" (Args)
 
+    // RunMacro("Create NonMotorized Features")
     // RunMacro("Apply NM Choice Model", Args)
 
     return(1)
+endmacro
+
+/*
+
+*/
+
+Macro "Create NonMotorized Features" (Args)
+
+    hh_file = Args.[Synthesized HHs]
+    per_file = Args.[Synthesized Persons]
+
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    per_vw = OpenTable("per", "FFB", {per_file})
+    se_vw = OpenTable("per", "FFB", {se_file})
+    hh_fields = {
+        {"veh_per_adult", "Real", 10, 2,,,, "Vehicles per Adult"}
+    }
+    per_fields =  {
+        {"veh_per_adult", "Real", 10, 2,,,, "Vehicles per Adult"}
+    }
+    RunMacro("Add Fields", {view: per_vw, a_fields: per_fields})
+    {, hh_specs} = RunMacro("Get Fields", {view_name: hh_vw})
+    {, per_specs} = RunMacro("Get Fields", {view_name: per_vw})
+    {, se_specs} = RunMacro("Get Fields", {view_name: se_vw})
+
+    {v_size, v_kids, v_autos} = GetDataVectors(hh_vw + "|", {"HHSize", "HHKids", })
+
+    jv = JoinViews("per+hh", per_specs.HouseholdID, hh_specs.HouseholdID, )
+
 endmacro
 
 /*
