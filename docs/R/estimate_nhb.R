@@ -8,14 +8,13 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
   # Determine the correct logsum to use and create a table
   v <- str_split(trip_type, "_")[[1]]
   logsum_type <- ifelse(
-    v[length(v)] %in% c("sov", "hov", "pay", "auto"), "sov", NA
+    v[length(v)] %in% c("sov", "hov2", "hov3", "pay", "auto"), "nearby_sov", NA
   )
   logsum_type <- ifelse(
-    v[length(v)] %in% c("walk", "bike"), "walk", logsum_type
+    v[length(v)] == "walkbike", "walk", logsum_type
   )
-  # TODO: change this to bus once that logsum is available
   logsum_type <- ifelse(
-    v[length(v)] == "t", "sov", logsum_type
+    v[length(v)] == "t", "transit", logsum_type
   )
   logsum_tbl <- read_csv(
     "data/input/nhb/logsums.csv",
@@ -25,7 +24,7 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
       AreaType = col_character()
     )
   ) 
-  logsum_tbl$logsum <- logsum_tbl[[paste0("NearbyAccessibility_", logsum_type)]]
+  logsum_tbl$logsum <- logsum_tbl[[paste0("access_", logsum_type)]]
   logsum_tbl <- logsum_tbl %>% select(TAZ, logsum)
   logsum_tbl <- logsum_tbl %>%
     mutate(logsum = pmax(.1, logsum))
@@ -181,14 +180,13 @@ apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
   # Determine the correct logsum to use and create a table
   v <- str_split(trip_type, "_")[[1]]
   logsum_type <- ifelse(
-    v[length(v)] %in% c("sov", "hov", "pay", "auto"), "sov", NA
+    v[length(v)] %in% c("sov", "hov2", "hov3", "pay", "auto"), "nearby_sov", NA
   )
   logsum_type <- ifelse(
-    v[length(v)] %in% c("walk", "bike"), "walk", logsum_type
+    v[length(v)] == "walkbike", "walk", logsum_type
   )
-  # TODO: change this to bus once that logsum is available
   logsum_type <- ifelse(
-    v[length(v)] == "t", "sov", logsum_type
+    v[length(v)] == "t", "transit", logsum_type
   )
   logsum_tbl <- read_csv(
     "data/input/nhb/logsums.csv",
@@ -198,7 +196,7 @@ apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
       AreaType = col_character()
     )
   ) 
-  logsum_tbl$logsum <- logsum_tbl[[paste0("NearbyAccessibility_", logsum_type)]]
+  logsum_tbl$logsum <- logsum_tbl[[paste0("access_", logsum_type)]]
   logsum_tbl <- logsum_tbl %>% select(TAZ, logsum)
   logsum_tbl <- logsum_tbl %>%
     mutate(logsum = pmax(.1, logsum))

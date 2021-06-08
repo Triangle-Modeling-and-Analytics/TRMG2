@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-05-18" />
+
+<title>Airport</title>
+
+<script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+
+
+
+
+
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
+      <a href="generation_disaggregation.html">Dissaggregation</a>
+    </li>
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-home-based</a>
+    </li>
+    <li>
+      <a href="airport.html">Airport</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Airport</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">May 18, 2021</h4>
+
+</div>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured by the air passenger model.</p>
+<p>A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: <em>It does not distinguish between airport employees and air passengers.</em> It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region.</p>
+</div>
+<div id="streetlight-data-summaries" class="section level2">
+<h2>StreetLight Data Summaries</h2>
+<p>The map below shows the distribution of trip productions to RDU per the StreetLight data. As expected, the data shows large amounts of activity in the zones surrounding the airport. For an air passenger model, we are less interested in the movement from, say, the off-airport parking facility to the airport, than we are the movement from a home or workplace to the off-airport parking facility. Ideally, an airport model would explicitly represent each movement. For the simple model being developed here, we want to focus on the primary (and longer) movement.</p>
+<div id="streetlight-raw-productions" class="section level3">
+<h3>StreetLight “Raw” Productions</h3>
+<p><img src="img/airport/streetlight_productions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>To ameliorate the impact of near-airport movements on the estimation of production models intended to locate the “true” origin of air passenger movements, we censor the “raw” StreetLight productions to a maximum value of 200. The map of truncated productions is shown in the map below. (Because the “raw” values are scaled to match the RDU enplanements, the map below shows some locations with a value larger than 200).</p>
+</div>
+<div id="streetlight-censored-productions" class="section level3">
+<h3>StreetLight Censored Productions</h3>
+<p><img src="img/airport/streetlight_productions_censored.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="production-modeling" class="section level2">
+<h2>Production Modeling</h2>
+<p>The goal of the air passenger production model is to generate travel from home and employment locations to the airport. Because all trips are destined to RDU, the production model acts as both a trip generation and trip distribution model.</p>
+<p>To begin the data exploration and model estimation stage, we summarize the correlations between the socio-economic data expected to be relevant and airport productions. These correlations are shown in the table below.</p>
+<div id="correlations" class="section level3">
+<h3>Correlations</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+airport_productions
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+employment
+</td>
+<td style="text-align:right;">
+0.264
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Industry
+</td>
+<td style="text-align:right;">
+0.229
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Retail
+</td>
+<td style="text-align:right;">
+0.207
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pct_Worker
+</td>
+<td style="text-align:right;">
+0.203
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateHigh
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Office
+</td>
+<td style="text-align:right;">
+0.162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earners
+</td>
+<td style="text-align:right;">
+0.126
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+workers
+</td>
+<td style="text-align:right;">
+0.122
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HH
+</td>
+<td style="text-align:right;">
+0.117
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateLow
+</td>
+<td style="text-align:right;">
+0.106
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PctHighEarn
+</td>
+<td style="text-align:right;">
+0.085
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Total_POP
+</td>
+<td style="text-align:right;">
+0.079
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Median_Inc
+</td>
+<td style="text-align:right;">
+0.032
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hotel_rooms
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BuildingS_NCSU
+</td>
+<td style="text-align:right;">
+-0.009
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other_NonInst_GQ
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Inst_GQ
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Stud_GQ
+</td>
+<td style="text-align:right;">
+-0.018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dist_to_airport_miles
+</td>
+<td style="text-align:right;">
+-0.234
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+airport_productions
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers,high income persons, and employment.</p>
+<p>Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients.</p>
+</div>
+<div id="model-estimation-results" class="section level3 tabset MODEL">
+<h3 class="tabset MODEL">Model Estimation Results</h3>
+<p>Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes <code>high earners</code>, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.</p>
+<p>The preferred specification includes <code>employment</code> which captures movements to/from work locations to the airport. The preferred specification collapses the employment categories. Specifications with employment separated by industry did not always reveal logical coefficients (e.g., a larger coefficient on industrial employment than office employment).</p>
+<p>Other, non-preferred specifications are included in the tabs below.</p>
+<div id="preferred" class="section level4">
+<h4>Preferred</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+5.4539
+</td>
+<td style="text-align:right;">
+6.1304
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+employment
+</td>
+<td style="text-align:right;">
+0.0133
+</td>
+<td style="text-align:right;">
+15.7455
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.0051
+</td>
+<td style="text-align:right;">
+-14.7273
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earners
+</td>
+<td style="text-align:right;">
+0.1315
+</td>
+<td style="text-align:right;">
+20.2635
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.2686
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-01" class="section level4">
+<h4>Model 01</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+0.8272
+</td>
+<td style="text-align:right;">
+0.8193
+</td>
+<td style="text-align:right;">
+0.4127
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+employment
+</td>
+<td style="text-align:right;">
+0.0152
+</td>
+<td style="text-align:right;">
+17.1890
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+workers
+</td>
+<td style="text-align:right;">
+0.0248
+</td>
+<td style="text-align:right;">
+13.2575
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.1850
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-02" class="section level4">
+<h4>Model 02</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+1.4671
+</td>
+<td style="text-align:right;">
+1.5752
+</td>
+<td style="text-align:right;">
+0.1154
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.0053
+</td>
+<td style="text-align:right;">
+-16.0683
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earners
+</td>
+<td style="text-align:right;">
+0.1027
+</td>
+<td style="text-align:right;">
+12.1976
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hotel_rooms
+</td>
+<td style="text-align:right;">
+-0.0071
+</td>
+<td style="text-align:right;">
+-0.0969
+</td>
+<td style="text-align:right;">
+0.9228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Industry
+</td>
+<td style="text-align:right;">
+0.0344
+</td>
+<td style="text-align:right;">
+8.4089
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Office
+</td>
+<td style="text-align:right;">
+0.0126
+</td>
+<td style="text-align:right;">
+8.5698
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Retail
+</td>
+<td style="text-align:right;">
+0.0336
+</td>
+<td style="text-align:right;">
+11.0723
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateHigh
+</td>
+<td style="text-align:right;">
+0.0559
+</td>
+<td style="text-align:right;">
+5.9880
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+workers
+</td>
+<td style="text-align:right;">
+0.0183
+</td>
+<td style="text-align:right;">
+5.3790
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.3339
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-03" class="section level4">
+<h4>Model 03</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+3.3970
+</td>
+<td style="text-align:right;">
+3.9278
+</td>
+<td style="text-align:right;">
+0.0001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earn_distance
+</td>
+<td style="text-align:right;">
+-0.0051
+</td>
+<td style="text-align:right;">
+-15.3203
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_earners
+</td>
+<td style="text-align:right;">
+0.1335
+</td>
+<td style="text-align:right;">
+21.4401
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Industry
+</td>
+<td style="text-align:right;">
+0.0317
+</td>
+<td style="text-align:right;">
+7.7504
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Office
+</td>
+<td style="text-align:right;">
+0.0117
+</td>
+<td style="text-align:right;">
+7.9367
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Retail
+</td>
+<td style="text-align:right;">
+0.0357
+</td>
+<td style="text-align:right;">
+11.7986
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateHigh
+</td>
+<td style="text-align:right;">
+0.0577
+</td>
+<td style="text-align:right;">
+6.1372
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.3245
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="predicted-productions" class="section level3">
+<h3>Predicted Productions</h3>
+<p>The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes 15343 daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application.</p>
+<p><img src="img/airport/estimated_productions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>The chart below plots the adjusted observed productions (truncated at 200 times the scaling necessary to matche the target attractions) against the estimated productions.</p>
+<p><img src="img/airport/scatter_plot.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>The chart below shows the adjusted observed and estimated trip length frequency distributions for movements to the airport. The model estimates longer trips than the StreetLight data. This is expected because the StreetLight data will, in many cases, fail to capture the true origin of the movement, misunderstanding stops at gas stations, cell phone lots, rental car facilities, etc, as the origin.</p>
+<p><img src="img/airport/trip_length_frequency.png" width="80%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="diurnal-factors" class="section level2">
+<h2>Diurnal Factors</h2>
+<p>The table below summarizes the production to airport and airport to production trips by time of day, based on the StreetLight data.</p>
+<div id="p-to-a-diurnal-factors-from-streetlight" class="section level3">
+<h3>P to A Diurnal Factors from StreetLight</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+purpose
+</th>
+<th style="text-align:left;">
+day_part
+</th>
+<th style="text-align:right;">
+share
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+1: Early AM (12am-6am)
+</td>
+<td style="text-align:right;">
+0.170
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+2: Peak AM (6am-10am)
+</td>
+<td style="text-align:right;">
+0.226
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+3: Mid-Day (10am-3pm)
+</td>
+<td style="text-align:right;">
+0.293
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+4: Peak PM (3pm-7pm)
+</td>
+<td style="text-align:right;">
+0.225
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+5: Late PM (7pm-12am)
+</td>
+<td style="text-align:right;">
+0.085
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="a-to-p-diurnal-factors-from-streetlight" class="section level3">
+<h3>A to P Diurnal Factors from StreetLight</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+purpose
+</th>
+<th style="text-align:left;">
+day_part
+</th>
+<th style="text-align:right;">
+share
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+1: Early AM (12am-6am)
+</td>
+<td style="text-align:right;">
+0.064
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+2: Peak AM (6am-10am)
+</td>
+<td style="text-align:right;">
+0.132
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+3: Mid-Day (10am-3pm)
+</td>
+<td style="text-align:right;">
+0.302
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+4: Peak PM (3pm-7pm)
+</td>
+<td style="text-align:right;">
+0.283
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+5: Late PM (7pm-12am)
+</td>
+<td style="text-align:right;">
+0.219
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+</tr>
+</tbody>
+</table>
+<p>The time periods used for the StreetLight extraction do not directly align with the time periods used for the updated travel model. By assuming a uniform distribution across the StreetLight time periods, we can create the below diurnal factors using the StreetLight data and model time periods.</p>
+</div>
+<div id="p-to-a-travel-model-diurnal-factors" class="section level3">
+<h3>P to A Travel Model Diurnal Factors</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+purpose
+</th>
+<th style="text-align:left;">
+direction
+</th>
+<th style="text-align:left;">
+period
+</th>
+<th style="text-align:right;">
+share
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+P to A
+</td>
+<td style="text-align:left;">
+AM
+</td>
+<td style="text-align:right;">
+0.113
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+P to A
+</td>
+<td style="text-align:left;">
+MD
+</td>
+<td style="text-align:right;">
+0.377
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+P to A
+</td>
+<td style="text-align:left;">
+PM
+</td>
+<td style="text-align:right;">
+0.155
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+P to A
+</td>
+<td style="text-align:left;">
+NT
+</td>
+<td style="text-align:right;">
+0.354
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+To Airport
+</td>
+<td style="text-align:left;">
+P to A
+</td>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="a-to-p-travel-model-diurnal-factors" class="section level3">
+<h3>A to P Travel Model Diurnal Factors</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+purpose
+</th>
+<th style="text-align:left;">
+direction
+</th>
+<th style="text-align:left;">
+period
+</th>
+<th style="text-align:right;">
+share
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+A to P
+</td>
+<td style="text-align:left;">
+AM
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+A to P
+</td>
+<td style="text-align:left;">
+MD
+</td>
+<td style="text-align:right;">
+0.370
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+A to P
+</td>
+<td style="text-align:left;">
+PM
+</td>
+<td style="text-align:right;">
+0.195
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+A to P
+</td>
+<td style="text-align:left;">
+NT
+</td>
+<td style="text-align:right;">
+0.369
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+From Airport
+</td>
+<td style="text-align:left;">
+A to P
+</td>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="mode-choice" class="section level2">
+<h2>Mode Choice</h2>
+<p>The StreetLight Data does not provide insight to the mode choice decision made by air passengers. As such, no information is available to base a mode choice model on. We therefore will add the airport trips to the home-based other trip purpose prior to mode choice and use the home-based other model to simulate the mode choice decision for air passengers.</p>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+
+</body>
+</html>

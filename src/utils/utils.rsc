@@ -853,6 +853,60 @@ Macro "Spatial Join" (MacroOpts)
 EndMacro
 
 /*
+Renames a field in a TC view
+
+Inputs
+  view_name
+    String
+    Name of view to modify
+
+  current_name
+    String
+    Name of field to rename
+
+  new_name
+    String
+    New name to use
+*/
+
+Macro "Rename Field" (view_name, current_name, new_name)
+
+  // Argument Check
+  if view_name = null then Throw("Rename Field: 'view_name' not provided")
+  if current_name = null then Throw("Rename Field: 'current_name' not provided")
+  if new_name = null then Throw("Rename Field: 'new_name' not provided")
+
+  // Get and modify the field info array
+  a_str = GetTableStructure(view_name)
+  field_modified = "false"
+  for s = 1 to a_str.length do
+    a_field = a_str[s]
+    field_name = a_field[1]
+
+    // Add original field name to end of field array
+    a_field = a_field + {field_name}
+
+    // rename field if it's the current field
+    if field_name = current_name then do
+      a_field[1] = new_name
+      field_modified = "true"
+    end
+
+    a_str[s] = a_field
+  end
+
+  // Modify the table
+  ModifyTable(view_name, a_str)
+
+  // Throw error if no field was modified
+  if !field_modified
+    then Throw(
+      "Rename Field: Field '" + current_name +
+      "' not found in view '" + view_name + "'"
+    )
+EndMacro
+
+/*
 Removes a field from a view/layer
 
 Input
@@ -1071,17 +1125,31 @@ Macro "2S" (thing)
 EndMacro
 
 /*
-
+Inputs
+  * `view`
+    * String
+    * Name of view where fields will be added
+  * `factor_file`
+    * String
+    * File path for factor file (csv or bin)
+  * `field_desc`
+    * Optional string
+    * If included, will be added as the field description for new fields
 */
 
 Macro "Create Sum Product Fields" (MacroOpts)
 
   view = MacroOpts.view
   factor_file = MacroOpts.factor_file
+  field_desc = MacroOpts.field_desc
 
   if factor_file = null then Throw("'factor_file' not provided")
+  {drive, folder, name, ext} = SplitPath(factor_file)
+  if ext = ".csv" then type = "CSV"
+  else if ext = ".bin" then type = "FFB"
+  else Throw("Create Sum Product Fields: `factor_file` must be CSV or FFB")
 
-  fac_vw = OpenTable("factors", "CSV", {factor_file})
+  fac_vw = OpenTable("factors", type, {factor_file})
   {names, } = GetFields(fac_vw, "All")
 
   input_fields = GetDataVector(fac_vw + "|", names[1], )
@@ -1091,7 +1159,7 @@ Macro "Create Sum Product Fields" (MacroOpts)
   output_fields = ExcludeArrayElements(output_fields, output_fields.length, 1)
 
   for output_field in output_fields do
-    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , }}
+    a_fields = a_fields + {{output_field, "Real", 10, 2, , , , field_desc}}
     output.(output_field) = Vector(input[1][2].length, "Real", {Constant: 0})
     factors = nz(GetDataVector(fac_vw + "|", output_field, ))
     
@@ -1107,3 +1175,802 @@ Macro "Create Sum Product Fields" (MacroOpts)
 
   CloseView(fac_vw)
 endmacro
+
+/*
+An alternative to to the JoinTableToLayer() GISDK function, which replaces
+the existing bin file with a new one (losing original fields).
+This version allows you to permanently append new fields while keeping the old.
+
+Inputs
+  * masterFile
+    * String
+    * Full path of master geographic or binary file
+  * mID
+    * String
+    * Name of master field to use for join.
+  * slaveFile
+    * String
+    * Full path of slave table.  Can be FFB or CSV.
+  * sID
+    * String
+    * Name of slave field to use for join.
+  * overwrite
+    * Boolean
+    * Whether or not to replace any existing
+    * fields with joined values.  Defaults to true.
+    * If false, the fields will be added with ":1".
+
+Returns
+Nothing. Permanently appends the slave data to the master table.
+
+Example application
+- Loading assignment results to a link layer
+- Attaching an SE data table to a TAZ layer
+*/
+
+Macro "Join Table To Layer" (masterFile, mID, slaveFile, sID, overwrite)
+
+  if overwrite = null then overwrite = "True"
+
+  // Determine master file type
+  path = SplitPath(masterFile)
+  if path[4] = ".dbd" then type = "dbd"
+  else if path[4] = ".bin" then type = "bin"
+  else Throw("Master file must be .dbd or .bin")
+
+  // Open the master file
+  if type = "dbd" then do
+    {nlyr, master} = GetDBLayers(masterFile)
+    master = AddLayerToWorkspace(master, masterFile, master)
+    nlyr = AddLayerToWorkspace(nlyr, masterFile, nlyr)
+  end else do
+    masterDCB = Substitute(masterFile, ".bin", ".DCB", )
+    master = OpenTable("master", "FFB", {masterFile, })
+  end
+
+  // Determine slave table type and open
+  path = SplitPath(slaveFile)
+  if path[4] = ".csv" then s_type = "CSV"
+  else if path[4] = ".bin" then s_type = "FFB"
+  else Throw("Slave file must be .bin or .csv")
+  slave = OpenTable("slave", s_type, {slaveFile, })
+
+  // If mID is the same as sID, rename sID
+  if mID = sID then do
+    // Can only modify FFB tables.  If CSV, must convert.
+    if s_type = "CSV" then do
+      tempBIN = GetTempFileName("*.bin")
+      ExportView(slave + "|", "FFB", tempBIN, , )
+      CloseView(slave)
+      slave = OpenTable("slave", "FFB", {tempBIN, })
+    end
+
+    str = GetTableStructure(slave)
+    for s = 1 to str.length do
+      str[s] = str[s] + {str[s][1]}
+
+      str[s][1] = if str[s][1] = sID then "slave" + sID
+        else str[s][1]
+    end
+    ModifyTable(slave, str)
+    sID = "slave" + sID
+  end
+
+  // Remove existing fields from master if overwriting
+  if overwrite then do
+    {a_mFields, } = GetFields(master, "All")
+    {a_sFields, } = GetFields(slave, "All")
+
+    for f = 1 to a_sFields.length do
+      field = a_sFields[f]
+      if field <> sID & ArrayPosition(a_mFields, {field}, ) <> 0
+        then RunMacro("Remove Field", master, field)
+    end
+  end
+
+  // Join master and slave. Export to a temporary binary file.
+  jv = JoinViews("perma jv", master + "." + mID, slave + "." + sID, )
+  SetView(jv)
+  a_path = SplitPath(masterFile)
+  tempBIN = a_path[1] + a_path[2] + "temp.bin"
+  tempDCB = a_path[1] + a_path[2] + "temp.DCB"
+  ExportView(jv + "|", "FFB", tempBIN, , )
+  CloseView(jv)
+  CloseView(master)
+  CloseView(slave)
+
+  // Swap files.  Master DBD files require a different approach
+  // from bin files, as the links between the various database
+  // files are more complicated.
+  if type = "dbd" then do
+    // Join the tempBIN to the DBD. Remove Length/Dir fields which
+    // get duplicated by the DBD.
+    opts = null
+    opts.Ordinal = "True"
+    JoinTableToLayer(masterFile, master, "FFB", tempBIN, tempDCB, mID, opts)
+    master = AddLayerToWorkspace(master, masterFile, master)
+    nlyr = AddLayerToWorkspace(nlyr, masterFile, nlyr)
+    RunMacro("Remove Field", master, "Length:1")
+    RunMacro("Remove Field", master, "Dir:1")
+
+    // Re-export the table to clean up the bin file
+    new_dbd = a_path[1] + a_path[2] + a_path[3] + "_temp" + a_path[4]
+    {l_names, l_specs} = GetFields(master, "All")
+    {n_names, n_specs} = GetFields(nlyr, "All")
+    opts = null
+    opts.[Field Spec] = l_specs
+    opts.[Node Name] = nlyr
+    opts.[Node Field Spec] = n_specs
+    ExportGeography(master + "|", new_dbd, opts)
+    DropLayerFromWorkspace(master)
+    DropLayerFromWorkspace(nlyr)
+    DeleteDatabase(masterFile)
+    CopyDatabase(new_dbd, masterFile)
+    DeleteDatabase(new_dbd)
+
+    // Remove the sID field
+    master = AddLayerToWorkspace(master, masterFile, master)
+    RunMacro("Remove Field", master, sID)
+    DropLayerFromWorkspace(master)
+
+    // Delete the temp binary files
+    DeleteFile(tempBIN)
+    DeleteFile(tempDCB)
+  end else do
+    // Remove the master bin files and rename the temp bin files
+    DeleteFile(masterFile)
+    DeleteFile(masterDCB)
+    RenameFile(tempBIN, masterFile)
+    RenameFile(tempDCB, masterDCB)
+
+    // Remove the sID field
+    view = OpenTable("view", "FFB", {masterFile})
+    RunMacro("Remove Field", view, sID)
+    CloseView(view)
+  end
+EndMacro
+
+/*
+For base model calibration, maps comparing model and count volumes are required.
+This macro creates a standard map to show absolute and percent differences in a
+color theme. It also performs maximum desirable deviation calculations and
+highlights (in green) links that do not exceed the MDD.
+
+Inputs
+  macro_opts
+    Named array of macro arguments
+
+    output_file
+      String
+      Complete path of the output map to create.
+
+    hwy_dbd
+      String
+      Complete path to the highway geographic file.
+
+    count_id_field
+      String
+      Field name of the count ID. The count ID field is used to determine
+      where a single count has been split between multiple links (like on a
+      freeway).
+
+    combine_oneway_pairs
+      Optional true/false
+      Defaults to true
+      Whether or not to combine one-way pair counts and volumes before
+      calculating stats.
+
+    count_field
+      String
+      Name of the field containing the count volume. Can be a daily or period
+      count field, but time period between count and volume fields should
+      match.
+
+    vol_field
+      String
+      Name of the field containing the model volume. Can be a daily or period
+      count field, but time period between count and volume fields should
+      match.
+
+    field_suffix
+      Optional string
+      "" by default. If provided, will be appended to the fields created by this
+      macro. For example, if making a count difference map of SUT vs SUT counts,
+      you could provide a suffix of "SUT". This would lead to fields created
+      like "Count_SUT", "Volume_SUT", "diff_SUT", etc. This is used to prevent
+      repeated calls to this macro from overwriting these fields.
+
+
+
+Depends
+  gplyr
+*/
+
+Macro "Count Difference Map" (macro_opts)
+
+  output_file = macro_opts.output_file
+  hwy_dbd = macro_opts.hwy_dbd
+  count_id_field = macro_opts.count_id_field
+  combine_oneway_pairs = macro_opts.combine_oneway_pairs
+  count_field = macro_opts.count_field
+  vol_field = macro_opts.vol_field
+  field_suffix = macro_opts.field_suffix
+
+  if combine_oneway_pairs = null then combine_oneway_pairs = "true"
+
+  // set the field suffix
+  if field_suffix = null then field_suffix = ""
+  if field_suffix <> "" then do
+    if field_suffix[1] <> "_" then field_suffix = "_" + field_suffix
+  end
+
+  // Determine output directory (removing trailing backslash)
+  a_path = SplitPath(output_file)
+  output_dir = a_path[1] + a_path[2]
+  len = StringLength(output_dir)
+  output_dir = Left(output_dir, len - 1)
+
+  // Create output directory if it doesn't exist
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  // Create map
+  {map, {nlyr, vw}} = RunMacro("Create Map", {file: hwy_dbd})
+  SetLayer(vw)
+
+  // Add fields for mapping
+  a_fields = {
+    {"NumCountLinks","Integer",8,,,,, "Number of links with this count ID"},
+    {"Count","Integer",8,,,,, "Repeat of the count field"},
+    {"Volume","Real",8,,,,, "Total Daily Link Flow"},
+    {"diff","Integer",8,,,,, "Volume - Count"},
+    {"absdiff","Integer",8,,,,, "abs(diff)"},
+    {"pctdiff","Integer",8,,,,, "diff / Count * 100"},
+    {"MDD","Integer",8,,,,, "Maximum Desirable Deviation"},
+    {"ExceedMDD","Integer",8,,,,, "If link exceeds MDD"}
+  }
+  // RunMacro("TCB Add View Fields", {vw, a_fields})
+  RunMacro("Add Fields", {view: vw, a_fields: a_fields})
+
+  // Create data frame
+  df = CreateObject("df")
+  opts = null
+  opts.view = vw
+  opts.fields = {count_id_field, count_field, vol_field}
+  df.read_view(opts)
+  df.rename(count_field, "Count")
+  df.rename(vol_field, "Volume")
+
+  if combine_oneway_pairs then do
+    // Aggregate by count ID
+    df2 = df.copy()
+    df2.group_by(count_id_field)
+    df2.summarize({"Count", "Volume"}, "sum")
+    df2.filter(count_id_field + " <> null")
+    df2.rename("Count", "NumCountLinks")
+
+    // Join aggregated data back to disaggregate column of count IDs
+    df.select(count_id_field)
+    df.left_join(df2, count_id_field, count_id_field)
+    df.rename("sum_Count", "Count")
+    df.rename("sum_Volume", "Volume")
+  end else do
+    df.select({count_id_field, "Count", "Volume"})
+  end
+
+  // Calculate remaining fields
+  df.mutate("diff", df.tbl.Volume - df.tbl.Count)
+  df.mutate("absdiff", abs(df.tbl.diff))
+  df.mutate("pctdiff", df.tbl.diff / df.tbl.Count * 100)
+  v_c = df.tbl.Count
+  v_MDD = if (v_c <= 50000) then (11.65 * Pow(v_c, -.37752)) * 100
+     else if (v_c <= 90000) then (400 * Pow(v_c, -.7)) * 100
+     else if (v_c <> null)  then (.157 - v_c * .0000002) * 100
+     else null
+  df.mutate("MDD", v_MDD)
+  v_exceedMDD = if abs(df.tbl.pctdiff) > v_MDD then 1 else 0
+  df.mutate("ExceedMDD", v_exceedMDD)
+
+  // Fill data view
+  df.update_view(vw)
+
+  // Rename fields to add suffix (and remove any that already exist)
+  for f = 1 to a_fields.length do
+    cur_field = a_fields[f][1]
+
+    new_field = cur_field + field_suffix
+    RunMacro("Remove Field", vw, new_field)
+    RunMacro("Rename Field", vw, cur_field, new_field)
+  end
+
+  // Scaled Symbol Theme
+  SetLayer(vw)
+  flds = {vw + ".absdiff" + field_suffix}
+  opts = null
+  opts.Title = "Absolute Difference"
+  opts.[Data Source] = "All"
+  opts.[Minimum Value] = 0
+  opts.[Maximum Value] = 50000
+  opts.[Minimum Size] = .25
+  opts.[Maximum Size] = 12
+  theme_name = CreateContinuousTheme("Flows", flds, opts)
+
+  // Set color to white to make it disappear in legend
+  dual_colors = {ColorRGB(65535,65535,65535)}
+  // without black outlines
+  dual_linestyles = {LineStyle({{{1, -1, 0}}})}
+  // with black outlines
+  /*dual_linestyles = {LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})}*/
+  dual_linesizes = {0}
+  SetThemeLineStyles(theme_name , dual_linestyles)
+  SetThemeLineColors(theme_name , dual_colors)
+  SetThemeLineWidths(theme_name , dual_linesizes)
+
+  ShowTheme(, theme_name)
+
+  // Apply the color theme breaks
+  cTheme = CreateTheme(
+    "Count % Difference", vw+".pctdiff" + field_suffix, "Manual", 8,{
+      {"Values",{
+        {-100, "True", -50, "False"},
+        {-50, "True", -30, "False"},
+        {-30, "True", -10, "False"},
+        {-10, "True", 10, "True"},
+        {10, "False", 30, "True"},
+        {30, "False", 50, "True"},
+        {50, "False", 100, "True"},
+        {100, "False", 10000, "True"}
+        }},
+      {"Other", "False"}
+    }
+  )
+
+  // Set color theme line styles and colors
+  line_colors =	{
+    ColorRGB(17733,30069,46260),
+    ColorRGB(29812,44461,53713),
+    ColorRGB(43947,55769,59881),
+    ColorRGB(0,0,0),
+    ColorRGB(65278,57568,37008),
+    ColorRGB(65021,44718,24929),
+    ColorRGB(62708,28013,17219),
+    ColorRGB(55255,12336,10023)
+  }
+  solidline = LineStyle({{{1, -1, 0}}})
+  // This one puts black borders around the line
+  /*dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})*/
+
+  for i = 1 to 8 do
+    class_id = GetLayer() +"|" + cTheme + "|" + String(i)
+    SetLineStyle(class_id, dualline)
+    SetLineColor(class_id, line_colors[i])
+    SetLineWidth(class_id, 2)
+  end
+
+  // Change the labels of the classes (how the divisions appear in the legend)
+  labels = {
+    "-100 to -50", "-50 to -30", "-30 to -10",
+    "-10 to 10", "10 to 30", "30 to 50",
+    "50 to 100", ">100"
+  }
+  SetThemeClassLabels(cTheme, labels)
+
+  ShowTheme(,cTheme)
+
+  // Create a selection set of the links that do not exceed the MDD
+  setname = "Deviation does not exceed MDD"
+  RunMacro("G30 create set", setname)
+  SelectByQuery(
+    setname, "Several",
+    "Select * where nz(Count" + field_suffix +
+    ") > 0 and ExceedMDD" + field_suffix + " = 0"
+  )
+  SetLineColor(vw + "|" + setname, ColorRGB(11308, 41634, 24415))
+
+  // Configure Legend
+  RunMacro("G30 create legend", "Theme")
+  SetLegendSettings (
+    GetMap(),
+    {
+      "Automatic",
+      {0, 1, 0, 1, 1, 4, 0},
+      {1, 1, 1},
+      {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
+      {"", vol_field + " vs " + count_field}
+    }
+  )
+  str1 = "XXXXXXXX"
+  solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+  SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+  SetLayerVisibility(map + "|" + nlyr, "false")
+
+  // Save map
+  RedrawMap(map)
+  RestoreWindow(GetWindowName())
+  SaveMap(map, output_file)
+  CloseMap(map)
+EndMacro
+
+/*
+Uses the mode table to get the transit modes in the model. Exclude "nt"
+(non-transit) as a mode.
+*/
+
+Macro "Get Transit Modes" (mode_csv)
+    mode_vw = OpenTable("mode", "CSV", {mode_csv})
+    transit_modes = V2A(GetDataVector(mode_vw + "|", "abbr", ))
+    pos = transit_modes.position("nt")
+    transit_modes = ExcludeArrayElements(transit_modes, pos, 1)
+    CloseView(mode_vw)
+    return(transit_modes)
+endmacro
+
+/*
+Transposes all cores in a matrix file.
+
+Inputs
+  * `mtx_file`
+    * String
+    * Full path to matrix file to be transposed
+  * `label`
+    * Optional string
+    * Label for the resuling, transposed matrix
+    
+Returns
+  Nothing. The matrix file provided will have all cores transposed.
+*/
+
+Macro "Transpose Matrix" (mtx_file, label)
+  if mtx_file = null then Throw("Transpose Matrix: `mtx_file` not provided")
+  if GetFileInfo(mtx_file) = null then Throw(
+    "Transpose Matrix: `mtx_file` not found\n" +
+    "(" + mtx_file + ")"
+  )
+
+  {drive, folder, file, ext} = SplitPath(mtx_file)
+  inv_matrix = drive + folder + file + "_inv" + ext
+  mtx = OpenMatrix(mtx_file, )
+  opts = null
+  opts.[File Name] = inv_matrix
+  opts.label = label
+  TransposeMatrix(mtx, opts)
+  mtx = null
+  DeleteFile(mtx_file)
+  RenameFile(inv_matrix, mtx_file)
+EndMacro
+
+/*
+This macro summarizes link-level fields into scenario-level statistics.
+Summaries include VMT, VHT, and delay.
+
+Inputs (all in a named array)
+  * `hwy_dbd`
+    * String
+    * Full path of the line geographic file of highway links. This should be the
+    * "loaded" network, such that the assignment results are included.
+  * `output_dir`
+    * String
+    * Full path of output directory where the final csv will be written
+  * `at_field`
+    * Optional string
+    * Field name containing area type information
+    * Defaults to "AreaType"
+  * `ft_field`
+    * Optional string
+    * Field name containing facility type information
+    * Defaults to "HCMType"
+  * `summary_fields`
+    * Optional array of strings
+    * Describes the names of the fields to sum up for each metric
+    * Defaults to {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
+*/
+
+Macro "Link Summary by FT and AT" (MacroOpts)
+
+  // Extract arguments from named array
+  hwy_dbd = MacroOpts.hwy_dbd
+  output_dir = MacroOpts.output_dir
+  at_field = MacroOpts.at_field
+  ft_field = MacroOpts.ft_field
+  summary_fields = MacroOpts.summary_fields
+
+  // Argument checking
+  if hwy_dbd = null then Throw("'hwy_dbd' not provided")
+  if output_dir = null then Throw("'output_dir' not provided")
+  if at_field = null then at_field = "AreaType"
+  if ft_field = null then ft_field = "HCMType"
+  if summary_fields = null then do
+    summary_fields = {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
+  end
+
+  // Open the highway link layer and read into a data frame
+  objLyrs = CreateObject("AddDBLayers", {FileName: LineDB})
+  {nlyr, llyr} = objLyrs.Layers
+  hwy_df = CreateObject("df")
+  opts = null
+  opts.view = llyr
+  opts.fields = {ft_field, at_field} + summary_fields
+  hwy_df.read_view(opts)
+
+  // Summarize by ft and at
+  hwy_df.group_by({ft_field, at_field})
+  hwy_df.summarize(summary_fields, "sum")
+  hwy_df.write_csv(output_dir + "/link_summary_by_FT_and_AT.csv")
+EndMacro
+
+/*
+Reads a file with name/value pairs and returns a named array
+
+Inputs
+  * `file`
+    * String
+    * Path of the parameter file to read
+  * `names`
+    * Optional string (default: "Name")
+    * Field name that holds parameter names
+  * `values`
+    * Optional string (default: "Value")
+    * Field name that holds parameter values
+*/
+
+Macro "Read Parameter File" (MacroOpts)
+
+  file = MacroOpts.file
+  names = MacroOpts.names
+  values = MacroOpts.values
+
+  {drive, folder, name, ext} = SplitPath(file)
+  allowed_extensions = {".csv", ".bin"}
+  if allowed_extensions.position(ext) = 0 then Throw("'file' must be a CSV or FFB")
+  if names = null then names = "Name"
+  if values = null then values = "Value"
+
+  type = if ext = ".csv" then "CSV" else "FFB"
+  vw = OpenTable("params", type, {file})
+  v_names = GetDataVector(vw + "|", names, )
+  v_values = GetDataVector(vw + "|", values, )
+
+  for i = 1 to v_names.length do
+    result.(v_names[i]) = v_values[i]
+  end
+
+  CloseView(vw)
+  return(result)
+endmacro
+
+/*
+Inputs
+  * `table`
+    * String
+    * File name of table where accessibilities will be added (.bin)
+  * `params`
+    * String
+    * File name of parameter file (.csv)
+  * `skims`
+    * Named array
+    * Each named value contains a file path and a core name. For example:
+      * skims.sov.file = "C:\\my_skim.mtx"
+      * skims.sov.core = "Length (Skim)"
+*/
+
+Macro "Accessibility Calculator" (MacroOpts)
+
+  table = MacroOpts.table
+  params = MacroOpts.params
+  skims = MacroOpts.skims
+
+  if table = null then Throw("Accessibility Calculator: 'table' not provided")
+  if params = null then Throw("Accessibility Calculator: 'params' not provided")
+  
+  table_vw = OpenTable("acc_temp", "FFB", {table})
+  
+  // Create a sum product table from the size terms in the parameter table
+  // and run that macro
+  param_vw = OpenTable("acc_temp", "CSV", {params})
+  {out_fields, } = GetFields(param_vw, "All")
+  first_col = out_fields[1]
+  SetView(param_vw)
+  query = "Select * where " + first_col + " <> 'skim'" +
+    " and " + first_col + " <> 'core'" +
+    " and " + first_col + " <> 'b'" + 
+    " and " + first_col + " <> 'c'"
+  SelectByQuery("sel", "several", query)
+  attr_bin = GetTempFileName("*.bin")
+  ExportView(param_vw + "|sel", "FFB", attr_bin, , {"CSV Header": "true"})
+  attr_vw = OpenTable("attr_vw", "FFB", {attr_bin})
+  strct = GetTableStructure(attr_vw, {{"Include Original", "True"}})
+  dim new[strct.length]
+  new[1] = strct[1]
+  for i = 2 to strct.length do
+    new[i] = strct[i]
+    new[i][1] = new[i][1] + "_attr"
+    new[i][2] = "Real"
+    new[i][4] = 2
+  end
+  ModifyTable(attr_vw, new)
+  CloseView(attr_vw)
+  RunMacro("Create Sum Product Fields", {
+    view: table_vw, factor_file: attr_bin, 
+    field_desc: "attractions for accessibility calculation"
+  })
+
+  // Remove first and last column (param names and description info)
+  out_fields = ExcludeArrayElements(out_fields, 1, 1)
+  out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
+  // TODO: use vector.position() after bug fix
+  a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
+  skim_pos = a_first_col.position("skim")
+  core_pos = a_first_col.position("core")
+  b_pos = a_first_col.position("b")
+  c_pos = a_first_col.position("c")
+  for out_field in out_fields do
+    v_params = GetDataVector(param_vw + "|", out_field, )
+    skim_file = skims.(v_params[skim_pos])
+    skim_core = v_params[core_pos]
+    b = S2R(v_params[b_pos])
+    c = S2R(v_params[c_pos])
+
+    // Calculate logsum
+    skim = CreateObject("Matrix")
+    skim.LoadMatrix(skim_file)
+    skim.AddCores({"size", "util"})
+    cores = skim.data.cores
+    size = GetDataVector(table_vw + "|", out_field + "_attr", )
+    cores.size := size
+    cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
+    cores.util := if cores.size = 0 then 0 else cores.util
+    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    logsum = Max(0, log(rowsum))
+    
+    // Put logsum into table
+    {drive, folder, name, ext} = SplitPath(params)
+    description = "A logsum-based accessibility measure|See " + 
+      name + ext + " for more details"
+    a_field = {{out_field, "Real", 10, 2, , , , description}}
+    RunMacro("Add Fields", {view: table_vw, a_fields: a_field})
+    SetDataVector(table_vw + "|", out_field, logsum, )
+    skim.DropCores({"size", "util"})
+  end
+
+  CloseView(table_vw)
+  CloseView(param_vw)
+endmacro
+
+/*
+Summarizes transit outputs
+
+Inputs (all in a named array)
+  * `transit_asn_dir`
+    * The directory where the outputs from pathfinder assignment are located.
+  * `output_dir`
+    * Where all summary CSVs will be written.
+  * `loaded_network`
+    * The geographic database file (.dbd) that will have transit data appended.
+
+Returns
+  * Nothing. Creates `boardings_and_alightings`, `transit_flow_by_link`,
+    and `passenger_miles_and_hours` csv tables.
+*/
+
+Macro "Summarize Transit" (MacroOpts)
+  
+  // Argument extraction
+  transit_asn_dir = MacroOpts.transit_asn_dir
+  output_dir = MacroOpts.output_dir
+  loaded_network = MacroOpts.loaded_network
+  
+  // Argument checking
+  if transit_asn_dir = null 
+    then Throw("Summarize Transit:\n`transit_asn_dir` not provided")
+  if output_dir = null 
+    then Throw("Summarize Transit:\n`output_dir` not provided")
+  RunMacro("Create Directory", output_dir)
+  if loaded_network = null 
+    then Throw("Summarize Transit:\n`loaded_network` not provided")
+  if GetFileInfo(loaded_network) = null
+    then Throw("Summarize Transit:\n`loaded_network` does not exist")
+  
+  tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
+
+  // Summarize total ridership (total boardings)
+  onoff = tables.onoff
+  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
+  onoff.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  onoff.colnames(opts)
+  daily = onoff.copy()
+  daily.group_by("route")
+  daily.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route"} + cols_to_summarize
+  daily.colnames(opts)
+  daily.mutate("access", "All")
+  daily.mutate("mode", "All")
+  daily.mutate("tod", "Daily")
+  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.bind_rows(onoff)
+  daily.write_csv(output_dir + "/boardings_and_alightings.csv")
+
+  // aggregate transit flow by link and join to layer
+  agg = tables.agg
+  agg.group_by("ID1")
+  cols_to_summarize = agg.colnames({start: "AB_TransitFlow", stop: "BA_Drive_Flow"})
+  agg.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"ID1"} + cols_to_summarize
+  agg.colnames(opts)
+  agg_file = output_dir + "/transit_flow_by_link.csv"
+  agg.write_csv(agg_file)
+  RunMacro("Join Table To Layer", loaded_network, "ID", agg_file, "ID1")
+  
+  // Passenger miles and hours
+  flow = tables.flow
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate(
+    "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
+  flow.group_by("Route")
+  flow.summarize({"pass_hours", "pass_miles"}, "sum")
+  flow.rename(
+    {"Route", "sum_pass_hours", "sum_pass_miles"},
+    {"route", "pass_hours", "pass_miles"})
+  flow_file = output_dir + "/passenger_miles_and_hours.csv"
+  flow.write_csv(flow_file)
+EndMacro
+
+/*
+The GT transit assignment macro "Pathfinder Assignment" does some basic
+aggregation of the transit outputs and writes out CSV files. The transit
+summary macro uses this function to collect the names of all those outputs
+files in `transit_asn_dir`.
+
+Inputs
+  * `transit_asn_dir`
+    * The directory where the outputs from "Pathfinder Assignment" are located.
+    
+Returns
+  * Named array of four data frames
+    * `onoff`
+      * All files found starting with "OnOff". These files have boarding and
+        alighting info by stop and route.
+    * `agg`
+      * Transit and non transit flows by link ID.
+    * `flow`
+      * Route level flows between stops.
+    * `walk`
+      * Non-transit and walk access flow by link.
+      * Mainly ignored as this data is also contained in `agg`.
+*/
+
+Macro "Get Transit Output Tables" (transit_asn_dir)
+  
+  if transit_asn_dir = null 
+    then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
+  transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
+  
+  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  for file in files do
+    df = CreateObject("df", file)
+    
+    if Position(file, "onoff") <> 0 then do
+      if onoff = null then onoff = df.copy()
+      else onoff.bind_rows(df)
+    end else if Position(file, "linkflow") <> 0 then do
+      if agg = null then agg = df.copy()
+      else agg.bind_rows(df)
+    end else if Position(file, "walkflow") <> 0 then do
+      if walk = null then walk = df.copy()
+      else walk.bind_rows(df)
+    end else if Position(file, "flow") <> 0 then do
+      if flow = null then flow = df.copy()
+      else flow.bind_rows(df)
+    end
+  end
+  
+  result.onoff = onoff
+  result.agg = agg
+  result.walk = walk
+  result.flow = flow
+  return(result)
+EndMacro

@@ -1,4 +1,4 @@
-mode_name,mode_id,abbr,impedance,net_defs,lb,eb,brt,cr,lr,description
+Mode_Name,Mode_ID,Abbr,Impedance,net_defs,lb,eb,brt,cr,lr,description
 Non-Transit,1,nt,,.---->,1,1,1,1,1,The net_def fields specify
 Local Bus,2,lb,,.---->,2,1,1,1,1,1: mode is active in network
 Express Bus,3,eb,,.---->,,2,1,1,1,2: mode is required in the network

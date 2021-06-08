@@ -4,13 +4,13 @@ model label=NM_N-HB-ODS version=1.5
   field name=Age16-18
   source name=Data1 type=Survey primary=True origins=True destinations=True view=NMestimation set=Selection idfield=ID origfield=p_taz destfield=p_taz weightfield=trip_weight_combined
   segment name=*
-    term name=VehPerAdult coefficient=-0.762039
-    term name=WalkAccessibility coefficient=0.636468
-    term name=Age16-18 coefficient=0
+    term name=VehPerAdult coefficient=-0.767476
+    term name=WalkAccessibility coefficient=0.58507
+    term name=Age16-18 coefficient=-0.35873
     choice source=Data1 spec=IsNM
     alternative name=Motorized id=0
-    alternative name=NonMotorized id=1 asc=-2.79454
+    alternative name=NonMotorized id=1 asc=-2.70873
       data source=Data1 spec=veh_per_adult term=VehPerAdult type=Table
-      data source=Data1 spec=Oth_access_walk term=WalkAccessibility type=Table
       data source=Data1 spec=Age16-18 term=Age16-18 type=Table
+      data source=Data1 spec=NewAccess term=WalkAccessibility type=Table
 

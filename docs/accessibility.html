@@ -385,9 +385,6 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
-    </li>
-    <li>
       <a href="population_synthesis.html">Synthesis</a>
     </li>
     <li>
@@ -444,35 +441,37 @@ div.tocify {
 <h3>Walkability</h3>
 <p><img src="img/accessibility/walkability.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="logsum-sov" class="section level3">
-<h3>Logsum SOV</h3>
-<p><img src="img/accessibility/logsums_nearby_sov.png" width="50%" style="display: block; margin: auto;" /></p>
+<div id="transit-access" class="section level3">
+<h3>Transit Access</h3>
+<p><img src="img/accessibility/transit_access.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="logsum-walk" class="section level3">
-<h3>Logsum Walk</h3>
-<p><img src="img/accessibility/logsums_nearby_walk.png" width="50%" style="display: block; margin: auto;" /></p>
+<div id="walk-access" class="section level3">
+<h3>Walk Access</h3>
+<p><img src="img/accessibility/walk_access.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="tnc-wait-time" class="section level3">
+<h3>TNC Wait Time</h3>
+<p><img src="img/accessibility/tnc_wait.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="details" class="section level2">
-<h2>Details</h2>
-<div id="intersection-approach-density" class="section level3">
-<h3>Intersection Approach Density</h3>
+<div id="intersection-approach-density" class="section level2">
+<h2>Intersection Approach Density</h2>
 <p>Intersection approach density is an important measure of walk accessibility that does not require parcel level zones or place data. It is used as a component of a more comprehensive walkability (or walk accessibility) variable in the TRM. In the language of urban planning, it measures urban design.</p>
 <p>Intersection approach density as a metric recognizes that dense, gridded street systems are more conducive to walking than sparse suburban development forms with many dead ends, cul-de-sacs, and three-way intersections. To calculate this metric, each node in the network was evaluated to determine how many (non-freeway) streets were connected to it (a minimum of three required to be an intersection). Each of these connected links is an “intersection approach”. Within each zone, the total number of these approaches was summed and then divided by the zonal area to arrive at a density which measures both the average block size or density and street network connectivity.</p>
 </div>
-<div id="gini-simpson-index-d" class="section level3">
-<h3>Gini-Simpson Index (D)</h3>
+<div id="gini-simpson-index-d" class="section level2">
+<h2>Gini-Simpson Index (D)</h2>
 <p>The Gini-Simpson Index is a diversity index used for measuring the diversity of many types of phenomenon in various social sciences (such as income and racial diversity). In the context of travel modeling and the TRM, the index is used to measure the diversity of land uses or degree of “mixed use” in a zone. In this way, it can be thought of as a type of intra-zonal accessibility measure.</p>
 <p>Formally, the Gini-Simpson Index in this context is the probability that two places (trip ends or activities) within a zone (i) will belong to different types (g); where we have taken types simply as home, work, and other activities:</p>
 <p><img src="img/accessibility/GiniSimpsonD.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="stop-proximity-1" class="section level3">
-<h3>Stop Proximity</h3>
+<div id="stop-proximity-1" class="section level2">
+<h2>Stop Proximity</h2>
 <p>This is a common metric in travel models given its power at describing zonal accessibility to transit. In the TRMG2, the percent of each zone within 1/4 mile of a bus stop is computed using a GIS overlay in TransCAD. The map below zooms in to Apex to give an illustration of how this calculation works.</p>
 <p><img src="img/accessibility/bus_stop_detail.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="walkability-1" class="section level3">
-<h3>Walkability</h3>
+<div id="walkability-1" class="section level2">
+<h2>Walkability</h2>
 <p>For each zone, a binary choice model was applied to determine the propensity to walk for trips originating in that zone. Simple by design, it does not consider skims or other matrix-based attributes. Instead, it uses the metrics below to make predictions.</p>
 <ul>
 <li><strong>Approach Density</strong>: Intersection approaches in zone divided by zonal area</li>
@@ -543,225 +542,237 @@ Constant (walk)
 </tbody>
 </table>
 </div>
-<div id="logsums" class="section level3">
-<h3>Logsums</h3>
+<div id="logsum-accessibilities" class="section level2">
+<h2>Logsum Accessibilities</h2>
 <p>Logsums can be considered as a weighted average accessibility. While logsums are most often discussed in relation to mode choice and destination choice models, the logsums used for these accessibility measures are based on a simpler gravity formulation as a proxy and to avoid endogeneity problems from simultaneously estimating destination choice models including logsums of those same and other destination choice models.</p>
-<p><br /><span class="math display"><em>A</em><sub><em>i</em></sub> = <em>l</em><em>n</em>(∑<sub><em>j</em></sub><em>S</em><sub><em>j</em></sub><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub><sup><em>α</em></sup><em>e</em><sup><em>β</em><em>t</em><sup><em>i</em><em>j</em><em>m</em></sup></sup>)</span><br /></p>
+<p><br /><span class="math display"><em>A</em><sub><em>i</em></sub> = <em>l</em><em>n</em>(∑<sub><em>j</em></sub><em>S</em><sub><em>j</em></sub><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub><sup><em>β</em></sup><em>e</em><sup><em>γ</em><em>t</em><sup><em>i</em><em>j</em><em>m</em></sup></sup>)</span><br /></p>
 <p>Where:<br />
 <span class="math inline"><em>A</em><sub><em>i</em></sub></span>: Accessibility of zone i<br />
 <span class="math inline"><em>t</em><sub><em>i</em><em>j</em><em>m</em></sub></span>: Travel time between zone i and j by mode m<br />
 <span class="math inline"><em>S</em><sub><em>j</em></sub></span>: Attractions in zone j (size term)</p>
-<p>The primary purpose for these mode-specific accessibility values is to inform the non-home-based models. For instance, a non-home-based transit trip is likely to occur in areas with high transit accessibility. More importantly, they cannot occur in areas with no transit access.</p>
-<p>In addition to calculating accessibility logsums by mode, three different size term formulations were used to capture different types of access. Those three types are:</p>
-<ul>
-<li>General: A balanced accessibility to various land uses</li>
-<li>Nearby: An accessibility that weights land uses more heavily that generate shorter trips (e.g. retail)</li>
-<li>Employment: A measure of accessibility to employment/jobs</li>
-</ul>
-<p>The rates for the size term in each of the above types of accessibility are shown in the table below.</p>
+<p>Accessibility logsums are useful for many steps of the model. One example is the non-home-based production models. A non-home-based walk trip is more likely to occur in areas with high walk accessibility, and they are less likely in area with poor access.</p>
+<p>The TRMG2 makes use of a fairly generic function for calculating multiple accessibility variables. The table below presents two as examples. The first four rows detail which skims, cores, and decay parameters to use. The remaining rows show the attraction rates for the size variable calculation.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Field
+Param
 </th>
-<th style="text-align:right;">
-General
+<th style="text-align:left;">
+access_general_sov
 </th>
-<th style="text-align:right;">
-Nearby
-</th>
-<th style="text-align:right;">
-Employment
+<th style="text-align:left;">
+access_transit
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
+skim
+</td>
+<td style="text-align:left;">
+sov
+</td>
+<td style="text-align:left;">
+transit
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+core
+</td>
+<td style="text-align:left;">
+FFTime
+</td>
+<td style="text-align:left;">
+Total Time
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+b
+</td>
+<td style="text-align:left;">
+-0.93
+</td>
+<td style="text-align:left;">
+-2.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+c
+</td>
+<td style="text-align:left;">
+-0.09
+</td>
+<td style="text-align:left;">
+-0.06
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 HH
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 1.9
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+1.9
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 K12
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 1.5
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+1.5
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_NCSU
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_UNC
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_DUKE
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 StudGQ_NCCU
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 CollegeOn
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 CollegeOff
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.7
 </td>
-<td style="text-align:right;">
-0.0
-</td>
-<td style="text-align:right;">
-0
+<td style="text-align:left;">
+5.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Retail
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 18.7
 </td>
-<td style="text-align:right;">
-4.1
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+18.7
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Service_RateLow
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.6
 </td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+5.6
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Service_RateHigh
 </td>
-<td style="text-align:right;">
+<td style="text-align:left;">
 5.6
 </td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+5.6
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Office
 </td>
-<td style="text-align:right;">
-3.0
+<td style="text-align:left;">
+3
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Industry
 </td>
-<td style="text-align:right;">
-3.0
+<td style="text-align:left;">
+3
 </td>
-<td style="text-align:right;">
-0.5
-</td>
-<td style="text-align:right;">
-1
+<td style="text-align:left;">
+3
 </td>
 </tr>
 </tbody>
 </table>
 </div>
+<div id="tnc-variables" class="section level2">
+<h2>TNC Variables</h2>
+<p>To support proper handling in mode choice, the TNC services (e.g. Uber and Lyft) need appropriate values for fare and initial wait times. Both were estimated as functions of accessibility, and are calculated during this step of the model.</p>
+<p>The linear regression model for fare was estimated from the survey and is shown below.</p>
+<p><br /><span class="math display"><em>F</em><em>a</em><em>r</em><em>e</em> = 4.00 + 0.70 * <em>l</em><em>e</em><em>n</em><em>g</em><em>t</em><em>h</em> + 0.25 * <em>t</em><em>i</em><em>m</em><em>e</em></span><br /></p>
+<p>Where:</p>
+<p><span class="math inline"><em>F</em><em>a</em><em>r</em><em>e</em></span>: Fare ($)<br />
+<span class="math inline"><em>l</em><em>e</em><em>n</em><em>g</em><em>t</em><em>h</em></span>: Trip distance (mi)<br />
+<span class="math inline"><em>t</em><em>i</em><em>m</em><em>e</em></span>: Trip time (min)</p>
+<p><img src="img/accessibility/tnc_fare_regression.png" width="75%" style="display: block; margin: auto;" /></p>
+<p>The wait time (shown in a map above), is a function of general accessibility as shown below:</p>
+<p><br /><span class="math display"><em>W</em><em>a</em><em>i</em><em>t</em><sub><em>O</em><em>P</em></sub> = 45.10 − 1534.4/<em>A</em><sub><em>g</em></sub> + 13030.36/<em>A</em><sub><em>g</em></sub><sup>2</sup></span><br /></p>
+<p>Where:</p>
+<p><span class="math inline"><em>W</em><em>a</em><em>i</em><em>t</em><sub><em>o</em><em>p</em></sub></span>: Off-peak period wait time (min)<br />
+<span class="math inline"><em>A</em><sub><em>g</em></sub></span>: General accessibility</p>
+<p>In the peak period, 3.5 minutes are added to the wait time.</p>
 </div>
 
 <br>

@@ -1,0 +1,23 @@
+Name,Value,Description
+votcut1,5.02,VOT Q1 cutline
+votcut2,9.63,VOT Q2 cutline
+votcut3,15.73,VOT Q3 cutline
+votcut4,24.98,VOT Q4 cutline
+pk_meanvot,8.1,Peak Period Mean VOT
+pk_targetvot,14.39,Peak Period Target VOT
+pk_costcoef,-111,Peak Period Cost Coefficient
+pk_meantime,-1.01,Peak Period Mean Time
+pk_sdtime,0.818,Peak Period StDev Time
+op_meanvot,7.9,Non-Peak Period Mean VOT
+op_targetvot,11.92,Non-Peak Period Target VOT
+op_costcoef,-131,Non-Peak Period Cost Coefficient
+op_meantime,-0.883,Non-Peak Period Mean Time
+op_sdtime,0.781,Non-Peak Period StDev Time
+sutwgt1,0.343,Single Unit Truck Weight VOT1
+sutwgt2,0.506,Single Unit Truck Weight VOT2
+sutwgt3,0.151,Single Unit Truck Weight VOT3
+mutwgt1,0.058,Multi Unit Truck Weight VOT1
+mutwgt2,0.238,Multi Unit Truck Weight VOT2
+mutwgt3,0.385,Multi Unit Truck Weight VOT3
+mutwgt4,0.249,Multi Unit Truck Weight VOT4
+mutwgt5,0.07,Multi Unit Truck Weight VOT5
