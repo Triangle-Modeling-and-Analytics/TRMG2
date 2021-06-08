@@ -17,18 +17,19 @@ for (package in packages_vector) {
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/_PRIVATE/"
 data_dir <- "data/input/"
+master_dir <- "../master/"
 
 clean_ie_streetlight_filename <- paste0(private_dir, "clean-streetlight.rds")
 clean_ee_streetlight_filename <- paste0(private_dir, "clean-itre-streetlight.rds")
 socec_filename <- paste0(data_dir, "ieei/se_2016.csv")
-taz_shape_filename <- paste0(data_dir, "tazs/master_tazs.shp")
+taz_shape_filename <- paste0(master_dir, "tazs/master_tazs.shp")
 ext_nodes_shape_filename <- paste0(data_dir, "ieei/ext_nodes.shp")
 distance_skim_filename <- paste0(data_dir, "ieei/distance-skim.RDS")
 
 campo_sl_shape <- paste0(private_dir, "streetlight/161428_TRM20test5_2016/Shapefile/161428_TRM20test5_2016_origin/161428_TRM20test5_2016_origin.shp")
 durham_sl_shape <- paste0(private_dir, "streetlight/164792_TRM20_2016_All/Shapefile/164792_TRM20_2016_All_origin/164792_TRM20_2016_All_origin.shp")
 
-output_filename <- paste0(data_dir, "ieei/estimated-flows.csv")
+output_filename <- paste0(data_dir, "ieei/streetlight-flows.csv")
 
 # Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
@@ -148,7 +149,20 @@ working_ie_df <- sl_ie_df %>%
   select(-taz) %>%
   left_join(., closest_ext_df, by = c("dest_zone" = "sl_zone", "source" = "sl_source")) %>%
   mutate(dest_taz = if_else(purpose %in% c("XX", "IX"), taz, dest_taz)) %>%
-  select(-taz) %>%
+  select(-taz)
+
+working_df <- working_ie_df %>%
+  filter(day_part == "0: All Day (12am-12am)") %>%
+  select(-orig_zone, -dest_zone) %>%
+  filter(!is.na(orig_taz)) %>%
+  filter(!is.na(dest_taz)) %>%
+  filter(purpose %in% c("IX", "XI"))
+
+bind_ee_df <- sl_ee_df %>%
+  mutate(source = "itre") %>%
+  mutate(purpose = "XX")
+
+combined_df <- bind_rows(working_df, bind_ee_df) %>%
   left_join(., centroids_df, by = c("orig_taz" = "taz")) %>%
   mutate(orig_lat = if_else(purpose == "IX", lat, as.double(NA))) %>%
   mutate(orig_lng = if_else(purpose == "IX", lng, as.double(NA))) %>%
@@ -164,20 +178,15 @@ working_ie_df <- sl_ie_df %>%
   left_join(., external_centroids_df, by = c("dest_taz" = "taz")) %>%
   mutate(dest_lat = if_else(purpose %in% c("IX", "XX"), lat, dest_lat)) %>%
   mutate(dest_lng = if_else(purpose %in% c("IX", "XX"), lng, dest_lng)) %>%
-  select(-lat, -lng)
+  select(-lat, -lng) %>%
+  mutate(prod_taz = if_else(purpose %in% c("IX", "XX"), dest_taz, orig_taz)) %>%
+  mutate(attr_taz = if_else(purpose %in% c("IX", "XX"), orig_taz, dest_taz)) %>%
+  mutate(prod_lat = if_else(purpose %in% c("IX", "XX"), dest_lat, orig_lat)) %>%
+  mutate(prod_lng = if_else(purpose %in% c("IX", "XX"), dest_lng, orig_lng)) %>%
+  mutate(attr_lat = if_else(purpose %in% c("IX", "XX"), orig_lat, dest_lat)) %>%
+  mutate(attr_lng = if_else(purpose %in% c("IX", "XX"), orig_lng, dest_lng))
 
-working_df <- working_ie_df %>%
-  filter(day_part == "0: All Day (12am-12am)") %>%
-  select(-orig_zone, -dest_zone, -orig_lat, -orig_lng, -dest_lat, -dest_lng) %>%
-  filter(!is.na(orig_taz)) %>%
-  filter(!is.na(dest_taz)) %>%
-  filter(purpose %in% c("IX", "XI"))
-
-bind_ee_df <- sl_ee_df %>%
-  mutate(source = "itre") %>%
-  mutate(purpose = "XX")
-
-combined_df <- bind_rows(working_df, bind_ee_df)
+write_csv(combined_df, output_filename)
 
 remove(working_df, working_ie_df, bind_ee_df)
 
@@ -204,7 +213,7 @@ ext_shares_df <- working_df %>%
 remove(working_df, temp_orig_df)
 
 # Internal attraction model ----------------------------------------------------
-join_taz_df <- tibble(taz = taz_sf$ID, district = taz_sf$DISTRICT)
+join_taz_df <- tibble(taz = taz_sf$ID, district = taz_sf$DISTRICT2)
 
 join_socec_df <- socec_df %>%
   mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%

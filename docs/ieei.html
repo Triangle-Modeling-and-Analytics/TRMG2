@@ -389,7 +389,7 @@ div.tocify {
 <h2>External-external (EE)</h2>
 <p>The best available data source for movements through the modeling region is StreetLight Data extracting by ITRE. An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix.</p>
 <p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step.</p>
-<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares with the existing shares stored in the socio-economic data file.</p>
+<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file.</p>
 <div id="ee-traffic-shares" class="section level3">
 <h3>EE Traffic Shares</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -427,13 +427,13 @@ pct_auto_ee
 8000
 </td>
 <td style="text-align:right;">
-14.975
+15.0
 </td>
 <td style="text-align:right;">
 306
 </td>
 <td style="text-align:right;">
-3.825
+3.8
 </td>
 </tr>
 <tr>
@@ -447,13 +447,13 @@ pct_auto_ee
 2200
 </td>
 <td style="text-align:right;">
-1.961
+2.0
 </td>
 <td style="text-align:right;">
 320
 </td>
 <td style="text-align:right;">
-14.545
+14.5
 </td>
 </tr>
 <tr>
@@ -467,13 +467,13 @@ pct_auto_ee
 5100
 </td>
 <td style="text-align:right;">
-1.963
+2.0
 </td>
 <td style="text-align:right;">
 470
 </td>
 <td style="text-align:right;">
-9.216
+9.2
 </td>
 </tr>
 <tr>
@@ -487,13 +487,13 @@ pct_auto_ee
 3900
 </td>
 <td style="text-align:right;">
-1.148
+1.1
 </td>
 <td style="text-align:right;">
 422
 </td>
 <td style="text-align:right;">
-10.821
+10.8
 </td>
 </tr>
 <tr>
@@ -507,13 +507,13 @@ pct_auto_ee
 2400
 </td>
 <td style="text-align:right;">
-2.023
+2.0
 </td>
 <td style="text-align:right;">
 83
 </td>
 <td style="text-align:right;">
-3.458
+3.5
 </td>
 </tr>
 <tr>
@@ -527,13 +527,13 @@ pct_auto_ee
 3100
 </td>
 <td style="text-align:right;">
-19.633
+19.6
 </td>
 <td style="text-align:right;">
 414
 </td>
 <td style="text-align:right;">
-13.355
+13.4
 </td>
 </tr>
 <tr>
@@ -547,13 +547,13 @@ pct_auto_ee
 35000
 </td>
 <td style="text-align:right;">
-70.123
+70.1
 </td>
 <td style="text-align:right;">
 454
 </td>
 <td style="text-align:right;">
-1.297
+1.3
 </td>
 </tr>
 <tr>
@@ -567,13 +567,13 @@ pct_auto_ee
 4800
 </td>
 <td style="text-align:right;">
-24.118
+24.1
 </td>
 <td style="text-align:right;">
 79
 </td>
 <td style="text-align:right;">
-1.646
+1.6
 </td>
 </tr>
 <tr>
@@ -587,13 +587,13 @@ pct_auto_ee
 4100
 </td>
 <td style="text-align:right;">
-18.412
+18.4
 </td>
 <td style="text-align:right;">
 217
 </td>
 <td style="text-align:right;">
-5.293
+5.3
 </td>
 </tr>
 <tr>
@@ -607,13 +607,13 @@ pct_auto_ee
 12000
 </td>
 <td style="text-align:right;">
-26.363
+26.4
 </td>
 <td style="text-align:right;">
 593
 </td>
 <td style="text-align:right;">
-4.942
+4.9
 </td>
 </tr>
 <tr>
@@ -627,13 +627,13 @@ pct_auto_ee
 4200
 </td>
 <td style="text-align:right;">
-7.233
+7.2
 </td>
 <td style="text-align:right;">
 428
 </td>
 <td style="text-align:right;">
-10.190
+10.2
 </td>
 </tr>
 <tr>
@@ -647,13 +647,13 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
-15.352
+15.4
 </td>
 <td style="text-align:right;">
 244
 </td>
 <td style="text-align:right;">
-8.133
+8.1
 </td>
 </tr>
 <tr>
@@ -667,13 +667,13 @@ pct_auto_ee
 4800
 </td>
 <td style="text-align:right;">
-8.809
+8.8
 </td>
 <td style="text-align:right;">
 85
 </td>
 <td style="text-align:right;">
-1.771
+1.8
 </td>
 </tr>
 <tr>
@@ -687,13 +687,13 @@ pct_auto_ee
 2700
 </td>
 <td style="text-align:right;">
-8.969
+9.0
 </td>
 <td style="text-align:right;">
 348
 </td>
 <td style="text-align:right;">
-12.889
+12.9
 </td>
 </tr>
 <tr>
@@ -707,13 +707,13 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
-7.997
+8.0
 </td>
 <td style="text-align:right;">
 196
 </td>
 <td style="text-align:right;">
-6.533
+6.5
 </td>
 </tr>
 <tr>
@@ -727,13 +727,13 @@ pct_auto_ee
 25000
 </td>
 <td style="text-align:right;">
-51.355
+51.4
 </td>
 <td style="text-align:right;">
 696
 </td>
 <td style="text-align:right;">
-2.784
+2.8
 </td>
 </tr>
 <tr>
@@ -747,13 +747,13 @@ pct_auto_ee
 29000
 </td>
 <td style="text-align:right;">
-44.158
+44.2
 </td>
 <td style="text-align:right;">
 482
 </td>
 <td style="text-align:right;">
-1.662
+1.7
 </td>
 </tr>
 <tr>
@@ -767,13 +767,13 @@ pct_auto_ee
 1900
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 32
 </td>
 <td style="text-align:right;">
-1.684
+1.7
 </td>
 </tr>
 <tr>
@@ -787,13 +787,13 @@ pct_auto_ee
 3900
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 29
 </td>
 <td style="text-align:right;">
-0.744
+0.7
 </td>
 </tr>
 <tr>
@@ -807,13 +807,13 @@ pct_auto_ee
 26000
 </td>
 <td style="text-align:right;">
-75.000
+75.0
 </td>
 <td style="text-align:right;">
 8794
 </td>
 <td style="text-align:right;">
-33.823
+33.8
 </td>
 </tr>
 <tr>
@@ -827,13 +827,13 @@ pct_auto_ee
 57000
 </td>
 <td style="text-align:right;">
-45.938
+45.9
 </td>
 <td style="text-align:right;">
 9513
 </td>
 <td style="text-align:right;">
-16.689
+16.7
 </td>
 </tr>
 <tr>
@@ -847,13 +847,13 @@ pct_auto_ee
 6400
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 434
 </td>
 <td style="text-align:right;">
-6.781
+6.8
 </td>
 </tr>
 <tr>
@@ -867,13 +867,13 @@ pct_auto_ee
 4300
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 1011
 </td>
 <td style="text-align:right;">
-23.512
+23.5
 </td>
 </tr>
 <tr>
@@ -887,13 +887,13 @@ pct_auto_ee
 5500
 </td>
 <td style="text-align:right;">
-6.928
+6.9
 </td>
 <td style="text-align:right;">
 1168
 </td>
 <td style="text-align:right;">
-21.236
+21.2
 </td>
 </tr>
 <tr>
@@ -907,13 +907,13 @@ pct_auto_ee
 13000
 </td>
 <td style="text-align:right;">
-9.877
+9.9
 </td>
 <td style="text-align:right;">
 7274
 </td>
 <td style="text-align:right;">
-55.954
+56.0
 </td>
 </tr>
 <tr>
@@ -927,13 +927,13 @@ pct_auto_ee
 32000
 </td>
 <td style="text-align:right;">
-9.671
+9.7
 </td>
 <td style="text-align:right;">
 6744
 </td>
 <td style="text-align:right;">
-21.075
+21.1
 </td>
 </tr>
 <tr>
@@ -947,13 +947,13 @@ pct_auto_ee
 2300
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 47
 </td>
 <td style="text-align:right;">
-2.043
+2.0
 </td>
 </tr>
 <tr>
@@ -967,13 +967,13 @@ pct_auto_ee
 29000
 </td>
 <td style="text-align:right;">
-24.991
+25.0
 </td>
 <td style="text-align:right;">
 866
 </td>
 <td style="text-align:right;">
-2.986
+3.0
 </td>
 </tr>
 <tr>
@@ -987,13 +987,13 @@ pct_auto_ee
 7500
 </td>
 <td style="text-align:right;">
-25.325
+25.3
 </td>
 <td style="text-align:right;">
 914
 </td>
 <td style="text-align:right;">
-12.187
+12.2
 </td>
 </tr>
 <tr>
@@ -1007,13 +1007,13 @@ pct_auto_ee
 21000
 </td>
 <td style="text-align:right;">
-19.392
+19.4
 </td>
 <td style="text-align:right;">
 209
 </td>
 <td style="text-align:right;">
-0.995
+1.0
 </td>
 </tr>
 <tr>
@@ -1027,13 +1027,13 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
-24.240
+24.2
 </td>
 <td style="text-align:right;">
 790
 </td>
 <td style="text-align:right;">
-26.333
+26.3
 </td>
 </tr>
 <tr>
@@ -1047,13 +1047,13 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
-0.000
+0.0
 </td>
 <td style="text-align:right;">
 36
 </td>
 <td style="text-align:right;">
-1.200
+1.2
 </td>
 </tr>
 <tr>
@@ -1067,17 +1067,102 @@ pct_auto_ee
 2400
 </td>
 <td style="text-align:right;">
-15.749
+15.7
 </td>
 <td style="text-align:right;">
 416
 </td>
 <td style="text-align:right;">
-17.333
+17.3
 </td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div id="internal-external-ie-and-external-internal-ei" class="section level2">
+<h2>Internal-external (IE) and External-internal (EI)</h2>
+<p>The second step in the development process is to see if we can find sufficient patterns in the StreetLight IE and EI data to estimate a regression model that can be generalized across zones. This generalization is necessary because the StreetLight data comprises a small sample of movements in the region. Here we start with StreetLight data extracted separately for IE-EI pairs by CAMPO and the Durham MPO. As such, it represents a sample of movements to/from a set of external stations to CAMPO model zones and from a set of external stations to the Durham model zones.</p>
+<p>The map below shows the coverage of the external stations for the CAMPO and Durham data pulls.</p>
+<div id="streetlight-productions-at-external-stations-by-data-pull" class="section level3">
+<h3>StreetLight Productions at External Stations by Data Pull</h3>
+<p><img src="img/ieei/sl_productions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>To prepare the data for a regression model, we first aggregate it to the 21-district geographies developed for the model update. The correlations between IE/EI attractions (taking the external station to be the production end of the trip) and population and employment are summarized in the table below.</p>
+</div>
+<div id="correlations-between-ieei-attractions-and-population-and-employment" class="section level3">
+<h3>Correlations between IE/EI Attractions and Population and Employment</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+trips
+</th>
+<th style="text-align:right;">
+pop
+</th>
+<th style="text-align:right;">
+emp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+trips
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.060
+</td>
+<td style="text-align:right;">
+-0.590
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+-0.06
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+-0.59
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>The correlation is negative and the number of districts with non-zero trips is only seven (of 21), which suggests the data is problematic. Below is a plot of the IE/EI productions, which shows a heavy bias towards locations close to the external stations.</p>
+</div>
+<div id="streetlight-attractions-to-internal-stations-by-data-pull" class="section level3">
+<h3>StreetLight Attractions to Internal Stations by Data Pull</h3>
+<p><img src="img/ieei/sl_attractions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>A plot of the cumulative duration distribution for the IE/EI trips reveals that ~94 percent of the trips have a duration of 30 minutes or less, which seems unlikely for IE/EI flows.</p>
+</div>
+<div id="streetlight-duration-cumulative-distribution-for-ieei-trips" class="section level3">
+<h3>StreetLight Duration Cumulative Distribution for IE/EI Trips</h3>
+<p><img src="img/ieei/sl_cumulative_duration.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 

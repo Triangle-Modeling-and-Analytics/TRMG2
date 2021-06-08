@@ -36,7 +36,37 @@ ext_shares_df %>%
 ```
 
 ## Internal-external (IE) and External-internal (EI)
+The second step in the development process is to see if we can find sufficient patterns in the StreetLight IE and EI data to estimate a regression model that can be generalized across zones. This generalization is necessary because the StreetLight data comprises a small sample of movements in the region. Here we start with StreetLight data extracted separately for IE-EI pairs by CAMPO and the Durham MPO. As such, it represents a sample of movements to/from a set of external stations to CAMPO model zones and from a set of external stations to the Durham model zones. 
 
+The map below shows the coverage of the external stations for the CAMPO and Durham data pulls.
+
+### StreetLight Productions at External Stations by Data Pull
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/sl_productions.png")
+```
+
+To prepare the data for a regression model, we first aggregate it to the 21-district geographies developed for the model update. The correlations between IE/EI attractions (taking the external station to be the production end of the trip) and population and employment are summarized in the table below. 
+
+### Correlations between IE/EI Attractions and Population and Employment
+```{r}
+correlations_df %>%
+  kableExtra::kable(digits = 3) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+The correlation is negative and the number of districts with non-zero trips is only seven (of 21), which suggests the data is problematic. Below is a plot of the IE/EI productions, which shows a heavy bias towards locations close to the external stations.
+
+### StreetLight Attractions to Internal Stations by Data Pull
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/sl_attractions.png")
+```
+
+A plot of the cumulative duration distribution for the IE/EI trips reveals that ~94 percent of the trips have a duration of 30 minutes or less, which seems unlikely for IE/EI flows.
+
+### StreetLight Duration Cumulative Distribution for IE/EI Trips
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/sl_cumulative_duration.png")
+```
 
 
 
