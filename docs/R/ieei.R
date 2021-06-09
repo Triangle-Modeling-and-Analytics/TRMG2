@@ -1,19 +1,3 @@
-# Packages ---------------------------------------------------------------------
-packages_vector <- c("tidyverse",
-                     "corrr",
-                     "sf",
-                     "kableExtra",
-                     "knitr")
-
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-
-if (length(need_to_install)) install.packages(need_to_install)
-
-for (package in packages_vector) {
-  library(package, character.only = TRUE)
-}
-
-
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/_PRIVATE/"
 data_dir <- "data/input/"

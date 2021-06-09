@@ -9,6 +9,13 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
+# renv::restore()
+library(tidyverse)
+library(corrr)
+library(sf)
+library(kableExtra)
+library(knitr)
+
 source("R/ieei.R")
 
 knitr::opts_chunk$set(echo = FALSE)
