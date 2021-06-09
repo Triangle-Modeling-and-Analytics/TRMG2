@@ -1,7 +1,7 @@
 ---
 title: "Auto Ownership"
 author: "Caliper Corporation"
-date: "6/8/2021"
+date: "June 9, 2021"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -15,6 +15,8 @@ options(scipen = 999)
 library(tidyverse)
 library(mltools)
 library(data.table)
+library(knitr)
+library(kableExtra)
 ```
 
 ```{r, include=FALSE}
@@ -27,20 +29,22 @@ create_factors <- hh %>%
   mutate(
     ID = seq(1, n(), 1),
     kid_per_adult = num_children / num_adults,
-    num_vehicles = ifelse(num_vehicles >= 3, 3, num_vehicles),
+    num_vehicles = ifelse(num_vehicles >= 4, 4, num_vehicles),
     num_adults = ifelse(num_adults >= 4, 4, num_adults),
     num_workers = ifelse(num_workers >= 3, 3, num_workers),
+    num_nwadults = num_adults - num_workers,
     num_children = ifelse(num_children >= 2, 2, num_children),
     num_seniors = ifelse(num_seniors >= 2, 2, num_seniors),
     num_adults = as.factor(num_adults),
     num_workers = as.factor(num_workers),
+    num_nwadults = as.factor(num_nwadults),
     num_children = as.factor(num_children),
     num_seniors = as.factor(num_seniors),
     hh_inc_final = as.factor(hh_inc_final)
   ) %>%
   relocate(ID, .before = "hhid") %>%
   as.data.table()
-est_tbl <- one_hot(create_factors)
+est_tbl <- one_hot(create_factors, dropCols = FALSE)
 
 # Model estimation done in TransCAD. Write the estimation table out to a
 # workspace not in the repo
@@ -50,3 +54,50 @@ write_csv(
 )
 ```
 
+## Introduction
+
+**TODO: Add some general auto ownership info**
+
+## Model Structure
+
+The auto-ownership model in the TRMG2 makes use of variables from the synthetic
+population and zonal accessibility to make predictions. The model structure is
+a simple multinomial logistic (MNL) regression model with five alternatives:
+
+- 0 Vehicles
+- 1 Vehicle
+- 2 Vehicles
+- 3 Vehicles
+- 4+ Vehicles
+
+## Coefficients
+
+Model estimation was performed using TransCADs built-in logit model engine, and
+the table below shows the utility terms, coefficients, and goodness of fit.
+
+```{r, include=FALSE}
+coeffs <- read_csv("data/input/auto_ownership/ao_final_coefficients.csv") %>%
+  mutate(across(.cols = c(veh0:veh4), .fns = ~round(.x, 3))) %>%
+  mutate(across(.fns = ~ifelse(is.na(.x), "", .x)))
+```
+
+```{r}
+coeffs %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
+The model's Rho^2 shows relatively strong predictive power. The coefficients all
+have the right sign (positive or negative) and the relative sizes are intuitive.
+One particularly encouraging result of this model is that households with strong
+walk and transit accessibility are less likely to own cars (all else equal).
+This adds another dimension of model sensitivity to transit investments. New
+transit routes will affect long-term household decisions about auto ownership,
+which further influence their decisions about daily mode choices.
+
+Looking in more detail, the trend for coefficients across alternatives is also
+intuitive. Many workers in a household has a small impact on the utility of
+owning 1 auto, but a large impact on owning 2 or more. High income levels make
+it very likely to own 1 or 2 vehicles, but income alone does not contribute as
+much to the choice of having 4+ vehicles. That choice is driven more by the
+number of workers and accessibility.
