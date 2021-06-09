@@ -87,17 +87,17 @@ coeffs %>%
   kable_styling(full_width = FALSE)
 ```
 
-The model's Rho^2 shows relatively strong predictive power. The coefficients all
-have the right sign (positive or negative) and the relative sizes are intuitive.
+The coefficients all have the right sign and the relative sizes are intuitive.
 One particularly encouraging result of this model is that households with strong
-walk and transit accessibility are less likely to own cars (all else equal).
-This adds another dimension of model sensitivity to transit investments. New
-transit routes will affect long-term household decisions about auto ownership,
-which further influence their decisions about daily mode choices.
+walk and transit accessibility are less likely to own a vehicle and even less
+likely to own multiple. This adds another dimension of model sensitivity to
+transit investments. New transit routes will affect long-term household
+decisions about auto ownership, which further influence their decisions about
+daily mode choices.
 
 Looking in more detail, the trend for coefficients across alternatives is also
-intuitive. Many workers in a household has a small impact on the utility of
-owning 1 auto, but a large impact on owning 2 or more. High income levels make
-it very likely to own 1 or 2 vehicles, but income alone does not contribute as
-much to the choice of having 4+ vehicles. That choice is driven more by the
-number of workers and accessibility.
+intuitive. Many workers in a household has a small positive impact on the
+utility of owning 1 auto, but a large impact on owning 2 or more. High income
+households are more likely to own more vehicles. Children make it less likely to
+own 3 or more cars, because there are fewer drivers. Finally, the model's Rho^2
+shows strong predictive power.

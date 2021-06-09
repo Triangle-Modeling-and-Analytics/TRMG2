@@ -7,6 +7,7 @@ Macro "Population Synthesis" (Args)
     RunMacro("DisaggregateSED", Args)
     RunMacro("Synthesize Population", Args)
     RunMacro("PopSynth Post Process", Args)
+    RunMacro("Auto Ownership", Args)
 
     return(1)
 endmacro
@@ -68,15 +69,15 @@ Macro "DisaggregateSED"(Args)
     CloseView(vwJ)
     objLyrs = null
 
-    obj = null
-    ret_value = 1
-   quit:
-    on error, notfound, escape default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//     obj = null
+//     ret_value = 1
+//    quit:
+//     on error, notfound, escape default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -247,13 +248,13 @@ Macro "Synthesize Population"(Args)
     o.Tolerance = 0.01
     ret_value = o.Run()
 
-   quit:
-    on error, notfound, escape default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//    quit:
+//     on error, notfound, escape default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -284,14 +285,14 @@ Macro "PopSynth Post Process"(Args)
     BuildInternalIndex(GetFieldFullSpec(vw_per, "PersonID"))
     BuildInternalIndex(GetFieldFullSpec(vw_per, "HouseholdID"))
 
-    ret_value = 1
- quit:
-    on escape, error, notfound default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//     ret_value = 1
+//  quit:
+//     on escape, error, notfound default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -431,3 +432,32 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
     end
     Return(aggflds)
 endMacro
+
+/*
+
+*/
+
+Macro "Auto Ownership" (Args)
+
+    hh_file = Args.[Synthesized HHs]
+    se_file = Args.SE
+    model_file = Args.[Input Folder] + "/resident/auto_ownership/auto_ownership.mdl"
+
+    se_vw = OpenTable("scenario_se", "FFB", {se_file})
+    hh_vw = OpenTable("hh_processed", "FFB", {hh_file})
+    a_fields =  {
+        {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
+    }
+    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+
+    o = CreateObject("Choice.Mode")
+    o.ModelFile = model_file
+    o.DropModeIfMissing = true
+    o.SkipValuesBelow = 0.001
+    o.OutputChoiceField = "Autos"
+    o.AggregateModel = false
+    ok = o.Run()
+    
+    CloseView(se_vw)
+    CloseView(hh_vw)
+endmacro
