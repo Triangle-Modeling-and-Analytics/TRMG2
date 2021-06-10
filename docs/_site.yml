@@ -19,10 +19,14 @@ navbar:
           href: accessibility.html
         - text: "Synthesis"
           href: population_synthesis.html
+        - text: "Auto Ownership"
+          href: auto_ownership.html
         - text: "Time of Day"
           href: time_of_day.html
         - text: "Non-home-based"
           href: nhb.html
+        - text: "Airport"
+          href: airport.html
 output:
   html_document:
     theme: flatly

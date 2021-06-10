@@ -621,10 +621,17 @@ Macro "Calculate Bus Speeds" (Args)
     for period in periods do
         for dir in dirs do
             v_auto_time = GetDataVector(jv + "|", llyr_specs.(dir + period + "Time"), )
+            v_bosss = GetDataVector(jv + "|", llyr_specs.("BOSSS"), )
             v_auto_speed = v_length / (v_auto_time / 60)
             for mode in modes do
                 v_fac = GetDataVector(jv + "|", eq_specs.(mode + "_fac"), )
                 v_speed = v_auto_speed * v_fac
+                // For Bus-On-Shoulder System links (BOSS), busses can travel 
+                // 15 mph faster than auto traffic using the shoulder, but
+                // capped at the speed listed on the link (e.g. 35 mph).
+                v_speed = if v_auto_speed < nz(v_bosss) 
+                    then min(v_auto_speed + 15, v_bosss) 
+                    else v_speed
                 v_time = v_length / v_speed * 60
                 // handle links without auto times (e.g. transit only)
                 v_time = if v_time = null then v_auto_time else v_time
@@ -800,7 +807,7 @@ Macro "Create Route Networks" (Args)
                     Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 3,
-                    MaxInitialWait: 60,
+                    MaxInitialWait: 20,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
                     MinTransferWait: 2,

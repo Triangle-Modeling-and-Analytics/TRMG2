@@ -47,6 +47,7 @@ Macro "Create Folder Structure" (Args)
   // Array of output directories to create
   a_dir = {
     "/accessibility",
+    "/airport",
     "/tazs",
     "/sedata",
     "/networks",
@@ -57,7 +58,6 @@ Macro "Create Folder Structure" (Args)
     "/university",
     "/resident/disagg_model",
     "/resident/population_synthesis",
-    "/resident/generation",
     "/resident/destination",
     "/resident/mode",
     "/directionality",
