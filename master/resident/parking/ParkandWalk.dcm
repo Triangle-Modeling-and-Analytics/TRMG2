@@ -8,7 +8,7 @@ model version=1.5
   segment name=*
     term name=BetaTime coefficient=-0.03
     term name=BetaCost coefficient=-0.21
-    term name=BetaSize coefficient=0
+    term name=BetaSize coefficient=1.00
     alternative name=ParkingZones destsource=ParkingZones destindex=CBD
       available source=ParkingZones spec=Availability
       data source=WalkSkim spec=WalkTime term=BetaTime type=Matrix
