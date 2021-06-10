@@ -4,14 +4,15 @@
 
 Macro "NonMotorized" (Args)
 
-    // RunMacro("Create NonMotorized Features")
+    RunMacro("Create NonMotorized Features", Args)
     // RunMacro("Apply NM Choice Model", Args)
 
     return(1)
 endmacro
 
 /*
-
+This macro creates features on the synthetic household and person tables
+needed by the non-motorized model.
 */
 
 Macro "Create NonMotorized Features" (Args)
@@ -21,22 +22,29 @@ Macro "Create NonMotorized Features" (Args)
 
     hh_vw = OpenTable("hh", "FFB", {hh_file})
     per_vw = OpenTable("per", "FFB", {per_file})
-    se_vw = OpenTable("per", "FFB", {se_file})
     hh_fields = {
-        {"veh_per_adult", "Real", 10, 2,,,, "Vehicles per Adult"}
+        {"veh_per_adult", "Real", 10, 2,,,, "Vehicles per Adult"},
+        {"inc_per_capita", "Real", 10, 2,,,, "Income per person in household"}
     }
-    per_fields =  {
-        {"veh_per_adult", "Real", 10, 2,,,, "Vehicles per Adult"}
+    RunMacro("Add Fields", {view: hh_vw, a_fields: hh_fields})
+    per_fields = {
+        {"age_16_18", "Integer", 10, ,,,, "If person's age is 16-18"}
     }
     RunMacro("Add Fields", {view: per_vw, a_fields: per_fields})
-    {, hh_specs} = RunMacro("Get Fields", {view_name: hh_vw})
-    {, per_specs} = RunMacro("Get Fields", {view_name: per_vw})
-    {, se_specs} = RunMacro("Get Fields", {view_name: se_vw})
 
-    {v_size, v_kids, v_autos} = GetDataVectors(hh_vw + "|", {"HHSize", "HHKids", })
+    {v_size, v_kids, v_autos, v_inc} = GetDataVectors(
+        hh_vw + "|", {"HHSize", "HHKids", "Autos", "HHInc"},
+    )
 
-    jv = JoinViews("per+hh", per_specs.HouseholdID, hh_specs.HouseholdID, )
-
+    v_autos = S2I(v_autos)
+    v_adult = v_size - v_kids
+    v_vpa = v_autos / v_adult
+    SetDataVector(hh_vw + "|", "veh_per_adult", v_vpa, )
+    v_ipc = v_inc / v_size
+    SetDataVector(hh_vw + "|", "inc_per_capita", v_vpa, )
+    v_age = GetDataVector(per_vw + "|", "Age", )
+    v_age_flag = if v_age >= 16 or v_age <= 18 then 1 else 0
+    SetDataVector(per_vw + "|", "age_16_18", v_age_flag, )
 endmacro
 
 /*
