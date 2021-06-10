@@ -1,0 +1,17 @@
+model version=1.5
+  field name=BetaTime
+  field name=BetaCost
+  field name=BetaSize
+  source name=ParkingZones type=Matrix primary=True origins=True destinations=True file=C:\projects\TRM\Repo\scenarios\base_2016\output\resident\parking\ParkAvailability.mtx filelabel=ParkingAvailability rowindex=CBD colindex=CBD
+  source name=WalkSkim type=Matrix file=C:\projects\TRM\Repo\scenarios\base_2016\output\accessibility\walk_skim.mtx filelabel="Walk Accessiblity Skim" rowindex=Origin colindex=Destination
+  source name=SE type=Zonal view=scenario_se idfield=TAZ
+  segment name=*
+    term name=BetaTime coefficient=-0.03
+    term name=BetaCost coefficient=-0.21
+    term name=BetaSize coefficient=1.00
+    alternative name=ParkingZones destsource=ParkingZones destindex=CBD
+      available source=ParkingZones spec=Availability
+      data source=WalkSkim spec=WalkTime term=BetaTime type=Matrix
+      data source=SE spec=ParkCost term=BetaCost type=Destination
+      data source=SE spec=ParkSize term=BetaSize type=Destination
+
