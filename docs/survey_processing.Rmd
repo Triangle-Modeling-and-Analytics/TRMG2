@@ -1020,8 +1020,23 @@ mode_equiv %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 
+route_equiv <- read_csv(
+  "data/input/survey_processing/route_equiv.csv",
+  col_types = cols(
+    transit_system_1 = col_double(),
+    transit_line_1 = col_double(),
+    transit_system_name = col_character(),
+    transit_line_name = col_character(),
+    rts_name1 = col_character(),
+    rts_name2 = col_character(),
+    bus_type = col_character()
+  )
+) %>%
+  select(transit_line_1, bus_type)
+
 simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
+  left_join(route_equiv, by = "transit_line_1") %>%
   mutate(
     mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
@@ -1029,6 +1044,7 @@ simplify_mode <- det_work_place %>%
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
       grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
       grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
+      !is.na(bus_type) ~ bus_type,
       TRUE ~ mode_simple
     ),
     access_mode = case_when(
@@ -1052,6 +1068,7 @@ The chart below shows the expanded trips by mode.
 
 ```{r}
 temp <- simplify_mode %>%
+  mutate(mode_final = ifelse(mode_final %in% c("eb", "lb"), "bus", mode_final)) %>%
   group_by(Mode = mode_final) %>%
   summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
 ggplot(data = temp, aes(
@@ -1448,6 +1465,23 @@ flip_to_pa <- xfer_linked_out %>%
     p_access_mode = ifelse(pa_flag == 1, access_mode, egress_mode),
     p_egress_mode = ifelse(pa_flag == 0, access_mode, egress_mode)
   )
+
+# For mode choice estimation, create an integer field for modes.
+# This needs to be done here to make sure access mode is considered in the PA
+# direction.
+mc_code <- flip_to_pa %>%
+  mutate(mc_code = case_when(
+    mode_final == "sov" ~ 1,
+    mode_final == "hov2" ~ 2,
+    mode_final == "hov3" ~ 3,
+    mode_final == "lb" & access_mode == "w" ~ 4,
+    mode_final == "lb" & access_mode == "knr" ~ 5,
+    mode_final == "lb" & access_mode == "pnr" ~ 6,
+    mode_final == "eb" & access_mode == "w" ~ 7,
+    mode_final == "eb" & access_mode == "knr" ~ 8,
+    mode_final == "eb" & access_mode == "pnr" ~ 9
+  ))
+  
 ```
 
 ### Geocoding and skims
@@ -1485,10 +1519,10 @@ pts <- tibble(
     hh_add_seniors$home_loc_lat
   ),
 ) %>%
-  unite(lng_lat, c(lng, lat)) %>%
+  unite(lng_lat, c(lng, lat), remove = FALSE) %>%
   group_by(lng_lat) %>%
   summarize() %>%
-  separate(lng_lat, into = c("lng", "lat"), sep = "_") %>%
+  select(-lng_lat) %>%
   filter(lng != "NA") %>%
   mutate(
     lng = as.numeric(lng),

@@ -31,7 +31,7 @@ samples_df <- trips_df %>%
   arrange(choice_segment) %>%
   pivot_wider(names_from = choice_segment, values_from = samples, values_fill = 0)
 
-write_csv(samples_df, "mc_samples.csv")
+# write_csv(samples_df, "mc_samples.csv")
 ```
 
 ```{r}
@@ -57,6 +57,6 @@ percents <- trips_df %>%
   select(-trips) %>%
   pivot_wider(names_from = choice_segment, values_from = pct)
 
-write_csv(percents, "test.csv")
+# write_csv(percents, "test.csv")
 ```
 
