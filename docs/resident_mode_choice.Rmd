@@ -1,0 +1,62 @@
+---
+title: "Resident Mode Choice"
+author: "Caliper Corporation"
+date: "May 27, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+```{r, include=FALSE}
+hh_df <- read_csv("data/output/_PRIVATE/survey_processing/hh_processed.csv")
+trips_df <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv")
+```
+
+```{r}
+samples_df <- trips_df %>%
+  filter(tour_type != "H") %>%
+  group_by(trip_type, choice_segment) %>%
+  summarize(samples = n()) %>%
+  mutate(choice_segment = factor(choice_segment, levels = c("v0", "ilvi", "ilvs", "ihvi", "ihvs"), ordered = TRUE)) %>%
+  arrange(choice_segment) %>%
+  pivot_wider(names_from = choice_segment, values_from = samples, values_fill = 0)
+
+write_csv(samples_df, "mc_samples.csv")
+```
+
+```{r}
+hh_by_segment <- hh_df %>%
+  group_by(choice_segment) %>%
+  summarize(weight = sum(hh_weight_combined, na.rm = TRUE)) %>%
+  mutate(pct = weight / sum(weight))
+  
+
+percents <- trips_df %>%
+  filter(!(mode_final %in% c("other", "school_bus", "XXX"))) %>%
+  group_by(choice_segment, mode_final) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  mutate(pct = trips / sum(trips)) %>%
+  select(-trips) %>%
+  pivot_wider(names_from = mode_final, values_from = pct)
+
+percents <- trips_df %>%
+  filter(!(mode_final %in% c("other", "school_bus", "XXX"))) %>%
+  group_by(mode_final, choice_segment) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  mutate(pct = trips / sum(trips)) %>%
+  select(-trips) %>%
+  pivot_wider(names_from = choice_segment, values_from = pct)
+
+write_csv(percents, "test.csv")
+```
+
