@@ -61,8 +61,8 @@
     Section = "Population Synthesis|Output"
     
         Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Synthesized HHs] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Synthesized Persons] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.Households = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
     
     Section = "Resident Productions"
@@ -92,7 +92,7 @@ Section = "Choice Model Sources|Matrices"
 
 
     Section = "Choice Models"
-    
+
         Args.WorkModes = { "Type":"array" , "Value":{{"Root","Drive, NonMotorized, NonDriveNM",null},
                                                         {"Drive","DriveAlone, Carpool",0.5},
                                                         {"NonMotorized","Walk, Bike",0.7},

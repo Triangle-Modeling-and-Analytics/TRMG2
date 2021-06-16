@@ -17,8 +17,8 @@ needed by the non-motorized model.
 
 Macro "Create NonMotorized Features" (Args)
 
-    hh_file = Args.[Synthesized HHs]
-    per_file = Args.[Synthesized Persons]
+    hh_file = Args.Households
+    per_file = Args.Persons
 
     hh_vw = OpenTable("hh", "FFB", {hh_file})
     per_vw = OpenTable("per", "FFB", {per_file})
@@ -53,8 +53,8 @@ endmacro
 
 Macro "Apply NM Choice Model" (Args)
 
-    hh_file = Args.[Synthesized HHs]
-    per_file = Args.[Synthesized Persons]
+    hh_file = Args.Households
+    per_file = Args.Persons
     se_file = Args.SE
     mdl_dir = Args.[Input Folder] + "\\nonmotorized"
     out_dir = Args.[Output Folder]
