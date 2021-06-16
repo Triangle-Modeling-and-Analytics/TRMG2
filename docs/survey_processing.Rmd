@@ -1032,11 +1032,11 @@ route_equiv <- read_csv(
     bus_type = col_character()
   )
 ) %>%
-  select(transit_line_1, bus_type)
+  select(transit_system_1, transit_line_1, bus_type)
 
 simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
-  left_join(route_equiv, by = "transit_line_1") %>%
+  left_join(route_equiv, by = c("transit_system_1", "transit_line_1")) %>%
   mutate(
     mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
@@ -1169,6 +1169,7 @@ temp2 <- flag_loop_trips %>%
     max_o_duration = max(replace_na(d_act_dur, 0), na.rm = TRUE)
   ) %>%
   filter(d_act_dur == max_o_duration & d_activity != "W") %>%
+  slice(1) %>%
   left_join(temp, by = c("personid", "tour_num")) %>%
   select(personid, tour_num, d_activity, max_o_duration, total_w_duration) %>%
   mutate(flip_to_nt = case_when(
@@ -1507,22 +1508,23 @@ tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
 # create unique list of lat/long points
 pts <- tibble(
   lng = c(
-    flip_to_pa$origin_lng,
-    flip_to_pa$destination_lng,
-    flip_to_pa$park_lng,
+    mc_code$origin_lng,
+    mc_code$destination_lng,
+    mc_code$park_lng,
     hh_add_seniors$home_loc_lng
   ),
   lat = c(
-    flip_to_pa$origin_lat,
-    flip_to_pa$destination_lat,
-    flip_to_pa$park_lat,
+    mc_code$origin_lat,
+    mc_code$destination_lat,
+    mc_code$park_lat,
     hh_add_seniors$home_loc_lat
   ),
 ) %>%
-  unite(lng_lat, c(lng, lat), remove = FALSE) %>%
-  group_by(lng_lat) %>%
-  summarize() %>%
-  select(-lng_lat) %>%
+  # unite(lng_lat, c(lng, lat), remove = FALSE) %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup() %>%
+  # select(-lng_lat) %>%
   filter(lng != "NA") %>%
   mutate(
     lng = as.numeric(lng),
@@ -1534,7 +1536,7 @@ pts <- tibble(
     remove = FALSE
   )
 
-# manual check that they overlap
+# # manual check that they overlap
 # library(leaflet)
 # leaflet() %>%
 #   addProviderTiles("Stamen.TonerLite") %>%
@@ -1545,7 +1547,10 @@ pts <- tibble(
 ```{r, include=FALSE}
 geocode_points <- pts %>%
   st_join(tazs %>% select(TAZ = ID)) %>%
-  st_drop_geometry()
+  st_drop_geometry() %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup()
 ```
 
 ```{r}
@@ -1556,7 +1561,7 @@ hh_update_taz <- hh_add_seniors %>%
   ) %>%
   rename(G2_TAZ = TAZ)
 
-add_taz_id <- flip_to_pa %>%
+add_taz_id <- mc_code %>%
   left_join(
     geocode_points,
     by = c("p_lng" = "lng", "p_lat" = "lat")

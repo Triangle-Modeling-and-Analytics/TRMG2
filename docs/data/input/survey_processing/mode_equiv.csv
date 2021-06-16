@@ -6,7 +6,6 @@ rental_car,auto_pay
 carshare,auto_pay
 taxi,auto_pay
 tnc,auto_pay
-vanpool,other_auto
 other_auto,other_auto
 bus,bus
 school_bus,school_bus
