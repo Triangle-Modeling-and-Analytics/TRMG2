@@ -75,23 +75,41 @@
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
     
-Section = "Choice Model Sources|Tables"
-    Args.TableSources = { "Type":"array" , "Value":{{"PersonHH","Person ID"},
-                                                    {"Households","HH ID"},
-                                                    {"SE", "TAZID"}}, "Style":"TableSources" }
+    Section = "Choice Model Sources|Tables"
 
-    Args.Joins = { "Type":"array" , "Value":{{"PersonHH","Persons","HH ID","Households","HH ID"}}, "Style":"JoinInfo" }
+        Args.TableSources = { "Type":"array" , "Value":{{"PersonHH","PersonID"},
+                                                        {"Households","HouseholdID"},
+                                                        {"SE", "TAZ"}}, "Style":"TableSources" }
 
-Section = "Choice Model Sources|Matrices"
-    Args.MatrixSources = { "Type":"array" , "Value":{{"{P}{M}Skim","UniversalTAZ","UniversalTAZ"},
-                                                     {"WalkSkim","UniversalTAZ","UniversalTAZ"},
-                                                     {"BikeSkim","UniversalTAZ","UniversalTAZ"}}, "Caption":"Matrix Sources: {P} represents time period, {M} represents mode; See 'SourceKeys' table below", "Style":"MatrixSources" }
+        Args.Joins = { "Type":"array" , "Value":{{"PersonHH","Persons","HouseholdID","Households","HouseholdID"}}, "Style":"JoinInfo" }
 
-    Args.SourceKeys = { "Type":"array" , "Value":{{"{P}","AM, PM, OP"},
-                                                  {"{M}","Auto, PT"}}, "Style":"Keys" }
+    Section = "Choice Model Sources|Matrices"
+        Args.MatrixSources = { "Type":"array" , "Value":{{"{P}{M}Skim","UniversalTAZ","UniversalTAZ"},
+                                                        {"WalkSkim","UniversalTAZ","UniversalTAZ"},
+                                                        {"BikeSkim","UniversalTAZ","UniversalTAZ"}}, "Caption":"Matrix Sources: {P} represents time period, {M} represents mode; See 'SourceKeys' table below", "Style":"MatrixSources" }
+
+        Args.SourceKeys = { "Type":"array" , "Value":{{"{P}","AM, PM, OP"},
+                                                    {"{M}","Auto, PT"}}, "Style":"Keys" }
 
 
-    Section = "Choice Models"
+    Section = "Choice Models|Nonmotorized"
+
+        Args.N_HB_K12_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.70873},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-0.767476},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.58507},
+                                                                    {"Age16-18","Persons.age_16_18",null,-0.35873}},
+                                                                     "Caption":"N_HB_K12_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_ODL_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-1.7295},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.13208},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.417888},
+                                                                    {"Age16-18","Persons.age_16_18",null,-0.464741},
+                                                                    {"IsWorker","Persons.is_worker",null,-0.283346},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000004},
+                                                                    {"Walkability","SE.Walkability",null,0.000004}},
+                                                                     "Caption":"N_HB_ODL_nm_utils", "Style":"NonMotorized" }
+
+    Section = "Choice Models|examples"
 
         Args.WorkModes = { "Type":"array" , "Value":{{"Root","Drive, NonMotorized, NonDriveNM",null},
                                                         {"Drive","DriveAlone, Carpool",0.5},

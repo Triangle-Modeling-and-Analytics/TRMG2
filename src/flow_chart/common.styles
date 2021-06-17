@@ -96,3 +96,11 @@
                                                 Columns: {{Name: "Alternative", Type: "string",  Fixed: "false", Width:  100},
 														  {Name: "Expression", Type: "string",    Fixed: "false"}}
                                 })
+
+    // Tables for specific choice models
+    Styles.NonMotorized = Pme.Table({Height: 7, MaxRows: 8, Values: "Columns", 
+                                    Columns: {{Name: "Description", Type: "string",  Fixed: "false"},
+											  {Name: "Expression", Type: "string",  Fixed: "false"},
+                                              {Name: "Motorized", Type: "real",  Fixed: "false"},
+                                              {Name: "NonMotorized", Type: "real",  Fixed: "false"}}
+                                    })
