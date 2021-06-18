@@ -807,7 +807,7 @@ Macro "Create Route Networks" (Args)
                     Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 3,
-                    MaxInitialWait: 60,
+                    MaxInitialWait: 20,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
                     MinTransferWait: 2,

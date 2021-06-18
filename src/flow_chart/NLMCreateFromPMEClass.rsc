@@ -1,0 +1,2003 @@
+Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
+
+    init do
+        if opts.SourcesObject = null then
+            Throw("Required option \'SourcesObject\' that contains the master sources object missing.")
+        
+        // Object that contains the master sources list(s)
+        if opts.ModelName = null then
+            self.ModelName = 'Choice'
+        else
+            self.ModelName = opts.ModelName
+        
+        self.MasterSourcesObject = opts.SourcesObject
+
+        // Default Options
+        self.RunModel = 1
+        self.CloseFiles = 1
+        self.isAggregateModel = 0
+        self.ModelType = 'Mode Choice'
+        self.ShadowIterations = 10       // Default shadow price iterations
+        self.ShadowTolerance = 0.1  // Default shadow price tolerance
+ 
+        // Outputs/Other Variables
+        self.Model = null
+        self.Utility = null
+        self.AvailExpressions = null
+        self.Substitutes = null
+        self.AlternativesTree = null
+        self.AlternativesTable = null
+        self.Alternatives = null
+        self.ASCs = null
+        self.Thetas = null
+        self.ModelTableSources = null
+        self.ModelMatrixSources = null
+        self.LeafAlts = null
+        self.DestinationsSource = null
+        self.DestinationsIndex = null
+        self.PrimarySpec = null
+        self.TotalsSpec = null
+        self.OutputSpec = null
+        self.SizeVariableSpec = null
+        self.ShadowPriceSpec = null
+        self.SegmentConstants = null
+        self.Segment = null
+        self.ReportShares = 0       // Default 0, set to 1 if mode choice shares summary needed
+        self.ModelShares = null
+        self.RandomSeed = 99991     // The largest prime number less than 100,000. Also the binary equivalent has 16 bits and no pattern among the bits.
+    enditem
+
+
+    done do
+        self.Cleanup()
+    enditem
+
+
+    macro "_SetRunModel"(flag) do
+        self.RunModel = flag
+    endItem
+
+
+    macro "_SetCloseFiles"(flag) do
+        self.CloseFiles = flag
+    endItem
+
+    macro "_SetOutputModelFile"(file) do
+        self.ModelFile = file
+    endItem
+
+    macro "_SetReportShares"(flag) do
+        self.ReportShares = flag
+    endItem
+
+    macro "_SetRandomSeed"(seed) do
+        self.RandomSeed = seed
+    endItem
+
+
+    macro "AddPrimarySpec"(opts) do
+        chkSpec = {{"Name", "string", 1},
+                   {"Filter", "string", 0},
+                   {"OField", "string", 0},
+                   {"DField", "string", 0}}
+        self.CheckOptionArray("AddPrimarySpec", chkSpec, opts)
+        
+        primarySrcName = opts.Name
+        // Check if source name is present
+        srcObj = self.MasterSourcesObject
+        chk = srcObj.CheckSource(primarySrcName)
+        if !chk then
+            Throw(ErrMsg + " Source \'" + primarySrcName + "\' undefined.")
+        
+        self.PrimarySpec.Name = primarySrcName
+
+        // Other options (will be verified further depending on other model details)
+        if opts.Filter <> null then
+            self.PrimarySpec.Filter = opts.Filter
+        
+        if opts.OField <> null then
+            self.PrimarySpec.OField = opts.OField
+        
+        if opts.DField <> null then
+            self.PrimarySpec.DField = opts.DField
+
+        // Determine if model is aggregate or disagg
+        info = srcObj.GetSourceInfo(primarySrcName)
+        if info.Type = "Table" then
+            self.isAggregateModel = 0
+        else
+            self.isAggregateModel = 1
+    endItem
+
+
+    macro "AddDestinations"(opts) do
+        chkSpec = {{"DestinationsSource", "string", 1},
+                   {"DestinationsIndex", "string", 1}}
+        self.CheckOptionArray("AddDestinations", chkSpec, opts)
+        
+        destSrc = opts.DestinationsSource
+        destIdx = opts.DestinationsIndex
+        
+        // Check Source
+        srcObj = self.MasterSourcesObject
+        srcInfo = srcObj.GetSourceInfo(destSrc)
+        matrix = srcInfo.File
+        if matrix = null then
+            Throw("The Destinations Source option [" + destSrc + "] does not correspond to any argument in the flowchart (Args)")
+        self.CheckFileValidity(matrix)
+            
+        m = OpenMatrix(matrix,)
+        {ridxs, cidxs} = GetMatrixIndexNames(m)
+        m = null
+        cidxs = cidxs.Map(do (f) Return(Lower(f)) end)
+        if ArrayPosition(cidxs, {destIdx},) = 0 then
+            Throw("Column Index \''" + destIdx + "\' not found in \''" + matrix)
+
+        self.DestinationsSource = destSrc
+        self.DestinationsIndex = destIdx
+        self.ModelType = "Destination Choice"
+    endItem
+
+
+    macro "AddOutputSpec"(opts) do
+        self.CheckOptionType(opts, "array", "Argument to \'AddOutputSpec\' is not an array")
+        
+        // Aggregate Options
+        options = {'Probability', 'Logsum', 'Utility', 'Totals'}
+        for opt in options do
+            optVal = opts.(opt)
+            if optVal <> null then do
+                agg = 1
+                self.CheckOptionType(optVal, "string", "\'" + opt + "\' option in \'AddOutputSpec\' is not a string")
+                self.CheckOutputFile(optVal, "mtx")
+                self.OutputSpec.(opt) = optVal 
+            end
+        end
+
+        // Disagg Options
+        outFile = opts.ChoicesTable
+        outFld = opts.ChoicesField
+        probFile = opts.ProbabilityTable
+        if (outFile <> null or outFld <> null) and agg then
+            Throw("Cannot specify both aggregate and disaggregate options to AddOutputSpec()")
+        
+        // Check for disagg specs
+        if !agg then do
+            //if outFile = null and outFld = null then
+            //    Throw("Invalid option to AddOutputSpec()")
+            if outFile <> null and outFld <> null then
+                Throw("Invalid option to AddOutputSpec().\n\'Specify either 1. An output file (ChoicesTable) OR 2: A field name in the primary table (ChoicesField), but not both.")
+            if outFile <> null then do
+                self.CheckOutputFile(outFile, "bin")
+                self.OutputSpec.ChoicesTable = outFile
+            end
+            if outFld <> null then do
+                self.CheckOptionType(outFld, "string", "\'ChoicesField\' option in \'AddOutputSpec\' is not a string")
+                self.OutputSpec.ChoicesField = outFld
+            end
+            if probFile <> null then do
+                self.CheckOptionType(probFile, "string", "\'ProbabilityTable\' option in \'AddOutputSpec\' is not a string")
+                self.OutputSpec.ProbabilityTable = probFile
+            end
+        end
+    endItem
+
+
+    macro "AddTotalsSpec"(opts) do
+        chkSpec = {{"Name", "string", 1},
+                   {"MatrixCore", "string", 0},
+                   {"ZonalField", "string", 0}}
+        self.CheckOptionArray("AddTotalsSpec", chkSpec, opts)
+
+        if opts.MatrixCore = null and opts.ZonalField = null then
+            Throw("Invalid option for AddTotalsSpec()")
+
+        if opts.MatrixCore <> null and opts.ZonalField <> null then
+            Throw("Invalid option for AddTotalsSpec()")
+        
+        totalsSrcName = opts.Name
+        srcObj = self.MasterSourcesObject
+        chk = srcObj.CheckSource(totalsSrcName)
+        if !chk then
+            Throw(ErrMsg + " Source \'" + totalsSrcName + "\' undefined.")
+        self.TotalsSpec.Name = totalsSrcName
+
+        if opts.MatrixCore <> null then
+            self.TotalsSpec.MatrixCore = opts.MatrixCore
+
+        if opts.ZonalField <> null then
+            self.TotalsSpec.ZonalField = opts.ZonalField
+    endItem
+
+
+    macro "AddSizeVariable"(opts) do
+        chkSpec = {{"Name", "string", 1},
+                   {"Field", "string", 1},
+                   {"Coefficient", "double", 0}}
+        self.CheckOptionArray("AddSizeVariable", chkSpec, opts)
+        
+        // Check if source name is present in master sources list
+        sizeSrcName = opts.Name
+        srcObj = self.MasterSourcesObject
+        chk = srcObj.GetSourceInfo(sizeSrcName)
+        if chk.Type <> "Table" then
+            Throw(ErrMsg + " Source \'" + sizeSrcName + "\' is not defined in the master table sources.")
+        
+        self.SizeVariableSpec.Name = sizeSrcName
+        self.SizeVariableSpec.Field = opts.Field
+        if opts.Coefficient <> null then
+            self.SizeVariableSpec.Coefficient = opts.Coefficient
+        else
+            self.SizeVariableSpec.Coefficient = 1.0    
+    endItem
+
+
+    macro "AddShadowPrice"(opts) do
+        chkSpec = {{"TargetName", "string", 1},
+                   {"TargetField", "string", 1},
+                   {"Iterations", "int", 0},
+                   {"Tolerance", "double", 0},
+                   {"OutputShadowPriceTable", "string", 1}}
+        self.CheckOptionArray("AddShadowPrice", chkSpec, opts)
+        
+        // Check if source name is present
+        srcName = opts.TargetName
+        srcObj = self.MasterSourcesObject
+        chk = srcObj.GetSourceInfo(srcName)
+        if chk.Type <> "Table" then
+            Throw(ErrMsg + " Source \'" + srcName + "\' is not defined in the master table sources.")
+        
+        self.ShadowPriceSpec.Name = srcName
+        self.ShadowPriceSpec.Field = opts.TargetField
+        
+        outTable = opts.OutputShadowPriceTable
+        self.CheckOptionType(outTable, "string", "'OutputShadowPriceTable' option in 'AddShadowPrice()' is not a string")
+        self.CheckOutputFile(outTable, "bin")
+        self.ShadowPriceSpec.OutputTable = outTable
+        
+        if opts.Iterations <> null then
+            self.ShadowPriceSpec.Iterations = opts.Iterations
+        else
+            self.ShadowPriceSpec.Iterations = self.ShadowIterations
+        
+        if opts.Tolerance <> null then
+            self.ShadowPriceSpec.Tolerance = opts.Tolerance
+        else
+            self.ShadowPriceSpec.Tolerance = self.ShadowTolerance
+    endItem
+
+
+    // Check the consistency of an options array (opts) with the require spec
+    // spec is an array with each element of the form {option name, option type, whether option is required}
+    private macro "CheckOptionArray"(method, spec, opts) do
+        self.CheckOptionType(opts, "array", "Argument to " + method + "() is not an options array")
+        for item in spec do
+            optName = item[1]
+            type = item[2]
+            isReq = item[3]
+            optVal = opts.(optName) 
+            if isReq and optVal = null then
+                Throw("\'" + optName + "\' option missing for method " + method + "()")
+            if optVal <> null then
+                self.CheckOptionType(optVal, type, "\'" + optName + "\' option specified for method " + method + "() is not of type \'" + type)
+        end
+    endItem
+
+
+    macro "AddAlternatives"(opts) do
+        self.CheckOptionType(opts, "array", "Argument to \'AddAlternatives\' method is not an array")
+
+        altsTable = opts.AlternativesList
+        if altsTable <> null then do
+            spec = {{"Alternative", "string", 1},
+                    {"Utility Column", "string", 0}}
+            if altsTable.Constant <> null then
+                spec = spec + {{"Constant", "double", 0}}
+            self.CheckTable(altsTable, "AlternativesList", spec)
+            self.AlternativesTable = CopyArray(altsTable)
+        end
+
+        nestSpec = opts.AlternativesTree
+        if nestSpec <> null then do
+            spec = {{"Parent", "string", 1},
+                    {"Alternatives", "string", 1}}
+            if nestSpec.ParentNestCoeff <> null then
+                spec = spec + {{"ParentNestCoeff", "double", 0}}
+            if nestSpec.ParentASC <> null then
+                spec = spec + {{"ParentASC", "double", 0}}
+            self.CheckTable(nestSpec, "AlternativesTree", spec)
+            self.AlternativesTree = CopyArray(nestSpec)
+        end
+    endItem
+
+
+    macro "AddUtility"(opts) do
+        self.CheckOptionType(opts, "array", "Argument to \'AddUtility\' method is not an array")
+
+        // Utility Function
+        util = CopyArray(opts.UtilityFunction)
+        if util <> null then do
+            self.CheckUtilityTable(util)
+            self.Utility = util
+        end
+
+        // Availability Expressions
+        availSpec = CopyArray(opts.AvailabilityExpressions)
+        if availSpec <> null then do
+            self.CheckTable(availSpec, "AvailabilityExpressions", {{"Alternative", "string", 1}, 
+                                                                   {"Expression", "string", 1}})
+            self.AvailExpressions = availSpec
+        end
+
+        // Substitute Strings if provided
+        subStrings = opts.SubstituteStrings
+        if subStrings <> null then do
+            self.CheckSubstituteStrings(subStrings)
+            self.SubstituteStrings = subStrings
+            self.ReplaceKeys()
+        end
+    endItem
+
+
+    private macro "CheckUtilityTable"(util) do
+        self.CheckOptionType(util, "array", "\'UtilityFunction\' is not a table (array)")
+        count = 0
+        chkArr = {{"expression", "string", 1}}
+        for i = 1 to util.length do
+            col = Lower(util[i][1])
+            if col = "description" or col = "filter" then
+                chkArr = chkArr + {{col, "string", 0}}
+            else if col <> "expression" then do
+                chkArr = chkArr + {{col, "double", 0}}
+                count = count + 1
+            end
+        end
+        if count = 0 then // Better have column(s) with double values for the alternative coeffs
+            Throw("\'UtilityFunction\' is missing columns for alternatives")
+        self.CheckTable(util, "UtilityFunction", chkArr)
+    endItem
+
+
+    private macro "CheckSubstituteStrings"(subs) do
+        ErrMsg = "Option \'SubstituteStrings\' needs to be an options array with find and replace string pairs"
+        self.CheckOptionType(subs, "array", ErrMsg)
+        for i = 1 to subs.length do
+            pair = subs[i]
+            self.CheckOptionType(pair, "array", ErrMsg)
+            if pair.Length <> 2 then
+                Throw(ErrMsg)
+            self.CheckOptionType(pair[1], "string", ErrMsg)
+            self.CheckOptionType(pair[2], "string", ErrMsg)
+        end    
+    endItem
+
+
+    // This macro replaces all substitute strings such as {P} for time period in:
+    // 1. Utility Spec 'Variable' and 'Filter' columns
+    // 2. Availability Expressions
+    private macro "ReplaceKeys" do
+        // sub_strings = self.SubstituteStrings
+        // Now deal with other specifications/inputs
+        arrs = {self.Utility.Expression, self.Utility.Filter, self.AvailExpressions.Expression}
+        for i = 1 to arrs.length do
+            arr = arrs[i]
+            if arr <> null then do
+                for j = 1 to arr.length do
+                    arr[j] = self.FindAndReplace(arr[j])
+                end
+            end
+        end
+    enditem
+
+
+    // Given input string, loop over all find and replace pairs to produce the output_string
+    private macro "FindAndReplace"(input_str) do
+        sub_strings = self.SubstituteStrings
+        output_str = input_str
+        for i = 1 to sub_strings.length do
+            pair = sub_strings[i]
+            find_str = pair[1]
+            repl_str = pair[2]
+            output_str = Substitute(output_str, find_str, repl_str,)
+        end
+        Return(output_str)
+    enditem
+
+
+    macro "AddSegmentConstants"(opts) do
+        self.CheckOptionType(opts, "array", "Argument to \'SegmentConstants\' is not an array")
+
+        segConsts = opts.SegmentConstants
+        seg = opts.Segment
+        if segConsts = null or seg = null then
+            Throw("Invalid option to method SegmentConstants(). Specify both \'SegmentConstants\' table and \'Segment\' string")
+        
+        self.CheckOptionType(seg, "string", "Option \'Segment\' in SegmentConstants() is not a string.")
+        self.CheckTable(segConsts, "SegmentConstants", {{"Alternative", "string", 1}, 
+                                                        {seg, "double", 0}})
+        
+        self.SegmentConstants = CopyArray(segConsts)
+        self.Segment = seg
+    endItem
+
+
+    // Main macro that creates the .mdl/.dcm file and runs the model
+    macro "Evaluate" do
+        on escape, error, notfound do
+            ErrorMsg = GetLastError({"Reference Info": "False"})
+            ShowMessage(ErrorMsg)
+            Return()
+        end
+
+        self.GetModelFileName()                 // Updates value of self.ModelFile (if not specified)
+        self.Validate()                         // Perform a few additional run time validations
+        self.GetModelSources()                  // Compiles list of sources that are actually used in the model
+        self.GetAlternatives()                  // Gets alternatives, ASCs and Thetas from various inputs
+        self.CreateModel()                      // Create .mdl or .dcm file
+        if self.RunModel then do
+            self.ValidateOutputFormat()
+            self.Run()                          // Run Model
+        end
+
+        ret = self.ModelInfo()                  // Get Key Model Details to return
+        self.WriteToReport()                    // Basic reporting of model details/shares
+        self.Cleanup()
+        
+        on escape, error, notfound default
+        Return(ret)
+    enditem
+
+
+    private macro "GetModelFileName" do
+        type = self.ModelType
+        if type = 'Destination Choice' then
+            ext = ".dcm"
+        else
+            ext = ".mdl"
+        
+        if self.ModelFile = null then
+            self.ModelFile = GetRandFileName("*" + ext)
+        else do
+            pth = SplitPath(self.ModelFile)
+            if Lower(pth[4]) <> ext then
+                Throw("Specified output model file does not have the correct extension for a " + type + " model")
+        end
+    enditem
+
+
+    private macro "Validate" do
+        if self.PrimarySpec = null then
+            Throw("Please specify the \'PrimarySpec\' property.\nThe primary spec is the source name to which the model is applied.")
+        
+        if self.DestinationsSource = null and self.AlternativesTree = null and self.Utility = null then
+            Throw("Please specify the model alternatives.")
+        
+        if self.RunModel and self.OutputSpec = null then
+            Throw("Please specify the \'OutputSpec\' property.\nThe output spec contains information on the model outputs.")
+        
+        if self.ModelType = 'Mode Choice' and self.SizeVariableSpec <> null then
+            Throw("Method AddSizeVariable() can only be specified for a destination choice model.")
+
+        if self.ShadowPriceSpec <> null then do
+            if self.ModelType = 'Mode Choice' or (self.ModelType = 'Destination Choice' and self.isAggregateModel) then
+                Throw("Method AddShadowPrice() can only be specified for a disaggregate destination choice model.")     
+        end
+
+        if self.ModelType = 'Destination Choice' and self.ReportShares then
+            Throw("Shares summary can only be reported for Mode Choice Models. Please set \'ReportShares\' flag to 0.")
+
+        if self.ModelType = 'Destination Choice' then
+            self.CheckDestChoiceUtility()
+
+        if self.AlternativesTable then
+            self.ValidateAlternativesTable()
+        
+        if self.TotalsSpec <> null then
+            self.ValidateTotalsSpec()
+
+        if self.ModelType = 'Mode Choice' and self.ReportShares and self.isAggregateModel then do
+            if self.TotalsSpec = null then
+                Throw("Please specify the \'AddTotalsSpec()\' method in order to create summary shares for aggregate mode choice models.")
+            if self.OutputSpec.Totals = null then
+                Throw("Please specify the Totals matrix in call to \'AddOutputSpec()\' method. This is required in order to create summary shares for aggregate mode choice models.")    
+        end
+
+        if self.ModelType = 'Destination Choice' and self.OutputSpec.ProbabilityTable <> null then
+            Throw("Option 'ProbabilityTable' in \'AddOutputSpec()\' method not valid for a destination choice model.")    
+    enditem
+
+
+    private macro "CheckDestChoiceUtility" do
+        util = self.Utility
+        nCols = util.Length - 1     // -1 to account for the 'Expression' column
+        if util.Filter <> null then // Accounting for the presence of the optional 'Filter' column
+            nCols = nCols - 1
+        if util.Description <> null then // Accounting for the presence of the optional 'Description' column
+            nCols = nCols - 1
+        
+        if self.ModelType = 'Destination Choice' and nCols > 1 then
+            Throw("Multiple columns for alteratives specified in the Utility table.\nDestination Choice models can only have one common utility column.")
+    enditem
+
+
+    private macro "ValidateAlternativesTable" do
+        util = self.Utility
+        altsTable = self.AlternativesTable
+        if altsTable <> null then do
+            // Now check if the values specified in the "Utility Column" exist as columns in the utility table
+            util_cols = altsTable.[Utility Column]
+            for col in util_cols do
+                if col <> null then do
+                    if util.(col) = null then
+                        Throw("\'AlternativesList\' has \'" + col + "\' specified in [Utility Column] that is missing in the utility table")
+                end
+            end
+        end
+    enditem
+
+
+    private macro "ValidateTotalsSpec" do
+        ProdSpec = self.TotalsSpec
+        if ProdSpec <> null and !self.isAggregateModel then
+            Throw("\'TotalsSpec\' is not an available option for disaggregate models.")
+        else if ProdSpec <> null and self.isAggregateModel then do
+            if self.ModelType = "Mode Choice" then do
+                if ProdSpec.MatrixCore = null then
+                    Throw("\'TotalsSpec.Core\' option missing. Please indicate the matrix core with the totals.")
+            end
+            else do // Destination Choice
+                if ProdSpec.ZonalField = null then
+                    Throw("\'TotalsSpec.ZonalField\' option missing. Please indicate the field containing the production vector.")
+            end
+        end
+    endItem
+
+
+    private macro "ValidateOutputFormat" do
+        outSpec = self.OutputSpec
+        if outSpec = null then
+            Throw("Please call method to AddOutputSpec() before evaluating the model")
+        modelType = self.ModelType
+        if self.isAggregateModel then do
+            // Check for Probability Matrix Input. Has to be included.
+            probFile = outSpec.Probability
+            if probFile = null then
+                Throw("Please specify the output probability matrix \'OutputSpec.Probability\'")
+            self.CheckOutputFile(probFile, "mtx")
+            // Other Optionals
+            totalsFile = outSpec.Totals
+            if totalsFile <> null then do
+                if self.TotalsSpec = null then do
+                    if modelType = 'Mode Choice' then
+                        Throw("Please specify \'TotalsSpec\' that contains source name and Core for the PA matrix")
+                    else
+                        Throw("Please specify \'TotalsSpec\' that contains source name and Field for the input productions")
+                end
+            end    
+        end
+        else do // Disaggregate Model
+            outFld = outSpec.ChoicesField            
+            if outFld <> null then do
+                outSrc = self.PrimarySpec.Name
+                outvw = self.ModelTableSources.(outSrc).View
+                tmp = self.CheckFieldValidity(outvw, outFld)
+                tmpSpec = GetFieldFullSpec(outvw, tmp)
+                
+                // Set output field type
+                if modelType = 'Destination Choice' then do
+                    if GetFieldType(tmpSpec) <> "Integer" then
+                        Throw("\'ChoicesField\' has to be of type Integer for destination choice.")
+                end    
+                else do // Mode Choice
+                    if GetFieldType(tmpSpec) <> "Integer" and GetFieldType(tmpSpec) <> "String" then
+                        Throw("\'ChoicesField\' has to be of type Integer or String.")
+                end
+                self.OutputSpec.ChoicesFieldType = GetFieldType(tmpSpec)
+            end
+            if self.ModelType = 'Mode Choice' and self.OutputSpec.ProbabilityTable = null then
+                self.OutputSpec.ProbabilityTable = GetRandFileName("ProbMC*.bin")
+            
+            // Note: The choices file is always created.
+            // If the user has specified a choice field, then the values are finally copied over.
+            if self.ModelType = 'Mode Choice' and self.OutputSpec.ChoicesTable = null then
+                self.OutputSpec.ChoicesTable = GetRandFileName("ChoicesMC*.bin")    
+        end
+    endItem
+
+
+    // Identify potential model sources from
+    // 1. Utility 'Expression' and 'Filter'
+    // 2. Primary Spec
+    // 3. Destinations source (if present)
+    // 4. Alternative Availability Expressions (if present)
+    // 5. Totals Spec
+    // 6. Size Variable Source
+    // 7. Shadow Price Source
+    // Populates self.ModelMatrixSources and self.ModelTableSources
+    private macro "GetModelSources" do
+        // 1. Utility
+        util = self.Utility
+        ErrMsg = "Utility specification has invalid expression or refers to undefined source."
+        self.GetSources(util.Expression, ErrMsg)
+        self.GetSources(util.Filter, ErrMsg)
+
+        // 2. Primary Spec
+        ErrMsg = "Primary specification has undefined source."
+        self.GetSource(self.PrimarySpec.Name, ErrMsg)
+
+        // 3. Alternate availabilities
+        availExprs = self.AvailExpressions
+        if availExprs <> null then do
+            ErrMsg = "Availability expressions are invalid or refer to undefined source."
+            self.GetSources(availExprs.Expression, ErrMsg)
+        end
+
+        // 4. Destinations Source
+        destSrc = self.DestinationsSource
+        if destSrc <> null then do
+            ErrMsg = "Destination source is undefined."
+            self.GetSource(destSrc, ErrMsg)
+        end
+
+        // 5. Totals Spec
+        totalsSpec = self.TotalsSpec
+        if totalsSpec <> null then do
+            ErrMsg = "Source in TotalsSpec.Name is undefined."
+            self.GetSource(totalsSpec.Name, ErrMsg)
+        end
+
+        // 6. Size Variable Source
+        sizeVarSpec = self.SizeVariableSpec
+        if sizeVarSpec <> null then do
+            ErrMsg = "Source in SizeVariableSpec.Name is undefined."
+            self.GetSource(sizeVarSpec.Name, ErrMsg)  
+        end
+
+        // 7. Shadow Price Source
+        shadowSpec = self.ShadowPriceSpec
+        if shadowSpec <> null then do
+            ErrMsg = "Source in ShadowPriceSpec.Name is undefined."
+            self.GetSource(shadowSpec.Name, ErrMsg)  
+        end
+    endItem
+
+
+    private macro "GetSources"(arr, ErrMsg) do
+        for expr in arr do
+            expr = Trim(expr)
+            if expr <> null and lower(expr) <> 'constant' then do
+                parts = ParseNLMExpression(expr)
+                if parts = null then
+                    Throw(ErrMsg)
+                
+                for part in parts do
+                    strs = ParseString(part, ".")
+                    if strs.length = 1 then
+                        Throw(ErrMsg)
+                    srcName = strs[1]
+                    fldName = strs[2]
+                    tmp = ParseString(srcName, "[]") // Remove leading and trailing brackets
+                    srcName = tmp[1]
+                    self.GetSource(srcName, ErrMsg)
+                end
+            end
+        end        
+    endItem
+
+
+    private macro "GetSource"(srcName, ErrMsg) do
+        srcObj = self.MasterSourcesObject
+        
+        chk = srcObj.CheckSource(srcName)
+        if !chk then
+            Throw(ErrMsg + " Source \'" + srcName + "\' undefined.")
+                
+        srcInfo = srcObj.GetSourceInfo(srcName)
+        srcName = srcInfo.Name // Use updated name as defined in the master sources table for consistency
+
+        // Add sources to list only if not already present
+        if self.ModelTableSources.(srcName) = null and self.ModelMatrixSources.(srcName) = null then do
+            if !srcInfo.JoinedView then do
+                file = srcInfo.File
+                if !GetFileInfo(file) then
+                    Throw("File \'" + file + "\' used in the choice model specification not found.")
+            end
+                    
+            if srcInfo.Type = "Table" then
+                self.ModelTableSources.(srcName) =  CopyArray(srcInfo)
+            else
+                self.ModelMatrixSources.(srcName) =  CopyArray(srcInfo)
+        end
+    endItem
+
+
+    private macro "GetAlternatives" do
+        if self.ModelType = "Destination Choice" then
+            self.GetDestinations()
+        else do // Mode Choice Model
+            if self.AlternativesTree <> null or self.AlternativesTable <> null then do
+                if self.AlternativesTree <> null then
+                    self.ProcessAlternativesTree()
+                if self.AlternativesTable <> null then
+                    self.ProcessAlternativesList()    
+            end
+            else
+                self.GetAlternativesFromUtility()
+        end
+
+        if self.SegmentConstants <> null then
+            self.ProcessSegmentConstants()
+    endItem
+
+
+    private macro "GetDestinations" do
+        srcObj = self.MasterSourcesObject
+        m = srcObj.OpenSource(self.DestinationsSource)
+        dests = GetMatrixIndexIds(m, self.DestinationsIndex)
+        self.Alternatives.Root = dests.Map(do (f) Return(String(f)) end)
+        self.LeafAlts = self.Alternatives.Root
+        m = null
+    endItem
+
+
+    private macro "ProcessAlternativesTree" do
+        nests = self.AlternativesTree
+        parents = nests.Parent
+        alts = nests.Alternatives
+        ascs = nests.ParentASC
+        thetas = nests.ParentNestCoeff
+        rootPos = ArrayPosition(parents, {"Root"},)
+        if rootPos = 0 then
+            Throw("Root alternative not found in \'Parent\' column in \'Spec.AlternativesTree\'")
+        for i = 1 to parents.length do
+            parent = Trim(parents[i])
+            childAlts = ParseString(alts[i], ",")
+            childAlts = childAlts.Map(do (f) Return(Trim(f)) end)
+            self.Alternatives.(parent) = CopyArray(childAlts)
+            if ascs <> null then
+                self.ASCs.(parent) = ascs[i]
+            if thetas <> null then
+                self.Thetas.(parent) = thetas[i]
+        end
+    endItem
+
+
+    private macro "ProcessAlternativesList" do
+        altsTable = self.AlternativesTable
+        names = altsTable.Alternative
+        names = names.Map(do (f) Return(Trim(f)) end)
+        
+        if self.AlternativesTree = null then // otherwise the input tree structure has already defined the alternatives
+            self.Alternatives.Root = names
+        
+        ascs = altsTable.Constant
+        if ascs <> null then do
+            for i = 1 to ascs.length do
+                if ascs[i] <> null then
+                    self.ASCs.(names[i]) = nz(self.ASCs.(names[i])) + ascs[i]
+            end
+        end
+    endItem
+
+
+    private macro "GetAlternativesFromUtility" do
+        util = self.Utility
+        for i = 1 to util.length do
+            col = util[i][1] // The column name
+            if Lower(col) <> "expression" and Lower(col) <> "filter" and Lower(col) <> "description" then
+                self.Alternatives.Root =  self.Alternatives.Root + {col}
+        end
+        
+        if self.Alteratives.Root.Length = 1 then do // Binary choice. Add extra alternative.
+            altName = self.Alteratives.Root[1]
+            self.Alternatives.Root = self.Alternatives.Root + {"Not_" + altName}
+        end    
+    endItem
+
+
+    macro "ProcessSegmentConstants" do
+        segConsts = self.SegmentConstants
+        seg = self.Segment
+        if segConsts <> null then do
+            alts = segConsts.Alternative
+            ascs = segConsts.(seg)
+            for i = 1 to alts.length do
+                if ascs[i] <> null then
+                    self.ASCs.(alts[i]) = nz(self.ASCs.(alts[i])) + ascs[i]
+            end
+        end 
+    endItem
+
+
+    // Create mdl or dcm file
+    macro "CreateModel" do
+        self.CreateShell()
+        self.SetSources()
+        self.SetAlternatives()
+        self.SetAvailabilities()
+        self.SetUtility()
+        self.SetTotalsSpec()
+        self.SetShadowPrice()
+        self.SetSurveyArrays() // For special "Survey Array" sources to allow person by zone matrices.
+        self.WriteModelToFile()
+    endItem
+
+
+    private macro "CreateShell" do
+        self.Model = CreateObject("NLM.Model")
+        self.Model.Clear()
+        self.Model.ToLineRecord()
+        seg = self.Model.CreateSegment("*", , ) 
+    endItem
+
+
+    private macro "SetSources" do
+        self.SetTableSources()
+        self.SetMatrixSources()
+    endItem
+
+
+    private macro "SetTableSources" do
+        srcObj = self.MasterSourcesObject
+        model = self.Model
+        // Loop over model table sources, open the files and add them
+        for item in self.ModelTableSources do
+            src = item[2]
+            srcName = src.Name
+            vw = srcObj.OpenSource(srcName)
+            
+            spec = null
+            spec.IDField = src.IDField
+            spec.View = vw
+            
+            isPrimary = 0
+            srcType = "Zonal"
+            if Lower(srcName) = Lower(self.PrimarySpec.Name) then do
+                isPrimary = 1
+                srcType = "Survey"
+                if self.PrimarySpec.Filter <> null then do
+                    spec.Set = "___Selection"
+                    SetView(vw)
+                    qry = "Select * where " + self.PrimarySpec.Filter
+                    n = SelectByQuery(spec.Set, "several", qry,)
+                    if n = 0 then
+                        Throw("No selected records in Primary View")
+                    self.ModelTableSources.(srcName).Filter = self.PrimarySpec.Filter
+                    self.PrimarySpec.Set = spec.Set
+                    if self.PrimarySpec.OField <> null then
+                        spec.OField = self.PrimarySpec.OField
+                    if self.PrimarySpec.DField <> null then
+                        spec.DField = self.PrimarySpec.DField
+                end
+                if self.ModelMatrixSources <> null then do
+                    {flds, specs} = GetFields(vw,)
+                    if self.PrimarySpec.OField = null then
+                        Throw("Please specify the Origin field for the primary view specification.")
+                    else do
+                        if ArrayPosition(flds, {self.PrimarySpec.OField},) = 0 then
+                            Throw("The Origin field \'" + self.PrimarySpec.OField + "\' in the primary view specification not found.")    
+                    end
+                    
+                    if self.ModelType = "Mode Choice" then do
+                        if self.PrimarySpec.DField = null then
+                            Throw("Please specify the Destination field for the primary view specification.")
+                        else do
+                            if ArrayPosition(flds, {self.PrimarySpec.DField},) = 0 then
+                                Throw("The Destination field \'" + self.PrimarySpec.DField + "\' in the primary view specification not found.")    
+                        end   
+                    end
+                    
+                    spec.OField = self.PrimarySpec.OField
+                    spec.DField = self.PrimarySpec.DField // Can be null for Dest Choice
+                end
+            end
+            self.ModelTableSources.(srcName).View = vw // Keep track of the opened view for the source
+            model.CreateDataSource(isPrimary, srcType, src.Name, spec,)
+        end
+    endItem
+
+
+    private macro "SetMatrixSources" do
+        srcObj = self.MasterSourcesObject
+        model = self.Model
+        // Loop over model matrix sources, open the files and add them
+        for item in self.ModelMatrixSources do
+            src = item[2]
+            srcName = src.Name
+            m = srcObj.OpenSource(src.Name)
+            spec = null
+            spec.RowIdx = src.RowIndex
+            spec.ColIdx = src.ColIndex
+            spec.FileName = src.File
+            spec.FileLabel = GetMatrixName(m)
+            if Lower(src.Name) = Lower(self.PrimarySpec.Name) then
+                isPrimary = 1
+            else
+                isPrimary = 0
+            self.ModelMatrixSources.(srcName).Handle = m //Keep track of the matrix handle for this source
+            model.CreateDataSource(isPrimary, "Matrix", src.Name, spec, )
+        end
+    endItem
+
+
+    private macro "SetAlternatives" do
+        if self.ModelType = 'Destination Choice' then
+            self.SetDestChoiceAlternatives()
+        else
+            self.SetModeChoiceAlternatives()
+    endItem
+
+
+    private macro "SetDestChoiceAlternatives" do
+        // Add Destination Common Altenative
+        model = self.Model
+        seg = model.GetSegment("*")
+        modelAlt = seg.CreateAlternative("Destinations", "ROOT",,)
+        // Set the matrix index spec that defines the destinations
+        modelAlt.DestSrc = self.DestinationsSource
+        modelAlt.DestIdx = self.DestinationsIndex
+    endItem
+
+    
+    // Process the main list of alteratives and add them to the model
+    private macro "SetModeChoiceAlternatives" do
+        self.LeafAlts = null
+        alts = self.Alternatives
+        masterList = {"Root"}
+        while masterList <> null do
+            // Add current entries from masterList
+            newList = null
+            for parent in masterList do
+                self.AddChildren(parent)
+                if alts.(parent) = null then
+                    self.LeafAlts = self.LeafAlts + {parent}
+                else
+                    newList = newList + alts.(parent)
+            end
+            masterList = CopyArray(newList)
+        end    
+    endItem
+
+
+    // Adds sub-alternatives immediately below the parent
+    // Assigns the ASC and Theta values to these sub-alternatives
+    private macro "AddChildren"(parent) do
+        model = self.Model
+        seg = model.GetSegment("*")
+        altsArr = self.Alternatives.(parent)
+        for alt in altsArr do
+            altName = Trim(alt)
+            modelAlt = seg.CreateAlternative(altName, parent,,)
+            modelAlt.ASC.Coeff = self.ASCs.(altName)
+            if self.Alternatives.(alt) <> null then // Not leaf Alt
+                seg.CreateThetaTerm(modelAlt, self.Thetas.(altName))
+        end
+    endItem
+
+
+    private macro "SetAvailabilities" do
+        availSpecs = self.AvailExpressions
+        if availSpecs = null then
+            Return()
+        
+        model = self.Model
+        seg = model.GetSegment("*")
+        availAlts = availSpecs.Alternative
+        availExprs = availSpecs.Expression
+        for i = 1 to availAlts.length do
+            altName = availAlts[i]
+            expr = Trim(availExprs[i])
+            self.ValidateExpression(expr)
+            exprName = self.CreateExpressionSource(expr, "Avail" + altName)
+            da = model.CreateDataAccess("data", exprName,)
+            alt = seg.GetAlternative(altName)
+            alt.SetAvail(da)
+        end
+    endItem
+
+
+    private macro "SetUtility" do
+        if self.ModelType = 'Destination Choice' then
+            self.SetDestChoiceUtility()
+        else
+            self.SetModeChoiceUtility()
+    endItem
+
+
+    private macro "SetDestChoiceUtility" do
+        utility = self.Utility
+        if utility <> null then do
+            for i = 1 to utility.length do
+                col = utility[i][1] // Name of col
+                if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" then
+                    coeffCol = col
+            end
+            coeffs = utility.(coeffCol)
+            if coeffs <> null then
+                self.SetAlternativeUtility("Destinations", utility.Expression, utility.Filter, coeffs)
+        end
+
+        if self.SizeVariableSpec <> null then
+            self.SetSizeVariable("Destinations")
+    endItem
+
+
+    private macro "SetModeChoiceUtility" do
+        altsTable = self.AlternativesTable
+        utility = self.Utility
+        if utility <> null then do
+            if altsTable <> null then do // The table contains the alterative names and the corresponding name of the coeff column in the utility spec
+                alts = altsTable.Alternative
+                cols = altsTable.[Utility Column]
+                for i = 1 to alts.length do
+                    altName = alts[i]
+                    colName = cols[i]
+                    if colName <> null then do
+                        coeffs = utility.(colName)
+                        self.SetAlternativeUtility(altName, utility.Expression, utility.Filter, coeffs)
+                    end
+                end
+            end
+            else do // The column names with coeff values in the utility table are also the alternative names
+                for i = 1 to utility.length do
+                    col = utility[i][1] // Name of col
+                    if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" then do
+                        altName = col
+                        colName = col
+                        coeffs = utility.(colName)
+                        self.SetAlternativeUtility(altName, utility.Expression, utility.Filter, coeffs)
+                    end
+                end
+            end
+        end
+    endItem
+
+
+    private macro "SetAlternativeUtility"(altName, expressions, filters, coeffs) do
+        C = 0
+        for i = 1 to coeffs.length do
+            C = C + 1
+            coeff = coeffs[i]
+            if coeff = null or coeff = 0 then
+                goto nextCoeff
+            
+            expr = Trim(expressions[i])
+            if Lower(expr) = "constant" then do
+                self.UpdateASC(altName, coeff)
+                goto nextCoeff
+            end
+            
+            if filters <> null then do
+                filter = Trim(filters[i])
+                if filter <> null then
+                    expr = "(" + expr + ")*(" + filter + ")"
+            end
+
+            exprOut = self.ValidateExpression(expr)
+            exprName = self.CreateExpressionSource(exprOut,)
+            varName = "B" + String(C) + "_" + altName + "_" + exprName
+            
+            // Add expression term to utility
+            self.AddUtilityItem(altName, varName, exprName, coeff)
+            
+         nextCoeff:
+        end
+    endItem
+
+
+    private macro "SetSizeVariable"(altName) do
+        srcName = self.SizeVariableSpec.Name
+        fldName = self.SizeVariableSpec.Field
+        coeff = self.SizeVariableSpec.Coefficient
+
+        // Check if field exists in table
+        vw = self.ModelTableSources.(srcName).View
+        outFld = self.CheckFieldValidity(vw, fldName)
+        fldspec = GetFieldFullSpec(vw, outFld) + ".D"
+
+        // The expression is the log of the size variable
+        expr = "if " + fldspec + " > 0 then Log(" + fldspec + ") else null"
+        //expr = "Log([" + srcName + "]." + fldName + ".D)"
+        exprOut = self.ValidateExpression(expr)
+        exprName = self.CreateExpressionSource(exprOut,)
+        varName = "B" + "_Size_" + exprName
+
+        // Add expression term to utility
+        self.AddUtilityItem(altName, varName, exprName, coeff)
+    endItem
+
+
+    private macro "AddUtilityItem"(altName, varName, exprName, coeff) do
+        model = self.Model
+        seg = model.GetSegment("*")
+        alt = seg.GetAlternative(altName)
+
+        fld = model.CreateField(varName,)
+        term = seg.CreateTerm(fld.Name, coeff,)
+        da = model.CreateDataAccess("data", exprName,)
+        alt.SetAccess(fld, da,)  
+    endItem
+
+
+    private macro "UpdateASC"(altName, coeff) do
+        model = self.Model
+        seg = model.GetSegment("*")
+        alt = seg.GetAlternative(altName)
+        alt.ASC.Coeff = nz(alt.ASC.Coeff) + coeff  
+    endItem
+
+
+    private macro "ValidateExpression"(expr) do
+        ErrMsg = "Expression \'" + expr + "\' invalid.\n"
+        parts = ParseNLMExpression(expr)
+        for part in parts do
+            {srcName, varName, suffix} = ParseString(part, ".")
+            tmp = ParseString(srcName, "[]") // Remove leading and trailing brackets
+            srcName = tmp[1]
+            if self.ModelTableSources.(srcName) <> null then do
+                srcNameUpd = self.ModelTableSources.(srcName).Name // Returns the name as specified in the model sources object
+                vw = self.ModelTableSources.(srcName).View
+                {flds, specs} = GetFields(vw,)
+                if ArrayPosition(flds, {varName},) = 0 then do
+                    ErrMsg = ErrMsg + "Field \'" + varName + "\' not found in source \'" + srcName + "\'"
+                    Throw(ErrMsg)
+                end
+                if self.ModelType = "Destination Choice" and Lower(srcName) <> Lower(self.PrimarySpec.Name) and Lower(suffix) <> 'd' then do
+                    ErrMsg = ErrMsg + "Incorrect zonal table affiliation for a destination choice model.\n"
+                    ErrMsg = ErrMsg + "Expressions on zonal table sources should contain .D for a destination attribute.\n"
+                    Throw(ErrMsg)
+                end
+                if Lower(srcName) <> Lower(self.PrimarySpec.Name) and Lower(suffix) <> 'o' and Lower(suffix) <> 'd' then do
+                    ErrMsg = ErrMsg + "Expressions on zonal table sources should contain the access type affiliation.\n"
+                    ErrMsg = ErrMsg + "Please specify a suffix of .O for an origin attribute or a .D for a destination attribute"
+                    Throw(ErrMsg)
+                end
+                if Lower(srcName) = Lower(self.PrimarySpec.Name) and suffix <> null then do
+                    ErrMsg = ErrMsg + "Expressions on the primary source cannot contain origin or destination affiliations.\n"
+                    Throw(ErrMsg)
+                end
+            end
+            else if self.ModelMatrixSources.(srcName) <> null then do
+                srcNameUpd = self.ModelMatrixSources.(srcName).Name // Returns the name as specified in the model sources object
+                m = self.ModelMatrixSources.(srcName).Handle
+                cores = GetMatrixCoreNames(m)
+                tmp = ParseString(varName, "[]") // Remove leading and trailing brackets
+                coreName = tmp[1] 
+                if ArrayPosition(cores, {coreName},) = 0 then do
+                    ErrMsg = ErrMsg + "Matrix core \'" + varName + "\' not found in source \'" + srcName + "\'"
+                    Throw(ErrMsg)
+                end
+            end
+            else do
+                ErrMsg = ErrMsg + "Source \'" + srcName + "\' not found in the model file/specification"
+                Throw(ErrMsg)
+            end
+            expr = Substitute(expr, srcName, srcNameUpd,) // Make all source names consistent with the model sources object
+        end
+        Return(expr)
+    endItem
+
+
+    private macro "CreateExpressionSource"(expr, descr) do
+        model = self.Model
+        exprs = self.ModelExpressions.Expressions
+        exprNames = self.ModelExpressions.Names
+        pos = ArrayPosition(exprs, {expr},)
+        if pos = 0 then do // New Expression
+            spec = null
+            spec.Expression = expr    
+            n = exprs.Length
+            exprName = "Expr" + String(n+1) + descr
+            model.CreateDataSource(0, "Expression", exprName, spec,)
+            self.ModelExpressions.Expressions = self.ModelExpressions.Expressions + {expr}    
+            self.ModelExpressions.Names = self.ModelExpressions.Names + {exprName}    
+        end
+        else // Reuse
+            exprName = exprNames[pos]
+        Return(exprName)
+    endItem
+
+
+    private macro "SetTotalsSpec" do
+        totalsSpec = self.TotalsSpec
+        if self.isAggregateModel and totalsSpec <> null then do
+            model = self.Model
+            seg = model.GetSegment("*")
+            totalsSrc = totalsSpec.Name
+            if self.ModelType = "Mode Choice" then do
+                m = self.ModelMatrixSources.(totalsSrc).Handle
+                cores = GetMatrixCoreNames(m)
+                core = totalsSpec.MatrixCore
+                if ArrayPosition(cores, {core},) = 0 then
+                    Throw("Matrix Core \'" + core + "\' not found in totals matrix source \'" + totalsSrc + "\'")
+                da = model.CreateDataAccess("data", totalsSrc, core)
+            end
+            else do
+                vw = self.ModelTableSources.(totalsSrc).View
+                fld = totalsSpec.ZonalField
+                outFld = self.CheckFieldValidity(vw, fld)
+                da = model.CreateDataAccess("data", totalsSrc, outFld,)
+            end
+            seg.SetTotals(da)
+        end
+    endItem
+
+
+    private macro "SetShadowPrice" do
+        if self.ShadowPriceSpec <> null then do
+            srcName = self.ShadowPriceSpec.Name
+            fldName = self.ShadowPriceSpec.Field
+
+            // Check if field exists in table
+            vw = self.ModelTableSources.(srcName).View
+            outFld = self.CheckFieldValidity(vw, fldName)
+
+            // Set attractions variable within the model
+            model = self.Model
+            seg = model.GetSegment("*")
+            da = model.CreateDataAccess("data", srcName, fldName)
+            seg.SetAttractions(da)    
+        end
+    endItem
+
+
+    private macro "SetSurveyArrays" do
+        model = self.Model
+        for item in self.ModelMatrixSources do
+            src = item[2]
+            personBased = src.PersonBased
+            if personBased = 1 then do
+                modelSrc = model.GetDataSource(src.Name)
+                modelSrc.Type = "Survey Array"
+            end
+        end
+    endItem
+
+
+    private macro "WriteModelToFile" do
+        model = self.Model
+        modelFile = self.ModelFile
+        model.Write(modelFile)
+        model.Clear()
+        model = null
+    endItem
+
+
+    // Note all files are open before this is run
+    macro "Run" do
+        if GetViews() = null and GetMatrices() = null then
+            Throw("Required files to run mode or destination choice not open")
+        
+        if self.ModelType = 'Mode Choice' then
+            self.RunModeChoice()
+        else
+            self.RunDestinationChoice()            
+    endItem
+
+
+    macro "RunModeChoice" do
+        outSpec = self.OutputSpec
+        
+        o = CreateObject("Choice.Mode")
+        o.ModelFile = self.ModelFile
+        o.RandomSeed = self.RandomSeed
+        if self.isAggregateModel then do
+            o.AddMatrixOutput("*", {Probability: outSpec.Probability})
+            if outSpec.Utility <> null then
+                o.AddMatrixOutput("*", {Utility: outSpec.Utility})
+            if outSpec.Logsum <> null then
+                o.AddMatrixOutput("*", {Logsum: outSpec.Logsum})
+            if outSpec.Totals <> null then
+                o.AddMatrixOutput("*", {Totals: outSpec.Totals})
+        end
+        else do // Disaggregate. Always write out the probability and choices table.
+            o.OutputProbabilityFile = outSpec.ProbabilityTable
+            o.OutputChoiceFile = outSpec.ChoicesTable
+        end
+
+        // Run Model
+        o.Run()
+
+        // If choices field provided, copy over values from choice table
+        if !self.isAggregateModel then
+            vwChoices = self.OpenChoicesTable() // An In-Memory view of the output choices table
+        
+        if outSpec.ChoicesField <> null then
+            self.CopyChoicesField(vwChoices)
+
+        if self.ReportShares then
+            self.CreateSummaryShares(vwChoices)
+
+        if !self.isAggregateModel then
+            CloseView(vwChoices)
+    endItem
+
+
+    macro "RunDestinationChoice" do
+        outSpec = self.OutputSpec
+        
+        o = CreateObject("Choice.Destination")
+        o.ModelFile = self.ModelFile
+        o.RandomSeed = self.RandomSeed
+        if self.isAggregateModel then do
+            o.ProbabilityMatrix({MatrixFile: outSpec.Probability, MatrixLabel: "DC Probabilities"})
+            if outSpec.Totals <> null then
+                o.TotalsMatrix({MatrixFile: outSpec.Totals, MatrixLabel: "DC Totals"})
+            if outSpec.Utility <> null then
+                o.UtilityMatrix(outSpec.Utility)    
+        end
+        else do
+            if outSpec.ChoicesTable <> null then
+                o.OutputFile = outSpec.ChoicesTable
+            else do
+                src = self.PrimarySpec.Name
+                fld = outSpec.ChoicesField
+                vw = self.ModelTableSources.(src).View
+                o.OutputField({ViewName: vw, FieldName: fld})
+            end
+
+            if self.ShadowPriceSpec <> null then
+                o.ShadowPricing({ShadowTable: self.ShadowPriceSpec.OutputTable, /*Iterations: self.ShadowPriceSpec.Iterations,*/ Tolerance: self.ShadowPriceSpec.Tolerance})
+        end
+
+        // Run Dest Choice
+        o.Run()
+    endItem
+
+
+    private macro "OpenChoicesTable" do
+        outFile = self.OutputSpec.ChoicesTable
+        objT = CreateObject("AddTables", {TableName: outFile})
+        vw = objT.TableView
+        vwChoices = ExportView(vw + "|", "MEM", "Choices",,)
+        objT = null
+        Return(vwChoices)
+    endItem
+
+
+    private macro "CopyChoicesField"(vwC) do
+        outSpec = self.OutputSpec
+        choicesField = outSpec.ChoicesField
+
+        // Choices Spec
+        {fldsC, specsC} = GetFields(vwC,)
+        choiceSpec = specsC[1]
+        
+        // Primary Spec
+        src = self.PrimarySpec.Name
+        vwP = self.ModelTableSources.(src).View
+        ID = self.ModelTableSources.(src).IDField
+        primarySpec = GetFieldFullSpec(vwP, ID)
+        {fldsP, specsP} = GetFields(vwP,)
+
+        // Determine whether to fill 'Choice' (Alternative Names) or 'ChoiceCode' (Alternative IDs)
+        if outSpec.ChoicesFieldType = "String" then
+            inputChoiceFld = "Choice"
+        else
+            inputChoiceFld = "ChoiceCode"    
+        
+        if ArrayPosition(fldsP, {inputChoiceFld},) > 0 then             // Then the input field is ambiguous
+            inputChoiceFld = GetFieldFullSpec(vwC, inputChoiceFld)
+        
+        if Lower(choicesField) = "choice" or Lower(choicesField) = "choicecode" then  // Then the output field is ambiguous
+            choicesField = GetFieldFullSpec(vwP, choicesField)
+
+        vwJ = JoinViews("ChoicesPrimary", choiceSpec, primarySpec,)
+        v = GetDataVector(vwJ + "|", inputChoiceFld,)
+        SetDataVector(vwJ + "|", choicesField, v, )
+        CloseView(vwJ)
+    endItem
+
+
+    private macro "CreateSummaryShares"(vw) do
+
+        alts = self.LeafAlts // Order of LeafAlts and idFld values are consistent
+        dim shares[alts.length]
+        if self.isAggregateModel then do
+            // Get totals matrix to determine shares
+            mat = self.OutputSpec.Totals
+            m = OpenMatrix(mat,)
+            cores = GetMatrixCoreNames(m)
+            stats = MatrixStatistics(m,)
+            tsum = 0
+            for i = 1 to stats.length do
+                tsum = tsum + nz(stats.(cores[i]).Sum)
+            end
+
+            for i = 1 to alts.length do
+                shares[i] = Round((100 * stats.(alts[i]).Sum)/tsum, 2)
+            end
+            m = null
+        end
+        else do
+            choiceFld = "Choice"                        // Hardcoded in NLM engine
+            // Aggregate appropriate table using the choice field
+            expr = CreateExpression(vw, "One", "1",)
+            vwAgg = AggregateTable("Aggr", vw + "|", "MEM", "Aggr", choiceFld, {{"One", "Count",}},)
+            {flds, specs} = GetFields(vwAgg,)
+            {vAlt, vCount} = GetDataVectors(vwAgg + "|", {flds[1], flds[2]},)
+            sumTotal = VectorStatistic(vCount, "Sum",)
+            for i = 1 to alts.length do
+                pos = ArrayPosition(v2a(vAlt), {alts[i]},)
+                if pos > 0 then
+                    shares[i] = Round((100 * vCount[pos])/sumTotal, 2)
+            end
+            CloseView(vwAgg)
+        end
+        self.ModelShares = CopyArray(shares)
+    endItem
+
+
+    private macro "WriteToReport" do
+        AppendToReportFile(0, self.ModelName + " Model Summary", {{"Section", "True"}})
+        AppendTableToReportFile({{Name: "Item", "Percentage Width": 20, Alignment: "Left"},   
+                                 {Name: "Value", "Percentage Width": 80, Alignment: "Left"}},
+                                {Title: "Model Details", Indent: 2})
+        AppendRowToReportFile({"Model Name:", self.ModelName},)
+        AppendRowToReportFile({"Model Type:", self.ModelType},)
+        AppendRowToReportFile({"Is Aggregate?:", self.isAggregateModel},)
+        AppendRowToReportFile({"Model File:", self.ModelFile},)
+        AppendRowToReportFile({"Apply Model To:", self.PrimarySpec.Name},)
+        if !self.isAggregateModel then do
+            if self.PrimarySpec.Filter <> null then
+                AppendRowToReportFile({"Selection Set:", self.PrimarySpec.Filter},)
+            else
+                AppendRowToReportFile({"Selection Set:", "All Records"},) 
+        end    
+
+        // Model Alternatives and Model Shares if present
+        if self.ModelType = 'Mode Choice' then do
+            if self.RunModel and self.ReportShares then do
+                AppendTableToReportFile({{Name: "Alternative ID", "Percentage Width": 20, Alignment: "Left"},   
+                                         {Name: "Alternative", "Percentage Width": 50, Alignment: "Left"},
+                                         {Name: "Share", "Percentage Width": 30, Alignment: "Left"}},
+                                        {Title: "Model Alternatives and Shares", Indent: 2})
+                for i = 1 to self.LeafAlts.Length do
+                    AppendRowToReportFile({i, self.LeafAlts[i], String(self.ModelShares[i])},)    
+                end
+            end
+            else do
+                AppendTableToReportFile({{Name: "Alternative ID", "Percentage Width": 20, Alignment: "Left"},   
+                                         {Name: "Alternative", "Percentage Width": 80, Alignment: "Left"}},
+                                        {Title: "Model Alternatives", Indent: 2})
+                for i = 1 to self.LeafAlts.Length do
+                    AppendRowToReportFile({i, self.LeafAlts[i]},)    
+                end    
+            end
+        end
+        CloseReportFileSection()
+    endItem
+
+
+    private macro "ModelInfo" do
+        leafAlts = self.LeafAlts
+
+        ret = null
+        ret.ModelName = self.ModelName
+        ret.ModelType = self.ModelType
+        ret.ModelFile = self.ModelFile
+        ret.RunModel = self.RunModel
+        ret.Alternatives = self.LeafAlts
+        ret.isAggregateModel = self.isAggregateModel
+        
+        // Table Source Info
+        ret.TableSources = null
+        for src in self.ModelTableSources do
+            currSrc = src[2]
+            ret.TableSources = ret.TableSources + {{Label: currSrc.Name, FileName: currSrc.File, ViewName: currSrc.View, Filter: currSrc.Filter}}
+        end
+        
+        // Matrix Source Info
+        ret.MatrixSources = null
+        for src in self.ModelMatrixSources do
+            currSrc = src[2]
+            matName = GetMatrixName(currSrc.Handle)
+            ret.MatrixSources = ret.MatrixSources + {{Label: matName, FileName: currSrc.File}}
+        end
+
+        // Get Alterative ID descriptions
+        descStr = null
+        for i = 1 to leafAlts.length do
+            descStr = descStr + "|" + String(i) + ": " + leafAlts[i]
+        end
+        ret.AlternativesLookup = descStr
+
+        if self.ReportShares and self.RunModel then
+            ret.ModelShares = self.ModelShares
+        
+        Return(ret)
+    endItem
+
+
+    macro "Cleanup" do
+        if self.Model <> null then do
+            self.Model.Clear()
+            self.Model = null
+        end
+        
+        if self.CloseFiles then do
+            for src in self.ModelTableSources do
+                currSrc = src[2]
+                CloseView(currSrc.View)
+            end
+            
+            for src in self.ModelMatrixSources do
+                currSrc = src[2]
+                currSrc.Handle = null
+            end
+
+            self.ModelTableSources = null
+            self.ModelMatrixSources = null
+        end
+
+        //if self.ChoicesTable.InMemView <> null then
+            //CloseView(self.ChoicesTable.InMemView)
+    endItem
+
+
+    private macro "CheckTable"(option, option_name, colSpec) do
+        for i = 1 to colSpec.length do
+            colName = colSpec[i][1]
+            type = colSpec[i][2]
+            isReq = colSpec[i][3]
+            column = option.(colName)
+            
+            ErrMsg = "\'" + option_name + "\'' table is missing column \'" + colName + "\' OR \n\'" + option_name + "." + colName + "\' option is missing"
+            if column = null then
+                Throw(ErrMsg)
+            
+            ErrMsg = "\'" + option_name + "." + colName + "\' is not an array"
+            self.CheckOptionType(column, "array", ErrMsg)
+            
+            ErrMsg = "\'" + option_name + "." + colName + "\' is not of type \'" + type + "\'"
+            for val in column do
+                if val = null and isReq then
+                    Throw("Missing value in column " + "\'" + option_name + "." + colName + "\'")
+                if val <> null then do // All non-string fields can have nulls
+                    if type = "double" and TypeOf(val) = "int" then
+                        val = i2r(val)
+                    if TypeOf(val) <> type then
+                        Throw(ErrMsg)
+                end
+            end 
+        end
+    endItem    
+endClass
+
+
+Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
+
+    init do
+        if Args = null then
+            Throw("Please provide the Args for instantiating the \'Choice Model Sources\' class")
+
+        self.MatrixSources = Opts.MatrixSources
+        self.TableSources = Opts.TableSources
+        self.SourceKeys = Opts.SourceKeys  
+        self.Joins = Opts.Joins
+        
+        self.CheckInputs()
+        self.ExpandSources()
+        self.GetSourceFileNames(Args)
+    endItem
+
+
+    macro "CheckInputs" do
+        if self.TableSources = null and self.MatrixSources = null then
+            Throw("There are no table or matrix sources defined in the flowchart Arguments")
+
+        // 1. Check Table Sources
+        tblSrcs = self.TableSources
+        if tblSrcs <> null then
+            self.CheckTable(tblSrcs, "TableSources", {{"Name", "string", 1},
+                                                      {"IDField", "string", 1}})
+        // 2. Check Matrix Sources
+        mtxSrcs = self.MatrixSources
+        if mtxSrcs <> null then
+            self.CheckTable(mtxSrcs, "MatrixSources", {{"Name", "string", 1},
+                                                       {"RowIndex", "string", 1},
+                                                       {"ColumnIndex", "string", 1},
+                                                       {"PersonBased", "int", 0}})
+        // 3. Check Joins
+        joins = self.Joins
+        if joins <> null then
+            self.CheckTable(joins, "Joins", {{"Join Name", "string", 1},
+                                             {"Left Table", "string", 1},
+                                             {"Left Table ID", "string", 1},
+                                             {"Right Table", "string", 1},
+                                             {"Right Table ID", "string", 1}})
+        // 4. Check Source Keys
+        src_keys = self.SourceKeys
+        if src_keys <> null then
+            self.CheckTable(src_keys, "SourceKeys", {{"Key", "string", 1},
+                                                     {"Values", "string", 1}})
+    endItem
+
+
+    private macro "CheckTable"(option, option_name, colSpec) do
+        for i = 1 to colSpec.length do
+            colName = colSpec[i][1]
+            type = colSpec[i][2]
+            isReq = colSpec[i][3]
+            column = option.(colName)
+            
+            if isReq then do
+                ErrMsg = "\'" + option_name + "\'' table is missing column \'" + colName + "\' OR \n\'" + option_name + "." + colName + "\' option is missing"
+                if column = null then
+                    Throw(ErrMsg)
+            end
+            
+            if column <> null then do
+                ErrMsg = "\'" + option_name + "." + colName + "\' is not an array"
+                self.CheckOptionType(column, "array", ErrMsg)
+                
+                ErrMsg1 = "\'" + option_name + "\'' table has missing values in column \'" + colName + "'"
+                ErrMsg2 = "\'" + option_name + "." + colName + "\' is not of type \'" + type + "\'"
+                for val in column do
+                    if val = null and isReq then
+                        Throw(ErrMsg1)
+                    if val <> null and TypeOf(val) <> type then
+                        Throw(ErrMsg2)    
+                end
+            end
+        end
+    enditem
+
+
+    private macro "ExpandSources" do
+        keys_col = self.SourceKeys.Key         // Key value (e.g. {P})
+        vals_col = self.SourceKeys.Values      // Collection of all values represented by the key (e.g. AM, PM, MD, NT)
+        for i = 1 to keys_col.length do
+            key = keys_col[i]
+            val = vals_col[i]
+            self.ExpandTableSources(key, val)
+            self.ExpandMatrixSources(key, val)           
+        end
+    enditem
+
+
+    private macro "ExpandTableSources"(key, val) do
+        src_names = self.TableSources.Name
+        ids = self.TableSources.IDField
+        subs = ParseString(val, ", ")
+        expanded_table_srcs = null
+        
+        for i = 1 to src_names.length do
+            src_name = src_names[i]
+            src_id = ids[i]
+            if src_name contains key then do
+                for sub in subs do
+                    new_name = Substitute(src_name, key, sub,)
+                    expanded_table_srcs.Name = expanded_table_srcs.Name + {new_name}
+                    expanded_table_srcs.IDField = expanded_table_srcs.IDField + {src_id}
+                end
+            end
+            else do // No need to expand and replace
+                expanded_table_srcs.Name = expanded_table_srcs.Name + {src_name}
+                expanded_table_srcs.IDField = expanded_table_srcs.IDField + {src_id}     
+            end
+        end
+        self.TableSources = CopyArray(expanded_table_srcs) // Replace class variable with expanded list
+    enditem
+
+
+    private macro "ExpandMatrixSources"(key, val) do
+        src_names = self.MatrixSources.Name
+        ridxs = self.MatrixSources.RowIndex
+        cidxs = self.MatrixSources.ColumnIndex
+        flags = self.MatrixSources.PersonBased
+        subs = ParseString(val, ", ")
+        expanded_matrix_srcs = null
+        
+        for i = 1 to src_names.length do
+            src_name = src_names[i]
+            ridx = ridxs[i]
+            cidx = cidxs[i]
+            personBased = 0
+            if flags <> null then
+                personBased = flags[i]
+            
+            if src_name contains key then do
+                for sub in subs do
+                    new_name = Substitute(src_name, key, sub,)
+                    expanded_matrix_srcs.Name = expanded_matrix_srcs.Name + {new_name}
+                    expanded_matrix_srcs.RowIndex = expanded_matrix_srcs.RowIndex + {ridx}
+                    expanded_matrix_srcs.ColumnIndex = expanded_matrix_srcs.ColumnIndex + {cidx}
+                    if flags <> null then
+                        expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}
+                end
+            end
+            else do // No need to expand and replace
+                expanded_matrix_srcs.Name = expanded_matrix_srcs.Name + {src_name}
+                expanded_matrix_srcs.RowIndex = expanded_matrix_srcs.RowIndex + {ridx}
+                expanded_matrix_srcs.ColumnIndex = expanded_matrix_srcs.ColumnIndex + {cidx}
+                if flags <> null then
+                    expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}     
+            end
+        end
+        self.MatrixSources = CopyArray(expanded_matrix_srcs) // Replace class variable with expanded list
+    enditem
+
+
+    // Append file names to the sources
+    macro "GetSourceFileNames"(Args) do
+        tblSrcs = self.TableSources
+        if tblSrcs <> null then do
+            files = self.GetFileNames(Args, tblSrcs.Name, "Table")
+            tblSrcs.File = CopyArray(files)
+        end
+
+        mtxSrcs = self.MatrixSources
+        if mtxSrcs <> null then do
+            files = self.GetFileNames(Args, mtxSrcs.Name, "Matrix")
+            mtxSrcs.File = CopyArray(files)
+        end
+
+        joins = self.Joins
+        if joins <> null then do
+            filesL = self.GetFileNames(Args, joins.[Left Table], "Table")
+            filesR = self.GetFileNames(Args, joins.[Right Table], "Table")
+            joins.LHSFile = CopyArray(filesL)
+            joins.RHSFile = CopyArray(filesR)
+        end
+    endItem
+
+
+    private macro "GetFileNames"(Args, srcNames, type) do
+        files = null
+        for i = 1 to srcNames.length do
+            fn = self.GetFileName(Args, srcNames[i], type)
+            files = files + {fn}
+        end
+        Return(files)
+    endItem
+
+
+    private macro "GetFileName"(Args, arg, type) do
+        // Remove leading and trailing brackets
+        str = ParseString(arg, "[]")
+        argName = str[1]
+        file = Args.(argName)
+        pth = SplitPath(file)
+        if type = 'Matrix' then do
+            if file <> null then do // Need to check here if file is present. Opening source will yield an error. (Better for multiple model files)
+                ErrMsg = "Matrix Source \'" + arg + "\' is not a TransCAD matrix (MTX) file"
+                if Lower(pth[4]) <> ".mtx" then
+                    Throw(ErrMsg)
+            end    
+        end
+        if type = 'Table' then do
+            if file <> null then do // Can be null if this is a joined view spec. But if it is not null, it better be one of the 4 types below.
+                ErrMsg = "Table Source \'" + arg + "\' is not a FFB, FFA, DBASE or CSV file"
+                if Lower(pth[4]) <> ".bin" and Lower(pth[4]) <> ".dbf" and Lower(pth[4]) <> ".csv" and Lower(pth[4]) <> ".asc" then
+                    Throw(ErrMsg)
+            end    
+        end
+        Return(file)   
+    enditem
+
+
+    macro "CheckSource"(srcName) do
+        tblSrcs = self.TableSources
+        mtxSrcs = self.MatrixSources
+        pos = ArrayPosition(tblSrcs.Name, {srcName},)
+        pos1 = ArrayPosition(mtxSrcs.Name, {srcName},)
+        if pos = 0 and pos1 = 0 then
+            Return(0)
+        else
+            Return(1) 
+    endItem
+
+    
+    macro "OpenSource"(srcName) do
+        srcInfo = self.GetSourceInfo(srcName)
+        if srcInfo = null then
+            Throw("Unable to open source \'" + srcName + "\'")
+        if srcInfo.Type = "Matrix" then
+            ret = self.OpenMatrixSource(srcInfo)
+        else if srcInfo.Type = "Table" and  srcInfo.JoinedView <> 1 then
+            ret = self.OpenTableSource(srcInfo)
+        else if srcInfo.Type = "Table" and  srcInfo.JoinedView = 1 then
+            ret = self.OpenJoinedSource(srcInfo)
+        else
+            Throw("Cannot open source \'" + src + "\'. Unknown source type.")
+        
+        Return(ret)         // Either a matrix handle or an open view name      
+    enditem
+
+
+    macro "GetSourceInfo"(srcName) do
+        tblSrcs = self.TableSources
+        mtxSrcs = self.MatrixSources
+        pos = ArrayPosition(tblSrcs.Name, {srcName},)
+        pos1 = ArrayPosition(mtxSrcs.Name, {srcName},)
+        
+        ret = null        
+        if pos > 0 then do
+            ret.Name = tblSrcs.Name[pos]
+            ret.IDField = tblSrcs.IDField[pos]
+            ret.Type = "Table"
+            ret.File = tblSrcs.File[pos]
+            if ret.File = null then do
+                ret.JoinedView = 1
+                jNames = self.Joins.[Join Name]
+                if ArrayPosition(jNames, {srcName},) = 0 then
+                    Throw("Source \'" + srcName + "\' not defined in the \'TableSources\' argument.")
+            end
+        end
+        else if pos1 > 0 then do
+            ret.Name = mtxSrcs.Name[pos1]
+            ret.RowIndex = mtxSrcs.RowIndex[pos1]
+            ret.ColIndex = mtxSrcs.ColumnIndex[pos1]
+            ret.File = mtxSrcs.File[pos1]
+            ret.Type = "Matrix"
+            if mtxSrcs.PersonBased <> null then
+                ret.PersonBased = mtxSrcs.PersonBased[pos1]
+        end
+        else
+            Throw("Source \'" + srcName + "\' not defined in the \'[Table Sources]\' or \'MatrixSources\' arguments.")
+
+        Return(ret)
+    enditem
+
+
+    private macro "OpenMatrixSource"(srcInfo) do
+        mtx_file = srcInfo.File
+        info = GetFileInfo(mtx_file)
+        if !info then
+            Throw("Matrix source file \'" + srcInfo.Name + "\' used in the model specification is missing.")
+        
+        m = OpenMatrix(mtx_file,)
+        {ridxs, cidxs} = GetMatrixIndexNames(m)
+        
+        pos = ArrayPosition(ridxs, {srcInfo.RowIndex},)
+        if pos = 0 then do
+            Throw("There is no Row Index named \'" + srcInfo.RowIndex + "\' in Matrix source file \'" + srcInfo.Name + "\'.")
+            m = null
+        end
+        
+        pos = ArrayPosition(cidxs, {srcInfo.ColIndex},)
+        if pos = 0 then do
+            Throw("There is no Column Index named \'" + srcInfo.ColIndex + "\' in Matrix source file \'" + srcInfo.Name + "\'.")
+            m = null
+        end
+        Return(m)
+    endItem
+
+
+    private macro "OpenTableSource"(srcInfo) do
+        info = GetFileInfo(srcInfo.File)
+        if !info then
+            Throw("File \'" + srcInfo.Name + "\' used in the model specification is missing.")
+        
+        vw = self.GetTableView(srcInfo.File, srcInfo.Name)
+        {flds, specs} = GetFields(vw,)
+        // Remove leading and traling brackets from field names
+        flds = flds.Map(do (f)
+                         fOut = if Left(f,1) = "[" then SubString(f, 2, StringLength(f) - 2) else f
+                         Return(fOut)
+                         end)
+        pos = ArrayPosition(flds, {srcInfo.IDField},)
+        if pos = 0 then do
+            Throw("There is no field named \'" + srcInfo.IDField + "\' in source file \'" + srcInfo.Name + "\'.")
+            CloseView(vw)
+        end
+        Return(vw)
+    endItem
+
+
+    private macro "GetTableView"(file, desired_vw) do
+        pth = SplitPath(file)
+        if Lower(pth[4]) = ".bin" then
+            type = "FFB"
+        else if Lower(pth[4]) = ".dbf" then
+            type = "DBASE"
+        else if Lower(pth[4]) = ".asc" then
+            type = "FFA"
+        else if Lower(pth[4]) = ".csv" then
+            type = "CSV"
+    
+        if RunMacro("Parallel.IsEngine") then do                    // When running in parallel engine
+            if  OpenOpts.[Read Only] = null then 
+                OpenOpts.[Read Only] = "True"                       // open  as read-only
+            if  OpenOpts.[AttributeTableIsWritable] = null then 
+                OpenOpts.[AttributeTableIsWritable] = "False"       // open attributes as read-and-write
+            if  OpenOpts.[Shared] = null then 
+                OpenOpts.[Shared] = "True"                          
+        end
+        vw = OpenTable(desired_vw, type, {file,}, OpenOpts)
+        Return(vw)    
+    endItem
+
+
+    private macro "OpenJoinedSource"(srcInfo) do
+        joins = self.Joins
+        joinNames = joins.[Join Name]
+        lhsVws = joins.[Left Table]
+        rhsVws = joins.[Right Table]
+        lhsIDs = joins.[Left Table ID]
+        rhsIDs = joins.[Right Table ID]
+        lhsFiles = joins.LHSFile
+        rhsFiles = joins.RHSFile
+
+        pos = ArrayPosition(joinNames, {srcInfo.Name},)
+        stack_pos = {pos}
+
+        // Add the joined view positions to the stack. They will be processed in LIFO in the next loop
+        c = 1
+        while c <= stack_pos.length do
+            pos = stack_pos[c]
+            lhsSrc = lhsVws[pos]
+            rhsSrc = rhsVws[pos]
+            lhsFile = lhsFiles[pos]
+            rhsFile = rhsFiles[pos]
+            if lhsFile = null then do // Not a file and therefore maybe another joined view or a mistake
+                temp_pos = ArrayPosition(joinNames, {lhsSrc},)
+                if temp_pos = 0 then // Mistake
+                    Throw("Could not find " + lhsSrc + " in list of joined views")
+                else do // Another joined view
+                    if ArrayPosition(stack_pos, {temp_pos},) = 0 then
+                        stack_pos = stack_pos + {temp_pos}
+                end
+            end
+            if rhsFile = null then do // Not a file and therefore maybe another joined view or a mistake
+                temp_pos = ArrayPosition(joinNames, {rhsSrc},)
+                if temp_pos = 0 then // Mistake
+                    Throw("Could not find " + rhs_src + " in list of joined views")
+                else // Another joined view
+                    if ArrayPosition(stack_pos, {temp_pos},) = 0 then
+                        stack_pos = stack_pos + {temp_pos}
+            end
+            c = c + 1
+        end
+
+        // Process the stack and make joins
+        vws = null
+        for i = stack_pos.length to 1 step -1 do
+            pos = stack_pos[i]
+            lhsSrc = lhsVws[pos]
+            rhsSrc = rhsVws[pos]
+            lhsFile = lhsFiles[pos]
+            rhsFile = rhsFiles[pos]
+
+            // Open tables if views do not exist
+            if vws.(lhsSrc) = null then do // Open Table
+                vws.(lhsSrc) = self.GetTableView(lhsFile, lhsSrc)
+                if vws.(lhsSrc) = null then
+                    Throw("Could not open file " + lhsFile)
+            end
+            if vws.(rhsSrc) = null then do // Open Table
+                vws.(rhsSrc) = self.GetTableView(rhsFile, rhsSrc)
+                if vws.(rhsSrc) = null then
+                    Throw("Could not open file " + rhsFile)
+            end
+
+            // Get Field Specs
+            lhsFld = self.CheckFieldValidity(vws.(lhsSrc), lhsIDs[pos])
+            rhsFld = self.CheckFieldValidity(vws.(rhsSrc), rhsIDs[pos])
+            lhsSpec = GetFieldFullSpec(vws.(lhsSrc), lhsFld)
+            rhsSpec = GetFieldFullSpec(vws.(rhsSrc), rhsFld)
+
+            // Make the join. Check for fields first
+            jvm = joinNames[pos]
+            vws.(jvm) = JoinViews(jvm, lhsSpec, rhsSpec,)   
+        end
+
+        // Close all views exceot the final desired join
+        for i = 1 to vws.length - 1 do
+            CloseView(vws[i][2])
+        end
+    
+        ret_vw = joinNames[stack_pos[1]]
+        Return(ret_vw)
+    endItem
+
+
+    done do
+        self.MatrixSources = null
+        self.TableSources = null
+        self.SourceKeys = null  
+        self.Joins = null    
+    endItem
+
+endClass

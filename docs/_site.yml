@@ -19,6 +19,8 @@ navbar:
           href: accessibility.html
         - text: "Synthesis"
           href: population_synthesis.html
+        - text: "Auto Ownership"
+          href: auto_ownership.html
         - text: "Time of Day"
           href: time_of_day.html
         - text: "Non-home-based"

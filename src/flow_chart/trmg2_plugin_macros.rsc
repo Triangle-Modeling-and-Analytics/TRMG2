@@ -4,7 +4,7 @@ Attributes = {{"BannerHeight",80},
                   {"BannerWidth",2000},
                   {"BannerPicture","src\\flow_chart\\bmp\\banner.bmp"},
                   {"HideBanner",0},
-                  {"Base Scenario Name","Base 2016"},
+                  {"Base Scenario Name","Model"},
                   {"ClearLogFiles",1},
                   {"CodeUI","src\\trmg2.dbd"},
                   {"ExpandStages","Side by Side"},
@@ -38,6 +38,25 @@ Macro "Model.Arrow" (Args,Result)
                   {"ArrowHeadSize",8}}
 EndMacro
 
+Macro "Model.OnStepStart" (Args,Result)
+Body:
+    // Initialize choice model sources object
+    flowchart = RunMacro("GetFlowChart")
+    {drive, path, name, ext} = SplitPath(flowchart.UI)
+
+    // Execute this macro just before running each step. Have to do it here because the parameters (file names/locations) could have changed.
+    Opts = null
+    Opts.MatrixSources = Args.MatrixSources
+    Opts.TableSources = Args.TableSources
+    Opts.Joins = Args.Joins
+    Opts.SourceKeys = Args.SourceKeys 
+        
+    SetLibrary(drive + path + "src/trmg2.dbd")
+    srcObj = CreateObject("Choice Model Sources", Args, Opts)
+    SetLibrary()
+
+    Args.SourcesObject = srcObj
+EndMacro
 
 
 /**
@@ -47,6 +66,7 @@ EndMacro
 Macro "Model.OnStepDone" (Args,Result,StepName)
 Body:
     // RunMacro("SendMail", Args, "MSA Model Checkpoint", StepName)
+    Args.SourcesObject = null
     return(1)
 EndMacro
 

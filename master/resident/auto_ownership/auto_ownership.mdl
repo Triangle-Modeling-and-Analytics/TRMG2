@@ -1,0 +1,57 @@
+model label="Auto Ownership" version=1.5
+source destfield=ZoneID destinations=True idfield=HouseholdID name=Data1 origfield=ZoneID origins=True primary=True type=Survey view=hh_processed
+source idfield=TAZ name=Data2 type=Zonal view=scenario_se
+source name=num_workers label=num_workers type=Expression expression=min(Data1.HHWorkers,4)
+source name=num_nwadults label=num_nwadults type=Expression expression=min(Data1.HHSize,4)-min(Data1.HHWorkers,4)
+source name=num_seniors label=num_seniors type=Expression expression=min(Data1.HHSeniors,2)
+source name=num_children label=num_children type=Expression expression=min(Data1.HHKids,2)
+  segment name=*
+    term coefficient=0.239132 name=Beta1
+    term coefficient=2.84997 name=Beta2
+    term coefficient=3.8542 name=Beta3
+    term coefficient=4.82268 name=Beta4
+    term coefficient=-0.572595 name=Beta5
+    term coefficient=1.54249 name=Beta6
+    term coefficient=2.29899 name=Beta7
+    term coefficient=3.09109 name=Beta8
+    term coefficient=-0.159472 name=Beta11
+    term coefficient=0.17157 name=Beta13
+    term coefficient=1.68839 name=Beta17
+    term coefficient=2.51752 name=Beta18
+    term coefficient=2.71167 name=Beta19
+    term coefficient=2.94602 name=Beta20
+    term coefficient=-0.396313 name=Beta22
+    term coefficient=-0.600623 name=Beta23
+    term coefficient=-1.0783 name=Beta24
+    term coefficient=-0.373865 name=Beta25
+    term coefficient=-0.422401 name=Beta26
+    term coefficient=-0.536643 name=Beta27
+    term coefficient=-0.518142 name=Beta28
+    alternative id=0 name=0
+    alternative asc=0.206037 id=1 name=1
+      data source=num_workers term=Beta1 type=Expression
+      data source=num_nwadults term=Beta5 type=Expression
+      data source=num_seniors term=Beta13 type=Expression
+      data source=Data1 spec=IncomeCategory term=Beta17
+      data source=Data2 spec=access_transit term=Beta25
+    alternative asc=-5.13489 id=2 name=2
+      data source=num_workers term=Beta2 type=Expression
+      data source=num_nwadults term=Beta6 type=Expression
+      data source=Data1 spec=IncomeCategory term=Beta18
+      data source=Data2 spec=access_walk term=Beta22
+      data source=Data2 spec=access_transit term=Beta26
+      data source=num_seniors term=Beta13 type=Expression
+    alternative asc=-8.31177 id=3 name=3
+      data source=num_workers term=Beta3 type=Expression
+      data source=num_nwadults term=Beta7 type=Expression
+      data source=num_children term=Beta11 type=Expression
+      data source=Data1 spec=IncomeCategory term=Beta19
+      data source=Data2 spec=access_walk term=Beta23
+      data source=Data2 spec=access_transit term=Beta27
+    alternative asc=-11.9878 id=4 label=4+ name=4
+      data source=num_workers term=Beta4 type=Expression
+      data source=num_nwadults term=Beta8 type=Expression
+      data source=Data1 spec=IncomeCategory term=Beta20
+      data source=Data2 spec=access_walk term=Beta24
+      data source=Data2 spec=access_transit term=Beta28
+      data source=num_children term=Beta11 type=Expression

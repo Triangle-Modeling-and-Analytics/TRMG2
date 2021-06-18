@@ -7,6 +7,7 @@ Macro "Population Synthesis" (Args)
     RunMacro("DisaggregateSED", Args)
     RunMacro("Synthesize Population", Args)
     RunMacro("PopSynth Post Process", Args)
+    RunMacro("Auto Ownership", Args)
 
     return(1)
 endmacro
@@ -68,15 +69,15 @@ Macro "DisaggregateSED"(Args)
     CloseView(vwJ)
     objLyrs = null
 
-    obj = null
-    ret_value = 1
-   quit:
-    on error, notfound, escape default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//     obj = null
+//     ret_value = 1
+//    quit:
+//     on error, notfound, escape default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -233,10 +234,10 @@ Macro "Synthesize Population"(Args)
     // The IPU procedure generally creates a set of weights, one for each TAZ as opposed to a single weight field without IPU
     // These weight fields are used for sampling from the seed
     // Optional outputs include: The IPUIncidenceFile and one weight table for each PUMA
-    o.OutputHouseholdsFile = Args.[Synthesized HHs]
+    o.OutputHouseholdsFile = Args.Households
     o.ReportExtraHouseholdField("PUMA", "PUMA")
     o.ReportExtraHouseholdField("HINCP", "HHInc")
-    o.OutputPersonsFile = Args.[Synthesized Persons]
+    o.OutputPersonsFile = Args.Persons
     o.ReportExtraPersonsField("SEX", "gender") // Add extra field from Person Seed and change the name
     o.ReportExtraPersonsField("ESR", "EmploymentStatus")
     
@@ -247,13 +248,13 @@ Macro "Synthesize Population"(Args)
     o.Tolerance = 0.01
     ret_value = o.Run()
 
-   quit:
-    on error, notfound, escape default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//    quit:
+//     on error, notfound, escape default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -271,10 +272,10 @@ Macro "PopSynth Post Process"(Args)
     // Generate tabulations from the synthesis output
     RunMacro("Generate Tabulations", Args)
 
-    objH = CreateObject("AddTables", {TableName: Args.[Synthesized HHs]})
+    objH = CreateObject("AddTables", {TableName: Args.Households})
     vw_hh = objH.TableView
     
-    objP = CreateObject("AddTables", {TableName: Args.[Synthesized Persons]})
+    objP = CreateObject("AddTables", {TableName: Args.Persons})
     vw_per = objP.TableView
     
     // Create Balloon Help on synthesized tables
@@ -284,14 +285,14 @@ Macro "PopSynth Post Process"(Args)
     BuildInternalIndex(GetFieldFullSpec(vw_per, "PersonID"))
     BuildInternalIndex(GetFieldFullSpec(vw_per, "HouseholdID"))
 
-    ret_value = 1
- quit:
-    on escape, error, notfound default
-    if !ret_value then do
-        if ErrorMsg <> null then
-            AppendToLogFile(0, ErrorMsg)
-    end
-    Return(ret_value)
+//     ret_value = 1
+//  quit:
+//     on escape, error, notfound default
+//     if !ret_value then do
+//         if ErrorMsg <> null then
+//             AppendToLogFile(0, ErrorMsg)
+//     end
+//     Return(ret_value)
 endMacro
 
 
@@ -326,7 +327,7 @@ Macro "Generate Tabulations"(Args)
     outFile = Args.[Synthesized Tabulations]
 
     // Open HH File and create empty output fields for number of kids, seniors, adults and workers in the HH
-    objH = CreateObject("AddTables", {TableName: Args.[Synthesized HHs]})
+    objH = CreateObject("AddTables", {TableName: Args.Households})
     vw_hh = objH.TableView
     modify = CreateObject("CC.ModifyTableOperation", vw_hh)
     modify.FindOrAddField("HHAdultsUnder65", "Long", 12,,)
@@ -336,7 +337,7 @@ Macro "Generate Tabulations"(Args)
     modify.Apply()
     {hhFlds, hhSpecs} = GetFields(vw_hh,)
 
-    objP = CreateObject("AddTables", {TableName: Args.[Synthesized Persons]})
+    objP = CreateObject("AddTables", {TableName: Args.Persons})
     vw_per = objP.TableView
 
     // Export to In-memory View for faster processing
@@ -408,7 +409,7 @@ Macro "Generate Tabulations"(Args)
     obj = null
 
     // Export the HH In-Memory table back
-    ExportView(vw_hhM + "|", "FFB", Args.[Synthesized HHs], hhFlds,)
+    ExportView(vw_hhM + "|", "FFB", Args.Households, hhFlds,)
     CloseView(vw_hhM)
     CloseView(vw_perM)
 endMacro
@@ -431,3 +432,32 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
     end
     Return(aggflds)
 endMacro
+
+/*
+
+*/
+
+Macro "Auto Ownership" (Args)
+
+    hh_file = Args.Households
+    se_file = Args.SE
+    model_file = Args.[Input Folder] + "/resident/auto_ownership/auto_ownership.mdl"
+
+    se_vw = OpenTable("scenario_se", "FFB", {se_file})
+    hh_vw = OpenTable("hh_processed", "FFB", {hh_file})
+    a_fields =  {
+        {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
+    }
+    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+
+    o = CreateObject("Choice.Mode")
+    o.ModelFile = model_file
+    o.DropModeIfMissing = true
+    o.SkipValuesBelow = 0.001
+    o.OutputChoiceField = "Autos"
+    o.AggregateModel = false
+    ok = o.Run()
+    
+    CloseView(se_vw)
+    CloseView(hh_vw)
+endmacro
