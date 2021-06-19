@@ -1040,7 +1040,7 @@ simplify_mode <- det_work_place %>%
   mutate(
     mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
-      mode_simple == "other_auto" ~ "auto_pay",
+      mode_simple == "other_auto" ~ "other_auto",
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
       grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
       grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
@@ -1480,7 +1480,9 @@ mc_code <- flip_to_pa %>%
     mode_final == "lb" & access_mode == "pnr" ~ 6,
     mode_final == "eb" & access_mode == "w" ~ 7,
     mode_final == "eb" & access_mode == "knr" ~ 8,
-    mode_final == "eb" & access_mode == "pnr" ~ 9
+    mode_final == "eb" & access_mode == "pnr" ~ 9,
+    mode_final == "auto_pay" ~ 10,
+    mode_final == "other_auto" ~ 11
   ))
   
 ```
@@ -1576,7 +1578,12 @@ add_taz_id <- mc_code %>%
     geocode_points,
     by = c("park_lng" = "lng", "park_lat" = "lat")
   ) %>%
-  rename(park_taz = TAZ)
+  rename(park_taz = TAZ) %>%
+  mutate(
+    o_taz = ifelse(pa_flag == 1, p_taz, a_taz),
+    d_taz = ifelse(pa_flag == 1, a_taz, p_taz)
+  ) %>%
+  relocate(o_taz:d_taz, .before = p_taz)
 ```
 
 
@@ -2147,7 +2154,8 @@ add_obs_trip_type <- scheme6 %>%
 
 add_hh_data <- add_obs_trip_type %>%
   left_join(
-    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab, choice_segment),
+    hh_update_taz %>% select(
+      hhid, hhsize, num_workers, num_vehicles, hh_inc_final, hh_inc_final_lab, choice_segment),
     by = "hhid"
   )
 ```
