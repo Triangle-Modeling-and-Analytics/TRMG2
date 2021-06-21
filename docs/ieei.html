@@ -15,26 +15,19 @@
 
 <title>Internal/External</title>
 
-<script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.5/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<style>h1 {font-size: 34px;}
-       h1.title {font-size: 38px;}
-       h2 {font-size: 30px;}
-       h3 {font-size: 24px;}
-       h4 {font-size: 18px;}
-       h5 {font-size: 16px;}
-       h6 {font-size: 12px;}
-       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
-       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
@@ -51,7 +44,32 @@
 
 
 
-
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
 
 <link rel="stylesheet" href="styles.css" type="text/css" />
 
@@ -62,6 +80,10 @@
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -78,13 +100,40 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
-pre code {
-  padding: 0;
-}
 </style>
 
 
 <style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
 .dropdown-submenu {
   position: relative;
 }
@@ -112,7 +161,7 @@ pre code {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #adb5bd;
+  border-left-color: #ffffff;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -124,7 +173,7 @@ pre code {
 }
 </style>
 
-<script type="text/javascript">
+<script>
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -135,23 +184,10 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.tab('show');
+  menuAnchor.parent().addClass('active');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
-
-  // Navbar adjustments
-  var navHeight = $(".navbar").first().height() + 15;
-  var style = document.createElement('style');
-  var pt = "padding-top: " + navHeight + "px; ";
-  var mt = "margin-top: -" + navHeight + "px; ";
-  var css = "";
-  // offset scroll position for anchor links (for fixed navbar)
-  for (var i = 1; i <= 6; i++) {
-    css += ".section h" + i + "{ " + pt + mt + "}\n";
-  }
-  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
-  document.head.appendChild(style);
 });
 </script>
 
@@ -163,6 +199,7 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
+  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -288,13 +325,13 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-sm-12 col-md-4 col-lg-3">
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -352,6 +389,9 @@ div.tocify {
       <a href="population_synthesis.html">Synthesis</a>
     </li>
     <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
       <a href="time_of_day.html">Time of Day</a>
     </li>
     <li>
@@ -370,7 +410,7 @@ div.tocify {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div id="header">
+<div class="fluid-row" id="header">
 
 
 
@@ -389,7 +429,7 @@ div.tocify {
 <h2>External-external (EE)</h2>
 <p>The best available data source for movements through the modeling region is StreetLight Data extracting by ITRE. An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix.</p>
 <p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step.</p>
-<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file.</p>
+<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file.The table also includes the StreetLight flow estimate (<code>sl_ee_flow</code>) and the share of ADT attributable to personal vehicles (<code>auto_ee_adt</code>), which is the <code>ADT</code> value less the share of trucks, <code>PCTCV</code>.</p>
 <div id="ee-traffic-shares" class="section level3">
 <h3>EE Traffic Shares</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -405,10 +445,16 @@ station_name
 ADT
 </th>
 <th style="text-align:right;">
+PCTCV
+</th>
+<th style="text-align:right;">
 PCTAUTOEE
 </th>
 <th style="text-align:right;">
-ee_flow
+auto_ee_adt
+</th>
+<th style="text-align:right;">
+sl_ee_flow
 </th>
 <th style="text-align:right;">
 pct_auto_ee
@@ -427,13 +473,19 @@ pct_auto_ee
 8000
 </td>
 <td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
 15.0
+</td>
+<td style="text-align:right;">
+7120
 </td>
 <td style="text-align:right;">
 306
 </td>
 <td style="text-align:right;">
-3.8
+4.3
 </td>
 </tr>
 <tr>
@@ -447,13 +499,19 @@ pct_auto_ee
 2200
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 2.0
+</td>
+<td style="text-align:right;">
+2024
 </td>
 <td style="text-align:right;">
 320
 </td>
 <td style="text-align:right;">
-14.5
+15.8
 </td>
 </tr>
 <tr>
@@ -467,13 +525,19 @@ pct_auto_ee
 5100
 </td>
 <td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
 2.0
+</td>
+<td style="text-align:right;">
+4641
 </td>
 <td style="text-align:right;">
 470
 </td>
 <td style="text-align:right;">
-9.2
+10.1
 </td>
 </tr>
 <tr>
@@ -487,13 +551,19 @@ pct_auto_ee
 3900
 </td>
 <td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
 1.1
+</td>
+<td style="text-align:right;">
+3315
 </td>
 <td style="text-align:right;">
 422
 </td>
 <td style="text-align:right;">
-10.8
+12.7
 </td>
 </tr>
 <tr>
@@ -507,13 +577,19 @@ pct_auto_ee
 2400
 </td>
 <td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
 2.0
+</td>
+<td style="text-align:right;">
+2112
 </td>
 <td style="text-align:right;">
 83
 </td>
 <td style="text-align:right;">
-3.5
+3.9
 </td>
 </tr>
 <tr>
@@ -527,13 +603,19 @@ pct_auto_ee
 3100
 </td>
 <td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
 19.6
+</td>
+<td style="text-align:right;">
+2728
 </td>
 <td style="text-align:right;">
 414
 </td>
 <td style="text-align:right;">
-13.4
+15.2
 </td>
 </tr>
 <tr>
@@ -547,13 +629,19 @@ pct_auto_ee
 35000
 </td>
 <td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
 70.1
+</td>
+<td style="text-align:right;">
+29750
 </td>
 <td style="text-align:right;">
 454
 </td>
 <td style="text-align:right;">
-1.3
+1.5
 </td>
 </tr>
 <tr>
@@ -567,13 +655,19 @@ pct_auto_ee
 4800
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 24.1
+</td>
+<td style="text-align:right;">
+4512
 </td>
 <td style="text-align:right;">
 79
 </td>
 <td style="text-align:right;">
-1.6
+1.8
 </td>
 </tr>
 <tr>
@@ -587,13 +681,19 @@ pct_auto_ee
 4100
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 18.4
+</td>
+<td style="text-align:right;">
+3690
 </td>
 <td style="text-align:right;">
 217
 </td>
 <td style="text-align:right;">
-5.3
+5.9
 </td>
 </tr>
 <tr>
@@ -607,13 +707,19 @@ pct_auto_ee
 12000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 26.4
+</td>
+<td style="text-align:right;">
+10800
 </td>
 <td style="text-align:right;">
 593
 </td>
 <td style="text-align:right;">
-4.9
+5.5
 </td>
 </tr>
 <tr>
@@ -627,13 +733,19 @@ pct_auto_ee
 4200
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 7.2
+</td>
+<td style="text-align:right;">
+3864
 </td>
 <td style="text-align:right;">
 428
 </td>
 <td style="text-align:right;">
-10.2
+11.1
 </td>
 </tr>
 <tr>
@@ -647,13 +759,19 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 15.4
+</td>
+<td style="text-align:right;">
+2700
 </td>
 <td style="text-align:right;">
 244
 </td>
 <td style="text-align:right;">
-8.1
+9.0
 </td>
 </tr>
 <tr>
@@ -667,13 +785,19 @@ pct_auto_ee
 4800
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 8.8
+</td>
+<td style="text-align:right;">
+4512
 </td>
 <td style="text-align:right;">
 85
 </td>
 <td style="text-align:right;">
-1.8
+1.9
 </td>
 </tr>
 <tr>
@@ -687,13 +811,19 @@ pct_auto_ee
 2700
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 9.0
+</td>
+<td style="text-align:right;">
+2430
 </td>
 <td style="text-align:right;">
 348
 </td>
 <td style="text-align:right;">
-12.9
+14.3
 </td>
 </tr>
 <tr>
@@ -707,13 +837,19 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 8.0
+</td>
+<td style="text-align:right;">
+2820
 </td>
 <td style="text-align:right;">
 196
 </td>
 <td style="text-align:right;">
-6.5
+7.0
 </td>
 </tr>
 <tr>
@@ -727,13 +863,19 @@ pct_auto_ee
 25000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 51.4
+</td>
+<td style="text-align:right;">
+22500
 </td>
 <td style="text-align:right;">
 696
 </td>
 <td style="text-align:right;">
-2.8
+3.1
 </td>
 </tr>
 <tr>
@@ -747,13 +889,19 @@ pct_auto_ee
 29000
 </td>
 <td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
 44.2
+</td>
+<td style="text-align:right;">
+26390
 </td>
 <td style="text-align:right;">
 482
 </td>
 <td style="text-align:right;">
-1.7
+1.8
 </td>
 </tr>
 <tr>
@@ -767,13 +915,19 @@ pct_auto_ee
 1900
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+1748
 </td>
 <td style="text-align:right;">
 32
 </td>
 <td style="text-align:right;">
-1.7
+1.8
 </td>
 </tr>
 <tr>
@@ -787,13 +941,19 @@ pct_auto_ee
 3900
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+3510
 </td>
 <td style="text-align:right;">
 29
 </td>
 <td style="text-align:right;">
-0.7
+0.8
 </td>
 </tr>
 <tr>
@@ -807,13 +967,19 @@ pct_auto_ee
 26000
 </td>
 <td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
 75.0
+</td>
+<td style="text-align:right;">
+21060
 </td>
 <td style="text-align:right;">
 8794
 </td>
 <td style="text-align:right;">
-33.8
+41.8
 </td>
 </tr>
 <tr>
@@ -827,13 +993,19 @@ pct_auto_ee
 57000
 </td>
 <td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
 45.9
+</td>
+<td style="text-align:right;">
+47880
 </td>
 <td style="text-align:right;">
 9513
 </td>
 <td style="text-align:right;">
-16.7
+19.9
 </td>
 </tr>
 <tr>
@@ -847,13 +1019,19 @@ pct_auto_ee
 6400
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+6016
 </td>
 <td style="text-align:right;">
 434
 </td>
 <td style="text-align:right;">
-6.8
+7.2
 </td>
 </tr>
 <tr>
@@ -867,13 +1045,19 @@ pct_auto_ee
 4300
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+4042
 </td>
 <td style="text-align:right;">
 1011
 </td>
 <td style="text-align:right;">
-23.5
+25.0
 </td>
 </tr>
 <tr>
@@ -887,13 +1071,19 @@ pct_auto_ee
 5500
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 6.9
+</td>
+<td style="text-align:right;">
+5170
 </td>
 <td style="text-align:right;">
 1168
 </td>
 <td style="text-align:right;">
-21.2
+22.6
 </td>
 </tr>
 <tr>
@@ -907,13 +1097,19 @@ pct_auto_ee
 13000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 9.9
+</td>
+<td style="text-align:right;">
+11700
 </td>
 <td style="text-align:right;">
 7274
 </td>
 <td style="text-align:right;">
-56.0
+62.2
 </td>
 </tr>
 <tr>
@@ -927,13 +1123,19 @@ pct_auto_ee
 32000
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 9.7
+</td>
+<td style="text-align:right;">
+30080
 </td>
 <td style="text-align:right;">
 6744
 </td>
 <td style="text-align:right;">
-21.1
+22.4
 </td>
 </tr>
 <tr>
@@ -947,13 +1149,19 @@ pct_auto_ee
 2300
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+2116
 </td>
 <td style="text-align:right;">
 47
 </td>
 <td style="text-align:right;">
-2.0
+2.2
 </td>
 </tr>
 <tr>
@@ -967,13 +1175,19 @@ pct_auto_ee
 29000
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 25.0
+</td>
+<td style="text-align:right;">
+26680
 </td>
 <td style="text-align:right;">
 866
 </td>
 <td style="text-align:right;">
-3.0
+3.2
 </td>
 </tr>
 <tr>
@@ -987,13 +1201,19 @@ pct_auto_ee
 7500
 </td>
 <td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
 25.3
+</td>
+<td style="text-align:right;">
+6900
 </td>
 <td style="text-align:right;">
 914
 </td>
 <td style="text-align:right;">
-12.2
+13.2
 </td>
 </tr>
 <tr>
@@ -1007,13 +1227,19 @@ pct_auto_ee
 21000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 19.4
+</td>
+<td style="text-align:right;">
+18900
 </td>
 <td style="text-align:right;">
 209
 </td>
 <td style="text-align:right;">
-1.0
+1.1
 </td>
 </tr>
 <tr>
@@ -1027,13 +1253,19 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
 24.2
+</td>
+<td style="text-align:right;">
+2700
 </td>
 <td style="text-align:right;">
 790
 </td>
 <td style="text-align:right;">
-26.3
+29.3
 </td>
 </tr>
 <tr>
@@ -1047,7 +1279,13 @@ pct_auto_ee
 3000
 </td>
 <td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
 0.0
+</td>
+<td style="text-align:right;">
+2910
 </td>
 <td style="text-align:right;">
 36
@@ -1067,13 +1305,19 @@ pct_auto_ee
 2400
 </td>
 <td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
 15.7
+</td>
+<td style="text-align:right;">
+2016
 </td>
 <td style="text-align:right;">
 416
 </td>
 <td style="text-align:right;">
-17.3
+20.6
 </td>
 </tr>
 </tbody>
@@ -1200,7 +1444,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open');
+    $(this).parent().toggleClass('nav-tabs-open')
   });
 });
 </script>

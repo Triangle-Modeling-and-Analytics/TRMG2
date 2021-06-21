@@ -33,7 +33,7 @@ The best available data source for movements through the modeling region is Stre
 
 The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step. 
 
-The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are `r number_of_external` external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (`pct_auto_ee`) with the existing shares (`PCTAUTOEE`) stored in the socio-economic data file.
+The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are `r number_of_external` external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (`pct_auto_ee`) with the existing shares (`PCTAUTOEE`) stored in the socio-economic data file.The table also includes the StreetLight flow estimate (`sl_ee_flow`) and the share of ADT attributable to personal vehicles (`auto_ee_adt`), which is the `ADT` value less the share of trucks, `PCTCV`. 
 
 ### EE Traffic Shares
 ```{r}

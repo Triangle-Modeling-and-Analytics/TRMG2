@@ -189,9 +189,10 @@ ext_shares_df <- working_df %>%
   summarise(dest_flow = sum(flow), .groups = "drop") %>%
   select(ext_station = dest_taz, station_name = dest_name, day_type, day_part, dest_flow) %>%
   left_join(., temp_orig_df, by = c("ext_station", "station_name", "day_type", "day_part")) %>%
-  left_join(., select(socec_df, ext_station = TAZ, ADT, PCTAUTOEE), by = c("ext_station")) %>%
-  mutate(ee_flow = orig_flow + dest_flow) %>%
-  mutate(pct_auto_ee = 100.0 * ee_flow / ADT) %>%
+  left_join(., select(socec_df, ext_station = TAZ, ADT, PCTCV, PCTAUTOEE), by = c("ext_station")) %>%
+  mutate(auto_ee_adt = ADT * (1.00 - PCTCV/100.0)) %>%
+  mutate(sl_ee_flow = orig_flow + dest_flow) %>%
+  mutate(pct_auto_ee = 100.0 * sl_ee_flow / auto_ee_adt) %>%
   select(-orig_flow, -dest_flow, -day_type, -day_part)
 
 remove(working_df, temp_orig_df)
