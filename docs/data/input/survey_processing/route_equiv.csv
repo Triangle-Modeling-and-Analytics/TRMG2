@@ -1,0 +1,108 @@
+transit_system_1,transit_line_1,transit_system_name,transit_line_name,rts_name1,rts_name2,bus_type
+1,1,GoTriangle,,,,eb
+1,5,GoTriangle,100 - Raleigh - Airport - RTC,TT 100 EB:RTC-Moore Sq,TT 100 WB:Moore Sq-RTC,lb
+1,6,GoTriangle,102 - Raleigh - Garner,TT 102 OB:Moore Sq-Garner,,lb
+1,7,GoTriangle,105 - Raleigh - RTC,TT 105 EB:RTP-Moore Sq,TT 105 WB:Moore Sq-RTP,eb
+1,9,GoTriangle,300 - Cary - Raleigh,TT 300 EB:RTP-Moore Squ,TT 300 WB:Moore Sq-RTP,eb
+1,11,GoTriangle,301 - Raleigh - Cary,TT 301 EB:RTP-Moore Sq,TT 301 WB:Moore Sq-RTP,lb
+1,14,GoTriangle,400 - Durham - Chapel Hill,TT 400 EB:Chapel Hill-NHC-Durham,TT 400 WB:Durham-NHC-Chapel Hill,lb
+1,15,GoTriangle,405 - Durham. - Chapel Hill,TT 405 EB:Chapel Hill-Durham,TT 405 WB:Durham-Chapel Hill,eb
+1,16,GoTriangle,420 - Hillsborough - Chapel Hill,TT 420 NB:Chap Hill-Hillsb,TT 420 SB:Hillsb-Chap Hill,lb
+1,17,GoTriangle,700 - Durham. - RTC,TT 700 EB:Durham-RTC,TT 700 WB:RTC-Durham,lb
+1,18,GoTriangle,800 - Chapel Hill - Southpoint - RTC,TT 800 EB,TT 800 WB:RTC-Southpoint-CH,eb
+1,20,GoTriangle,,,,eb
+1,21,GoTriangle,CRX - Chapel Hill - Raleigh Express,TT CRX EB:Chapel Hill-Raleigh,TT CRX WB,eb
+1,23,GoTriangle,DRX - Durham - Raleigh Express,TT DRX EB:Durham-Raleigh,TT DRX WB:Raleigh-Durham,eb
+1,24,GoTriangle,FRX - Fuquay-Varina - Raleigh Express,FRX IB,FRX OB,eb
+1,28,GoTriangle,RSX - Robertson Scholars Express,rsx,,eb
+1,30,GoTriangle,ZWX - Zebulon - Wendell - Raleigh Express,CAT ZWX IB:Zebulon-Raleigh,CAT ZWX OB:Raleigh-Zebulon,eb
+1,133,GoTriangle,,,,eb
+1,201,GoTriangle,800S - Streets at Southpoint - Chapel Hill,TT 800 EB,TT 800 WB:RTC-Southpoint-CH,eb
+2,31,GoRaleigh,1 - Moore Square Station - Triangle Town Center,CAT 1 IB:TriTCen,CAT 1 OB:TriTCen,lb
+2,32,GoRaleigh,2 - Moore Square Station - Bent Tree Plaza,CAT 2-8:FallsOfNeuse-SixFrksSta,,lb
+2,34,GoRaleigh,4 - Moore Square Station - Towne North Shopping Center,CAT 4-22:Towne North to Hadley,CAT 22-4:Hadley to Towne North,lb
+2,35,GoRaleigh,5 - Moore Square Station - Sanderford at Idlewood Village,CAT 5-11:Sanderford-Trailwd Hills,,lb
+2,36,GoRaleigh,6 - Moore Square Station - Townridge Shopping Center,CAT 6 IB,CAT 6 OB,lb
+2,37,GoRaleigh,7 - Moore Square Station - Shoppes at Garner,CAT 7-19:ShopsatGarner-WCSS,,lb
+2,39,GoRaleigh,8 - Moore Square Station - Six Forks at Strickland,CAT 8-2:SixFrksSta-FallsOfNeuse,,lb
+2,40,GoRaleigh,10 - Moore Square Station - Chatham at Bertie,CAT 10-12:Bertie-Method,,lb
+2,41,GoRaleigh,11 - Moore Square Station - Trailwood Hills,CAT 11-5:Trailwd Hills-Sanderford,,lb
+2,43,GoRaleigh,12 - Moore Square Station - Method at Beryl,CAT 12-10:Method-Bertie,,lb
+2,44,GoRaleigh,13 - Moore Square Station - Holmes at Bragg,CAT 13-21:Holmes-LakeWheeler,,lb
+2,45,GoRaleigh,15 - Moore Square Station - New Hope Commons,CAT 15 IB,CAT 15 OB,lb
+2,47,GoRaleigh,16 - Moore Square Station - Rex Hospital,CAT 16-3:RexHosp-Crabtree,CAT 3-16:Crabtree-RexHosp,lb
+2,48,GoRaleigh,18 - Moore Square Station - Bus Way & Poole Road,CAT 18 IB:WalnutCreekSC-Dwntwn,CAT 18 OB:Dwntwn-WalnutCreekSC,lb
+2,49,GoRaleigh,19 - Moore Square Station - Swinburne at Kidd,CAT 19-7:WCSS-ShopsatGarner,,lb
+2,50,GoRaleigh,21 - Moore Square Station - Maywood at Lake Wheeler,CAT 21-13:LakeWheeler-Holmes,,lb
+2,52,GoRaleigh,23L - New Hope at Capital - Crabtree Valley Mall,CAT 23L EB:CtreeVM-MilBrk&CBlvd,CAT 23L WB:MilBrk&CBlvd-CtreeVM,lb
+2,53,GoRaleigh,24L - Midtown - Spring Forest at Capital,CAT 24L EB:NHilMal-Cptl&Sprgfor,CAT 24L WB:Cptl&Sprgfor-NHilMal,lb
+2,54,GoRaleigh,25L - Falls Pointe Shopping Center - North Ridge Shopping Center,CAT 25L NB,CAT 25L SB,lb
+2,56,GoRaleigh,40X - Moore Square Station - Wake Tech Community College,CAT 40X NB: Wake Tech-MooreSq,CAT 40X SB:MooreSq-WakeTech,eb
+2,59,GoRaleigh,70X - Crabtree Valley Mall - Brier Creek Shopping Center,CAT 70X NB:CrabtreeVM-LittleBrier,CAT 70X SB:LittleBrier-CrabtreeVM,eb
+2,60,GoRaleigh,R-Line - Free Downtown Circulator,CAT R-LINE,,lb
+2,133,GoRaleigh,,,,lb
+3,62,GoDurham,"1, 1A, 1B - Durham Station - Northgate Mall - North Pointe - Loehmanns Plaza - Willowdale",DATA 1A-3 OB:Hillndal-Mdlnd,DATA 1B-3 OB:Hillndal-Mdlnd,lb
+3,63,GoDurham,"2, 2A, 2B - Durham Station - East Durham - The Village - Angier Avenue",DATA 2A-4 IB:Angier-Horton,DATA 2B-4 IB:Raynor-Horton,lb
+3,64,GoDurham,"3, 3B, 3C - Durham Station - The Village - Glenview Station",DATA 3-1A IB:Mdlnd-Hillndal,DATA 3-1B IB:Mdlnd-Hillndal,lb
+3,65,GoDurham,4 - Durham Station - N Roxboro Road - Durham Regional Hospital - North Duke Crossing,DATA 4-2A OB:Horton-Angier,DATA 4-2B OB:Horton-Raynor,lb
+3,66,GoDurham,"5, 5K - Durham Station - Fayetteville Street - NCCU - Southpoint",DATA 5K IB,DATA 5K OB,lb
+3,67,GoDurham,"6, 6B - Durham Station - Duke University / VA Hospital - American Village - Sparger Road",DATA 6B-5 IB:Sparger-StrtsSPt,DATA 6B-5 IBmd:Sparger-StrtsSPt,lb
+3,68,GoDurham,7 - Durham Station - Forest Hills - Fayetteville Street - Martin Luther King Parkway,DATA 7 IB:MLKRxb-Downtown,DATA 7 OB:Downtown-MLKRoxb,lb
+3,69,GoDurham,8 - Durham Station - Lawson Street - NCCU - Durham Tech,DATA 8-10A OB:DrhmTech-NHopeCmn,DATA 8-10Adev OB:DrmTch-NHopeCmn,lb
+3,70,GoDurham,"9, 9A, 9B - Durham Station - Dearborn Drive - North Durham",DATA 9A IB:Horton-Downtown,DATA 9A OB:Downtown-Horton,lb
+3,71,GoDurham,"10, 10A - Durham Station - University Dr - New Hope Commons",DATA 8-10A OB:DrhmTech-NHopeCmn,DATA 8-10Adev OB:DrmTch-NHopeCmn,lb
+3,72,GoDurham,10B - Durham Station - South Square - Emerald Pond,,,lb
+3,74,GoDurham,11 - Durham Station - Duke University/ VA Hospital - Hillsborough Road,,,lb
+3,77,GoDurham,,,,lb
+3,78,GoDurham,Bull City Connector - Downtown Durham - Duke University,,,lb
+3,133,GoDurham,,,,lb
+4,81,GoCary,3 - Harrison Ave,CTRAN 3-5 SB:Harrison-Kildaire,,lb
+4,82,GoCary,4 - High House Rd,CTRAN 4-6 EB:HighHouse-BuckJones,,lb
+4,84,GoCary,6 - Buck Jones Rd,CTRAN 6-4 WB:BuckJones-HighHouse,,lb
+5,85,NCSU Wolfline,1 - Avent Ferry,NCSU 1:AventF&Gorman-DHLibrar,,lb
+5,87,NCSU Wolfline,3 - Engineering,NCSU 3:Engineering,,lb
+5,88,NCSU Wolfline,5 - Varsity,NCSU 5:VarsityPL-DHLibrary,,lb
+5,91,NCSU Wolfline,8 - Southeast Loop,NCSU 8:SoutheastLoop,,lb
+5,92,NCSU Wolfline,9 - Gorman Street,NCSU 9:GreekVillage,,lb
+5,93,NCSU Wolfline,10 - Centennial,,,lb
+5,94,NCSU Wolfline,11 - Village Link,,,lb
+5,133,NCSU Wolfline,,,,lb
+5,207,NCSU Wolfline,4 - Centennial Express,,,lb
+6,95,Chapel Hill Transit (CHT),A - MLK Jr. Blvd. / Northside,CHT A NB:Weiner-SHS,CHT A SB:SHS-Weiner,lb
+6,97,Chapel Hill Transit (CHT),CL - Colony Lake / Sage Road / UNC Hospitals,CHT CL IB: WaldenGrnflds-UNCHosp,CHT CL OB: UNCHosp-WaldenGrnflds,lb
+6,98,Chapel Hill Transit (CHT),CM - Carrboro / Merritt Mill Rd / Family Medicine,CHT CM IB:FamPrac-JonesFerry,CHT CM OB:JonesFerry-FamPrac,lb
+6,99,Chapel Hill Transit (CHT),CPX - Carrboro Plaza Express,CHT CPX EB,CHT CPX WB,eb
+6,100,Chapel Hill Transit (CHT),CW - Carrboro / Weaver Street,CHT CW IB:Pittsboro-JonesFerry,CHT CW OB:JonesFerry-Pittsboro,lb
+6,101,Chapel Hill Transit (CHT),D - Culbreth Road / Franklin Street / Eastowne,CHT D IB:Providence-SmithLevel,CHT D OB:SmithLevel-Providence,lb
+6,103,Chapel Hill Transit (CHT),F - Colony Woods / Franklin Street / McDougle School,CHT F IB:ColonyWoods-McDougle,CHT F OB:McDougle-ColonyWoods,lb
+6,104,Chapel Hill Transit (CHT),FCX - Friday Center Express,CHT FCX IB:Pittsboro-FridayCntr,CHT FCX OB:FridayCntr-Pittsboro,eb
+6,105,Chapel Hill Transit (CHT),G - Booker Creek / UNC Hospitals / Glen Lennox,CHT G IB:BookerCreek-Univ,CHT G OB:UnivtoBooker,lb
+6,106,Chapel Hill Transit (CHT),"HS - Chapel Hill High / Martin Luther King, Jr. Blvd / Southern Human Services",CHT HS IB:VarsityTheater-MGElem,CHT HS OB:MGElem-Varsity,lb
+6,107,Chapel Hill Transit (CHT),HU - UNC Campus / 54 Park & Ride / Hedrick Building,CHT HUX IB:UNCHosp-HedrickBldg,CHT HUX OB:HedrickBldg-UNCHosp,eb
+6,108,Chapel Hill Transit (CHT),JFX - Jones Ferry Road Express,CHT JFX IB:JonesFerryPNR-UNC,CHT JFX OB:UNC-JonesFerryPNR,eb
+6,109,Chapel Hill Transit (CHT),J - Carrboro / Downtown Chapel Hill / Jones Ferry Road,CHT J IB:JonesFerry-RockCrkApt,CHT J OB:RckCrkApts-JonesFerry,lb
+6,110,Chapel Hill Transit (CHT),N - Estes Park / UNC Hospitals / Family Medicine,CHT N IB:EstsParkApt-FamilyPract,CHT N OB:FamilyPract-EstsPrkApt,lb
+6,111,Chapel Hill Transit (CHT),NS - Eubanks Road / Southern Village,CHT NS IB:SVillage-Eubanks,CHT NS OB:Eubanks-SVillage,lb
+6,112,Chapel Hill Transit (CHT),NU - RR Lot / UNC Hospitals,CHT NU IB:UNCHosp-PR Lot,CHT NU OB: PRLot-UNCHosp,lb
+6,113,Chapel Hill Transit (CHT),S - South Campus / NC 54 Park & Ride,CHT S IB:UNCHosp-FridayCntr,CHT S OB:FridayCntr-UNCHosp,lb
+6,114,Chapel Hill Transit (CHT),T - Martin Luther King Jr Blvd / UNC Hospital,CHT T IB:UNCHosp-ECHHghSch,CHT T OB:ECHHS-UNC Hosp,lb
+6,115,Chapel Hill Transit (CHT),,,,lb
+6,116,Chapel Hill Transit (CHT),V - Southern Village / Meadowmont,CHT V IB:Meadowmont-SVillage,CHT V OB:SVillage-Meadowmont,lb
+6,133,Chapel Hill Transit (CHT),Don't know,,,lb
+6,211,Chapel Hill Transit (CHT),U - Campus Shuttles,CHT U,,lb
+8,119,Duke Transit,C1 - East - West,DUKE C1 IB,DUKE C1 OB:EastCampus-WestCampus,lb
+8,121,Duke Transit,C3 - East - Science,DUKE C3 IB:EastCampus-ScienceDr,DUKE C3 OB,lb
+8,122,Duke Transit,C4 - Central - West,DUKE C4,,lb
+8,123,Duke Transit,,,,lb
+8,124,Duke Transit,CCX - Central Campus Express,,,eb
+8,126,Duke Transit,H2 - Hospital Loop,DUKE H2 IB:HospNorth-PG3,DUKE H2 OB:PG3-HospitalNorth,lb
+8,127,Duke Transit,H5 - Broad - Erwin,DUKE H5 IB:HookPlaza-BroadSt,DUKE H5 OB:BroadSt-HookPlaza,lb
+8,128,Duke Transit,H6 - Remote Lot - Hospital,DUKE H6,,lb
+8,129,Duke Transit,LL - LaSalle Loop,DUKE LaSalle Loop,,lb
+8,133,Duke Transit,,,,lb
+8,213,Duke Transit,C2 - East - Central - West,,,lb
+8,214,Duke Transit,SWX - Swift Express,,,eb
+8,215,Duke Transit,Duke Downtown Shuttle,,,lb
+9,133,Orange Public Transportation (OPT),,,,lb
+10,132,Other,,,,lb
+10,133,Other,,,,lb

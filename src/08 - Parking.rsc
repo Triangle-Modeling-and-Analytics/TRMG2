@@ -103,6 +103,7 @@ Macro "Parking Destination Choice"(Args)
     se_vw = OpenTable("scenario_se", "FFB", {Args.SE})
     modify = CreateObject("CC.ModifyTableOperation", se_vw)
     modify.FindOrAddField("ParkCost", "Real", 12, 2, )
+    modify.FindOrAddField("ParkSize", "Real", 12, 2, )
     modify.Apply()
 
     // Loop over, run DC model and write to utility matrix
@@ -111,7 +112,7 @@ Macro "Parking Destination Choice"(Args)
         for destType in destTypes do
             for tourType in tourTypes do
                 // Fill appropriate parking cost field in 'ParkCost' field
-                RunMacro("Parking: Fill Cost", {View: se_vw, DestType: destType, TourType: tourType})
+                RunMacro("Parking: Fill Fields", {View: se_vw, DestType: destType, TourType: tourType})
 
                 // Modify template model and run DC model (Note SE View is assumed to be open here)
                 retDC = RunMacro("Parking: Evaluate DC", Args, {Mode: mode, DestType: destType, TourType: tourType})
@@ -129,6 +130,7 @@ Macro "Parking Destination Choice"(Args)
 
     // Remove temp field from se_table
     modify.DropField("ParkCost")
+    modify.DropField("ParkSize")
     modify.Apply()
 
     CloseView(se_vw)
@@ -140,19 +142,29 @@ endMacro
 /*
     Macro that fill the appropriate park cost field into the common field called 'ParkCost' before running the destination choice model
 */
-Macro "Parking: Fill Cost"(spec)
-    // Get approprioate parking cost field
-    if spec.DestType = 'Univ' then      // 'Univ' ('Work' or 'NonWork')
-        parkCost = 'ParkCostU'
-    else if spec.TourType = 'Work' then // 'CBD' and 'Work'
+Macro "Parking: Fill Fields"(spec)
+    // Get appropriate parking cost field
+    if spec.TourType = 'Work' then do// 'CBD' + 'Work' or 'Univ' + 'Work'
         parkCost = 'ParkCostW'
-    else                                // 'CBD' and 'Other'
+        spacesFld = 'EmpSpaces'
+    end
+    else if spec.DestType = 'Univ' then do     // 'Univ' + 'NonWork')
+        parkCost = 'ParkCostU'
+        spacesFld = 'StudSpaces'
+    end
+    else do                               // 'CBD' + 'NonWork'
         parkCost = 'ParkCostO'
+        spacesFld = 'OtherSpaces'
+    end
 
     // Copy case specific parking cost values into temporary 'ParkCost' field in SE Data
     se_vw = spec.View
-    v = GetDataVector(se_vw + "|", parkCost,)
-    SetDataVector(se_vw + "|", "ParkCost", v,)    
+    vecs = GetDataVectors(se_vw + "|", {parkCost, spacesFld},)
+
+    vecsSet = null
+    vecsSet.ParkCost = i2r(vecs[1])/100
+    vecsSet.ParkSize = if vecs[2] > 0 then log(vecs[2]) else -99
+    SetDataVectors(se_vw + "|", vecsSet,)
 endMacro
 
 
@@ -222,6 +234,22 @@ Macro "Parking: Create DCM File"(Args, spec)
     primarySrc.RowIdx = destType // "CBD" or "Univ"
     primarySrc.ColIdx = destType
 
+    // Change label of transit Skim Source (only for park and shuttle)
+    if tourType = "Work" then
+        tSkim = Args.[Output Folder] + "\\skims\\transit\\skim_AM_w_lb.mtx"
+    else
+        tSkim = Args.[Output Folder] + "\\skims\\transit\\skim_MD_w_lb.mtx"
+    
+    m = OpenMatrix(tSkim,)
+    label = GetMatrixName(m)
+    m = null
+
+    tSkimSrc = model.GetDataSource("TransitSkim")
+    if tSkimSrc <> null then do     // Note tSkimSrc = null for the Park and Walk model
+        tSkimSrc.FileName = tSkim
+        tSkimSrc.FileLabel = label
+    end
+
     // Change destination index of the composite alternative
     seg = model.GetSegment("*")
     alt = seg.GetAlternative("ParkingZones")
@@ -234,10 +262,8 @@ Macro "Parking: Create DCM File"(Args, spec)
     coeffs = parkingCoeffs.(coeffCol)
     for i = 1 to coeffNames.length do
         coeffName = coeffNames[i]
-        if coeffName contains "Time" or coeffName contains "Cost" then do
-            term = seg.GetTerm(coeffName)
-            term.Coeff = coeffs[i]
-        end
+        term = seg.GetTerm(coeffName)
+        term.Coeff = coeffs[i]
     end
     model.Write(dcmFile)
     model.Clear()
@@ -384,6 +410,56 @@ Macro "Parking Mode Choice"(Args)
 
     // Add fields and fill output vector
     modify.Apply()
-    SetDataVectors(vwOut + "|", vecsSet,)     
+    SetDataVectors(vwOut + "|", vecsSet,)
+
+    // Post process
+    RunMacro("PostProcess Logsum Table", vwOut)
     CloseView(vwOut)
+endMacro
+
+
+/*
+Collapse logsum and probabilty fields
+E.g. Merge logsum fields 'Walk_CBD_Work' and 'Walk_Univ_Work' into new fields 'LS_Walk_Work'
+Note that univ and CBD zones are mutually exclusive. 
+Therefore at least one of the fields 'Walk_CBD_Work' and 'Walk_Univ_Work' is always null
+*/
+Macro "PostProcess Logsum Table"(vwOut)
+    modes = {'Walk', 'Shuttle'}
+    tourTypes = {'Work', 'NonWork'}
+    vecsSet = null
+    // LS Fields
+    modify = CreateObject("CC.ModifyTableOperation", vwOut)
+    for mode in modes do
+        for tourType in tourTypes do
+            outFld = "LS_" + mode + "_" + tourType
+            cbdFld = mode + "_CBD_" + tourType
+            univFld = mode + "_Univ_" + tourType
+            vecs = GetDataVectors(vwOut + "|", {cbdFld, univFld},)
+            vecsSet.(outFld) = if vecs[1] <> null then vecs[1]
+                               else if vecs[2] <> null then vecs[2]
+                               else null
+            
+            modify.FindOrAddField(outFld, "Real", 12, 2, )
+            modify.DropField(cbdFld)
+            modify.DropField(univFld)
+        end
+    end
+
+    // Prob Fields
+    for tourType in tourTypes do
+        outFld = "Prob_Shuttle_" + tourType
+        cbdFld = "Prob_Shuttle_CBD_" + tourType
+        univFld = "Prob_Shuttle_Univ_" + tourType
+        vecs = GetDataVectors(vwOut + "|", {cbdFld, univFld},)
+        vecsSet.(outFld) = if vecs[1] <> null then vecs[1]
+                           else if vecs[2] <> null then vecs[2]
+                           else null
+        
+        modify.FindOrAddField(outFld, "Real", 12, 2, )
+        modify.DropField(cbdFld)
+        modify.DropField(univFld)
+    end 
+    modify.Apply()
+    SetDataVectors(vwOut + "|", vecsSet,)
 endMacro
