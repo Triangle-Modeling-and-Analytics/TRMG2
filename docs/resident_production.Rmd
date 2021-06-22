@@ -84,7 +84,14 @@ est_tbl <- person_df %>%
     N_HB_K12_All = as.integer(N_HB_K12_All)
   ) %>%
   left_join(
-    logsum %>% select(TAZ, access = access_general_sov),
+    logsum %>% 
+      select(
+        TAZ,
+        access = access_general_sov,
+        g_access = access_general_sov,
+        n_access = access_nearby_sov,
+        e_access = access_employment_sov
+      ),
     by = c("p_taz" = "TAZ")
   ) %>%
   group_by(hhid) %>%
@@ -152,7 +159,8 @@ dt_tbl <- est_tbl %>%
     hhid, weight, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
     num_children
   ) %>%
-  mutate(across(hhid:num_children, as.factor)) %>%
+  # mutate(across(hhid:num_children, as.factor)) %>%
+  mutate(across(c(hhid, weight), as.factor)) %>%
   normalizeFeatures(target = "N_HB_OD_Long") %>%
   # createDummyFeatures(
   #   target = "N_HB_OD_Long",
@@ -246,30 +254,29 @@ xgb_model <- train(xgb_learner_tuned, task = trainTask)
 
 # Save the model so that this chunk does not have to be evaluated every
 # time the page is knit.
-# saveRDS(xgb_model, "data/output/resident_production/xgb_person_level.RDS")
-# saveRDS(xgb_model, "data/output/resident_production/xgb_hh_level.RDS")
-saveRDS(xgb_model, "xgb_model.RDS")
+saveRDS(xgb_model, "data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r load xgboost model, eval=FALSE}
-# xgb_model <- readRDS("data/output/resident_production/xgb_person_level.RDS")
-# xgb_model <- readRDS("data/output/resident_production/xgb_hh_level.RDS")
-xgb_model <- readRDS("xgb_model.RDS")
+xgb_model <- readRDS("data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r feature importance, eval=FALSE}
 # Show feature importance
-imp_tbl <- getFeatureImportance(xgb_model)
-imp_tbl <- imp_tbl$res #%>%
-  # gather(key = "Feature", value = "Importance") %>%
-  # arrange(Importance)
+imp_tbl <- getFeatureImportance(xgb_model)$res %>%
+  as.data.frame()
 
 plot_ly() %>%
   add_trace(
-    data = imp_tbl, y = ~variable, x = ~importance, type = "bar",
+    data = imp_tbl, y = ~reorder(variable, importance), x = ~importance, type = "bar",
     orientation = "h"
   ) %>%
-  layout(margin = list(l = 110))
+  layout(
+    title = "Feature Importance",
+    yaxis = list(title = NA),
+    xaxis = list(title = "Importance"),
+    margin = list(l = 110)
+  )
 
 # Make prediction on test data set. Importantly, this will return
 # the probabilities as well as set the class the the one with highest
