@@ -1,6 +1,6 @@
 Alternative,Expression,Coefficient,Description,,
-auto,parking.MC_LS_Work,0.618529,Parking,,*need to determine where this will be in the model
-auto,se.HiIncomePct,0.949922,High income,,
+auto,parking.MC_LS_Work.D,0.618529,Parking,,*need to determine where this will be in the model
+auto,se.HiIncomePct.O,0.949922,High income,,
 sov,sov_skim.CongTime,-0.041641,Travel time,,
 sov,sov_skim.[TollCostSOV (Skim)],-0.144459,Toll cost,,
 hov2,hov_skim.CongTime,-0.041641,Travel time,,
@@ -8,12 +8,12 @@ hov2,hov_skim.[TollCostSOV (Skim)],-0.144459,Toll cost,,
 hov3,hov_skim.CongTime,-0.041641,Travel time,,
 hov3,hov_skim.[TollCostSOV (Skim)],-0.144459,Toll cost,,
 nonhh_auto,{segment} = 'vi',2.75452,Vehicle insufficient households,,
-other_auto,parking.MC_LS_Work,1.07798,Parking,,*need to determine where this will be in the model
+other_auto,parking.MC_LS_Work.D,1.07798,Parking,,*need to determine where this will be in the model
 other_auto,sov_skim.CongTime,-0.0247,Travel time,,
 auto_pay,hov_skim.CongTime,-0.0247,Travel time,,
 auto_pay,se.PKTNCWait.O,-0.0247,Auto wait time,,
 auto_pay,hov_skim.auto_pay_fare,-0.00675,Auto fare,,
-auto_pay,se.Enplanements > 0,3.93,Airport related,,
+auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,3.93,Airport related,,
 transit,{segment} = 'vi',2.75452,Vehicle insufficient households,,
 w_lb,w_lb_skim.[Generalized Cost] = null,-9999,Availablility,,*let's talk about how to do availability
 w_lb,w_lb_skim.[In-Vehicle Time],-0.022449,IVTT,,
