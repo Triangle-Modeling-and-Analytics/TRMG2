@@ -1,0 +1,8 @@
+Alternative,Expression,Coefficient,Description
+sov,,0.3372,
+hov2,Constant,0.2301,
+hov3,Constant,-0.0005,
+other_auto,Constant,-0.4816,
+auto_pay,Constant,-2.013,
+w_lb,w_lb_skim.[Generalized Cost] = null,-9999,Availablility
+w_lb,Constant,0,
