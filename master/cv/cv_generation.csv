@@ -1,0 +1,7 @@
+Field,CV,SUT,MUT,CVa,SUTa,MUTa,Description
+Industry,0.0021,0.0009,0.0022,0.0021,0.0009,0.0022,The attraction rates are the same as production rates
+Retail,-0.0065,0.003,0.0005,-0.0065,0.003,0.0005,
+Office,0.0004,0.003,0.0005,0.0004,0.003,0.0005,
+Service_RateLow,0.0004,0.003,0.0005,0.0004,0.003,0.0005,
+Service_RateHigh,0.0004,0.003,0.0005,0.0004,0.003,0.0005,
+HH,0.0037,0.0017,0,0.0037,0.0017,0,

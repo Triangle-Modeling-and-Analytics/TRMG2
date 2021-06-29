@@ -29,6 +29,8 @@ Body:
     FlowChartNode(model,"Skimming",,,)
     FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"Airport",,,)
+    FlowChartNode(model,"Calculate MC Probabilities",,,)
+    FlowChartNode(model,"Commercial Vehicles",,,)
     //
     // Links
     //
@@ -152,9 +154,27 @@ EndMacro
 
 Macro "Airport" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                 {"MacroNames",{"Airport"}}}
+                  {"MacroNames",{"Airport"}}}
 Body:
     ShowMessage('Running: Airport')
+    Return(True)
+EndMacro
+
+
+Macro "Calculate MC Probabilities" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Calculate MC Probabilities"}}}
+Body:
+    ShowMessage('Running: Calculate MC Probabilities')
+    Return(True)
+EndMacro
+
+
+Macro "Commercial Vehicles" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Commercial Vehicles"}}}
+Body:
+    ShowMessage('Running: Commercial Vehicles')
     Return(True)
 EndMacro
 

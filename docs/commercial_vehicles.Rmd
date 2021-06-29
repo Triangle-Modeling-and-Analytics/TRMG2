@@ -1,0 +1,259 @@
+---
+title: "Commercial Vehicles and Trucks"
+author: "Caliper Corporation"
+date: "June 29, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(broom)
+library(sf)
+library(knitr)
+library(kableExtra)
+```
+
+## Introduction
+
+**TODO: Vince add intro**
+
+These models predict the behavior of commercial vehicles, single-unit trucks,
+and multi-unit trucks. The models are implementations of the [Quick Response
+Freight Manual](https://trid.trb.org/view.aspx?id=859168) (QRFM) and are
+re-estimated were possible using the Triangle's 2010 Commercial Vehicle survey.
+
+```{r, include=FALSE}
+veh_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/vehicles_exported.csv")
+trips_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/trips_exported.csv")
+```
+
+```{r}
+veh_types <- veh_raw %>%
+  filter(CTYPE != 2) %>%
+  mutate(veh_type = case_when(
+    CTYPE == 1 ~ "CV",
+    CTYPE == 3 ~ "SUT",
+    CTYPE == 4 ~ "MUT"
+  )) %>%
+  select(SAMPN, veh_type)
+
+add_veh_types <- trips_raw %>%
+  left_join(veh_types, by = "SAMPN")
+```
+
+```{r, include=FALSE}
+tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+se <- read_csv("data/output/se_data/se_2016.csv")
+```
+
+```{r}
+# Geocoding
+pts <- tibble(
+  lng = add_veh_types$XCORD,
+  lat = add_veh_types$YCORD,
+) %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup() %>%
+  filter(lng != "NA") %>%
+  st_as_sf(
+    coords = c("lng", "lat"), 
+    crs = st_crs(tazs),
+    remove = FALSE
+  )
+
+# # manual check that they overlap
+# library(leaflet)
+# leaflet() %>%
+#   addProviderTiles("Stamen.TonerLite") %>%
+#   addPolygons(data = tazs) %>%
+#   addMarkers(data = pts[2000:3000, ])
+```
+
+```{r, include=FALSE}
+geocode_points <- pts %>%
+  st_join(tazs %>% select(TAZ = ID, district = DISTRICT)) %>%
+  st_drop_geometry() %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup()
+```
+
+```{r}
+add_tazs <- add_veh_types %>%
+  select(-TAZ) %>% # un-related TAZ field
+  left_join(geocode_points, by = c("XCORD" = "lng", "YCORD" = "lat")) %>%
+  filter(!is.na(TAZ), !is.na(veh_type))
+```
+
+## Trip Rates
+
+Trip rates were estimated using linear regression. The surveyed trips were
+regressed against the socio-economic data from the TAZs. In order to achieve
+appropriate sample sizes and robust models, the TAZ data was aggregated to the
+43-district system created by the model stakeholders.
+
+All models were estimated with an intercept term in order to achieve appropriate
+coefficients and sensitivities as well as meaningful r-squared values. For all
+models, the intercept term was small and not significant. The intercepts are
+included in the tables below, but not used in model application. This prevents
+empty zones from producing CV trips. Finally, the rates presented below are
+used as both production and attraction rates.
+
+```{r}
+rate_est_tbl <- add_tazs %>%
+  select(TAZ, district, veh_type) %>%
+  left_join(
+    se %>% select(
+      TAZ,
+      HH,
+      Industry,
+      Office,
+      Retail,
+      Service_RateHigh,
+      Service_RateLow
+    ),
+    by = "TAZ"
+  ) %>%
+  mutate(
+    Service = Service_RateHigh + Service_RateLow
+  ) %>%
+  select(-Service_RateHigh, -Service_RateLow) %>%
+  group_by(veh_type, district) %>%
+  summarize(across(HH:Service, sum), trips = n())
+
+# models <- rate_est_tbl %>%
+#   select(-district) %>%
+#   group_by(veh_type) %>%
+#   nest() %>%
+#   mutate(
+#     fit = map(data, ~lm(trips ~ ., data = .))
+#   )
+# 
+# summary(models$fit[[1]])
+# summary(models$fit[[2]])
+# summary(models$fit[[3]])
+
+cv_model <- lm(
+  trips ~ HH + Industry + Retail + OffServ,
+  data = rate_est_tbl %>%
+    filter(veh_type == "CV") %>%
+    mutate(OffServ = Office + Service)
+)
+cv_rsq <- round(summary(cv_model)$r.squared, 2)
+
+
+sut_model <- lm(
+  trips ~ HH + Industry + OffRet + Service,
+  data = rate_est_tbl %>%
+    filter(veh_type == "SUT") %>%
+    mutate(OffRet = Retail + Office)
+)
+sut_rsq <- round(summary(sut_model)$r.squared, 2)
+
+mut_model <- lm(
+  trips ~ Industry + NonIndustry,
+  data = rate_est_tbl %>%
+    filter(veh_type == "MUT") %>%
+    mutate(NonIndustry = Retail + Office + Service)
+)
+mut_rsq <- round(summary(mut_model)$r.squared, 2)
+```
+
+### CV Rates
+
+```{r}
+broom::tidy(cv_model) %>%
+  kable(digits = 4) %>%
+  kable_styling(full_width = FALSE)
+```
+
+R-squared: `r cv_rsq`
+
+Commercial vehicle trips are driven by households and to a lesser extent
+industrial employment. They are less likely to travel to zones made up of retail
+employment. This result matches expectations for CVs to be making deliveries and
+providing services (e.g. lawn care) at residential locations.
+
+### SUT Rates
+
+```{r}
+broom::tidy(sut_model) %>%
+  kable(digits = 4) %>%
+  kable_styling(full_width = FALSE)
+```
+
+R-squared: `r sut_rsq`
+
+Single-Unit truck trips are also associated with households and a mix of
+employment. The smaller coefficients (compared to CVs) reflect fewer total SUT
+trips. While office and retail employment ("OffRet") are not statistically
+significant, they remain in the model with a small positive coefficient. This
+ensures that model zones with only office or retail employment still attract a
+small number of SUT trips.
+
+### MUT Rates
+
+```{r}
+broom::tidy(mut_model) %>%
+  kable(digits = 4) %>%
+  kable_styling(full_width = FALSE)
+```
+
+R-squared: `r mut_rsq`
+
+Multi-unit truck trips are driven primarily by industrial employment, but all
+other employment types will attract some small number of trips.
+
+## Time of Day
+
+The survey included trip departure time, which was used to categorize trips
+by time period. The table below shows the estimated time of day factors used
+by the model.
+
+```{r}
+add_tod <- add_tazs %>%
+  mutate(
+    dep_mins = DEP_HR * 60 + DEP_MIN,
+    tod = case_when(
+      dep_mins > 7 * 60 & dep_mins <= 9 * 60 ~ "AM",
+      dep_mins > 9 * 60 & dep_mins <= 15 * 60 + 30 ~ "MD",
+      dep_mins > 15 * 60 + 30 & dep_mins <= 18 * 60 + 15 ~ "PM",
+      TRUE ~ "NT"
+    )
+  )
+
+tod_tbl <- add_tod %>%
+  group_by(veh_type, tod) %>%
+  summarize(count = n()) %>%
+  mutate(factor = count / sum(count)) %>%
+  select(-count)
+
+tod_tbl %>%
+  pivot_wider(names_from = tod, values_from = factor) %>%
+  mutate(veh_type = factor(veh_type, levels = c("CV", "SUT", "MUT"), ordered = TRUE)) %>%
+  arrange(veh_type) %>%
+  rename(`Vehicle Type` = veh_type) %>%
+  relocate(PM, .before = NT) %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+## Distribution
+
+Once generated, the commercial vehicle and truck trips are distributed among
+zones using a gravity model. Unfortunately, the Triangle survey did not contain
+information on both ends of the trip, which means it could not be used to
+estimate model parameters. Initial model parameters were borrowed from the
+travel model in Blacksburg, VA.
+
+**TODO: Update this section after we calibrate the intitial rates**
+

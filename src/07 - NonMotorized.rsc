@@ -56,7 +56,7 @@ Macro "Apply NM Choice Model" (Args)
     hh_file = Args.Households
     per_file = Args.Persons
     se_file = Args.SE
-    mdl_dir = Args.[Input Folder] + "\\nonmotorized"
+    mdl_dir = Args.[Input Folder] + "\\resident\\nonmotorized"
     out_dir = Args.[Output Folder]
 
     hh_vw = OpenTable("hh", "FFB", {hh_file})
