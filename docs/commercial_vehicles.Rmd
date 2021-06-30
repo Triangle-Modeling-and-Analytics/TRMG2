@@ -31,6 +31,7 @@ re-estimated were possible using the Triangle's 2010 Commercial Vehicle survey.
 ```{r, include=FALSE}
 veh_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/vehicles_exported.csv")
 trips_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/trips_exported.csv")
+est_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/establishment_export.csv")
 ```
 
 ```{r}
@@ -44,7 +45,8 @@ veh_types <- veh_raw %>%
   select(SAMPN, veh_type)
 
 add_veh_types <- trips_raw %>%
-  left_join(veh_types, by = "SAMPN")
+  left_join(veh_types, by = "SAMPN") %>%
+  left_join(est_raw %>% select(SAMPN, EXPWGT), by = "SAMPN")
 ```
 
 ```{r, include=FALSE}
@@ -95,21 +97,14 @@ add_tazs <- add_veh_types %>%
 
 ## Trip Rates
 
-Trip rates were estimated using linear regression. The surveyed trips were
-regressed against the socio-economic data from the TAZs. In order to achieve
-appropriate sample sizes and robust models, the TAZ data was aggregated to the
-43-district system created by the model stakeholders.
+Initial estimation attempts led to poor model results. A fundamental problem
+may have been regressing a 2010 survey against 2016 land use data. In addition,
+stakeholders had previously listed some concerns with the survey. Given these
+issues, initial rates were adapted directly from the QRFM.
 
-All models were estimated with an intercept term in order to achieve appropriate
-coefficients and sensitivities as well as meaningful r-squared values. For all
-models, the intercept term was small and not significant. The intercepts are
-included in the tables below, but not used in model application. This prevents
-empty zones from producing CV trips. Finally, the rates presented below are
-used as both production and attraction rates.
-
-```{r}
+```{r, eval=FALSE}
 rate_est_tbl <- add_tazs %>%
-  select(TAZ, district, veh_type) %>%
+  select(TAZ, district, veh_type, EXPWGT) %>%
   left_join(
     se %>% select(
       TAZ,
@@ -122,101 +117,57 @@ rate_est_tbl <- add_tazs %>%
     ),
     by = "TAZ"
   ) %>%
-  mutate(
-    Service = Service_RateHigh + Service_RateLow
-  ) %>%
-  select(-Service_RateHigh, -Service_RateLow) %>%
   group_by(veh_type, district) %>%
-  summarize(across(HH:Service, sum), trips = n())
-
-# models <- rate_est_tbl %>%
-#   select(-district) %>%
-#   group_by(veh_type) %>%
-#   nest() %>%
-#   mutate(
-#     fit = map(data, ~lm(trips ~ ., data = .))
-#   )
-# 
-# summary(models$fit[[1]])
-# summary(models$fit[[2]])
-# summary(models$fit[[3]])
+  # group_by(veh_type, TAZ) %>%
+  summarize(across(EXPWGT:Service_RateLow, sum)) %>%
+  rename(trips = EXPWGT)
 
 cv_model <- lm(
-  trips ~ HH + Industry + Retail + OffServ,
+  trips ~ HH + Industry + Retail + Office + Service_RateHigh + Service_RateLow,
   data = rate_est_tbl %>%
     filter(veh_type == "CV") %>%
-    mutate(OffServ = Office + Service)
+    mutate(OtherEmp = Retail + Office + Service_RateHigh)
 )
 cv_rsq <- round(summary(cv_model)$r.squared, 2)
 
-
 sut_model <- lm(
-  trips ~ HH + Industry + OffRet + Service,
+  trips ~ HH + Retail + OtherEmp + 0,
   data = rate_est_tbl %>%
     filter(veh_type == "SUT") %>%
-    mutate(OffRet = Retail + Office)
+    mutate(
+      OtherEmp = Industry + Office + Service_RateHigh + Service_RateLow
+    )
 )
 sut_rsq <- round(summary(sut_model)$r.squared, 2)
 
 mut_model <- lm(
-  trips ~ Industry + NonIndustry,
+  trips ~ HH + Industry + OtherEmp + 0,
   data = rate_est_tbl %>%
     filter(veh_type == "MUT") %>%
-    mutate(NonIndustry = Retail + Office + Service)
+    mutate(
+      OtherEmp = Retail + Office + Service_RateHigh + Service_RateLow
+    )
 )
 mut_rsq <- round(summary(mut_model)$r.squared, 2)
 ```
 
-### CV Rates
-
-```{r}
-broom::tidy(cv_model) %>%
-  kable(digits = 4) %>%
-  kable_styling(full_width = FALSE)
+```{r, include=FALSE}
+rates <- read_csv("../master/cv/cv_generation.csv")
 ```
 
-R-squared: `r cv_rsq`
-
-Commercial vehicle trips are driven by households and to a lesser extent
-industrial employment. They are less likely to travel to zones made up of retail
-employment. This result matches expectations for CVs to be making deliveries and
-providing services (e.g. lawn care) at residential locations.
-
-### SUT Rates
-
 ```{r}
-broom::tidy(sut_model) %>%
-  kable(digits = 4) %>%
+rates %>%
+  select(Variable = Field, CV:MUT) %>%
+  kable() %>%
   kable_styling(full_width = FALSE)
 ```
-
-R-squared: `r sut_rsq`
-
-Single-Unit truck trips are also associated with households and a mix of
-employment. The smaller coefficients (compared to CVs) reflect fewer total SUT
-trips. While office and retail employment ("OffRet") are not statistically
-significant, they remain in the model with a small positive coefficient. This
-ensures that model zones with only office or retail employment still attract a
-small number of SUT trips.
-
-### MUT Rates
-
-```{r}
-broom::tidy(mut_model) %>%
-  kable(digits = 4) %>%
-  kable_styling(full_width = FALSE)
-```
-
-R-squared: `r mut_rsq`
-
-Multi-unit truck trips are driven primarily by industrial employment, but all
-other employment types will attract some small number of trips.
 
 ## Time of Day
 
 The survey included trip departure time, which was used to categorize trips
 by time period. The table below shows the estimated time of day factors used
-by the model.
+by the model. These looked reasonable when compared to resident travel patterns
+and are used in the model.
 
 ```{r}
 add_tod <- add_tazs %>%
@@ -246,11 +197,10 @@ tod_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-
 ## Distribution
 
 Once generated, the commercial vehicle and truck trips are distributed among
-zones using a gravity model. Unfortunately, the Triangle survey did not contain
+zones using a gravity model. Unfortunately, the CV survey did not contain
 information on both ends of the trip, which means it could not be used to
 estimate model parameters. Initial model parameters were borrowed from the
 travel model in Blacksburg, VA.

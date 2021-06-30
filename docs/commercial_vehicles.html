@@ -430,80 +430,37 @@ div.tocify {
 </div>
 <div id="trip-rates" class="section level2">
 <h2>Trip Rates</h2>
-<p>Trip rates were estimated using linear regression. The surveyed trips were regressed against the socio-economic data from the TAZs. In order to achieve appropriate sample sizes and robust models, the TAZ data was aggregated to the 43-district system created by the model stakeholders.</p>
-<p>All models were estimated with an intercept term in order to achieve appropriate coefficients and sensitivities as well as meaningful r-squared values. For all models, the intercept term was small and not significant. The intercepts are included in the tables below, but not used in model application. This prevents empty zones from producing CV trips. Finally, the rates presented below are used as both production and attraction rates.</p>
-<div id="cv-rates" class="section level3">
-<h3>CV Rates</h3>
+<p>Initial estimation attempts led to poor model results. A fundamental problem may have been regressing a 2010 survey against 2016 land use data. In addition, stakeholders had previously listed some concerns with the survey. Given these issues, initial rates were adapted directly from the QRFM.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-term
+Variable
 </th>
 <th style="text-align:right;">
-estimate
+CV
 </th>
 <th style="text-align:right;">
-std.error
+SUT
 </th>
 <th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
+MUT
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-(Intercept)
-</td>
-<td style="text-align:right;">
-45.3385
-</td>
-<td style="text-align:right;">
-27.1688
-</td>
-<td style="text-align:right;">
-1.6688
-</td>
-<td style="text-align:right;">
-0.1038
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-HH
-</td>
-<td style="text-align:right;">
-0.0037
-</td>
-<td style="text-align:right;">
-0.0007
-</td>
-<td style="text-align:right;">
-5.5486
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Industry
 </td>
 <td style="text-align:right;">
-0.0021
+1.00
 </td>
 <td style="text-align:right;">
-0.0006
+0.260
 </td>
 <td style="text-align:right;">
-3.4433
-</td>
-<td style="text-align:right;">
-0.0015
+0.135
 </td>
 </tr>
 <tr>
@@ -511,78 +468,55 @@ Industry
 Retail
 </td>
 <td style="text-align:right;">
--0.0065
+0.89
 </td>
 <td style="text-align:right;">
-0.0025
+0.253
 </td>
 <td style="text-align:right;">
--2.6156
-</td>
-<td style="text-align:right;">
-0.0129
+0.065
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-OffServ
+Office
 </td>
 <td style="text-align:right;">
-0.0004
+0.44
 </td>
 <td style="text-align:right;">
-0.0002
+0.068
 </td>
 <td style="text-align:right;">
-1.9822
-</td>
-<td style="text-align:right;">
-0.0551
+0.009
 </td>
 </tr>
-</tbody>
-</table>
-<p>R-squared: 0.87</p>
-<p>Commercial vehicle trips are driven by households and to a lesser extent industrial employment. They are less likely to travel to zones made up of retail employment. This result matches expectations for CVs to be making deliveries and providing services (e.g. lawn care) at residential locations.</p>
-</div>
-<div id="sut-rates" class="section level3">
-<h3>SUT Rates</h3>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td style="text-align:left;">
-(Intercept)
+Service_RateLow
 </td>
 <td style="text-align:right;">
-32.0332
+0.44
 </td>
 <td style="text-align:right;">
-17.0121
+0.068
 </td>
 <td style="text-align:right;">
-1.8830
+0.009
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0678
+0.44
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+<td style="text-align:right;">
+0.009
 </td>
 </tr>
 <tr>
@@ -590,157 +524,21 @@ p.value
 HH
 </td>
 <td style="text-align:right;">
-0.0017
+0.25
 </td>
 <td style="text-align:right;">
-0.0003
+0.099
 </td>
 <td style="text-align:right;">
-6.6408
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Industry
-</td>
-<td style="text-align:right;">
-0.0009
-</td>
-<td style="text-align:right;">
-0.0003
-</td>
-<td style="text-align:right;">
-3.1671
-</td>
-<td style="text-align:right;">
-0.0031
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-OffRet
-</td>
-<td style="text-align:right;">
-0.0003
-</td>
-<td style="text-align:right;">
-0.0003
-</td>
-<td style="text-align:right;">
-0.9107
-</td>
-<td style="text-align:right;">
-0.3685
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Service
-</td>
-<td style="text-align:right;">
-0.0008
-</td>
-<td style="text-align:right;">
-0.0003
-</td>
-<td style="text-align:right;">
-2.3646
-</td>
-<td style="text-align:right;">
-0.0236
+0.038
 </td>
 </tr>
 </tbody>
 </table>
-<p>R-squared: 0.92</p>
-<p>Single-Unit truck trips are also associated with households and a mix of employment. The smaller coefficients (compared to CVs) reflect fewer total SUT trips. While office and retail employment (“OffRet”) are not statistically significant, they remain in the model with a small positive coefficient. This ensures that model zones with only office or retail employment still attract a small number of SUT trips.</p>
-</div>
-<div id="mut-rates" class="section level3">
-<h3>MUT Rates</h3>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-term
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-std.error
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-(Intercept)
-</td>
-<td style="text-align:right;">
-21.0286
-</td>
-<td style="text-align:right;">
-13.9759
-</td>
-<td style="text-align:right;">
-1.5046
-</td>
-<td style="text-align:right;">
-0.1422
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Industry
-</td>
-<td style="text-align:right;">
-0.0022
-</td>
-<td style="text-align:right;">
-0.0006
-</td>
-<td style="text-align:right;">
-3.9415
-</td>
-<td style="text-align:right;">
-0.0004
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NonIndustry
-</td>
-<td style="text-align:right;">
-0.0005
-</td>
-<td style="text-align:right;">
-0.0002
-</td>
-<td style="text-align:right;">
-2.1536
-</td>
-<td style="text-align:right;">
-0.0389
-</td>
-</tr>
-</tbody>
-</table>
-<p>R-squared: 0.51</p>
-<p>Multi-unit truck trips are driven primarily by industrial employment, but all other employment types will attract some small number of trips.</p>
-</div>
 </div>
 <div id="time-of-day" class="section level2">
 <h2>Time of Day</h2>
-<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model.</p>
+<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model. These looked reasonable when compared to resident travel patterns and are used in the model.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -818,7 +616,7 @@ MUT
 </div>
 <div id="distribution" class="section level2">
 <h2>Distribution</h2>
-<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the Triangle survey did not contain information on both ends of the trip, which means it could not be used to estimate model parameters. Initial model parameters were borrowed from the travel model in Blacksburg, VA.</p>
+<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the CV survey did not contain information on both ends of the trip, which means it could not be used to estimate model parameters. Initial model parameters were borrowed from the travel model in Blacksburg, VA.</p>
 <p><strong>TODO: Update this section after we calibrate the intitial rates</strong></p>
 </div>
 
