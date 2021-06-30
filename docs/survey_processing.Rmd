@@ -1482,7 +1482,8 @@ mc_code <- flip_to_pa %>%
     mode_final == "eb" & access_mode == "knr" ~ 8,
     mode_final == "eb" & access_mode == "pnr" ~ 9,
     mode_final == "auto_pay" ~ 10,
-    mode_final == "other_auto" ~ 11
+    mode_final == "other_auto" ~ 11,
+    mode_final == "school_bus" ~ 12
   ))
   
 ```
