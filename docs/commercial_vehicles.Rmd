@@ -31,6 +31,7 @@ re-estimated were possible using the Triangle's 2010 Commercial Vehicle survey.
 ```{r, include=FALSE}
 veh_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/vehicles_exported.csv")
 trips_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/trips_exported.csv")
+est_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/establishment_export.csv")
 ```
 
 ```{r}
@@ -44,7 +45,8 @@ veh_types <- veh_raw %>%
   select(SAMPN, veh_type)
 
 add_veh_types <- trips_raw %>%
-  left_join(veh_types, by = "SAMPN")
+  left_join(veh_types, by = "SAMPN") %>%
+  left_join(est_raw %>% select(SAMPN, EXPWGT), by = "SAMPN")
 ```
 
 ```{r, include=FALSE}
@@ -109,7 +111,7 @@ used as both production and attraction rates.
 
 ```{r}
 rate_est_tbl <- add_tazs %>%
-  select(TAZ, district, veh_type) %>%
+  select(TAZ, district, veh_type, EXPWGT) %>%
   left_join(
     se %>% select(
       TAZ,
@@ -122,47 +124,36 @@ rate_est_tbl <- add_tazs %>%
     ),
     by = "TAZ"
   ) %>%
-  mutate(
-    Service = Service_RateHigh + Service_RateLow
-  ) %>%
-  select(-Service_RateHigh, -Service_RateLow) %>%
   group_by(veh_type, district) %>%
-  summarize(across(HH:Service, sum), trips = n())
-
-# models <- rate_est_tbl %>%
-#   select(-district) %>%
-#   group_by(veh_type) %>%
-#   nest() %>%
-#   mutate(
-#     fit = map(data, ~lm(trips ~ ., data = .))
-#   )
-# 
-# summary(models$fit[[1]])
-# summary(models$fit[[2]])
-# summary(models$fit[[3]])
+  # group_by(veh_type, TAZ) %>%
+  summarize(across(EXPWGT:Service_RateLow, sum)) %>%
+  rename(trips = EXPWGT)
 
 cv_model <- lm(
-  trips ~ HH + Industry + Retail + OffServ,
+  trips ~ HH + Industry + Retail + Office + Service_RateHigh + Service_RateLow,
   data = rate_est_tbl %>%
     filter(veh_type == "CV") %>%
-    mutate(OffServ = Office + Service)
+    mutate(OtherEmp = Retail + Office + Service_RateHigh)
 )
 cv_rsq <- round(summary(cv_model)$r.squared, 2)
 
-
 sut_model <- lm(
-  trips ~ HH + Industry + OffRet + Service,
+  trips ~ HH + Retail + OtherEmp + 0,
   data = rate_est_tbl %>%
     filter(veh_type == "SUT") %>%
-    mutate(OffRet = Retail + Office)
+    mutate(
+      OtherEmp = Industry + Office + Service_RateHigh + Service_RateLow
+    )
 )
 sut_rsq <- round(summary(sut_model)$r.squared, 2)
 
 mut_model <- lm(
-  trips ~ Industry + NonIndustry,
+  trips ~ HH + Industry + OtherEmp + 0,
   data = rate_est_tbl %>%
     filter(veh_type == "MUT") %>%
-    mutate(NonIndustry = Retail + Office + Service)
+    mutate(
+      OtherEmp = Retail + Office + Service_RateHigh + Service_RateLow
+    )
 )
 mut_rsq <- round(summary(mut_model)$r.squared, 2)
 ```
