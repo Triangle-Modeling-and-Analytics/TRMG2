@@ -97,19 +97,12 @@ add_tazs <- add_veh_types %>%
 
 ## Trip Rates
 
-Trip rates were estimated using linear regression. The surveyed trips were
-regressed against the socio-economic data from the TAZs. In order to achieve
-appropriate sample sizes and robust models, the TAZ data was aggregated to the
-43-district system created by the model stakeholders.
+Initial estimation attempts led to poor model results. A fundamental problem
+may have been regressing a 2010 survey against 2016 land use data. In addition,
+stakeholders had previously listed some concerns with the survey. Given these
+issues, initial rates were adapted directly from the QRFM.
 
-All models were estimated with an intercept term in order to achieve appropriate
-coefficients and sensitivities as well as meaningful r-squared values. For all
-models, the intercept term was small and not significant. The intercepts are
-included in the tables below, but not used in model application. This prevents
-empty zones from producing CV trips. Finally, the rates presented below are
-used as both production and attraction rates.
-
-```{r}
+```{r, eval=FALSE}
 rate_est_tbl <- add_tazs %>%
   select(TAZ, district, veh_type, EXPWGT) %>%
   left_join(
@@ -158,56 +151,23 @@ mut_model <- lm(
 mut_rsq <- round(summary(mut_model)$r.squared, 2)
 ```
 
-### CV Rates
-
-```{r}
-broom::tidy(cv_model) %>%
-  kable(digits = 4) %>%
-  kable_styling(full_width = FALSE)
+```{r, include=FALSE}
+rates <- read_csv("../master/cv/cv_generation.csv")
 ```
 
-R-squared: `r cv_rsq`
-
-Commercial vehicle trips are driven by households and to a lesser extent
-industrial employment. They are less likely to travel to zones made up of retail
-employment. This result matches expectations for CVs to be making deliveries and
-providing services (e.g. lawn care) at residential locations.
-
-### SUT Rates
-
 ```{r}
-broom::tidy(sut_model) %>%
-  kable(digits = 4) %>%
+rates %>%
+  select(Variable = Field, CV:MUT) %>%
+  kable() %>%
   kable_styling(full_width = FALSE)
 ```
-
-R-squared: `r sut_rsq`
-
-Single-Unit truck trips are also associated with households and a mix of
-employment. The smaller coefficients (compared to CVs) reflect fewer total SUT
-trips. While office and retail employment ("OffRet") are not statistically
-significant, they remain in the model with a small positive coefficient. This
-ensures that model zones with only office or retail employment still attract a
-small number of SUT trips.
-
-### MUT Rates
-
-```{r}
-broom::tidy(mut_model) %>%
-  kable(digits = 4) %>%
-  kable_styling(full_width = FALSE)
-```
-
-R-squared: `r mut_rsq`
-
-Multi-unit truck trips are driven primarily by industrial employment, but all
-other employment types will attract some small number of trips.
 
 ## Time of Day
 
 The survey included trip departure time, which was used to categorize trips
 by time period. The table below shows the estimated time of day factors used
-by the model.
+by the model. These looked reasonable when compared to resident travel patterns
+and are used in the model.
 
 ```{r}
 add_tod <- add_tazs %>%
@@ -237,11 +197,10 @@ tod_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-
 ## Distribution
 
 Once generated, the commercial vehicle and truck trips are distributed among
-zones using a gravity model. Unfortunately, the Triangle survey did not contain
+zones using a gravity model. Unfortunately, the CV survey did not contain
 information on both ends of the trip, which means it could not be used to
 estimate model parameters. Initial model parameters were borrowed from the
 travel model in Blacksburg, VA.
