@@ -6,14 +6,14 @@ hov2,Constant,4.3777,Constant
 hov2,hov_skim.CongTime,-0.0653,Travel time
 hov3,Constant,4.2248,Constant
 hov3,hov_skim.CongTime,-0.0653,Travel time
-nonhh_auto,{segment} = 'vi',3.033,Vehicle insufficient households
+nonhh_auto,{segment} = 'vi' or {segment} = 'v0',3.033,Vehicle insufficient households
 other_auto,sov_skim.CongTime,-0.0247,Travel time
 auto_pay,Constant,-3.0267,Constant
 auto_pay,hov_skim.CongTime,-0.0247,Travel time
 auto_pay,se.PKTNCWait.O,-0.0247,Auto wait time
 auto_pay,hov_skim.auto_pay_fare,-0.00675,Auto fare
 auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,3.93,Airport related
-transit,{segment} = 'vi',3.033,Vehicle insufficient households
+transit,{segment} = 'vi' or {segment} = 'v0',3.033,Vehicle insufficient households
 w_lb,Constant,1.9145,Constant
 w_lb,w_lb_skim.[Generalized Cost] = null,-9999,Availablility
 w_lb,w_lb_skim.[In-Vehicle Time],-0.022449,IVTT

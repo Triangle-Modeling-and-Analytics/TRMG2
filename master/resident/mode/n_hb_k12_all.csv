@@ -4,11 +4,11 @@ sov,sov_skim.CongTime,-0.0138,Travel time
 hov2,Constant,-0.7337,Constant
 hov2,hov_skim.CongTime,-0.0138,Travel time
 hov2,se.LargeHHPct.O,0.4442,Large household percentage
-hov2,{segment} = 'vi',-0.5049,Vehicle-insufficient households
+hov2,{segment} = 'vi' or {segment} = 'v0',-0.5049,Vehicle-insufficient households
 hov3,Constant,-0.4809,Constant
 hov3,hov_skim.CongTime,-0.0138,Travel time
 hov3,se.LargeHHPct.O,0.4442,Large household percentage
-hov2,{segment} = 'vi',-0.5049,Vehicle-insufficient households
+hov2,{segment} = 'vi' or {segment} = 'v0',-0.5049,Vehicle-insufficient households
 other_auto,Constant,-1.8365,Constant
 other_auto,sov_skim.CongTime,-0.0247,Travel time
 transit,se.HiIncomePct.O,-0.5282,High income household percentage
