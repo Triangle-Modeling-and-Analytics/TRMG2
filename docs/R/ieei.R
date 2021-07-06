@@ -9,11 +9,16 @@ taz_shape_filename <- paste0(master_dir, "tazs/master_tazs.shp")
 socec_filename <- paste0(data_dir, "se_2016.csv")
 consolidated_streetlight_filename <- paste0(private_dir, "streetlight-ieei-flows.RDS")
 ncstm_filename <- paste0(data_dir, "ncstm-demand.rds")
+distance_filename <- paste0(data_dir, "distance-skim.RDS")
 
 output_ee_seed_filename <- paste0(output_dir, "ee-seed.csv")
+output_ei_attractions_filename <- paste0(output_dir, "ei-attractions.csv")
+output_ei_distance_filename <- paste0(output_dir, "ei-distance.csv")
 
 # Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
+
+freeway_station_vector <- c(3298, 3252, 3305, 3277, 3308, 3281, 3273, 3313)
 
 # Data Reads -------------------------------------------------------------------
 sl_df <- readRDS(consolidated_streetlight_filename)
@@ -25,6 +30,8 @@ socec_df <- read_csv(socec_filename, col_types = cols(.default = col_double(),
 
 taz_sf <- st_read(taz_shape_filename) %>%
   st_transform(LAT_LNG_EPSG)
+
+distance_df <- readRDS(distance_filename)
 
 # StreetLight: External station shares -----------------------------------------
 working_df <- sl_df %>%
@@ -155,51 +162,145 @@ seed_df <- expand_grid(orig_taz = external_zones_vector, dest_taz = external_zon
 write_csv(seed_df, file = output_ee_seed_filename)
 
 # Internal attraction model (StreetLight Data) ---------------------------------
-join_taz_df <- tibble(taz = taz_sf$ID, district = taz_sf$DISTRICT2)
+join_taz_df <- tibble(taz = taz_sf$ID,
+                      district_01 = taz_sf$DISTRICT,
+                      district_02 = taz_sf$DISTRICT2)
 
-join_socec_df <- socec_df %>%
+join_socec_district_02_df <- socec_df %>%
   mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
   select(taz = TAZ, emp, pop = Total_POP) %>%
   left_join(., join_taz_df, by = c("taz")) %>%
+  rename(district = district_02) %>%
   group_by(district) %>%
   summarise(pop = sum(pop), emp = sum(emp), .groups = "drop")
 
 estimation_df <- sl_df %>%
   filter(purpose %in% c("IX", "XI")) %>%
-  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district), by = c("orig_taz")) %>%
-  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district), by = c("dest_taz")) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district_02), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district_02), by = c("dest_taz")) %>%
   mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
   group_by(source, type, district) %>%
   summarize(trips = sum(flow), .groups = "drop") %>%
-  left_join(., join_socec_df, by = c("district"))
+  left_join(., join_socec_district_02_df, by = c("district"))
 
 correlations_sl_df <- estimation_df %>%
   select(trips, pop, emp) %>%
   corrr::correlate()
 
 # Internal attraction model (NCSTM Data) ---------------------------------------
-estimation_df <- state_df %>%
+combined_estimation_df <- state_df %>%
+  filter(purpose %in% c("IX", "XI")) %>%
+  filter(vehicle_type == "auto") %>%
+  select(-vehicle_type) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district_02), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district_02), by = c("dest_taz")) %>%
+  mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
+  group_by(district) %>%
+  summarize(trips = sum(flow), .groups = "drop") %>%
+  left_join(., join_socec_district_02_df, by = c("district"))
+
+correlations_ncstm_df <- combined_estimation_df %>%
+  select(trips, pop, emp) %>%
+  corrr::correlate()
+
+# More districts
+join_socec_district_01_df <- socec_df %>%
+  mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
+  select(taz = TAZ, emp, pop = Total_POP) %>%
+  left_join(., join_taz_df, by = c("taz")) %>%
+  rename(district = district_01) %>%
+  group_by(district) %>%
+  summarise(pop = sum(pop), emp = sum(emp), .groups = "drop")
+
+combined_estimation_df <- state_df %>%
+  filter(purpose %in% c("IX", "XI")) %>%
+  filter(vehicle_type == "auto") %>%
+  select(-vehicle_type) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district_01), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district_01), by = c("dest_taz")) %>%
+  mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
+  group_by(district) %>%
+  summarize(trips = sum(flow), .groups = "drop") %>%
+  left_join(., join_socec_district_01_df, by = c("district"))
+
+correlations_ncstm_df <- combined_estimation_df %>%
+  select(trips, pop, emp) %>%
+  corrr::correlate()
+
+# Segment by freeway/non-freeway
+segmented_estimation_df <- state_df %>%
   filter(purpose %in% c("IX", "XI")) %>%
   filter(vehicle_type == "auto") %>%
   select(-vehicle_type) %>%
   left_join(., select(join_taz_df, orig_taz = taz, orig_district = district), by = c("orig_taz")) %>%
   left_join(., select(join_taz_df, dest_taz = taz, dest_district = district), by = c("dest_taz")) %>%
   mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
-  group_by(district) %>%
+  mutate(category = "Non-freeway") %>%
+  mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
+  mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category)) %>%
+  group_by(district, category) %>%
   summarize(trips = sum(flow), .groups = "drop") %>%
-  left_join(., join_socec_df, by = c("district"))
+  left_join(., join_socec_district_01_df, by = c("district"))
 
-correlations_ncstm_df <- estimation_df %>%
-  select(trips, pop, emp) %>%
-  corrr::correlate()
+# Models
+freeway_model <- lm(trips ~ pop + emp, data = filter(segmented_estimation_df, category == "Freeway"))
+summary(freeway_model)
 
-# START HERE: 
-# 1. Classify roads as freeway or local
-# 2. Estimate regression models
-# 3. Plot trip-length frequencies
+non_freeway_model <- lm(trips ~ pop + emp, data = filter(segmented_estimation_df, category == "Non-freeway"))
+summary(non_freeway_model)
 
+combined_model <- lm(trips ~ pop + emp, data = combined_estimation_df)
+summary(combined_model)
 
+preferred_model <- lm(trips ~ 0 + pop + emp, data = combined_estimation_df)
+summary(preferred_model)
+
+# Attraction Model Application ------------------------------------------------
+join_observed_df <- state_df %>%
+  filter(purpose %in% c("IX", "XI")) %>%
+  filter(vehicle_type == "auto") %>%
+  select(-vehicle_type) %>%
+  group_by(orig_taz, dest_taz) %>%
+  summarise(observed_trips = sum(flow), .groups = "drop")
+
+join_socec_df <- socec_df %>%
+  mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
+  select(attraction_taz = TAZ, emp, pop = Total_POP)
+
+max_internal_zone <- max(filter(socec_df, Type == "Internal")$TAZ)
+
+working_df <- expand_grid(orig_taz = taz_vector, dest_taz = taz_vector) %>%
+  mutate(purpose = "II") %>%
+  mutate(purpose = if_else(orig_taz > max_internal_zone & dest_taz > max_internal_zone, "XX", purpose)) %>%
+  mutate(purpose = if_else(orig_taz > max_internal_zone & dest_taz <= max_internal_zone, "XI", purpose)) %>%
+  mutate(purpose = if_else(orig_taz <= max_internal_zone & dest_taz > max_internal_zone, "IX", purpose)) %>%
+  filter(purpose %in% c("XI", "IX")) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district_01), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district_01), by = c("dest_taz")) %>%
+  mutate(attraction_district = if_else(purpose == "IX", orig_district, dest_district)) %>%
+  select(-orig_district, -dest_district) %>%
+  mutate(attraction_taz = if_else(purpose == "IX", orig_taz, dest_taz)) %>%
+  left_join(., join_observed_df, by = c("orig_taz", "dest_taz")) %>%
+  mutate(observed_trips = replace_na(observed_trips, 0.0))
+
+ei_attractions_df <- working_df %>%
+  group_by(attraction_taz, attraction_district) %>%
+  summarize(observed_trips = sum(observed_trips), .groups = "drop") %>%
+  left_join(., join_socec_df, by = c("attraction_taz")) %>%
+  mutate(raw_estimated_trips = preferred_model$coefficients["pop"] * pop +
+           preferred_model$coefficients["emp"] * emp) %>%
+  mutate(estimated_trips = raw_estimated_trips * sum(.$observed_trips) / sum(.$raw_estimated_trips))
+
+ei_distance_df <- working_df %>%
+  filter(observed_trips > 0.0) %>%
+  left_join(., distance_df, by = c("orig_taz" = "orig", "dest_taz" = "dest")) %>%
+  mutate(category = "Non-freeway") %>%
+  mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
+  mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category))
   
+write_csv(ei_attractions_df, file = output_ei_attractions_filename)
+write_csv(ei_distance_df, file = output_ei_distance_filename)
 
-
+# TODO
+# Write up findings in Rmd
 
