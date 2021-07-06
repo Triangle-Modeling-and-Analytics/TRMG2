@@ -1,0 +1,4307 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-05-18" />
+
+<title>Internal/External</title>
+
+<script src="site_libs/header-attrs-2.5/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-home-based</a>
+    </li>
+    <li>
+      <a href="airport.html">Airport</a>
+    </li>
+    <li>
+      <a href="ieei.html">Internal/External</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Internal/External</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">May 18, 2021</h4>
+
+</div>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Travel from outside the Triangle model’s geographic boundaries to locations inside the model’s boundaries are referred to as “external-internal” trips; movements from inside the boundary to outside are “internal-external” trips; and movements through the region are referred to as “external-external” trips. Together, these movements are referred to here as “ieei” travel. This document discusses their improvements.</p>
+</div>
+<div id="external-external-ee" class="section level2">
+<h2>External-external (EE)</h2>
+<p>The two best available data sources for movements through the modeling region are (i) StreetLight Data extracted by ITRE and (ii) a sub-area extraction from the North Carolina Statewide Travel Model (NCSTM).</p>
+<p>An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix.</p>
+<p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step.</p>
+<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file.The table also includes the StreetLight flow estimate (<code>sl_ee_flow</code>) and the share of ADT attributable to personal vehicles (<code>auto_ee_adt</code>), which is the <code>ADT</code> value less the share of trucks, <code>PCTCV</code>.</p>
+<div id="ee-traffic-shares-from-streetlight-data" class="section level3">
+<h3>EE Traffic Shares from StreetLight Data</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+ext_station
+</th>
+<th style="text-align:left;">
+station_name
+</th>
+<th style="text-align:right;">
+ADT
+</th>
+<th style="text-align:right;">
+PCTCV
+</th>
+<th style="text-align:right;">
+PCTAUTOEE
+</th>
+<th style="text-align:right;">
+auto_adt
+</th>
+<th style="text-align:right;">
+sl_ee_flow
+</th>
+<th style="text-align:right;">
+pct_auto_ee
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3235
+</td>
+<td style="text-align:left;">
+2859 (NC 86-NC 86 N))
+</td>
+<td style="text-align:right;">
+8000
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+7120
+</td>
+<td style="text-align:right;">
+306
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3236
+</td>
+<td style="text-align:left;">
+2860 (US 158-Leasburg Rd)
+</td>
+<td style="text-align:right;">
+2200
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+2024
+</td>
+<td style="text-align:right;">
+320
+</td>
+<td style="text-align:right;">
+15.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3237
+</td>
+<td style="text-align:left;">
+2861 (NC 57-Semora Rd)
+</td>
+<td style="text-align:right;">
+5100
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+4641
+</td>
+<td style="text-align:right;">
+470
+</td>
+<td style="text-align:right;">
+10.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3242
+</td>
+<td style="text-align:left;">
+2866 (US 501-Boston Rd)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+<td style="text-align:right;">
+3315
+</td>
+<td style="text-align:right;">
+422
+</td>
+<td style="text-align:right;">
+12.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3243
+</td>
+<td style="text-align:left;">
+2867 (NC 49-Virgilina Rd)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+2112
+</td>
+<td style="text-align:right;">
+83
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3248
+</td>
+<td style="text-align:left;">
+2872 (US 158-US Hwy 158 W)
+</td>
+<td style="text-align:right;">
+3100
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+19.6
+</td>
+<td style="text-align:right;">
+2728
+</td>
+<td style="text-align:right;">
+414
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3252
+</td>
+<td style="text-align:left;">
+2876 I-85 (NB)
+</td>
+<td style="text-align:right;">
+35000
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+70.1
+</td>
+<td style="text-align:right;">
+29750
+</td>
+<td style="text-align:right;">
+454
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3253
+</td>
+<td style="text-align:left;">
+2877 (US 15-US Hwy 15 S)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+24.1
+</td>
+<td style="text-align:right;">
+4512
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3254
+</td>
+<td style="text-align:left;">
+2878 (NC 96-NC Hwy 96 S)
+</td>
+<td style="text-align:right;">
+4100
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+3690
+</td>
+<td style="text-align:right;">
+217
+</td>
+<td style="text-align:right;">
+5.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3257
+</td>
+<td style="text-align:left;">
+2881 (US 1-Us1 Hwy)
+</td>
+<td style="text-align:right;">
+12000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+26.4
+</td>
+<td style="text-align:right;">
+10800
+</td>
+<td style="text-align:right;">
+593
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3260
+</td>
+<td style="text-align:left;">
+2884 (NC 39-NC 39 Hwy N)
+</td>
+<td style="text-align:right;">
+4200
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+3864
+</td>
+<td style="text-align:right;">
+428
+</td>
+<td style="text-align:right;">
+11.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3261
+</td>
+<td style="text-align:left;">
+2885 (US 401-US 401 Hwy N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+15.4
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+244
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3263
+</td>
+<td style="text-align:left;">
+2887 (NC 561-NC 561 Hwy)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+8.8
+</td>
+<td style="text-align:right;">
+4512
+</td>
+<td style="text-align:right;">
+85
+</td>
+<td style="text-align:right;">
+1.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3265
+</td>
+<td style="text-align:left;">
+2889 (NC 56-NC 56 Hwy E)
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+2430
+</td>
+<td style="text-align:right;">
+348
+</td>
+<td style="text-align:right;">
+14.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3272
+</td>
+<td style="text-align:left;">
+2896 (NC 98-NC 98)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+<td style="text-align:right;">
+2820
+</td>
+<td style="text-align:right;">
+196
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3273
+</td>
+<td style="text-align:left;">
+2897 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+25000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+51.4
+</td>
+<td style="text-align:right;">
+22500
+</td>
+<td style="text-align:right;">
+696
+</td>
+<td style="text-align:right;">
+3.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3277
+</td>
+<td style="text-align:left;">
+2901 (US 264-US 264 W)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+44.2
+</td>
+<td style="text-align:right;">
+26390
+</td>
+<td style="text-align:right;">
+482
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3278
+</td>
+<td style="text-align:left;">
+2902 (SR 1105/US 264 Alt-US 264a)
+</td>
+<td style="text-align:right;">
+1900
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1748
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3280
+</td>
+<td style="text-align:left;">
+2904 (NC 42-NC 42 Hwy E)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+3510
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3281
+</td>
+<td style="text-align:left;">
+2905 (I-95-I-95)
+</td>
+<td style="text-align:right;">
+26000
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+75.0
+</td>
+<td style="text-align:right;">
+21060
+</td>
+<td style="text-align:right;">
+8794
+</td>
+<td style="text-align:right;">
+41.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3298
+</td>
+<td style="text-align:left;">
+2925 (I-95 South, Johnston Co)
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+45.9
+</td>
+<td style="text-align:right;">
+47880
+</td>
+<td style="text-align:right;">
+9513
+</td>
+<td style="text-align:right;">
+19.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3299
+</td>
+<td style="text-align:left;">
+2926 (US 301-S Wall St)
+</td>
+<td style="text-align:right;">
+6400
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+6016
+</td>
+<td style="text-align:right;">
+434
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3301
+</td>
+<td style="text-align:left;">
+2928 (SR 1703-Red Hill Church Rd)
+</td>
+<td style="text-align:right;">
+4300
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+4042
+</td>
+<td style="text-align:right;">
+1011
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3302
+</td>
+<td style="text-align:left;">
+2929 (NC 55-NC 55 E)
+</td>
+<td style="text-align:right;">
+5500
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+5170
+</td>
+<td style="text-align:right;">
+1168
+</td>
+<td style="text-align:right;">
+22.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3303
+</td>
+<td style="text-align:left;">
+2930 (US 421-US 421 S)
+</td>
+<td style="text-align:right;">
+13000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+11700
+</td>
+<td style="text-align:right;">
+7274
+</td>
+<td style="text-align:right;">
+62.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3305
+</td>
+<td style="text-align:left;">
+2932 (US 401-421/NC 27-210-N Main St)
+</td>
+<td style="text-align:right;">
+32000
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+30080
+</td>
+<td style="text-align:right;">
+6744
+</td>
+<td style="text-align:right;">
+22.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3306
+</td>
+<td style="text-align:left;">
+2933 (NC 42-NC 42 Hwy)
+</td>
+<td style="text-align:right;">
+2300
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2116
+</td>
+<td style="text-align:right;">
+47
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3308
+</td>
+<td style="text-align:left;">
+2935 (US 1-US 1)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+<td style="text-align:right;">
+26680
+</td>
+<td style="text-align:right;">
+866
+</td>
+<td style="text-align:right;">
+3.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3309
+</td>
+<td style="text-align:left;">
+2936 (US 15-501/NC 87-NC 87 S)
+</td>
+<td style="text-align:right;">
+7500
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+25.3
+</td>
+<td style="text-align:right;">
+6900
+</td>
+<td style="text-align:right;">
+914
+</td>
+<td style="text-align:right;">
+13.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3313
+</td>
+<td style="text-align:left;">
+2940 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+21000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+19.4
+</td>
+<td style="text-align:right;">
+18900
+</td>
+<td style="text-align:right;">
+209
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3317
+</td>
+<td style="text-align:left;">
+2944 (NC 87-NC 87 N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+24.2
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+790
+</td>
+<td style="text-align:right;">
+29.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3318
+</td>
+<td style="text-align:left;">
+2945 (SR 1005-Old Greensboro Rd)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2910
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3329
+</td>
+<td style="text-align:left;">
+2955 (NC 49)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+15.7
+</td>
+<td style="text-align:right;">
+2016
+</td>
+<td style="text-align:right;">
+416
+</td>
+<td style="text-align:right;">
+20.6
+</td>
+</tr>
+</tbody>
+</table>
+<p>This exercise was repeated using the sub-area data extracted from the NCSTM. The NCSTM provides estimates of the share of the ADT used by EE vehicles, as with the StreetLight Data. This is shown as <code>pct_auto_ee</code> in the table below. The NCSTM can also provide estimates of ADT (<code>adt</code> in the table below) and percent of commercial vehicles (<code>pctcv</code>). In addition, commercial vehicles can be segmented by single-unit trucks (<code>sut</code>) and multi-unit trucks (<code>mut</code>). The table below summarizes these outcomes, with the NCTSM outcomes shown in lowercase, and the existing data shown in uppercase.</p>
+</div>
+<div id="ee-traffic-shares-and-other-metrics-from-ncstm" class="section level3">
+<h3>EE Traffic Shares and Other Metrics from NCSTM</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+ext_station
+</th>
+<th style="text-align:right;">
+ADT
+</th>
+<th style="text-align:right;">
+PCTCV
+</th>
+<th style="text-align:right;">
+PCTAUTOEE
+</th>
+<th style="text-align:right;">
+adt
+</th>
+<th style="text-align:right;">
+pctcv
+</th>
+<th style="text-align:right;">
+pct_auto_ee
+</th>
+<th style="text-align:right;">
+pctcv_mut
+</th>
+<th style="text-align:right;">
+pctcv_sut
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3235
+</td>
+<td style="text-align:right;">
+8000
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+3523.9
+</td>
+<td style="text-align:right;">
+20.8
+</td>
+<td style="text-align:right;">
+30.1
+</td>
+<td style="text-align:right;">
+17.3
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3236
+</td>
+<td style="text-align:right;">
+2200
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+927.2
+</td>
+<td style="text-align:right;">
+12.8
+</td>
+<td style="text-align:right;">
+24.2
+</td>
+<td style="text-align:right;">
+7.8
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3237
+</td>
+<td style="text-align:right;">
+5100
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+2176.4
+</td>
+<td style="text-align:right;">
+8.6
+</td>
+<td style="text-align:right;">
+22.4
+</td>
+<td style="text-align:right;">
+5.8
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3242
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+<td style="text-align:right;">
+1701.1
+</td>
+<td style="text-align:right;">
+13.0
+</td>
+<td style="text-align:right;">
+24.0
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3243
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+1567.7
+</td>
+<td style="text-align:right;">
+8.7
+</td>
+<td style="text-align:right;">
+38.4
+</td>
+<td style="text-align:right;">
+5.2
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3245
+</td>
+<td style="text-align:right;">
+1300
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+3931.1
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+15.3
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3248
+</td>
+<td style="text-align:right;">
+3100
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+19.6
+</td>
+<td style="text-align:right;">
+1902.2
+</td>
+<td style="text-align:right;">
+27.6
+</td>
+<td style="text-align:right;">
+26.8
+</td>
+<td style="text-align:right;">
+23.7
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3252
+</td>
+<td style="text-align:right;">
+35000
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+70.1
+</td>
+<td style="text-align:right;">
+25645.1
+</td>
+<td style="text-align:right;">
+13.8
+</td>
+<td style="text-align:right;">
+53.5
+</td>
+<td style="text-align:right;">
+10.8
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3253
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+24.1
+</td>
+<td style="text-align:right;">
+2559.5
+</td>
+<td style="text-align:right;">
+16.1
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+11.2
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3254
+</td>
+<td style="text-align:right;">
+4100
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+3656.1
+</td>
+<td style="text-align:right;">
+9.4
+</td>
+<td style="text-align:right;">
+7.9
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3257
+</td>
+<td style="text-align:right;">
+12000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+26.4
+</td>
+<td style="text-align:right;">
+7315.2
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+8.7
+</td>
+<td style="text-align:right;">
+13.1
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3260
+</td>
+<td style="text-align:right;">
+4200
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+4087.5
+</td>
+<td style="text-align:right;">
+8.1
+</td>
+<td style="text-align:right;">
+44.8
+</td>
+<td style="text-align:right;">
+4.7
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3261
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+15.4
+</td>
+<td style="text-align:right;">
+1775.7
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+51.7
+</td>
+<td style="text-align:right;">
+6.2
+</td>
+<td style="text-align:right;">
+3.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3263
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+8.8
+</td>
+<td style="text-align:right;">
+2057.6
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+6.4
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3265
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+1198.9
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+<td style="text-align:right;">
+56.5
+</td>
+<td style="text-align:right;">
+9.5
+</td>
+<td style="text-align:right;">
+1.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3267
+</td>
+<td style="text-align:right;">
+1200
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6.1
+</td>
+<td style="text-align:right;">
+1682.4
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+18.5
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3272
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+<td style="text-align:right;">
+1171.9
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+<td style="text-align:right;">
+4.7
+</td>
+<td style="text-align:right;">
+6.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3273
+</td>
+<td style="text-align:right;">
+25000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+51.4
+</td>
+<td style="text-align:right;">
+15209.7
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+31.0
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3274
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+1027.1
+</td>
+<td style="text-align:right;">
+7.9
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3275
+</td>
+<td style="text-align:right;">
+1600
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2141.6
+</td>
+<td style="text-align:right;">
+5.0
+</td>
+<td style="text-align:right;">
+69.8
+</td>
+<td style="text-align:right;">
+2.1
+</td>
+<td style="text-align:right;">
+2.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3276
+</td>
+<td style="text-align:right;">
+930
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+106.6
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+76.3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3277
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+44.2
+</td>
+<td style="text-align:right;">
+20162.0
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+38.0
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+<td style="text-align:right;">
+2.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3280
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2328.7
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+2.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3281
+</td>
+<td style="text-align:right;">
+26000
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+75.0
+</td>
+<td style="text-align:right;">
+26150.0
+</td>
+<td style="text-align:right;">
+16.3
+</td>
+<td style="text-align:right;">
+83.0
+</td>
+<td style="text-align:right;">
+12.4
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3282
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+3483.4
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+34.2
+</td>
+<td style="text-align:right;">
+6.6
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3283
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+4173.8
+</td>
+<td style="text-align:right;">
+7.3
+</td>
+<td style="text-align:right;">
+37.3
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3289
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+15915.0
+</td>
+<td style="text-align:right;">
+6.5
+</td>
+<td style="text-align:right;">
+21.9
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3291
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2201.1
+</td>
+<td style="text-align:right;">
+7.8
+</td>
+<td style="text-align:right;">
+14.0
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+<td style="text-align:right;">
+3.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3295
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+12093.1
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+39.1
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+2.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3296
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1917.4
+</td>
+<td style="text-align:right;">
+8.3
+</td>
+<td style="text-align:right;">
+46.8
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3297
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+964.8
+</td>
+<td style="text-align:right;">
+7.4
+</td>
+<td style="text-align:right;">
+10.1
+</td>
+<td style="text-align:right;">
+5.4
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3298
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+45.9
+</td>
+<td style="text-align:right;">
+37430.7
+</td>
+<td style="text-align:right;">
+16.4
+</td>
+<td style="text-align:right;">
+66.3
+</td>
+<td style="text-align:right;">
+13.1
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3299
+</td>
+<td style="text-align:right;">
+6400
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+3600.0
+</td>
+<td style="text-align:right;">
+6.3
+</td>
+<td style="text-align:right;">
+16.1
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3301
+</td>
+<td style="text-align:right;">
+4300
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2107.3
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3302
+</td>
+<td style="text-align:right;">
+5500
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+2683.5
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3303
+</td>
+<td style="text-align:right;">
+13000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+6359.3
+</td>
+<td style="text-align:right;">
+7.4
+</td>
+<td style="text-align:right;">
+36.6
+</td>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3305
+</td>
+<td style="text-align:right;">
+32000
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+14573.4
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+<td style="text-align:right;">
+19.5
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3306
+</td>
+<td style="text-align:right;">
+2300
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2101.5
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3308
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+<td style="text-align:right;">
+17249.9
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+<td style="text-align:right;">
+12.0
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3309
+</td>
+<td style="text-align:right;">
+7500
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+25.3
+</td>
+<td style="text-align:right;">
+3699.7
+</td>
+<td style="text-align:right;">
+10.0
+</td>
+<td style="text-align:right;">
+24.7
+</td>
+<td style="text-align:right;">
+7.6
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3311
+</td>
+<td style="text-align:right;">
+1400
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+10.6
+</td>
+<td style="text-align:right;">
+1567.9
+</td>
+<td style="text-align:right;">
+6.4
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3313
+</td>
+<td style="text-align:right;">
+21000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+19.4
+</td>
+<td style="text-align:right;">
+10491.2
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+<td style="text-align:right;">
+15.1
+</td>
+<td style="text-align:right;">
+11.1
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3317
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+24.2
+</td>
+<td style="text-align:right;">
+1716.9
+</td>
+<td style="text-align:right;">
+20.5
+</td>
+<td style="text-align:right;">
+65.3
+</td>
+<td style="text-align:right;">
+15.9
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3318
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1950.3
+</td>
+<td style="text-align:right;">
+5.9
+</td>
+<td style="text-align:right;">
+1.6
+</td>
+<td style="text-align:right;">
+1.6
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3319
+</td>
+<td style="text-align:right;">
+4500
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+545.3
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+9.2
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3321
+</td>
+<td style="text-align:right;">
+18200
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+10281.3
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+27.4
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3322
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+7153.6
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+42.6
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3323
+</td>
+<td style="text-align:right;">
+117000
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+50.0
+</td>
+<td style="text-align:right;">
+68297.2
+</td>
+<td style="text-align:right;">
+12.4
+</td>
+<td style="text-align:right;">
+37.8
+</td>
+<td style="text-align:right;">
+10.0
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3326
+</td>
+<td style="text-align:right;">
+8300
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2710.5
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+2.9
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3328
+</td>
+<td style="text-align:right;">
+3400
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+2870.9
+</td>
+<td style="text-align:right;">
+11.3
+</td>
+<td style="text-align:right;">
+42.8
+</td>
+<td style="text-align:right;">
+7.9
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3329
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+15.7
+</td>
+<td style="text-align:right;">
+1352.2
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+37.5
+</td>
+<td style="text-align:right;">
+10.2
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+</tr>
+</tbody>
+</table>
+<p>To use all the available information, the StreetLight Data and NCSTM outcomes can be combined by averaging the <code>pct_auto_ee</code> estimates across the data sources. The combined outcomes are shown in the table below. We again show the new estimates in lower case and the existing values in upper case.</p>
+</div>
+<div id="ee-traffic-shares-and-other-metrics-from-streetlight-data-ncstm" class="section level3">
+<h3>EE Traffic Shares and Other Metrics from StreetLight Data + NCSTM</h3>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+ext_station
+</th>
+<th style="text-align:left;">
+station_name
+</th>
+<th style="text-align:right;">
+ADT
+</th>
+<th style="text-align:right;">
+adt
+</th>
+<th style="text-align:right;">
+PCTCV
+</th>
+<th style="text-align:right;">
+pctcv
+</th>
+<th style="text-align:right;">
+pctcv_mut
+</th>
+<th style="text-align:right;">
+pctcv_sut
+</th>
+<th style="text-align:right;">
+PCTAUTOEE
+</th>
+<th style="text-align:right;">
+pct_auto_ee
+</th>
+<th style="text-align:right;">
+sl_pct_auto_ee
+</th>
+<th style="text-align:right;">
+ncstm_pct_auto_ee
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3235
+</td>
+<td style="text-align:left;">
+2859 (NC 86-NC 86 N))
+</td>
+<td style="text-align:right;">
+8000
+</td>
+<td style="text-align:right;">
+3523.9
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+20.8
+</td>
+<td style="text-align:right;">
+17.3
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+17.2
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+<td style="text-align:right;">
+30.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3236
+</td>
+<td style="text-align:left;">
+2860 (US 158-Leasburg Rd)
+</td>
+<td style="text-align:right;">
+2200
+</td>
+<td style="text-align:right;">
+927.2
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+12.8
+</td>
+<td style="text-align:right;">
+7.8
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+20.0
+</td>
+<td style="text-align:right;">
+15.8
+</td>
+<td style="text-align:right;">
+24.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3237
+</td>
+<td style="text-align:left;">
+2861 (NC 57-Semora Rd)
+</td>
+<td style="text-align:right;">
+5100
+</td>
+<td style="text-align:right;">
+2176.4
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+8.6
+</td>
+<td style="text-align:right;">
+5.8
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+16.3
+</td>
+<td style="text-align:right;">
+10.1
+</td>
+<td style="text-align:right;">
+22.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3242
+</td>
+<td style="text-align:left;">
+2866 (US 501-Boston Rd)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+1701.1
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+13.0
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+12.7
+</td>
+<td style="text-align:right;">
+24.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3243
+</td>
+<td style="text-align:left;">
+2867 (NC 49-Virgilina Rd)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+1567.7
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+8.7
+</td>
+<td style="text-align:right;">
+5.2
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+21.2
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+38.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3248
+</td>
+<td style="text-align:left;">
+2872 (US 158-US Hwy 158 W)
+</td>
+<td style="text-align:right;">
+3100
+</td>
+<td style="text-align:right;">
+1902.2
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+27.6
+</td>
+<td style="text-align:right;">
+23.7
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+<td style="text-align:right;">
+19.6
+</td>
+<td style="text-align:right;">
+21.0
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+<td style="text-align:right;">
+26.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3252
+</td>
+<td style="text-align:left;">
+2876 I-85 (NB)
+</td>
+<td style="text-align:right;">
+35000
+</td>
+<td style="text-align:right;">
+25645.1
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+13.8
+</td>
+<td style="text-align:right;">
+10.8
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+70.1
+</td>
+<td style="text-align:right;">
+27.5
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+<td style="text-align:right;">
+53.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3253
+</td>
+<td style="text-align:left;">
+2877 (US 15-US Hwy 15 S)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+2559.5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+16.1
+</td>
+<td style="text-align:right;">
+11.2
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:right;">
+24.1
+</td>
+<td style="text-align:right;">
+5.4
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3254
+</td>
+<td style="text-align:left;">
+2878 (NC 96-NC Hwy 96 S)
+</td>
+<td style="text-align:right;">
+4100
+</td>
+<td style="text-align:right;">
+3656.1
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.4
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+18.4
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+5.9
+</td>
+<td style="text-align:right;">
+7.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3257
+</td>
+<td style="text-align:left;">
+2881 (US 1-Us1 Hwy)
+</td>
+<td style="text-align:right;">
+12000
+</td>
+<td style="text-align:right;">
+7315.2
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+13.1
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+26.4
+</td>
+<td style="text-align:right;">
+7.1
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+<td style="text-align:right;">
+8.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3260
+</td>
+<td style="text-align:left;">
+2884 (NC 39-NC 39 Hwy N)
+</td>
+<td style="text-align:right;">
+4200
+</td>
+<td style="text-align:right;">
+4087.5
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+8.1
+</td>
+<td style="text-align:right;">
+4.7
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+27.9
+</td>
+<td style="text-align:right;">
+11.1
+</td>
+<td style="text-align:right;">
+44.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3261
+</td>
+<td style="text-align:left;">
+2885 (US 401-US 401 Hwy N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+1775.7
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+6.2
+</td>
+<td style="text-align:right;">
+3.7
+</td>
+<td style="text-align:right;">
+15.4
+</td>
+<td style="text-align:right;">
+30.4
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+51.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3263
+</td>
+<td style="text-align:left;">
+2887 (NC 561-NC 561 Hwy)
+</td>
+<td style="text-align:right;">
+4800
+</td>
+<td style="text-align:right;">
+2057.6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+<td style="text-align:right;">
+6.4
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+8.8
+</td>
+<td style="text-align:right;">
+5.4
+</td>
+<td style="text-align:right;">
+1.9
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3265
+</td>
+<td style="text-align:left;">
+2889 (NC 56-NC 56 Hwy E)
+</td>
+<td style="text-align:right;">
+2700
+</td>
+<td style="text-align:right;">
+1198.9
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+<td style="text-align:right;">
+9.5
+</td>
+<td style="text-align:right;">
+1.9
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+35.4
+</td>
+<td style="text-align:right;">
+14.3
+</td>
+<td style="text-align:right;">
+56.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3272
+</td>
+<td style="text-align:left;">
+2896 (NC 98-NC 98)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+1171.9
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+<td style="text-align:right;">
+4.7
+</td>
+<td style="text-align:right;">
+6.8
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3273
+</td>
+<td style="text-align:left;">
+2897 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+25000
+</td>
+<td style="text-align:right;">
+15209.7
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+51.4
+</td>
+<td style="text-align:right;">
+17.1
+</td>
+<td style="text-align:right;">
+3.1
+</td>
+<td style="text-align:right;">
+31.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3277
+</td>
+<td style="text-align:left;">
+2901 (US 264-US 264 W)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+20162.0
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+<td style="text-align:right;">
+2.1
+</td>
+<td style="text-align:right;">
+44.2
+</td>
+<td style="text-align:right;">
+19.9
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+38.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3278
+</td>
+<td style="text-align:left;">
+2902 (SR 1105/US 264 Alt-US 264a)
+</td>
+<td style="text-align:right;">
+1900
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3280
+</td>
+<td style="text-align:left;">
+2904 (NC 42-NC 42 Hwy E)
+</td>
+<td style="text-align:right;">
+3900
+</td>
+<td style="text-align:right;">
+2328.7
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+2.3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.4
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3281
+</td>
+<td style="text-align:left;">
+2905 (I-95-I-95)
+</td>
+<td style="text-align:right;">
+26000
+</td>
+<td style="text-align:right;">
+26150.0
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+16.3
+</td>
+<td style="text-align:right;">
+12.4
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+75.0
+</td>
+<td style="text-align:right;">
+62.4
+</td>
+<td style="text-align:right;">
+41.8
+</td>
+<td style="text-align:right;">
+83.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3298
+</td>
+<td style="text-align:left;">
+2925 (I-95 South, Johnston Co)
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+37430.7
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+16.4
+</td>
+<td style="text-align:right;">
+13.1
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+45.9
+</td>
+<td style="text-align:right;">
+43.1
+</td>
+<td style="text-align:right;">
+19.9
+</td>
+<td style="text-align:right;">
+66.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3299
+</td>
+<td style="text-align:left;">
+2926 (US 301-S Wall St)
+</td>
+<td style="text-align:right;">
+6400
+</td>
+<td style="text-align:right;">
+3600.0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6.3
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+11.6
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+16.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3301
+</td>
+<td style="text-align:left;">
+2928 (SR 1703-Red Hill Church Rd)
+</td>
+<td style="text-align:right;">
+4300
+</td>
+<td style="text-align:right;">
+2107.3
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3302
+</td>
+<td style="text-align:left;">
+2929 (NC 55-NC 55 E)
+</td>
+<td style="text-align:right;">
+5500
+</td>
+<td style="text-align:right;">
+2683.5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+11.3
+</td>
+<td style="text-align:right;">
+22.6
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3303
+</td>
+<td style="text-align:left;">
+2930 (US 421-US 421 S)
+</td>
+<td style="text-align:right;">
+13000
+</td>
+<td style="text-align:right;">
+6359.3
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+7.4
+</td>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+49.4
+</td>
+<td style="text-align:right;">
+62.2
+</td>
+<td style="text-align:right;">
+36.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3305
+</td>
+<td style="text-align:left;">
+2932 (US 401-421/NC 27-210-N Main St)
+</td>
+<td style="text-align:right;">
+32000
+</td>
+<td style="text-align:right;">
+14573.4
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+21.0
+</td>
+<td style="text-align:right;">
+22.4
+</td>
+<td style="text-align:right;">
+19.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3306
+</td>
+<td style="text-align:left;">
+2933 (NC 42-NC 42 Hwy)
+</td>
+<td style="text-align:right;">
+2300
+</td>
+<td style="text-align:right;">
+2101.5
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3308
+</td>
+<td style="text-align:left;">
+2935 (US 1-US 1)
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+17249.9
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+<td style="text-align:right;">
+7.6
+</td>
+<td style="text-align:right;">
+3.2
+</td>
+<td style="text-align:right;">
+12.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3309
+</td>
+<td style="text-align:left;">
+2936 (US 15-501/NC 87-NC 87 S)
+</td>
+<td style="text-align:right;">
+7500
+</td>
+<td style="text-align:right;">
+3699.7
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+10.0
+</td>
+<td style="text-align:right;">
+7.6
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+25.3
+</td>
+<td style="text-align:right;">
+19.0
+</td>
+<td style="text-align:right;">
+13.2
+</td>
+<td style="text-align:right;">
+24.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3313
+</td>
+<td style="text-align:left;">
+2940 (US 64-US 64 W)
+</td>
+<td style="text-align:right;">
+21000
+</td>
+<td style="text-align:right;">
+10491.2
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+<td style="text-align:right;">
+11.1
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+19.4
+</td>
+<td style="text-align:right;">
+8.1
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+<td style="text-align:right;">
+15.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3317
+</td>
+<td style="text-align:left;">
+2944 (NC 87-NC 87 N)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+1716.9
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+20.5
+</td>
+<td style="text-align:right;">
+15.9
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+<td style="text-align:right;">
+24.2
+</td>
+<td style="text-align:right;">
+47.3
+</td>
+<td style="text-align:right;">
+29.3
+</td>
+<td style="text-align:right;">
+65.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3318
+</td>
+<td style="text-align:left;">
+2945 (SR 1005-Old Greensboro Rd)
+</td>
+<td style="text-align:right;">
+3000
+</td>
+<td style="text-align:right;">
+1950.3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5.9
+</td>
+<td style="text-align:right;">
+1.6
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3329
+</td>
+<td style="text-align:left;">
+2955 (NC 49)
+</td>
+<td style="text-align:right;">
+2400
+</td>
+<td style="text-align:right;">
+1352.2
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+10.2
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+15.7
+</td>
+<td style="text-align:right;">
+29.1
+</td>
+<td style="text-align:right;">
+20.6
+</td>
+<td style="text-align:right;">
+37.5
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="internal-external-ie-and-external-internal-ei" class="section level2">
+<h2>Internal-external (IE) and External-internal (EI)</h2>
+<p>The second step in the development process is to see if we can find sufficient patterns in the StreetLight IE and EI data to estimate a regression model that can be generalized across zones. This generalization is necessary because the StreetLight data comprises a small sample of movements in the region. Here we start with StreetLight data extracted separately for IE-EI pairs by CAMPO and the Durham MPO. As such, it represents a sample of movements to/from a set of external stations to CAMPO model zones and from a set of external stations to the Durham model zones.</p>
+<p>The map below shows the coverage of the external stations for the CAMPO and Durham data pulls.</p>
+<div id="streetlight-productions-at-external-stations-by-data-pull" class="section level3">
+<h3>StreetLight Productions at External Stations by Data Pull</h3>
+<p><img src="img/ieei/sl_productions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>To prepare the data for a regression model, we first aggregate it to the 21-district geographies developed for the model update. The correlations between IE/EI attractions (taking the external station to be the production end of the trip) and population and employment are summarized in the table below.</p>
+</div>
+<div id="correlations-between-ieei-attractions-and-population-and-employment" class="section level3">
+<h3>Correlations between IE/EI Attractions and Population and Employment</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+trips
+</th>
+<th style="text-align:right;">
+pop
+</th>
+<th style="text-align:right;">
+emp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+trips
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+-0.060
+</td>
+<td style="text-align:right;">
+-0.590
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+-0.06
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+-0.59
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>The correlation is negative and the number of districts with non-zero trips is only seven (of 21), which suggests the data is problematic. Below is a plot of the IE/EI productions, which shows a heavy bias towards locations close to the external stations.</p>
+</div>
+<div id="streetlight-attractions-to-internal-stations-by-data-pull" class="section level3">
+<h3>StreetLight Attractions to Internal Stations by Data Pull</h3>
+<p><img src="img/ieei/sl_attractions.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>A plot of the cumulative duration distribution for the IE/EI trips reveals that ~94 percent of the trips have a duration of 30 minutes or less, which seems unlikely for IE/EI flows.</p>
+</div>
+<div id="streetlight-duration-cumulative-distribution-for-ieei-trips" class="section level3">
+<h3>StreetLight Duration Cumulative Distribution for IE/EI Trips</h3>
+<p><img src="img/ieei/sl_cumulative_duration.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+
+</body>
+</html>
