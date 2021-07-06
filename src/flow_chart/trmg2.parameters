@@ -75,6 +75,12 @@
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
     
+    Section = "Commercial Vehicles/Trucks"
+
+        Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
+        Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
+        Args.[CV Gravity Params] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_gravity.csv", "Description":"CV gravity parameters" }
+
     Section = "Choice Model Sources|Tables"
 
         Args.TableSources = { "Type":"array" , "Value":{{"PersonHH","PersonID"},
@@ -108,6 +114,36 @@
                                                                     {"IncomePerCapita","Persons.per_inc",null,0.000004},
                                                                     {"Walkability","SE.Walkability",null,0.000004}},
                                                                      "Caption":"N_HB_ODL_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_ODS_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-0.22062},
+                                                                    {"IsSenior","Persons.is_senior",null,-0.361298},
+                                                                    {"IsWorker","Persons.is_worker",null,-0.188259},
+                                                                    {"Walkability","SE.Walkability",null,0.517794},
+                                                                    {"HHwKids","Households.HHKids = 0",null,-0.579603},
+                                                                    {"NoAutos","Households.Autos = 0",null,0.890337},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.00001}},
+                                                                     "Caption":"N_HB_ODS_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_OME_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.58353},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.93693},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.547638},
+                                                                    {"IsWorker","Persons.is_worker",null,0.311869},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000008},
+                                                                    {"Walkability","SE.Walkability",null,7.29904}},
+                                                                     "Caption":"N_HB_OME_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_OMED_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-11.207},
+                                                                    {"NoAutos","Households.Autos = 0",null,1.72786},
+                                                                    {"IsSenior","Persons.is_senior",null,-157479},
+                                                                    {"WalkAccessibility","SE.access_walk",null,4.63766}},
+                                                                     "Caption":"N_HB_OMED_nm_utils", "Style":"NonMotorized" }
+
+        Args.W_HB_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.12264},
+                                                                    {"IsSenior","Persons.is_senior",null,-0.595414},
+                                                                    {"HHwKids","Households.HHKids = 0",null,-0.641186},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.44481},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.999659}},
+                                                                     "Caption":"W_HB_nm_utils", "Style":"NonMotorized" }
 
     Section = "Choice Models|examples"
 

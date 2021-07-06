@@ -29,6 +29,8 @@ navbar:
           href: airport.html
         - text: "Internal/External"
           href: ieei.html
+        - text: "Commercial Vehicles"
+          href: commercial_vehicles.html
 output:
   html_document:
     theme: flatly
