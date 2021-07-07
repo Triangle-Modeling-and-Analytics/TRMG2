@@ -234,10 +234,10 @@ Macro "Synthesize Population"(Args)
     // The IPU procedure generally creates a set of weights, one for each TAZ as opposed to a single weight field without IPU
     // These weight fields are used for sampling from the seed
     // Optional outputs include: The IPUIncidenceFile and one weight table for each PUMA
-    o.OutputHouseholdsFile = Args.[Synthesized HHs]
+    o.OutputHouseholdsFile = Args.Households
     o.ReportExtraHouseholdField("PUMA", "PUMA")
     o.ReportExtraHouseholdField("HINCP", "HHInc")
-    o.OutputPersonsFile = Args.[Synthesized Persons]
+    o.OutputPersonsFile = Args.Persons
     o.ReportExtraPersonsField("SEX", "gender") // Add extra field from Person Seed and change the name
     o.ReportExtraPersonsField("ESR", "EmploymentStatus")
     
@@ -272,10 +272,10 @@ Macro "PopSynth Post Process"(Args)
     // Generate tabulations from the synthesis output
     RunMacro("Generate Tabulations", Args)
 
-    objH = CreateObject("AddTables", {TableName: Args.[Synthesized HHs]})
+    objH = CreateObject("AddTables", {TableName: Args.Households})
     vw_hh = objH.TableView
     
-    objP = CreateObject("AddTables", {TableName: Args.[Synthesized Persons]})
+    objP = CreateObject("AddTables", {TableName: Args.Persons})
     vw_per = objP.TableView
     
     // Create Balloon Help on synthesized tables
@@ -327,7 +327,7 @@ Macro "Generate Tabulations"(Args)
     outFile = Args.[Synthesized Tabulations]
 
     // Open HH File and create empty output fields for number of kids, seniors, adults and workers in the HH
-    objH = CreateObject("AddTables", {TableName: Args.[Synthesized HHs]})
+    objH = CreateObject("AddTables", {TableName: Args.Households})
     vw_hh = objH.TableView
     modify = CreateObject("CC.ModifyTableOperation", vw_hh)
     modify.FindOrAddField("HHAdultsUnder65", "Long", 12,,)
@@ -337,7 +337,7 @@ Macro "Generate Tabulations"(Args)
     modify.Apply()
     {hhFlds, hhSpecs} = GetFields(vw_hh,)
 
-    objP = CreateObject("AddTables", {TableName: Args.[Synthesized Persons]})
+    objP = CreateObject("AddTables", {TableName: Args.Persons})
     vw_per = objP.TableView
 
     // Export to In-memory View for faster processing
@@ -409,7 +409,7 @@ Macro "Generate Tabulations"(Args)
     obj = null
 
     // Export the HH In-Memory table back
-    ExportView(vw_hhM + "|", "FFB", Args.[Synthesized HHs], hhFlds,)
+    ExportView(vw_hhM + "|", "FFB", Args.Households, hhFlds,)
     CloseView(vw_hhM)
     CloseView(vw_perM)
 endMacro
@@ -439,7 +439,7 @@ endMacro
 
 Macro "Auto Ownership" (Args)
 
-    hh_file = Args.[Synthesized HHs]
+    hh_file = Args.Households
     se_file = Args.SE
     model_file = Args.[Input Folder] + "/resident/auto_ownership/auto_ownership.mdl"
 

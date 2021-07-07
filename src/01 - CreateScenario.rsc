@@ -55,6 +55,7 @@ Macro "Create Folder Structure" (Args)
     "/skims/transit",
     "/skims/nonmotorized",
     "/external",
+    "/cv",
     "/university",
     "/resident/disagg_model",
     "/resident/population_synthesis",

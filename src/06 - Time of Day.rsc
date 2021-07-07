@@ -15,7 +15,7 @@ endmacro
 
 Macro "Resident TOD" (Args)
 
-    per_file = Args.[Synthesized Persons]
+    per_file = Args.Persons
     tod_file = Args.ResTODFactors
 
     per_vw = OpenTable("per", "FFB", {per_file})

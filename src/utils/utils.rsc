@@ -1132,6 +1132,8 @@ Inputs
   * `factor_file`
     * String
     * File path for factor file (csv or bin)
+    * Can be in either 'wide' or 'long' format
+      * If long format, must have 'from_field', 'to_field', 'factor' columns
   * `field_desc`
     * Optional string
     * If included, will be added as the field description for new fields
@@ -1151,6 +1153,13 @@ Macro "Create Sum Product Fields" (MacroOpts)
 
   fac_vw = OpenTable("factors", type, {factor_file})
   {names, } = GetFields(fac_vw, "All")
+  
+  if names.position("to_field") then do
+    CloseView(fac_vw)
+    MacroOpts.type = type
+    RunMacro("CSPF Long Format", MacroOpts)
+    return()
+  end
 
   input_fields = GetDataVector(fac_vw + "|", names[1], )
   input = GetDataVectors(view + "|", V2A(input_fields), {OptArray: true})
@@ -1171,6 +1180,44 @@ Macro "Create Sum Product Fields" (MacroOpts)
     end
   end
   RunMacro("Add Fields", {view: view, a_fields: a_fields, initial_values: 0})
+  SetDataVectors(view + "|", output, )
+
+  CloseView(fac_vw)
+endmacro
+
+/*
+Helper to Create Sum Product Fields macro. Handles long-format parameter files.
+*/
+
+Macro "CSPF Long Format" (MacroOpts)
+
+  view = MacroOpts.view
+  factor_file = MacroOpts.factor_file
+  field_desc = MacroOpts.field_desc
+  type = MacroOpts.type
+
+  fac_vw = OpenTable("factors", type, {factor_file})
+  {names, } = GetFields(fac_vw, "All")
+  if names.position("from_field") = 0 then Throw("Create Sum Product Field: 'from_field' is missing in 'factor_file'")
+  if names.position("factor") = 0 then Throw("Create Sum Product Field: 'factor' is missing in 'factor_file'")
+  {to_fields, from_fields, factors} = GetDataVectors(fac_vw + "|", {"to_field", "from_field", "factor"}, )
+
+  to_fields_u = V2A(SortVector(to_fields, {Unique: "true"}))
+  from_fields_u = V2A(SortVector(from_fields, {Unique: "true"}))
+
+  for to_field in to_fields_u do
+    a_fields = a_fields + {{to_field, "Real", 10, 2, , , , field_desc}}
+  end
+  RunMacro("Add Fields", {view: view, a_fields: a_fields, initial_values: 0})
+
+  input = GetDataVectors(view + "|", from_fields_u, {OptArray: "true"})
+  for i = 1 to to_fields.length do
+    to_field = to_fields[i]
+    v_from = input.(from_fields[i])
+    factor = factors[i]
+
+    output.(to_field) = nz(output.(to_field)) + nz(v_from * factor)
+  end
   SetDataVectors(view + "|", output, )
 
   CloseView(fac_vw)
@@ -1974,3 +2021,53 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
   result.flow = flow
   return(result)
 EndMacro
+
+/*
+General macro to apply the gravity model given a specific parameter file format
+*/
+
+Macro "Gravity" (MacroOpts)
+
+  se_file = MacroOpts.se_file
+  skim_file = MacroOpts.skim_file
+  param_file = MacroOpts.param_file
+  output_matrix = MacroOpts.output_matrix
+
+  // Create the gravity object
+  obj = CreateObject("Distribution.Gravity")
+  obj.DataSource = {TableName: se_file}
+  obj.OutputMatrix({
+    MatrixFile: output_matrix,
+    MatrixLabel: "Gravity Matrix",
+    Compression: "true",
+    ColumnMajor: "false"
+  })
+  obj.ResetPurposes()
+
+  param_vw = OpenTable("params", "CSV", {param_file})
+  rh = GetFirstRecord(param_vw + "|", )
+  while rh <> null do
+
+    obj.AddPurpose({
+      Name: param_vw.purpose,
+      Iterations: 50,
+      Convergence: 0.001,
+      Production: param_vw.p_field,
+      Attraction: param_vw.a_field,
+      ImpedanceMatrix: {
+        MatrixFile: skim_file,
+        Matrix: param_vw.imp_core
+        // RowIndex: ri,
+        // ColIndex: ci
+      },
+      Gamma: {param_vw.a, param_vw.b, param_vw.c},
+      Constraint: param_vw.constraint
+    })
+
+    rh = GetNextRecord(param_vw + "|", , )
+  end
+
+  obj.Run()
+  r = obj.GetResult()
+  return(r)
+endmacro

@@ -11,9 +11,9 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-06-19" />
+<meta name="date" content="2021-06-29" />
 
-<title>Auto Ownership</title>
+<title>Commercial Vehicles and Trucks</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -399,6 +399,9 @@ div.tocify {
     <li>
       <a href="airport.html">Airport</a>
     </li>
+    <li>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -413,217 +416,208 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Auto Ownership</h1>
+<h1 class="title toc-ignore">Commercial Vehicles and Trucks</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">June 19, 2021</h4>
+<h4 class="date">June 29, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Vehicle ownership is a long-term decision that directly impacts daily mode choice. The choice is influenced by household factors like income and number of workers, but also by where people choose to live. The auto-ownership model allows the TRMG2 to be sensitive to these factors and respond to changes in the future.</p>
+<p><strong>TODO: Vince add intro</strong></p>
+<p>These models predict the behavior of commercial vehicles, single-unit trucks, and multi-unit trucks. The models are implementations of the <a href="https://trid.trb.org/view.aspx?id=859168">Quick Response Freight Manual</a> (QRFM) and are re-estimated were possible using the Triangle’s 2010 Commercial Vehicle survey.</p>
 </div>
-<div id="model-structure" class="section level2">
-<h2>Model Structure</h2>
-<p>The auto-ownership model in the TRMG2 makes use of variables from the synthetic population and zonal accessibility to make predictions. The model structure is a simple multinomial logistic (MNL) regression model with five alternatives:</p>
-<ul>
-<li>0 Vehicles</li>
-<li>1 Vehicle</li>
-<li>2 Vehicles</li>
-<li>3 Vehicles</li>
-<li>4+ Vehicles</li>
-</ul>
-</div>
-<div id="coefficients" class="section level2">
-<h2>Coefficients</h2>
-<p>Model estimation was performed using TransCADs built-in logit model engine, and the table below shows the utility terms, coefficients, and goodness of fit.</p>
+<div id="trip-rates" class="section level2">
+<h2>Trip Rates</h2>
+<p>Initial estimation attempts led to poor model results. A fundamental problem may have been regressing a 2010 survey against 2016 land use data. In addition, stakeholders had previously listed some concerns with the survey. Given these issues, initial rates were adapted directly from the QRFM.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Term
+Variable
 </th>
-<th style="text-align:left;">
-veh0
+<th style="text-align:right;">
+CV
 </th>
-<th style="text-align:left;">
-veh1
+<th style="text-align:right;">
+SUT
 </th>
-<th style="text-align:left;">
-veh2
-</th>
-<th style="text-align:left;">
-veh3
-</th>
-<th style="text-align:left;">
-veh4
+<th style="text-align:right;">
+MUT
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Workers
+Industry
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+1.00
 </td>
-<td style="text-align:left;">
-0.665
+<td style="text-align:right;">
+0.260
 </td>
-<td style="text-align:left;">
-3.24
-</td>
-<td style="text-align:left;">
-4.249
-</td>
-<td style="text-align:left;">
-5.215
+<td style="text-align:right;">
+0.135
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Non-Working Adults
+Retail
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.89
 </td>
-<td style="text-align:left;">
-0
+<td style="text-align:right;">
+0.253
 </td>
-<td style="text-align:left;">
-2.06
-</td>
-<td style="text-align:left;">
-2.806
-</td>
-<td style="text-align:left;">
-3.598
+<td style="text-align:right;">
+0.065
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Children
+Office
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.44
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.068
 </td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
--0.153
-</td>
-<td style="text-align:left;">
--0.153
+<td style="text-align:right;">
+0.009
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Seniors
+Service_RateLow
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.44
 </td>
-<td style="text-align:left;">
-0.144
+<td style="text-align:right;">
+0.068
 </td>
-<td style="text-align:left;">
-0.144
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.009
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Income
+Service_RateHigh
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.44
 </td>
-<td style="text-align:left;">
-1.687
+<td style="text-align:right;">
+0.068
 </td>
-<td style="text-align:left;">
-2.531
-</td>
-<td style="text-align:left;">
-2.724
-</td>
-<td style="text-align:left;">
-2.958
+<td style="text-align:right;">
+0.009
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Walk Accessibility
+HH
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.25
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.099
 </td>
-<td style="text-align:left;">
--0.395
-</td>
-<td style="text-align:left;">
--0.605
-</td>
-<td style="text-align:left;">
--1.061
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Transit Accessibility
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
--0.37
-</td>
-<td style="text-align:left;">
--0.425
-</td>
-<td style="text-align:left;">
--0.536
-</td>
-<td style="text-align:left;">
--0.536
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted Rho^2
-</td>
-<td style="text-align:left;">
-0.41
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.038
 </td>
 </tr>
 </tbody>
 </table>
-<p>The coefficients all have the right sign and the relative sizes are intuitive. One particularly encouraging result of this model is that households with strong walk and transit accessibility are less likely to own a vehicle and even less likely to own multiple vehicles. This adds another dimension of model sensitivity to transit investments. New transit routes will affect long-term household decisions about auto ownership, which further influence their daily decisions about mode choice.</p>
-<p>Looking in more detail, the trend for coefficients across alternatives is also intuitive. Large numbers of workers in a household has a small positive impact on the utility of owning 1 auto, but a large impact on owning 2 or more. High income households are more likely to own more vehicles. Children make it less likely to own 3 or more cars, because there are fewer drivers. Finally, the model’s Rho^2 shows strong predictive power.</p>
+</div>
+<div id="time-of-day" class="section level2">
+<h2>Time of Day</h2>
+<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model. These looked reasonable when compared to resident travel patterns and are used in the model.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Vehicle Type
+</th>
+<th style="text-align:right;">
+AM
+</th>
+<th style="text-align:right;">
+MD
+</th>
+<th style="text-align:right;">
+PM
+</th>
+<th style="text-align:right;">
+NT
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+CV
+</td>
+<td style="text-align:right;">
+0.141
+</td>
+<td style="text-align:right;">
+0.452
+</td>
+<td style="text-align:right;">
+0.075
+</td>
+<td style="text-align:right;">
+0.331
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUT
+</td>
+<td style="text-align:right;">
+0.216
+</td>
+<td style="text-align:right;">
+0.444
+</td>
+<td style="text-align:right;">
+0.035
+</td>
+<td style="text-align:right;">
+0.306
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUT
+</td>
+<td style="text-align:right;">
+0.193
+</td>
+<td style="text-align:right;">
+0.393
+</td>
+<td style="text-align:right;">
+0.037
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="distribution" class="section level2">
+<h2>Distribution</h2>
+<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the CV survey did not contain information on both ends of the trip, which means it could not be used to estimate model parameters. Initial model parameters were borrowed from the travel model in Blacksburg, VA.</p>
+<p><strong>TODO: Update this section after we calibrate the intitial rates</strong></p>
 </div>
 
 <br>

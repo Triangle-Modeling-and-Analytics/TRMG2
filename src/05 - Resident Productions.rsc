@@ -16,8 +16,8 @@ endmacro
 
 Macro "Create Production Features" (Args)
 
-    hh_file = Args.[Synthesized HHs]
-    per_file = Args.[Synthesized Persons]
+    hh_file = Args.Households
+    per_file = Args.Persons
     se_file = Args.SE
 
     hh_vw = OpenTable("hh", "FFB", {hh_file})
@@ -97,7 +97,7 @@ endmacro
 
 Macro "Apply Production Rates" (Args)
 
-    per_file = Args.[Synthesized Persons]
+    per_file = Args.Persons
     per_vw = OpenTable("per", "FFB", {per_file})
     rate_file = Args.ProdRates
     RunMacro("Apply Rates with Queries", {view: per_vw, rate_csv: rate_file})

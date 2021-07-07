@@ -6,6 +6,8 @@
 06 - Time of Day.rsc
 07 - NonMotorized.rsc
 08 - Parking.rsc
+09 - Calculate MC Probabilities.rsc
+Commercial Vehicles.rsc
 Roadway Assignment.rsc
 Transit Assignment.rsc
 Summaries.rsc
@@ -15,3 +17,4 @@ utils/utils.rsc
 utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc
+flow_chart/NLMCreateFromPMEClass.rsc

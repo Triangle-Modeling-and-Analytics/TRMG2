@@ -84,7 +84,14 @@ est_tbl <- person_df %>%
     N_HB_K12_All = as.integer(N_HB_K12_All)
   ) %>%
   left_join(
-    logsum %>% select(TAZ, access = access_general_sov),
+    logsum %>% 
+      select(
+        TAZ,
+        access = access_general_sov,
+        g_access = access_general_sov,
+        n_access = access_nearby_sov,
+        e_access = access_employment_sov
+      ),
     by = c("p_taz" = "TAZ")
   ) %>%
   group_by(hhid) %>%
@@ -115,7 +122,27 @@ m2 <- zeroinfl(
 
 summary(m2)
 pR2(m2)
+cor(est_tbl$N_HB_K12_All, m2$fitted.values) ^ 2
 ```
+
+```{r, eval=FALSE}
+# multinomial logistic regression
+# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+library(nnet)
+mnl_data <- est_tbl %>%
+  filter(!(age > 18 & num_children == 0)) %>%
+  mutate(N_HB_K12_All = ifelse(N_HB_K12_All > 3, 3, N_HB_K12_All))
+model <- multinom(formula, data = mnl_data)
+
+cor(mnl_data$N_HB_K12_All, as.numeric(predict(model, mnl_data))) ^ 2
+
+# The R^2 is so low due the overwhelming number of people who make 0
+# trips.
+mnl_data %>%
+  group_by(N_HB_K12_All) %>%
+  summarize(count = n())
+```
+
 
 ```{r, N_HB_OME_All, eval=FALSE}
 m2 <- zeroinfl(
@@ -148,14 +175,15 @@ train_hhids <- hhids[!hhids %in% test_hhids]
 
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OD_Long, age, g_access, n_access, e_access,
+    N_HB_K12_All, age, g_access, n_access, e_access,
     hhid, weight, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
     num_children
   ) %>%
-  mutate(across(hhid:num_children, as.factor)) %>%
-  normalizeFeatures(target = "N_HB_OD_Long") %>%
+  # mutate(across(hhid:num_children, as.factor)) %>%
+  mutate(across(c(hhid, weight), as.factor)) %>%
+  normalizeFeatures(target = "N_HB_K12_All") %>%
   # createDummyFeatures(
-  #   target = "N_HB_OD_Long",
+  #   target = "N_HB_K12_All",
   #   cols = c(
   #     "is_senior",
   #     "num_vehicles",
@@ -180,11 +208,11 @@ train_weights <- train_set$weight
 train_set$weight <- NULL
 
 # trainTask <- makeClassifTask(
-#   data = train_set, target = "N_HB_OD_Long", weights = train_weights)
-# testTask <- makeClassifTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
+#   data = train_set, target = "N_HB_K12_All", weights = train_weights)
+# testTask <- makeClassifTask(data = test_set, target = "N_HB_K12_All", weights = test_weights)
 trainTask <- makeRegrTask(
-  data = train_set, target = "N_HB_OD_Long", weights = train_weights)
-testTask <- makeRegrTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
+  data = train_set, target = "N_HB_K12_All", weights = train_weights)
+testTask <- makeRegrTask(data = test_set, target = "N_HB_K12_All", weights = test_weights)
 
 # The classes are imbalanced with 0 being the dominant class. Use oversampling.
 # table(getTaskTargets(trainTask))
@@ -219,13 +247,13 @@ xgb_params <- makeParamSet(
 )
 
 # Create a control for searching the hyper-parameter space
-control <- makeTuneControlRandom(maxit = 10)
+control <- makeTuneControlRandom(maxit = 20)
 
 # Create a resampling plan
 resample_desc <- makeResampleDesc("CV", iters = 3)
 
 # Tune the hyper-parameters
-parallelStartMulticore(8)
+# parallelStartMulticore(8)
 tuned_params <- tuneParams(
   learner = xgb_learner,
   task = trainTask,
@@ -233,7 +261,7 @@ tuned_params <- tuneParams(
   par.set = xgb_params,
   control = control
 )
-parallelStop()
+# parallelStop()
 
 # Create a new learner using the tuned hyper-parameters
 xgb_learner_tuned <- setHyperPars(
@@ -246,30 +274,29 @@ xgb_model <- train(xgb_learner_tuned, task = trainTask)
 
 # Save the model so that this chunk does not have to be evaluated every
 # time the page is knit.
-# saveRDS(xgb_model, "data/output/resident_production/xgb_person_level.RDS")
-# saveRDS(xgb_model, "data/output/resident_production/xgb_hh_level.RDS")
-saveRDS(xgb_model, "xgb_model.RDS")
+saveRDS(xgb_model, "data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r load xgboost model, eval=FALSE}
-# xgb_model <- readRDS("data/output/resident_production/xgb_person_level.RDS")
-# xgb_model <- readRDS("data/output/resident_production/xgb_hh_level.RDS")
-xgb_model <- readRDS("xgb_model.RDS")
+xgb_model <- readRDS("data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r feature importance, eval=FALSE}
 # Show feature importance
-imp_tbl <- getFeatureImportance(xgb_model)
-imp_tbl <- imp_tbl$res #%>%
-  # gather(key = "Feature", value = "Importance") %>%
-  # arrange(Importance)
+imp_tbl <- getFeatureImportance(xgb_model)$res %>%
+  as.data.frame()
 
 plot_ly() %>%
   add_trace(
-    data = imp_tbl, y = ~variable, x = ~importance, type = "bar",
+    data = imp_tbl, y = ~reorder(variable, importance), x = ~importance, type = "bar",
     orientation = "h"
   ) %>%
-  layout(margin = list(l = 110))
+  layout(
+    title = "K12 Feature Importance",
+    yaxis = list(title = NA),
+    xaxis = list(title = "Importance"),
+    margin = list(l = 110)
+  )
 
 # Make prediction on test data set. Importantly, this will return
 # the probabilities as well as set the class the the one with highest
@@ -301,25 +328,6 @@ hh_result <- tibble(
   hhid = test_hhids,
   response = xgb_result$data$response
 )
-```
-
-
-```{r, eval=FALSE}
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
-
-
-# Create learner
-# logreg_learner <- makeLearner("classif.logreg")
-logreg_learner <- makeLearner("classif.binomial")
-
-# Create model
-logreg_model <- train(logreg_learner, task = trainTask)
-
-logreg_result <- predict(logreg_model, testTask)
-conf_mtx <- calculateConfusionMatrix(logreg_result)
-conf_mtx
-measureF1(logreg_result$data$truth, logreg_result$data$response, positive = "1")
 ```
 
 
@@ -1117,6 +1125,49 @@ calibration_trips %>%
   ) %>%
   kable(digits = 0, format.args = list(big.mark = ",")) %>%
   kable_styling(full_width = FALSE)
+```
+
+```{r, eval=FALSE}
+# For the TRB paper, a cross-class model was estimated for N_HB_K12_All
+xclass <- est_tbl %>% 
+  mutate(
+    num_children = ifelse(num_children > 2, 2, num_children),
+    age_group = case_when(
+      age < 5 ~ "Small Child",
+      age < 19 ~ "School Age",
+      TRUE ~ "Adult"
+    )
+  ) %>%
+  group_by(age_group, num_children) %>%
+  summarize(
+    count = n(),
+    rate = weighted.mean(N_HB_K12_All, weight = hh_weight_combined.x, na.rm = TRUE)
+  ) %>%
+  mutate(
+    rate = ifelse(age_group == "School Age" & num_children == 0, 0, rate),
+    count = ifelse(age_group == "School Age" & num_children == 0, 0, count)
+  )
+
+xclass %>%
+  select(-count) %>%
+  pivot_wider(names_from = num_children, values_from = rate)
+
+xclass %>%
+  select(-rate) %>%
+  pivot_wider(names_from = num_children, values_from = count)
+
+xclass_predict <- est_tbl %>%
+  mutate(
+    num_children = ifelse(num_children > 2, 2, num_children),
+    age_group = case_when(
+      age < 5 ~ "Small Child",
+      age < 19 ~ "School Age",
+      TRUE ~ "Adult"
+    )
+  ) %>%
+  left_join(xclass, by = c("age_group", "num_children"))
+  
+cor(xclass_predict$N_HB_K12_All, xclass_predict$rate) ^ 2
 ```
 
 

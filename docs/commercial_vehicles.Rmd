@@ -1,0 +1,209 @@
+---
+title: "Commercial Vehicles and Trucks"
+author: "Caliper Corporation"
+date: "June 29, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(broom)
+library(sf)
+library(knitr)
+library(kableExtra)
+```
+
+## Introduction
+
+**TODO: Vince add intro**
+
+These models predict the behavior of commercial vehicles, single-unit trucks,
+and multi-unit trucks. The models are implementations of the [Quick Response
+Freight Manual](https://trid.trb.org/view.aspx?id=859168) (QRFM) and are
+re-estimated were possible using the Triangle's 2010 Commercial Vehicle survey.
+
+```{r, include=FALSE}
+veh_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/vehicles_exported.csv")
+trips_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/trips_exported.csv")
+est_raw <- read_csv("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2010 Commercial Vehicle Travel/1_Data - Original/establishment_export.csv")
+```
+
+```{r}
+veh_types <- veh_raw %>%
+  filter(CTYPE != 2) %>%
+  mutate(veh_type = case_when(
+    CTYPE == 1 ~ "CV",
+    CTYPE == 3 ~ "SUT",
+    CTYPE == 4 ~ "MUT"
+  )) %>%
+  select(SAMPN, veh_type)
+
+add_veh_types <- trips_raw %>%
+  left_join(veh_types, by = "SAMPN") %>%
+  left_join(est_raw %>% select(SAMPN, EXPWGT), by = "SAMPN")
+```
+
+```{r, include=FALSE}
+tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
+  st_transform(crs = st_crs('+proj=longlat +datum=WGS84'))
+se <- read_csv("data/output/se_data/se_2016.csv")
+```
+
+```{r}
+# Geocoding
+pts <- tibble(
+  lng = add_veh_types$XCORD,
+  lat = add_veh_types$YCORD,
+) %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup() %>%
+  filter(lng != "NA") %>%
+  st_as_sf(
+    coords = c("lng", "lat"), 
+    crs = st_crs(tazs),
+    remove = FALSE
+  )
+
+# # manual check that they overlap
+# library(leaflet)
+# leaflet() %>%
+#   addProviderTiles("Stamen.TonerLite") %>%
+#   addPolygons(data = tazs) %>%
+#   addMarkers(data = pts[2000:3000, ])
+```
+
+```{r, include=FALSE}
+geocode_points <- pts %>%
+  st_join(tazs %>% select(TAZ = ID, district = DISTRICT)) %>%
+  st_drop_geometry() %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup()
+```
+
+```{r}
+add_tazs <- add_veh_types %>%
+  select(-TAZ) %>% # un-related TAZ field
+  left_join(geocode_points, by = c("XCORD" = "lng", "YCORD" = "lat")) %>%
+  filter(!is.na(TAZ), !is.na(veh_type))
+```
+
+## Trip Rates
+
+Initial estimation attempts led to poor model results. A fundamental problem
+may have been regressing a 2010 survey against 2016 land use data. In addition,
+stakeholders had previously listed some concerns with the survey. Given these
+issues, initial rates were adapted directly from the QRFM.
+
+```{r, eval=FALSE}
+rate_est_tbl <- add_tazs %>%
+  select(TAZ, district, veh_type, EXPWGT) %>%
+  left_join(
+    se %>% select(
+      TAZ,
+      HH,
+      Industry,
+      Office,
+      Retail,
+      Service_RateHigh,
+      Service_RateLow
+    ),
+    by = "TAZ"
+  ) %>%
+  group_by(veh_type, district) %>%
+  # group_by(veh_type, TAZ) %>%
+  summarize(across(EXPWGT:Service_RateLow, sum)) %>%
+  rename(trips = EXPWGT)
+
+cv_model <- lm(
+  trips ~ HH + Industry + Retail + Office + Service_RateHigh + Service_RateLow,
+  data = rate_est_tbl %>%
+    filter(veh_type == "CV") %>%
+    mutate(OtherEmp = Retail + Office + Service_RateHigh)
+)
+cv_rsq <- round(summary(cv_model)$r.squared, 2)
+
+sut_model <- lm(
+  trips ~ HH + Retail + OtherEmp + 0,
+  data = rate_est_tbl %>%
+    filter(veh_type == "SUT") %>%
+    mutate(
+      OtherEmp = Industry + Office + Service_RateHigh + Service_RateLow
+    )
+)
+sut_rsq <- round(summary(sut_model)$r.squared, 2)
+
+mut_model <- lm(
+  trips ~ HH + Industry + OtherEmp + 0,
+  data = rate_est_tbl %>%
+    filter(veh_type == "MUT") %>%
+    mutate(
+      OtherEmp = Retail + Office + Service_RateHigh + Service_RateLow
+    )
+)
+mut_rsq <- round(summary(mut_model)$r.squared, 2)
+```
+
+```{r, include=FALSE}
+rates <- read_csv("../master/cv/cv_generation.csv")
+```
+
+```{r}
+rates %>%
+  select(Variable = Field, CV:MUT) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+## Time of Day
+
+The survey included trip departure time, which was used to categorize trips
+by time period. The table below shows the estimated time of day factors used
+by the model. These looked reasonable when compared to resident travel patterns
+and are used in the model.
+
+```{r}
+add_tod <- add_tazs %>%
+  mutate(
+    dep_mins = DEP_HR * 60 + DEP_MIN,
+    tod = case_when(
+      dep_mins > 7 * 60 & dep_mins <= 9 * 60 ~ "AM",
+      dep_mins > 9 * 60 & dep_mins <= 15 * 60 + 30 ~ "MD",
+      dep_mins > 15 * 60 + 30 & dep_mins <= 18 * 60 + 15 ~ "PM",
+      TRUE ~ "NT"
+    )
+  )
+
+tod_tbl <- add_tod %>%
+  group_by(veh_type, tod) %>%
+  summarize(count = n()) %>%
+  mutate(factor = count / sum(count)) %>%
+  select(-count)
+
+tod_tbl %>%
+  pivot_wider(names_from = tod, values_from = factor) %>%
+  mutate(veh_type = factor(veh_type, levels = c("CV", "SUT", "MUT"), ordered = TRUE)) %>%
+  arrange(veh_type) %>%
+  rename(`Vehicle Type` = veh_type) %>%
+  relocate(PM, .before = NT) %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+## Distribution
+
+Once generated, the commercial vehicle and truck trips are distributed among
+zones using a gravity model. Unfortunately, the CV survey did not contain
+information on both ends of the trip, which means it could not be used to
+estimate model parameters. Initial model parameters were borrowed from the
+travel model in Blacksburg, VA.
+
+**TODO: Update this section after we calibrate the intitial rates**
+

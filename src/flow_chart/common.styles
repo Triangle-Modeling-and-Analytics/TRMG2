@@ -60,3 +60,47 @@
     Styles.LineStyle  = Pme.LineStyle()
     Styles.RadioList  = Pme.RadioList()
     Styles.CheckBoxes = Pme.CheckBoxes()
+
+    // Styles for the generic tables that support choice models
+    Styles.JoinInfo = Pme.Table({Height: 6, MaxRows: 5, Values: "Columns",    
+                               Columns: {{Name: "Join Name", Type: "string",  Fixed: "false"},
+										    {Name: "Left Table", Type: "string",  Fixed: "false"},
+                                            {Name: "Left Table ID",   Type: "string",    Fixed: "false"},
+											{Name: "Right Table",   Type: "string",    Fixed: "false"},
+										    {Name: "Right Table ID",   Type: "string",    Fixed: "false"}}
+                            })
+
+    Styles.Keys = Pme.Table({Height: 4, MaxRows: 3, Values: "Columns",
+                            Columns: {{Name: "Key", Type: "string",  Fixed: "false"},
+										{Name: "Values", Type: "string",  Fixed: "false"}}
+                        })
+
+    Styles.MatrixSources = Pme.Table({Height: 10, MaxRows: 9, Values: "Columns", 
+                                    Columns: {{Name: "Name", Type: "string",  Fixed: "false"},
+                                                {Name: "RowIndex", Type: "string",  Fixed: "false"},
+												{Name: "ColumnIndex", Type: "string",  Fixed: "false"}}
+                                    })
+
+    Styles.TableSources = Pme.Table({Height: 6, MaxRows: 5, Values: "Columns", 
+                                    Columns: {{Name: "Name", Type: "string",  Fixed: "false"},
+											  {Name: "IDField", Type: "string",  Fixed: "false"}}
+                                    })
+
+    Styles.[Nesting Structure] = Pme.Table({Height: 6, MaxRows: 5, Values: "Columns",   
+                                            Columns: {{Name: "Parent", Type: "string",  Fixed: "false"},
+                                                        {Name: "Alternatives", Type: "string",  Fixed: "false", Width:  300},
+														{Name: "ParentNestCoeff", Type: "real",    Fixed: "false"}}
+                                        })
+
+    Styles.Availability = Pme.Table({Height: 8, MaxRows: 7, Values: "Columns", 
+                                                Columns: {{Name: "Alternative", Type: "string",  Fixed: "false", Width:  100},
+														  {Name: "Expression", Type: "string",    Fixed: "false"}}
+                                })
+
+    // Tables for specific choice models
+    Styles.NonMotorized = Pme.Table({Height: 7, MaxRows: 8, Values: "Columns", 
+                                    Columns: {{Name: "Description", Type: "string",  Fixed: "false"},
+											  {Name: "Expression", Type: "string",  Fixed: "false"},
+                                              {Name: "Motorized", Type: "real",  Fixed: "false"},
+                                              {Name: "NonMotorized", Type: "real",  Fixed: "false"}}
+                                    })

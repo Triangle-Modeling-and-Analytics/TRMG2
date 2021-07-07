@@ -1020,15 +1020,31 @@ mode_equiv %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 
+route_equiv <- read_csv(
+  "data/input/survey_processing/route_equiv.csv",
+  col_types = cols(
+    transit_system_1 = col_double(),
+    transit_line_1 = col_double(),
+    transit_system_name = col_character(),
+    transit_line_name = col_character(),
+    rts_name1 = col_character(),
+    rts_name2 = col_character(),
+    bus_type = col_character()
+  )
+) %>%
+  select(transit_system_1, transit_line_1, bus_type)
+
 simplify_mode <- det_work_place %>%
   left_join(mode_equiv, by = c("mode" = "code")) %>%
+  left_join(route_equiv, by = c("transit_system_1", "transit_line_1")) %>%
   mutate(
     mode_final = case_when(
       mode_simple == "auto_pay" ~ "auto_pay",
-      mode_simple == "other_auto" ~ "auto_pay",
+      mode_simple == "other_auto" ~ "other_auto",
       grepl("auto", mode_simple) & party_size == 1 ~ "sov",
       grepl("auto", mode_simple) & party_size == 2 ~ "hov2",
       grepl("auto", mode_simple) & party_size > 2 ~ "hov3",
+      !is.na(bus_type) ~ bus_type,
       TRUE ~ mode_simple
     ),
     access_mode = case_when(
@@ -1052,6 +1068,7 @@ The chart below shows the expanded trips by mode.
 
 ```{r}
 temp <- simplify_mode %>%
+  mutate(mode_final = ifelse(mode_final %in% c("eb", "lb"), "bus", mode_final)) %>%
   group_by(Mode = mode_final) %>%
   summarize(weight = sum(trip_weight_combined, na.rm = TRUE))
 ggplot(data = temp, aes(
@@ -1152,6 +1169,7 @@ temp2 <- flag_loop_trips %>%
     max_o_duration = max(replace_na(d_act_dur, 0), na.rm = TRUE)
   ) %>%
   filter(d_act_dur == max_o_duration & d_activity != "W") %>%
+  slice(1) %>%
   left_join(temp, by = c("personid", "tour_num")) %>%
   select(personid, tour_num, d_activity, max_o_duration, total_w_duration) %>%
   mutate(flip_to_nt = case_when(
@@ -1448,6 +1466,26 @@ flip_to_pa <- xfer_linked_out %>%
     p_access_mode = ifelse(pa_flag == 1, access_mode, egress_mode),
     p_egress_mode = ifelse(pa_flag == 0, access_mode, egress_mode)
   )
+
+# For mode choice estimation, create an integer field for modes.
+# This needs to be done here to make sure access mode is considered in the PA
+# direction.
+mc_code <- flip_to_pa %>%
+  mutate(mc_code = case_when(
+    mode_final == "sov" ~ 1,
+    mode_final == "hov2" ~ 2,
+    mode_final == "hov3" ~ 3,
+    mode_final == "lb" & access_mode == "w" ~ 4,
+    mode_final == "lb" & access_mode == "knr" ~ 5,
+    mode_final == "lb" & access_mode == "pnr" ~ 6,
+    mode_final == "eb" & access_mode == "w" ~ 7,
+    mode_final == "eb" & access_mode == "knr" ~ 8,
+    mode_final == "eb" & access_mode == "pnr" ~ 9,
+    mode_final == "auto_pay" ~ 10,
+    mode_final == "other_auto" ~ 11,
+    mode_final == "school_bus" ~ 12
+  ))
+  
 ```
 
 ### Geocoding and skims
@@ -1473,22 +1511,23 @@ tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
 # create unique list of lat/long points
 pts <- tibble(
   lng = c(
-    flip_to_pa$origin_lng,
-    flip_to_pa$destination_lng,
-    flip_to_pa$park_lng,
+    mc_code$origin_lng,
+    mc_code$destination_lng,
+    mc_code$park_lng,
     hh_add_seniors$home_loc_lng
   ),
   lat = c(
-    flip_to_pa$origin_lat,
-    flip_to_pa$destination_lat,
-    flip_to_pa$park_lat,
+    mc_code$origin_lat,
+    mc_code$destination_lat,
+    mc_code$park_lat,
     hh_add_seniors$home_loc_lat
   ),
 ) %>%
-  unite(lng_lat, c(lng, lat)) %>%
-  group_by(lng_lat) %>%
-  summarize() %>%
-  separate(lng_lat, into = c("lng", "lat"), sep = "_") %>%
+  # unite(lng_lat, c(lng, lat), remove = FALSE) %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup() %>%
+  # select(-lng_lat) %>%
   filter(lng != "NA") %>%
   mutate(
     lng = as.numeric(lng),
@@ -1500,7 +1539,7 @@ pts <- tibble(
     remove = FALSE
   )
 
-# manual check that they overlap
+# # manual check that they overlap
 # library(leaflet)
 # leaflet() %>%
 #   addProviderTiles("Stamen.TonerLite") %>%
@@ -1511,7 +1550,10 @@ pts <- tibble(
 ```{r, include=FALSE}
 geocode_points <- pts %>%
   st_join(tazs %>% select(TAZ = ID)) %>%
-  st_drop_geometry()
+  st_drop_geometry() %>%
+  group_by(lng, lat) %>%
+  slice(1) %>%
+  ungroup()
 ```
 
 ```{r}
@@ -1522,7 +1564,7 @@ hh_update_taz <- hh_add_seniors %>%
   ) %>%
   rename(G2_TAZ = TAZ)
 
-add_taz_id <- flip_to_pa %>%
+add_taz_id <- mc_code %>%
   left_join(
     geocode_points,
     by = c("p_lng" = "lng", "p_lat" = "lat")
@@ -1537,7 +1579,12 @@ add_taz_id <- flip_to_pa %>%
     geocode_points,
     by = c("park_lng" = "lng", "park_lat" = "lat")
   ) %>%
-  rename(park_taz = TAZ)
+  rename(park_taz = TAZ) %>%
+  mutate(
+    o_taz = ifelse(pa_flag == 1, p_taz, a_taz),
+    d_taz = ifelse(pa_flag == 1, a_taz, p_taz)
+  ) %>%
+  relocate(o_taz:d_taz, .before = p_taz)
 ```
 
 
@@ -2108,7 +2155,8 @@ add_obs_trip_type <- scheme6 %>%
 
 add_hh_data <- add_obs_trip_type %>%
   left_join(
-    hh_update_taz %>% select(hhid, hh_inc_final, hh_inc_final_lab, choice_segment),
+    hh_update_taz %>% select(
+      hhid, hhsize, num_workers, num_vehicles, hh_inc_final, hh_inc_final_lab, choice_segment),
     by = "hhid"
   )
 ```
