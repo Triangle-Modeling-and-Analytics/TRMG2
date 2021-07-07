@@ -33,7 +33,7 @@ Macro "Create NonMotorized Features" (Args)
     {, per_specs} = RunMacro("Get Fields", {view_name: per_vw})
     {, se_specs} = RunMacro("Get Fields", {view_name: se_vw})
 
-    {v_size, v_kids, v_autos} = GetDataVectors(hh_vw + "|", {"HHSize", "HHKids", })
+    {v_size, v_kids, v_autos} = GetDataVectors(hh_vw + "|", {"HHSize", "HHKids", },)
 
     jv = JoinViews("per+hh", per_specs.HouseholdID, hh_specs.HouseholdID, )
 
