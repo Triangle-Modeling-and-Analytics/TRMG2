@@ -15,7 +15,6 @@ knitr::opts_chunk$set(echo = TRUE)
 options(dplyr.summarise.inform = FALSE)
 options(scipen = 999)
 
-
 # Remote I/O -------------------------------------------------------------------
 
 private_dir <- "data/input/_PRIVATE/"
@@ -26,7 +25,6 @@ NCSUsurvey_name<-paste0(private_dir,"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls"
 taz_shape_file_name<-paste0(data_dir,"tazs/master_tazs.shp")
 distance_skim_name<-paste0(data_dir,"AMSOVDistanceSkim.csv")
 se_filename<-paste0(data_dir,"se_data/se_2016.csv")
-
 
 # Parameters -------------------------------------------------------------------
 PLANAR_EPSG <- 3857
@@ -264,7 +262,13 @@ Trip_subset_df<-NCSUtemp_df  %>%
          Other,
          distance_miles, # trip distance
          distance_zonetozone, # trip distance
-         Weight)
+         Weight)%>%
+  mutate(Bicycle_W = Bicycle * Weight,
+         Bus_W = Bus * Weight,
+         Car_W = Car * Weight,
+         Carpool_W = Carpool * Weight,
+         Walk_W  = Walk * Weight,
+         Other_W = Other * Weight)
 
 
 Productions_bymode_df<-Trip_subset_df %>%   
