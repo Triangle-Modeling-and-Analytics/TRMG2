@@ -234,7 +234,7 @@ avg_trips_UHOUCO_Oncampus_bymode_df<-Productions_bymode_df%>%
             .groups = "drop")
 
 avg_trips_UHOUCO_Offcampus_bymode_df<-Productions_bymode_df%>%
-  filter(On_campus==1)%>%
+  filter(On_campus==0)%>%
   filter(UHO==1|UCO==1)%>%
   filter(!is.na(Primary_Mode))%>%
   group_by(Primary_Mode)%>%
@@ -247,9 +247,31 @@ avg_trips_UHOUCO_Offcampus_bymode_df<-Productions_bymode_df%>%
 
 avg_trips_UHOUCO_df<-rbind(avg_trips_UHOUCO_Oncampus_bymode_df,avg_trips_UHOUCO_Offcampus_bymode_df)
 avg_trips_UHOUCO_col=c("segment","Primary_Mode","avg_trips","count","respondents")
-
 headers<-c("Segment","Mode","Trip Rate", "Respondents", "Segment Sample Size")
-kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
+#kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
+
+
+## Trip Rates for UHO and UCO combined, car/no car --------------------------------
+sumavg_trips_UHOUCO_df <-avg_trips_UHOUCO_df %>%
+  mutate(oncampus_car = if_else(segment == "On-campus Students UHO UCO Trips" & 
+                                  (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
+         oncampus_noncar = if_else(segment == "On-campus Students UHO UCO Trips" & 
+                                     Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
+         offcampus_car = if_else(segment == "Off-campus Students UHO UCO Trips" & 
+                                   (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
+         offcampus_noncar = if_else(segment == "Off-campus Students UHO UCO Trips" & 
+                                      Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
+         car = if_else(Primary_Mode == "Car" | Primary_Mode == "Carpool", 1, 0) * trips,
+         non_car = if_else(Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips)%>%
+  summarize(oncampus_car = sum(oncampus_car),
+            oncampus_noncar= sum(oncampus_noncar),
+            offcampus_car = sum(offcampus_car),
+            offcampus_noncar = sum(offcampus_noncar),
+            car = sum(car),
+            non_car = sum(non_car),
+            ssize_oncampus = min(respondents[segment=="On-campus Students UHO UCO Trips"]),
+            ssize_offcampus = min(respondents[segment=="Off-campus Students UHO UCO Trips"]))
+sumavg_trips_UHOUCO_df
 
 ## Trip Rates UOO, by mode -----------------------------------------------------
 avg_trips_UOO_Oncampus_bymode_df<-avg_trips_bypurpose_Oncampus_bymode_df %>%
@@ -265,7 +287,46 @@ avg_trips_UHOUCOUOO_df<-rbind(avg_trips_UHOUCO_df,avg_trips_UOO_df)
 
 avg_trips_UOO_col=c("segment","Primary_Mode","avg_trips","count","respondents")
 headers<-c("Segment","Mode","Trip Rate", "Respondents", "Segment Sample Size")
-kable(avg_trips_UHOUCOUOO_df[,avg_trips_UOO_col],caption ="Trip Rates by Mode",col.names=headers)
+#kable(avg_trips_UHOUCOUOO_df[,avg_trips_UOO_col],caption ="Trip Rates by Mode",col.names=headers)
+
+## Trip Rates UOO, car/no car -----------------------------------------------------
+
+sumavg_trips_UOO_df <-avg_trips_UOO_df %>%
+  mutate(oncampus_car = if_else(segment == "On-campus Students" & 
+                                  (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
+         oncampus_noncar = if_else(segment == "On-campus Students" & 
+                                     Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
+         offcampus_car = if_else(segment == "Off-campus Students" & 
+                                   (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
+         offcampus_noncar = if_else(segment == "Off-campus Students" & 
+                                      Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
+         car = if_else(Primary_Mode == "Car" | Primary_Mode == "Carpool", 1, 0) * trips,
+         non_car = if_else(Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips) %>%
+  summarize(oncampus_car = sum(oncampus_car),
+            oncampus_noncar= sum(oncampus_noncar),
+            offcampus_car = sum(offcampus_car),
+            offcampus_noncar = sum(offcampus_noncar),
+            car = sum(car),
+            non_car = sum(non_car),
+            ssize_oncampus = min(respondents[segment=="On-campus Students"]),
+            ssize_offcampus = min(respondents[segment=="Off-campus Students"]))
+
+sumavg_trips_UOO_df
+
+## ratio UOO/UHOUCO
+
+trip_purpose<-c("UHOUCO","UOO")
+
+sumavg_trips_UHOUCOUOO_df <- cbind(rbind(sumavg_trips_UHOUCO_df,sumavg_trips_UOO_df),trip_purpose)
+
+cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$car[trip_purpose == "UOO"]/
+  sumavg_trips_UHOUCOUOO_df$car[trip_purpose == "UHOUCO"]
+
+non_cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UOO"]/
+  sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UHOUCO"]
+
+P_rates_ratioUOOtoUHOUCO_df <-data_frame(cartrips_ratioUOOtoUHOUCO,non_cartrips_ratioUOOtoUHOUCO)
+
 
 # Selected Production Rates-----------------------------------------------------
 P_rates_df<-w_avg_trips_bypurpose_df %>% 
@@ -362,7 +423,6 @@ Apply_Productions_df<-socioecon2_df %>%
            
    select(selected_columns)
 
-
 Summary_Productions_df<-Apply_Productions_df%>%
   summarize_all(sum) %>% 
   select(c(2:24)) %>%
@@ -375,3 +435,4 @@ Summary_Productions_df
 write_rds(Apply_Productions_df,paste0(univ_dir,"Apply_Produtions_df.RDS"))    
 write_rds(Summary_Productions_df,paste0(univ_dir,"Summary_Productions_df.RDS"))
 write_csv(P_rates_df,paste0(univ_dir,"P_rates.CSV"))
+write_csv(P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))
