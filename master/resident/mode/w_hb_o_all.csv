@@ -1,5 +1,5 @@
 Alternative,Expression,Segment,Coefficient,Description
-auto,se.HiIncomePct.O,,0.94614,High income
+auto,se.HiIncomePct.O,,0.7322,High income
 auto,Constant,v0,-99,Auto Availability
 sov,Constant,,4.88,Constant
 sov,sov_skim.CongTime,,-0.065,Travel time

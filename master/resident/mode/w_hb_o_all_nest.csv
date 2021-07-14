@@ -1,5 +1,5 @@
 Parent,Alternatives,ParentNestCoeff
 Root,"auto, nonhh_auto, transit",1
-auto,"sov, hov2, hov3",0.35
+auto,"sov, hov2, hov3",0.348
 nonhh_auto,"auto_pay, other_auto",1
-transit,"walk_lb, walk_eb",0.52
+transit,"w_lb, w_eb",0.5197
