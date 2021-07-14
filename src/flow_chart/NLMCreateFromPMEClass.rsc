@@ -1,16 +1,18 @@
 Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
     init do
-        if opts.SourcesObject = null then
-            Throw("Required option \'SourcesObject\' that contains the master sources object missing.")
-        
         // Object that contains the master sources list(s)
         if opts.ModelName = null then
             self.ModelName = 'Choice'
         else
             self.ModelName = opts.ModelName
         
-        self.MasterSourcesObject = opts.SourcesObject
+        if opts.SourcesObject <> null then do   // Make a copy of the sources object that was passed during instantiation.
+            objArr = Serialize(opts.SourcesObject)
+            self.MasterSourcesObject = DeSerialize(objArr)
+        end
+        else    // Create new sources object with no sources. Implies that sources will need to be added on the fly using AddTableSource() or AddMatrixSource()
+            self.MasterSourcesObject = CreateObject("Choice Model Sources") // Create sources object with no arguments. (All sources will be defined on the fly)
 
         // Default Options
         self.RunModel = 1
@@ -19,6 +21,7 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         self.ModelType = 'Mode Choice'
         self.ShadowIterations = 10       // Default shadow price iterations
         self.ShadowTolerance = 0.1  // Default shadow price tolerance
+        self.AlternateUtilFormat = 0 // Default utility format
  
         // Outputs/Other Variables
         self.Model = null
@@ -74,32 +77,36 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         self.RandomSeed = seed
     endItem
 
+    macro "_SetSegment"(seg) do
+        seg = self.GetStringOrNull(seg, "NLMCreateFromPME: 'Segment' attribute is not a string")
+        self.Segment = Lower(seg)
+    endItem
+
+    // Macro to add matrix source not present in the sources object. Allows on the fly sources.
+    macro "AddMatrixSource"(spec) do
+        self.MasterSourcesObject.AddMatrixSource(spec)
+    endItem
+
+    // Macro to add table source not present in the sources object. Allows on the fly sources.
+    macro "AddTableSource"(spec) do
+        self.MasterSourcesObject.AddTableSource(spec)
+    endItem
 
     macro "AddPrimarySpec"(opts) do
-        chkSpec = {{"Name", "string", 1},
-                   {"Filter", "string", 0},
-                   {"OField", "string", 0},
-                   {"DField", "string", 0}}
-        self.CheckOptionArray("AddPrimarySpec", chkSpec, opts)
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddPrimarySpec() is not an option array")
+        primarySrcName = self.GetString(opts.Name, "NLMCreateFromPME: 'Name' option passed to AddPrimarySpec() is either missing or is not a string")
         
-        primarySrcName = opts.Name
         // Check if source name is present
         srcObj = self.MasterSourcesObject
         chk = srcObj.CheckSource(primarySrcName)
         if !chk then
             Throw(ErrMsg + " Source \'" + primarySrcName + "\' undefined.")
-        
         self.PrimarySpec.Name = primarySrcName
 
         // Other options (will be verified further depending on other model details)
-        if opts.Filter <> null then
-            self.PrimarySpec.Filter = opts.Filter
-        
-        if opts.OField <> null then
-            self.PrimarySpec.OField = opts.OField
-        
-        if opts.DField <> null then
-            self.PrimarySpec.DField = opts.DField
+        self.PrimarySpec.Filter = self.GetStringOrNull(opts.Filter, "NLMCreateFromPME: 'Filter' option passed to AddPrimarySpec() is not a string")
+        self.PrimarySpec.OField = self.GetStringOrNull(opts.OField, "NLMCreateFromPME: 'OField' option passed to AddPrimarySpec() is not a string")
+        self.PrimarySpec.DField = self.GetStringOrNull(opts.DField, "NLMCreateFromPME: 'DField' option passed to AddPrimarySpec() is not a string")
 
         // Determine if model is aggregate or disagg
         info = srcObj.GetSourceInfo(primarySrcName)
@@ -111,12 +118,9 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
 
     macro "AddDestinations"(opts) do
-        chkSpec = {{"DestinationsSource", "string", 1},
-                   {"DestinationsIndex", "string", 1}}
-        self.CheckOptionArray("AddDestinations", chkSpec, opts)
-        
-        destSrc = opts.DestinationsSource
-        destIdx = opts.DestinationsIndex
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddDestinations() is not an option array")
+        destSrc = self.GetString(opts.DestinationsSource, "NLMCreateFromPME: 'DestinationsSource' option passed to AddDestinations() is either missing or is not a string")
+        destIdx = self.GetString(opts.DestinationsIndex, "NLMCreateFromPME: 'DestinationsIndex' option passed to AddDestinations() is either missing or is not a string")
         
         // Check Source
         srcObj = self.MasterSourcesObject
@@ -184,103 +188,73 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
 
     macro "AddTotalsSpec"(opts) do
-        chkSpec = {{"Name", "string", 1},
-                   {"MatrixCore", "string", 0},
-                   {"ZonalField", "string", 0}}
-        self.CheckOptionArray("AddTotalsSpec", chkSpec, opts)
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddTotalsSpec() is not an option array")
+        totalsSrcName = self.GetString(opts.Name, "NLMCreateFromPME: 'Name' option passed to AddTotalsSpec() is either missing or is not a string")
+        zonalFld = self.GetStringOrNull(opts.ZonalField, "NLMCreateFromPME: 'ZonalField' option passed to AddTotalsSpec() is not a string")
+        mtxCore = self.GetStringOrNull(opts.MatrixCore, "NLMCreateFromPME: 'MatrixCore' option passed to AddTotalsSpec() is not a string")
 
-        if opts.MatrixCore = null and opts.ZonalField = null then
-            Throw("Invalid option for AddTotalsSpec()")
+        if mtxCore = null and zonalFld = null then
+            Throw("NLMCreateFromPME: Invalid option for AddTotalsSpec()")
 
-        if opts.MatrixCore <> null and opts.ZonalField <> null then
-            Throw("Invalid option for AddTotalsSpec()")
+        if mtxCore <> null and zonalFld <> null then
+            Throw("NLMCreateFromPME: Invalid option for AddTotalsSpec()")
         
-        totalsSrcName = opts.Name
         srcObj = self.MasterSourcesObject
         chk = srcObj.CheckSource(totalsSrcName)
         if !chk then
             Throw(ErrMsg + " Source \'" + totalsSrcName + "\' undefined.")
         self.TotalsSpec.Name = totalsSrcName
-
-        if opts.MatrixCore <> null then
-            self.TotalsSpec.MatrixCore = opts.MatrixCore
-
-        if opts.ZonalField <> null then
-            self.TotalsSpec.ZonalField = opts.ZonalField
+        
+        self.TotalsSpec.MatrixCore = mtxCore
+        self.TotalsSpec.ZonalField = zonalFld
     endItem
 
 
     macro "AddSizeVariable"(opts) do
-        chkSpec = {{"Name", "string", 1},
-                   {"Field", "string", 1},
-                   {"Coefficient", "double", 0}}
-        self.CheckOptionArray("AddSizeVariable", chkSpec, opts)
-        
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddSizeVariable() is not an option array")
+        sizeSrcName = self.GetString(opts.Name, "NLMCreateFromPME: 'Name' option passed to AddSizeVariable() is either missing or is not a string")
+
         // Check if source name is present in master sources list
-        sizeSrcName = opts.Name
         srcObj = self.MasterSourcesObject
         chk = srcObj.GetSourceInfo(sizeSrcName)
         if chk.Type <> "Table" then
             Throw(ErrMsg + " Source \'" + sizeSrcName + "\' is not defined in the master table sources.")
         
         self.SizeVariableSpec.Name = sizeSrcName
-        self.SizeVariableSpec.Field = opts.Field
+        self.SizeVariableSpec.Field = self.GetString(opts.Field, "NLMCreateFromPME: 'Field' option passed to AddSizeVariable() is not a string")
         if opts.Coefficient <> null then
-            self.SizeVariableSpec.Coefficient = opts.Coefficient
+            self.SizeVariableSpec.Coefficient = self.GetNumericValue(opts.Coefficient, "NLMCreateFromPME: 'Coefficient' option passed to AddSizeVariable() is not numeric")
         else
             self.SizeVariableSpec.Coefficient = 1.0    
     endItem
 
 
     macro "AddShadowPrice"(opts) do
-        chkSpec = {{"TargetName", "string", 1},
-                   {"TargetField", "string", 1},
-                   {"Iterations", "int", 0},
-                   {"Tolerance", "double", 0},
-                   {"OutputShadowPriceTable", "string", 1}}
-        self.CheckOptionArray("AddShadowPrice", chkSpec, opts)
-        
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddShadowPrice() is not an option array")
+
         // Check if source name is present
-        srcName = opts.TargetName
+        srcName = self.GetString(opts.TargetName, "NLMCreateFromPME: 'TargetName' option passed to AddShadowPrice() is either missing or is not a string")
         srcObj = self.MasterSourcesObject
         chk = srcObj.GetSourceInfo(srcName)
         if chk.Type <> "Table" then
             Throw(ErrMsg + " Source \'" + srcName + "\' is not defined in the master table sources.")
         
         self.ShadowPriceSpec.Name = srcName
-        self.ShadowPriceSpec.Field = opts.TargetField
+        self.ShadowPriceSpec.Field = self.GetString(opts.TargetField, "NLMCreateFromPME: 'TargetField' option passed to AddShadowPrice() is either missing or is not a string")
         
-        outTable = opts.OutputShadowPriceTable
-        self.CheckOptionType(outTable, "string", "'OutputShadowPriceTable' option in 'AddShadowPrice()' is not a string")
+        outTable = self.GetString(opts.OutputShadowPriceTable, "NLMCreateFromPME: 'OutputShadowPriceTable' option passed to AddShadowPrice() is not a string")
         self.CheckOutputFile(outTable, "bin")
         self.ShadowPriceSpec.OutputTable = outTable
         
         if opts.Iterations <> null then
-            self.ShadowPriceSpec.Iterations = opts.Iterations
+            self.ShadowPriceSpec.Iterations = self.GetNumericValue(opts.Iterations, "NLMCreateFromPME: 'Iterations' option passed to AddShadowPrice() is not numeric")
         else
             self.ShadowPriceSpec.Iterations = self.ShadowIterations
         
         if opts.Tolerance <> null then
-            self.ShadowPriceSpec.Tolerance = opts.Tolerance
+            self.ShadowPriceSpec.Tolerance = self.GetNumericValue(opts.Tolerance, "NLMCreateFromPME: 'Tolerance' option passed to AddShadowPrice() is not numeric")
         else
             self.ShadowPriceSpec.Tolerance = self.ShadowTolerance
-    endItem
-
-
-    // Check the consistency of an options array (opts) with the require spec
-    // spec is an array with each element of the form {option name, option type, whether option is required}
-    private macro "CheckOptionArray"(method, spec, opts) do
-        self.CheckOptionType(opts, "array", "Argument to " + method + "() is not an options array")
-        for item in spec do
-            optName = item[1]
-            type = item[2]
-            isReq = item[3]
-            optVal = opts.(optName) 
-            if isReq and optVal = null then
-                Throw("\'" + optName + "\' option missing for method " + method + "()")
-            if optVal <> null then
-                self.CheckOptionType(optVal, type, "\'" + optName + "\' option specified for method " + method + "() is not of type \'" + type)
-        end
     endItem
 
 
@@ -312,13 +286,16 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
 
     macro "AddUtility"(opts) do
-        self.CheckOptionType(opts, "array", "Argument to \'AddUtility\' method is not an array")
+        opts = self.GetOptionsArray(opts, "NLMCreateFromPME: Argument passed to AddUtility() is not an option array")
 
         // Utility Function
         util = CopyArray(opts.UtilityFunction)
         if util <> null then do
             self.CheckUtilityTable(util)
-            self.Utility = util
+            if self.AlternateUtilFormat = 0 then
+                self.Utility = util
+            else 
+                self.Utility = self.ChangeUtilityFormat(util)
         end
 
         // Availability Expressions
@@ -339,22 +316,72 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
     endItem
 
 
+    /* 
+    This could be one of two formats.
+    Default: Colums names are 'Expression', 'Description', 'Filter' and columns for each alternative that contain coefficients
+    Alternate: Columns names are 'Alternative', 'Expression', 'Segment', 'Coefficient' and 'Description'
+    */
     private macro "CheckUtilityTable"(util) do
         self.CheckOptionType(util, "array", "\'UtilityFunction\' is not a table (array)")
-        count = 0
         chkArr = {{"expression", "string", 1}}
+
+        if util.Coefficient <> null then do
+            self.AlternateUtilFormat = 1       // Flag to indicate the alternate utility format
+            chkArr = chkArr + {{"alternative", "string", 1},
+                               {"coefficient", "double", 1}}    
+        end
+
+        count = 0
         for i = 1 to util.length do
             col = Lower(util[i][1])
-            if col = "description" or col = "filter" then
+            if col = "description" or col = "filter" or col = "segment" then
                 chkArr = chkArr + {{col, "string", 0}}
-            else if col <> "expression" then do
-                chkArr = chkArr + {{col, "double", 0}}
+            else if col <> "expression" and self.AlternateUtilFormat = 0 then do
+                chkArr = chkArr + {{col, "double", 0}}  // Coeff cols where col name is the altenative name
                 count = count + 1
             end
         end
-        if count = 0 then // Better have column(s) with double values for the alternative coeffs
+        if count = 0 and self.AlternateUtilFormat = 0 then // Better have column(s) with double values for the alternative coeffs if the default format is being used
             Throw("\'UtilityFunction\' is missing columns for alternatives")
         self.CheckTable(util, "UtilityFunction", chkArr)
+    endItem
+
+
+    private macro "ChangeUtilityFormat"(util) do
+        nRows = util.Coefficient.Length
+        if nRows = 0 then
+            Throw("NLMCreateFromPME: No rows in utility table")    
+        
+        // Change format
+        updatedUtil = null
+        updateUtil.Expression = CopyArray(util.Expression)
+        if util.Description <> null then
+            updateUtil.Description = CopyArray(util.Description)
+        if util.Filter <> null then
+            updateUtil.Filter = CopyArray(util.Filter)
+        if util.Segment <> null then
+            updateUtil.Segment = CopyArray(util.Segment)
+        
+        // Generate and fill columns for alternatives
+        altArray = util.Alternative
+        altArrayL = altArray.Map(do (f) Return(Lower(f)) end)
+        alts = SortArray(altArrayL, {Unique: 'True'})
+        /*for alt in alts do
+            dim x[nRows]
+            updateUtil.(alt) = CopyArray(x)
+        end*/
+
+        coeffs = util.Coefficient
+        for i = 1 to nRows do
+            rowAlt = altArrayL[i]    // Alternative in the current row
+            for alt in alts do
+                if rowAlt = alt then
+                    updateUtil.(alt) = updateUtil.(alt) + {coeffs[i]}
+                else
+                    updateUtil.(alt) = updateUtil.(alt) + {}    
+            end
+        end
+        Return(updateUtil)
     endItem
 
 
@@ -405,19 +432,14 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
 
     macro "AddSegmentConstants"(opts) do
-        self.CheckOptionType(opts, "array", "Argument to \'SegmentConstants\' is not an array")
+        opts = self.GetOptionsArray(opts, "array", "Argument to 'AddSegmentConstants()' is not an options array")
 
         segConsts = opts.SegmentConstants
-        seg = opts.Segment
-        if segConsts = null or seg = null then
-            Throw("Invalid option to method SegmentConstants(). Specify both \'SegmentConstants\' table and \'Segment\' string")
+        if segConsts = null then
+            Throw("NLMCreateFromPME: Invalid option to method SegmentConstants(). Specify 'SegmentConstants' table")
         
-        self.CheckOptionType(seg, "string", "Option \'Segment\' in SegmentConstants() is not a string.")
-        self.CheckTable(segConsts, "SegmentConstants", {{"Alternative", "string", 1}, 
-                                                        {seg, "double", 0}})
-        
+        self.CheckTable(segConsts, "SegmentConstants", {{"Alternative", "string", 1}})
         self.SegmentConstants = CopyArray(segConsts)
-        self.Segment = seg
     endItem
 
 
@@ -514,9 +536,11 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
             nCols = nCols - 1
         if util.Description <> null then // Accounting for the presence of the optional 'Description' column
             nCols = nCols - 1
+        if util.Segment <> null then // Accounting for the presence of the optional 'Segment' column
+            nCols = nCols - 1
         
         if self.ModelType = 'Destination Choice' and nCols > 1 then
-            Throw("Multiple columns for alteratives specified in the Utility table.\nDestination Choice models can only have one common utility column.")
+            Throw("Incorrect utility format for a destination choice model.\nDestination Choice models can only have one common utility column.")
     enditem
 
 
@@ -784,7 +808,7 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         util = self.Utility
         for i = 1 to util.length do
             col = util[i][1] // The column name
-            if Lower(col) <> "expression" and Lower(col) <> "filter" and Lower(col) <> "description" then
+            if Lower(col) <> "expression" and Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "segment" then
                 self.Alternatives.Root =  self.Alternatives.Root + {col}
         end
         
@@ -798,12 +822,17 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
     macro "ProcessSegmentConstants" do
         segConsts = self.SegmentConstants
         seg = self.Segment
+        if seg = null then
+            Throw("NLMCreateFromPME: Please specify segment attribute required to apply the appropriate input segment constants")
         if segConsts <> null then do
             alts = segConsts.Alternative
             ascs = segConsts.(seg)
             for i = 1 to alts.length do
-                if ascs[i] <> null then
-                    self.ASCs.(alts[i]) = nz(self.ASCs.(alts[i])) + ascs[i]
+                asc = ascs[i]
+                if asc <> null then do
+                    asc = self.GetNumericValue(asc, "NLMCreateFromPME: Segment constant in table not numeric")
+                    self.ASCs.(alts[i]) = nz(self.ASCs.(alts[i])) + asc
+                end
             end
         end 
     endItem
@@ -1009,12 +1038,12 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         if utility <> null then do
             for i = 1 to utility.length do
                 col = utility[i][1] // Name of col
-                if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" then
+                if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" and Lower(col) <> "segment" then
                     coeffCol = col
             end
             coeffs = utility.(coeffCol)
             if coeffs <> null then
-                self.SetAlternativeUtility("Destinations", utility.Expression, utility.Filter, coeffs)
+                self.SetAlternativeUtility("Destinations", coeffs)
         end
 
         if self.SizeVariableSpec <> null then
@@ -1034,32 +1063,37 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
                     colName = cols[i]
                     if colName <> null then do
                         coeffs = utility.(colName)
-                        self.SetAlternativeUtility(altName, utility.Expression, utility.Filter, coeffs)
+                        self.SetAlternativeUtility(altName, coeffs)
                     end
                 end
             end
             else do // The column names with coeff values in the utility table are also the alternative names
                 for i = 1 to utility.length do
                     col = utility[i][1] // Name of col
-                    if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" then do
-                        altName = col
-                        colName = col
-                        coeffs = utility.(colName)
-                        self.SetAlternativeUtility(altName, utility.Expression, utility.Filter, coeffs)
-                    end
+                    if Lower(col) <> "filter" and Lower(col) <> "description" and Lower(col) <> "expression" and Lower(col) <> "segment" then
+                        self.SetAlternativeUtility(col, utility.(col)) // (Alternative Name, coeffs)
                 end
             end
         end
     endItem
 
 
-    private macro "SetAlternativeUtility"(altName, expressions, filters, coeffs) do
+    private macro "SetAlternativeUtility"(altName, coeffs) do
+        expressions = self.Utility.Expression
+        filters = self.Utility.Filter
+        segments = self.Utility.Segment
         C = 0
         for i = 1 to coeffs.length do
             C = C + 1
             coeff = coeffs[i]
             if coeff = null or coeff = 0 then
                 goto nextCoeff
+            
+            if segments <> null then do
+                seg = Lower(segments[i])
+                if seg <> null and seg <> self.Segment then
+                    goto nextCoeff
+            end
             
             expr = Trim(expressions[i])
             if Lower(expr) = "constant" then do
@@ -1079,7 +1113,6 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
             
             // Add expression term to utility
             self.AddUtilityItem(altName, varName, exprName, coeff)
-            
          nextCoeff:
         end
     endItem
@@ -1097,7 +1130,6 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
         // The expression is the log of the size variable
         expr = "if " + fldspec + " > 0 then Log(" + fldspec + ") else null"
-        //expr = "Log([" + srcName + "]." + fldName + ".D)"
         exprOut = self.ValidateExpression(expr)
         exprName = self.CreateExpressionSource(exprOut,)
         varName = "B" + "_Size_" + exprName
@@ -1111,6 +1143,8 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         model = self.Model
         seg = model.GetSegment("*")
         alt = seg.GetAlternative(altName)
+        if alt = null then
+            Throw("NLMCreateFromPME: Alternative '" + altName + "' not found. Please check specification for errors.")
 
         fld = model.CreateField(varName,)
         term = seg.CreateTerm(fld.Name, coeff,)
@@ -1390,7 +1424,6 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
 
     private macro "CreateSummaryShares"(vw) do
-
         alts = self.LeafAlts // Order of LeafAlts and idFld values are consistent
         dim shares[alts.length]
         if self.isAggregateModel then do
@@ -1530,6 +1563,13 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
             self.ModelMatrixSources = null
         end
 
+        self.Alternatives = null
+        self.LeafAlts = null
+        self.ASCs = null
+        self.Thetas = null
+        self.ModelExpressions = null
+        self.ModelShares = null
+        
         //if self.ChoicesTable.InMemView <> null then
             //CloseView(self.ChoicesTable.InMemView)
     endItem
@@ -1565,22 +1605,26 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 endClass
 
 
+// Class that manages sources for running choice models from PME
 Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
 
     init do
-        if Args = null then
-            Throw("Please provide the Args for instantiating the \'Choice Model Sources\' class")
-
         self.MatrixSources = Opts.MatrixSources
         self.TableSources = Opts.TableSources
-        self.SourceKeys = Opts.SourceKeys  
+        self.SourceKeys = Opts.SourceKeys 
         self.Joins = Opts.Joins
         
-        self.CheckInputs()
-        self.ExpandSources()
-        self.GetSourceFileNames(Args)
-    endItem
+        if Opts <> null then do
+            if Args = null then
+                Throw("Please provide the Args for instantiating the \'Choice Model Sources\' class")
 
+            self.CheckInputs()
+            self.AddPersonBasedFlags()      // If not already present, update matrix sources to include person based column
+            self.ExpandSources()
+            self.GetSourceFileNames(Args)
+        end
+    endItem
+ 
 
     macro "CheckInputs" do
         if self.TableSources = null and self.MatrixSources = null then
@@ -1611,6 +1655,130 @@ Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
         if src_keys <> null then
             self.CheckTable(src_keys, "SourceKeys", {{"Key", "string", 1},
                                                      {"Values", "string", 1}})
+    endItem
+
+
+    // Macro to add matrix source independently
+    macro "AddMatrixSource"(spec) do
+        // Required spec options are 'SourceName', 'File'
+        // Optional spec options 'RowIndex', 'ColIndex', 'PersonBased'
+        spec = self.GetOptionsArray(spec, "Choice Model Sources: Argument passed to AddMatrixSource() is not an option array")
+
+        // Check if source is already defined. If yes, throw a message
+        srcName = self.GetString(spec.SourceName, "Choice Model Sources: 'SourceName' option passed to AddMatrixSource() is either missing or is not a string")
+        chk = self.CheckSource(srcName)
+        if chk then
+            Throw("Choice Model Sources: Matrix Source '" + srcName + "' sent to AddMatrixSource() already defined")
+
+        // Check Matrix file that is passed
+        file = self.GetString(spec.File, "Choice Model Sources: 'File' option passed to AddMatrixSource() is either missing or is not a string")
+        if !GetFileInfo(file) then
+            Throw("Choice Model Sources: File " + spec.File + " sent to AddMatrixSource() does not exist.")
+
+        pth = SplitPath(file)
+        if pth[4] <> ".mtx" then
+            Throw("Choice Model Sources: File " + spec.File + " sent to AddMatrixSource() is not of type *.mtx")
+
+        self.MatrixSources.Name = self.MatrixSources.Name + {srcName}
+        self.MatrixSources.File = self.MatrixSources.File + {file}
+        
+        // The indices if provided will be checked when the sources are added to the mdl file
+        // Set Row/Col index to base index if unspecified
+        m = OpenMatrix(file,)
+        {rowIndex, colIndex} = GetMatrixBaseIndex(m)
+        m = null
+
+        rIdx = self.GetStringOrNull(spec.RowIndex, "Choice Model Sources: 'RowIndex' option passed to AddMatrixSource() is not a string")
+        if rIdx <> null then
+            rowIndex = rIdx    
+        self.MatrixSources.RowIndex = self.MatrixSources.RowIndex + {rowIndex}
+        
+        cIdx = self.GetStringOrNull(spec.ColIndex, "Choice Model Sources: 'ColIndex' option passed to AddMatrixSource() is not a string")
+        if cIdx <> null then
+            colIndex = cIdx    
+        self.MatrixSources.ColumnIndex = self.MatrixSources.ColumnIndex + {colIndex}
+        
+        // Person Based Flag
+        if spec.PersonBased <> null then
+            personBased = self.GetNumericValue(spec.PersonBased, "Choice Model Sources: 'PersonBased' option passed to AddMatrixSource() is not numeric")
+        flag = personBased >= 1
+        self.MatrixSources.PersonBased = self.MatrixSources.PersonBased + {flag}    
+    endItem
+
+
+    // Macro to add table source independently
+    macro "AddTableSource"(spec) do
+        // Required spec options are 'SourceName', 'IDField'. 
+        // One of 'File' or 'JoinSpec' array
+        // Join Spec Array has options 'LeftFile', 'RightFile', 'LeftID', 'RightID'
+        spec = self.GetOptionsArray(spec, "Choice Model Sources: Argument passed to AddTableSource() is not an option array")
+        file = self.GetStringOrNull(spec.File, "Choice Model Sources: 'File' option passed to AddTableSource() is not a string")
+        JSpec = spec.JoinSpec
+        if JSpec <> null then
+            JSpec = self.GetOptionsArray(JSpec, "Choice Model Sources: Argument 'JSpec' passed to AddTableSource() is not an option array")    
+        
+        if file = null and JSpec = null then
+            Throw("Choice Model Sources: No 'File' or 'JoinSpec' option sent to AddTableSource()")
+
+        if file <> null and JSpec <> null then
+            Throw("Choice Model Sources: Both 'File' and 'JoinSpec' option sent to AddTableSource(). Use only one option.")
+
+        // Check if source is already defined. If yes, throw a message
+        srcName = self.GetString(spec.SourceName, "Choice Model Sources: 'SourceName' option passed to AddTableSource() is either missing or is not a string")
+        chk = self.CheckSource(srcName)
+        if chk then
+            Throw("Choice Model Sources: Table Source '" + srcName + "' sent to AddTableSource() already defined")
+
+        IDFld = self.GetString(spec.IDField, "Choice Model Sources: 'IDField' option passed to AddTableSource() is either missing or is not a string")
+
+        // List of files to check
+        if JSpec = null then
+            files = {file}
+        else do
+            LHSFile = self.GetString(JSpec.LeftFile, "Choice Model Sources: 'JoinSpec.LeftFile' option passed to AddTableSource() is either missing or is not a string")
+            RHSFile = self.GetString(JSpec.RightFile, "Choice Model Sources: 'JoinSpec.RightFile' option passed to AddTableSource() is either missing or is not a string")
+            files = {LHSFile, RHSFile}
+        end
+        
+        // Check files
+        for f in files do
+            if !GetFileInfo(f) then
+                Throw("Choice Model Sources: File " + f + " sent to AddTableSource() does not exist.")
+
+            pth = SplitPath(f)
+            if Lower(pth[4]) <> ".bin" and Lower(pth[4]) <> ".dbf" and Lower(pth[4]) <> ".csv" and Lower(pth[4]) <> ".asc" then
+                Throw("Choice Model Sources: File " + f + " sent to AddTableSource() is not a FFB, FFA, DBASE or CSV file")    
+        end
+
+        if JSpec <> null then do
+            pthL = SplitPath(LHSFile)
+            pthR = SplitPath(RHSFile)
+            LeftID = self.GetString(JSpec.LeftID, "Choice Model Sources: 'JoinSpec.LeftID' option passed to AddTableSource() is either missing or is not a string")
+            RightID = self.GetString(JSpec.RightID, "Choice Model Sources: 'JoinSpec.RightID' option passed to AddTableSource() is either missing or is not a string")
+            self.Joins.[Join Name] = self.Joins.[Join Name] + {srcName}
+            self.Joins.[Left Table] = self.Joins.[Left Table] + {pthL[3]}
+            self.Joins.[Right Table] = self.Joins.[Right Table] + {pthR[3]}
+            self.Joins.[Left Table ID] = self.Joins.[Left Table ID] + {LeftID}    // IDs checked when source is opened
+            self.Joins.[Right Table ID] = self.Joins.[Right Table ID] + {RightID}
+            self.Joins.LHSFile = self.Joins.LHSFile + {LHSFile}
+            self.Joins.RHSFile = self.Joins.RHSFile + {RHSFile}
+        end
+
+        self.TableSources.Name = self.TableSources.Name + {srcName}
+        self.TableSources.IDField = self.TableSources.IDField + {IDFld} // Will be checked when source will be opened
+        self.TableSources.File = self.TableSources.File + {file}
+    endItem
+
+
+    private macro "AddPersonBasedFlags" do
+        if self.MatrixSources <> null and self.MatrixSources.PersonBased = null then do // There are matrix sources but no PersonBased column
+            nItems = self.MatrixSources.Name.Length
+            dim a[nItems]
+            for i = 1 to nItems do
+                a[i] = 0
+            end
+            self.MatrixSources.PersonBased = CopyArray(a)
+        end
     endItem
 
 
@@ -1693,9 +1861,7 @@ Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
             src_name = src_names[i]
             ridx = ridxs[i]
             cidx = cidxs[i]
-            personBased = 0
-            if flags <> null then
-                personBased = flags[i]
+            personBased = flags[i]
             
             if src_name contains key then do
                 for sub in subs do
@@ -1703,16 +1869,14 @@ Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
                     expanded_matrix_srcs.Name = expanded_matrix_srcs.Name + {new_name}
                     expanded_matrix_srcs.RowIndex = expanded_matrix_srcs.RowIndex + {ridx}
                     expanded_matrix_srcs.ColumnIndex = expanded_matrix_srcs.ColumnIndex + {cidx}
-                    if flags <> null then
-                        expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}
+                    expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}
                 end
             end
             else do // No need to expand and replace
                 expanded_matrix_srcs.Name = expanded_matrix_srcs.Name + {src_name}
                 expanded_matrix_srcs.RowIndex = expanded_matrix_srcs.RowIndex + {ridx}
                 expanded_matrix_srcs.ColumnIndex = expanded_matrix_srcs.ColumnIndex + {cidx}
-                if flags <> null then
-                    expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}     
+                expanded_matrix_srcs.PersonBased = expanded_matrix_srcs.PersonBased + {personBased}     
             end
         end
         self.MatrixSources = CopyArray(expanded_matrix_srcs) // Replace class variable with expanded list
@@ -1872,7 +2036,7 @@ Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
         
         vw = self.GetTableView(srcInfo.File, srcInfo.Name)
         {flds, specs} = GetFields(vw,)
-        // Remove leading and traling brackets from field names
+        // Remove leading and trailing brackets from field names
         flds = flds.Map(do (f)
                          fOut = if Left(f,1) = "[" then SubString(f, 2, StringLength(f) - 2) else f
                          Return(fOut)
@@ -1905,6 +2069,7 @@ Class "Choice Model Sources"(Args, Opts) inherits: "TransCAD.Task"
             if  OpenOpts.[Shared] = null then 
                 OpenOpts.[Shared] = "True"                          
         end
+        
         vw = OpenTable(desired_vw, type, {file,}, OpenOpts)
         Return(vw)    
     endItem
