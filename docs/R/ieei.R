@@ -18,7 +18,7 @@ output_ei_distance_filename <- paste0(output_dir, "ei-distance.csv")
 # Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
 
-freeway_station_vector <- c(3298, 3252, 3305, 3277, 3308, 3281, 3273, 3313)
+freeway_station_vector <- c(3298, 3252, 3305, 3277, 3308, 3281, 3273, 3313, 3323)
 
 # Data Reads -------------------------------------------------------------------
 sl_df <- readRDS(consolidated_streetlight_filename)
@@ -199,7 +199,7 @@ combined_estimation_df <- state_df %>%
   summarize(trips = sum(flow), .groups = "drop") %>%
   left_join(., join_socec_district_02_df, by = c("district"))
 
-correlations_ncstm_df <- combined_estimation_df %>%
+correlations_ncstm_d2_df <- combined_estimation_df %>%
   select(trips, pop, emp) %>%
   corrr::correlate()
 
@@ -232,8 +232,8 @@ segmented_estimation_df <- state_df %>%
   filter(purpose %in% c("IX", "XI")) %>%
   filter(vehicle_type == "auto") %>%
   select(-vehicle_type) %>%
-  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district), by = c("orig_taz")) %>%
-  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district), by = c("dest_taz")) %>%
+  left_join(., select(join_taz_df, orig_taz = taz, orig_district = district_01), by = c("orig_taz")) %>%
+  left_join(., select(join_taz_df, dest_taz = taz, dest_district = district_01), by = c("dest_taz")) %>%
   mutate(district = if_else(purpose == "IX", orig_district, dest_district)) %>%
   mutate(category = "Non-freeway") %>%
   mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
@@ -267,7 +267,7 @@ join_socec_df <- socec_df %>%
   mutate(emp = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
   select(attraction_taz = TAZ, emp, pop = Total_POP)
 
-max_internal_zone <- max(filter(socec_df, Type == "Internal")$TAZ)
+taz_vector <- socec_df$TAZ
 
 working_df <- expand_grid(orig_taz = taz_vector, dest_taz = taz_vector) %>%
   mutate(purpose = "II") %>%
@@ -300,7 +300,4 @@ ei_distance_df <- working_df %>%
   
 write_csv(ei_attractions_df, file = output_ei_attractions_filename)
 write_csv(ei_distance_df, file = output_ei_distance_filename)
-
-# TODO
-# Write up findings in Rmd
 

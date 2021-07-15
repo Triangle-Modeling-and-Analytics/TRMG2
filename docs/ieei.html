@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-05-18" />
+<meta name="date" content="2021-07-15" />
 
 <title>Internal/External</title>
 
@@ -403,6 +403,9 @@ div.tocify {
     <li>
       <a href="ieei.html">Internal/External</a>
     </li>
+    <li>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -419,21 +422,21 @@ div.tocify {
 
 <h1 class="title toc-ignore">Internal/External</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">May 18, 2021</h4>
+<h4 class="date">July 15, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Travel from outside the Triangle model’s geographic boundaries to locations inside the model’s boundaries are referred to as “external-internal” trips; movements from inside the boundary to outside are “internal-external” trips; and movements through the region are referred to as “external-external” trips. Together, these movements are referred to here as “ieei” travel. This document discusses their improvements.</p>
+<p>Travel from outside the Triangle model’s geographic boundaries to locations inside the model’s boundaries are referred to as “external-internal” trips; movements from inside the boundary to outside are “internal-external” trips; and movements through the region are referred to as “external-external” trips. Together, these movements are referred to here as “IEEI” travel. This document discusses their development.</p>
 </div>
 <div id="external-external-ee" class="section level2">
 <h2>External-external (EE)</h2>
 <p>The two best available data sources for movements through the modeling region are (i) StreetLight Data extracted by ITRE and (ii) a sub-area extraction from the North Carolina Statewide Travel Model (NCSTM).</p>
 <p>An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix.</p>
-<p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step.</p>
-<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file.The table also includes the StreetLight flow estimate (<code>sl_ee_flow</code>) and the share of ADT attributable to personal vehicles (<code>auto_ee_adt</code>), which is the <code>ADT</code> value less the share of trucks, <code>PCTCV</code>.</p>
+<p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent analysis of IE/EI movements.</p>
+<p>The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are 97 external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shows the estimated shares (<code>pct_auto_ee</code>) with the existing shares (<code>PCTAUTOEE</code>) stored in the socio-economic data file. The table also includes the StreetLight flow estimate (<code>sl_ee_flow</code>) and the share of ADT attributable to personal vehicles (<code>auto_ee_adt</code>), which is the <code>ADT</code> value less the share of trucks, <code>PCTCV</code>.</p>
 <div id="ee-traffic-shares-from-streetlight-data" class="section level3">
 <h3>EE Traffic Shares from StreetLight Data</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -2881,12 +2884,6 @@ PCTAUTOEE
 <th style="text-align:right;">
 pct_auto_ee
 </th>
-<th style="text-align:right;">
-sl_pct_auto_ee
-</th>
-<th style="text-align:right;">
-ncstm_pct_auto_ee
-</th>
 </tr>
 </thead>
 <tbody>
@@ -2921,12 +2918,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 17.2
 </td>
-<td style="text-align:right;">
-4.3
-</td>
-<td style="text-align:right;">
-30.1
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -2958,12 +2949,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 20.0
-</td>
-<td style="text-align:right;">
-15.8
-</td>
-<td style="text-align:right;">
-24.2
 </td>
 </tr>
 <tr>
@@ -2997,12 +2982,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 16.3
 </td>
-<td style="text-align:right;">
-10.1
-</td>
-<td style="text-align:right;">
-22.4
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3034,12 +3013,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 18.4
-</td>
-<td style="text-align:right;">
-12.7
-</td>
-<td style="text-align:right;">
-24.0
 </td>
 </tr>
 <tr>
@@ -3073,12 +3046,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 21.2
 </td>
-<td style="text-align:right;">
-3.9
-</td>
-<td style="text-align:right;">
-38.4
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3110,12 +3077,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 21.0
-</td>
-<td style="text-align:right;">
-15.2
-</td>
-<td style="text-align:right;">
-26.8
 </td>
 </tr>
 <tr>
@@ -3149,12 +3110,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 27.5
 </td>
-<td style="text-align:right;">
-1.5
-</td>
-<td style="text-align:right;">
-53.5
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3186,12 +3141,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 5.4
-</td>
-<td style="text-align:right;">
-1.8
-</td>
-<td style="text-align:right;">
-9.0
 </td>
 </tr>
 <tr>
@@ -3225,12 +3174,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 6.9
 </td>
-<td style="text-align:right;">
-5.9
-</td>
-<td style="text-align:right;">
-7.9
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3262,12 +3205,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 7.1
-</td>
-<td style="text-align:right;">
-5.5
-</td>
-<td style="text-align:right;">
-8.7
 </td>
 </tr>
 <tr>
@@ -3301,12 +3238,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 27.9
 </td>
-<td style="text-align:right;">
-11.1
-</td>
-<td style="text-align:right;">
-44.8
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3338,12 +3269,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 30.4
-</td>
-<td style="text-align:right;">
-9.0
-</td>
-<td style="text-align:right;">
-51.7
 </td>
 </tr>
 <tr>
@@ -3377,12 +3302,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 5.4
 </td>
-<td style="text-align:right;">
-1.9
-</td>
-<td style="text-align:right;">
-9.0
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3414,12 +3333,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 35.4
-</td>
-<td style="text-align:right;">
-14.3
-</td>
-<td style="text-align:right;">
-56.5
 </td>
 </tr>
 <tr>
@@ -3453,12 +3366,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 5.6
 </td>
-<td style="text-align:right;">
-7.0
-</td>
-<td style="text-align:right;">
-4.1
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3490,12 +3397,6 @@ ncstm_pct_auto_ee
 </td>
 <td style="text-align:right;">
 17.1
-</td>
-<td style="text-align:right;">
-3.1
-</td>
-<td style="text-align:right;">
-31.0
 </td>
 </tr>
 <tr>
@@ -3529,12 +3430,6 @@ ncstm_pct_auto_ee
 <td style="text-align:right;">
 19.9
 </td>
-<td style="text-align:right;">
-1.8
-</td>
-<td style="text-align:right;">
-38.0
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3566,12 +3461,6 @@ NA
 </td>
 <td style="text-align:right;">
 1.8
-</td>
-<td style="text-align:right;">
-1.8
-</td>
-<td style="text-align:right;">
-NA
 </td>
 </tr>
 <tr>
@@ -3605,12 +3494,6 @@ NA
 <td style="text-align:right;">
 0.4
 </td>
-<td style="text-align:right;">
-0.8
-</td>
-<td style="text-align:right;">
-0.0
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3642,12 +3525,6 @@ NA
 </td>
 <td style="text-align:right;">
 62.4
-</td>
-<td style="text-align:right;">
-41.8
-</td>
-<td style="text-align:right;">
-83.0
 </td>
 </tr>
 <tr>
@@ -3681,12 +3558,6 @@ NA
 <td style="text-align:right;">
 43.1
 </td>
-<td style="text-align:right;">
-19.9
-</td>
-<td style="text-align:right;">
-66.3
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3718,12 +3589,6 @@ NA
 </td>
 <td style="text-align:right;">
 11.6
-</td>
-<td style="text-align:right;">
-7.2
-</td>
-<td style="text-align:right;">
-16.1
 </td>
 </tr>
 <tr>
@@ -3757,12 +3622,6 @@ NA
 <td style="text-align:right;">
 12.5
 </td>
-<td style="text-align:right;">
-25.0
-</td>
-<td style="text-align:right;">
-0.0
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3794,12 +3653,6 @@ NA
 </td>
 <td style="text-align:right;">
 11.3
-</td>
-<td style="text-align:right;">
-22.6
-</td>
-<td style="text-align:right;">
-0.0
 </td>
 </tr>
 <tr>
@@ -3833,12 +3686,6 @@ NA
 <td style="text-align:right;">
 49.4
 </td>
-<td style="text-align:right;">
-62.2
-</td>
-<td style="text-align:right;">
-36.6
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3870,12 +3717,6 @@ NA
 </td>
 <td style="text-align:right;">
 21.0
-</td>
-<td style="text-align:right;">
-22.4
-</td>
-<td style="text-align:right;">
-19.5
 </td>
 </tr>
 <tr>
@@ -3909,12 +3750,6 @@ NA
 <td style="text-align:right;">
 1.8
 </td>
-<td style="text-align:right;">
-2.2
-</td>
-<td style="text-align:right;">
-1.4
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -3946,12 +3781,6 @@ NA
 </td>
 <td style="text-align:right;">
 7.6
-</td>
-<td style="text-align:right;">
-3.2
-</td>
-<td style="text-align:right;">
-12.0
 </td>
 </tr>
 <tr>
@@ -3985,12 +3814,6 @@ NA
 <td style="text-align:right;">
 19.0
 </td>
-<td style="text-align:right;">
-13.2
-</td>
-<td style="text-align:right;">
-24.7
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -4022,12 +3845,6 @@ NA
 </td>
 <td style="text-align:right;">
 8.1
-</td>
-<td style="text-align:right;">
-1.1
-</td>
-<td style="text-align:right;">
-15.1
 </td>
 </tr>
 <tr>
@@ -4061,12 +3878,6 @@ NA
 <td style="text-align:right;">
 47.3
 </td>
-<td style="text-align:right;">
-29.3
-</td>
-<td style="text-align:right;">
-65.3
-</td>
 </tr>
 <tr>
 <td style="text-align:right;">
@@ -4098,12 +3909,6 @@ NA
 </td>
 <td style="text-align:right;">
 1.4
-</td>
-<td style="text-align:right;">
-1.2
-</td>
-<td style="text-align:right;">
-1.6
 </td>
 </tr>
 <tr>
@@ -4137,12 +3942,6 @@ NA
 <td style="text-align:right;">
 29.1
 </td>
-<td style="text-align:right;">
-20.6
-</td>
-<td style="text-align:right;">
-37.5
-</td>
 </tr>
 </tbody>
 </table>
@@ -4157,8 +3956,8 @@ NA
 <p><img src="img/ieei/sl_productions.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>To prepare the data for a regression model, we first aggregate it to the 21-district geographies developed for the model update. The correlations between IE/EI attractions (taking the external station to be the production end of the trip) and population and employment are summarized in the table below.</p>
 </div>
-<div id="correlations-between-ieei-attractions-and-population-and-employment" class="section level3">
-<h3>Correlations between IE/EI Attractions and Population and Employment</h3>
+<div id="correlations-between-streetlight-ieei-attractions-and-population-and-employment" class="section level3">
+<h3>Correlations between StreetLight IE/EI Attractions and Population and Employment</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -4231,6 +4030,393 @@ NA
 <div id="streetlight-duration-cumulative-distribution-for-ieei-trips" class="section level3">
 <h3>StreetLight Duration Cumulative Distribution for IE/EI Trips</h3>
 <p><img src="img/ieei/sl_cumulative_duration.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>With the StreetLight Data not able to support estimation of IE/EI production model, we turn to the NCSTM. We again start with correlations between population and employment, which are shown in the table below. The correlations are positive for both population and employment.</p>
+</div>
+<div id="correlations-between-ncstm-ieei-attractions-and-population-and-employment" class="section level3">
+<h3>Correlations between NCSTM IE/EI Attractions and Population and Employment</h3>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+trips
+</th>
+<th style="text-align:right;">
+pop
+</th>
+<th style="text-align:right;">
+emp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+trips
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.676
+</td>
+<td style="text-align:right;">
+0.187
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+0.676
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.632
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+0.187
+</td>
+<td style="text-align:right;">
+0.632
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>The positive correletions move us to the next step of estimating attraction models for the internal end of the IE/EI movements, assigning the external station the production end.</p>
+</div>
+<div id="model-estimation-results" class="section level3 tabset MODEL">
+<h3 class="tabset MODEL">Model Estimation Results</h3>
+<p>A handful of specifications were tested to determine a useful attraction model, including segmenting the attraction models for Freeway and non-Freeway external stations. The preferred model generated positive coefficients on the population and employment variables. It does not segment the stations by roadway type and asserts a Y-intercept of zero. Note that NCSTM data supported the estimation of the model at the 43 district system.</p>
+<div id="preferred" class="section level4">
+<h4>Preferred</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+0.0059
+</td>
+<td style="text-align:right;">
+0.0648
+</td>
+<td style="text-align:right;">
+0.9487
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+0.1551
+</td>
+<td style="text-align:right;">
+2.8129
+</td>
+<td style="text-align:right;">
+0.0076
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.5013
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="freeway-model" class="section level4">
+<h4>Freeway Model</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+1950.0099
+</td>
+<td style="text-align:right;">
+2.1975
+</td>
+<td style="text-align:right;">
+0.0342
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+0.0657
+</td>
+<td style="text-align:right;">
+1.8059
+</td>
+<td style="text-align:right;">
+0.0789
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+0.0438
+</td>
+<td style="text-align:right;">
+1.7447
+</td>
+<td style="text-align:right;">
+0.0891
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.4699
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="non-freeway-model" class="section level4">
+<h4>Non-Freeway Model</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+4411.9350
+</td>
+<td style="text-align:right;">
+3.1756
+</td>
+<td style="text-align:right;">
+0.0030
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+-0.0321
+</td>
+<td style="text-align:right;">
+-0.5641
+</td>
+<td style="text-align:right;">
+0.5760
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+0.0231
+</td>
+<td style="text-align:right;">
+0.5867
+</td>
+<td style="text-align:right;">
+0.5609
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+-0.0427
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="combined-with-intercept" class="section level4">
+<h4>Combined with Intercept</h4>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+variable
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<em>intercept</em>
+</td>
+<td style="text-align:right;">
+6361.9449
+</td>
+<td style="text-align:right;">
+3.1567
+</td>
+<td style="text-align:right;">
+0.0031
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+emp
+</td>
+<td style="text-align:right;">
+0.0335
+</td>
+<td style="text-align:right;">
+0.4063
+</td>
+<td style="text-align:right;">
+0.6868
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pop
+</td>
+<td style="text-align:right;">
+0.0669
+</td>
+<td style="text-align:right;">
+1.1727
+</td>
+<td style="text-align:right;">
+0.2482
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adjusted R-squared
+</td>
+<td style="text-align:right;">
+0.1222
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>A scatter plot of the NCSTM and estimated attractions by the 43-district system is shown in the plot below.</p>
+</div>
+</div>
+<div id="ncstm-and-estimated-ieei-attractions-at-the-43-district-geography" class="section level3">
+<h3>NCSTM and Estimated IE/EI Attractions at the 43-district Geography</h3>
+<p><img src="img/ieei/estimated_attractions.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="distance-assessment" class="section level3">
+<h3>Distance Assessment</h3>
+<p>In the chart below, we plot the trip length frequency, with the trip length measured from the external station to the internal zone, for the NCSTM trips, segmenting trips that enter the region through external stations at Freeways from those at other locations. The plot shows a logical and expected outcome: trips entering the region at Freeway external stations traveling longer than those entering at non-freeway locations.</p>
+</div>
+<div id="ncstm-ieei-cumulative-trip-length-frequency-segmented-by-station-type" class="section level3">
+<h3>NCSTM IE/EI Cumulative Trip Length Frequency Segmented by Station Type</h3>
+<p><img src="img/ieei/ncstm_tlf.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>The above chart suggests the IE/EI distribution model should be segmented by station type, freeway or non-freeway. The external stations identified as freeways are as follows: 3298, 3252, 3305, 3277, 3308, 3281, 3273, 3313, 3323.</p>
 </div>
 </div>
 

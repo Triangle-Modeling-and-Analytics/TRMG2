@@ -1,7 +1,7 @@
 ---
 title: "Internal/External"
 author: "Caliper Corporation"
-date: "May 18, 2021"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -26,16 +26,16 @@ options(scipen = 999)
 
 ## Introduction
 
-Travel from outside the Triangle model's geographic boundaries to locations inside the model's boundaries are referred to as "external-internal" trips; movements from inside the boundary to outside are "internal-external" trips; and movements through the region are referred to as "external-external" trips. Together, these movements are referred to here as "ieei" travel. This document discusses their improvements.
+Travel from outside the Triangle model's geographic boundaries to locations inside the model's boundaries are referred to as "external-internal" trips; movements from inside the boundary to outside are "internal-external" trips; and movements through the region are referred to as "external-external" trips. Together, these movements are referred to here as "IEEI" travel. This document discusses their development.
 
 ## External-external (EE)
 The two best available data sources for movements through the modeling region are (i) StreetLight Data extracted by ITRE and (ii) a sub-area extraction from the North Carolina Statewide Travel Model (NCSTM). 
 
 An important short-coming of the StreetLight data is that it may not always capture the true origin of longer distance movements. Travelers stopping briefly at a stoplight or stop sign, or to use a bathroom at a rest area, may be excluded from the movements we would, ideally, like to represent in an external-to-external trip matrix. 
 
-The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent step. 
+The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements, which is needed in the subsequent analysis of IE/EI movements.  
 
-The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are `r number_of_external` external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shares the estimated shares (`pct_auto_ee`) with the existing shares (`PCTAUTOEE`) stored in the socio-economic data file.The table also includes the StreetLight flow estimate (`sl_ee_flow`) and the share of ADT attributable to personal vehicles (`auto_ee_adt`), which is the `ADT` value less the share of trucks, `PCTCV`. 
+The StreetLight Data extracted by ITRE contains flow estimates for the 50 largest EE station pairs (there are `r number_of_external` external stations in the updated model). We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations stored in the socio-economic data file. The table below shows the estimated shares (`pct_auto_ee`) with the existing shares (`PCTAUTOEE`) stored in the socio-economic data file. The table also includes the StreetLight flow estimate (`sl_ee_flow`) and the share of ADT attributable to personal vehicles (`auto_ee_adt`), which is the `ADT` value less the share of trucks, `PCTCV`. 
 
 ### EE Traffic Shares from StreetLight Data
 ```{r}
@@ -74,7 +74,7 @@ knitr::include_graphics("img/ieei/sl_productions.png")
 
 To prepare the data for a regression model, we first aggregate it to the 21-district geographies developed for the model update. The correlations between IE/EI attractions (taking the external station to be the production end of the trip) and population and employment are summarized in the table below. 
 
-### Correlations between IE/EI Attractions and Population and Employment
+### Correlations between StreetLight IE/EI Attractions and Population and Employment
 ```{r}
 correlations_sl_df %>%
   kableExtra::kable(digits = 3) %>%
@@ -95,8 +95,80 @@ A plot of the cumulative duration distribution for the IE/EI trips reveals that 
 knitr::include_graphics("img/ieei/sl_cumulative_duration.png")
 ```
 
-With the StreetLight Data not able to support estimation of IE/EI production model, we turn to the NCSTM. We again start with correlations between population and employment, which are shown in the table below.
+With the StreetLight Data not able to support estimation of IE/EI production model, we turn to the NCSTM. We again start with correlations between population and employment, which are shown in the table below. The correlations are positive for both population and employment.
 
+### Correlations between NCSTM IE/EI Attractions and Population and Employment
+```{r}
+correlations_ncstm_d2_df %>%
+  kableExtra::kable(digits = 3) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+```
 
+The positive correletions move us to the next step of estimating attraction models for the internal end of the IE/EI movements, assigning the external station the production end. 
+
+### Model Estimation Results {.tabset .MODEL}
+A handful of specifications were tested to determine a useful attraction model, including segmenting the attraction models for Freeway and non-Freeway external stations. The preferred model generated positive coefficients on the population and employment variables. It does not segment the stations by roadway type and asserts a Y-intercept of zero. Note that NCSTM data supported the estimation of the model at the 43 district system.   
+
+```{r}
+print_model <- function(model, includes_intercept) {
+
+  variable_vector <- colnames(model$model)
+  
+  if (!includes_intercept) variable_vector = tail(variable_vector, n = -1)
+  
+  df <- tibble(variable = variable_vector,
+               estimate = model$coefficients,
+               statistic = coef(summary(model))[, "t value"],
+               p.value = coef(summary(model))[, "Pr(>|t|)"]) %>%
+    mutate(variable = if_else(variable == "trips", "_intercept_", variable)) %>%
+    arrange(variable) %>%
+    bind_rows(., tibble(variable = c("Adjusted R-squared"),
+                        estimate = summary(model)$adj.r.squared,
+                        statistic = as.double(NA),
+                        p.value = as.double(NA))) %>%
+    kable(digits = 4) %>%
+    kable_styling(full_width = FALSE)
+  
+  return(df)
+  
+}
+```
+
+#### Preferred
+```{r, MODEL_PREFERRED}
+print_model(preferred_model, includes_intercept = FALSE)
+```
+
+#### Freeway Model
+```{r, MODEL_FREEWAY}
+print_model(freeway_model, includes_intercept = TRUE)
+```
+
+#### Non-Freeway Model
+```{r, MODEL_NON}
+print_model(non_freeway_model, includes_intercept = TRUE)
+```
+
+#### Combined with Intercept
+```{r, MODEL_INTER}
+print_model(combined_model, includes_intercept = TRUE)
+```
+
+A scatter plot of the NCSTM and estimated attractions by the 43-district system is shown in the plot below. 
+
+### NCSTM and Estimated IE/EI Attractions at the 43-district Geography
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/estimated_attractions.png")
+```
+
+### Distance Assessment
+In the chart below, we plot the trip length frequency, with the trip length measured from the external station to the internal zone, for the NCSTM trips, segmenting trips that enter the region through external stations at Freeways from those at other locations. The plot shows a logical and expected outcome: trips entering the region at Freeway external stations traveling longer than those entering at non-freeway locations. 
+
+### NCSTM IE/EI Cumulative Trip Length Frequency Segmented by Station Type
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/ncstm_tlf.png")
+```
+
+The above chart suggests the IE/EI distribution model should be segmented by station type, freeway or non-freeway. The external stations identified as freeways are as follows: `r freeway_station_vector`.
 
 
