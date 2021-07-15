@@ -398,13 +398,17 @@ Macro "Parking Mode Choice"(Args)
             vecs = GetDataVectors(vwOut + "|", flds,)
             
             // Calculate binary logit probability of 'ParkAndShuttle' mode
-            vUtilPark = vecs[1]
+            vUtilWalk = vecs[1]
             vUtilShuttle = vecs[2] + ascVal
-            vProb = exp(vUtilShuttle)/(exp(vUtilShuttle) + exp(vUtilPark))
+            vProb = exp(vUtilShuttle)/(exp(vUtilShuttle) + exp(vUtilWalk))
+            vLS = log(exp(vUtilShuttle) + exp(vUtilWalk))
             
             outFld = "Prob_Shuttle_" + destType + "_" + tourType
+            lsFld = "MC_LS_" + destType + "_" + tourType
             modify.FindOrAddField(outFld, "Real", 12, 2, )
+            modify.FindOrAddField(lsFld, "Real", 12, 2, )
             vecsSet.(outFld) = vProb
+            vecsSet.(lsFld) = vLS
         end
     end
 
@@ -413,7 +417,12 @@ Macro "Parking Mode Choice"(Args)
     SetDataVectors(vwOut + "|", vecsSet,)
 
     // Post process
-    RunMacro("PostProcess Logsum Table", vwOut)
+    // Get default MC Logsum
+    se_vw = OpenTable("SE", "FFB", {Args.SE})
+    vEmp = GetDataVector(se_vw + "|", "EmpSpaces",)
+    maxSpaces = VectorStatistic(vEmp, "Max",)
+    defaultMCLS = log(2.5*maxSpaces*6)
+    RunMacro("PostProcess Logsum Table", vwOut, defaultMCLS)
     CloseView(vwOut)
 endMacro
 
@@ -424,42 +433,50 @@ E.g. Merge logsum fields 'Walk_CBD_Work' and 'Walk_Univ_Work' into new fields 'L
 Note that univ and CBD zones are mutually exclusive. 
 Therefore at least one of the fields 'Walk_CBD_Work' and 'Walk_Univ_Work' is always null
 */
-Macro "PostProcess Logsum Table"(vwOut)
+Macro "PostProcess Logsum Table"(vwOut, defaultMCLS)
+
     modes = {'Walk', 'Shuttle'}
     tourTypes = {'Work', 'NonWork'}
-    vecsSet = null
     // LS Fields
-    modify = CreateObject("CC.ModifyTableOperation", vwOut)
     for mode in modes do
         for tourType in tourTypes do
-            outFld = "LS_" + mode + "_" + tourType
-            cbdFld = mode + "_CBD_" + tourType
-            univFld = mode + "_Univ_" + tourType
-            vecs = GetDataVectors(vwOut + "|", {cbdFld, univFld},)
-            vecsSet.(outFld) = if vecs[1] <> null then vecs[1]
-                               else if vecs[2] <> null then vecs[2]
-                               else null
-            
-            modify.FindOrAddField(outFld, "Real", 12, 2, )
-            modify.DropField(cbdFld)
-            modify.DropField(univFld)
+            RunMacro("Update Fields", {View: vwOut, 
+                                       CBDField: mode + "_CBD_" + tourType, 
+                                       UnivField: mode + "_Univ_" + tourType, 
+                                       OutputField: "DC_LS_" + mode + "_" + tourType})
         end
     end
 
-    // Prob Fields
+    // Prob and MC LS Fields
     for tourType in tourTypes do
-        outFld = "Prob_Shuttle_" + tourType
-        cbdFld = "Prob_Shuttle_CBD_" + tourType
-        univFld = "Prob_Shuttle_Univ_" + tourType
-        vecs = GetDataVectors(vwOut + "|", {cbdFld, univFld},)
-        vecsSet.(outFld) = if vecs[1] <> null then vecs[1]
-                           else if vecs[2] <> null then vecs[2]
-                           else null
+        RunMacro("Update Fields", {View: vwOut, 
+                                   CBDField: "Prob_Shuttle_CBD_" + tourType, 
+                                   UnivField: "Prob_Shuttle_Univ_" + tourType, 
+                                   OutputField: "Prob_Shuttle_" + tourType})
+
         
-        modify.FindOrAddField(outFld, "Real", 12, 2, )
-        modify.DropField(cbdFld)
-        modify.DropField(univFld)
+        RunMacro("Update Fields", {View: vwOut, 
+                                   CBDField: "MC_LS_CBD_" + tourType, 
+                                   UnivField: "MC_LS_Univ_" + tourType, 
+                                   OutputField: "MC_LS_" + tourType,
+                                   DefaultValue: defaultMCLS})
     end 
+endMacro
+
+
+Macro "Update Fields"(spec)
+    vwOut = spec.View
+    modify = CreateObject("CC.ModifyTableOperation", vwOut)
+    vecs = GetDataVectors(vwOut + "|", {spec.CBDField, spec.UnivField},)
+    outFld = spec.OutputField
+    vOut = if vecs[1] <> null then vecs[1]
+           else if vecs[2] <> null then vecs[2]
+           else spec.DefaultValue
+    modify.FindOrAddField(outFld, "Real", 12, 2, )
+    modify.DropField(spec.CBDField)
+    modify.DropField(spec.UnivField)
     modify.Apply()
-    SetDataVectors(vwOut + "|", vecsSet,)
+    modify = null
+
+    SetDataVector(vwOut + "|", outFld, vOut,)
 endMacro

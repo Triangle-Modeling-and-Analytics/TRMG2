@@ -7,12 +7,12 @@ sov,sov_skim.[TollCostSOV (Skim)],-0.437392,Toll cost
 hov2,Constant,4.288,Constant
 hov2,hov_skim.CongTime,-0.086735,Travel time
 hov2,hov_skim.[TollCostSOV (Skim)],-0.437392,Toll cost
-hov2,{segment} = 'vi',0.7501,Vehicle insufficient households
+hov2,{segment} = 'vi' or {segment} = 'v0',0.7501,Vehicle insufficient households
 hov3,Constant,4.179,Constant
 hov3,hov_skim.CongTime,-0.086735,Travel time
 hov3,hov_skim.[TollCostSOV (Skim)],-0.437392,Toll cost
-hov3,{segment} = 'vi',0.7501,Vehicle insufficient households
-nonhh_auto,{segment} = 'vi',1.4154,Vehicle insufficient households
+hov3,{segment} = 'vi' or {segment} = 'v0',0.7501,Vehicle insufficient households
+nonhh_auto,{segment} = 'vi' or {segment} = 'v0',1.4154,Vehicle insufficient households
 other_auto,Constant,2.3409,Constant
 other_auto,sov_skim.CongTime,-0.0247,Travel time
 auto_pay,Constant,0.19,Constant
@@ -20,7 +20,7 @@ auto_pay,hov_skim.CongTime,-0.0247,Travel time
 auto_pay,se.PKTNCWait.O,-0.0247,Auto wait time
 auto_pay,hov_skim.auto_pay_fare,-0.00675,Auto fare
 auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,3.93,Airport related
-transit,{segment} = 'vi',1.4154,Vehicle insufficient households
+transit,{segment} = 'vi' or {segment} = 'v0',1.4154,Vehicle insufficient households
 w_lb,Constant,5.8837,Constant
 w_lb,w_lb_skim.[Generalized Cost] = null,-9999,Availablility
 w_lb,w_lb_skim.[In-Vehicle Time] + w_lb_skim.Fare/.1983,-0.02129,IVTT and Fare
@@ -62,7 +62,7 @@ pnr_lb,pnr_lb_skim.[Initial Wait Time],-0.0826,Initial wait time
 pnr_lb,pnr_lb_skim.[Transfer Wait Time],-0.0631,Transfer wait time
 pnr_lb,pnr_lb_skim.[Egress Walk Time],-0.062,Egress walk time
 pnr_lb,pnr_lb_skim.[Number of Transfers] > 1,-0.3018,High transfers
-pnr_lb,{segment} = 'vi',-1.4118,Vehicle insufficient households
+pnr_lb,{segment} = 'vi' or {segment} = 'v0',-1.4118,Vehicle insufficient households
 pnr_eb,Constant,2.63,Constant
 pnr_eb,pnr_eb_skim.[Generalized Cost] = null,-9999,Availablility
 pnr_eb,pnr_eb_skim.[In-Vehicle Time] + pnr_eb_skim.Fare/.1983,-0.02129,IVTT and Fare
@@ -71,4 +71,4 @@ pnr_eb,pnr_eb_skim.[Initial Wait Time],-0.0826,Initial wait time
 pnr_eb,pnr_eb_skim.[Transfer Wait Time],-0.0631,Transfer wait time
 pnr_eb,pnr_eb_skim.[Egress Walk Time],-0.062,Egress walk time
 pnr_eb,pnr_eb_skim.[Number of Transfers] > 1,-0.3018,High transfers
-pnr_eb,{segment} = 'vi',-1.4118,Vehicle insufficient households
+pnr_eb,{segment} = 'vi' or {segment} = 'v0',-1.4118,Vehicle insufficient households
