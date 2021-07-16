@@ -1,0 +1,127 @@
+---
+title: "Resident Destination Choice"
+author: "Caliper Corporation"
+date: "July 15, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(caliperR)
+library(sf)
+```
+
+```{r, include=FALSE}
+trips_raw <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv")
+se_raw <- read_bin("../master/se_data/se_2016.bin")
+se_raw$TAZ <- unclass(se_raw$TAZ)
+taz_raw <- st_read("data/input/tazs/master_tazs.shp")
+```
+
+```{r}
+trips <- trips_raw %>%
+  filter(tour_type != "H", !is.na(a_taz), !is.na(p_taz)) %>%
+  select(trip_type, a_taz, choice_segment, weight = trip_weight_combined) %>%
+  mutate(choice_segment = ifelse(grepl("ih", choice_segment), "ih", "il")) %>%
+  group_by(trip_type, choice_segment, a_taz) %>%
+  summarize(trips = sum(weight, na.rm = TRUE)) %>%
+  pivot_wider(names_from = trip_type, values_from = trips) %>%
+  mutate(across(everything(), ~replace_na(., 0)))
+
+taz_features <- se_raw %>%
+  mutate(
+    UnivStudents = StudGQ_NCSU + StudGQ_UNC + StudGQ_DUKE + StudGQ_NCCU,
+    UnivBuildingS = BuildingS_NCSU + BuildingS_UNC + BuildingS_DUKE + BuildingS_NCCU,
+    IsUniv = ifelse(UnivStudents > 0 | UnivBuildingS > 0, 1, 0),
+    Industry_EH = Industry * PctHighEarn/100,
+    Industry_EL = Industry * (1 - PctHighEarn/100),
+    Office_EH = Office * PctHighEarn/100,
+    Office_EL = Office * (1 - PctHighEarn/100),
+    Service_RL_EH = Service_RateLow * PctHighEarn/100,
+    Service_RL_EL = Service_RateLow * (1 - PctHighEarn/100),
+    Service_RH_EH = Service_RateHigh * PctHighEarn/100,
+    Service_RH_EL = Service_RateHigh * (1 - PctHighEarn/100),
+    Retail_EH = Retail * PctHighEarn/100,
+    Retail_EL = Retail * (1 - PctHighEarn/100),
+  ) %>%
+  select(
+    TAZ, HH, HH_POP,
+    Industry, Office, Service_RateLow, Service_RateHigh, Retail,
+    Industry_EH,
+    Industry_EL,
+    Office_EH,
+    Office_EL,
+    Service_RL_EH,
+    Service_RL_EL,
+    Service_RH_EH,
+    Service_RH_EL,
+    Retail_EH,
+    Retail_EL,
+    IsUniv, UnivStudents, UnivBuildingS, CollegeOn,
+    K12, Hospital, EmpSpaces, StudSpaces, OtherSpaces
+  ) %>%
+  left_join(trips, by = c("TAZ" = "a_taz")) %>%
+  filter(!is.na(choice_segment))
+
+dist_equiv <- taz_raw %>%
+  select(TAZ = ID, district = DISTRICT) %>%
+  mutate(TAZ = as.numeric(TAZ)) %>%
+  st_drop_geometry()
+district_features <- taz_features %>%
+  left_join(dist_equiv, by = "TAZ") %>%
+  select(-TAZ, -IsUniv, district, everything()) %>%
+  group_by(district, choice_segment) %>%
+  summarize(across(everything(), ~sum(., na.rm = TRUE))) %>%
+  filter(!is.na(district)) %>%
+  ungroup()
+```
+
+```{r}
+w_hb_w <- taz_features %>%
+  select(choice_segment, W_HB_W_All, HH:OtherSpaces) %>%
+  filter(W_HB_W_All > 0)
+
+il <- w_hb_w %>%
+  filter(choice_segment == "il")
+
+ih <- w_hb_w %>%
+  filter(choice_segment == "ih")
+```
+
+```{r}
+# lm were estimated with intercepts to determine which terms to include.
+# Then remove the intercept to get attraction rates that assure 0 attractions
+# in empty zones.
+model <- lm(
+  W_HB_W_All ~ Industry_EL + Office_EL + Retail + I(Service_RH_EL + Service_RL_EL) +
+    Hospital + 0,
+  data = il
+)
+
+# broom::tidy(model)
+summary(model)
+```
+
+```{r}
+# model <- lm(
+#   W_HB_W_All ~ Industry + Office + I(Service_RateHigh + Service_RateLow) + 
+#     + Hospital + UnivStudents,
+#   data = ih
+# )
+
+model <- lm(
+  W_HB_W_All ~ Industry_EH + Office_EH + I(Service_RH_EH + Service_RL_EH) + 
+    + Hospital + UnivStudents,
+  data = ih
+)
+
+# broom::tidy(model)
+summary(model)
+```
+

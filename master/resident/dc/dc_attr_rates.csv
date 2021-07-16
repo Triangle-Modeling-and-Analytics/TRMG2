@@ -1,0 +1,15 @@
+Field,w_hb_w_all_il_a,w_hb_w_all_ih_a,Description
+Service_RateLow_EH,0,0.47,Attractions/Size terms for destination choice
+Service_RateHigh_EH,0,0.47,Separate attraction rates are used for high- and low-income households for work trips
+Office_EH,0,0.69,"The 'EL' and 'EH' suffice on employment is 'Earning Low' and ""Earning High'"
+Industry_EH,0,1.03,See PctHighEarn field (source: LEHD)
+Retail,0.51,0,
+Service_RateLow_EL,0.2,0,
+Service_RateHigh_EL,0.2,0,
+Office_EL,0.53,0,
+Industry_EL,1.45,0,
+Hospital,484,774,
+StudGQ_NCSU,0,0.43,
+StudGQ_UNC,0,0.43,
+StudGQ_DUKE,0,0.43,
+StudGQ_NCCU,0,0.43,
