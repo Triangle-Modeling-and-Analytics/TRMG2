@@ -8,12 +8,14 @@ library(tidyverse)
 skim <- read_csv("../../working_files/choice_model_estimation/dc/length_skim.csv")
 skim_filtered <- skim %>%
   rename(skim_length = `Length (Skim)`) %>%
-  filter(skim_length <= 15)
+  filter(skim_length <= 5)
 survey <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv") %>%
-  select(seqtripid, trip_type, o_taz, d_taz, tod, weight = trip_weight_combined)
+  filter(tour_type != "H") %>%
+  select(seqtripid, trip_type, p_taz, a_taz, tod, weight = trip_weight_combined)
 
 create_extra_trips <- survey %>%
-  left_join(skim_filtered, by = c("d_taz" = "Origin")) %>%
+  left_join(skim_filtered, by = c("a_taz" = "Origin")) %>%
+  filter(!is.na(Destination)) %>%
   arrange(seqtripid, skim_length) %>%
   group_by(seqtripid) %>%
   mutate(
@@ -21,6 +23,17 @@ create_extra_trips <- survey %>%
     total_new_weight1 = sum(new_weight1),
     new_weight = new_weight1 * weight / total_new_weight1
   )
+
+create_extra_trips %>%
+  select(
+    seqtripid,
+    trip_type,
+    p_taz,
+    a_taz = Destination,
+    tod,
+    weight = new_weight
+  ) %>%
+  write_csv("test2.csv")
 
 
 # # Check TLFD of NHB trips
