@@ -109,15 +109,9 @@ summary(model)
 ```
 
 ```{r}
-# model <- lm(
-#   W_HB_W_All ~ Industry + Office + I(Service_RateHigh + Service_RateLow) + 
-#     + Hospital + UnivStudents,
-#   data = ih
-# )
-
 model <- lm(
   W_HB_W_All ~ Industry_EH + Office_EH + I(Service_RH_EH + Service_RL_EH) + 
-    + Hospital + UnivStudents,
+    + Hospital + UnivStudents + 0,
   data = ih
 )
 
