@@ -4,7 +4,7 @@
 
 Macro "NonMotorized" (Args)
 
-    // RunMacro("Create NonMotorized Features", Args)
+    RunMacro("Create NonMotorized Features", Args)
     RunMacro("Apply NM Choice Model", Args)
 
     return(1)
@@ -48,55 +48,59 @@ Macro "Create NonMotorized Features" (Args)
 endmacro
 
 /*
-
+Loops over each trip type and applies the binary choice model to split
+trips into a "motorized" or "nonmotorized" mode.
 */
 
 Macro "Apply NM Choice Model" (Args)
 
-    hh_file = Args.Households
-    per_file = Args.Persons
-    se_file = Args.SE
-    mdl_dir = Args.[Input Folder] + "\\resident\\nonmotorized"
-    out_dir = Args.[Output Folder]
+    scen_dir = Args.[Scenario Folder]
+    input_dir = Args.[Input Folder]
+    input_nm_dir = input_dir + "/resident/nonmotorized"
+    output_dir = Args.[Output Folder] + "/resident/nonmotorized"
+    periods = Args.periods
+    households = Args.Households
+    persons = Args.Persons
 
-    hh_vw = OpenTable("hh", "FFB", {hh_file})
-    per_vw = OpenTable("per", "FFB", {per_file})
-    se_vw = OpenTable("se", "FFB", {per_file})
-    jv = JoinViews("per+hh", per_vw + ".HouseholdID", hh_vw + ".HouseholdID", )
+    // Determine trip purposes
+    prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
+    rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
+    trip_types = GetDataVector(rate_vw + "|", "trip_type", )
+    trip_types = SortVector(trip_types, {Unique: "true"})
+    CloseView(rate_vw)
 
-    a_mdl_files = RunMacro("Catalog Files", mdl_dir, "mdl")
-    for model_file in a_mdl_files do
-        {dir, path, model_name, ext} = SplitPath(model_file)
-        model_name = model_name + "_walk"
+    opts = null
+    opts.segments = null
+    opts.primary_spec = {Name: "person", OField: "ZoneID"}
+    for trip_type in trip_types do
 
-        // Apply mc model
-        o = CreateObject("Choice.Mode")
-        o.ModelFile = model_file
-        // o.AddTableSource({Label: "perdata", FileName: per_file})
-        o.DropModeIfMissing = true
-        o.SkipValuesBelow = 0.001
-        out_file = out_dir + "/resident/mode/nm_probabilities.bin"
-        o.OutputProbabilityFile = out_file
-        o.AggregateModel = false
-        ok = o.Run()
-        
-        // // Transfer results to the person table
-        // a_fields =  {{model_name, "Real", 10, 2,,,, "Walk trips for this trip type"}}
-        // RunMacro("Add Fields", {view: per_vw, a_fields: a_fields})
+        // All escort-k12 trips are motorized, so just skip
+        if trip_type = "W_HB_EK12_All" then continue
 
-        // out_vw = OpenTable("output", "FFB", {out_file})
-        // {, out_specs} = RunMacro("Get Fields", {view_name: out_vw})
-        // {, se_specs} = RunMacro("Get Fields", {view_name: per_vw})
-        // jv = JoinViews("jv", se_specs.TAZ, out_specs.ID, )
-        // v = GetDataVector(jv + "|", "walk Probability", )
-        // SetDataVector(jv + "|", model_name, v, )
-        // CloseView(jv)
-        // CloseView(out_vw)
-        // CloseView(per_vw)
+        opts.trip_type = trip_type
+        opts.util_file = input_nm_dir + "/" + trip_type + ".csv"
+
+        for period in periods do
+            opts.period = period
+            
+            // Set sources
+            opts.tables = {
+                se: {
+                    File: scen_dir + "\\output\\sedata\\scenario_se.bin",
+                    IDField: "TAZ"
+                },
+                person: {
+                    IDField: "PersonID",
+                    JoinSpec: {
+                        LeftFile: persons,
+                        LeftID: "HouseholdID",
+                        RightFile: households,
+                        RightID: "HouseholdID"
+                    }
+                }
+            }
+            opts.output_dir = output_dir
+            RunMacro("MC", Args, opts)
+        end
     end
-
-    CloseView(hh_vw)
-    CloseView(per_vw)
-    CloseView(se_vw)
-    CloseView(jv)
 endmacro

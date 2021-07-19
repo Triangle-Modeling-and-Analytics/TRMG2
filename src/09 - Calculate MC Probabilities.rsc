@@ -76,9 +76,11 @@ Macro "Calculate MC" (Args)
     rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
     trip_types = GetDataVector(rate_vw + "|", "trip_type", )
     trip_types = SortVector(trip_types, {Unique: "true"})
+    CloseView(rate_vw)
 
     opts = null
     opts.segments = {"v0", "vi", "vs"}
+    opts.primary_spec = {Name: "w_lb_skim"}
     for trip_type in trip_types do
         opts.trip_type = trip_type
         opts.util_file = input_mc_dir + "/" + trip_type + ".csv"
@@ -101,18 +103,18 @@ Macro "Calculate MC" (Args)
             
             // Set sources
             opts.tables = {
-                se: {file: scen_dir + "\\output\\sedata\\scenario_se.bin", id_field: "TAZ"},
-                parking: {file: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", id_field: "TAZ"}
+                se: {File: scen_dir + "\\output\\sedata\\scenario_se.bin", IDField: "TAZ"},
+                parking: {File: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", IDField: "TAZ"}
             }
             opts.matrices = {
-                sov_skim: {file: sov_skim},
-                hov_skim: {file: hov_skim},
-                w_lb_skim: {file: skims_dir + "transit\\skim_" + period + "_w_lb.mtx"},
-                w_eb_skim: {file: skims_dir + "transit\\skim_" + period + "_w_eb.mtx"},
-                pnr_lb_skim: {file: skims_dir + "transit\\skim_" + period + "_pnr_lb.mtx"},
-                pnr_eb_skim: {file: skims_dir + "transit\\skim_" + period + "_pnr_eb.mtx"},
-                knr_lb_skim: {file: skims_dir + "transit\\skim_" + period + "_knr_lb.mtx"},
-                knr_eb_skim: {file: skims_dir + "transit\\skim_" + period + "_knr_eb.mtx"}
+                sov_skim: {File: sov_skim},
+                hov_skim: {File: hov_skim},
+                w_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_lb.mtx"},
+                w_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_eb.mtx"},
+                pnr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_lb.mtx"},
+                pnr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_eb.mtx"},
+                knr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_lb.mtx"},
+                knr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_eb.mtx"}
             }
             opts.output_dir = output_dir
             RunMacro("MC", Args, opts)

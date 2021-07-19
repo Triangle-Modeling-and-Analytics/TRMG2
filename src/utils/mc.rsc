@@ -22,19 +22,25 @@ Inputs
     * Optional array of strings (default: null)
     * Names of market segments. If provided, MC will be applied in a loop
       over the segments.
+  * primary_spec
+    * An array that configures the primary data source. It includes
+      * Name: the name of the data source (matching `source_name` in `tables` or `matices`)
+      * If the primary source is a table, then it also includes:
+        * OField: name of the origin field
+        * DField: name of the destination field (if applicable)
   * tables
     * Optional array of table sources (default: null)
     * `tables` and `matrices` cannot both be null
     * Each item in `tables` must include:
       * source_name: (string) name of the source
-      * file: (string) file path of the table
-      * id_field: (string) name of the ID field in the table
+      * File: (string) file path of the table
+      * IDField: (string) name of the ID field in the table
   * matrices
     * Optional array of matrix sources(default: null)
     * `tables` and `matrices` cannot both be null
     * Each item in `matrices` must include:
       * source_name: (string) name of the source
-      * file: (string) file path of the matrix
+      * File: (string) file path of the matrix
 */
 
 Macro "MC" (Args, MacroOpts)
@@ -45,15 +51,17 @@ Macro "MC" (Args, MacroOpts)
     nest_file = MacroOpts.nest_file
     period = MacroOpts.period
     segments = MacroOpts.segments
+    primary_spec = MacroOpts.primary_spec
     tables = MacroOpts.tables
     matrices = MacroOpts.matrices
 
     if output_dir = null then Throw("MC: 'output_dir' is null")
     if trip_type = null then Throw("MC: 'trip_type' is null")
     if util_file = null then Throw("MC: 'util_file' is null")
+    if primary_spec = null then Throw("MC: 'primary_spec' is null")
     if tables = null and matrices = null 
         then Throw("MC: 'tables' and 'matrices' are both null")
-    if segments = null then segments = {"all"}
+    if segments = null then segments = {null}
 
     // Create output subdirectories
     mdl_dir = output_dir + "\\model_files"
@@ -89,7 +97,8 @@ Macro "MC" (Args, MacroOpts)
             obj.AddTableSource({
                 SourceName: source_name,
                 File: source.file,
-                IDField: source.id_field
+                IDField: source.IDField,
+                JoinSpec: source.JoinSpec
             })
         end
         for i = 1 to matrices.length do
@@ -106,7 +115,7 @@ Macro "MC" (Args, MacroOpts)
         if nest_tree <> null then
             obj.AddAlternatives({AlternativesTree: nest_tree})
         obj.AddUtility({UtilityFunction: util})
-        obj.AddPrimarySpec({Name: "w_lb_skim"})
+        obj.AddPrimarySpec(primary_spec)
         
         // Specify outputs
         output_opts = {Probability: prob_dir + "\\probability_" + tag + ".mtx",
