@@ -1,0 +1,6 @@
+Alternative,Expression,Segment,Coefficient,Description
+motorized,Constant,,0,
+nonmotorized,person.is_senior,,-157479,Person is a senior
+nonmotorized,person.Autos = 0,,1.728,Person has access to 0 HH vehicles
+nonmotorized,se.WalkAccessibility,,4.638,Interzonal walk accessiblity
+nonmotorized,Constant,,-11.207,

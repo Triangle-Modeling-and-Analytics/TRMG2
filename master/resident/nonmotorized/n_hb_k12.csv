@@ -1,0 +1,6 @@
+Alternative,Expression,Segment,Coefficient,Description
+motorized,Constant,,0,
+nonmotorized,person.veh_per_adult,,-0.767,HH vehicles per adult
+nonmotorized,person.age_16_18,,-0.359,Person is between 16 and 18 (driving age)
+nonmotorized,se.WalkAccessibility,,0.585,Interzonal walkability
+nonmotorized,Constant,,-2.709,
