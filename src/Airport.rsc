@@ -28,11 +28,7 @@ Macro "Airport Production" (Args)
 			"HH_POP",
 			"Pct_Worker",
 			"PctHighEarn",
-		    "Industry",
-			"Office", 
-			"Service_RateLow",
-			"Service_RateHigh",
-			"Retail"
+			"TotalEmp"
 		},
 		{OptArray: TRUE}
 	)
@@ -63,7 +59,6 @@ Macro "Airport Production" (Args)
 	dist_to_airport_miles = A2V(dist_to_airport_miles)
 	
 	// get variables for regression
-	tot_emp = data.Industry + data.Office + data.Service_RateLow + data.Service_RateHigh + data.Retail
 	workers = data.HH_POP * data.Pct_Worker/100
 	high_earners = workers * data.PctHighEarn/100
 	high_earn_distance = high_earners * dist_to_airport_miles
@@ -77,7 +72,7 @@ Macro "Airport Production" (Args)
 	
 	// compute airport productions
 	airport_productions = coeffs.intercept + 
-		coeffs.employment * tot_emp + 
+		coeffs.employment * data.TotalEmp + 
 		coeffs.high_earn_distance * high_earn_distance +
 		coeffs.high_earner * high_earners
 	
