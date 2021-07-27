@@ -27,7 +27,7 @@ Macro "Airport Production" (Args)
 		    "TAZ", 
 			"HH_POP",
 			"Pct_Worker",
-			"PctHighEarn",
+			"PctHighPay",
 			"TotalEmp"
 		},
 		{OptArray: TRUE}
@@ -60,7 +60,7 @@ Macro "Airport Production" (Args)
 	
 	// get variables for regression
 	workers = data.HH_POP * data.Pct_Worker/100
-	high_earners = workers * data.PctHighEarn/100
+	high_earners = workers * data.PctHighPay/100
 	high_earn_distance = high_earners * dist_to_airport_miles
 	
 	// read airport model file for coefficients

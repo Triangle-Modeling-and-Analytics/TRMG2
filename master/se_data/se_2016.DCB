@@ -17,7 +17,7 @@
 "Service_RateLow",I,71,4,0,11,0,,"","",,"Sum",
 "Service_RateHigh",I,75,4,0,11,0,,"","",,"Sum",
 "Retail",I,79,4,0,11,0,,"","",,"Sum",
-"PctHighEarn",I,83,4,0,11,0,,"","",,"Sum",
+"PctHighPay",I,83,4,0,11,0,,"","",,"Sum",
 "StudGQ_NCSU",I,87,4,0,11,0,,"","",,"Sum",
 "StudGQ_UNC",I,91,4,0,11,0,,"","",,"Sum",
 "StudGQ_DUKE",I,95,4,0,11,0,,"","",,"Sum",

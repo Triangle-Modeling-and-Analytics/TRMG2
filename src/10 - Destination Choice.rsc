@@ -33,17 +33,17 @@ Macro "Split Employment by Earnings" (Args)
 
     input = GetDataVectors(
         se_vw + "|",
-        {"Industry", "Office", "Service_RateLow", "Service_RateHigh", "PctHighEarn"},
+        {"Industry", "Office", "Service_RateLow", "Service_RateHigh", "PctHighPay"},
         {OptArray: "true"}
     )
-    output.Industry_EH = input.Industry * input.PctHighEarn/100
-    output.Industry_EL = input.Industry * (1 - input.PctHighEarn/100)
-    output.Office_EH = input.Office * input.PctHighEarn/100
-    output.Office_EL = input.Office * (1 - input.PctHighEarn/100)
-    output.Service_RateLow_EH = input.Service_RateLow * input.PctHighEarn/100
-    output.Service_RateLow_EL = input.Service_RateLow * (1 - input.PctHighEarn/100)
-    output.Service_RateHigh_EH = input.Service_RateHigh * input.PctHighEarn/100
-    output.Service_RateHigh_EL = input.Service_RateHigh * (1 - input.PctHighEarn/100)
+    output.Industry_EH = input.Industry * input.PctHighPay/100
+    output.Industry_EL = input.Industry * (1 - input.PctHighPay/100)
+    output.Office_EH = input.Office * input.PctHighPay/100
+    output.Office_EL = input.Office * (1 - input.PctHighPay/100)
+    output.Service_RateLow_EH = input.Service_RateLow * input.PctHighPay/100
+    output.Service_RateLow_EL = input.Service_RateLow * (1 - input.PctHighPay/100)
+    output.Service_RateHigh_EH = input.Service_RateHigh * input.PctHighPay/100
+    output.Service_RateHigh_EL = input.Service_RateHigh * (1 - input.PctHighPay/100)
     SetDataVectors(se_vw + "|", output, )
 endmacro
 
