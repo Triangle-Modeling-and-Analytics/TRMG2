@@ -4,13 +4,13 @@
 
 Macro "Airport" (Args)
     RunMacro("Airport Production", Args)
-    RunMacro("Airport TOD", Args)	
+    RunMacro("Airport Distribution and TOD", Args)	
 	
     return(1)
 endmacro
 
 /*
-
+Calculate airport productions
 */
 
 Macro "Airport Production" (Args)
@@ -89,11 +89,10 @@ Macro "Airport Production" (Args)
 endmacro
 
 /*
-
-
+There is only one airport zone, so distribution is very simple
 */
 
-Macro "Airport TOD" (Args)
+Macro "Airport Distribution and TOD" (Args)
     
 	se_file = Args.SE
 	hwy_dbd = Args.Links
