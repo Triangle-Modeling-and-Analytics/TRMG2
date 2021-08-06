@@ -17,7 +17,7 @@ options(scipen = 999)
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/input/_PRIVATE/"
 input_dir <-"data/input/university/"
-univ_dir<-"data/output/"
+univ_dir<-"data/output/university/"
 
 # Data Reads -------------------------------------------------------------------
 Productions_bymode_df<- readRDS(paste0(private_dir,"Productions_bymode_df.RDS"))
@@ -220,7 +220,7 @@ avg_trips_bypurpose_bymode_col=c("segment", "Trip_Purpose", "Primary_Mode", "avg
 headers<-c("Segment","Trip Purpose","Mode","Trip Rate", "Respondents", "Segment Sample Size")
 kable(avg_trips_bypurpose_bymode_df [,avg_trips_bypurpose_bymode_col],caption ="Trip Rates by Purpose by Mode",col.names=headers)
 
-## Trip Rates for UHO and UCO combined, by mode --------------------------------
+## Trip Rates for UHO and UCO combined, by mode (basis for UOO trip rates)-------
 avg_trips_UHOUCO_Oncampus_bymode_df<-Productions_bymode_df%>%
   filter(On_campus==1) %>%
   filter(UHO==1|UCO==1)%>%
@@ -337,14 +337,14 @@ P_rates_df<-w_avg_trips_bypurpose_df %>%
   rename("Production Rate"= avg_trips, 
          "Sample Size"= respondents) %>%
   filter(Trip_Purpose =="UC1" | 
-           Trip_Purpose == "UCO" | 
-           Trip_Purpose == "UHC" | 
+           Trip_Purpose == "UCO" |
+           Trip_Purpose == "UHC" |  
            Trip_Purpose == "UHO" |
            Trip_Purpose == "UCC")
 
 # Apply Selected Production Rates-----------------------------------------------
 # Apply productions for UHC, UHO, UCO, UC1  
-selected_columns<-c(1,24:46)
+selected_columns<-c(1,24:63)
 
 Apply_Productions_df<-socioecon2_df %>%
   select(TAZ,
@@ -425,14 +425,13 @@ Apply_Productions_df<-socioecon2_df %>%
 
 Summary_Productions_df<-Apply_Productions_df%>%
   summarize_all(sum) %>% 
-  select(c(2:24)) %>%
-  pivot_longer(c(1:23),names_to ="Segments",values_to = "Productions")
+  select(c(2:41)) %>%
+  pivot_longer(c(1:40),names_to ="Segments",values_to = "Productions")
 
 Summary_Productions_df
 
 # Output------------------------------------------------------------------------
 
-write_rds(Apply_Productions_df,paste0(univ_dir,"Apply_Produtions_df.RDS"))    
 write_rds(Summary_Productions_df,paste0(univ_dir,"Summary_Productions_df.RDS"))
 write_csv(P_rates_df,paste0(univ_dir,"P_rates.CSV"))
 write_csv(P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))

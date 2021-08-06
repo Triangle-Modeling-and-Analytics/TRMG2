@@ -118,12 +118,25 @@ campusTAZs_df<-socioecon2_df %>%
   mutate(campus =  case_when(Campus_NCSU_Main == 1 ~ "NCSU_Main",
                              Campus_NCSU_Centennial == 1 ~ "NCSU_Centennial",
                              Campus_NCSU_Biomedical == 1 ~ "NCSU_Biomedical",
-                             Campus_UNC == 1 ~ "UNC_Main",
+                             Campus_UNC == 1 ~ "UNC",
                              Campus_DUKE == 1 ~"Duke",
-                             Campus_NCCU == 1 ~ "NCCU")) %>%
-  select(TAZ,
-         campus)
+                             Campus_NCCU == 1 ~ "NCCU"),
+         aggcampus = case_when(campus == "NCSU_Main" ~ "NCSU",
+                               campus == "NCSU_Centennial" ~ "NCSU",
+                               campus == "NCSU_Biomedical" ~ "NCSU",
+                               campus == "UNC" ~ "UNC",
+                               campus == "Duke" ~ "Duke",
+                               campus == "NCCU" ~ "NCCU")) %>%
+  select(TAZ,campus,aggcampus)%>%
+  filter(!is.na(aggcampus))
 
+# distance to campus ----------------------------------------------------------
+distance_tocampus_df<- distance_skim_df %>%
+  right_join(campusTAZs_df, by = c("originTAZ" = "TAZ")) %>%
+  group_by(destinationTAZ,aggcampus) %>%
+  summarize(avg_distance=mean(distance_zonetozone),min_distance=min(distance_zonetozone))%>%
+  pivot_wider(names_from = aggcampus, values_from =c(avg_distance, min_distance))
+             
 # New/Recoded variables survey data---------------------------------------------
 NCSUtemp_df<- NCSU_All_df %>% 
   full_join(CrowFliesdistance_df) %>% 
@@ -352,7 +365,8 @@ Attractions_byTAZ_df<-Attractions_byTAZbySegment_df%>%
          AllStudents_Trips)%>%
   group_by(TAZ_A)%>%
   summarize_all(sum)%>%
-  left_join(.,socioecon2_df,by=c("TAZ_A" ="TAZ"))
+  left_join(.,socioecon2_df,by = c("TAZ_A" ="TAZ")) %>%
+  left_join(distance_tocampus_df, by = c("TAZ_A" = "destinationTAZ"))
 
 # Output -----------------------------------------------------------------------
 write_rds(Productions_bymode_df,paste0(private_dir,"Productions_bymode_df.RDS"))
@@ -361,4 +375,5 @@ write_rds(Attractions_byTAZ_df,paste0(private_dir,"Attractions_byTAZ_df.RDS"))
 write_rds(Trip_subset_df, paste0(private_dir,"Trip_subset_df.RDS"))
 write_rds(Person_subset_df,paste0(private_dir,"Person_subset_df.RDS"))
 write_rds(socioecon2_df,paste0(prepared_data_dir,"socioecon2_df.RDS"))
+write_rds(distance_tocampus_df,paste0(prepared_data_dir,"distance_tocampus_df.RDS"))
 write_csv(Trip_subset_df, paste0(private_dir,"Trip_subset_df.csv"))
