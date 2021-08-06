@@ -55,11 +55,6 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution (UC1 T
 
 
 
-#########################TODO
 
-### create second attraction file--- split between distance included and not -- 
-#for distance included: create apply attractions where the function is applied and add the pct
-#for distance not included: create relative attractiveness based on distance
-### in rmd file - explain how it will applied in TransCAD
 
 
