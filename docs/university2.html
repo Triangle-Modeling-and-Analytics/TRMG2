@@ -17,7 +17,7 @@
 <script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -30,10 +30,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
@@ -44,15 +43,23 @@
   div.column{display: inline-block; vertical-align: top; width: 50%;}
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
-      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
 
 
 
 
 
-
-<link rel="stylesheet" href="styles.css" type="text/css" />
 
 
 
@@ -214,69 +221,6 @@ $(document).ready(function () {
 
 
 
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
 
 </head>
 
@@ -284,16 +228,6 @@ div.tocify {
 
 
 <div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -470,7 +404,7 @@ n
 </tr>
 </tbody>
 </table>
-<p>The NCSU survey dataset includes person weights which were developed by ITRE based on residence locations (on-campus vs. off-campus), credit hours (full-time vs. part-time) and class status (undergraduate vs. graduate). A total of 148 on_campus and 186 off-campus records were assigned a weight. Based on the survey, the NCSU student population made a total of 167898.5197864 trips in 2016.</p>
+<p>The NCSU survey dataset includes person weights which were developed by ITRE based on residence locations (on-campus vs. off-campus), credit hours (full-time vs. part-time) and class status (undergraduate vs. graduate). A total of 148 on_campus and 186 off-campus records were assigned a weight. Based on the survey, the NCSU student population made a total of 167898.52 trips in 2016.</p>
 </div>
 <div id="virginia-surveys" class="section level5">
 <h5>2012 Virginia Surveys</h5>
@@ -506,7 +440,7 @@ n
 2) trip purpose: UHC, UHO, UCO, UC1 or UOO<br />
 3) mode: walk, bike, bus (includes public bus and shuttle), drive, carpool and other</p>
 <p>Production rates were developed based on raw data and based on weighted data. The rates based on the weighted data are very similar to the rates based on the raw data.</p>
-<p>Based on the weighted data, the average daily trips rate is 5.7966024. On-campus students make an average of 7.1248221 trips per day while off- campus students make an average of 5.1581413 trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.</p>
+<p>Based on the weighted data, the average daily trips rate is 5.797. On-campus students make an average of 7.125 trips per day while off- campus students make an average of 5.158 trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.</p>
 <p>Comparison to Khattak et al (201</p>
 <p>Consistent with our findings, Khattak et al found that students who reside on-campus make more trips (especially on-campus trips) than those who reside off-campus and that they walk more and drive less than off-campus students. They estimate production trip rates that were somewhat lower than the production rates selected for this study. During first round of surveys at ODU, VT, UVA and VCU, daily trip rates ranged from 4.4 to 4.9. For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -704,7 +638,7 @@ On-campus Students UHO UCO Trips
 Bicycle
 </td>
 <td style="text-align:right;">
-0.0133333
+0.013
 </td>
 <td style="text-align:right;">
 1
@@ -721,7 +655,7 @@ On-campus Students UHO UCO Trips
 Bus
 </td>
 <td style="text-align:right;">
-0.1000000
+0.100
 </td>
 <td style="text-align:right;">
 11
@@ -738,7 +672,7 @@ On-campus Students UHO UCO Trips
 Car
 </td>
 <td style="text-align:right;">
-0.4133333
+0.413
 </td>
 <td style="text-align:right;">
 40
@@ -755,7 +689,7 @@ On-campus Students UHO UCO Trips
 Carpool
 </td>
 <td style="text-align:right;">
-0.2200000
+0.220
 </td>
 <td style="text-align:right;">
 23
@@ -772,7 +706,7 @@ On-campus Students UHO UCO Trips
 Walk
 </td>
 <td style="text-align:right;">
-0.2200000
+0.220
 </td>
 <td style="text-align:right;">
 19
@@ -789,10 +723,10 @@ Off-campus Students UHO UCO Trips
 Bicycle
 </td>
 <td style="text-align:right;">
-0.0107527
+0.038
 </td>
 <td style="text-align:right;">
-1
+4
 </td>
 <td style="text-align:right;">
 186
@@ -806,10 +740,10 @@ Off-campus Students UHO UCO Trips
 Bus
 </td>
 <td style="text-align:right;">
-0.0806452
+0.124
 </td>
 <td style="text-align:right;">
-11
+17
 </td>
 <td style="text-align:right;">
 186
@@ -823,10 +757,10 @@ Off-campus Students UHO UCO Trips
 Car
 </td>
 <td style="text-align:right;">
-0.3333333
+1.301
 </td>
 <td style="text-align:right;">
-40
+140
 </td>
 <td style="text-align:right;">
 186
@@ -840,10 +774,27 @@ Off-campus Students UHO UCO Trips
 Carpool
 </td>
 <td style="text-align:right;">
-0.1774194
+0.124
 </td>
 <td style="text-align:right;">
-23
+15
+</td>
+<td style="text-align:right;">
+186
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Off-campus Students UHO UCO Trips
+</td>
+<td style="text-align:left;">
+Other
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:right;">
 186
@@ -857,10 +808,10 @@ Off-campus Students UHO UCO Trips
 Walk
 </td>
 <td style="text-align:right;">
-0.1774194
+0.317
 </td>
 <td style="text-align:right;">
-19
+40
 </td>
 <td style="text-align:right;">
 186
@@ -900,7 +851,7 @@ On-campus Students
 Bus
 </td>
 <td style="text-align:right;">
-0.0133333
+0.013
 </td>
 <td style="text-align:right;">
 2
@@ -917,7 +868,7 @@ On-campus Students
 Car
 </td>
 <td style="text-align:right;">
-0.0266667
+0.027
 </td>
 <td style="text-align:right;">
 3
@@ -934,7 +885,7 @@ On-campus Students
 Carpool
 </td>
 <td style="text-align:right;">
-0.1133333
+0.113
 </td>
 <td style="text-align:right;">
 10
@@ -951,7 +902,7 @@ On-campus Students
 Walk
 </td>
 <td style="text-align:right;">
-0.0266667
+0.027
 </td>
 <td style="text-align:right;">
 2
@@ -968,7 +919,7 @@ Off-campus Students
 Bus
 </td>
 <td style="text-align:right;">
-0.0215054
+0.022
 </td>
 <td style="text-align:right;">
 4
@@ -985,7 +936,7 @@ Off-campus Students
 Car
 </td>
 <td style="text-align:right;">
-0.3333333
+0.333
 </td>
 <td style="text-align:right;">
 35
@@ -1002,7 +953,7 @@ Off-campus Students
 Carpool
 </td>
 <td style="text-align:right;">
-0.0430108
+0.043
 </td>
 <td style="text-align:right;">
 4
@@ -1019,7 +970,7 @@ Off-campus Students
 Walk
 </td>
 <td style="text-align:right;">
-0.0430108
+0.043
 </td>
 <td style="text-align:right;">
 6
@@ -1030,7 +981,32 @@ Walk
 </tr>
 </tbody>
 </table>
-<p>Trip productions by TAZ were estimated by applying the trip production rates as follows:<br />
+<table>
+<caption>
+Ratio UOO Production Rate to UHOUCO Production Rate
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+car
+</th>
+<th style="text-align:right;">
+non-car
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.253
+</td>
+<td style="text-align:right;">
+0.129
+</td>
+</tr>
+</tbody>
+</table>
+<p>##################check if group quarters are always on-campus ######################### Trip productions by TAZ were estimated by applying the trip production rates as follows:<br />
 On-Campus Students:<br />
 * UC1 Productions =<br />
 Share of campus buildings in TAZ * enrollment * UC1 On-campus production rate<br />
@@ -1249,6 +1225,142 @@ Productions_UCO_On_Campus_Duke
 10338
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+Productions_UC1_On_Campus_Duke
+</td>
+<td style="text-align:right;">
+71278
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCC_On_Campus_Duke
+</td>
+<td style="text-align:right;">
+6115
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHC_Off_Campus_Duke
+</td>
+<td style="text-align:right;">
+17335
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHO_Off_Campus_Duke
+</td>
+<td style="text-align:right;">
+12548
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCO_Off_Campus_Duke
+</td>
+<td style="text-align:right;">
+12638
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UC1_Off_Campus_Duke
+</td>
+<td style="text-align:right;">
+12856
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCC_Off_Campus_Duke
+</td>
+<td style="text-align:right;">
+2905
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHC_On_Campus_NCCU
+</td>
+<td style="text-align:right;">
+3464
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHO_On_Campus_NCCU
+</td>
+<td style="text-align:right;">
+743
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCO_On_Campus_NCCU
+</td>
+<td style="text-align:right;">
+5275
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UC1_On_Campus_NCCU
+</td>
+<td style="text-align:right;">
+36369
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCC_On_Campus_NCCU
+</td>
+<td style="text-align:right;">
+3120
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHC_Off_Campus_NCCU
+</td>
+<td style="text-align:right;">
+8938
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UHO_Off_Campus_NCCU
+</td>
+<td style="text-align:right;">
+6470
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCO_Off_Campus_NCCU
+</td>
+<td style="text-align:right;">
+6449
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UC1_Off_Campus_NCCU
+</td>
+<td style="text-align:right;">
+6560
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Productions_UCC_Off_Campus_NCCU
+</td>
+<td style="text-align:right;">
+1482
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1258,14 +1370,20 @@ Productions_UCO_On_Campus_Duke
 <h3>TRIP ATTRACTION RATES</h3>
 <div id="sources-1" class="section level4">
 <h4>Sources</h4>
+<div id="off-campus-attractions" class="section level5">
+<h5>Off-campus attractions</h5>
 <p>As the trip production rates, trip attraction rates for off-campus attractions (UHO and UCO) were developed based on a survey of NCSU students conducted by ITRE for NCDOT in 2014. For UHO trips by off-campus students, both trips ends are off-campus. The number of trip attractions is estimated as a function of the land use of the zone. For UCO trips and for UHO trips by on-campus students, the production end is the campus. Therefore, in addition to land use variables of the attraction zone, the attraction model for these segments also considers distance between the zone and campus.</p>
+</div>
+<div id="on-campus-attractions" class="section level5">
+<h5>On-campus attractions</h5>
 <p>For on-campus attractions (UHC,UC1), the attractions are distributed among campus zones proportional to the distribution of the building square feet.</p>
+</div>
 </div>
 <div id="exploratory-analysis-1" class="section level4">
 <h4>Exploratory Analysis</h4>
 <div id="correlations" class="section level5">
 <h5>Correlations</h5>
-Correlations between the university attractions by TAZ and TAZ land use characteristics are presented below. For trip attractions by on-campus students, the off-campus student population and the number of retail jobs have the highest correlation coefficients. (The number of students in student group quarters is also relatively highly correlated with trips by off-campus students - can they be in off-campus zones?) For trips by off-campus students, off-campus students has the highest correlation coefficient.<br />
+Correlations between the university attractions and land use characteristics at the TAZ level are presented below. For trip attractions by on-campus students, the off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.<br />
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1613,9 +1731,10 @@ Retail
 </div>
 <div id="regression-models" class="section level4">
 <h4>Regression Models</h4>
+<p>The regression models were estimated for each purpose using a dataset that includes all TAZs for which the survey included trip attractions, of any purpose. The TAZs that do not have any trip attractions in the survey were excluded from the dataset used for model estimation.</p>
 <div id="uco-trips-by-on-campus-students" class="section level5">
 <h5>UCO trips by On-campus students</h5>
-The first model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The dataset used to estimate this model includes all TAZs, except those for which UCO on-campus attractions are N/A. The coefficients have the expected signs.
+The model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The coefficients have the expected signs.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1642,7 +1761,7 @@ OnCampusStudents_UCOTrips
 20.9149
 </td>
 <td style="text-align:right;">
-2.8006
+2.80
 </td>
 <td style="text-align:right;">
 0.0056
@@ -1656,7 +1775,7 @@ Retail
 0.0218
 </td>
 <td style="text-align:right;">
-1.2297
+1.23
 </td>
 <td style="text-align:right;">
 0.2203
@@ -1670,7 +1789,7 @@ StudOff_NCSU
 0.1052
 </td>
 <td style="text-align:right;">
-2.9866
+2.99
 </td>
 <td style="text-align:right;">
 0.0032
@@ -1692,90 +1811,10 @@ NA
 </tr>
 </tbody>
 </table>
-<pre><code>## Warning: Removed 2 rows containing missing values (geom_point).</code></pre>
-<p><img src="university2_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<p>The second model adds the distance between the TAZ and campus to the first model. The distance between the TAZ and campus is calculated as the average straight line distance between the TAZ and the centroids of the different NCSU campus TAZs. (confirm campus definition). As expected, attractions decrease as the distance increases.</p>
-The third model is estimated using only TAZs with UCO trips.
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-variable
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-OnCampusStudents_UCOTrips
-</td>
-<td style="text-align:right;">
-140.8144
-</td>
-<td style="text-align:right;">
-4.7578
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Retail
-</td>
-<td style="text-align:right;">
-0.0067
-</td>
-<td style="text-align:right;">
-0.1634
-</td>
-<td style="text-align:right;">
-0.8711
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-StudOff_NCSU
-</td>
-<td style="text-align:right;">
-0.0967
-</td>
-<td style="text-align:right;">
-0.9934
-</td>
-<td style="text-align:right;">
-0.3272
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
--0.0272
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 <div id="uho-trips-by-on-campus-students" class="section level5">
 <h5>UHO trips by On-campus students</h5>
-As UCO trips by on-campus students, UHO trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ and the number of retail jobs. Including distance in the UHO on-campus models results in illogical coefficients.
+<p>As UCO trips by on-campus students, UHO trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ, the number of retail jobs and the distance to campus. The distance is calculated as the average of the distances between the centroid of the TAZ and each of the centroids of the different NCSU campus TAZs. All coefficients have the expected sign. As expected, trip attractions decrease as the distance increases and trip attractions increase as student population and retail jobs increase.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1796,16 +1835,30 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
+avg_distance_NCSU
+</td>
+<td style="text-align:right;">
+-0.7520
+</td>
+<td style="text-align:right;">
+-1.87
+</td>
+<td style="text-align:right;">
+0.0634
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 OnCampusStudents_UHOTrips
 </td>
 <td style="text-align:right;">
-5.5856
+12.2253
 </td>
 <td style="text-align:right;">
-1.6689
+2.51
 </td>
 <td style="text-align:right;">
-0.0968
+0.0129
 </td>
 </tr>
 <tr>
@@ -1813,13 +1866,13 @@ OnCampusStudents_UHOTrips
 Retail
 </td>
 <td style="text-align:right;">
-0.0247
+0.0254
 </td>
 <td style="text-align:right;">
-3.2225
+3.33
 </td>
 <td style="text-align:right;">
-0.0015
+0.0011
 </td>
 </tr>
 <tr>
@@ -1827,13 +1880,13 @@ Retail
 StudOff_NCSU
 </td>
 <td style="text-align:right;">
-0.0292
+0.0217
 </td>
 <td style="text-align:right;">
-1.8447
+1.34
 </td>
 <td style="text-align:right;">
-0.0666
+0.1829
 </td>
 </tr>
 <tr>
@@ -1841,84 +1894,7 @@ StudOff_NCSU
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.0528
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-<p>Limiting the dataset to only TAZs to which on-campus students made UHO trips does not improve the model.</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-variable
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-OnCampusStudents_UHOTrips
-</td>
-<td style="text-align:right;">
-83.2522
-</td>
-<td style="text-align:right;">
-4.1596
-</td>
-<td style="text-align:right;">
-0.0004
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Retail
-</td>
-<td style="text-align:right;">
-0.0134
-</td>
-<td style="text-align:right;">
-0.6014
-</td>
-<td style="text-align:right;">
-0.5537
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-StudOff_NCSU
-</td>
-<td style="text-align:right;">
-0.0482
-</td>
-<td style="text-align:right;">
-0.6814
-</td>
-<td style="text-align:right;">
-0.5028
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
--0.0565
+0.0648
 </td>
 <td style="text-align:right;">
 NA
@@ -1932,7 +1908,7 @@ NA
 </div>
 <div id="uco-trips-by-off-campus-students" class="section level5">
 <h5>UcO trips by Off-campus students</h5>
-As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location.
+As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location. The model explains UCO trips by off-campus students based on distance to campus, off- campus student population and number of retail jobs.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1953,16 +1929,30 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
+avg_distance_NCSU
+</td>
+<td style="text-align:right;">
+-4.2141
+</td>
+<td style="text-align:right;">
+-1.938
+</td>
+<td style="text-align:right;">
+0.0540
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 OffCampusStudents_UCOTrips
 </td>
 <td style="text-align:right;">
-53.2668
+90.4750
 </td>
 <td style="text-align:right;">
-2.9468
+3.443
 </td>
 <td style="text-align:right;">
-0.0036
+0.0007
 </td>
 </tr>
 <tr>
@@ -1970,13 +1960,13 @@ OffCampusStudents_UCOTrips
 Retail
 </td>
 <td style="text-align:right;">
-0.0291
+0.0329
 </td>
 <td style="text-align:right;">
-0.7037
+0.799
 </td>
 <td style="text-align:right;">
-0.4824
+0.4253
 </td>
 </tr>
 <tr>
@@ -1984,13 +1974,13 @@ Retail
 StudOff_NCSU
 </td>
 <td style="text-align:right;">
-0.3034
+0.2615
 </td>
 <td style="text-align:right;">
-3.5545
+2.989
 </td>
 <td style="text-align:right;">
-0.0005
+0.0032
 </td>
 </tr>
 <tr>
@@ -1998,85 +1988,7 @@ StudOff_NCSU
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.0523
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-<p>Adding distance</p>
-<p>This model is estimated based on a dataset that only includes Taz with UCO trips from off-campus students.</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-variable
-</th>
-<th style="text-align:right;">
-estimate
-</th>
-<th style="text-align:right;">
-statistic
-</th>
-<th style="text-align:right;">
-p.value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-OffCampusStudents_UCOTrips
-</td>
-<td style="text-align:right;">
-148.4455
-</td>
-<td style="text-align:right;">
-3.3584
-</td>
-<td style="text-align:right;">
-0.0013
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Retail
-</td>
-<td style="text-align:right;">
-0.0436
-</td>
-<td style="text-align:right;">
-0.5493
-</td>
-<td style="text-align:right;">
-0.5847
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-StudOff_NCSU
-</td>
-<td style="text-align:right;">
-0.8813
-</td>
-<td style="text-align:right;">
-3.9476
-</td>
-<td style="text-align:right;">
-0.0002
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
-0.1716
+0.0656
 </td>
 <td style="text-align:right;">
 NA
@@ -2090,7 +2002,7 @@ NA
 </div>
 <div id="uho-trips-by-off-campus-students" class="section level5">
 <h5>UHO Trips by Off-campus students</h5>
-UHO trips by off-campus students have two off-campus trip ends.
+UHO trips by off-campus students have two off-campus trip ends. The model explains UHO trips by off-campus students based on the off- campus student population and the number of retail jobs.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -2117,7 +2029,7 @@ OffCampusStudents_UHOTrips
 100.1907
 </td>
 <td style="text-align:right;">
-5.3782
+5.378
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2131,7 +2043,7 @@ Retail
 0.0394
 </td>
 <td style="text-align:right;">
-0.9239
+0.924
 </td>
 <td style="text-align:right;">
 0.3567
@@ -2145,7 +2057,7 @@ StudOff_NCSU
 0.2240
 </td>
 <td style="text-align:right;">
-2.5456
+2.546
 </td>
 <td style="text-align:right;">
 0.0117
@@ -2169,22 +2081,75 @@ NA
 </table>
 </div>
 </div>
-<div id="conclusion-trip-attraction" class="section level4">
-<h4>Conclusion Trip Attraction</h4>
-<p>The tables below present the off-campus attraction models without distance and with distance. For the UHO On campus segment, adding distance to campus to the model gives illogical signs so a distance model was not included for that segment. There is also no distance model for the UHO off-campus student segment because the production end of those trips is off-campus.</p>
+</div>
+</div>
+<div id="trip-distribution" class="section level2">
+<h2>TRIP DISTRIBUTION</h2>
+<div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">
+<h3>Trip length distribution from the NCSU survey</h3>
+<p><img src="university2_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 10 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="university2_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
+</div>
+</div>
+<div id="mode-choice" class="section level2">
+<h2>MODE CHOICE</h2>
+<div id="mode-split-from-the-ncsu-survey" class="section level3">
+<h3>Mode split from the NCSU survey</h3>
+<div id="on-campus-students-mode-split" class="section level4">
+<h4>On-campus students mode split</h4>
+<pre><code>## # A tibble: 5 x 7
+## # Groups:   Trip_Purpose [5]
+##   Trip_Purpose Pct_Bicycle Pct_Walk Pct_Car Pct_Carpool Pct_Bus Pct_Other
+##   &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+## 1 UC1                 4.27    92.0     1.33       0.746    1.52     0.152
+## 2 UCC                 3.53     3.53   11.1        3.53    78.3      0    
+## 3 UCO                 0       32.3    39.1       15.9     12.7      0    
+## 4 UHC                 3.41    62.1     9.08       6.61    18.8      0    
+## 5 UHO                 5.30     7.95   47.1       36.6      3.05     0</code></pre>
+</div>
+<div id="off-campus-students-mode-split" class="section level4">
+<h4>Off-campus students mode split</h4>
+<pre><code>## # A tibble: 5 x 7
+##   Trip_Purpose Pct_Bicycle Pct_Walk Pct_Car Pct_Carpool Pct_Bus Pct_Other
+##   &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+## 1 UC1                 2.56    83.0     7.21       0.764    6.47     0    
+## 2 UCC                 0        0      26.2        2.94    69.3      1.47 
+## 3 UCO                 2.92    24.3    53.0        3.26    16.2      0.337
+## 4 UHC                 1.58    13.1    50.2        4.28    29.3      1.56 
+## 5 UHO                 1.66     6.09   83.3        6.76     2.23     0</code></pre>
+</div>
+</div>
+<div id="mode-split-calibration-targets" class="section level3">
+<h3>Mode split calibration targets</h3>
+<div id="on-campus-students-mode-split-calibration-targets" class="section level4">
+<h4>On-campus students mode split calibration targets</h4>
+<pre><code>## # A tibble: 5 x 6
+## # Groups:   Trip_Purpose [5]
+##   Trip_Purpose Pct_Bicycle Pct_Walk Pct_Car Pct_Bus Pct_AllModes
+##   &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;        &lt;dbl&gt;
+## 1 UC1                 4.09    85.8     4.96    5.19          100
+## 2 UCC                 3.53     3.53   14.7    78.3           100
+## 3 UCO                 1.50    25.4    63.1     9.97          100
+## 4 UHC                 4.09    85.8     4.96    5.19          100
+## 5 UHO                 1.50    25.4    63.1     9.97          100</code></pre>
+</div>
+<div id="off-campus-students-mode-split-calibration-targets" class="section level4">
+<h4>Off-campus students mode split calibration targets</h4>
+<pre><code>## # A tibble: 5 x 6
+##   Trip_Purpose Pct_Bicycle Pct_Walk Pct_Car Pct_Bus Pct_AllModes
+##   &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;        &lt;dbl&gt;
+## 1 UC1                 2.56    83.0     7.97    6.47          100
+## 2 UCC                 0        0      29.6    70.4           100
+## 3 UCO                 2.93    24.4    56.4    16.3           100
+## 4 UHC                 1.60    13.3    55.3    29.7           100
+## 5 UHO                 1.66     6.09   90.0     2.23          100</code></pre>
 </div>
 </div>
 </div>
 
-<br>
-<br>
-<br>
-<hr>
-<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
 
 
-</div>
-</div>
 
 </div>
 
@@ -2217,33 +2182,16 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
 </script>
-
 
 </body>
 </html>

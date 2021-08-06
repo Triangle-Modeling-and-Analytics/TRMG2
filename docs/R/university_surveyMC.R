@@ -59,23 +59,6 @@ unweighted_modesplit_bypurpose_oncampus_df<-trip_subset_df %>%
 unweighted_modesplit_bypurpose_oncampus_df
 
 
-unweighted_modesplit_byrecodedpurpose_oncampus_df <- unweighted_modesplit_bypurpose_oncampus_df %>%
-  select(-c(Trip_Purpose))%>%
-  group_by(TripPurpose_recode) %>%
-  summarize(Total = sum(Temp_Total) - sum(TotalOther),
-            Pct_Bicycle = sum(TotalBicycle)/Total * 100,
-            Pct_Walk = sum(TotalWalk)/Total * 100,
-            Pct_Car = (sum(TotalCar) + sum(TotalCarpool))/Total * 100,
-            Pct_Bus = sum(TotalBus)/Total * 100) %>%
-  select(TripPurpose_recode, Total, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus) 
-unweighted_modesplit_byrecodedpurpose_oncampus_df
-
-
-unweighted_calibrationtargets_bypurpose_oncampus_df <- unweighted_modesplit_bypurpose_oncampus_df %>%
-  left_join(unweighted_modesplit_byrecodedpurpose_oncampus_df,by="TripPurpose_recode")%>%
-  select(Trip_Purpose, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus)
-
-unweighted_calibrationtargets_bypurpose_oncampus_df
 
 ### weighted -----------------------------------------------------------------
 modesplit_bypurpose_oncampus_df<-trip_subset_df %>%
@@ -101,25 +84,49 @@ modesplit_bypurpose_oncampus_df<-trip_subset_df %>%
             Temp_Pct_Car = TotalCar/Temp_Total * 100,
             Temp_Pct_Carpool = TotalCarpool/Temp_Total * 100,
             Temp_Pct_Bus = TotalBus/Temp_Total * 100,
-            Temp_Pct_Other = TotalOther/Temp_Total * 100)
-modesplit_bypurpose_oncampus_df
+            Temp_Pct_Other = TotalOther/Temp_Total * 100) 
+  modesplit_bypurpose_oncampus_df
+
+modesplit_bypurpose_oncampus_2_df<- modesplit_bypurpose_oncampus_df %>%
+  select(Trip_Purpose,
+         Pct_Bicycle = Temp_Pct_Bicycle,
+         Pct_Walk = Temp_Pct_Walk,
+         Pct_Car = Temp_Pct_Car,
+         Pct_Carpool = Temp_Pct_Carpool,
+         Pct_Bus = Temp_Pct_Bus,
+         Pct_Other = Temp_Pct_Other)
 
 
 modesplit_byrecodedpurpose_oncampus_df <- modesplit_bypurpose_oncampus_df %>%
-  select(-c(Trip_Purpose))%>%
+  ungroup() %>%
+  select(-c(Trip_Purpose)) %>%
   group_by(TripPurpose_recode) %>%
   summarize(Total = sum(Temp_Total) - sum(TotalOther),
             Pct_Bicycle = sum(TotalBicycle)/Total * 100,
             Pct_Walk = sum(TotalWalk)/Total * 100,
-            Pct_Car = (sum(TotalCar) + sum(TotalCarpool))/Total * 100,
-            Pct_Bus = sum(TotalBus)/Total * 100) %>%
-  select(TripPurpose_recode, Total, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus) 
+            Pct_Car = (sum(TotalCar) + sum(TotalCarpool))/Total * 100) %>%
+  rowwise() %>%
+  mutate(Pct_Bus = 100.00 - (Pct_Bicycle + Pct_Walk + Pct_Car),
+         Pct_AllModes = Pct_Bicycle + Pct_Walk + Pct_Car + Pct_Bus) %>%
+  ungroup() %>%
+  select(TripPurpose_recode, 
+         Total, 
+         Pct_Bicycle, 
+         Pct_Walk, 
+         Pct_Car, 
+         Pct_Bus, 
+         Pct_AllModes) 
 modesplit_byrecodedpurpose_oncampus_df
 
 
 calibrationtargets_bypurpose_oncampus_df <- modesplit_bypurpose_oncampus_df %>%
-  left_join(modesplit_byrecodedpurpose_oncampus_df,by="TripPurpose_recode")%>%
-  select(Trip_Purpose, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus)
+  left_join(modesplit_byrecodedpurpose_oncampus_df, by="TripPurpose_recode") %>%
+  select(Trip_Purpose, 
+         Pct_Bicycle, 
+         Pct_Walk, 
+         Pct_Car, 
+         Pct_Bus, 
+         Pct_AllModes)
 
 calibrationtargets_bypurpose_oncampus_df
 
@@ -144,18 +151,9 @@ unweighted_modesplit_bypurpose_offcampus_df<-trip_subset_df %>%
             Temp_Pct_Car = TotalCar/Temp_Total * 100,
             Temp_Pct_Carpool = TotalCarpool/Temp_Total * 100,
             Temp_Pct_Bus = TotalBus/Temp_Total * 100,
-            Temp_Pct_Other = TotalOther/Temp_Total * 100)
-unweighted_modesplit_bypurpose_offcampus_df
+            Temp_Pct_Other = TotalOther/Temp_Total * 100) 
+  unweighted_modesplit_bypurpose_offcampus_df
 
-unweighted_calibrationtargets_bypurpose_offcampus_df <- unweighted_modesplit_bypurpose_offcampus_df %>%
-  group_by(Trip_Purpose) %>%
-  summarize(Total = Temp_Total - TotalOther,
-            Pct_Bicycle = TotalBicycle/Total * 100,
-            Pct_Walk = TotalWalk/Total * 100,
-            Pct_Car = (TotalCar + TotalCarpool)/Total * 100,
-            Pct_Bus = TotalBus/Total * 100) %>%
-  select(Trip_Purpose, Total, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus) 
-unweighted_calibrationtargets_bypurpose_offcampus_df
 
 
 ### weighted -----------------------------------------------------------------
@@ -178,7 +176,17 @@ modesplit_bypurpose_offcampus_df<-trip_subset_df %>%
             Temp_Pct_Carpool = TotalCarpool/Temp_Total * 100,
             Temp_Pct_Bus = TotalBus/Temp_Total * 100,
             Temp_Pct_Other = TotalOther/Temp_Total * 100)
-modesplit_bypurpose_offcampus_df
+
+modesplit_bypurpose_offcampus_2_df<- modesplit_bypurpose_offcampus_df %>%
+select(Trip_Purpose,
+       Pct_Bicycle = Temp_Pct_Bicycle,
+       Pct_Walk = Temp_Pct_Walk,
+       Pct_Car = Temp_Pct_Car,
+       Pct_Carpool = Temp_Pct_Carpool,
+       Pct_Bus = Temp_Pct_Bus,
+       Pct_Other = Temp_Pct_Other)
+
+
 
 calibrationtargets_bypurpose_offcampus_df <- modesplit_bypurpose_offcampus_df %>%
   group_by(Trip_Purpose) %>%
@@ -186,9 +194,16 @@ calibrationtargets_bypurpose_offcampus_df <- modesplit_bypurpose_offcampus_df %>
             Pct_Bicycle = TotalBicycle/Total * 100,
             Pct_Walk = TotalWalk/Total * 100,
             Pct_Car = (TotalCar + TotalCarpool)/Total * 100,
-            Pct_Bus = TotalBus/Total * 100) %>%
-  select(Trip_Purpose, Total, Pct_Bicycle, Pct_Walk, Pct_Car, Pct_Bus) 
+            Pct_Bus = 100.00 - (Pct_Bicycle + Pct_Walk + Pct_Car),
+            Pct_AllModes = Pct_Bicycle + Pct_Walk + Pct_Car + Pct_Bus) %>%
+  select(Trip_Purpose,
+         Pct_Bicycle, 
+         Pct_Walk, 
+         Pct_Car, 
+         Pct_Bus,
+         Pct_AllModes) 
 calibrationtargets_bypurpose_offcampus_df
+
 # plots mode split -----------------------------------------------------------
 
 trips_bypurpose_oncampus_plot <-trip_subset_df %>%
@@ -217,6 +232,6 @@ trips_bypurpose_offcampus_plot + labs(title = "Mode Split by Purpose (except UC1
 
   
 # write results ------------------------------------------------------
-calibrationtargets_bypurpose_oncampus<-write_csv(calibrationtargets_bypurpose_oncampus_df,paste0(univ_dir,calibrationtargets_bypurpose_oncampus.CSV))
-calibrationtargets_bypurpose_offcampus<-write_csv(calibrationtargets_bypurpose_offcampus_df, paste0(univ_dir,calibrationtargets_bypurpose_offcampus.CSV))
+calibrationtargets_bypurpose_oncampus<-write_csv(calibrationtargets_bypurpose_oncampus_df,paste0(univ_dir,"calibrationtargets_bypurpose_oncampus.CSV"))
+calibrationtargets_bypurpose_offcampus<-write_csv(calibrationtargets_bypurpose_offcampus_df, paste0(univ_dir,"calibrationtargets_bypurpose_offcampus.CSV"))
 
