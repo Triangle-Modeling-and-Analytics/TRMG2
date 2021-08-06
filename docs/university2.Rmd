@@ -160,7 +160,7 @@ kable(avg_trips_UOO_df[,avg_trips_UOO_col],caption ="UOO Trip Rates by Mode",col
 kable(P_rates_ratioUOOtoUHOUCO_df, caption = "Ratio UOO Production Rate to UHOUCO Production Rate", col.names=c("car","non-car"))
 ```
 
-##################check if group quarters are always on-campus #########################
+#####check if group quarters are always on-campus; if not only include non-campus group quarters 
 Trip productions by TAZ were estimated by applying the trip production rates as follows:  
 On-Campus Students:  
 * UC1 Productions =  
