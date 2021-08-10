@@ -1,0 +1,205 @@
+---
+title: "Non-Motorized Choice"
+author: "Caliper Corporation"
+date: "August 9, 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+## Intro
+
+The TRMG2 uses a dissaggregate, binary choice model to split trips into
+motorized and non-motorized categories. It is common to see the non-motorized
+mode as a nest within the larger mode choice model, but it was separated for
+two primary reasons:
+
+1. To use a disaggregate model to predict walk trips.
+2. To simplify the mode choice model and improve prediction power.
+
+In the TRMG2, the non-motorized model takes place after trip production but
+before trips are aggregated for destination and mode choice models. The
+advantage with a disaggregate model is that person- and household-level
+variables were available to improve non-motorized predictions. A potential
+downside of this approach is that the prediction does not know how long a trip
+is. This downside is mitigated by using accessibility measures, which in this
+case are logsums of the gravity model used to distribute walk trips. In this
+way, aggregate information about trips lengths is included. Further, a person
+living downtown will make more walk trips than one living in rural areas (all
+else equal).
+
+The second benefit of a separate non-motorized model is a simplification of
+the larger mode choice nesting structure. For more detail on that model, and for
+information on logit choice models in general, see the resident mode choice
+page.
+
+## Estimation Results
+
+All the models that follow are binary choice models with motorized as the
+reference alternative. Negative coefficients mean that non-motorized travel
+is less likely. Positive coefficients mean that non-motorized travel is more
+likely.
+
+Most coefficients are self-explanatory, but two need differentiation:
+
+- Walk Accessibility: this is a measure of how accessible other zones are
+  to the home zone.
+- Walkability: this is a measure of how walkable the home zone itself is. It
+  encapsulates information on mixed use, the density of the street grid, and
+  other factors. See the accessibility documentation for more detail.
+
+### Work tours
+
+The W_HB_W and W_HB_O trip types were estimated in a single model. Behaviorally,
+the decision to walk to work is made at the tour level and affects all trips
+made along that tour. A model was not estimated for W_HB_WR trips. Instead,
+these trips for deliveries, lawn care, and other activities are all assumed to
+be be motorized by the model. Similarly, all K12 escort trips on work tours
+(W_HB_EK12) are motorized as well.
+
+Children in the household or being a senior make it less likely that trips on
+work tour will be non-motorized. Higher car ownership has the same affect.
+Walk accessibility has a positive relationship, meaning that people who live
+in urban centers with high walk accessibility are more likely to make walk
+trips. All coefficients make behavioral sense and the model fit is strong.
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "Is Senior", -.595, -1.84,
+  "Children in HH", -.641, -4.59,
+  "Vehicles per Adult", -1.44, -8.71,
+  "Walk Accessibility", 1, 11.3,
+  "Constant", -2.12, -11.73
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.82
+
+### Non-work tours
+
+#### N_HB_K12
+
+The decision to walk to school is driven by vehicle ownership, walk
+accessibility, and whether or not the child is old enough to drive herself to
+school. A high rho-squared metric shows a strong model fit.
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "Vehicles per Adult", -.767, -2.53,
+  "Walk Accessibility", .585, 2.9,
+  "Age 16 to 18", -.359, -1.1,
+  "Constant", -2.71, -8.08
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.80
+
+#### N_HB_OME
+
+The choice for shopping, dining, and maintenance trips is driven by similar
+variables as previous trips, but also new ones including income and walkability.
+Income has a positive impact on walking, which may at first appear counter-
+intuitive. However, many of the factors like vehicle ownership, work status,
+and accessibility that are often related to income are already controlled for.
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "Vehicles per Adult", -1.94, -13.6,
+  "Walk Accessibility", .547, 5.12,
+  "Is Worker", .311, 3.03,
+  "Income per Person", 0.000008, 4.48,
+  "Walkability", 7.3, 3.28,
+  "Constant", -2.58, -9.32
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.72
+
+#### N_HB_OD_Long
+
+These discretionary trips with long activity duration are influenced by many
+factors. Children are less likely to walk or bike, higher accessibility leads
+to more walk trips, and the other relationships make sense.
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "Vehicles per Adult", -1.13, -8.81,
+  "Walk Accessibility", .417, 4.54,
+  "Is Child", -.465, -3.9,
+  "Is Worker", -.283, -3.02,
+  "Income per Person", 0.0000044, 2.76,
+  "Walkability", 3.7, 2.19,
+  "Constant", -2.58, -9.32
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.59
+
+#### N_HB_OD_Short
+
+This is the only model that struggles to predict non-motorized behavior as shown
+by the low rho-squared value. These are "quick stop" discretionary trips, and the
+poor fit means that choosing to walk for these trips is based on factors
+not collected in the survey. While the t-stat for walkability was not large,
+the coefficient makes sense behaviorally and provides sensitivity to land use.
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "Is Senior", -.361, -4.3,
+  "Is Worker", -.188, -3.13,
+  "Walkability", .518, .36,
+  "Chidren in HH", -.579, -8.48,
+  "No Autos", .89, 4.16,
+  "Income per Person", 0.00001, 8.41,
+  "Constant", -.22, -1.17
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.04
+
+#### N_HB_OMED
+
+The model for medical trips is simple, but does provide important sensitivity
+for zero-vehicle households and walk accessibility. It also effectively
+prohibits seniors from walking. The rho-squared is large, but this is inflated
+given that over 99% of medical trips are motorized. (Randomly assigning 1 out
+of every 100 medical trips to walk would also have a high rho-squared value.)
+
+```{r}
+tribble(
+  ~Term, ~Coefficient, ~Tstat,
+  "No Autos", 1.73, .9,
+  "Is Senior", -157479, -157479,
+  "Walk Accessibility", 4.64, 2.19,
+  "Constant", -11.2, -2.42
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+Rho-squared: 0.98
