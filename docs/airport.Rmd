@@ -1,7 +1,7 @@
 ---
 title: "Airport"
 author: "Caliper Corporation"
-date: "May 18, 2021"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -9,6 +9,14 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
+# renv::restore()
+library(tidyverse)
+library(sf)
+library(corrr)
+library(geosphere)
+library(measurements)
+library(kableExtra)
+library(knitr)
 source("R/airport.R")
 
 knitr::opts_chunk$set(echo = FALSE)
@@ -21,7 +29,7 @@ options(scipen = 999)
 
 Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured by the air passenger model. 
 
-A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: *It does not distinguish between airport employees and air passengers.* It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region. 
+A limited amount of data on air passengers is available. The modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recorded from StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data are as follows: *It does not distinguish between airport employees and air passengers.* It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region. 
 
 ## StreetLight Data Summaries
 The map below shows the distribution of trip productions to RDU per the StreetLight data. As expected, the data shows large amounts of activity in the zones surrounding the airport. For an air passenger model, we are less interested in the movement from, say, the off-airport parking facility to the airport, than we are the movement from a home or workplace to the off-airport parking facility. Ideally, an airport model would explicitly represent each movement. For the simple model being developed here, we want to focus on the primary (and longer) movement.
@@ -52,21 +60,25 @@ correlations_df %>%
   kable_styling(full_width = FALSE)
 ```
 
-The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers,high income persons, and employment. 
+The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers, employment, and high income employment. 
 
 Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients. 
 
 ### Model Estimation Results {.tabset .MODEL}
-Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes `high earners`, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.
+Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes `high paying jobs`, which is the number of high paying jobs in each TAZ. A second term that interacts high paying jobs with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.
 
 The preferred specification includes `employment` which captures movements to/from work locations to the airport. The preferred specification collapses the employment categories. Specifications with employment separated by industry did not always reveal logical coefficients (e.g., a larger coefficient on industrial employment than office employment). 
 
 Other, non-preferred specifications are included in the tabs below. 
 
-
 ```{r}
-print_model <- function(model) {
-  df <- tibble(variable = colnames(model$model),
+print_model <- function(model, includes_intercept) {
+
+  variable_vector <- colnames(model$model)
+  
+  if (!includes_intercept) variable_vector = tail(variable_vector, n = -1)
+  
+  df <- tibble(variable = variable_vector,
                estimate = model$coefficients,
                statistic = coef(summary(model))[, "t value"],
                p.value = coef(summary(model))[, "Pr(>|t|)"]) %>%
@@ -86,26 +98,26 @@ print_model <- function(model) {
 
 #### Preferred
 ```{r, MODEL_PREFERRED}
-print_model(model_03)
+print_model(model_04, FALSE)
 ```
 
 #### Model 01
 ```{r, MODEL_01}
-print_model(model_01)
+print_model(model_01, TRUE)
 ```
 
 #### Model 02
 ```{r, MODEL_02}
-print_model(model_02)
+print_model(model_02, TRUE)
 ```
 
 #### Model 03
 ```{r, MODEL_03}
-print_model(model_04)
+print_model(model_03, TRUE)
 ```
 
 ### Predicted Productions
-The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes `r rdu_enplanements` daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application. 
+The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes `r rdu_enplanements` daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high paying jobs and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application. 
 
 ```{r, out.width="100%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/airport/estimated_productions.png")
