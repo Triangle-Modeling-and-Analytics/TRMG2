@@ -13,18 +13,24 @@ navbar:
       menu:
         - text: "Household Survey"
           href: survey_processing.html
-    - text: Models
+    - text: Resident Models
       menu:
-        - text: "Accessibility"
-          href: accessibility.html
         - text: "Synthesis"
           href: population_synthesis.html
         - text: "Auto Ownership"
           href: auto_ownership.html
+        - text: "Production"
+          href: resident_production.html
         - text: "Time of Day"
           href: time_of_day.html
-        - text: "Non-home-based"
+        - text: "Non-motorized"
+          href: resident_nonmotorized.html
+        - text: "Non-homebased"
           href: nhb.html
+    - text: Other Models
+      menu:
+        - text: "Accessibility"
+          href: accessibility.html
         - text: "Airport"
           href: airport.html
         - text: "Internal/External"
