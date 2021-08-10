@@ -4,13 +4,13 @@
 
 Macro "Airport" (Args)
     RunMacro("Airport Production", Args)
-    RunMacro("Airport TOD", Args)	
+    RunMacro("Airport Distribution and TOD", Args)	
 	
     return(1)
 endmacro
 
 /*
-
+Calculate airport productions
 */
 
 Macro "Airport Production" (Args)
@@ -27,12 +27,8 @@ Macro "Airport Production" (Args)
 		    "TAZ", 
 			"HH_POP",
 			"Pct_Worker",
-			"PctHighEarn",
-		    "Industry",
-			"Office", 
-			"Service_RateLow",
-			"Service_RateHigh",
-			"Retail"
+			"PctHighPay",
+			"TotalEmp"
 		},
 		{OptArray: TRUE}
 	)
@@ -63,9 +59,8 @@ Macro "Airport Production" (Args)
 	dist_to_airport_miles = A2V(dist_to_airport_miles)
 	
 	// get variables for regression
-	tot_emp = data.Industry + data.Office + data.Service_RateLow + data.Service_RateHigh + data.Retail
 	workers = data.HH_POP * data.Pct_Worker/100
-	high_earners = workers * data.PctHighEarn/100
+	high_earners = workers * data.PctHighPay/100
 	high_earn_distance = high_earners * dist_to_airport_miles
 	
 	// read airport model file for coefficients
@@ -77,7 +72,7 @@ Macro "Airport Production" (Args)
 	
 	// compute airport productions
 	airport_productions = coeffs.intercept + 
-		coeffs.employment * tot_emp + 
+		coeffs.employment * data.TotalEmp + 
 		coeffs.high_earn_distance * high_earn_distance +
 		coeffs.high_earner * high_earners
 	
@@ -94,11 +89,10 @@ Macro "Airport Production" (Args)
 endmacro
 
 /*
-
-
+There is only one airport zone, so distribution is very simple
 */
 
-Macro "Airport TOD" (Args)
+Macro "Airport Distribution and TOD" (Args)
     
 	se_file = Args.SE
 	hwy_dbd = Args.Links

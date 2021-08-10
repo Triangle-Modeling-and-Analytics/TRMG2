@@ -279,6 +279,7 @@ Returns
 Macro "Create Map" (MacroOpts)
 
   // Argument extraction
+  if TypeOf(MacroOpts) <> "array" then Throw("Create Map: Function arguments must be in a named array")
   file = MacroOpts.file
   minimized = MacroOpts.minimized
 

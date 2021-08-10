@@ -11,9 +11,9 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-03-02" />
+<meta name="date" content="2021-08-09" />
 
-<title>Resident Production Model</title>
+<title>Non-Motorized Choice</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -431,287 +431,530 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Resident Production Model</h1>
+<h1 class="title toc-ignore">Non-Motorized Choice</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">March 2, 2021</h4>
+<h4 class="date">August 9, 2021</h4>
 
 </div>
 
 
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p>The goal of the resident trip production models in TRMG2 is to determine how many trips each individual will make in a day. Unlike traditional trip generation models, attractions are not estimated in this step. Instead, the destination choice models estimate coefficients on employment as part of the size term, which function similar to trip attractions.</p>
-<p>TRMG2 productions models are person-level models. This means that detailed information about each person (e.g. age), as well as the characteristics of their household and geographic location, are available to improve prediction making.</p>
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>The TRMG2 uses a dissaggregate, binary choice model to split trips into motorized and non-motorized categories. It is common to see the non-motorized mode as a nest within the larger mode choice model, but it was separated for two primary reasons:</p>
+<ol style="list-style-type: decimal">
+<li>To use a disaggregate model to predict walk trips.</li>
+<li>To simplify the mode choice model and improve prediction power.</li>
+</ol>
+<p>In the TRMG2, the non-motorized model takes place after trip production but before trips are aggregated for destination and mode choice models. The advantage with a disaggregate model is that person- and household-level variables were available to improve non-motorized predictions. A potential downside of this approach is that the prediction does not know how long a trip is. This downside is mitigated by using accessibility measures, which in this case are logsums of the gravity model used to distribute walk trips. In this way, aggregate information about trips lengths is included. Further, a person living downtown will make more walk trips than one living in rural areas (all else equal).</p>
+<p>The second benefit of a separate non-motorized model is a simplification of the larger mode choice nesting structure. For more detail on that model, and for information on logit choice models in general, see the resident mode choice page.</p>
 </div>
-<div id="using-dt-to-guide-segmentation" class="section level2">
-<h2>Using DT to guide segmentation</h2>
-<p>After attempting various forms of generalized linear models (GLM) and logistic regression models, Caliper opted to use decision trees from the machine learning stack. This model form had much stronger predictive power compared to traditional approaches while still being easy to understand and explain.</p>
-<p>In the trees below, each node lists the average trip rate as well as the percent of the population that node represents. This lets you see the overall average trip rate (top of the tree) and how it changes as you segment the surveyed population.</p>
-<p>To save room in the charts, many of the explanatory variables are abbreviated. Their meanings are listed below for reference:</p>
+<div id="estimation-results" class="section level2">
+<h2>Estimation Results</h2>
+<p>All the models that follow are binary choice models with motorized as the reference alternative. Negative coefficients mean that non-motorized travel is less likely. Positive coefficients mean that non-motorized travel is more likely.</p>
+<p>Most coefficients are self-explanatory, but two need differentiation:</p>
 <ul>
-<li>Person-level variables
-<ul>
-<li>is_worker: if the person is a worker</li>
-<li>is_senior: if the person is &gt;= 65</li>
-<li>is_child: if the person is &lt; 18</li>
-<li>age: person’s age</li>
-<li>gender: Male (1) and Female (2)</li>
-<li>single_parent: if the person is the only adult in a household with children</li>
-</ul></li>
-<li>Household Variables
-<ul>
-<li>retired_hh: if the household contains only retirees</li>
-<li>per_inc: per-capita income (household income / size)</li>
-<li>oth_ppl: number of other people in the household</li>
-<li>oth_kids: number of other kids in the household</li>
-</ul></li>
-<li>Zonal variables
-<ul>
-<li>g_access: general accessibility of the person’s home zone</li>
-<li>n_access: nearby accessibility of the person’s home zone</li>
-<li>e_access: employment accessibility of the person’s home zone</li>
-</ul></li>
+<li>Walk Accessibility: this is a measure of how accessible other zones are to the home zone.</li>
+<li>Walkability: this is a measure of how walkable the home zone itself is. It encapsulates information on mixed use, the density of the street grid, and other factors. See the accessibility documentation for more detail.</li>
 </ul>
-</div>
-<div id="work-tours" class="section level2">
-<h2>Work Tours</h2>
-<div id="w_hb_w_all" class="section level3">
-<h3>W_HB_W_All</h3>
-<p>These are the traditional HBW (home-based work) trips. Unsuprisingly, the most important factor is whether or not the individual is a worker. After that, the person’s age and living arrangements best predict trip rate.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>R-squared: 0.364</p>
-</div>
-<div id="w_hb_o_all" class="section level3">
-<h3>W_HB_O_All</h3>
-<p>When someone makes a stop on their way to or from work, they are making a homebased other trip on a work tour. Work status is the most important predictor followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays a role in determining the frequency of these extra stops. In the bottom right of the tree, workers that live in areas with lower accessibility make more of these intermediate stops on work tours. This is the expected behavior. People living in rural areas are more likely to make these extra stops while out on work tours.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<p>R-squared: 0.156</p>
-</div>
-<div id="w_hb_ek12_all" class="section level3">
-<h3>W_HB_EK12_All</h3>
-<p>This trip type describes adults who drop off children on the way to work or pick them up on the way home (school escort trips). Having children and being a worker are both required to qualify to make this trip, and they show up as the most important questions in the decision tree. Finally, the age of the adult plays a small role in determining final trip rates.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<p>R-squared: 0.183</p>
-</div>
-</div>
-<div id="non-work-tours" class="section level2">
-<h2>Non-Work Tours</h2>
-<div id="n_hb_k12_all" class="section level3">
-<h3>N_HB_K12_All</h3>
-<p>This trip type is made by two types of people:</p>
-<ul>
-<li>Students traveling to school</li>
-<li>Parents taking their kids to school (not on a work tour)</li>
-</ul>
-<p>The decision tree model recognizes this basic structure in the data and uses age to split people into these two groups. For adults (left side of the tree), having kids is required to make this trip. Their work status and age further refine their trip rate. For children (right side of the tree), age is the primary factor. Children under 5 do not attend K12, but they do make these trips if they have older siblings.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<p>R-squared: 0.534</p>
-</div>
-<div id="n_hb_ome_all" class="section level3">
-<h3>N_HB_OME_All</h3>
-<p>This trip type captures shopping, dining, and maintenance activities. These are trips where the primary purpose includes spending money. These trips are harder to predict based on the data collected in the survey, and this results in lower r-squared values. Nonetheless, factors like age, accessibility, work status, and income do help to differentiate trip rates.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<p>R-squared: 0.102</p>
-</div>
-<div id="n_hb_od_long" class="section level3">
-<h3>N_HB_OD_Long</h3>
-<p>These are other, discretionary trips with a long duration time (over 30 minutes). A common example is visiting the home of friends or family. Work status, age, and accessibility are the primary factors used to differentiate trip rates.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<p>R-squared: 0.145</p>
-</div>
-<div id="n_hb_od_short" class="section level3">
-<h3>N_HB_OD_Short</h3>
-<p>These are other, discretionary trips with a short activity duration. These are similar to N_HB_OD_Long, and include things like trips to a friend’s house, church, or other locations. Like other discretionary tours, the low r-squared indicates some difficulty in making predictions. However, of the variables available, accessibility, age, income, and children in the household contribute the most to differences in trip making.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
-<p>R-squared: 0.101</p>
-</div>
-<div id="n_hb_omed_all" class="section level3">
-<h3>N_HB_OMED_All</h3>
-<p>These are medical trips, and as a result, retirement and age play an important role in predicting trip rates. This trip type has the poorest r-squared regardless of model form used. The survey EDA shows that other aspects of this trip type are unique enough to keep it separated - even this model simply applied the total average trip rate of 0.066 trips to every person. This model is a small improvement on that.</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
-<p>R-squared: 0.027</p>
-</div>
-</div>
-<div id="calibration" class="section level2">
-<h2>Calibration</h2>
-<p>The table below shows the production model results compared back to the total trips in the survey. Overall, the model performs extremely well even without calibration.</p>
-<p><em>TODO: These results are close enough that we are not going to adjust them unless we need to for validation. We will revisit this section then if needed.</em></p>
+<div id="work-tours" class="section level3">
+<h3>Work tours</h3>
+<p>The W_HB_W and W_HB_O trip types were estimated in a single model. Behaviorally, the decision to walk to work is made at the tour level and affects all trips made along that tour. A model was not estimated for W_HB_WR trips. Instead, these trips for deliveries, lawn care, and other activities are all assumed to be be motorized by the model. Similarly, all K12 escort trips on work tours (W_HB_EK12) are motorized as well.</p>
+<p>Children in the household or being a senior make it less likely that trips on work tour will be non-motorized. Higher car ownership has the same affect. Walk accessibility has a positive relationship, meaning that people who live in urban centers with high walk accessibility are more likely to make walk trips. All coefficients make behavioral sense and the model fit is strong.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Trip Type
+Term
 </th>
 <th style="text-align:right;">
-Observed
+Coefficient
 </th>
 <th style="text-align:right;">
-Modelled
-</th>
-<th style="text-align:right;">
-Difference
-</th>
-<th style="text-align:right;">
-%Difference
+Tstat
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-N_HB_K12_All
+Is Senior
 </td>
 <td style="text-align:right;">
-577,069
+-0.595
 </td>
 <td style="text-align:right;">
-569,133
-</td>
-<td style="text-align:right;">
--7,936
-</td>
-<td style="text-align:right;">
--1
+-1.84
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-N_HB_OD_Long
+Children in HH
 </td>
 <td style="text-align:right;">
-894,211
+-0.641
 </td>
 <td style="text-align:right;">
-920,221
-</td>
-<td style="text-align:right;">
-26,009
-</td>
-<td style="text-align:right;">
-3
+-4.59
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-N_HB_OD_Short
+Vehicles per Adult
 </td>
 <td style="text-align:right;">
-726,812
+-1.440
 </td>
 <td style="text-align:right;">
-709,869
-</td>
-<td style="text-align:right;">
--16,943
-</td>
-<td style="text-align:right;">
--2
+-8.71
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-N_HB_OME_All
+Walk Accessibility
 </td>
 <td style="text-align:right;">
-1,022,986
+1.000
 </td>
 <td style="text-align:right;">
-987,549
-</td>
-<td style="text-align:right;">
--35,437
-</td>
-<td style="text-align:right;">
--4
+11.30
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-N_HB_OMED_All
+Constant
 </td>
 <td style="text-align:right;">
-113,515
+-2.120
 </td>
 <td style="text-align:right;">
-100,922
-</td>
-<td style="text-align:right;">
--12,593
-</td>
-<td style="text-align:right;">
--11
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_EK12_All
-</td>
-<td style="text-align:right;">
-57,304
-</td>
-<td style="text-align:right;">
-57,663
-</td>
-<td style="text-align:right;">
-360
-</td>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_O_All
-</td>
-<td style="text-align:right;">
-287,277
-</td>
-<td style="text-align:right;">
-289,502
-</td>
-<td style="text-align:right;">
-2,225
-</td>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_HB_W_All
-</td>
-<td style="text-align:right;">
-766,618
-</td>
-<td style="text-align:right;">
-787,745
-</td>
-<td style="text-align:right;">
-21,127
-</td>
-<td style="text-align:right;">
-3
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Total
-</td>
-<td style="text-align:right;">
-4,445,792
-</td>
-<td style="text-align:right;">
-4,422,603
-</td>
-<td style="text-align:right;">
--23,189
-</td>
-<td style="text-align:right;">
-0
+-11.73
 </td>
 </tr>
 </tbody>
 </table>
+<p>Rho-squared: 0.82</p>
+</div>
+<div id="non-work-tours" class="section level3">
+<h3>Non-work tours</h3>
+<div id="n_hb_k12" class="section level4">
+<h4>N_HB_K12</h4>
+<p>The decision to walk to school is driven by vehicle ownership, walk accessibility, and whether or not the child is old enough to drive herself to school. A high rho-squared metric shows a strong model fit.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-0.767
+</td>
+<td style="text-align:right;">
+-2.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.585
+</td>
+<td style="text-align:right;">
+2.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Age 16 to 18
+</td>
+<td style="text-align:right;">
+-0.359
+</td>
+<td style="text-align:right;">
+-1.10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.710
+</td>
+<td style="text-align:right;">
+-8.08
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.80</p>
+</div>
+<div id="n_hb_ome" class="section level4">
+<h4>N_HB_OME</h4>
+<p>The choice for shopping, dining, and maintenance trips is driven by similar variables as previous trips, but also new ones including income and walkability. Income has a positive impact on walking, which may at first appear counter- intuitive. However, many of the factors like vehicle ownership, work status, and accessibility that are often related to income are already controlled for.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-1.940000
+</td>
+<td style="text-align:right;">
+-13.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.547000
+</td>
+<td style="text-align:right;">
+5.12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+0.311000
+</td>
+<td style="text-align:right;">
+3.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.000008
+</td>
+<td style="text-align:right;">
+4.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+7.300000
+</td>
+<td style="text-align:right;">
+3.28
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.580000
+</td>
+<td style="text-align:right;">
+-9.32
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.72</p>
+</div>
+<div id="n_hb_od_long" class="section level4">
+<h4>N_HB_OD_Long</h4>
+<p>These discretionary trips with long activity duration are influenced by many factors. Children are less likely to walk or bike, higher accessibility leads to more walk trips, and the other relationships make sense.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-1.1300000
+</td>
+<td style="text-align:right;">
+-8.81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.4170000
+</td>
+<td style="text-align:right;">
+4.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Child
+</td>
+<td style="text-align:right;">
+-0.4650000
+</td>
+<td style="text-align:right;">
+-3.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+-0.2830000
+</td>
+<td style="text-align:right;">
+-3.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.0000044
+</td>
+<td style="text-align:right;">
+2.76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+3.7000000
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.5800000
+</td>
+<td style="text-align:right;">
+-9.32
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.59</p>
+</div>
+<div id="n_hb_od_short" class="section level4">
+<h4>N_HB_OD_Short</h4>
+<p>This is the only model that struggles to predict non-motorized behavior as shown by the low rho-squared value. These are “quick stop” discretionary trips, and the poor fit means that choosing to walk for these trips is based on factors not collected in the survey. While the t-stat for walkability was not large, the coefficient makes sense behaviorally and provides sensitivity to land use.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Is Senior
+</td>
+<td style="text-align:right;">
+-0.36100
+</td>
+<td style="text-align:right;">
+-4.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+-0.18800
+</td>
+<td style="text-align:right;">
+-3.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+0.51800
+</td>
+<td style="text-align:right;">
+0.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chidren in HH
+</td>
+<td style="text-align:right;">
+-0.57900
+</td>
+<td style="text-align:right;">
+-8.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+No Autos
+</td>
+<td style="text-align:right;">
+0.89000
+</td>
+<td style="text-align:right;">
+4.16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.00001
+</td>
+<td style="text-align:right;">
+8.41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-0.22000
+</td>
+<td style="text-align:right;">
+-1.17
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.04</p>
+</div>
+<div id="n_hb_omed" class="section level4">
+<h4>N_HB_OMED</h4>
+<p>The model for medical trips is simple, but does provide important sensitivity for zero-vehicle households and walk accessibility. It also effectively prohibits seniors from walking. The rho-squared is large, but this is inflated given that over 99% of medical trips are motorized. (Randomly assigning 1 out of every 100 medical trips to walk would also have a high rho-squared value.)</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+No Autos
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Senior
+</td>
+<td style="text-align:right;">
+-157479.00
+</td>
+<td style="text-align:right;">
+-157479.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+4.64
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-11.20
+</td>
+<td style="text-align:right;">
+-2.42
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.98</p>
+</div>
+</div>
 </div>
 
 <br>
@@ -765,7 +1008,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3,h4",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

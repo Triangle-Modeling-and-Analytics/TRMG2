@@ -463,6 +463,8 @@ Macro "Other Attributes" (Args)
     trans_ratio_auto = Args.TransponderRatioAuto
     trans_ratio_sut = Args.TransponderRatioSUT
     trans_ratio_mut = Args.TransponderRatioMUT
+    se_file = Args.SE
+    taz_file = Args.TAZs
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
@@ -570,6 +572,19 @@ Macro "Other Attributes" (Args)
     SetDataVector(nlyr + "|knr", "KNR", v, )
 
     CloseView(ffs_tbl)
+    CloseMap(map)
+
+    // Move the cluster field from the TAZ layer to the SE data
+    {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
+    se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields = {
+        {"Cluster", "Integer", 10, , , , , "Cluster definition used in nested DC.|Copied from TAZ layer."}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    jv = JoinViews("jv", tlyr + ".ID", se_vw + ".TAZ",)
+    v = GetDataVector(jv + "|", tlyr + ".Cluster", )
+    SetDataVector(jv + "|", se_vw + ".Cluster", v, )
+    CloseView(se_vw)
     CloseMap(map)
 EndMacro
 

@@ -7,6 +7,7 @@
 07 - NonMotorized.rsc
 08 - Parking.rsc
 09 - Calculate MC Probabilities.rsc
+10 - Destination Choice.rsc
 Commercial Vehicles.rsc
 Roadway Assignment.rsc
 Transit Assignment.rsc
@@ -14,6 +15,7 @@ Summaries.rsc
 Skimming.rsc
 Airport.rsc
 utils/utils.rsc
+utils/mc.rsc
 utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc

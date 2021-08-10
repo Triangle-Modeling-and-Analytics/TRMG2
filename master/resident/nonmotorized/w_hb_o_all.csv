@@ -1,0 +1,7 @@
+Alternative,Expression,Segment,Coefficient,Description
+motorized,Constant,,0,
+nonmotorized,person.is_senior,,-0.595,Person is a senior
+nonmotorized,person.HHKids > 0,,-0.641,Kids present in the HH
+nonmotorized,person.veh_per_adult,,-1.445,HH vehicles per adult
+nonmotorized,se.access_walk.O,,1,Interzonal walk accessiblity
+nonmotorized,Constant,,-2.123,

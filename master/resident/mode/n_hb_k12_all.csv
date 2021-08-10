@@ -1,25 +1,27 @@
-Alternative,Expression,Coefficient,Description
-sov,Constant,-0.6283,Constant
-sov,sov_skim.CongTime,-0.0138,Travel time
-hov2,Constant,-0.7337,Constant
-hov2,hov_skim.CongTime,-0.0138,Travel time
-hov2,se.LargeHHPct.O,0.4442,Large household percentage
-hov2,{segment} = 'vi' or {segment} = 'v0',-0.5049,Vehicle-insufficient households
-hov3,Constant,-0.4809,Constant
-hov3,hov_skim.CongTime,-0.0138,Travel time
-hov3,se.LargeHHPct.O,0.4442,Large household percentage
-hov2,{segment} = 'vi' or {segment} = 'v0',-0.5049,Vehicle-insufficient households
-other_auto,Constant,-1.8365,Constant
-other_auto,sov_skim.CongTime,-0.0247,Travel time
-transit,se.HiIncomePct.O,-0.5282,High income household percentage
-w_lb,w_lb_skim.[Generalized Cost] = null,-9999,Availablility
-w_lb,w_lb_skim.[In-Vehicle Time] + w_lb_skim.Fare/.1983,-0.02129,IVTT and Fare
-w_lb,w_lb_skim.[Access Walk Time],-0.09,Access walk time
-w_lb,w_lb_skim.[Initial Wait Time],-0.0826,Initial wait time
-w_lb,w_lb_skim.[Transfer Wait Time],-0.0631,Transfer wait time
-w_lb,w_lb_skim.[Egress Walk Time],-0.062,Egress walk time
-w_lb,w_lb_skim.[Number of Transfers] > 1,-0.3018,High transfers
-w_lb,{segment} = 'v0',0.58,Zero-vehicle households
-school_bus,Constant,0.3167,Constant
-school_bus,sov_skim.CongTime,-0.0736,Travel time
-school_bus,se.HiIncomePct.O,-0.5282,High income household percentage
+Alternative,Expression,Segment,Coefficient,Description
+sov,Constant,,-0.6283,Constant
+sov,sov_skim.CongTime,,-0.0138,Travel time
+sov,Constant,v0,-99,Auto Availability
+hov2,Constant,,-0.7337,Constant
+hov2,hov_skim.CongTime,,-0.0138,Travel time
+hov2,se.LargeHHPct.O,,0.4442,Large household percentage
+hov2,Constant,vi,-0.5049,Vehicle-insufficient households
+hov2,Constant,v0,-99,Auto Availability
+hov3,Constant,,-0.4809,Constant
+hov3,hov_skim.CongTime,,-0.0138,Travel time
+hov3,se.LargeHHPct.O,,0.4442,Large household percentage
+hov3,Constant,vi,-0.5049,Vehicle-insufficient households
+hov3,Constant,v0,-99,Auto Availability
+other_auto,Constant,,-1.8365,Constant
+other_auto,sov_skim.CongTime,,-0.0247,Travel time
+transit,se.HiIncomePct.O,,-0.5282,High income household percentage
+w_lb,w_lb_skim.[In-Vehicle Time] + w_lb_skim.Fare/.1983,,-0.02129,IVTT and Fare
+w_lb,w_lb_skim.[Access Walk Time],,-0.09,Access walk time
+w_lb,w_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
+w_lb,w_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
+w_lb,w_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
+w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
+w_lb,Constant,v0,0.58,Zero-vehicle households
+school_bus,Constant,,0.3167,Constant
+school_bus,sov_skim.CongTime,,-0.0736,Travel time
+school_bus,se.HiIncomePct.O,,-0.5282,High income household percentage
