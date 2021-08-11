@@ -31,6 +31,7 @@ Body:
     FlowChartNode(model,"Airport",,,)
     FlowChartNode(model,"Calculate MC Probabilities",,,)
     FlowChartNode(model,"Commercial Vehicles",,,)
+    FlowChartNode(model,"Destination Choice",,,)
     //
     // Links
     //
@@ -175,6 +176,15 @@ Macro "Commercial Vehicles" (Args,Result)
                   {"MacroNames",{"Commercial Vehicles"}}}
 Body:
     ShowMessage('Running: Commercial Vehicles')
+    Return(True)
+EndMacro
+
+
+Macro "Destination Choice" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Destination Choice"}}}
+Body:
+    ShowMessage('Running: Destination Choice')
     Return(True)
 EndMacro
 

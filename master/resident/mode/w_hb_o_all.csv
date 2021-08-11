@@ -23,7 +23,7 @@ auto_pay,Constant,,-3.027,Constant
 auto_pay,hov_skim.CongTime,,-0.0247,Travel time
 auto_pay,se.PKTNCWait.O,,-0.0247,Auto wait time
 auto_pay,hov_skim.auto_pay_fare,,-0.00675,Auto fare
-auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,,3.93,Airport related
+auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,,0,Airport related (3.93 constant removed for trips on work tour)
 w_lb,Constant,v0,3.3822,Vehicle insufficient households
 w_lb,Constant,vi,3.058,Vehicle insufficient households
 w_lb,Constant,,1.415,Constant

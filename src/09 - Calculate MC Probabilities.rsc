@@ -5,6 +5,7 @@ Calculates aggregate mode choice probabilities between zonal ij pairs
 Macro "Calculate MC Probabilities" (Args)
 
     RunMacro("Create MC Features", Args)
+    RunMacro("Calculate MC", Args)
 
     return(1)
 endmacro
@@ -55,4 +56,68 @@ Macro "Create MC Features" (Args)
     CloseView(grouped_vw)
     CloseView(se_vw)
     CloseView(hh_vw)
+endmacro
+
+/*
+Loops over purposes and preps options for the "MC" macro
+*/
+
+Macro "Calculate MC" (Args)
+
+    scen_dir = Args.[Scenario Folder]
+    skims_dir = scen_dir + "\\output\\skims\\"
+    input_dir = Args.[Input Folder]
+    input_mc_dir = input_dir + "/resident/mode"
+    output_dir = Args.[Output Folder] + "/resident/mode"
+    periods = Args.periods
+
+    // Determine trip purposes
+    prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
+    rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
+    trip_types = GetDataVector(rate_vw + "|", "trip_type", )
+    trip_types = SortVector(trip_types, {Unique: "true"})
+    CloseView(rate_vw)
+
+    opts = null
+    opts.segments = {"v0", "vi", "vs"}
+    opts.primary_spec = {Name: "w_lb_skim"}
+    for trip_type in trip_types do
+        opts.trip_type = trip_type
+        opts.util_file = input_mc_dir + "/" + trip_type + ".csv"
+        nest_file = input_mc_dir + "/" + trip_type + "_nest.csv"
+        if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
+
+        for period in periods do
+            opts.period = period
+            
+            // Determine which sov & hov skim to use
+            if period = "MD" or period = "NT" then do
+                tour_type = "All"
+                homebased = "All"
+            end else do
+                tour_type = Upper(Left(trip_type, 1))
+                homebased = "HB"
+            end
+            sov_skim = skims_dir + "roadway\\avg_skim_" + period + "_" + tour_type + "_" + homebased + "_sov.mtx"
+            hov_skim = skims_dir + "roadway\\avg_skim_" + period + "_" + tour_type + "_" + homebased + "_hov.mtx"
+            
+            // Set sources
+            opts.tables = {
+                se: {File: scen_dir + "\\output\\sedata\\scenario_se.bin", IDField: "TAZ"},
+                parking: {File: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", IDField: "TAZ"}
+            }
+            opts.matrices = {
+                sov_skim: {File: sov_skim},
+                hov_skim: {File: hov_skim},
+                w_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_lb.mtx"},
+                w_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_eb.mtx"},
+                pnr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_lb.mtx"},
+                pnr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_eb.mtx"},
+                knr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_lb.mtx"},
+                knr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_eb.mtx"}
+            }
+            opts.output_dir = output_dir
+            RunMacro("MC", Args, opts)
+        end
+    end
 endmacro

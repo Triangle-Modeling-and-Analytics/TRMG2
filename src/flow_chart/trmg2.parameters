@@ -169,6 +169,9 @@
                                                                 {"TwoWheeler","AMAutoSkim.[Length (Skim)] <= 15 and PersonHH.Age <= 30"},
                                                                 {"Other","PersonHH.VehicleAvail = 0 and PersonHH.CarpoolEligibility = 0"}}, "Caption":"Work Mode Availability", "Style":"Availability" }
 
+    Section = "Destination Choice"
+
+        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates" }
 
     Section = "Parking Model|Coefficients"
     

@@ -22,7 +22,7 @@ Macro "Parking Availability"(Args)
     arrDists = SortArray(v2a(v), {Unique: 'True'})
 
     // Create output matrix
-    walkSkim = output_dir + "/accessibility/walk_skim.mtx"
+    walkSkim = output_dir + "/skims/nonmotorized/walk_skim.mtx"
     parkAvailMtx = output_dir + "/resident/parking/ParkAvailability.mtx"
     m = OpenMatrix(walkSkim,)
     mc = CreateMatrixCurrency(m,,,,)
@@ -190,7 +190,7 @@ Macro "Parking: Evaluate DC"(Args, spec)
     
     // Matrices (input and output)
     parkAvailMtx = output_dir + "/resident/parking/ParkAvailability.mtx"
-    walkSkimMtx = output_dir + "/accessibility/walk_skim.mtx"
+    walkSkimMtx = output_dir + "/skims/nonmotorized/walk_skim.mtx"
     probMtx = GetRandFileName("Prob*.mtx")
     utilMtx = GetRandFileName("Util*.mtx")
     
