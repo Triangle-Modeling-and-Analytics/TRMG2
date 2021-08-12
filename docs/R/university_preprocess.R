@@ -1,29 +1,19 @@
 # Packages ---------------------------------------------------------------------
-packages_vector <- c("tidyverse",
-                     "readxl",
-                     "sf",
-                     "geosphere",
-                     "measurements",
-                     "foreign",
-                     "knitr")
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-if (length(need_to_install)) install.packages(need_to_install)
-for (package in packages_vector){
-  library(package, character.only = TRUE)
-}
-knitr::opts_chunk$set(echo = TRUE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen = 999)
+library(tidyverse)
+library(readxl)
+library(sf)
+library(geosphere)
+library(measurements)
+library(foreign)
 
 # Remote I/O -------------------------------------------------------------------
-
 private_dir <- "data/input/_PRIVATE/"
-data_dir<-"data/input/"
-prepared_data_dir<-"data/input/university/"
+data_dir <- "data/input/"
+prepared_data_dir <- "data/input/university/"
 
 NCSUsurvey_name<-paste0(private_dir,"2013_NCSU_Data_Raw_All_2020-05-14_ITRE.xls")
 taz_shape_file_name<-paste0(data_dir,"tazs/master_tazs.shp")
-distance_skim_name<-paste0(data_dir,"AMSOVDistanceSkim.csv")
+distance_skim_name<-paste0(prepared_data_dir,"AMSOVDistanceSkim.csv")
 se_filename<-paste0(data_dir,"se_data/se_2016.csv")
 
 # Parameters -------------------------------------------------------------------
@@ -31,17 +21,17 @@ PLANAR_EPSG <- 3857
 LATLON_EPSG <- 4326
 
 # Data Reads -------------------------------------------------------------------
-NCSU_Person_df<-read_excel(NCSUsurvey_name,"Person")
-NCSU_Trip_df<-read_excel(NCSUsurvey_name,"Trip")
-NCSU_Place_df<-read_excel(NCSUsurvey_name,"Place")
-NCSU_DDtemp_df<-read_excel(NCSUsurvey_name,"Dictionary") [-c(1:3),]
-NCSU_DataDictionary_df<-NCSU_DDtemp_df    #need to turn first row into header
-NCSU_All_df<- NCSU_Person_df %>% 
+NCSU_Person_df <- read_excel(NCSUsurvey_name,"Person")
+NCSU_Trip_df <- read_excel(NCSUsurvey_name,"Trip")
+NCSU_Place_df <- read_excel(NCSUsurvey_name,"Place")
+NCSU_DDtemp_df <- read_excel(NCSUsurvey_name,"Dictionary") [-c(1:3),]
+NCSU_DataDictionary_df <- NCSU_DDtemp_df    #need to turn first row into header
+NCSU_All_df <- NCSU_Person_df %>% 
   full_join(NCSU_Trip_df, by="Person_ID") %>%
   mutate(Trip_ID=seq(1:2824))
 
 taz_sf <- st_read(taz_shape_file_name, stringsAsFactors = FALSE)
-socioecon_df <-read_csv(se_filename) 
+socioecon_df <- read_csv(se_filename) 
 distance_skim_df <- read_csv(distance_skim_name, col_names = c("originTAZ","destinationTAZ","distance_zonetozone"))
 
 # Assign survey responses to TAZ------------------------------------------------

@@ -1,17 +1,19 @@
 ---
 title: "University"
 author: "Caliper Corporation"
-date: "5/12/2021"
-output:
-  html_document: default
-  pdf_document: default
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-source("R/university_productions3.R")
-source("R/university_attractions4.R")
-source("R/university_surveyTLD2.R")
-source("R/university_surveyMC.R")
+# renv::restore()
+
+source("R/university_productions.R")
+source("R/university_attractions.R")
+# source("R/university_surveyTLD2.R")
+# source("R/university_surveyMC.R")
 
 knitr::opts_chunk$set(echo = FALSE)
 options(dplyr.summarise.inform = FALSE)
@@ -20,14 +22,30 @@ options(scipen = 999, digits = 3)
 
 ## Introduction  
 
-The University Model captures the on- and off-campus travel behavior of students of the Triangle Region's four main universities:  North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of `r enrollment_total`, with `r enrollment_NCSU` students at NCSU, `r enrollment_UNC` at UNC, `r enrollment_Duke` at Duke and `r enrollment_NCCU` at NCCU.  
+The University Model captures the on- and off-campus travel behavior of students of the Triangle Region's four large universities:  North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of `r enrollment_total`, with `r enrollment_NCSU` students at NCSU, `r enrollment_UNC` at UNC, `r enrollment_Duke` at Duke and `r enrollment_NCCU` at NCCU.  
 
 ```{r enrollment,echo=FALSE}
-enrollment_NCSU<-socioecon2_df %>% filter(!is.na(StudGQ_NCSU),!is.na(StudOff_NCSU))%>% summarize(total=sum(StudGQ_NCSU,StudOff_NCSU))%>%pull(total)
-enrollment_UNC<-socioecon2_df %>% filter(!is.na(StudGQ_UNC),!is.na(StudOff_UNC))%>% summarize(total=sum(StudGQ_UNC,StudOff_UNC))%>%pull(total)
-enrollment_Duke<-socioecon2_df %>% filter(!is.na(StudGQ_DUKE),!is.na(StudOff_DUKE))%>% summarize(total=sum(StudGQ_DUKE,StudOff_DUKE))%>%pull(total)
-enrollment_NCCU<-socioecon2_df %>% filter(!is.na(StudGQ_NCCU),!is.na(StudOff_NCCU))%>% summarize(total=sum(StudGQ_NCCU,StudOff_NCCU))%>%pull(total)
-enrollment_total<-enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollment_NCCU
+enrollment_NCSU <- socioecon2_df %>% 
+  filter(!is.na(StudGQ_NCSU),!is.na(StudOff_NCSU)) %>% 
+  summarize(total=sum(StudGQ_NCSU,StudOff_NCSU)) %>% 
+  pull(total)
+
+enrollment_UNC <- socioecon2_df %>% 
+  filter(!is.na(StudGQ_UNC),!is.na(StudOff_UNC)) %>% 
+  summarize(total=sum(StudGQ_UNC,StudOff_UNC)) %>% 
+  pull(total)
+
+enrollment_Duke <- socioecon2_df %>% 
+  filter(!is.na(StudGQ_DUKE),!is.na(StudOff_DUKE)) %>% 
+  summarize(total=sum(StudGQ_DUKE,StudOff_DUKE)) %>%
+  pull(total)
+
+enrollment_NCCU <- socioecon2_df %>% 
+  filter(!is.na(StudGQ_NCCU),!is.na(StudOff_NCCU)) %>% 
+  summarize(total=sum(StudGQ_NCCU,StudOff_NCCU)) %>%
+  pull(total)
+
+enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollment_NCCU
 ```
 
 
@@ -52,28 +70,29 @@ The model is segmented by on-campus and off-campus student and by the following 
 
 
 ```{r survey_overview, echo = FALSE}
-Respondents_On_campus <-surveyRespondents_ResidenceClass_df %>%
+Respondents_On_campus <- surveyRespondents_ResidenceClass_df %>%
   group_by(On_campus) %>%
   filter(On_campus==1) %>%
   summarize (sum=sum(n)) %>%
   pull()
-Respondents_Off_campus <-surveyRespondents_ResidenceClass_df %>%
+Respondents_Off_campus <- surveyRespondents_ResidenceClass_df %>%
   group_by(On_campus) %>%
   filter(On_campus==0) %>%
   summarize (sum=sum(n)) %>%
   pull()
-Respondent_Off_Campus_Weighted<-SurveyRespondent_Residence_Weighted_df %>%
+Respondent_Off_Campus_Weighted <- SurveyRespondent_Residence_Weighted_df %>%
   filter(On_campus==0)%>%
   pull()  
-Respondent_On_Campus_Weighted<-SurveyRespondent_Residence_Weighted_df %>%
+Respondent_On_Campus_Weighted <- SurveyRespondent_Residence_Weighted_df %>%
   filter(On_campus==1)%>%
   pull()
 
-Survey_Total_Weighted_Trips<-Trip_subset_df %>% filter(!is.na(Weight)) %>% summarize(sum(Weight))
+Survey_Total_Weighted_Trips <- Trip_subset_df %>% 
+  filter(!is.na(Weight)) %>% 
+  summarize(sum(Weight))
 ```
 
-The trip production rates were developed based on a survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014.   
-After removing respondents who did not finish the survey and respondents with a mismatch of more than 1 between the stated number of trips and the number of trips for which they provided a description, the total number of complete and valid samples consists of  `r Respondents_On_campus` on-campus students and `r Respondents_Off_campus` and off-campus students. The breakdown by graduate and undergraduate students is presented in the table below. These respondents reported a combined `r nrow(Trip_subset_df)` trips.
+The trip production rates are developed based on a survey of NCSU students conducted by the Institute for Transportation Research and Education (ITRE) for the North Carolina Department of Transportation (NCDOT) in 2014. After removing respondents who did not finish the survey and respondents with a mismatch of more than 1 between the stated number of trips and the number of trips for which they provided a description, the total number of complete and valid samples consists of `r Respondents_On_campus` on-campus students and `r Respondents_Off_campus` and off-campus students. The breakdown by graduate and undergraduate students is presented in the table below. These respondents reported a combined `r nrow(Trip_subset_df)` trips.
 
 ```{r survey overview2,echo=FALSE}
 surveyRespondents_ResidenceClass_df %>%

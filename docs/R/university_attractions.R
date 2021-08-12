@@ -1,18 +1,8 @@
 # Packages ---------------------------------------------------------------------
-packages_vector <- c("tidyverse",
-                     "corrr",
-                     "kableExtra",
-                     "broom"
-)
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-if (length(need_to_install)) install.packages(need_to_install)
-for (package in packages_vector){
-  library(package, character.only = TRUE)
-}
-
-knitr::opts_chunk$set(echo = FALSE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen = 999)
+library(tidyverse)
+library(corrr)
+library(kableExtra)
+library(broom)
 
 # Remote I/O -------------------------------------------------------------------
 
@@ -27,15 +17,6 @@ Attractions_byTAZ_df<-readRDS(paste0(private_dir,"Attractions_byTAZ_df.RDS"))
 Trip_subset_df<-readRDS(paste0(private_dir,"Trip_subset_df.RDS"))
 Person_subset_df<-readRDS(paste0(private_dir,"Person_subset_df.RDS"))
 socioecon2_df<-readRDS(paste0(input_dir,"socioecon2_df.RDS"))
-#distance_TAZcampus_df<-socioecon2_df %>% select(TAZ,
-#                                                NCSU_min_distance, 
-#                                                NCSU_avg_distance,
-#                                                UNC_min_distance, 
-#                                                UNC_avg_distance,
-#                                                Duke_min_distance, 
-#                                                Duke_avg_distance,
-#                                                NCCU_min_distance, 
-#                                                NCCU_avg_distance)
 
 # Correlations -----------------------------------------------------------------
 correlations_df <- Attractions_byTAZ_df %>%

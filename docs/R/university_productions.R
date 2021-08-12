@@ -1,23 +1,13 @@
 # Packages ---------------------------------------------------------------------
-packages_vector <- c("tidyverse",
-                     "corrr",
-                     "kableExtra",
-                     "broom"
-)
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-if (length(need_to_install)) install.packages(need_to_install)
-for (package in packages_vector){
-  library(package, character.only = TRUE)
-}
-
-knitr::opts_chunk$set(echo = FALSE)
-options(dplyr.summarise.inform = FALSE)
-options(scipen = 999)
+library(tidyverse)
+library(corrr)
+library(kableExtra)
+library(broom)
 
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/input/_PRIVATE/"
-input_dir <-"data/input/university/"
-univ_dir<-"data/output/university/"
+input_dir <- "data/input/university/"
+univ_dir <- "data/output/university/"
 
 # Data Reads -------------------------------------------------------------------
 Productions_bymode_df<- readRDS(paste0(private_dir,"Productions_bymode_df.RDS"))
@@ -28,22 +18,22 @@ socioecon2_df<-readRDS(paste0(input_dir,"socioecon2_df.RDS"))
 # Enrollment by University -----------------------------------------------------
 enrollment_NCSU<-socioecon2_df %>% 
   filter(!is.na(StudGQ_NCSU),!is.na(StudOff_NCSU))%>% 
-  summarize(total=sum(StudGQ_NCSU,StudOff_NCSU))%>%
+  summarize(total=sum(StudGQ_NCSU,StudOff_NCSU), .groups = "drop")%>%
   pull(total)
 
 enrollment_UNC<-socioecon2_df %>%
   filter(!is.na(StudGQ_UNC),!is.na(StudOff_UNC))%>% 
-  summarize(total=sum(StudGQ_UNC,StudOff_UNC))%>%
+  summarize(total=sum(StudGQ_UNC,StudOff_UNC), .groups = "drop")%>%
   pull(total)
 
 enrollment_Duke<-socioecon2_df %>% 
   filter(!is.na(StudGQ_DUKE),!is.na(StudOff_DUKE))%>% 
-  summarize(total=sum(StudGQ_DUKE,StudOff_DUKE))%>%
+  summarize(total=sum(StudGQ_DUKE,StudOff_DUKE), .groups = "drop")%>%
   pull(total)
 
 enrollment_NCCU<-socioecon2_df %>% 
   filter(!is.na(StudGQ_NCCU),!is.na(StudOff_NCCU))%>% 
-  summarize(total=sum(StudGQ_NCCU,StudOff_NCCU))%>%
+  summarize(total=sum(StudGQ_NCCU,StudOff_NCCU), .groups = "drop")%>%
   pull(total)
 
 enrollment_total<-enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollment_NCCU
@@ -62,7 +52,7 @@ surveyRespondents_ResidenceClass_df<-Person_subset_df%>%
 SurveyRespondent_Residence_Weighted_df<-Person_subset_df%>%
   filter(!is.na(Weight))%>% 
   group_by(On_campus) %>%
-  summarize(count=n())
+  summarize(count=n(), .groups = "drop")
 
 # Trip Production Histograms ---------------------------------------------------
 Triprates_histogram<-Productions_bymode_df %>% 
@@ -270,7 +260,8 @@ sumavg_trips_UHOUCO_df <-avg_trips_UHOUCO_df %>%
             car = sum(car),
             non_car = sum(non_car),
             ssize_oncampus = min(respondents[segment=="On-campus Students UHO UCO Trips"]),
-            ssize_offcampus = min(respondents[segment=="Off-campus Students UHO UCO Trips"]))
+            ssize_offcampus = min(respondents[segment=="Off-campus Students UHO UCO Trips"]),
+            .groups = "drop")
 sumavg_trips_UHOUCO_df
 
 ## Trip Rates UOO, by mode -----------------------------------------------------
@@ -309,7 +300,8 @@ sumavg_trips_UOO_df <-avg_trips_UOO_df %>%
             car = sum(car),
             non_car = sum(non_car),
             ssize_oncampus = min(respondents[segment=="On-campus Students"]),
-            ssize_offcampus = min(respondents[segment=="Off-campus Students"]))
+            ssize_offcampus = min(respondents[segment=="Off-campus Students"]),
+            .groups = "drop")
 
 sumavg_trips_UOO_df
 
@@ -325,7 +317,7 @@ cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$car[trip_purpose == "UOO"
 non_cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UOO"]/
   sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UHOUCO"]
 
-P_rates_ratioUOOtoUHOUCO_df <-data_frame(cartrips_ratioUOOtoUHOUCO,non_cartrips_ratioUOOtoUHOUCO)
+P_rates_ratioUOOtoUHOUCO_df <-tibble(cartrips_ratioUOOtoUHOUCO,non_cartrips_ratioUOOtoUHOUCO)
 
 
 # Selected Production Rates-----------------------------------------------------
