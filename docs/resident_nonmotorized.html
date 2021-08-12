@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-08-09" />
+
+<title>Non-Motorized Choice</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Resident Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
+      <a href="airport.html">Airport</a>
+    </li>
+    <li>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Non-Motorized Choice</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">August 9, 2021</h4>
+
+</div>
+
+
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>The TRMG2 uses a dissaggregate, binary choice model to split trips into motorized and non-motorized categories. It is common to see the non-motorized mode as a nest within the larger mode choice model, but it was separated for two primary reasons:</p>
+<ol style="list-style-type: decimal">
+<li>To use a disaggregate model to predict walk trips.</li>
+<li>To simplify the mode choice model and improve prediction power.</li>
+</ol>
+<p>In the TRMG2, the non-motorized model takes place after trip production but before trips are aggregated for destination and mode choice models. The advantage with a disaggregate model is that person- and household-level variables were available to improve non-motorized predictions. A potential downside of this approach is that the prediction does not know how long a trip is. This downside is mitigated by using accessibility measures, which in this case are logsums of the gravity model used to distribute walk trips. In this way, aggregate information about trips lengths is included. Further, a person living downtown will make more walk trips than one living in rural areas (all else equal).</p>
+<p>The second benefit of a separate non-motorized model is a simplification of the larger mode choice nesting structure. For more detail on that model, and for information on logit choice models in general, see the resident mode choice page.</p>
+</div>
+<div id="estimation-results" class="section level2">
+<h2>Estimation Results</h2>
+<p>All the models that follow are binary choice models with motorized as the reference alternative. Negative coefficients mean that non-motorized travel is less likely. Positive coefficients mean that non-motorized travel is more likely.</p>
+<p>Most coefficients are self-explanatory, but two need differentiation:</p>
+<ul>
+<li>Walk Accessibility: this is a measure of how accessible other zones are to the home zone.</li>
+<li>Walkability: this is a measure of how walkable the home zone itself is. It encapsulates information on mixed use, the density of the street grid, and other factors. See the accessibility documentation for more detail.</li>
+</ul>
+<div id="work-tours" class="section level3">
+<h3>Work tours</h3>
+<p>The W_HB_W and W_HB_O trip types were estimated in a single model. Behaviorally, the decision to walk to work is made at the tour level and affects all trips made along that tour. A model was not estimated for W_HB_WR trips. Instead, these trips for deliveries, lawn care, and other activities are all assumed to be be motorized by the model. Similarly, all K12 escort trips on work tours (W_HB_EK12) are motorized as well.</p>
+<p>Children in the household or being a senior make it less likely that trips on work tour will be non-motorized. Higher car ownership has the same affect. Walk accessibility has a positive relationship, meaning that people who live in urban centers with high walk accessibility are more likely to make walk trips. All coefficients make behavioral sense and the model fit is strong.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Is Senior
+</td>
+<td style="text-align:right;">
+-0.595
+</td>
+<td style="text-align:right;">
+-1.84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Children in HH
+</td>
+<td style="text-align:right;">
+-0.641
+</td>
+<td style="text-align:right;">
+-4.59
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-1.440
+</td>
+<td style="text-align:right;">
+-8.71
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+11.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.120
+</td>
+<td style="text-align:right;">
+-11.73
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.82</p>
+</div>
+<div id="non-work-tours" class="section level3">
+<h3>Non-work tours</h3>
+<div id="n_hb_k12" class="section level4">
+<h4>N_HB_K12</h4>
+<p>The decision to walk to school is driven by vehicle ownership, walk accessibility, and whether or not the child is old enough to drive herself to school. A high rho-squared metric shows a strong model fit.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-0.767
+</td>
+<td style="text-align:right;">
+-2.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.585
+</td>
+<td style="text-align:right;">
+2.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Age 16 to 18
+</td>
+<td style="text-align:right;">
+-0.359
+</td>
+<td style="text-align:right;">
+-1.10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.710
+</td>
+<td style="text-align:right;">
+-8.08
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.80</p>
+</div>
+<div id="n_hb_ome" class="section level4">
+<h4>N_HB_OME</h4>
+<p>The choice for shopping, dining, and maintenance trips is driven by similar variables as previous trips, but also new ones including income and walkability. Income has a positive impact on walking, which may at first appear counter- intuitive. However, many of the factors like vehicle ownership, work status, and accessibility that are often related to income are already controlled for.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-1.940000
+</td>
+<td style="text-align:right;">
+-13.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.547000
+</td>
+<td style="text-align:right;">
+5.12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+0.311000
+</td>
+<td style="text-align:right;">
+3.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.000008
+</td>
+<td style="text-align:right;">
+4.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+7.300000
+</td>
+<td style="text-align:right;">
+3.28
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.580000
+</td>
+<td style="text-align:right;">
+-9.32
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.72</p>
+</div>
+<div id="n_hb_od_long" class="section level4">
+<h4>N_HB_OD_Long</h4>
+<p>These discretionary trips with long activity duration are influenced by many factors. Children are less likely to walk or bike, higher accessibility leads to more walk trips, and the other relationships make sense.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Vehicles per Adult
+</td>
+<td style="text-align:right;">
+-1.1300000
+</td>
+<td style="text-align:right;">
+-8.81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+0.4170000
+</td>
+<td style="text-align:right;">
+4.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Child
+</td>
+<td style="text-align:right;">
+-0.4650000
+</td>
+<td style="text-align:right;">
+-3.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+-0.2830000
+</td>
+<td style="text-align:right;">
+-3.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.0000044
+</td>
+<td style="text-align:right;">
+2.76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+3.7000000
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-2.5800000
+</td>
+<td style="text-align:right;">
+-9.32
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.59</p>
+</div>
+<div id="n_hb_od_short" class="section level4">
+<h4>N_HB_OD_Short</h4>
+<p>This is the only model that struggles to predict non-motorized behavior as shown by the low rho-squared value. These are “quick stop” discretionary trips, and the poor fit means that choosing to walk for these trips is based on factors not collected in the survey. While the t-stat for walkability was not large, the coefficient makes sense behaviorally and provides sensitivity to land use.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Is Senior
+</td>
+<td style="text-align:right;">
+-0.36100
+</td>
+<td style="text-align:right;">
+-4.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Worker
+</td>
+<td style="text-align:right;">
+-0.18800
+</td>
+<td style="text-align:right;">
+-3.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walkability
+</td>
+<td style="text-align:right;">
+0.51800
+</td>
+<td style="text-align:right;">
+0.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chidren in HH
+</td>
+<td style="text-align:right;">
+-0.57900
+</td>
+<td style="text-align:right;">
+-8.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+No Autos
+</td>
+<td style="text-align:right;">
+0.89000
+</td>
+<td style="text-align:right;">
+4.16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Income per Person
+</td>
+<td style="text-align:right;">
+0.00001
+</td>
+<td style="text-align:right;">
+8.41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-0.22000
+</td>
+<td style="text-align:right;">
+-1.17
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.04</p>
+</div>
+<div id="n_hb_omed" class="section level4">
+<h4>N_HB_OMED</h4>
+<p>The model for medical trips is simple, but does provide important sensitivity for zero-vehicle households and walk accessibility. It also effectively prohibits seniors from walking. The rho-squared is large, but this is inflated given that over 99% of medical trips are motorized. (Randomly assigning 1 out of every 100 medical trips to walk would also have a high rho-squared value.)</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Term
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:right;">
+Tstat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+No Autos
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Is Senior
+</td>
+<td style="text-align:right;">
+-157479.00
+</td>
+<td style="text-align:right;">
+-157479.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk Accessibility
+</td>
+<td style="text-align:right;">
+4.64
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:right;">
+-11.20
+</td>
+<td style="text-align:right;">
+-2.42
+</td>
+</tr>
+</tbody>
+</table>
+<p>Rho-squared: 0.98</p>
+</div>
+</div>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+
+</body>
+</html>

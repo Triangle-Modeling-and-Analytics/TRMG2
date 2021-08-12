@@ -4,7 +4,7 @@ Attributes = {{"BannerHeight",80},
                   {"BannerWidth",2000},
                   {"BannerPicture","src\\flow_chart\\bmp\\banner.bmp"},
                   {"HideBanner",0},
-                  {"Base Scenario Name","Base 2016"},
+                  {"Base Scenario Name","Model"},
                   {"ClearLogFiles",1},
                   {"CodeUI","src\\trmg2.dbd"},
                   {"ExpandStages","Side by Side"},
@@ -38,6 +38,25 @@ Macro "Model.Arrow" (Args,Result)
                   {"ArrowHeadSize",8}}
 EndMacro
 
+Macro "Model.OnStepStart" (Args,Result)
+Body:
+    // Initialize choice model sources object
+    flowchart = RunMacro("GetFlowChart")
+    {drive, path, name, ext} = SplitPath(flowchart.UI)
+
+    // Execute this macro just before running each step. Have to do it here because the parameters (file names/locations) could have changed.
+    Opts = null
+    Opts.MatrixSources = Args.MatrixSources
+    Opts.TableSources = Args.TableSources
+    Opts.Joins = Args.Joins
+    Opts.SourceKeys = Args.SourceKeys 
+        
+    SetLibrary(drive + path + "src/trmg2.dbd")
+    srcObj = CreateObject("Choice Model Sources", Args, Opts)
+    SetLibrary()
+
+    Args.SourcesObject = srcObj
+EndMacro
 
 
 /**
@@ -47,6 +66,7 @@ EndMacro
 Macro "Model.OnStepDone" (Args,Result,StepName)
 Body:
     // RunMacro("SendMail", Args, "MSA Model Checkpoint", StepName)
+    Args.SourcesObject = null
     return(1)
 EndMacro
 
@@ -83,7 +103,11 @@ Body:
             mail.ResetCredentials() // every time the model is launched, reset the credentials. If credentials are needed a dbox will popup
             end
         end
-skipemails:
+    skipemails:
+    on error default
+
+    scenario_created = RunMacro("Check Scenario Creation", Args)
+    if !scenario_created then Throw("Scenario not created")
 
     Return(Runtime_Args)
 EndMacro
@@ -113,3 +137,55 @@ Body:
     Return()
 EndMacro
 
+/*
+This macro checks that the current scenario is created. If not, it prompts the
+user to create it. As a special case, the base scenario ("base_2016") is simply
+created without prompting.
+
+Returns true if the scenario is already created or is created by the macro.
+Returns false otherwise.
+*/
+
+Macro "Check Scenario Creation" (Args)
+
+    mr = CreateObject("Model.Runtime")
+    Args = mr.GetValues()
+    scen_dir = Args.[Scenario Folder]
+    {, scen_name} = mr.GetScenario()
+    files_to_check = {
+        Args.[Input Links],
+        Args.[Input Routes],
+        Args.[Input SE]
+    }
+
+    scenario_created = "true"
+    for file in files_to_check do
+        if GetFileInfo(file) = null then scenario_created = "false"
+    end
+    if scenario_created then return("true")
+
+    // Ensure the minimum files are present
+    if GetDirectoryInfo(scen_dir, "All") = null then Throw(
+        "The scenario directory does not exist.\n" +
+        "Scenario Directory: \n" +
+        scen_dir
+    )
+    else if GetFileInfo(scen_dir + "/RoadwayProjectList.csv") = null then Throw(
+        "The scenario directory is missing RoadwayProjectList.csv"
+    )
+    else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
+        "The scenario directory is missing TransitProjectList.csv"
+    )
+
+    // Ask to create scenario. If it's the base scenario, just create it.
+    yesno = MessageBox(
+        "The scenario has not been created\n(TRMG2 Menu -> Create Scenario)\n" +
+        "Would you like to create the scenario? After creation, you will be " +
+        "prompted to continue running the model.",
+        {Buttons: "YesNo"}
+    )
+    if yesno = "Yes" then do
+        mr.RunCode("Create Scenario", Args)
+        return("true")
+    end else return("false")
+endmacro

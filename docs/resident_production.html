@@ -376,7 +376,34 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Models
+    Resident Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
      
     <span class="caret"></span>
   </a>
@@ -385,16 +412,10 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
+      <a href="airport.html">Airport</a>
     </li>
     <li>
-      <a href="population_synthesis.html">Synthesis</a>
-    </li>
-    <li>
-      <a href="time_of_day.html">Time of Day</a>
-    </li>
-    <li>
-      <a href="nhb.html">Non-home-based</a>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
     </li>
   </ul>
 </li>
@@ -419,16 +440,12 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p><em>TODO: Add</em></p>
-<ul>
-<li>We tried GLM (up to and including zero-inflated negative binomial)</li>
-<li>We tried logistic regression</li>
-<li>We explored ML</li>
-<li>We ended up with decision-tree-assisted cross classification</li>
-</ul>
+<p>The goal of the resident trip production models in TRMG2 is to determine how many trips each individual will make in a day. Unlike traditional trip generation models, attractions are not estimated in this step. Instead, the destination choice models estimate coefficients on employment as part of the size term, which function similar to trip attractions.</p>
+<p>TRMG2 productions models are person-level models. This means that detailed information about each person (e.g. age), as well as the characteristics of their household and geographic location, are available to improve prediction making.</p>
 </div>
 <div id="using-dt-to-guide-segmentation" class="section level2">
 <h2>Using DT to guide segmentation</h2>
+<p>After attempting various forms of generalized linear models (GLM) and logistic regression models, Caliper opted to use decision trees from the machine learning stack. This model form had much stronger predictive power compared to traditional approaches while still being easy to understand and explain.</p>
 <p>In the trees below, each node lists the average trip rate as well as the percent of the population that node represents. This lets you see the overall average trip rate (top of the tree) and how it changes as you segment the surveyed population.</p>
 <p>To save room in the charts, many of the explanatory variables are abbreviated. Their meanings are listed below for reference:</p>
 <ul>
@@ -455,58 +472,62 @@ div.tocify {
 <li>e_access: employment accessibility of the person’s home zone</li>
 </ul></li>
 </ul>
-<p><em>TODO: Add prose for each chart after they are finalized</em></p>
 </div>
 <div id="work-tours" class="section level2">
 <h2>Work Tours</h2>
-<div id="work" class="section level3">
-<h3>Work</h3>
-<p>W_HB_W_All</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<p>R-squared: 0.363</p>
+<div id="w_hb_w_all" class="section level3">
+<h3>W_HB_W_All</h3>
+<p>These are the traditional HBW (home-based work) trips. Unsuprisingly, the most important factor is whether or not the individual is a worker. After that, the person’s age and living arrangements best predict trip rate.</p>
+<p><img src="resident_production_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>R-squared: 0.364</p>
 </div>
-<div id="other" class="section level3">
-<h3>Other</h3>
-<p>W_HB_O_All</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<div id="w_hb_o_all" class="section level3">
+<h3>W_HB_O_All</h3>
+<p>When someone makes a stop on their way to or from work, they are making a homebased other trip on a work tour. Work status is the most important predictor followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays a role in determining the frequency of these extra stops. In the bottom right of the tree, workers that live in areas with lower accessibility make more of these intermediate stops on work tours. This is the expected behavior. People living in rural areas are more likely to make these extra stops while out on work tours.</p>
+<p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>R-squared: 0.156</p>
 </div>
-<div id="k12-drop-off" class="section level3">
-<h3>K12 Drop Off</h3>
-<p>W_HB_EK12_All</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<p>R-squared: 0.182</p>
+<div id="w_hb_ek12_all" class="section level3">
+<h3>W_HB_EK12_All</h3>
+<p>This trip type describes adults who drop off children on the way to work or pick them up on the way home (school escort trips). Having children and being a worker are both required to qualify to make this trip, and they show up as the most important questions in the decision tree. Finally, the age of the adult plays a small role in determining final trip rates.</p>
+<p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>R-squared: 0.183</p>
 </div>
 </div>
 <div id="non-work-tours" class="section level2">
 <h2>Non-Work Tours</h2>
-<div id="k12" class="section level3">
-<h3>K12</h3>
-<p>N_HB_K12_All</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<div id="n_hb_k12_all" class="section level3">
+<h3>N_HB_K12_All</h3>
+<p>This trip type is made by two types of people:</p>
+<ul>
+<li>Students traveling to school</li>
+<li>Parents taking their kids to school (not on a work tour)</li>
+</ul>
+<p>The decision tree model recognizes this basic structure in the data and uses age to split people into these two groups. For adults (left side of the tree), having kids is required to make this trip. Their work status and age further refine their trip rate. For children (right side of the tree), age is the primary factor. Children under 5 do not attend K12, but they do make these trips if they have older siblings.</p>
+<p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>R-squared: 0.534</p>
 </div>
-<div id="shoppingdining" class="section level3">
-<h3>Shopping/Dining</h3>
-<p>N_HB_OME_All</p>
+<div id="n_hb_ome_all" class="section level3">
+<h3>N_HB_OME_All</h3>
+<p>This trip type captures shopping, dining, and maintenance activities. These are trips where the primary purpose includes spending money. These trips are harder to predict based on the data collected in the survey, and this results in lower r-squared values. Nonetheless, factors like age, accessibility, work status, and income do help to differentiate trip rates.</p>
+<p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>R-squared: 0.102</p>
+</div>
+<div id="n_hb_od_long" class="section level3">
+<h3>N_HB_OD_Long</h3>
+<p>These are other, discretionary trips with a long duration time (over 30 minutes). A common example is visiting the home of friends or family. Work status, age, and accessibility are the primary factors used to differentiate trip rates.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<p>R-squared: 0.113</p>
+<p>R-squared: 0.145</p>
 </div>
-<div id="other-long-duration" class="section level3">
-<h3>Other (long duration)</h3>
-<p>N_HB_OD_Long</p>
-<p><img src="resident_production_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
-<p>R-squared: 0.153</p>
-</div>
-<div id="other-short-duration" class="section level3">
-<h3>Other (short duration)</h3>
-<p>N_HB_OD_Short</p>
+<div id="n_hb_od_short" class="section level3">
+<h3>N_HB_OD_Short</h3>
+<p>These are other, discretionary trips with a short activity duration. These are similar to N_HB_OD_Long, and include things like trips to a friend’s house, church, or other locations. Like other discretionary tours, the low r-squared indicates some difficulty in making predictions. However, of the variables available, accessibility, age, income, and children in the household contribute the most to differences in trip making.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
-<p>R-squared: 0.103</p>
+<p>R-squared: 0.101</p>
 </div>
-<div id="medical" class="section level3">
-<h3>Medical</h3>
-<p>N_HB_OMED_All</p>
+<div id="n_hb_omed_all" class="section level3">
+<h3>N_HB_OMED_All</h3>
+<p>These are medical trips, and as a result, retirement and age play an important role in predicting trip rates. This trip type has the poorest r-squared regardless of model form used. The survey EDA shows that other aspects of this trip type are unique enough to keep it separated - even this model simply applied the total average trip rate of 0.066 trips to every person. This model is a small improvement on that.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <p>R-squared: 0.027</p>
 </div>
@@ -514,6 +535,7 @@ div.tocify {
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
 <p>The table below shows the production model results compared back to the total trips in the survey. Overall, the model performs extremely well even without calibration.</p>
+<p><em>TODO: These results are close enough that we are not going to adjust them unless we need to for validation. We will revisit this section then if needed.</em></p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -540,16 +562,16 @@ Difference
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-578,167
+577,069
 </td>
 <td style="text-align:right;">
 569,133
 </td>
 <td style="text-align:right;">
--9,034
+-7,936
 </td>
 <td style="text-align:right;">
--2
+-1
 </td>
 </tr>
 <tr>
@@ -557,16 +579,16 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-899,013
+894,211
 </td>
 <td style="text-align:right;">
 920,221
 </td>
 <td style="text-align:right;">
-21,208
+26,009
 </td>
 <td style="text-align:right;">
-2
+3
 </td>
 </tr>
 <tr>
@@ -574,16 +596,16 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-728,483
+726,812
 </td>
 <td style="text-align:right;">
 709,869
 </td>
 <td style="text-align:right;">
--18,614
+-16,943
 </td>
 <td style="text-align:right;">
--3
+-2
 </td>
 </tr>
 <tr>
@@ -591,13 +613,13 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-1,023,528
+1,022,986
 </td>
 <td style="text-align:right;">
 987,549
 </td>
 <td style="text-align:right;">
--35,979
+-35,437
 </td>
 <td style="text-align:right;">
 -4
@@ -608,16 +630,16 @@ N_HB_OME_All
 N_HB_OMED_All
 </td>
 <td style="text-align:right;">
-116,545
+113,515
 </td>
 <td style="text-align:right;">
 100,922
 </td>
 <td style="text-align:right;">
--15,623
+-12,593
 </td>
 <td style="text-align:right;">
--13
+-11
 </td>
 </tr>
 <tr>
@@ -642,13 +664,13 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-287,811
+287,277
 </td>
 <td style="text-align:right;">
 289,502
 </td>
 <td style="text-align:right;">
-1,691
+2,225
 </td>
 <td style="text-align:right;">
 1
@@ -659,13 +681,13 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-767,883
+766,618
 </td>
 <td style="text-align:right;">
 787,745
 </td>
 <td style="text-align:right;">
-19,862
+21,127
 </td>
 <td style="text-align:right;">
 3
@@ -676,16 +698,16 @@ W_HB_W_All
 Total
 </td>
 <td style="text-align:right;">
-4,458,733
+4,445,792
 </td>
 <td style="text-align:right;">
 4,422,603
 </td>
 <td style="text-align:right;">
--36,130
+-23,189
 </td>
 <td style="text-align:right;">
--1
+0
 </td>
 </tr>
 </tbody>

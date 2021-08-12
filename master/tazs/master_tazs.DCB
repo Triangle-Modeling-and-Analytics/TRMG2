@@ -1,10 +1,11 @@
 Final_TRMNG_TAZ
-69
+73
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "District",I,5,4,0,8,0,,"","41-district system",,"Copy",
 "District2",I,9,4,0,8,0,,"","21-district system",,"Sum",
-"County",C,13,20,0,20,0,,"","",,"Copy",
-"PUMA",C,33,8,0,8,0,,"","",,"Copy",
-"Tract",C,41,12,0,12,0,,"","",,"Copy",
-"BG",C,53,13,0,13,0,,"","",,"Copy",
-"orig_id",I,66,4,0,8,0,,"","This is the ID before I split zones",,"Copy",
+"Cluster",I,13,4,0,8,0,,"","This is another district system, but this one is used in|the nested DC models",,"Sum",
+"County",C,17,20,0,20,0,,"","",,"Copy",
+"PUMA",C,37,8,0,8,0,,"","",,"Copy",
+"Tract",C,45,12,0,12,0,,"","",,"Copy",
+"BG",C,57,13,0,13,0,,"","",,"Copy",
+"orig_id",I,70,4,0,8,0,,"","This is the ID before I split zones",,"Copy",

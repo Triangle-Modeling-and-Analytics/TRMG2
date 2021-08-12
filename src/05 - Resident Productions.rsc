@@ -16,8 +16,8 @@ endmacro
 
 Macro "Create Production Features" (Args)
 
-    hh_file = Args.[Synthesized HHs]
-    per_file = Args.[Synthesized Persons]
+    hh_file = Args.Households
+    per_file = Args.Persons
     se_file = Args.SE
 
     hh_vw = OpenTable("hh", "FFB", {hh_file})
@@ -36,7 +36,8 @@ Macro "Create Production Features" (Args)
         {"oth_senior", "Integer", 10, ,,,, "Number of other seniors in the household"},
         {"g_access", "Real", 10, 2,,,, "General accessibility of home zone"},
         {"n_access", "Real", 10, 2,,,, "Nearby accessibility of home zone"},
-        {"e_access", "Real", 10, 2,,,, "Employment accessibility of home zone"}
+        {"e_access", "Real", 10, 2,,,, "Employment accessibility of home zone"},
+        {"w_access", "Real", 10, 2,,,, "Walk accessibility of home zone"}
     }
     RunMacro("Add Fields", {view: per_vw, a_fields: per_fields})
     {, hh_specs} = RunMacro("Get Fields", {view_name: hh_vw})
@@ -48,7 +49,7 @@ Macro "Create Production Features" (Args)
     jv = JoinViews("per+hh+se", temp_specs.ZoneID, se_specs.TAZ, )
     CloseView(temp_vw)
     {v_size, v_workers, v_inc, v_kids, v_seniors, v_workers,  
-    v_emp_status, v_age, v_ga, v_na, v_ea} = GetDataVectors(jv + "|", {
+    v_emp_status, v_age, v_ga, v_na, v_ea, v_wa} = GetDataVectors(jv + "|", {
         hh_specs.HHSize,
         hh_specs.NumberWorkers,
         hh_specs.HHInc,
@@ -57,9 +58,10 @@ Macro "Create Production Features" (Args)
         hh_specs.HHWorkers,
         per_specs.EmploymentStatus,
         per_specs.Age,
-        se_specs.GeneralAccessibility_sov,
-        se_specs.NearbyAccessibility_sov,
-        se_specs.EmploymentAccessibility_sov
+        se_specs.access_general_sov,
+        se_specs.access_nearby_sov,
+        se_specs.access_employment_sov,
+        se_specs.access_walk
     },)
 
     data.(per_specs.is_senior) = if v_age >= 65 then 1 else 0
@@ -80,6 +82,7 @@ Macro "Create Production Features" (Args)
     data.(per_specs.g_access) = v_ga
     data.(per_specs.n_access) = v_na
     data.(per_specs.e_access) = v_ea
+    data.(per_specs.w_access) = v_wa
     SetDataVectors(jv + "|", data, )
     
     CloseView(jv)
@@ -94,7 +97,7 @@ endmacro
 
 Macro "Apply Production Rates" (Args)
 
-    per_file = Args.[Synthesized Persons]
+    per_file = Args.Persons
     per_vw = OpenTable("per", "FFB", {per_file})
     rate_file = Args.ProdRates
     RunMacro("Apply Rates with Queries", {view: per_vw, rate_csv: rate_file})

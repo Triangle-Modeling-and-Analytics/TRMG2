@@ -19,16 +19,20 @@ library(pscl)
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(mlr)
 ```
 
 ## Introduction
 
-*TODO: Add*
+The goal of the resident trip production models in TRMG2 is to determine how
+many trips each individual will make in a day. Unlike traditional trip
+generation models, attractions are not estimated in this step. Instead, the
+destination choice models estimate coefficients on employment as part of the
+size term, which function similar to trip attractions.
 
-- We tried GLM (up to and including zero-inflated negative binomial)
-- We tried logistic regression
-- We explored ML
-- We ended up with decision-tree-assisted cross classification
+TRMG2 productions models are person-level models. This means that detailed
+information about each person (e.g. age), as well as the characteristics of their
+household and geographic location, are available to improve prediction making.
 
 ```{r}
 # Zero-Inflated Negative Binomial Distribution:  
@@ -83,7 +87,14 @@ est_tbl <- person_df %>%
     N_HB_K12_All = as.integer(N_HB_K12_All)
   ) %>%
   left_join(
-    logsum %>% select(TAZ, access = GeneralAccessibility_sov),
+    logsum %>% 
+      select(
+        TAZ,
+        access = access_general_sov,
+        g_access = access_general_sov,
+        n_access = access_nearby_sov,
+        e_access = access_employment_sov
+      ),
     by = c("p_taz" = "TAZ")
   ) %>%
   group_by(hhid) %>%
@@ -114,7 +125,27 @@ m2 <- zeroinfl(
 
 summary(m2)
 pR2(m2)
+cor(est_tbl$N_HB_K12_All, m2$fitted.values) ^ 2
 ```
+
+```{r, eval=FALSE}
+# multinomial logistic regression
+# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+library(nnet)
+mnl_data <- est_tbl %>%
+  filter(!(age > 18 & num_children == 0)) %>%
+  mutate(N_HB_K12_All = ifelse(N_HB_K12_All > 3, 3, N_HB_K12_All))
+model <- multinom(formula, data = mnl_data)
+
+cor(mnl_data$N_HB_K12_All, as.numeric(predict(model, mnl_data))) ^ 2
+
+# The R^2 is so low due the overwhelming number of people who make 0
+# trips.
+mnl_data %>%
+  group_by(N_HB_K12_All) %>%
+  summarize(count = n())
+```
+
 
 ```{r, N_HB_OME_All, eval=FALSE}
 m2 <- zeroinfl(
@@ -147,14 +178,15 @@ train_hhids <- hhids[!hhids %in% test_hhids]
 
 dt_tbl <- est_tbl %>%
   select(
-    N_HB_OD_Long, age, g_access, n_access, e_access,
+    N_HB_K12_All, age, g_access, n_access, e_access,
     hhid, weight, is_senior, num_vehicles, oth_ppl, oth_kids, oth_senior, num_seniors, 
     num_children
   ) %>%
-  mutate(across(hhid:num_children, as.factor)) %>%
-  normalizeFeatures(target = "N_HB_OD_Long") %>%
+  # mutate(across(hhid:num_children, as.factor)) %>%
+  mutate(across(c(hhid, weight), as.factor)) %>%
+  normalizeFeatures(target = "N_HB_K12_All") %>%
   # createDummyFeatures(
-  #   target = "N_HB_OD_Long",
+  #   target = "N_HB_K12_All",
   #   cols = c(
   #     "is_senior",
   #     "num_vehicles",
@@ -179,11 +211,11 @@ train_weights <- train_set$weight
 train_set$weight <- NULL
 
 # trainTask <- makeClassifTask(
-#   data = train_set, target = "N_HB_OD_Long", weights = train_weights)
-# testTask <- makeClassifTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
+#   data = train_set, target = "N_HB_K12_All", weights = train_weights)
+# testTask <- makeClassifTask(data = test_set, target = "N_HB_K12_All", weights = test_weights)
 trainTask <- makeRegrTask(
-  data = train_set, target = "N_HB_OD_Long", weights = train_weights)
-testTask <- makeRegrTask(data = test_set, target = "N_HB_OD_Long", weights = test_weights)
+  data = train_set, target = "N_HB_K12_All", weights = train_weights)
+testTask <- makeRegrTask(data = test_set, target = "N_HB_K12_All", weights = test_weights)
 
 # The classes are imbalanced with 0 being the dominant class. Use oversampling.
 # table(getTaskTargets(trainTask))
@@ -218,13 +250,13 @@ xgb_params <- makeParamSet(
 )
 
 # Create a control for searching the hyper-parameter space
-control <- makeTuneControlRandom(maxit = 10)
+control <- makeTuneControlRandom(maxit = 20)
 
 # Create a resampling plan
 resample_desc <- makeResampleDesc("CV", iters = 3)
 
 # Tune the hyper-parameters
-parallelStartMulticore(8)
+# parallelStartMulticore(8)
 tuned_params <- tuneParams(
   learner = xgb_learner,
   task = trainTask,
@@ -232,7 +264,7 @@ tuned_params <- tuneParams(
   par.set = xgb_params,
   control = control
 )
-parallelStop()
+# parallelStop()
 
 # Create a new learner using the tuned hyper-parameters
 xgb_learner_tuned <- setHyperPars(
@@ -245,30 +277,29 @@ xgb_model <- train(xgb_learner_tuned, task = trainTask)
 
 # Save the model so that this chunk does not have to be evaluated every
 # time the page is knit.
-# saveRDS(xgb_model, "data/output/resident_production/xgb_person_level.RDS")
-# saveRDS(xgb_model, "data/output/resident_production/xgb_hh_level.RDS")
-saveRDS(xgb_model, "xgb_model.RDS")
+saveRDS(xgb_model, "data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r load xgboost model, eval=FALSE}
-# xgb_model <- readRDS("data/output/resident_production/xgb_person_level.RDS")
-# xgb_model <- readRDS("data/output/resident_production/xgb_hh_level.RDS")
-xgb_model <- readRDS("xgb_model.RDS")
+xgb_model <- readRDS("data/input/resident_productions/xgb_model.RDS")
 ```
 
 ```{r feature importance, eval=FALSE}
 # Show feature importance
-imp_tbl <- getFeatureImportance(xgb_model)
-imp_tbl <- imp_tbl$res #%>%
-  # gather(key = "Feature", value = "Importance") %>%
-  # arrange(Importance)
+imp_tbl <- getFeatureImportance(xgb_model)$res %>%
+  as.data.frame()
 
 plot_ly() %>%
   add_trace(
-    data = imp_tbl, y = ~variable, x = ~importance, type = "bar",
+    data = imp_tbl, y = ~reorder(variable, importance), x = ~importance, type = "bar",
     orientation = "h"
   ) %>%
-  layout(margin = list(l = 110))
+  layout(
+    title = "K12 Feature Importance",
+    yaxis = list(title = NA),
+    xaxis = list(title = "Importance"),
+    margin = list(l = 110)
+  )
 
 # Make prediction on test data set. Importantly, this will return
 # the probabilities as well as set the class the the one with highest
@@ -303,26 +334,16 @@ hh_result <- tibble(
 ```
 
 
-```{r, eval=FALSE}
-trainTask <- makeClassifTask(data = train_set, target = "N_HB_OME_All", weights = train_weights)
-testTask <- makeClassifTask(data = test_set, target = "N_HB_OME_All", weights = test_weights)
-
-
-# Create learner
-# logreg_learner <- makeLearner("classif.logreg")
-logreg_learner <- makeLearner("classif.binomial")
-
-# Create model
-logreg_model <- train(logreg_learner, task = trainTask)
-
-logreg_result <- predict(logreg_model, testTask)
-conf_mtx <- calculateConfusionMatrix(logreg_result)
-conf_mtx
-measureF1(logreg_result$data$truth, logreg_result$data$response, positive = "1")
-```
-
-
 ## Using DT to guide segmentation
+
+After attempting various forms of generalized linear models (GLM) and logistic
+regression models, Caliper opted to use decision trees from the machine learning
+stack. This model form had much stronger predictive power compared to
+traditional approaches while still being easy to understand and explain.
+
+```{r}
+#TODO: we can add prose that links to the TRB paper when/if it is published
+```
 
 ```{r, include=FALSE}
 # install.packages("rpart")
@@ -403,9 +424,9 @@ est_tbl <- person_df %>%
     logsum %>%
       transmute(
         TAZ = TAZ, 
-        g_access = GeneralAccessibility_sov,
-        n_access = NearbyAccessibility_sov,
-        e_access = EmploymentAccessibility_sov
+        g_access = access_general_sov,
+        n_access = access_nearby_sov,
+        e_access = access_employment_sov
       ),
     by = c("p_taz" = "TAZ")
   ) %>%
@@ -456,13 +477,13 @@ Their meanings are listed below for reference:
   - n_access: nearby accessibility of the person's home zone
   - e_access: employment accessibility of the person's home zone
 
-*TODO: Add prose for each chart after they are finalized*
-
 ## Work Tours
 
-### Work
+### W_HB_W_All
 
-W_HB_W_All
+These are the traditional HBW (home-based work) trips. Unsuprisingly, the most
+important factor is whether or not the individual is a worker. After that,
+the person's age and living arrangements best predict trip rate.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -521,9 +542,16 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 
 R-squared: `r r_sq`
 
-### Other
+### W_HB_O_All
 
-W_HB_O_All
+When someone makes a stop on their way to or from work, they are making a
+homebased other trip on a work tour. Work status is the most important predictor
+followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays
+a role in determining the frequency of these extra stops. In the bottom right
+of the tree, workers that live in areas with lower accessibility make more
+of these intermediate stops on work tours. This is the expected behavior. People
+living in rural areas are more likely to make these extra stops while out on
+work tours.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -582,9 +610,13 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 
 R-squared: `r r_sq`
 
-### K12 Drop Off
+### W_HB_EK12_All
 
-W_HB_EK12_All
+This trip type describes adults who drop off children on the way to work or
+pick them up on the way home (school escort trips). Having children and being
+a worker are both required to qualify to make this trip, and they show up as
+the most important questions in the decision tree. Finally, the age of the adult
+plays a small role in determining final trip rates.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -645,9 +677,19 @@ R-squared: `r r_sq`
 
 ## Non-Work Tours
 
-### K12
+### N_HB_K12_All
 
-N_HB_K12_All
+This trip type is made by two types of people:
+
+- Students traveling to school
+- Parents taking their kids to school (not on a work tour)
+
+The decision tree model recognizes this basic structure in the data and uses
+age to split people into these two groups. For adults (left side of the tree),
+having kids is required to make this trip. Their work status and age further
+refine their trip rate. For children (right side of the tree), age is the primary
+factor. Children under 5 do not attend K12, but they do make these trips if they
+have older siblings.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -706,9 +748,13 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 
 R-squared: `r r_sq`
 
-### Shopping/Dining
+### N_HB_OME_All
 
-N_HB_OME_All
+This trip type captures shopping, dining, and maintenance activities. These are
+trips where the primary purpose includes spending money. These trips are harder
+to predict based on the data collected in the survey, and this results in lower
+r-squared values. Nonetheless, factors like age, accessibility, work status, and
+income do help to differentiate trip rates.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -767,9 +813,12 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 
 R-squared: `r r_sq`
 
-### Other (long duration)
+### N_HB_OD_Long
 
-N_HB_OD_Long
+These are other, discretionary trips with a long duration time (over 30
+minutes). A common example is visiting the home of friends or family. Work
+status, age, and accessibility are the primary factors used to differentiate
+trip rates.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -949,9 +998,14 @@ class_test <- test %>%
   )
 ```
 
-### Other (short duration)
+### N_HB_OD_Short
 
-N_HB_OD_Short
+These are other, discretionary trips with a short activity duration. These are
+similar to N_HB_OD_Long, and include things like trips to a friend's house,
+church, or other locations. Like other discretionary tours, the low r-squared
+indicates some difficulty in making predictions. However, of the variables
+available, accessibility, age, income, and children in the household contribute
+the most to differences in trip making.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -1010,9 +1064,14 @@ r_sq <- round(cor(check$y, check$y_hat)^2, 3)
 
 R-squared: `r r_sq`
 
-### Medical
+### N_HB_OMED_All
 
-N_HB_OMED_All
+These are medical trips, and as a result, retirement and age play an important
+role in predicting trip rates. This trip type has the poorest r-squared
+regardless of model form used. The survey EDA shows that other aspects of this
+trip type are unique enough to keep it separated - even this model simply
+applied the total average trip rate of 0.066 trips to every person. This model
+is a small improvement on that.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -1077,6 +1136,9 @@ The table below shows the production model results compared back to the total
 trips in the survey. Overall, the model performs extremely well even without
 calibration.
 
+*TODO: These results are close enough that we are not going to adjust them unless
+we need to for validation. We will revisit this section then if needed.*
+
 ```{r, include=FALSE}
 model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibrated.csv")
 ```
@@ -1116,6 +1178,49 @@ calibration_trips %>%
   ) %>%
   kable(digits = 0, format.args = list(big.mark = ",")) %>%
   kable_styling(full_width = FALSE)
+```
+
+```{r, eval=FALSE}
+# For the TRB paper, a cross-class model was estimated for N_HB_K12_All
+xclass <- est_tbl %>% 
+  mutate(
+    num_children = ifelse(num_children > 2, 2, num_children),
+    age_group = case_when(
+      age < 5 ~ "Small Child",
+      age < 19 ~ "School Age",
+      TRUE ~ "Adult"
+    )
+  ) %>%
+  group_by(age_group, num_children) %>%
+  summarize(
+    count = n(),
+    rate = weighted.mean(N_HB_K12_All, weight = hh_weight_combined.x, na.rm = TRUE)
+  ) %>%
+  mutate(
+    rate = ifelse(age_group == "School Age" & num_children == 0, 0, rate),
+    count = ifelse(age_group == "School Age" & num_children == 0, 0, count)
+  )
+
+xclass %>%
+  select(-count) %>%
+  pivot_wider(names_from = num_children, values_from = rate)
+
+xclass %>%
+  select(-rate) %>%
+  pivot_wider(names_from = num_children, values_from = count)
+
+xclass_predict <- est_tbl %>%
+  mutate(
+    num_children = ifelse(num_children > 2, 2, num_children),
+    age_group = case_when(
+      age < 5 ~ "Small Child",
+      age < 19 ~ "School Age",
+      TRUE ~ "Adult"
+    )
+  ) %>%
+  left_join(xclass, by = c("age_group", "num_children"))
+  
+cor(xclass_predict$N_HB_K12_All, xclass_predict$rate) ^ 2
 ```
 
 

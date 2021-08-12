@@ -47,21 +47,29 @@ Macro "Create Folder Structure" (Args)
   // Array of output directories to create
   a_dir = {
     "/accessibility",
+    "/airport",
     "/tazs",
     "/sedata",
     "/networks",
-    "/skims",
+    "/skims/roadway",
+    "/skims/transit",
+    "/skims/nonmotorized",
     "/external",
+    "/cv",
     "/university",
     "/resident/disagg_model",
     "/resident/population_synthesis",
-    "/resident/generation",
     "/resident/destination",
     "/resident/mode",
+    "/resident/mode/probabilities",
+    "/resident/mode/logsums",
+    "/resident/mode/utilities",
+    "/resident/mode/model_files",
     "/directionality",
     "/assignment",
     "/assignment/transit",
-    "/_summary",
+    "/assignment/roadway",
+    "/_summaries",
   }
 
   for d = 1 to a_dir.length do
@@ -192,7 +200,7 @@ Macro "Create Scenario Transit" (Args)
 
   // Remove modes from the mode table that don't exist in the scenario. This
   // will in turn control which networks (tnw) get created.
-  temp_vw = OpenTable("mode", "CSV", {Args.tmode_table, })
+  temp_vw = OpenTable("mode", "CSV", {Args.TransModeTable, })
   mode_vw = ExportView(temp_vw + "|", "MEM", "mode_table", , )
   SetView(mode_vw)
   del_set = CreateSet("to_delete")
@@ -211,8 +219,9 @@ Macro "Create Scenario Transit" (Args)
   end
   SetView(mode_vw)
   DeleteRecordsInSet(del_set)
-  ExportView(mode_vw + "|", "CSV", Args.tmode_table, , {"CSV Header": true})
+  ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
   CloseView(mode_vw)
+  DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
 
   CloseMap(map)
 EndMacro

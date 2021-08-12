@@ -31,48 +31,167 @@
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
-        Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural", 45},
-                                                     {"Suburban", 35},
-                                                     {"Urban", 25},
-                                                     {"Downtown", 15}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
+        Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
+                                                    {"Suburban",35},
+                                                    {"Urban",25},
+                                                    {"Downtown",15}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
-        Args.tmode_table = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
+        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
+        Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
+        Args.TransponderRatioSUT = { "Type":"double" , "Value":0.70, "Description":"Ratio of SUTs with a toll transponder (0-1)" }
+        Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
     
     Section = "Accessibilities"
-
+    
         Args.[Access Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\attraction_rates.csv", "Description":"Attraction rates used for accessibility calculations." }
-
+    
     Section = "Population Synthesis|Input"
-
+    
         Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }        
+        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"%RMSE value" }
-
+    
     Section = "Population Synthesis|Output"
-
+    
         Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Synthesized HHs] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Synthesized Persons] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.Households = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-
+    
     Section = "Resident Productions"
+    
+        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
+    
+    Section = "Time of Day"
+    
+        Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
+        Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
+        Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
+    
+    Section = "Commercial Vehicles/Trucks"
 
-        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }        
+        Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
+        Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
+        Args.[CV Gravity Params] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_gravity.csv", "Description":"CV gravity parameters" }
 
-    Section = "Non-Motorized Choice"
+    Section = "Choice Model Sources|Tables"
 
-        Args.[NM Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\nonmotorized\\attraction_rates.csv", "Description":"Attraction rates used for non-motorized choice." }
+        Args.TableSources = { "Type":"array" , "Value":{{"PersonHH","PersonID"},
+                                                        {"Households","HouseholdID"},
+                                                        {"SE", "TAZ"}}, "Style":"TableSources" }
+
+        Args.Joins = { "Type":"array" , "Value":{{"PersonHH","Persons","HouseholdID","Households","HouseholdID"}}, "Style":"JoinInfo" }
+
+    Section = "Choice Model Sources|Matrices"
+        Args.MatrixSources = { "Type":"array" , "Value":{{"{P}{M}Skim","UniversalTAZ","UniversalTAZ"},
+                                                        {"WalkSkim","UniversalTAZ","UniversalTAZ"},
+                                                        {"BikeSkim","UniversalTAZ","UniversalTAZ"}}, "Caption":"Matrix Sources: {P} represents time period, {M} represents mode; See 'SourceKeys' table below", "Style":"MatrixSources" }
+
+        Args.SourceKeys = { "Type":"array" , "Value":{{"{P}","AM, PM, OP"},
+                                                    {"{M}","Auto, PT"}}, "Style":"Keys" }
+
+
+    Section = "Choice Models|Nonmotorized"
+
+        Args.N_HB_K12_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.70873},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-0.767476},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.58507},
+                                                                    {"Age16-18","Persons.age_16_18",null,-0.35873}},
+                                                                     "Caption":"N_HB_K12_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_ODL_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-1.7295},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.13208},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.417888},
+                                                                    {"Age16-18","Persons.age_16_18",null,-0.464741},
+                                                                    {"IsWorker","Persons.is_worker",null,-0.283346},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000004},
+                                                                    {"Walkability","SE.Walkability",null,0.000004}},
+                                                                     "Caption":"N_HB_ODL_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_ODS_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-0.22062},
+                                                                    {"IsSenior","Persons.is_senior",null,-0.361298},
+                                                                    {"IsWorker","Persons.is_worker",null,-0.188259},
+                                                                    {"Walkability","SE.Walkability",null,0.517794},
+                                                                    {"HHwKids","Households.HHKids = 0",null,-0.579603},
+                                                                    {"NoAutos","Households.Autos = 0",null,0.890337},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.00001}},
+                                                                     "Caption":"N_HB_ODS_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_OME_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.58353},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.93693},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.547638},
+                                                                    {"IsWorker","Persons.is_worker",null,0.311869},
+                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000008},
+                                                                    {"Walkability","SE.Walkability",null,7.29904}},
+                                                                     "Caption":"N_HB_OME_nm_utils", "Style":"NonMotorized" }
+
+        Args.N_HB_OMED_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-11.207},
+                                                                    {"NoAutos","Households.Autos = 0",null,1.72786},
+                                                                    {"IsSenior","Persons.is_senior",null,-157479},
+                                                                    {"WalkAccessibility","SE.access_walk",null,4.63766}},
+                                                                     "Caption":"N_HB_OMED_nm_utils", "Style":"NonMotorized" }
+
+        Args.W_HB_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.12264},
+                                                                    {"IsSenior","Persons.is_senior",null,-0.595414},
+                                                                    {"HHwKids","Households.HHKids = 0",null,-0.641186},
+                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.44481},
+                                                                    {"WalkAccessibility","SE.access_walk",null,0.999659}},
+                                                                     "Caption":"W_HB_nm_utils", "Style":"NonMotorized" }
+
+    Section = "Choice Models|examples"
+
+        Args.WorkModes = { "Type":"array" , "Value":{{"Root","Drive, NonMotorized, NonDriveNM",null},
+                                                        {"Drive","DriveAlone, Carpool",0.5},
+                                                        {"NonMotorized","Walk, Bike",0.7},
+                                                        {"NonDriveNM","Bus, Other, TwoWheeler",0.66}}, "Caption":"Work Modes", "Style":"Nesting Structure" }
+        
+        Args.WorkModeUtility = { "Type":"array" , "Value":{{"ASC","Constant",4.5974,4.3309,2.7027,-0.169,-2.5627,-3.4031,-2.1121},
+                                                            {"Highway Time","{P}AutoSkim.{P}Time",-0.002052,-0.002052,null,null,null,-0.002052,-0.002052},
+                                                            {"Transit IVTT","AMPTSkim.[Total Time]",null,null,null,null,-0.002052,null,null},
+                                                            {"Distance Walk","WalkSkim.[Length (Skim)]",null,null,-0.172192,null,null,null,null},
+                                                            {"Distance Bike","BikeSkim.[Length (Skim)]",null,null,null,-0.180012,null,null,null},
+                                                            {"Bus Fare","{P}PTSkim.Fare",null,null,null,null,-0.498423,null,null},
+                                                            {"Kid","PersonHH.Age < 18",null,0.644639,null,null,null,null,null},
+                                                            {"Transit Init Wait plus Access","{P}PTSkim.[Initial Wait Time] + {P}PTSkim.[Access Walk Time]",null,null,null,null,-0.015498,null,null}}, "Caption":"Habitual Work Mode Utility", "Style":"WorkMode" }
+        
+        Args.WorkModeAvailability = { "Type":"array" , "Value":{{"Walk","WalkSkim.[Length (Skim)] <= 2"},
+                                                                {"Bike","BikeSkim.[Length (Skim)] <= 10"},
+                                                                {"Bus","AMPTSkim.[In-Vehicle Time] <= 60 and AMPTSkim.[Total Time] <= 90"},
+                                                                {"DriveAlone","PersonHH.VehicleAvail = 1"},
+                                                                {"Carpool","PersonHH.CarpoolEligibility > 0 and PersonHH.AttendSchool <> 1"},
+                                                                {"TwoWheeler","AMAutoSkim.[Length (Skim)] <= 15 and PersonHH.Age <= 30"},
+                                                                {"Other","PersonHH.VehicleAvail = 0 and PersonHH.CarpoolEligibility = 0"}}, "Caption":"Work Mode Availability", "Style":"Availability" }
+
+    Section = "Destination Choice"
+
+        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates" }
+
+    Section = "Parking Model|Coefficients"
+    
+        Args.ParkWalkCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.03,-0.03,-0.0367,-0.0367},
+                                                          {"BetaCost",-0.21,-0.21,-0.1833,-0.1833}}, "Caption":"Destination Choice coefficients for 'Park and Walk' mode", "Style":"ParkingCoeffs" }
+        Args.ParkShuttleCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.02635,-0.02635,-0.0275,-0.0275},
+                                                             {"BetaCost",-0.125,-0.125,-0.11,-0.11},
+                                                             {"BetaHeadway",-0.0075,-0.0075,-0.009167,-0.009167}}, "Caption":"Destination Choice coefficients for 'Park and Shuttle' mode", "Style":"ParkingCoeffs" }
+        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-0.4050,-0.4050,-0.2200,-0.2200}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
+
+    Section = "Parking Model|Output"
+    
+        Args.[Parking DC Util Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCUtility.mtx", "Caption":"Parking Destination Choice Utility Matrix" }
+        Args.[Parking DC Prob Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx", "Caption":"Parking Destination Choice Probability Matrix" }
+        Args.[Parking Logsums Table] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin", "Caption":"Parking Logsums Table" }
 
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
         Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
+        Args.FeedbackIteration = { "Type":"hidden" , "Value":1 }
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }

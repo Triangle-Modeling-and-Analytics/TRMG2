@@ -1,0 +1,10 @@
+Term,veh0,veh1,veh2,veh3,veh4
+Workers,,0.66498,3.23971,4.24853,5.21541
+Non-Working Adults,,0,2.05954,2.8056,3.59778
+Children,,,,-0.153111,-0.153111
+Seniors,,0.143987,0.143987,,
+Income,,1.68663,2.53124,2.72387,2.95781
+Walk Accessibility,,,-0.395344,-0.60468,-1.0608
+Transit Accessibility,,-0.369765,-0.42533,-0.535768,-0.535768
+,,,,,
+Adjusted Rho^2,0.41,,,,

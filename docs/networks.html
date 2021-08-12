@@ -385,9 +385,6 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
-    </li>
-    <li>
       <a href="population_synthesis.html">Synthesis</a>
     </li>
     <li>
@@ -419,25 +416,26 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with satellite imagery in order to fashion a new master network for both roadways and transit.</p>
+<p>The highway and transit networks are critical inputs for any travel model. They provide travel time, accessibility, and other impedance information. The Caliper team used the various existing data sources from the model stakeholders together with other sources including the TIGER line files and review with satellite imagery in order to fashion a new master layer for both roadways and transit.</p>
+<p>This documentation uses the term “network” specifically to refer to the machine- readable files (.net and .tnw) TransCAD uses for shortest pathing and assignment. The GIS files that planners and modelers review and edit are referred to as layers. This language is something Caliper is trying to promote to clarify which data component is being referenced.</p>
 </div>
-<div id="roadway-network" class="section level2">
-<h2>Roadway Network</h2>
-<div id="creation-of-the-master-network" class="section level3">
-<h3>Creation of the master network</h3>
-<p>Like TRMv6, the TRMG2 model uses a master network that contains all projects stakeholders might consider during transportation plan development (including competing ideas). This allows each scenario network to be exported from the master with little or no manual editing. Information on using the project management tool is covered in the user guide.</p>
-<p>The previous highway network made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the network. It also makes the model’s GISDK code easier to read.</p>
+<div id="roadway-layer" class="section level2">
+<h2>Roadway Layer</h2>
+<div id="creation-of-the-master-layer" class="section level3">
+<h3>Creation of the master layer</h3>
+<p>Like TRMv6, the TRMG2 model uses a master layer that contains all projects stakeholders might consider during transportation plan development (including competing ideas). This allows each scenario layer to be exported from the master with little or no manual editing. Information on using the project management tool is covered in the user guide.</p>
+<p>The previous highway layer made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the layer. It also makes the model’s GISDK code easier to read.</p>
 <p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user guide.</p>
-<p>The Caliper team also updated the master network to reflect a 2016 base year, the target year for model estimation (the final network is a 2020 base year and will be accompanied by a 2020 year model validation process). In other words, if you export a scenario network without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master network with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the network permanently.</p>
+<p>The Caliper team also updated the master layer to reflect a 2016 base year, the target year for model estimation (the final layer is a 2020 base year and will be accompanied by a 2020 year model validation process). In other words, if you export a scenario layer without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master layer with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the layer permanently.</p>
 </div>
 <div id="update-of-count-data" class="section level3">
 <h3>Update of count data</h3>
 <p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection effort undertaken specifically for model validation. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
-<p>The previous model used a separate table to hold count data which then had to be joined to the network to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master network directly. This makes it easier to compare (either manually or in code) between model volumes and count data. Additional information (such as hourly counts) can still be maintained in a separate table and joined to the network only as needed.</p>
+<p>The previous model used a separate table to hold count data which then had to be joined to the layer to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master layer directly. This makes it easier to compare (either manually or in code) between model volumes and count data. Additional information (such as hourly counts) can still be maintained in a separate table and joined to the layer only as needed.</p>
 </div>
-<div id="network-conflation" class="section level3">
-<h3>Network conflation</h3>
-<p>Caliper reviewed every link in the network line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added if they were missing.</p>
+<div id="link-layer-conflation" class="section level3">
+<h3>Link layer conflation</h3>
+<p>Caliper reviewed every link in the road line layer comparing against satellite imagery. Alignments were adjusted to match the imagery. Many links were adjusted, but most adjustments were small. The alignment of many ramps were corrected and collector/distributor systems were added if they were missing.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/capital_before.png" alt="Capital before and after" width="49%" height="20%" /><img src="img/networks/capital_after.png" alt="Capital before and after" width="49%" height="20%" />
 <p class="caption">
@@ -447,7 +445,7 @@ Capital before and after
 </div>
 <div id="adding-all-streets" class="section level3">
 <h3>Adding all streets</h3>
-<p>After conflating the existing links to improve alignments with aerials, Caliper upgraded the network to include all streets. These additional streets provide a much better representation of the walk and transit paths travelers actually take, and are shown in orange below.</p>
+<p>After conflating the existing links to improve alignments with aerials, Caliper upgraded the road layer to include all streets. These additional streets provide a much better representation of the walk and transit paths travelers actually take, and are shown in orange below.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/all_streets.png" alt="All-Streets Network" width="60%" height="40%" />
 <p class="caption">
@@ -459,12 +457,12 @@ All-Streets Network
 <li><code>PrimaryLink = 1</code>: Gray links</li>
 <li><code>PrimaryLink = 0</code>: Orange links</li>
 </ul>
-<p>These queries will also be used to make roadway and transit network creation easier. The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers.</p>
+<p>These queries will also be used to make roadway and transit layer creation easier. The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers.</p>
 </div>
-<div id="review-of-the-master-network" class="section level3">
-<h3>Review of the master network</h3>
-<p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master network had its length checked against the new network. Of the well over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
-<p>Shortest paths were also built with the TRMv6 and TRMG2 networks using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the networks. The increased confidence that nothing was broken. Additionally, every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new network was correct while the original TRMv6 network allowed a U-turn where it should not have. See the before and after images below.</p>
+<div id="review-of-all-streets" class="section level3">
+<h3>Review of All Streets</h3>
+<p>With all the changes mentioned above, it was important to check that the new master projects remained consistent. To be exhaustive, Caliper wrote code to do this programmatically. For instance, every project in the old master layer had its length checked against the new layer. Of the well over 1000 projects, only 6 had length discrepancies. Each was investigated and corrected as necessary.</p>
+<p>Shortest paths were also built with the TRMv6 and TRMG2 layers using free-flow times based on posted speeds. Comparison of the resulting matrices showed that overall the RMSE was only 0.25%, which is very small, indicating close consistency between the layers. The increased confidence that nothing was broken. Additionally, every OD pair with an absolute percentage change greater than 30% was reviewed. The largest relative difference was 62% for one OD pair (between zone 1535 and 1444); in that case, the review revealed that the new layer was correct while the original TRMv6 layer allowed a U-turn where it should not have. See the before and after images below.</p>
 <div class="figure" style="text-align: center">
 <img src="img/networks/path_before.png" alt="Pathing before and after" width="49%" height="20%" /><img src="img/networks/path_after.png" alt="Pathing before and after" width="49%" height="20%" />
 <p class="caption">
@@ -473,9 +471,409 @@ Pathing before and after
 </div>
 <p>A small number of OD pairs were reviewed with changes &lt;30%, but each one was reasonable.</p>
 </div>
+<div id="posted-speed-and-lanes-review" class="section level3">
+<h3>Posted speed and lanes review</h3>
+<p>In addition to checks on the conflation and addition of all streets, Caliper also reviewed the network for attribute correctness. For this review, Caliper used <a href="https://connect.ncdot.gov/resources/gis/Pages/GIS-Data-Layers.aspx">NCDOTs Road Characteristics layer</a>. This was overlaid with the master layer to visually check for discrepancies. Google Streeview was also used occasionally to check lanes and speed limit signs.</p>
 </div>
-<div id="transit-networks" class="section level2">
-<h2>Transit Networks</h2>
+<div id="tolls" class="section level3">
+<h3>Tolls</h3>
+<p>Tolling is an important policy lever for the Triangle. The Triangle Expressway is an approximately 18 mile long freeway that charges a toll. In addition, the region is considering additional toll facilities include high-occupancy toll (HOT) lanes in the future.</p>
+<p>Toll rates were collected from the <a href="https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx">NC Quick Pass website</a>. The listed prices were used to come up with an average cost per mile for 2-axle vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more axles pay four times that rate.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Payment Method
+</th>
+<th style="text-align:left;">
+Cost
+</th>
+<th style="text-align:right;">
+Distance (mi)
+</th>
+<th style="text-align:left;">
+Rate
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Transponder
+</td>
+<td style="text-align:left;">
+$3.25
+</td>
+<td style="text-align:right;">
+17.8
+</td>
+<td style="text-align:left;">
+$0.183
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+By Mail
+</td>
+<td style="text-align:left;">
+$5.00
+</td>
+<td style="text-align:right;">
+17.8
+</td>
+<td style="text-align:left;">
+$0.281
+</td>
+</tr>
+</tbody>
+</table>
+<p>The TRMG2 does not predict transponder ownership, but instead has parameters that can be modified during scenario testing. For the base year, the parameters were calculated using data obtained from NC Turnpike Authority. These allowed transponder utilization to be calculated by vehicle class as shown in the table below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Vechile Class
+</th>
+<th style="text-align:right;">
+Transponder %
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Auto
+</td>
+<td style="text-align:right;">
+72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUT
+</td>
+<td style="text-align:right;">
+70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUT
+</td>
+<td style="text-align:right;">
+76
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bus-speeds" class="section level3">
+<h3>Bus Speeds</h3>
+<p>For express and local buses, the TRMG2 uses factors to determine bus speeds based on auto speeds. The table below shows the factors, which vary by roadway classification and area type, and were borrowed from the <a href="https://scag.ca.gov/data-tools-modeling">SCAG model</a> in California. These were then reviewed for reasonableness by local transit agencies.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+HCMType
+</th>
+<th style="text-align:left;">
+AreaType
+</th>
+<th style="text-align:right;">
+Local Bus Factor
+</th>
+<th style="text-align:right;">
+Express Bus Factor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="transit-layer" class="section level2">
+<h2>Transit Layer</h2>
 <p>TRMG2 adds a master layer for transit routes along with a project manager specially designed to transfer routes accurately between line layers. This enhancement greatly reduces the burden of coding and managing projects between various base and future year scenarios.</p>
 <p>More detail on how to use the new tools are included in the user’s guide, but information on the creation of the master route system requires a basic understanding of the tool. In short, the transit project manager finds the shortest path between route stops to reconstruct the route on a new layer. This approach struggles when route stops are not frequent enough to get an accurate path, but TRMG2 solves this problem using “shape stops”. These are extra stops along the route that are used to improve alignment, but are then removed.</p>
 <p>The maps below give a good example of a potential problem when transferring routes between layers using only stop locations only. The shortest path between stops is not always the route a bus takes.</p>
@@ -681,6 +1079,56 @@ missing_stops
 </tr>
 </tbody>
 </table>
+<div id="transit-networking-checking" class="section level3 tabset">
+<h3>Transit networking checking</h3>
+<p>Transit networks are the files TransCAD uses for shortest path, assignment, and other procedures (extension: “tnw”). During the model run, the route system file is converted into many different networks. In TRMG2, a separate transit network file is created for each combination of</p>
+<ul>
+<li>Time of Day
+<ul>
+<li>AM</li>
+<li>MD</li>
+<li>PM</li>
+<li>NT</li>
+</ul></li>
+<li>Transit Mode
+<ul>
+<li>Local Bus</li>
+<li>Express Bus</li>
+<li>Bus Rapid Transit (if present)</li>
+<li>Commuter Rail (if present)</li>
+<li>Light Rail (if present)</li>
+</ul></li>
+<li>Access Mode
+<ul>
+<li>Walk</li>
+<li>Kiss-and-Ride (aka drop off)</li>
+<li>Park-and-Ride</li>
+</ul></li>
+</ul>
+<p>Creating separate files facilitates the critical step of auditing the networks. The model translates the route, stop, link, and node layers into a transit network, and it is important to make sure the networks are behaving appropriately. In the TRMG2, for example, the AM and PM PNR networks behave differently. In the AM, where trips are primarily from home to destinations like work, drive access works in the PA direction:</p>
+<ol style="list-style-type: decimal">
+<li>Drive to a PNR lot</li>
+<li>Walk to the bus access stop</li>
+<li>Ride the bus to the egress stop</li>
+<li>Walk to the final destination</li>
+</ol>
+<p>In the PM network, trips are primarily back to home. For this reason, the drive access flow is reversed.</p>
+<ol style="list-style-type: decimal">
+<li>Walk to the access stop</li>
+<li>Ride the bus to the egress stop</li>
+<li>Walk to the PNR lot</li>
+<li>Drive home</li>
+</ol>
+<p>TransCAD can handle this behavior, but it is always important to check that the model code is setup correctly. Separate network files allowed the two maps below to be created quickly to confirm proper behavior.</p>
+<div id="pnr-am" class="section level4">
+<h4>PNR AM</h4>
+<p><img src="img/networks/pnr_am.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="pnr-pm" class="section level4">
+<h4>PNR PM</h4>
+<p><img src="img/networks/pnr_pm.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
 </div>
 
 <br>

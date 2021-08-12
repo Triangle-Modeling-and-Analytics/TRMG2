@@ -1,0 +1,8 @@
+Alternative,Expression,Segment,Coefficient,Description
+motorized,Constant,,0,
+nonmotorized,person.veh_per_adult,,-1.937,HH vehicles per adult
+nonmotorized,person.is_worker,,0.312,Person is a worker
+nonmotorized,person.inc_per_capita,,0.000008,Income per person in the household
+nonmotorized,se.access_walk.O,,0.548,Interzonal walk accessiblity
+nonmotorized,se.Walkability.O,,7.3,Intrazonal walkability
+nonmotorized,Constant,,-2.584,
