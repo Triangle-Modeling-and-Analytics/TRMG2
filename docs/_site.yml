@@ -13,6 +13,8 @@ navbar:
       menu:
         - text: "Household Survey"
           href: survey_processing.html
+        - text: "On-Board Survey"
+          href: obs_processing.html
     - text: Resident Models
       menu:
         - text: "Synthesis"

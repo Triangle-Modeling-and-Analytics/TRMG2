@@ -9,25 +9,33 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 options(dplyr.summarise.inform = FALSE)
 options(scipen = 999)
 
 library(tidyverse)
+library(knitr)
+library(kableExtra)
 library(readxl)
 library(sf)
 ```
 
 ## Introduction
 
-**TODO: Vince to add general info about the role of o-b surveys**
+On-board surveys ask transit riders a series of question while they are on the
+bus in order to obtain detailed information about demographics, trip purpose,
+modes used, and other variables. These targeted surveys are critical for
+understanding transit users in the region. Due to the small size of the transit
+market in the Triangle, the household survey does not contain enough transit
+trips to estimate the behavior of these travelers.
 
-In the Triangle, a survey of GoTriangle and DCHC transit agencies was collected
-in 2014 while GoTriangle and CAMPO agencies were collected in 2015.
+In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014
+(excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with
+new GoTriangle routes.
 
 ## Combining surveys
 
-Unlike the household surveys, the two transit surveys were collected by different
+Unlike the household surveys, the transit surveys were collected by different
 companies. Combining the surveys required translating the different field codes
 from each into a combined set of values. The surveys collected the same basic
 information, which made this process easier. Additionally, because different
@@ -256,7 +264,8 @@ combined <- bind_rows(goraleigh_2015, gotriangle_2014) %>%
 
 As with the household survey, the transit trip latitude/longitude values were
 translated into TRMG2 TAZs. For a transit trip, this includes the home, origin,
-destination, boarding, and alighting locations.
+destination, boarding, and alighting locations. A sample of this is shown in
+the table below:
 
 ```{r, include=FALSE}
 tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
@@ -333,6 +342,7 @@ add_taz_id <- combined %>%
 
 add_taz_id %>%
   select(route, weight, home_taz:dest_taz) %>%
+  mutate(weight = round(weight, 2)) %>%
   head() %>%
   kable() %>%
   kable_styling(full_width = FALSE)
@@ -396,13 +406,107 @@ add_mode <- add_trip_purp %>%
   relocate(access_mode, .before = mode)
 ```
 
-## OBS Assignment
+## Reasonableness checks {.tabset}
 
-As a check on both the on-board survey processing and the model's route network,
-the on-board survey was assigned. This involved processing the survey into the
-appropriate matrices by time of day, transit mode, and accesss mode. The model
-assignment macros in TransCAD were used to assign these to the route system, and
-the results were compared to reported ridership by route.
+A high level review of the combined survey was performed to make sure processing
+had not introduced errors. Some of those checks are shown in the charts below.
+All dimensions checked looked reasonable.
+
+### Agency
+
+```{r}
+temp <- add_mode %>%
+  mutate(agency = ifelse(agency == "TTA", "GoTriangle", agency)) %>%
+  group_by(agency) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(
+    pct = round(weight / sum(weight) * 100, 0)
+  )
+
+ggplot(temp, aes(x = reorder(agency, -pct), y = pct)) +
+  geom_bar(stat = "identity", aes(fill = agency)) +
+  theme(legend.position = "none") + 
+  labs(
+    title = "Agency Distribution",
+    x = "Agency",
+    y = "Percent"
+  ) +
+  theme(plot.title = element_text(hjust = .5))
+```
+
+
+### Time of Day
+
+```{r}
+temp <- add_mode %>%
+  group_by(tod) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(
+    pct = round(weight / sum(weight) * 100, 0),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"))
+  ) %>%
+  arrange(tod)
+
+ggplot(temp, aes(x = tod, y = pct)) +
+  geom_bar(stat = "identity", aes(fill = tod)) +
+  theme(legend.position = "none") + 
+  labs(
+    title = "Time of Day Distribution",
+    x = "Time of Day",
+    y = "Percent"
+  ) +
+  theme(plot.title = element_text(hjust = .5))
+```
+
+### Access Mode
+
+```{r}
+temp <- add_mode %>%
+  group_by(access_mode) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(
+    pct = round(weight / sum(weight) * 100, 0),
+  )
+
+ggplot(temp, aes(x = reorder(access_mode, -pct), y = pct)) +
+  geom_bar(stat = "identity", fill = "gold") +
+  labs(
+    title = "Access Mode Distribution",
+    x = "Access Mode",
+    y = "Percent"
+  ) +
+  theme(plot.title = element_text(hjust = .5))
+```
+
+### Fare Type
+
+```{r}
+temp <- add_mode %>%
+  group_by(fare_type) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(
+    pct = round(weight / sum(weight) * 100, 0)
+  )
+
+ggplot(temp, aes(x = reorder(fare_type, -pct), y = pct)) +
+  geom_bar(stat = "identity", aes(fill = fare_type)) +
+  theme(legend.position = "none") + 
+  labs(
+    title = "Fare Type Distribution",
+    x = "Fare Type",
+    y = "Percent"
+  ) +
+  theme(plot.title = element_text(hjust = .5))
+```
+
+
+## Survey Assignment
+
+For an additional check on both the on-board survey processing and the model's
+route network, the on-board survey was assigned. This involved processing the
+survey into the appropriate matrices by time of day, transit mode, and accesss
+mode. The model assignment macros in TransCAD were used to assign these to the
+route system, and the results were compared to reported ridership by route.
 
 ```{r, eval=FALSE}
 # This code chunk was used to create transit matrices for a test assignment.
@@ -447,13 +551,65 @@ comparison <- reported_equiv %>%
     abs_diff = abs(diff),
     pct_diff = round(diff / reported * 100, 2)
   ) %>%
-  # Duke routes are not included in either survey combined, so don't inclue them
+  # Duke routes are not included in either survey combined, so don't include them
   # for RMSE calculation
   filter(!grepl("DUKE", model_route))
 
-# Metrics::rmse(comparison$model_boardings, comparison$reported) / mean(comparison$reported)
+route_prmse <-  round(
+  Metrics::rmse(comparison$model_boardings, comparison$reported) / 
+    mean(comparison$reported) * 100, 2
+)
+
+agency_comp <- comparison %>%
+  separate(
+    model_route, into = c("agency", "route"), sep = " ", remove = FALSE,
+    extra = "merge"
+  ) %>%
+  group_by(agency) %>%
+  summarize(reported = sum(reported), model_boardings = sum(model_boardings)) %>%
+  mutate(
+    reported = round(reported, 0),
+    model_boardings = round(model_boardings, 0),
+    diff = model_boardings - reported,
+    abs_diff = abs(diff),
+    pct_diff = round(diff / reported * 100, 2)
+  )
+
+agency_prmse <- round(
+  Metrics::rmse(agency_comp$model_boardings, agency_comp$reported) / 
+    mean(agency_comp$reported) * 100, 2
+)
 ```
 
+The percent root mean square error (%RMSE) for route-level boardings was
+`r route_prmse`%. The agency-level %RMSE was `r round(agency_prmse, 2)`%. The
+table below shows the agency-level comparison.
+
+```{r}
+agency_comp %>%
+  filter(!(agency %in% c("CLX", "FRX"))) %>%
+  rename(
+    Agency = agency,
+    Observed = reported,
+    Modelled = model_boardings,
+    Difference = diff,
+    `Absolute Difference` = abs_diff,
+    `Percent Difference` = pct_diff
+  ) %>%
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+These differences are large, but manual path checking did not uncover any
+errors. This test assignment was performed on a network with a rough initial
+guess of travel times, which likely contributed to these differences. More
+attention will be paid to agency- and route-level ridership comparisons during
+model validation. It may be that fares or other route attributes received from
+stakeholders need to be adjusted. One positive result of this early test was
+that all routes received ridership, which indicates no critical accessibility
+flaws in the network.
+
+*TODO: Revise this section after validation*
 
 ```{r, eval=FALSE}
 write_csv(add_mode, "data/output/_PRIVATE/obs_processing/obs_processed.csv", na = "")

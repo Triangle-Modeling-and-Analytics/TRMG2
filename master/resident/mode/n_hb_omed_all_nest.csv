@@ -2,7 +2,4 @@ Parent,Alternatives,ParentNestCoeff
 Root,"auto, nonhh_auto, transit",1
 auto,"sov, hov2, hov3",1
 nonhh_auto,"auto_pay, other_auto",1
-transit,"walk, pnr, knr",0.729
-walk,"w_lb, w_eb",0.653
-knr,"knr_lb, knr_eb",0.709
-pnr,"pnr_lb, pnr_eb",1
+transit,"w_lb, w_eb",1
