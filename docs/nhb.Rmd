@@ -107,13 +107,13 @@ make_table <- function(tbl) {
 
 ## Work tours
 
-Each trip type below is a non-homebased trip on a work tour. Each tab shows a
-mode-specific model that estimates which homebased trips and modes generate that
-non-homebased trip and mode combination.
+Each trip type below is a non-home-based trip on a work tour. Each tab shows a
+mode-specific model that estimates which home-based trips and modes generate that
+non-home-based trip and mode combination.
 
 ### W_NH_EK12_All {.tabset .W_NH_EK12_All}
 
-These are non-homebased trips made on a work tour before or after dropping a
+These are non-home-based trips made on a work tour before or after dropping a
 child off at school. For example, a parent might drop off a child and then get
 gas before heading to work. The trip between school and the gas station is a
 W_NH_EK12_All trip.
@@ -289,7 +289,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ### W_NH_WR_All {.tabset .W_NH_WR_All}
 
-These are non-homebased trips made on a work tour where one trip end is related
+These are non-home-based trips made on a work tour where one trip end is related
 to work, but not the primary work location. A trip made to attend a business
 meeting is a good example.
 
@@ -528,8 +528,8 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ### W_NH_O_All {.tabset .W_NH_O_All}
 
-These are non-homebased trips made on a work tour that are not related to work
-or dropping off children at school. In effect, these are all other non-homebased
+These are non-home-based trips made on a work tour that are not related to work
+or dropping off children at school. In effect, these are all other non-home-based
 trips made on work tours. This would include stopping to get gas on your way
 from home to work.
 
@@ -735,9 +735,9 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ## Non-work tours
 
-Each trip type below is a non-homebased trip made on a non-work tour. Each tab
-shows a mode-specific model that estimates which homebased trips and modes
-generate that non-homebased trip and mode combination.
+Each trip type below is a non-home-based trip made on a non-work tour. Each tab
+shows a mode-specific model that estimates which home-based trips and modes
+generate that non-home-based trip and mode combination.
 
 For many of these trip types, the models have two additional parameters alpha
 and beta. These coefficients control the impact of zonal accessibility on the
@@ -745,7 +745,7 @@ models and are discussed in detail in the next section.
 
 ### N_NH_K12_All {.tabset .N_NH_K12_All}
 
-These are non-homebased trips made on a non-work tour with one trip end at
+These are non-home-based trips made on a non-work tour with one trip end at
 school (K-12). This includes children attending school and (non-working) parents
 dropping off children at school.
 
@@ -944,7 +944,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ### N_NH_OME_All {.tabset .N_NH_OME_All}
 
-These are non-homebased trips made on a non-work tour where neither trip end is
+These are non-home-based trips made on a non-work tour where neither trip end is
 a K12 school and at least one end is an "OME" activity type. This includes the
 most common reasons people spend money: shopping, dining, and maintenance
 activities.
@@ -1252,7 +1252,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 These non-home-based trips are those where neither end is a K12 school or
 a shopping/dining/maintenance activity (OME). In effect, these are all other
-non-homebased trips made on non-work tours. Visiting friends or family at their
+non-home-based trips made on non-work tours. Visiting friends or family at their
 home is an example of this trip type.
 
 #### SOV
@@ -1531,27 +1531,31 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 ## Boosting charts
 
-**TODO: Vince add intro**
+"Boosting" is an approach borrowed from machine learning where the errors of a
+previous model used to estimate a second model. The models shown above
+illustrate the link between home- and non-home-based trips by mode, but
+intuition and experience tells us that accessibility should also influence NHB
+trip making. Travel to a central business district is more likely to lead to
+further trips compared to traveling to a rural zone.
 
-The chart below shows how accessibility impacts each trip type and mode combination. The y-axis is a
-simple factor. When the factor is 1, the trip rates will be the same as
-displayed in the tables above. A y-value of 0.5 means the trip rates will be
-reduced by 50 percent. Conversely, a y-value of 1.5 means that trip rates are
-increased by 50 percent. Due to this boosting model, the TRMG2 will understand
-that NHB trip making is more likely when traveling to a central business district
-compared to a rural zone.
+The chart below shows how accessibility impacts each trip type and mode
+combination. The y-axis is a simple factor. When the factor is 1, the trip rates
+will be the same as displayed in the tables above. A y-value of 0.5 means the
+trip rates will be reduced by 50 percent. Conversely, a y-value of 1.5 means
+that trip rates are increased by 50 percent. With this additional factor, the
+TRMG2 will understand the role that accessibility plays in NHB trip generation.
 
 While no zone in the Triangle region has an auto accessibility below four, walk
 accessibilities can approach zero. If a zone has limited walk accessibility, the
 boosted model will ensure that few (if any) NHB walk trips are produced. 
 
 This same approach was attempted for transit, but was discarded after it
-returned spurious results These counter-intuitive results are likely due to the
-nature of the transit production models, which are driven by homebased transit
-trips. These can only occur where transit access exists. By contrast, walk
-production models are influenced heavily by drive modes, which are common in all
-zones regardless of walk accessibility. This is why the walk models benefit from
-accessibility boosting while transit do not.
+returned spurious results. These counter-intuitive results are likely due to the
+nature of the transit production models, which are driven almost entirely by
+home-based transit trips. These can only occur where transit access exists. By
+contrast, walk production models are influenced heavily by drive modes, which
+are common in all zones regardless of walk accessibility. This is why the walk
+models benefit from accessibility boosting while transit do not.
 
 For NHB auto trips, the slope of the line indicates the sensitivity to
 accessibility. For example, the least sensitive trip is the K12 SOV trip, which
@@ -1632,18 +1636,18 @@ seq_check <- trips_orig %>%
 
 The models above predict non-home-based trips using home-based trip ends;
 however, multiple NHB trips can be chained together. Three NHB trips in a row
-result in a middle trip where neither trip end is coincident with an HB
+result in a middle trip where neither trip end is coincident with a home-based
 attraction from the same tour. If these chained NHB trips have a different
-distribution pattern, then HB attractions would not be sufficient to predict the
-full range of NHB behavior.
+distribution pattern, then home-based attractions would not be sufficient to
+predict the full range of NHB behavior.
 
 In previous work, Caliper tested this question and repeatedly found that the
 pattern of the chained NHB trip ends are not significantly different in
 distribution compared to home-based trip ends. Caliper used the Triangle survey
 to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB
 trip ends were aggregated to the TAZ and correlation was computed. The
-correlation value of `r corel` confirms that these chained trips in are also
-highly correlated with HB trip attractions. Their patterns can be adequately
+correlation value of `r corel` confirms that these chained trips ends are highly
+correlated with home-based trip attractions. Their patterns can be adequately
 captured by the NHB models already estimated. Other than calibration to ensure
 accurate NHB trip totals, no special handling is needed.
 
