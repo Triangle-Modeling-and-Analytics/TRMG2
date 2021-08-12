@@ -14,7 +14,7 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     v[length(v)] == "walkbike", "walk", logsum_type
   )
   logsum_type <- ifelse(
-    v[length(v)] == "t", "transit", logsum_type
+    v[length(v)] == "lb", "transit", logsum_type
   )
   logsum_tbl <- read_csv(
     "data/input/nhb/logsums.csv",
@@ -186,7 +186,7 @@ apply_nhb_zonal <- function(trips_df, trip_type, coeffs) {
     v[length(v)] == "walkbike", "walk", logsum_type
   )
   logsum_type <- ifelse(
-    v[length(v)] == "t", "transit", logsum_type
+    v[length(v)] == "lb", "transit", logsum_type
   )
   logsum_tbl <- read_csv(
     "data/input/nhb/logsums.csv",

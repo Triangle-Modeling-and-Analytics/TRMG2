@@ -241,8 +241,8 @@ n_records <- trips %>%
 No significant presence of this trip type in the survey (3 samples), and it is
 not an important source of travel demand. No model was estimated.
 
-```{r, W_NH_EK12_All_t}
-type <- "W_NH_EK12_All_t"
+```{r, W_NH_EK12_All_lb}
+type <- "W_NH_EK12_All_lb"
 n_records <- trips %>%
   filter(trip_type == type) %>%
   nrow()
@@ -429,8 +429,8 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Transit
 
-```{r, W_NH_WR_All_t}
-type <- "W_NH_WR_All_t"
+```{r, W_NH_WR_All_lb}
+type <- "W_NH_WR_All_lb"
 
 # Collapse trip types
 equiv <- list(
@@ -443,8 +443,8 @@ equiv <- list(
 # Restrict dependent variables
 dependent_vars <- c(
   "W_HB_WO_All_walkbike",
-  "W_HB_O_All_t",
-  "W_HB_W_All_t",
+  "W_HB_O_All_lb",
+  "W_HB_W_All_lb",
   "W_HB_W_All_hov"
 )
 
@@ -479,7 +479,7 @@ dependent_vars <- c(
   "W_HB_O_All_sov",
   "W_HB_O_All_walkbike",
   "W_HB_W_All_sov",
-  "W_HB_W_All_t",
+  "W_HB_W_All_lb",
   "W_HB_W_All_walkbike"
 )
 
@@ -643,8 +643,8 @@ n_records <- trips %>%
 
 #### Transit
 
-```{r, W_NH_O_All_t}
-type <- "W_NH_O_All_t"
+```{r, W_NH_O_All_lb}
+type <- "W_NH_O_All_lb"
 
 # Collapse trip types
 equiv <- list(
@@ -655,7 +655,7 @@ equiv <- list(
 # Restrict dependent variables
 dependent_vars <- c(
   "W_HB_O_All_walkbike",
-  "W_HB_O_All_t",
+  "W_HB_O_All_lb",
   "W_HB_W_All_hov",
   "W_HB_EK12_All_walkbike"
 )
@@ -885,8 +885,8 @@ n_records <- trips %>%
 No significant presence of this trip type in the survey (5 samples), and it is
 not an important source of travel demand. No model was estimated.
 
-```{r, N_NH_K12_All_t}
-type <- "N_NH_K12_All_t"
+```{r, N_NH_K12_All_lb}
+type <- "N_NH_K12_All_lb"
 n_records <- trips %>%
   filter(trip_type == type) %>%
   nrow()
@@ -1004,15 +1004,15 @@ equiv <- list(
   "N_HB_OD_Long_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Short_sov" = "N_HB_OD_All_sov",
   "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_lb" = "N_HB_All_All_nonauto",
   "N_HB_OD_Long_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_lb" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_lb" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_walkbike" = "N_HB_All_All_nonauto",
-  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_lb" = "N_HB_All_All_nonauto",
   "N_HB_OMED_All_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_hov2" = "N_HB_OME_All_hov",
   "N_HB_OME_All_hov3" = "N_HB_OME_All_hov"
@@ -1054,15 +1054,15 @@ type <- "N_NH_OME_All_hov3"
 # Collapse trip types
 equiv <- list(
   "N_HB_OD_Long_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Long_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Long_lb" = "N_HB_All_All_nonauto",
   "N_HB_OD_Long_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OD_Short_t" = "N_HB_All_All_nonauto",
+  "N_HB_OD_Short_lb" = "N_HB_All_All_nonauto",
   "N_HB_OD_Short_walkbike" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_bike" = "N_HB_All_All_nonauto",
-  "N_HB_OME_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OME_All_lb" = "N_HB_All_All_nonauto",
   "N_HB_OME_All_walkbike" = "N_HB_All_All_nonauto",
-  "N_HB_OMED_All_t" = "N_HB_All_All_nonauto",
+  "N_HB_OMED_All_lb" = "N_HB_All_All_nonauto",
   "N_HB_OMED_All_walkbike" = "N_HB_All_All_nonauto"
 )
 
@@ -1127,8 +1127,8 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Transit
 
-```{r, N_NH_OME_All_t}
-type <- "N_NH_OME_All_t"
+```{r, N_NH_OME_All_lb}
+type <- "N_NH_OME_All_lb"
 
 # Collapse trip types
 equiv <- NULL
@@ -1136,10 +1136,10 @@ equiv <- NULL
 # Restrict dependent variables
 dependent_vars <- c(
   # K12 removed due to preserve consistency
-  # "N_HB_K12_All_t",
-  "N_HB_OD_Long_t",
-  "N_HB_OD_Short_t",
-  "N_HB_OME_All_t",
+  # "N_HB_K12_All_lb",
+  "N_HB_OD_Long_lb",
+  "N_HB_OD_Short_lb",
+  "N_HB_OME_All_lb",
   "N_HB_OME_All_walkbike"
 )
 
@@ -1173,8 +1173,8 @@ equiv <- c(
   "N_HB_OD_Long_hov3" = "N_HB_OD_All_hov",
   "N_HB_OD_Short_hov2" = "N_HB_OD_All_hov",
   "N_HB_OD_Short_hov3" = "N_HB_OD_All_hov",
-  "N_HB_OD_Short_t" = "N_HB_OD_All_t",
-  "N_HB_OD_Long_t" = "N_HB_OD_All_t",
+  "N_HB_OD_Short_lb" = "N_HB_OD_All_lb",
+  "N_HB_OD_Long_lb" = "N_HB_OD_All_lb",
   "N_HB_OMED_All_walkbike" = "N_HB_OME_All_walkbike",
   "N_HB_OME_All_walkbike" = "N_HB_OME_All_walkbike",
   "N_HB_OMED_All_hov2" = "N_HB_OMED_All_hov",
@@ -1185,15 +1185,15 @@ equiv <- c(
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_K12_All_t",
-  "N_HB_OD_All_t",
+  "N_HB_K12_All_lb",
+  "N_HB_OD_All_lb",
   "N_HB_OD_Long_walkbike",
   "N_HB_OD_Short_sov",
   "N_HB_OD_Short_walkbike",
   "N_HB_O_All_auto_pay",
   "N_HB_OME_All_hov",
   "N_HB_OME_All_sov",
-  "N_HB_OME_All_t",
+  "N_HB_OME_All_lb",
   "N_HB_OME_All_walkbike",
   "N_HB_OMED_All_hov"
 )
@@ -1228,7 +1228,7 @@ p_tbl_list[type] <- list(model3$p_tbl)
 #   # K12 removed due to preserve consistency
 #   # "N_HB_K12_All_bike",
 #   "N_HB_OD_Long_bike",
-#   "N_HB_OD_Long_t",
+#   "N_HB_OD_Long_lb",
 #   "N_HB_OD_Short_bike",
 #   "N_HB_OME_All_bike"
 # )
@@ -1428,20 +1428,20 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Transit
 
-```{r, N_NH_O_All_t}
-type <- "N_NH_O_All_t"
+```{r, N_NH_O_All_lb}
+type <- "N_NH_O_All_lb"
 
 # Collapse trip types
 equiv <- NULL
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_OD_Long_t",
-  "N_HB_OD_Short_t",
-  "N_HB_OMED_All_t",
+  "N_HB_OD_Long_lb",
+  "N_HB_OD_Short_lb",
+  "N_HB_OMED_All_lb",
   # K12 removed due to preserve consistency
   # "N_HB_K12_All_walkbike",
-  "N_HB_OME_All_t",
+  "N_HB_OME_All_lb",
   "N_HB_OD_Short_walkbike",
   "N_HB_OD_Short_sov"
 )
