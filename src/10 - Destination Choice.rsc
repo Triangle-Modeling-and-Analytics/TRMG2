@@ -20,26 +20,30 @@ Macro "Split Employment by Earnings" (Args)
     se_file = Args.SE
     se_vw = OpenTable("se", "FFB", {se_file})
     a_fields = {
-        {"Industry_EL", "Real", 10, 2, , , , "Low earning industry jobs"},
-        {"Industry_EH", "Real", 10, 2, , , , "High earning industry jobs"},
-        {"Office_EL", "Real", 10, 2, , , , "Low earning office jobs"},
-        {"Office_EH", "Real", 10, 2, , , , "High earning office jobs"},
-        {"Service_RateLow_EL", "Real", 10, 2, , , , "Low earning service_rl jobs"},
-        {"Service_RateLow_EH", "Real", 10, 2, , , , "High earning service_rl jobs"},
-        {"Service_RateHigh_EL", "Real", 10, 2, , , , "Low earning service_rh jobs"},
-        {"Service_RateHigh_EH", "Real", 10, 2, , , , "High earning service_rh jobs"}
+        {"Industry_EL", "Real", 10, 2, , , , "Low paying industry jobs"},
+        {"Industry_EH", "Real", 10, 2, , , , "High paying industry jobs"},
+        {"Office_EL", "Real", 10, 2, , , , "Low paying office jobs"},
+        {"Office_EH", "Real", 10, 2, , , , "High paying office jobs"},
+        {"Retail_EL", "Real", 10, 2, , , , "Low paying retail jobs"},
+        {"Retail_EH", "Real", 10, 2, , , , "High paying retail jobs"},
+        {"Service_RateLow_EL", "Real", 10, 2, , , , "Low paying service_rl jobs"},
+        {"Service_RateLow_EH", "Real", 10, 2, , , , "High paying service_rl jobs"},
+        {"Service_RateHigh_EL", "Real", 10, 2, , , , "Low paying service_rh jobs"},
+        {"Service_RateHigh_EH", "Real", 10, 2, , , , "High paying service_rh jobs"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 
     input = GetDataVectors(
         se_vw + "|",
-        {"Industry", "Office", "Service_RateLow", "Service_RateHigh", "PctHighPay"},
+        {"Industry", "Office", "Retail", "Service_RateLow", "Service_RateHigh", "PctHighPay"},
         {OptArray: "true"}
     )
     output.Industry_EH = input.Industry * input.PctHighPay/100
     output.Industry_EL = input.Industry * (1 - input.PctHighPay/100)
     output.Office_EH = input.Office * input.PctHighPay/100
     output.Office_EL = input.Office * (1 - input.PctHighPay/100)
+    output.Retail_EH = input.Retail * input.PctHighPay/100
+    output.Retail_EL = input.Retail * (1 - input.PctHighPay/100)
     output.Service_RateLow_EH = input.Service_RateLow * input.PctHighPay/100
     output.Service_RateLow_EL = input.Service_RateLow * (1 - input.PctHighPay/100)
     output.Service_RateHigh_EH = input.Service_RateHigh * input.PctHighPay/100
