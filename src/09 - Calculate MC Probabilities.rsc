@@ -79,9 +79,11 @@ Macro "Calculate MC" (Args)
     CloseView(rate_vw)
 
     opts = null
-    opts.segments = {"v0", "vi", "vs"}
     opts.primary_spec = {Name: "w_lb_skim"}
     for trip_type in trip_types do
+        if Lower(trip_type) = "w_hb_w_all"
+            then opts.segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
+            else opts.segments = {"v0", "vi", "vs"}
         opts.trip_type = trip_type
         opts.util_file = input_mc_dir + "/" + trip_type + ".csv"
         nest_file = input_mc_dir + "/" + trip_type + "_nest.csv"
