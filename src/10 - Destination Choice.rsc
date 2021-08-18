@@ -5,7 +5,7 @@
 Macro "Destination Choice" (Args)
 
     RunMacro("Split Employment by Earnings", Args)
-    RunMacro("DC Attractions", Args)
+    RunMacro("DC Size Terms", Args)
 
     return(1)
 endmacro
@@ -52,20 +52,33 @@ Macro "Split Employment by Earnings" (Args)
 endmacro
 
 /*
-
+Creates sum product fields using DC size coefficients. Then takes the log
+of those fields so it can be fed directly into the DC utility equation.
 */
 
-Macro "DC Attractions" (Args)
+Macro "DC Size Terms" (Args)
 
     se_file = Args.SE
-    rate_file = Args.ResDCAttrRates
+    coeff_file = Args.ResDCSizeCoeffs
 
     se_vw = OpenTable("se", "FFB", {se_file})
-    {drive, folder, name, ext} = SplitPath(rate_file)
+    {drive, folder, name, ext} = SplitPath(coeff_file)
     RunMacro("Create Sum Product Fields", {
-        view: se_vw, factor_file: rate_file,
+        view: se_vw, factor_file: coeff_file,
         field_desc: "Resident DC Attractions|See " + name + ext + " for details."
     })
 
+    // Log transform
+    coeff_vw = OpenTable("coeff", "CSV", {coeff_file})
+    {field_names, } = GetFields(coeff_vw, "All")
+    CloseView(coeff_vw)
+    // Remove the first and last fields ("Field" and "Description")
+    field_names = ExcludeArrayElements(field_names, 1, 1)
+    field_names = ExcludeArrayElements(field_names, field_names.length, 1)
+    input = GetDataVectors(se_vw + "|", field_names, {OptArray: TRUE})
+    for field_name in field_names do
+        output.(field_name) = Log(1 + input.(field_name))
+    end
+    SetDataVectors(se_vw + "|", output, )
     CloseView(se_vw)
 endmacro
