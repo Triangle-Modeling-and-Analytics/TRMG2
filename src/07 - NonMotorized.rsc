@@ -36,7 +36,6 @@ Macro "Create NonMotorized Features" (Args)
         hh_vw + "|", {"HHSize", "HHKids", "Autos", "HHInc"},
     )
 
-    v_autos = S2I(v_autos)
     v_adult = v_size - v_kids
     v_vpa = v_autos / v_adult
     SetDataVector(hh_vw + "|", "veh_per_adult", v_vpa, )
@@ -58,7 +57,6 @@ Macro "Apply NM Choice Model" (Args)
     input_dir = Args.[Input Folder]
     input_nm_dir = input_dir + "/resident/nonmotorized"
     output_dir = Args.[Output Folder] + "/resident/nonmotorized"
-    periods = Args.periods
     households = Args.Households
     persons = Args.Persons
 
@@ -69,38 +67,40 @@ Macro "Apply NM Choice Model" (Args)
     trip_types = SortVector(trip_types, {Unique: "true"})
     CloseView(rate_vw)
 
-    opts = null
-    opts.segments = null
-    opts.primary_spec = {Name: "person", OField: "ZoneID"}
+    primary_spec = {Name: "person", OField: "ZoneID"}
     for trip_type in trip_types do
 
         // All escort-k12 trips are motorized, so just skip
         if trip_type = "W_HB_EK12_All" then continue
 
-        opts.trip_type = trip_type
-        opts.util_file = input_nm_dir + "/" + trip_type + ".csv"
+        util = RunMacro("Import MC Spec", input_nm_dir + "/" + trip_type + ".csv")
 
-        for period in periods do
-            opts.period = period
-            
-            // Set sources
-            opts.tables = {
-                se: {
-                    File: scen_dir + "\\output\\sedata\\scenario_se.bin",
-                    IDField: "TAZ"
-                },
-                person: {
-                    IDField: "PersonID",
-                    JoinSpec: {
-                        LeftFile: persons,
-                        LeftID: "HouseholdID",
-                        RightFile: households,
-                        RightID: "HouseholdID"
-                    }
-                }
+        obj = CreateObject("PMEChoiceModel", {ModelName: trip_type})
+        obj.OutputModelFile = output_dir + "\\" + trip_type + ".mdl"
+
+        // Set sources
+        obj.AddTableSource({
+            SourceName: "se",
+            File: scen_dir + "\\output\\sedata\\scenario_se.bin",
+            IDField: "TAZ"
+        })
+        obj.AddTableSource({
+            SourceName: "person",
+            IDField: "PersonID",
+            JoinSpec: {
+                LeftFile: persons,
+                LeftID: "HouseholdID",
+                RightFile: households,
+                RightID: "HouseholdID"
             }
-            opts.output_dir = output_dir
-            RunMacro("MC", Args, opts)
-        end
+        })
+
+        obj.AddUtility({UtilityFunction: util})
+        obj.AddPrimarySpec(primary_spec)
+
+        obj.AddOutputSpec({
+            ProbabilityTable: output_dir + "\\" + trip_type + "_prob.bin"
+        })
+        obj.Evaluate()
     end
 endmacro
