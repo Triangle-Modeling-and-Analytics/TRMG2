@@ -5,7 +5,8 @@
 Macro "NonMotorized" (Args)
 
     RunMacro("Create NonMotorized Features", Args)
-    RunMacro("Apply NM Choice Model", Args)
+    RunMacro("Calculate NM Probabilities", Args)
+    RunMacro("Separate NM Trips", Args)
 
     return(1)
 endmacro
@@ -51,7 +52,7 @@ Loops over each trip type and applies the binary choice model to split
 trips into a "motorized" or "nonmotorized" mode.
 */
 
-Macro "Apply NM Choice Model" (Args)
+Macro "Calculate NM Probabilities" (Args)
 
     scen_dir = Args.[Scenario Folder]
     input_dir = Args.[Input Folder]
@@ -60,25 +61,14 @@ Macro "Apply NM Choice Model" (Args)
     households = Args.Households
     persons = Args.Persons
 
-    // Determine trip purposes
-    prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
-    rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
-    trip_types = GetDataVector(rate_vw + "|", "trip_type", )
-    trip_types = SortVector(trip_types, {Unique: "true"})
-    CloseView(rate_vw)
-
+    trip_types = RunMacro("Get Trip Types", Args)
     primary_spec = {Name: "person", OField: "ZoneID"}
     for trip_type in trip_types do
-
-        // All escort-k12 trips are motorized, so just skip
+        // All escort-k12 trips are motorized so skip
         if trip_type = "W_HB_EK12_All" then continue
-
-        util = RunMacro("Import MC Spec", input_nm_dir + "/" + trip_type + ".csv")
 
         obj = CreateObject("PMEChoiceModel", {ModelName: trip_type})
         obj.OutputModelFile = output_dir + "\\" + trip_type + ".mdl"
-
-        // Set sources
         obj.AddTableSource({
             SourceName: "se",
             File: scen_dir + "\\output\\sedata\\scenario_se.bin",
@@ -94,13 +84,70 @@ Macro "Apply NM Choice Model" (Args)
                 RightID: "HouseholdID"
             }
         })
-
+        util = RunMacro("Import MC Spec", input_nm_dir + "/" + trip_type + ".csv")
         obj.AddUtility({UtilityFunction: util})
         obj.AddPrimarySpec(primary_spec)
-
-        obj.AddOutputSpec({
-            ProbabilityTable: output_dir + "\\" + trip_type + "_prob.bin"
-        })
+        nm_table = output_dir + "\\" + trip_type + ".bin"
+        obj.AddOutputSpec({ProbabilityTable: nm_table})
         obj.Evaluate()
     end
+endmacro
+
+/*
+This reduces the trip counts on the synthetic persons tables to represent
+only the motorized person trips. The non-motorized person trips are stored
+in separate tables in output/resident/nonmotorized.
+
+TODO: This step spends a lot of time reading/writing. Not sure if it can
+be improved.
+*/
+
+Macro "Separate NM Trips" (Args)
+    
+    output_dir = Args.[Output Folder] + "/resident/nonmotorized"
+    per_file = Args.Persons
+    periods = Args.periods
+    
+    per_vw = OpenTable("persons", "FFB", {per_file})
+
+    trip_types = RunMacro("Get Trip Types", Args)
+
+    for trip_type in trip_types do
+        // All escort-k12 trips are motorized so skip
+        if trip_type = "W_HB_EK12_All" then continue
+        
+        nm_file = output_dir + "/" + trip_type + ".bin"
+        nm_vw = OpenTable("nm", "FFB", {nm_file})
+        
+        // Add fields to the NM table before joining
+        a_fields_to_add = null
+        output = null
+        for period in periods do
+            a_fields_to_add = a_fields_to_add + {
+                {trip_type + "_" + period, "Real", 10, 2,,,, "Non-motorized person trips in the " + period + "period"}
+            }
+        end
+        RunMacro("Add Fields", {view: nm_vw, a_fields: a_fields_to_add})
+
+        // Join tables and calculate results
+        jv = JoinViews("jv", per_vw + ".PersonID", nm_vw + ".ID", )
+        v_pct_nm = GetDataVector(jv + "|", "nonmotorized Probability", )
+        nmoto_data = null
+        per_fields = null
+        for period in periods do
+            per_fields = per_fields + {per_vw + "." + trip_type + "_" + period}
+        end
+        person_data = GetDataVectors(jv + "|", per_fields, {OptArray: "true"})
+        for period in periods do
+            field_name = trip_type + "_" + period
+            nmoto_data.(nm_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * v_pct_nm
+            person_data.(per_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * (1 - v_pct_nm)
+        end
+        SetDataVectors(jv + "|", nmoto_data, )
+        SetDataVectors(jv + "|", person_data, )
+        CloseView(jv)
+        CloseView(nm_vw)
+    end
+
+    CloseView(per_vw)
 endmacro

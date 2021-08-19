@@ -34,7 +34,13 @@ Macro "Resident TOD" (Args)
         v_result = v_daily * fac
         field_name = type + "_" + tod
         a_fields_to_add = a_fields_to_add + {
-            {field_name, "Real", 10, 2,,,, "Resident productions by TOD"}
+            {
+                field_name, "Real", 10, 2,,,, 
+                "Resident productions by TOD|" +
+                "After the TOD step, these are all person trips.|" +
+                "The non-motorized model reduces these to motorized person trips.|" +
+                "NM trips are put in a separate table. See output/resident/nonmotorized."
+            }
         }
         data.(field_name) = v_result
 
