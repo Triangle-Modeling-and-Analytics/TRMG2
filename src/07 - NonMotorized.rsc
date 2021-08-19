@@ -98,15 +98,17 @@ This reduces the trip counts on the synthetic persons tables to represent
 only the motorized person trips. The non-motorized person trips are stored
 in separate tables in output/resident/nonmotorized.
 
-TODO: This step spends a lot of time reading/writing. Not sure if it can
-be improved.
+TODO: This step spends a lot of time reading/writing. It could potentially be
+sped up further by doing a single write to the person table at the end. This
+only works if all NM output probability files have the exact same order
+(it fills a joined view).
 */
 
 Macro "Separate NM Trips" (Args)
     
     output_dir = Args.[Output Folder] + "/resident/nonmotorized"
     per_file = Args.Persons
-    periods = Args.periods
+    // periods = Args.periods
     
     per_vw = OpenTable("persons", "FFB", {per_file})
 
@@ -122,11 +124,9 @@ Macro "Separate NM Trips" (Args)
         // Add fields to the NM table before joining
         a_fields_to_add = null
         output = null
-        for period in periods do
-            a_fields_to_add = a_fields_to_add + {
-                {trip_type + "_" + period, "Real", 10, 2,,,, "Non-motorized person trips in the " + period + "period"}
-            }
-        end
+        a_fields_to_add = a_fields_to_add + {
+            {trip_type, "Real", 10, 2,,,, "Non-motorized person trips"}
+        }
         RunMacro("Add Fields", {view: nm_vw, a_fields: a_fields_to_add})
 
         // Join tables and calculate results
@@ -134,15 +134,13 @@ Macro "Separate NM Trips" (Args)
         v_pct_nm = GetDataVector(jv + "|", "nonmotorized Probability", )
         nmoto_data = null
         per_fields = null
-        for period in periods do
-            per_fields = per_fields + {per_vw + "." + trip_type + "_" + period}
-        end
+        per_fields = per_fields + {per_vw + "." + trip_type}
         person_data = GetDataVectors(jv + "|", per_fields, {OptArray: "true"})
-        for period in periods do
-            field_name = trip_type + "_" + period
+        
+            field_name = trip_type
             nmoto_data.(nm_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * v_pct_nm
             person_data.(per_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * (1 - v_pct_nm)
-        end
+        
         SetDataVectors(jv + "|", nmoto_data, )
         SetDataVectors(jv + "|", person_data, )
         CloseView(jv)
