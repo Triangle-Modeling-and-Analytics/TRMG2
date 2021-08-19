@@ -32,6 +32,7 @@ Body:
     FlowChartNode(model,"Calculate MC Probabilities",,,)
     FlowChartNode(model,"Commercial Vehicles",,,)
     FlowChartNode(model,"Destination Choice",,,)
+    FlowChartNode(model,"Aggregation",,,)
     //
     // Links
     //
@@ -41,7 +42,8 @@ Body:
     FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
     FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
     FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
-    FlowChartLink(model,"NonMotorized Choice","Time of Day",True,,)
+    FlowChartLink(model,"NonMotorized Choice","Aggregation",True,,)
+    FlowChartLink(model,"Aggregation","Time of Day",True,,)
     FlowChartLink(model,"Time of Day","Skimming",True,,)
     FlowChartLink(model,"Skimming","Parking Model",True,,)
     FlowChartLink(model,"Parking Model","Roadway Assignment",True,,)
@@ -185,6 +187,15 @@ Macro "Destination Choice" (Args,Result)
                   {"MacroNames",{"Destination Choice"}}}
 Body:
     ShowMessage('Running: Destination Choice')
+    Return(True)
+EndMacro
+
+
+Macro "Aggregation" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Aggregation"}}}
+Body:
+    ShowMessage('Running: Aggregation')
     Return(True)
 EndMacro
 
