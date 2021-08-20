@@ -62,6 +62,7 @@ Macro "Create Folder Structure" (Args)
     "/resident/destination",
     "/resident/mode",
     "/resident/mode/probabilities",
+    "/resident/parking",
     "/resident/mode/logsums",
     "/resident/mode/utilities",
     "/resident/mode/model_files",

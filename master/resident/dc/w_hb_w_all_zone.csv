@@ -1,0 +1,13 @@
+Expression,Segment,Coefficient,Description
+se.w_hbw_size_H.D,ihvi,0.7476,Size term for high income workers
+se.w_hbw_size_H.D,ihvs,0.7476,Size term for high income workers
+se.w_hbw_size_L.D,ilvi,0.7476,Size term for low income workers
+se.w_hbw_size_L.D,ilvs,0.7476,Size term for low income workers
+se.w_hbw_size_L.D,v0,0.7476,Size term for low income workers
+logsums.nonhh_auto_vi,vi,0.4308,
+logsums.transit,,0.286,
+sov_skim.iz,,2.542,
+sov_skim.CongTime,,-0.1037,
+se.access_hospital_sov.D,,0.1536,
+se.access_transit.D,,0.0802,
+se.access_walk.D,v0,0.345,
