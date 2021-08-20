@@ -59,10 +59,10 @@ The model design (TODO: link to design document) calls for the following trip pu
 *	Inter-Campus (UCC)  
 *	University student Other-Other (UOO)  
 
-## TRIP GENERATION  
+## Trip Generation  
 The first step in the model development process is to create trip production and attraction models for the above trip purposes. This analysis is presented below and relies on two data sources: a 2014 survey of NC State students conducted by ITRE on behalf of the NC Department of Transportation and a 2012 survey of students attending universities in Virginia. We are therefore assuming that the travel behavior of students attending NC State is sufficiently representative of NC Central, Duke, and UNC students. 
 
-### TRIP PRODUCTION RATES  
+### Productions
 
 ```{r survey_overview, echo = FALSE}
 Respondents_On_campus <- surveyRespondents_ResidenceClass_df %>%
@@ -174,84 +174,58 @@ P_rates_df %>%
   kable_styling(full_width = FALSE)
 ```
 
-The trip production rates by mode will be used to estimate productions for Other-to-other trips. More specifically, the Other-to-other productions will be a function of Home-based Other and Campus-to-Other attractions, as discussed in the model design document. This approach ensures consistency between the Other trip ends by mode. 
-
-[START HERE]
+The trip production rates by mode will be used to estimate productions for Other-to-other trips. More specifically, the Other-to-other productions will be a function of Home-based Other and Campus-to-Other attractions, as discussed in the model design document. This approach ensures consistency between the "Other" trip ends by mode, i.e., it is not possible to have only automobile Home-based Other and Campus-to-Other movements and only bicycle Other-to-other movements. The table below summarizes the Other-to-other trips by mode. The production rates for the Other-to-other trips, segmented by automobile and non-automobile, are `r P_rates_ratioUOOtoUHOUCO_df$cartrips_ratioUOOtoUHOUCO` and `r P_rates_ratioUOOtoUHOUCO_df$non_cartrips_ratioUOOtoUHOUCO`. The small sample sizes prevent further segmentation by mode.   
 
 ```{r test, echo=FALSE}
-
-kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers) 
-
-kable(avg_trips_UOO_df[,avg_trips_UOO_col],caption ="UOO Trip Rates by Mode",col.names=headers)
-
-kable(P_rates_ratioUOOtoUHOUCO_df, caption = "Ratio UOO Production Rate to UHOUCO Production Rate", col.names=c("car","non-car"))
+avg_trips_UOO_df %>%
+  mutate(segment = str_replace(segment, " Students", "")) %>%
+  mutate(segment = str_replace(segment, "_", "-")) %>%
+  select(`Home Location` = segment, Mode = Primary_Mode, Trips = trips, `Trip Rate` = avg_trips) %>%
+  arrange(-Trips) %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
 
-#####check if group quarters are always on-campus; if not only include non-campus group quarters 
-Trip productions by TAZ were estimated by applying the trip production rates as follows:  
-On-Campus Students:  
-* UC1 Productions =  
-Share of campus buildings in TAZ * enrollment *  UC1 On-campus production rate  
-* UCO Productions=  
-Share of campus buildings in TAZ * enrollment *  UCO On-campus production rate  
-* UHC Productions =   
-Number of students in student group quarters in *   UHC On-campus production rate  
-* UHO Productions =  
-Number of students in student group quarters *   UHO On-campus production rate  
-* UCC Productions =  
-Number of students in student group quarters *   UCC On-campus production rate
-
-Off-Campus Students:  
-* UC1 Productions =  
-Share of campus buildings in TAZ * enrollment *  UC1 Off-campus production rate  
-* UCO Productions =  
-Share of campus buildings in TAZ * enrollment *  UCO Off-campus production rate  
-* UHC Productions =  
-Number of students in off-campus housing  *   UHC Off-campus production rate  
-* UHO Productions =   
-Number of students in off-campus housing *   UHO Off-campus production rate  
-* UCC Productions =  
-Number of students in off-campus housing *   UCC Off-campus production rate
-
-
+A summary of the productions across universities is presented in the table below.
 ```{r}
 Summary_Productions_df %>%
+  separate(., Segments, into = c("remove", "code", "home", "remove_2", "school"), sep = "_", remove = TRUE) %>%
+  mutate(`Home Location` = if_else(home == "On", "On-campus", "Off-campus")) %>%
+  left_join(., purpose_map_df, by = c("code")) %>%
+  select(`Home Location`, Purpose = name, University = school, Productions) %>%
+  pivot_wider(., id_cols = c(`Home Location`, Purpose), names_from = University, values_from = Productions) %>%
   kable(digits = 0) %>%
   kable_styling(full_width = FALSE)
 ```
 
 
-###  TRIP ATTRACTION RATES 
+###  Trip Attraction
 
-#### Sources
+As with the trip production rates, trip attraction rates for off-campus attractions (Home-based Other and Campus-based Other) were developed based on the survey of NCSU students. For Home-based Other trips by off-campus students, both trips ends are off-campus. The number of trip attractions is estimated as a function of the land use of the zone.  For Campus-to-Other trips and for Home-based Other trips by on-campus students, the production end is the campus. Therefore, in addition to land use variables of the attraction zone, the attraction model for these segments also considers distance between the zone and campus, i.e., attractions very far from the NC State campus will not be visited by students.
 
-##### Off-campus attractions
-As the trip production rates, trip attraction rates for off-campus attractions (UHO and UCO) were developed based on a survey of NCSU students conducted by ITRE for NCDOT in 2014. For UHO trips by off-campus students, both trips ends are off-campus. The number of trip attractions is estimated as a function of the land use of the zone.  For UCO trips and for UHO trips by on-campus students, the production end is the campus. Therefore, in addition to land use variables of the attraction zone, the attraction model for these segments also considers distance between the zone and campus.
+For on-campus attractions (Home-based Campus, Campus-to-campus), the attractions are distributed among campus zones proportional to the distribution of the square footage of university buildings. 
 
-##### On-campus attractions
-For on-campus attractions (UHC,UC1), the attractions are distributed among campus zones proportional to the distribution of the building square feet. 
-
-#### Exploratory Analysis  
-
-##### Correlations  
-Correlations between the university attractions and land use characteristics at the TAZ level are presented below. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients.  For trips by off-campus students, off-campus student population has the highest correlation coefficient.  
+THe analysis begins with torrelations between the university attractions and land use characteristics at the TAZ level. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.  
 ```{r,echo=FALSE}
 correlations_df %>% 
- select(term,AllStudents_Trips, OnCampusStudents_Trips, OffCampusStudents_Trips) %>%
+  filter(str_count(term, "Campus") == 0) %>%
+  filter(term != "AllStudents_Trips") %>%
+  arrange(-OnCampusStudents_Trips) %>%
+  select(`TAZ Data Variable` = term, `On Campus Attr.` = OnCampusStudents_Trips, `Off Campus Attr.` = OffCampusStudents_Trips) %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
 
 ```
 
 #### Regression Models
-The regression models were estimated for each purpose using a dataset that includes all TAZs for which the survey included trip attractions, of any purpose.  The TAZs that do not  have any trip attractions in the survey  were excluded from the dataset used for model estimation.
+The regression models were estimated for each purpose using a dataset that includes all TAZs for which the survey included trip attractions, of any purpose.  The TAZs that do nothave any trip attractions in the survey were excluded from the dataset used for model estimation.
 ```{r, echo=FALSE}
 print_model <- function(model) {
   df <- tibble(variable = colnames(model$model),
                estimate = model$coefficients,
                statistic = coef(summary(model))[, "t value"],
                p.value = coef(summary(model))[, "Pr(>|t|)"]) %>%
-    mutate(variable = if_else(variable == "y", "_intercept_", variable)) %>%
+    mutate(variable = if_else(str_count(variable, "Campus") > 0, "_intercept_", variable)) %>%
     arrange(variable) %>%
     bind_rows(., tibble(variable = c("Adjusted R-squared"),
                         estimate = summary(model)$adj.r.squared,
@@ -265,28 +239,29 @@ print_model <- function(model) {
 }
 ```
 
-##### UCO trips by On-campus students
-
 The  model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The coefficients have the expected signs. 
+
+##### On-campus, Campus-Other
 ```{r, echo=FALSE}
 print_model(Model_OnCampusUCO_2)
 
 ```
 
-##### UHO trips by On-campus students
-As UCO trips by on-campus students, UHO trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ, the number of retail jobs and the distance to campus. The distance is calculated as the average of the distances between the centroid of the TAZ  and each of the centroids of the different  NCSU campus TAZs.  All coefficients have the expected sign.  As expected, trip attractions decrease as the distance increases and trip attractions increase as student population and retail jobs increase. 
+As Campus-other trips by on-campus students, Home-based Other trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ, the number of retail jobs and the distance to campus. The distance is calculated as the average of the distances between the centroid of the TAZ  and each of the centroids of the different NCSU campus TAZs.  All coefficients have the expected sign. As expected, trip attractions decrease as the distance increases and trip attractions increase as student population and retail jobs increase. 
 
+##### On-campus, Home-based other
 ```{r,echo=FALSE}
 print_model(Model_Oncampus_UHO_2)
-
 ```
 
-##### UcO trips by Off-campus students
-As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location. The model explains UCO trips by off-campus students based on distance to campus, off- campus student population and  number of retail jobs.
+As UCO and UHO trips by on-campus students, UCO trips by off-campus students are trips between the campus and off-campus location. The model explains UCO trips by off-campus students based on distance to campus, off-campus student population and  number of retail jobs.
+
+##### Off-campus, Campus-based other
 ```{r,echo=FALSE}
 print_model(Model_Offcampus_UCO_2)
-
 ```
+
+[START HERE]
 
 #####  UHO Trips by Off-campus students  
 UHO trips by off-campus students have two off-campus trip ends. The model explains UHO trips by off-campus students based on the off- campus student population and the number of retail jobs.
