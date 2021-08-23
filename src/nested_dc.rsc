@@ -11,9 +11,9 @@ Inputs
 * zone_utils
     * String
     * File path of the CSV file containing utility terms for zonal choice
-* district_utils
+* cluster_utils
     * Optional string (default: null)
-    * File path of the CSV file containing utility terms for district choice
+    * File path of the CSV file containing utility terms for cluster choice
 * period
     * Optional string (default: null)
     * Time of day. Only used for file naming, so you can use "daily", "all",
@@ -29,10 +29,13 @@ Inputs
         * OField: name of the origin field
         * DField: name of the destination field (if applicable)
 * dc_spec
-    * Optional array
-    * An array that specifies where to find the list of destination zones.
-    * Including this spec converts the model to DC.
-    * Example: {DestinationsSource: "AMSOVSkim", DestinationsIndex: "TAZ"}
+    * Array
+    * Specifies where to find the list of destination zones.
+    * Example: {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
+* cluster_equiv_spec
+    * Array
+    * Specifies the file and fields used to build clusters from zones
+    * Example: {File: "se.bin", ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
 * tables
     * Optional array of table sources (default: null)
     * `tables` and `matrices` cannot both be null
@@ -51,107 +54,64 @@ Inputs
 Class "NestedDC" (ClassOpts)
 
     init do
+        if ClassOpts.output_dir = null then Throw("NestedDC: 'output_dir' is null")
+        if ClassOpts.trip_type = null then Throw("NestedDC: 'trip_type' is null")
+        if ClassOpts.period = null then Throw("NestedDC: 'period' is null")
+        if ClassOpts.segments = null then ClassOpts.segments = {null}
+        if ClassOpts.zone_utils = null then Throw("NestedDC: 'zone_utils' is null")
+        // if ClassOpts.cluster_utils = null then Throw("NestedDC: 'cluster_utils' is null")
+        if ClassOpts.primary_spec = null then Throw("NestedDC: 'primary_spec' is null")
+        if ClassOpts.dc_spec = null then Throw("NestedDC: 'dc_spec' is null")
+        if ClassOpts.cluster_equiv_spec = null then Throw("NestedDC: 'cluster_equiv_spec' is null")
+        if ClassOpts.tables = null then Throw("NestedDC: 'tables' is null")
+        if ClassOpts.matrices = null then Throw("NestedDC: 'matrices' is null")
+
         self.ClassOpts = ClassOpts
+        self.ClassOpts.mdl_dir = ClassOpts.output_dir + "/model_files"
+        self.ClassOpts.prob_dir = ClassOpts.output_dir + "/probabilities"
+        self.ClassOpts.logsum_dir = ClassOpts.output_dir + "/logsums"
+        self.ClassOpts.util_dir = ClassOpts.output_dir + "/utilities"
     enditem
 
     Macro "Run" do
-        // Run zone-level DC
-        ZoneOpts = CopyArray(self.ClassOpts)
-        ZoneOpts.util_file = ZoneOpts.zone_utils
-        ZoneOpts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
-        self.RunChoiceModels(ZoneOpts)
+        // // Run zone-level DC
+        // zone_opts.util_file = self.ClassOpts.zone_utils
+        // zone_opts.dc = "true"
+        // self.RunChoiceModels(zone_opts)
+        
+        // Build cluster-level choice data
+        self.BuildClusterData()
 Throw()
-        // Build district-level choice data
-        self.BuildDistrictData()
 
-        // Run district-level model
-        DistrictOpts = CopyArray(self.ClassOpts)
-        DistrictOpts.util_file = ZoneOpts.district_utils
-        self.RunChoiceModels(DistrictOpts)
+        // Run cluster-level model
+        util_file = self.ClassOpts.cluster_utils
+        self.RunChoiceModels(util_file)
     enditem
 
     /*
     Generic choice model calculator.
 
     Inputs
-    * output_dir
-        * String
-        * Output directory where subfolders and files will be written.
-    * trip_type
-        * String
-        * Name of the trip type/purpose. Only used for file naming.
     * util_file
         * String
-        * File path of the CSV file containing utility terms
-    * nest_file
-        * Optional string (default: null)
-        * File path of the CSV file containing nesting structure and thetas
-    * period
-        * Optional string (default: null)
-        * Time of day. Only used for file naming, so you can use "daily", "all",
-        "am", or just leave it blank.
-    * segments
-        * Optional array of strings (default: null)
-        * Names of market segments. If provided, MC will be applied in a loop
-        over the segments.
-    * primary_spec
-        * Array
-        * An array that configures the primary data source. It includes
-        * Name: the name of the data source (matching `source_name` in `tables` or `matices`)
-        * If the primary source is a table, then it also includes:
-            * OField: name of the origin field
-            * DField: name of the destination field (if applicable)
-    * dc_spec
-        * Optional array
-        * An array that specifies where to find the list of destination zones.
-        * Including this spec converts the model to DC.
-        * Example: {DestinationsSource: "AMSOVSkim", DestinationsIndex: "TAZ"}
-    * tables
-        * Optional array of table sources (default: null)
-        * `tables` and `matrices` cannot both be null
-        * Each item in `tables` must include:
-        * source_name: (string) name of the source
-        * File: (string) file path of the table
-        * IDField: (string) name of the ID field in the table
-    * matrices
-        * Optional array of matrix sources(default: null)
-        * `tables` and `matrices` cannot both be null
-        * Each item in `matrices` must include:
-        * source_name: (string) name of the source
-        * File: (string) file path of the matrix
+        * Either `zone_utils` or `cluster_utils` from the ClassOpts
+    * dc
+        * True/False
+        * If the model will be DC (if false then MC)
     */
 
     Macro "RunChoiceModels" (MacroOpts) do
-        output_dir = MacroOpts.output_dir
-        trip_type = MacroOpts.trip_type
         util_file = MacroOpts.util_file
-        nest_file = MacroOpts.nest_file
-        period = MacroOpts.period
-        segments = MacroOpts.segments
-        primary_spec = MacroOpts.primary_spec
-        dc_spec = MacroOpts.dc_spec
-        tables = MacroOpts.tables
-        matrices = MacroOpts.matrices
-
-        if output_dir = null then Throw("Choice Model: 'output_dir' is null")
-        if trip_type = null then Throw("Choice Model: 'trip_type' is null")
-        if util_file = null then Throw("Choice Model: 'util_file' is null")
-        if primary_spec = null then Throw("Choice Model: 'primary_spec' is null")
-        if tables = null and matrices = null 
-            then Throw("Choice Model: 'tables' and 'matrices' are both null")
-        if segments = null then segments = {null}
-        if dc_spec <> null and nest_file <> null then Throw(
-            "Choice Model: do not provide both 'dc_spec' and 'nest_file'."
-        )
+        dc = MacroOpts.dc
 
         // Create output subdirectories
-        mdl_dir = output_dir + "\\model_files"
+        mdl_dir = self.ClassOpts.mdl_dir
         if GetDirectoryInfo(mdl_dir, "All") = null then CreateDirectory(mdl_dir)
-        prob_dir = output_dir + "\\probabilities"
+        prob_dir = self.ClassOpts.prob_dir
         if GetDirectoryInfo(prob_dir, "All") = null then CreateDirectory(prob_dir)
-        logsum_dir = output_dir + "\\logsums"
+        logsum_dir = self.ClassOpts.logsum_dir
         if GetDirectoryInfo(logsum_dir, "All") = null then CreateDirectory(logsum_dir)
-        util_dir = output_dir + "\\utilities"
+        util_dir = self.ClassOpts.util_dir
         if GetDirectoryInfo(util_dir, "All") = null then CreateDirectory(util_dir)
 
         // Import util CSV file into an options array
@@ -168,7 +128,7 @@ Throw()
             obj = CreateObject("PMEChoiceModel", {ModelName: tag})
             obj.Segment = seg
             
-            if dc_spec = null
+            if dc = "false"
                 then obj.OutputModelFile = mdl_dir + "\\" + tag + ".mdl"
                 else obj.OutputModelFile = mdl_dir + "\\" + tag + ".dcm"
             
@@ -195,7 +155,7 @@ Throw()
             end
             
             // Add destinations if a DC model
-            obj.AddDestinations(dc_spec)
+            if dc = "true" then obj.AddDestinations(dc_spec)
 
             // Add alternatives, utility and specify the primary source
             if nest_tree <> null then
@@ -214,14 +174,13 @@ Throw()
             
             //obj.CloseFiles = 0 // Uncomment to leave files open, so you can save a workspace
             ret = obj.Evaluate()
-Throw()            
             if !ret then
                 Throw("Running mode choice model failed for: " + tag)
             obj = null
         end
     enditem
 
-    Macro "ImportChoiceSpec"(file) do
+    Macro "ImportChoiceSpec" (file) do
         vw = OpenTable("Spec", "CSV", {file,})
         {flds, specs} = GetFields(vw,)
         vecs = GetDataVectors(vw + "|", flds, {OptArray: 1})
@@ -234,7 +193,53 @@ Throw()
         Return(util)
     enditem
 
-    Macro "BuildDistrictData" do
+    /*
+    Aggregates the DC logsums into cluster-level values
+    */
+
+    Macro "BuildClusterData" do
+
+        trip_type = self.ClassOpts.trip_type
+        period = self.ClassOpts.period
+        segments = self.ClassOpts.segments
+        equiv_spec = self.ClassOpts.cluster_equiv_spec
+        util_dir = self.ClassOpts.util_dir
+        logsum_dir = self.ClassOpts.logsum_dir
+
+        for segment in segments do
+            name = trip_type + "_" + segment + "_" + period
+            mtx_file = util_dir + "/utility_" + name + ".mtx"
+            mtx = CreateObject("Matrix", mtx_file)
+            mtx.AddCores({"expTotal"})
+            mtx.data.cores.expTotal := exp(mtx.data.cores.Total)
+
+            agg = mtx.Aggregate({
+                Matrix: {MatrixFile: util_dir + "/temp.mtx", MatrixLabel: "Districts"},
+                Matrices: {"expTotal"}, 
+                Method: "Sum",
+                Rows: {
+                    Data: equiv_spec.File, 
+                    MatrixID: equiv_spec.ZoneIDField, 
+                    AggregationID: equiv_spec.ZoneIDField
+                },
+                Cols: {
+                    Data: equiv_spec.File, 
+                    MatrixID: equiv_spec.ZoneIDField, 
+                    AggregationID: equiv_spec.ClusterIDField
+                }
+            })
+            o = CreateObject("Matrix", agg)
+            o.data.cores.[Sum of expTotal] := Log(o.data.cores.[Sum of expTotal])
+            mc = o.data.cores.("Sum of expTotal")
+            col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
+            ExportMatrix(
+                mc,
+                col_ids,
+                "Rows",
+                "FFB",
+                logsum_dir + "/cluster_ls_" + name + ".bin",
+            )
+        end
 
     enditem
 endclass
