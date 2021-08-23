@@ -6,7 +6,8 @@ Macro "Calculate MC Probabilities" (Args)
 
     RunMacro("Create MC Features", Args)
     RunMacro("Calculate MC", Args)
-    // TODO: remove if we aren't going to do this
+    RunMacro("Post Process Logsum", Args)
+    // TODO: remove this line and the macro itself if we aren't going to do this
     // RunMacro("Combine Logsum Files", Args)
 
     return(1)
@@ -175,56 +176,46 @@ Macro "Combine Logsum Files" (Args)
     end
 endmacro
 
+/*
+Transforms the mc logsums used in destination choice to all be positive values.
+This is only necessary because we are using nest-level logsums rather than
+ultimate/root logsums (which are all positive already)
+*/
 
+Macro "Post Process Logsum" (Args)
+    
+    ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
+    periods = Args.periods
 
-    //         // Post process logsum matrix. Transform using log(1 + exp(LS))
-    //         spec = {File: output_opts.Logsum, Tag: tag, Segment: seg}
-    //         self.PostProcessLogsum(spec)
-
-    // Macro "PostProcessLogsum"(spec) do
-    //     seg = spec.Segment
-
-    //     // Create NonHHAuto and Transit logsum
-    //     m = OpenMatrix(spec.File,)
-    //     cores = GetMatrixCoreNames(m)
-    //     modified = 0
-    //     if ArrayPosition(cores, {"nonhh_auto"},) > 0 then do
-    //         if ArrayPosition(cores, {"NonHHAutoComposite"},) = 0 then
-    //             AddMatrixCore(m, "NonHHAutoComposite")
-            
-    //         mc = CreateMatrixCurrency(m, "nonhh_auto",,,)
-    //         mcOut = CreateMatrixCurrency(m, "NonHHAutoComposite",,,)
-    //         mcOut := log(1 + nz(exp(mc)))
-    //         mcOut = null
-    //         mc = null
-    //         modified = 1
-    //     end
-
-    //     /*
-    //     if modified then do // Export to OMX. Export the root logsum and any of the others
-    //         cores = GetMatrixCoreNames(m)
-    //         mc = CreateMatrixCurrency(m, "ROOT",,,)
-            
-    //         // Get core position names for CopyMatrix() for selected cores. Daft.
-    //         posRoot = ArrayPosition(cores, {"ROOT"},)
-    //         posA = ArrayPosition(cores, {"AutoComposite"},)
-    //         posT = ArrayPosition(cores, {"TransitComposite"},)
-    //         posNA = ArrayPosition(cores, {"NonHHAutoComposite"},)
-    //         pos = {posRoot} // {1} essentially
-    //         if posA > 0 then
-    //             pos = pos + {posA}
-    //         if posT > 0 then
-    //             pos = pos + {posT}
-    //         if posNA > 0 then
-    //             pos = pos + {posNA}
-
-    //         pth = SplitPath(spec.File)
-    //         fn = pth[1] + pth[2] + "OMX\\" + pth[3] + ".omx"
-    //         mOpts = {"File Name": fn, OMX: "True", Label: "Logsum " + spec.Tag, Cores: pos}
-    //         new_mat = CopyMatrix(mc, mOpts)
-    //         new_mat = null
-    //         mc = null
-    //     end*/
-
-    //     m = null
-    // enditem
+    trip_types = RunMacro("Get Trip Types", Args)
+    for trip_type in trip_types do
+        if Lower(trip_type) = "w_hb_w_all"
+            then segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
+            else segments = {"v0", "vi", "vs"}
+        for period in periods do
+            for segment in segments do
+                mtx_file = ls_dir + "/logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"
+                mtx = CreateObject("Matrix")
+                mtx.LoadMatrix(mtx_file)
+                core_names = mtx._GetCoreNames()
+                if ArrayPosition(core_names, {"nonhh_auto"},) > 0 then do
+                    mtx.AddCores({"NonHHAutoComposite"})
+                    cores = mtx.data.cores
+                    cores.NonHHAutoComposite := log(1 + nz(exp(cores.nonhh_auto)))
+                end
+                if ArrayPosition(core_names, {"transit"},) > 0 then do
+                    mtx.AddCores({"TransitComposite"})
+                    cores = mtx.data.cores
+                    cores.TransitComposite := log(1 + nz(exp(cores.transit)))
+                end
+                if segment <> "v0" and ArrayPosition(core_names, {"auto"},) > 0 then do
+                    mtx.AddCores({"AutoComposite"})
+                    cores = mtx.data.cores
+                    cores.AutoComposite := log(1 + nz(exp(cores.auto)))
+                end
+                cores = null
+                mtx = null
+            end
+        end
+    end
+endmacro
