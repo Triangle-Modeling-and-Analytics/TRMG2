@@ -111,7 +111,8 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             else segments = {"v0", "vi", "vs"}
         opts.trip_type = trip_type
         opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone.csv"
-        // opts.district_utils = input_dc_dir + "/" + trip_type + ".csv"
+        opts.cluster_utils = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
+        opts.cluster_thetas = input_dc_dir + "/" + Lower(trip_type) + "_cluster_thetas.csv"
         
         if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
 
@@ -126,21 +127,21 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
                 tour_type = Upper(Left(trip_type, 1))
                 homebased = "HB"
             end
-            sov_skim = skims_dir + "roadway\\avg_skim_" + period + "_" + tour_type + "_" + homebased + "_sov.mtx"
+            sov_skim = skims_dir + "roadway/avg_skim_" + period + "_" + tour_type + "_" + homebased + "_sov.mtx"
             
             // Set sources
-            se_file = scen_dir + "\\output\\sedata\\scenario_se.bin"
+            se_file = scen_dir + "/output/sedata/scenario_se.bin"
             opts.tables = {
                 se: {File: se_file, IDField: "TAZ"},
-                parking: {File: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", IDField: "TAZ"}
+                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"}
             }
-            opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster", ClusterNameField: "ClusterName"}
+            opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
             opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
             for segment in segments do
                 opts.segments = {segment}
                 opts.matrices = {
                     sov_skim: {File: sov_skim},
-                    logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
+                    mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }
                 opts.output_dir = output_dir
                 obj = CreateObject("NestedDC", opts)

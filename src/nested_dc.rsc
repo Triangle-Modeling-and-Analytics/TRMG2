@@ -12,12 +12,15 @@ Inputs
     * String
     * File path of the CSV file containing utility terms for zonal choice
 * cluster_utils
-    * Optional string (default: null)
+    * String
     * File path of the CSV file containing utility terms for cluster choice
+* cluster_thetas
+    * String
+    * File path of the CSV file containing theta/nesting coefficients for cluster choice
 * period
     * Optional string (default: null)
     * Time of day. Only used for file naming, so you can use "daily", "all",
-    "am", or just leave it blank.
+    * "am", or just leave it blank.
 * segments
     * Optional array of strings (default: null)
     * Names of market segments. If provided, MC will be applied in a loop
@@ -35,7 +38,7 @@ Inputs
 * cluster_equiv_spec
     * Array
     * Specifies the file and fields used to build clusters from zones
-    * Example: {File: "se.bin", ZoneIDField: "TAZ", ClusterIDField: "Cluster", ClusterNameField: "ClusterName"}
+    * Example: {File: "se.bin", ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
 * tables
     * Optional array of table sources (default: null)
     * `tables` and `matrices` cannot both be null
@@ -59,7 +62,8 @@ Class "NestedDC" (ClassOpts)
         if ClassOpts.period = null then Throw("NestedDC: 'period' is null")
         if ClassOpts.segments = null then ClassOpts.segments = {null}
         if ClassOpts.zone_utils = null then Throw("NestedDC: 'zone_utils' is null")
-        // if ClassOpts.cluster_utils = null then Throw("NestedDC: 'cluster_utils' is null")
+        if ClassOpts.cluster_utils = null then Throw("NestedDC: 'cluster_utils' is null")
+        if ClassOpts.cluster_thetas = null then Throw("NestedDC: 'cluster_thetas' is null")
         if ClassOpts.primary_spec = null then Throw("NestedDC: 'primary_spec' is null")
         if ClassOpts.dc_spec = null then Throw("NestedDC: 'dc_spec' is null")
         if ClassOpts.cluster_equiv_spec = null then Throw("NestedDC: 'cluster_equiv_spec' is null")
@@ -74,10 +78,10 @@ Class "NestedDC" (ClassOpts)
     enditem
 
     Macro "Run" do
-        // // Run zone-level DC
-        // zone_opts.util_file = self.ClassOpts.zone_utils
-        // zone_opts.dc = "true"
-        // self.RunChoiceModels(zone_opts)
+        // Run zone-level DC
+        zone_opts.util_file = self.ClassOpts.zone_utils
+        zone_opts.dc = "true"
+        self.RunChoiceModels(zone_opts)
         
         // Build cluster-level choice data
         self.BuildClusterData()
@@ -103,6 +107,14 @@ Throw()
     Macro "RunChoiceModels" (MacroOpts) do
         util_file = MacroOpts.util_file
         dc = MacroOpts.dc
+
+        dc_spec = self.ClassOpts.dc_spec
+        trip_type = self.ClassOpts.trip_type
+        segments = self.ClassOpts.segments
+        period = self.ClassOpts.period
+        tables = self.ClassOpts.tables
+        matrices = self.ClassOpts.matrices
+        primary_spec = self.ClassOpts.primary_spec
 
         // Create output subdirectories
         mdl_dir = self.ClassOpts.mdl_dir
@@ -155,7 +167,7 @@ Throw()
             end
             
             // Add destinations if a DC model
-            if dc = "true" then obj.AddDestinations(dc_spec)
+            if dc then obj.AddDestinations(dc_spec)
 
             // Add alternatives, utility and specify the primary source
             if nest_tree <> null then
@@ -166,10 +178,7 @@ Throw()
             // Specify outputs
             output_opts = {Probability: prob_dir + "\\probability_" + tag + ".mtx",
                             Logsum: logsum_dir + "\\logsum_" + tag + ".mtx"}
-            // The matrices take up a lot of space, so don't write the utility 
-            // matrices except for debugging/development.
-            // Uncomment the line below to write them.
-            // output_opts = output_opts + {Utility: util_dir + "\\utility_" + tag + ".mtx"}
+            if dc then output_opts = output_opts + {Utility: util_dir + "\\utility_" + tag + ".mtx"}
             obj.AddOutputSpec(output_opts)
             
             //obj.CloseFiles = 0 // Uncomment to leave files open, so you can save a workspace
@@ -205,22 +214,58 @@ Throw()
         equiv_spec = self.ClassOpts.cluster_equiv_spec
         util_dir = self.ClassOpts.util_dir
         logsum_dir = self.ClassOpts.logsum_dir
+        cluster_thetas = self.ClassOpts.cluster_thetas
+
+        // Collect vectors of cluster names, IDs, and theta values
+        theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+        {v_cluster_ids, v_cluster_names, v_cluster_theta} = GetDataVectors(
+            theta_vw + "|",
+            {"Cluster", "ClusterName", "Theta"},
+        )
 
         for segment in segments do
             name = trip_type + "_" + segment + "_" + period
             mtx_file = util_dir + "/utility_" + name + ".mtx"
             mtx = CreateObject("Matrix", mtx_file)
-            mtx.AddCores({"expTotal"})
-            mtx.data.cores.expTotal := exp(mtx.data.cores.Total)
+            mtx.AddCores({"ScaledTotal", "ExpScaledTotal"})
+            cores = mtx.data.cores
 
+            // The utilities must be scaled by the cluster thetas, which requires
+            // an index for each cluster
+            cores.ScaledTotal := cores.Total
+            for i = 1 to v_cluster_ids.length do
+                cluster_id = v_cluster_ids[i]
+                cluster_name = v_cluster_names[i]
+                theta = v_cluster_theta[i]
+
+                mtx.AddIndex({
+                    Matrix: mtx.data.MatrixHandle,
+                    TableName: equiv_spec.File,
+                    Filter: "Cluster = " + String(cluster_id),
+                    Dimension: "Column",
+                    OriginalID: equiv_spec.ZoneIDField,
+                    NewID: equiv_spec.ZoneIDField,
+                    IndexName: cluster_name
+                })
+                mtx.SetColIndex(cluster_name)
+                cores = mtx.data.cores
+                cores.ScaledTotal := cores.ScaledTotal / theta
+            end
+
+            // e^(scaled_x)
+            mtx.SetColIndex("Destinations")
+            cores = mtx.data.cores
+            cores.ExpScaledTotal := exp(mtx.data.cores.scaledTotal)
+
+            // Aggregate the columns into clusters
             agg = mtx.Aggregate({
                 Matrix: {MatrixFile: util_dir + "/temp.mtx", MatrixLabel: "Districts"},
-                Matrices: {"expTotal"}, 
+                Matrices: {"ExpScaledTotal"}, 
                 Method: "Sum",
                 Rows: {
                     Data: equiv_spec.File, 
                     MatrixID: equiv_spec.ZoneIDField, 
-                    AggregationID: equiv_spec.ZoneIDField
+                    AggregationID: equiv_spec.ZoneIDField // i.e. don't aggregate rows
                 },
                 Cols: {
                     Data: equiv_spec.File, 
@@ -229,8 +274,9 @@ Throw()
                 }
             })
             o = CreateObject("Matrix", agg)
-            o.data.cores.[Sum of expTotal] := Log(o.data.cores.[Sum of expTotal])
-            mc = o.data.cores.("Sum of expTotal")
+            o.AddCores({"LnSumExpScaledTotal"})
+            o.data.cores.LnSumExpScaledTotal := Log(o.data.cores.[Sum of ExpScaledTotal])
+            mc = o.data.cores.LnSumExpScaledTotal
             col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
             ls_file = logsum_dir + "/cluster_ls_" + name + ".bin"
             ExportMatrix(
@@ -242,18 +288,9 @@ Throw()
             )
             // Convert the column names from IDs to names
             ls_vw = OpenTable("ls", "FFB", {ls_file})
-            equiv_df = CreateObject("df", equiv_spec.File)
-            equiv_df.filter("Cluster <> null")
-            equiv_df.group_by({"Cluster", "ClusterName"})
-            equiv_df.summarize("TAZ", "count")
-            v_test = SortVector(equiv_df.tbl.Cluster, {Unique: "true"})
-            if v_test.length <> equiv_df.nrow() then Throw(
-                "Nested DC: the cluster equivalency file has more than one name assigned to a cluster.\n" +
-                "Check that every zone in a cluster has the same ID and Name."
-            )
-            for i = 1 to equiv_df.tbl.Cluster.length do
-                id = equiv_df.tbl.Cluster[i]
-                name = equiv_df.tbl.ClusterName[i]
+            for i = 1 to v_cluster_ids.length do
+                id = v_cluster_ids[i]
+                name = v_cluster_names[i]
                 RunMacro("Rename Field", ls_vw, String(id), name)
             end
             RunMacro("Rename Field", ls_vw, "Row_AggregationID", "TAZ")

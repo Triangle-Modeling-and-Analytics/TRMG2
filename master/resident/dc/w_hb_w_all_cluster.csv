@@ -1,0 +1,14 @@
+Expression,Segment,Coefficient,Description
+"se.ClusterName.D = ""Northeast""",,-0.4313,Cluster-specific constant
+"se.ClusterName.D = ""Northwest""",,0.5876,Cluster-specific constant
+"se.ClusterName.D = ""RTP""",,-0.3186,Cluster-specific constant
+"se.ClusterName.D = ""Raleigh""",,-0.446,Cluster-specific constant
+"se.ClusterName.D = ""Southern Durham""",,0.5544,Cluster-specific constant
+"se.ClusterName.O = ""Chapel Hill"" and se.ClusterName.D = ""Chapel Hill""",,0.5955,Intra-cluster constant
+"se.ClusterName.O = ""Cary"" and se.ClusterName.D = ""Cary""",,0.3243,Intra-cluster constant
+"se.ClusterName.O = ""Durham"" and se.ClusterName.D = ""Durham""",,0.2626,Intra-cluster constant
+"se.ClusterName.O = ""Garner"" and se.ClusterName.D = ""Garner""",,0.3287,Intra-cluster constant
+"se.ClusterName.O = ""Northeast"" and se.ClusterName.D = ""Northeast""",,0.4306,Intra-cluster constant
+"se.ClusterName.O = ""South"" and se.ClusterName.D = ""South""",,0.3981,Intra-cluster constant
+"se.ClusterName.O = ""Southwest"" and se.ClusterName.D = ""Southwest""",,0.4712,Intra-cluster constant
+"se.ClusterName.O = ""RTP"" and se.ClusterName.D = ""RTP""",,0.5984,Intra-cluster constant

@@ -4,8 +4,8 @@ se.w_hbw_size_H.D,ihvs,0.7476,Size term for high income workers
 se.w_hbw_size_L.D,ilvi,0.7476,Size term for low income workers
 se.w_hbw_size_L.D,ilvs,0.7476,Size term for low income workers
 se.w_hbw_size_L.D,v0,0.7476,Size term for low income workers
-nz(logsums.nonhh_auto_vi),vi,0.4308,
-nz(logsums.transit),,0.286,
+nz(mc_logsums.nonhh_auto_vi),vi,0.4308,
+nz(mc_logsums.transit),,0.286,
 sov_skim.IZ,,2.542,
 sov_skim.CongTime,,-0.1037,
 se.access_hospital_sov.D,,0.1536,
