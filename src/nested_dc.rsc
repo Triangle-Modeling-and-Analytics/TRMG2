@@ -35,7 +35,7 @@ Inputs
 * cluster_equiv_spec
     * Array
     * Specifies the file and fields used to build clusters from zones
-    * Example: {File: "se.bin", ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
+    * Example: {File: "se.bin", ZoneIDField: "TAZ", ClusterIDField: "Cluster", ClusterNameField: "ClusterName"}
 * tables
     * Optional array of table sources (default: null)
     * `tables` and `matrices` cannot both be null
@@ -232,13 +232,32 @@ Throw()
             o.data.cores.[Sum of expTotal] := Log(o.data.cores.[Sum of expTotal])
             mc = o.data.cores.("Sum of expTotal")
             col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
+            ls_file = logsum_dir + "/cluster_ls_" + name + ".bin"
             ExportMatrix(
                 mc,
                 col_ids,
                 "Rows",
                 "FFB",
-                logsum_dir + "/cluster_ls_" + name + ".bin",
+                ls_file,
             )
+            // Convert the column names from IDs to names
+            ls_vw = OpenTable("ls", "FFB", {ls_file})
+            equiv_df = CreateObject("df", equiv_spec.File)
+            equiv_df.filter("Cluster <> null")
+            equiv_df.group_by({"Cluster", "ClusterName"})
+            equiv_df.summarize("TAZ", "count")
+            v_test = SortVector(equiv_df.tbl.Cluster, {Unique: "true"})
+            if v_test.length <> equiv_df.nrow() then Throw(
+                "Nested DC: the cluster equivalency file has more than one name assigned to a cluster.\n" +
+                "Check that every zone in a cluster has the same ID and Name."
+            )
+            for i = 1 to equiv_df.tbl.Cluster.length do
+                id = equiv_df.tbl.Cluster[i]
+                name = equiv_df.tbl.ClusterName[i]
+                RunMacro("Rename Field", ls_vw, String(id), name)
+            end
+            RunMacro("Rename Field", ls_vw, "Row_AggregationID", "TAZ")
+            CloseView(ls_vw)
         end
 
     enditem

@@ -59,7 +59,7 @@ Macro "Create Folder Structure" (Args)
     "/university",
     "/resident/disagg_model",
     "/resident/population_synthesis",
-    "/resident/destination",
+    "/resident/dc",
     "/resident/mode",
     "/resident/mode/probabilities",
     "/resident/parking",

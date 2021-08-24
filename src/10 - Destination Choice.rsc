@@ -134,7 +134,7 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
                 se: {File: se_file, IDField: "TAZ"},
                 parking: {File: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", IDField: "TAZ"}
             }
-            opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
+            opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster", ClusterNameField: "ClusterName"}
             opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
             for segment in segments do
                 opts.segments = {segment}
