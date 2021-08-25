@@ -14,6 +14,7 @@ distance_filename <- paste0(data_dir, "distance-skim.RDS")
 output_ee_seed_filename <- paste0(output_dir, "ee-seed.csv")
 output_ei_attractions_filename <- paste0(output_dir, "ei-attractions.csv")
 output_ei_distance_filename <- paste0(output_dir, "ei-distance.csv")
+output_ee_shares_filename <- paste0(output_dir, "ee-station-shares.csv")
 
 # Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
@@ -105,6 +106,8 @@ ext_shares_ncstm_df <- temp_both_df %>%
   select(-contains("total_"))
 
 remove(working_df, adt_df, temp_both_df, temp_orig_df)
+
+write_csv(ext_shares_ncstm_df, file = output_ee_shares_filename)
 
 # External station shares (blended) --------------------------------------------
 ext_shares_df <- select(ext_shares_sl_df, ext_station, station_name, ADT, PCTCV, PCTAUTOEE,
