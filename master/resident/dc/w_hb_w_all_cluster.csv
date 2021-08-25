@@ -1,14 +1,25 @@
-Expression,Segment,Coefficient,Description
-"se.ClusterName.D = ""Northeast""",,-0.4313,Cluster-specific constant
-"se.ClusterName.D = ""Northwest""",,0.5876,Cluster-specific constant
-"se.ClusterName.D = ""RTP""",,-0.3186,Cluster-specific constant
-"se.ClusterName.D = ""Raleigh""",,-0.446,Cluster-specific constant
-"se.ClusterName.D = ""Southern Durham""",,0.5544,Cluster-specific constant
-"se.ClusterName.O = ""Chapel Hill"" and se.ClusterName.D = ""Chapel Hill""",,0.5955,Intra-cluster constant
-"se.ClusterName.O = ""Cary"" and se.ClusterName.D = ""Cary""",,0.3243,Intra-cluster constant
-"se.ClusterName.O = ""Durham"" and se.ClusterName.D = ""Durham""",,0.2626,Intra-cluster constant
-"se.ClusterName.O = ""Garner"" and se.ClusterName.D = ""Garner""",,0.3287,Intra-cluster constant
-"se.ClusterName.O = ""Northeast"" and se.ClusterName.D = ""Northeast""",,0.4306,Intra-cluster constant
-"se.ClusterName.O = ""South"" and se.ClusterName.D = ""South""",,0.3981,Intra-cluster constant
-"se.ClusterName.O = ""Southwest"" and se.ClusterName.D = ""Southwest""",,0.4712,Intra-cluster constant
-"se.ClusterName.O = ""RTP"" and se.ClusterName.D = ""RTP""",,0.5984,Intra-cluster constant
+Alternative,Expression,Segment,Coefficient,Description
+RTP,Constant,,-0.3186,Cluster-specific constant
+Raleigh,Constant,,-0.446,Cluster-specific constant
+Cary,Constant,,0,Cluster-specific constant
+Garner,Constant,,0,Cluster-specific constant
+Durham,Constant,,0,Cluster-specific constant
+ChapelHill,Constant,,0,Cluster-specific constant
+SouthernDurham,Constant,,0.5544,Cluster-specific constant
+Northwest,Constant,,0.5876,Cluster-specific constant
+Northeast,Constant,,-0.4313,Cluster-specific constant
+Southeast,Constant,,0,Cluster-specific constant
+South,Constant,,0,Cluster-specific constant
+Southwest,Constant,,0,Cluster-specific constant
+RTP,ic.RTP.D,,0.5984,Intra-cluster constant
+Raleigh,ic.Raleigh.D,,-0.446,Intra-cluster constant
+Cary,ic.Cary.D,,0.3243,Intra-cluster constant
+Garner,ic.Garner.D,,0.3287,Intra-cluster constant
+Durham,ic.Durham.D,,0.2626,Intra-cluster constant
+ChapelHill,ic.ChapelHill.D,,0.5955,Intra-cluster constant
+SouthernDurham,ic.SouthernDurham.D,,0.5544,Intra-cluster constant
+Northwest,ic.Northwest.D,,0,Intra-cluster constant
+Northeast,ic.Northeast.D,,0.4306,Intra-cluster constant
+Southeast,ic.Southeast.D,,0,Intra-cluster constant
+South,ic.South.D,,0.3981,Intra-cluster constant
+Southwest,ic.Southwest.D,,0.4712,Intra-cluster constant
