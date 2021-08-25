@@ -79,35 +79,36 @@ Class "NestedDC" (ClassOpts)
 
     Macro "Run" do
         // Run zone-level DC
-        zone_opts.util_file = self.ClassOpts.zone_utils
-        zone_opts.dc = "true"
+        self.util_file = self.ClassOpts.zone_utils
+        self.zone_level = "true"
         self.RunChoiceModels(zone_opts)
         
         // Build cluster-level choice data
         self.BuildClusterData()
-Throw()
 
         // Run cluster-level model
-        cluster_opts.util_file = self.ClassOpts.cluster_utils
+        self.util_file = self.ClassOpts.cluster_utils
+        self.zone_level = "false"
+        self.dc_spec = {DestinationsSource: "mtx", DestinationsIndex: "Col_AggregationID"}
         self.RunChoiceModels(cluster_opts)
     enditem
 
     /*
     Generic choice model calculator.
 
-    Inputs
+    Inputs (other than Class inputs)
     * util_file
         * String
         * Either `zone_utils` or `cluster_utils` from the ClassOpts
-    * dc
+    * zone_level
         * True/False
-        * If the model will be DC (if false then MC)
+        * If this is being run on the zone level (false = cluster level)
     */
 
-    Macro "RunChoiceModels" (MacroOpts) do
-        util_file = MacroOpts.util_file
-        dc = MacroOpts.dc
-
+    Macro "RunChoiceModels" do
+        
+        util_file = self.util_file
+        zone_level = self.zone_level
         dc_spec = self.ClassOpts.dc_spec
         trip_type = self.ClassOpts.trip_type
         segments = self.ClassOpts.segments
@@ -129,7 +130,7 @@ Throw()
         // Import util CSV file into an options array
         util = self.ImportChoiceSpec(util_file)
         
-        if nest_file <> null then nest_tree = self.ImportChoiceSpec(nest_file)
+        // if nest_file <> null then nest_tree = self.ImportChoiceSpec(nest_file)
 
         for seg in segments do
             tag = trip_type
@@ -139,16 +140,13 @@ Throw()
             // Set up and run model
             obj = CreateObject("PMEChoiceModel", {ModelName: tag})
             obj.Segment = seg
-            
-            if dc then do // if zonal
-                obj.OutputModelFile = mdl_dir + "\\" + tag + ".dcm"
-            end else do // if cluster
-                obj.OutputModelFile = mdl_dir + "\\" + tag + ".mdl"
-                tables = tables + {
-                    ic: {File: logsum_dir + "/cluster_ic_" + tag + ".bin", IDField: "TAZ"}
-                }
+
+            if zone_level then do
+                obj.OutputModelFile = mdl_dir + "\\" + tag + "_zone.dcm"
+            end else do
+                obj.OutputModelFile = mdl_dir + "\\" + tag + "_cluster.dcm"
                 matrices = matrices + {
-                    dc_logsums: {File: logsum_dir + "/cluster_ls_" + tag + ".mtx"}
+                    mtx: {File: logsum_dir + "/agg_zonal_ls_" + tag + ".mtx"}
                 }
             end
             
@@ -175,16 +173,16 @@ Throw()
             end
 
             // Add alternatives, utility and specify the primary source
-            if nest_tree <> null then
-                obj.AddAlternatives({AlternativesTree: nest_tree})
-            if dc then do
-                obj.AddPrimarySpec(primary_spec)
-                obj.AddDestinations(dc_spec)
-            end else obj.AddPrimarySpec({Name: "dc_logsums"})
+            // if nest_tree <> null then
+            //     obj.AddAlternatives({AlternativesTree: nest_tree})
+            if zone_level 
+                then obj.AddPrimarySpec(primary_spec)
+                else obj.AddPrimarySpec({Name: "mtx"})
+            obj.AddDestinations(dc_spec)
             obj.AddUtility({UtilityFunction: util})
             
             // Specify outputs
-            if dc then do
+            if zone_level then do
                 output_opts = {
                     Probability: prob_dir + "\\probability_" + tag + "_zone.mtx",
                     Utility: util_dir + "\\utility_" + tag + "_zone.mtx"
@@ -235,9 +233,12 @@ Throw()
 
         // Collect vectors of cluster names, IDs, and theta values
         theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
-        {v_cluster_ids, v_cluster_names, v_cluster_theta} = GetDataVectors(
+        {
+            v_cluster_ids, v_cluster_names, v_cluster_theta, v_cluster_asc,
+            v_cluster_ic
+        } = GetDataVectors(
             theta_vw + "|",
-            {"Cluster", "ClusterName", "Theta"},
+            {"Cluster", "ClusterName", "Theta", "ASC", "IC"},
         )
 
         for segment in segments do
@@ -297,11 +298,13 @@ Throw()
                 }
             })
             o = CreateObject("Matrix", agg)
-            o.AddCores({"LnSumExpScaledTotal", "final"})
+            o.AddCores({"LnSumExpScaledTotal", "final", "ic", "asc"})
             cores = o.data.cores
             cores.LnSumExpScaledTotal := Log(cores.[Sum of ExpScaledTotal])
             cores.final := cores.LnSumExpScaledTotal * v_cluster_theta
-            cores.[Sum of IntraCluster] := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
+            cores.ic := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
+            cores.ic := cores.ic * v_cluster_ic
+            cores.asc := v_cluster_asc
             
             // TODO: this is needed because Matrix.Aggregate() is not writing to
             // the correct place, but to a temp file. Remove after fixing
@@ -310,17 +313,16 @@ Throw()
             agg = null
             CopyFile(temp_file, logsum_dir + "/agg_zonal_ls_" + name + ".mtx")
 
-            // Export a table of IntraCluster flags with cluster names
-            // instead of IDs
-
-            opts.v_cluster_ids = v_cluster_ids
-            opts.v_cluster_names = v_cluster_names
-            opts.mc = cores.[Sum of IntraCluster]
-            opts.out_file = logsum_dir + "/cluster_ic_" + name + ".bin"
-            self.WriteClusterTables(opts)
-            opts.mc = cores.final
-            opts.out_file = logsum_dir + "/agg_zonal_ls_" + name + ".bin"
-            self.WriteClusterTables(opts)
+            // // Export a table of IntraCluster flags with cluster names
+            // // instead of IDs
+            // opts.v_cluster_ids = v_cluster_ids
+            // opts.v_cluster_names = v_cluster_names
+            // opts.mc = cores.[Sum of IntraCluster]
+            // opts.out_file = logsum_dir + "/cluster_ic_" + name + ".bin"
+            // self.WriteClusterTables(opts)
+            // opts.mc = cores.final
+            // opts.out_file = logsum_dir + "/agg_zonal_ls_" + name + ".bin"
+            // self.WriteClusterTables(opts)
         end
     enditem
 

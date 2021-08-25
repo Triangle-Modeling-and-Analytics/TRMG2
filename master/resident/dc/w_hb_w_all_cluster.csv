@@ -1,37 +1,4 @@
-Alternative,Expression,Segment,Coefficient,Description
-RTP,Constant,,-0.3186,Cluster-specific constant
-Raleigh,Constant,,-0.446,Cluster-specific constant
-Cary,Constant,,0,Cluster-specific constant
-Garner,Constant,,0,Cluster-specific constant
-Durham,Constant,,0,Cluster-specific constant
-ChapelHill,Constant,,0,Cluster-specific constant
-SouthernDurham,Constant,,0.5544,Cluster-specific constant
-Northwest,Constant,,0.5876,Cluster-specific constant
-Northeast,Constant,,-0.4313,Cluster-specific constant
-Southeast,Constant,,0,Cluster-specific constant
-South,Constant,,0,Cluster-specific constant
-Southwest,Constant,,0,Cluster-specific constant
-RTP,ic.RTP.D,,0.5984,Intra-cluster constant
-Raleigh,ic.Raleigh.D,,-0.446,Intra-cluster constant
-Cary,ic.Cary.D,,0.3243,Intra-cluster constant
-Garner,ic.Garner.D,,0.3287,Intra-cluster constant
-Durham,ic.Durham.D,,0.2626,Intra-cluster constant
-ChapelHill,ic.ChapelHill.D,,0.5955,Intra-cluster constant
-SouthernDurham,ic.SouthernDurham.D,,0.5544,Intra-cluster constant
-Northwest,ic.Northwest.D,,0,Intra-cluster constant
-Northeast,ic.Northeast.D,,0.4306,Intra-cluster constant
-Southeast,ic.Southeast.D,,0,Intra-cluster constant
-South,ic.South.D,,0.3981,Intra-cluster constant
-Southwest,ic.Southwest.D,,0.4712,Intra-cluster constant
-RTP,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Raleigh,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Cary,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Garner,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Durham,dc_logsums.final,,1,DC logsums of the zones within each cluster
-ChapelHill,dc_logsums.final,,1,DC logsums of the zones within each cluster
-SouthernDurham,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Northwest,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Northeast,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Southeast,dc_logsums.final,,1,DC logsums of the zones within each cluster
-South,dc_logsums.final,,1,DC logsums of the zones within each cluster
-Southwest,dc_logsums.final,,1,DC logsums of the zones within each cluster
+Expression,Segment,Coefficient,Description
+mtx.asc,,1,Cluster-specific constant
+mtx.ic,,1,Intra-cluster constant
+mtx.final,,1,DC logsums of the zones within each cluster
