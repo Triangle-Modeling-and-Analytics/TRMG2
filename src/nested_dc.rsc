@@ -88,8 +88,8 @@ Class "NestedDC" (ClassOpts)
 Throw()
 
         // Run cluster-level model
-        util_file = self.ClassOpts.cluster_utils
-        self.RunChoiceModels(util_file)
+        cluster_opts.util_file = self.ClassOpts.cluster_utils
+        self.RunChoiceModels(cluster_opts)
     enditem
 
     /*
@@ -140,9 +140,17 @@ Throw()
             obj = CreateObject("PMEChoiceModel", {ModelName: tag})
             obj.Segment = seg
             
-            if dc = "false"
-                then obj.OutputModelFile = mdl_dir + "\\" + tag + ".mdl"
-                else obj.OutputModelFile = mdl_dir + "\\" + tag + ".dcm"
+            if dc then do // if zonal
+                obj.OutputModelFile = mdl_dir + "\\" + tag + ".dcm"
+            end else do // if cluster
+                obj.OutputModelFile = mdl_dir + "\\" + tag + ".mdl"
+                tables = tables + {
+                    ic: {File: logsum_dir + "/cluster_ic_" + tag + ".bin", IDField: "TAZ"}
+                }
+                matrices = matrices + {
+                    dc_logsums: {File: logsum_dir + "/cluster_ls_" + tag + ".mtx"}
+                }
+            end
             
             // Add sources
             for i = 1 to tables.length do
@@ -165,20 +173,29 @@ Throw()
                     File: source.file
                 })
             end
-            
-            // Add destinations if a DC model
-            if dc then obj.AddDestinations(dc_spec)
 
             // Add alternatives, utility and specify the primary source
             if nest_tree <> null then
                 obj.AddAlternatives({AlternativesTree: nest_tree})
+            if dc then do
+                obj.AddPrimarySpec(primary_spec)
+                obj.AddDestinations(dc_spec)
+            end else obj.AddPrimarySpec({Name: "dc_logsums"})
             obj.AddUtility({UtilityFunction: util})
-            obj.AddPrimarySpec(primary_spec)
             
             // Specify outputs
-            output_opts = {Probability: prob_dir + "\\probability_" + tag + ".mtx",
-                            Logsum: logsum_dir + "\\logsum_" + tag + ".mtx"}
-            if dc then output_opts = output_opts + {Utility: util_dir + "\\utility_" + tag + ".mtx"}
+            if dc then do
+                output_opts = {
+                    Probability: prob_dir + "\\probability_" + tag + "_zone.mtx",
+                    Utility: util_dir + "\\utility_" + tag + "_zone.mtx"
+                }
+            end else do
+                output_opts = {
+                    Probability: prob_dir + "\\probability_" + tag + "_cluster.mtx",
+                    Utility: util_dir + "\\utility_" + tag + "_cluster.mtx",
+                    Logsum: logsum_dir + "\\logsum_" + tag + "_cluster.mtx"
+                }
+            end
             obj.AddOutputSpec(output_opts)
             
             //obj.CloseFiles = 0 // Uncomment to leave files open, so you can save a workspace
@@ -225,9 +242,9 @@ Throw()
 
         for segment in segments do
             name = trip_type + "_" + segment + "_" + period
-            mtx_file = util_dir + "/utility_" + name + ".mtx"
+            mtx_file = util_dir + "/utility_" + name + "_zone.mtx"
             mtx = CreateObject("Matrix", mtx_file)
-            mtx.AddCores({"ScaledTotal", "ExpScaledTotal"})
+            mtx.AddCores({"ScaledTotal", "ExpScaledTotal", "IntraCluster"})
             cores = mtx.data.cores
 
             // The utilities must be scaled by the cluster thetas, which requires
@@ -240,16 +257,22 @@ Throw()
 
                 mtx.AddIndex({
                     Matrix: mtx.data.MatrixHandle,
-                    TableName: equiv_spec.File,
+                    IndexName: cluster_name,
                     Filter: "Cluster = " + String(cluster_id),
-                    Dimension: "Column",
+                    Dimension: "Both",
+                    TableName: equiv_spec.File,
                     OriginalID: equiv_spec.ZoneIDField,
-                    NewID: equiv_spec.ZoneIDField,
-                    IndexName: cluster_name
+                    NewID: equiv_spec.ZoneIDField
                 })
                 mtx.SetColIndex(cluster_name)
                 cores = mtx.data.cores
                 cores.ScaledTotal := cores.ScaledTotal / theta
+
+                // Also mark intra-cluster ij pairs
+                mtx.SetRowIndex(cluster_name)
+                cores = mtx.data.cores
+                cores.IntraCluster := 1
+                mtx.SetRowIndex("Origins")
             end
 
             // e^(scaled_x)
@@ -259,8 +282,8 @@ Throw()
 
             // Aggregate the columns into clusters
             agg = mtx.Aggregate({
-                Matrix: {MatrixFile: util_dir + "/temp.mtx", MatrixLabel: "Districts"},
-                Matrices: {"ExpScaledTotal"}, 
+                Matrix: {MatrixFile: logsum_dir + "/agg_zonal_ls_" + name + ".mtx", MatrixLabel: "Cluster Logsums"},
+                Matrices: {"ExpScaledTotal", "IntraCluster"}, 
                 Method: "Sum",
                 Rows: {
                     Data: equiv_spec.File, 
@@ -274,28 +297,56 @@ Throw()
                 }
             })
             o = CreateObject("Matrix", agg)
-            o.AddCores({"LnSumExpScaledTotal"})
-            o.data.cores.LnSumExpScaledTotal := Log(o.data.cores.[Sum of ExpScaledTotal])
-            mc = o.data.cores.LnSumExpScaledTotal
-            col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
-            ls_file = logsum_dir + "/cluster_ls_" + name + ".bin"
-            ExportMatrix(
-                mc,
-                col_ids,
-                "Rows",
-                "FFB",
-                ls_file,
-            )
-            // Convert the column names from IDs to names
-            ls_vw = OpenTable("ls", "FFB", {ls_file})
-            for i = 1 to v_cluster_ids.length do
-                id = v_cluster_ids[i]
-                name = v_cluster_names[i]
-                RunMacro("Rename Field", ls_vw, String(id), name)
-            end
-            RunMacro("Rename Field", ls_vw, "Row_AggregationID", "TAZ")
-            CloseView(ls_vw)
-        end
+            o.AddCores({"LnSumExpScaledTotal", "final"})
+            cores = o.data.cores
+            cores.LnSumExpScaledTotal := Log(cores.[Sum of ExpScaledTotal])
+            cores.final := cores.LnSumExpScaledTotal * v_cluster_theta
+            cores.[Sum of IntraCluster] := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
+            
+            // TODO: this is needed because Matrix.Aggregate() is not writing to
+            // the correct place, but to a temp file. Remove after fixing
+            // Matrix.Aggregate()
+            temp_file = agg.Name
+            agg = null
+            CopyFile(temp_file, logsum_dir + "/agg_zonal_ls_" + name + ".mtx")
 
+            // Export a table of IntraCluster flags with cluster names
+            // instead of IDs
+
+            opts.v_cluster_ids = v_cluster_ids
+            opts.v_cluster_names = v_cluster_names
+            opts.mc = cores.[Sum of IntraCluster]
+            opts.out_file = logsum_dir + "/cluster_ic_" + name + ".bin"
+            self.WriteClusterTables(opts)
+            opts.mc = cores.final
+            opts.out_file = logsum_dir + "/agg_zonal_ls_" + name + ".bin"
+            self.WriteClusterTables(opts)
+        end
+    enditem
+
+    Macro "WriteClusterTables" (MacroOpts) do
+
+        mc = MacroOpts.mc
+        out_file = MacroOpts.out_file
+        v_cluster_ids = MacroOpts.v_cluster_ids
+        v_cluster_names = MacroOpts.v_cluster_names
+
+        col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
+        ExportMatrix(
+            mc,
+            col_ids,
+            "Rows",
+            "FFB",
+            out_file,
+        )
+        // Convert the column names from IDs to names
+        vw = OpenTable("ls", "FFB", {out_file})
+        for i = 1 to v_cluster_ids.length do
+            id = v_cluster_ids[i]
+            name = v_cluster_names[i]
+            RunMacro("Rename Field", vw, String(id), name)
+        end
+        RunMacro("Rename Field", vw, "Row_AggregationID", "TAZ")
+        CloseView(vw)
     enditem
 endclass
