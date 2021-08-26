@@ -100,7 +100,7 @@ Macro "Calculate Destination Choice" (Args)
     periods = Args.periods
 
     // Determine trip purposes
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
 trip_types = {"W_HB_W_All"} // TODO: remove after testing
 
     opts = null

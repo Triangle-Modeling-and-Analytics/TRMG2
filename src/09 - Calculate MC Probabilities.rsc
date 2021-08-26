@@ -136,7 +136,7 @@ Macro "Combine Logsum Files" (Args)
     ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
     periods = Args.periods
 
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
     for trip_type in trip_types do
         
         if Lower(trip_type) = "w_hb_w_all"
@@ -187,7 +187,7 @@ Macro "Post Process Logsum" (Args)
     ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
     periods = Args.periods
 
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
     for trip_type in trip_types do
         if Lower(trip_type) = "w_hb_w_all"
             then segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}

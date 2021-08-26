@@ -42,7 +42,7 @@ Macro "Aggregate HB Trips by Market Segment" (Args)
     df = CreateObject("df", jv)
     CloseView(jv)
     df.group_by({"ZoneID", "market_segment"})
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
     df.summarize(trip_types, "sum")
     names = df.colnames()
     for name in names do

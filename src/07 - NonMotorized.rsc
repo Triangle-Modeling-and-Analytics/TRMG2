@@ -61,7 +61,7 @@ Macro "Calculate NM Probabilities" (Args)
     households = Args.Households
     persons = Args.Persons
 
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
     primary_spec = {Name: "person", OField: "ZoneID"}
     for trip_type in trip_types do
         // All escort-k12 trips are motorized so skip
@@ -112,7 +112,7 @@ Macro "Separate NM Trips" (Args)
     
     per_vw = OpenTable("persons", "FFB", {per_file})
 
-    trip_types = RunMacro("Get Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
 
     for trip_type in trip_types do
         // All escort-k12 trips are motorized so skip

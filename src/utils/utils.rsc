@@ -2074,11 +2074,11 @@ Macro "Gravity" (MacroOpts)
 endmacro
 
 /*
-Simply macro specific to TRMG2. Uses the resident production table to
+Simple macro specific to TRMG2. Uses the resident production table to
 get and return the list of trip types.
 */
 
-Macro "Get Trip Types" (Args)
+Macro "Get HB Trip Types" (Args)
   prod_rate_file = Args.[Input Folder] + "/resident/generation/production_rates.csv"
   rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
   trip_types = GetDataVector(rate_vw + "|", "trip_type", )
