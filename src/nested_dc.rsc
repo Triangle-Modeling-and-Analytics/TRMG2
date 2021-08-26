@@ -91,6 +91,8 @@ Class "NestedDC" (ClassOpts)
         self.zone_level = "false"
         self.dc_spec = {DestinationsSource: "mtx", DestinationsIndex: "Col_AggregationID"}
         self.RunChoiceModels(cluster_opts)
+
+        self.CalcFinalProbs()
     enditem
 
     /*
@@ -375,5 +377,54 @@ Class "NestedDC" (ClassOpts)
         end
         RunMacro("Rename Field", vw, "Row_AggregationID", "TAZ")
         CloseView(vw)
+    enditem
+
+    /*
+    After the zonal and cluster probabilities are calculated, they must be
+    combined into a final probability of choosing each zone. This is the
+    prob of choosing a cluster * the prob of choosing a zone within that
+    cluster. The zonal probabilities must be scaled so that they add up to
+    1 within each cluster.
+    */
+
+    Macro "CalcFinalProbs" do
+
+        trip_type = self.ClassOpts.trip_type
+        period = self.ClassOpts.period
+        segments = self.ClassOpts.segments
+        prob_dir = self.ClassOpts.prob_dir
+        cluster_thetas = self.ClassOpts.cluster_thetas
+
+        for segment in segments do
+            name = trip_type + "_" + segment + "_" + period
+            cluster_file = prob_dir + "/probability_" + name + "_cluster.mtx"
+            zone_file = prob_dir + "/probability_" + name + "_zone.mtx"
+
+            z_mtx = CreateObject("Matrix", zone_file)
+            c_mtx = CreateObject("Matrix", cluster_file)
+
+            // Add cluster indices to the zonal matrix
+            self.CreateClusterIndices(z_mtx)
+            
+            theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+            {v_cluster_ids, v_cluster_names} = GetDataVectors(
+                theta_vw + "|",
+                {"Cluster", "ClusterName"},
+            )
+            CloseView(theta_vw)
+
+            z_mtx.AddCores({"scaled_prob", "final_prob"})
+            for i = 1 to v_cluster_ids.length do
+                cluster_id = v_cluster_ids[i]
+                cluster_name = v_cluster_names[i]
+
+                v_cluster_prob = c_mtx.GetVector("Total", {Column: cluster_id})
+                z_mtx.SetColIndex(cluster_name)
+                v_row_sum = z_mtx.GetVector("Total", {Marginal: "Row Sum"})
+                cores = z_mtx.GetCores()
+                cores.scaled_prob := cores.Total / v_row_sum
+                cores.final_prob := cores.scaled_prob * v_cluster_prob
+            end
+        end
     enditem
 endclass
