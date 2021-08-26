@@ -249,7 +249,7 @@ Class "NestedDC" (ClassOpts)
             mtx_file = util_dir + "/utility_" + name + "_zone.mtx"
             mtx = CreateObject("Matrix", mtx_file)
             mtx.AddCores({"ScaledTotal", "ExpScaledTotal", "IntraCluster"})
-            cores = mtx.data.cores
+            cores = mtx.GetCores()
 
             // The utilities must be scaled by the cluster thetas, which requires
             // an index for each cluster
@@ -261,20 +261,20 @@ Class "NestedDC" (ClassOpts)
                 theta = v_cluster_theta[i]
 
                 mtx.SetColIndex(cluster_name)
-                cores = mtx.data.cores
+                cores = mtx.GetCores()
                 cores.ScaledTotal := cores.ScaledTotal / theta
 
                 // Also mark intra-cluster ij pairs
                 mtx.SetRowIndex(cluster_name)
-                cores = mtx.data.cores
+                cores = mtx.GetCores()
                 cores.IntraCluster := 1
                 mtx.SetRowIndex("Origins")
             end
 
             // e^(scaled_x)
             mtx.SetColIndex("Destinations")
-            cores = mtx.data.cores
-            cores.ExpScaledTotal := exp(mtx.data.cores.scaledTotal)
+            cores = mtx.GetCores()
+            cores.ExpScaledTotal := exp(cores.scaledTotal)
 
             // Aggregate the columns into clusters
             agg = mtx.Aggregate({
@@ -294,7 +294,7 @@ Class "NestedDC" (ClassOpts)
             })
             o = CreateObject("Matrix", agg)
             o.AddCores({"LnSumExpScaledTotal", "final", "ic", "asc"})
-            cores = o.data.cores
+            cores = o.GetCores()
             cores.LnSumExpScaledTotal := Log(cores.[Sum of ExpScaledTotal])
             cores.final := cores.LnSumExpScaledTotal * v_cluster_theta
             cores.ic := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
