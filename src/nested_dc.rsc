@@ -240,6 +240,7 @@ Class "NestedDC" (ClassOpts)
             theta_vw + "|",
             {"Cluster", "ClusterName", "Theta", "ASC", "IC"},
         )
+        CloseView(theta_vw)
 
         for segment in segments do
             name = trip_type + "_" + segment + "_" + period
@@ -251,20 +252,12 @@ Class "NestedDC" (ClassOpts)
             // The utilities must be scaled by the cluster thetas, which requires
             // an index for each cluster
             cores.ScaledTotal := cores.Total
+            self.CreateClusterIndices(mtx)
             for i = 1 to v_cluster_ids.length do
                 cluster_id = v_cluster_ids[i]
                 cluster_name = v_cluster_names[i]
                 theta = v_cluster_theta[i]
 
-                mtx.AddIndex({
-                    Matrix: mtx.data.MatrixHandle,
-                    IndexName: cluster_name,
-                    Filter: "Cluster = " + String(cluster_id),
-                    Dimension: "Both",
-                    TableName: equiv_spec.File,
-                    OriginalID: equiv_spec.ZoneIDField,
-                    NewID: equiv_spec.ZoneIDField
-                })
                 mtx.SetColIndex(cluster_name)
                 cores = mtx.data.cores
                 cores.ScaledTotal := cores.ScaledTotal / theta
@@ -323,6 +316,38 @@ Class "NestedDC" (ClassOpts)
             // opts.mc = cores.final
             // opts.out_file = logsum_dir + "/agg_zonal_ls_" + name + ".bin"
             // self.WriteClusterTables(opts)
+        end
+    enditem
+
+    /*
+    Creates indices that can be used to select the zones in each cluster
+    */
+
+    Macro "CreateClusterIndices" (mtx) do
+        
+        cluster_thetas = self.ClassOpts.cluster_thetas
+        equiv_spec = self.ClassOpts.cluster_equiv_spec
+
+        theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+        {v_cluster_ids, v_cluster_names} = GetDataVectors(
+            theta_vw + "|",
+            {"Cluster", "ClusterName"},
+        )
+        CloseView(theta_vw)
+
+        for i = 1 to v_cluster_ids.length do
+            cluster_id = v_cluster_ids[i]
+            cluster_name = v_cluster_names[i]
+
+            mtx.AddIndex({
+                Matrix: mtx.data.MatrixHandle,
+                IndexName: cluster_name,
+                Filter: "Cluster = " + String(cluster_id),
+                Dimension: "Both",
+                TableName: equiv_spec.File,
+                OriginalID: equiv_spec.ZoneIDField,
+                NewID: equiv_spec.ZoneIDField
+            })
         end
     enditem
 
