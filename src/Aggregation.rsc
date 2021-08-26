@@ -56,6 +56,7 @@ Macro "Aggregate HB Trips by Market Segment" (Args)
 
     // Re-org data and append to SE    
     se_df = CreateObject("df", se_file)
+    se_df.select("TAZ")
     segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
     for segment in segments do
         df2 = df.copy()
@@ -66,6 +67,10 @@ Macro "Aggregate HB Trips by Market Segment" (Args)
         names[1] = "ZoneID"
         df2.colnames({new_names: names})
         se_df.left_join(df2, "TAZ", "ZoneID")
+        for n = 2 to names.length do
+            col = names[n]
+            se_df.tbl.(col) = nz(se_df.tbl.(col))
+        end
     end
 
     // For trip types other than W_HB_W_All, collapse market segments
@@ -83,5 +88,6 @@ Macro "Aggregate HB Trips by Market Segment" (Args)
             se_df.remove(from_field)
         end
     end
+    se_df.remove("TAZ")
     se_df.update_bin(se_file)
 endmacro
