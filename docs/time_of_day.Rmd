@@ -572,7 +572,7 @@ skim_facs %>%
 ```
 
 
-# Vehicle occupancy factors
+# Vehicle occupancy factors {.tabset}
 In addition to applying directionality factors before assignment, the person 
 trip matrices are converted to vehicles using occupancy factors. These factors
 are calculated from the household survey, which includes information on the
@@ -584,7 +584,8 @@ used are defined as follows:
 - HOV3: 3+ person occupancy
 
 Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancy calculated for HOV3.
+table below shows the occupancy calculated for HOV3, auto pay, and other
+auto.
 
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
@@ -606,43 +607,99 @@ occ_tbl <- tripTbl %>%
     daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
     Value = ifelse(Samples < 30, daily_value, Value)
   ) %>%
-  group_by(Purpose = trip_type, Period = tod, Mode = mode) %>%
+  group_by(trip_type, tod, mode) %>%
   slice(1) %>%
-  select(Purpose, Period, Mode, Value, Samples) %>%
+  select(trip_type, tod, mode, Value, Samples) %>%
   ungroup() %>%
-  arrange(Purpose, Period, Mode) %>%
-  select(Purpose, Mode, Period, Value)
+  arrange(trip_type, tod, mode) %>%
+  select(trip_type, mode, tod, Value) %>%
+  filter(mode == "hov3") %>%
+  select(-mode)
 
-occ_tbl %>%
-  spread(key = Period, value = Value) %>%
-  filter(Mode == "hov3") %>%
-  kable(digits = 2) %>%
+occ_tbl <- occ_tbl %>%
+  rename(hov3 = Value)
+```
+
+```{r}
+# calculate for auto_pay and other_auto
+oth_occ_tbl <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final)) %>%
+  filter(mode_final %in% c("auto_pay", "other_auto")) %>%
+  mutate(
+    party_size = num_hh_members + num_nonhh,
+    mode = mode_final
+  ) %>%
+  group_by(trip_type, tod, mode) %>%
+  mutate(
+    Value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    Samples = n(),
+  ) %>%
+  # Low samples for some rows leads to high factors (e.g. 4.9). If the sample size
+  # is low, use the daily average. If it is still too low, combine modes.
+  group_by(trip_type) %>%
+  mutate(purpose_daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3)) %>%
+  group_by(trip_type, mode) %>%
+  mutate(
+    daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    daily_samples = n(),
+    # Value = ifelse(Samples < 30, daily_value, Value)
+    Value = case_when(
+      Samples > 30 ~ Value,
+      daily_samples > 30 ~ daily_value,
+      TRUE ~ purpose_daily_value
+    )
+  ) %>%
+  group_by(trip_type, tod, mode) %>%
+  slice(1) %>%
+  select(trip_type, tod, mode, Value) %>%
+  ungroup() %>%
+  arrange(trip_type, tod, mode) %>%
+  complete(mode, trip_type, tod) %>%
+  group_by(trip_type) %>%
+  mutate(Value = ifelse(is.na(Value), max(Value, na.rm = TRUE), Value)) %>%
+  pivot_wider(names_from = mode, values_from = Value)
+
+final_occ <- occ_tbl %>%
+  left_join(oth_occ_tbl, by = c("trip_type", "tod"))
+```
+
+## HOV3
+
+```{r}
+display_tbl <- final_occ %>%
+  rename(
+    `Trip Type` = trip_type,
+    Period = tod,
+    HOV3 = hov3,
+    `Auto Pay` = auto_pay,
+    `Other Auto` = other_auto
+  )
+
+display_tbl %>%
+  select(`Trip Type`, Period, HOV3) %>%
+  pivot_wider(names_from = Period, values_from = HOV3) %>%
+  kable() %>%
   kable_styling(full_width = FALSE)
+```
 
-# TODO: create parameter table
+## Auto Pay
 
-# # Repeat occupancy factors by market segment to match model
-# # matrix core names
-# occ1 <- occ_tbl %>%
-#   filter(Purpose %in% c("HBW", "HBO")) %>%
-#   merge(c("v0", "ilvi", "ilvs", "ihvi", "ihvs")) %>%
-#   select(Purpose, Segment = y, Mode, Period, Value)
-# occ2 <- occ_tbl %>%
-#   filter(!(Purpose %in% c("HBW", "HBO"))) %>%
-#   mutate(Segment = "all") %>%
-#   select(Purpose, Segment, Mode, Period, Value)
-# occ_tbl <- bind_rows(occ1, occ2) %>%
-#   arrange(Purpose, Segment, Mode, Period)
-# 
-# 
-# # No need to add CV, IX, etc. By not being in the table, it's the same
-# # as if they were and had a factor of 1.
-# 
-# # add description column
-# v_desc <- vector(mode = "character", nrow(occ_tbl))
-# v_desc[1] <- "Vehicle occupancy rates (per/veh)"
-# v_desc[2] <- "CREATION: this file created by TimeOfDay.Rmd and University.Rmd"
-# occ_tbl$Description <- v_desc
+```{r}
+display_tbl %>%
+  select(`Trip Type`, Period, `Auto Pay`) %>%
+  pivot_wider(names_from = Period, values_from = `Auto Pay`) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+## Other Auto
+
+```{r}
+display_tbl %>%
+  select(`Trip Type`, Period, `Other Auto`) %>%
+  pivot_wider(names_from = Period, values_from = `Other Auto`) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
 ```
 
 
@@ -846,8 +903,8 @@ write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 # Directionality factors
 write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
 
-# Occupancy factors. HBU gets appended by University.Rmd
-write_csv(occ_tbl , "../master/directionality/veh_occ_factors.csv")
+# Occupancy factors
+write_csv(final_occ , "data/output/tod/veh_occ_factors.csv")
 
 # Period capacity table
 write_csv(
