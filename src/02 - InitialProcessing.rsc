@@ -578,12 +578,15 @@ Macro "Other Attributes" (Args)
     {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
     se_vw = OpenTable("se", "FFB", {se_file})
     a_fields = {
-        {"Cluster", "Integer", 10, , , , , "Cluster definition used in nested DC.|Copied from TAZ layer."}
+        {"Cluster", "Integer", 10, , , , , "Cluster definition used in nested DC.|Copied from TAZ layer."},
+        {"ClusterName", "Character", 16, , , , , "Cluster definition used in nested DC.|Copied from TAZ layer."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     jv = JoinViews("jv", tlyr + ".ID", se_vw + ".TAZ",)
     v = GetDataVector(jv + "|", tlyr + ".Cluster", )
     SetDataVector(jv + "|", se_vw + ".Cluster", v, )
+    v = GetDataVector(jv + "|", tlyr + ".ClusterName", )
+    SetDataVector(jv + "|", se_vw + ".ClusterName", v, )
     CloseView(se_vw)
     CloseMap(map)
 EndMacro

@@ -51,7 +51,10 @@ Class "df" (tbl, desc, groups)
       if tbl_type = "string" then do
         if RunMacro("Is View", tbl) then do
           opts.view = tbl
-          opts.include_descriptions = "true"
+          {class, spec} = GetViewTableInfo(tbl)
+          if class = null then opts.include_descriptions = "false"
+          else if !self.in(class, {"FFB", "RDM", "CDF"}) then opts.include_descriptions = "false"
+          else opts.include_descriptions = "true"
           self.read_view(opts)
         end else do
           {drive, folder, name, ext} = SplitPath(tbl)
@@ -698,6 +701,9 @@ Class "df" (tbl, desc, groups)
     end
     if include_descriptions then do
       {class, spec} = GetViewTableInfo(view)
+      if class = null then Throw(
+        "Field descriptions not supported for joined views"
+      )
       if !self.in(class, {"FFB", "RDM", "CDF"}) then Throw(
         "Field descriptions not supported for '" + class + "' class.\n" +
         "Only .bin, .dbd, and .cdf views/layers are supported."

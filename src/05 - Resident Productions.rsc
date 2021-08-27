@@ -124,9 +124,11 @@ Macro "Apply Rates with Queries" (MacroOpts)
     // Add fields
     v_unique_types = SortVector(v_type, {Unique: true})
     for field in v_unique_types do
-        a_fields = a_fields + {
-            {field, "Real", 10, 2,,,, "Resident production field"}
-        }
+        a_fields = a_fields + {{
+            field, "Real", 10, 2,,,, "Resident production field|" +
+            "After trip production, this field contains all person trips.|" +
+            "The non-motorized model modifies this field to be just motorized trips."
+        }}
     end
     RunMacro("Add Fields", {view: view, a_fields: a_fields})
 

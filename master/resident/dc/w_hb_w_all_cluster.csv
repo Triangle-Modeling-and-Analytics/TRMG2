@@ -1,0 +1,4 @@
+Expression,Segment,Coefficient,Description
+mtx.asc,,1,Cluster-specific constant
+mtx.ic,,1,Intra-cluster constant
+mtx.final,,1,DC logsums of the zones within each cluster
