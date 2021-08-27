@@ -33,6 +33,7 @@ Body:
     FlowChartNode(model,"Commercial Vehicles",,,)
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
+    FlowChartNode(model,"Create OD Matrices",,,)
     //
     // Links
     //
@@ -196,6 +197,15 @@ Macro "Aggregation" (Args,Result)
                   {"MacroNames",{"Aggregation"}}}
 Body:
     ShowMessage('Running: Aggregation')
+    Return(True)
+EndMacro
+
+
+Macro "Create OD Matrices" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Create OD Matrices"}}}
+Body:
+    ShowMessage('Running: Create OD Matrices')
     Return(True)
 EndMacro
 

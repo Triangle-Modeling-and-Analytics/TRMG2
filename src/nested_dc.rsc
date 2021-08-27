@@ -342,7 +342,7 @@ Class "NestedDC" (ClassOpts)
             cluster_name = v_cluster_names[i]
 
             mtx.AddIndex({
-                Matrix: mtx.data.MatrixHandle,
+                Matrix: mtx.GetMatrixHandle(),
                 IndexName: cluster_name,
                 Filter: "Cluster = " + String(cluster_id),
                 Dimension: "Both",

@@ -36,6 +36,38 @@ df_w_hbo <- trips_raw %>%
   )
 write_csv(df_w_hbo, "w_hbo_est_tbl.csv")
 
+# W_HB_EK12
+df_w_ek12 <- trips_raw %>%
+  filter(trip_type == "W_HB_EK12_All") %>%
+  left_join(
+    hh_raw %>%
+      select(hhid, hh_income_midpt, num_adults),
+    by = "hhid"
+  ) %>%
+  group_by(personid, tour_num, a_taz) %>%
+  slice(1) %>%
+  mutate(
+    HomeTAZ = ifelse(pa_flag == 1, o_taz, d_taz),
+    AvgIncPerWorker = hh_income_midpt / num_workers,
+    LowIncome = ifelse(AvgIncPerWorker < 75000, 1, 0)
+  ) %>%
+  left_join(cluster, by = c("HomeTAZ" = "TAZ")) %>%
+  rename(Home_Cluster = Cluster) %>%
+  left_join(cluster, by = c("o_taz" = "TAZ")) %>%
+  rename(O_Cluster = Cluster) %>%
+  left_join(cluster, by = c("d_taz" = "TAZ")) %>%
+  rename(D_Cluster = Cluster) %>%
+  mutate(ZeroAutoHH = ifelse(num_vehicles == 0, 1, 0)) %>%
+  ungroup() %>%
+  select(
+    EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
+    HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
+    LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
+    tod,
+    ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
+  )
+write_csv(df_w_ek12, "w_hb_ek12_est_tbl.csv")
+
 # OME
 df_ome <- trips_raw %>%
   filter(trip_type == "N_HB_OME_All") %>%
@@ -163,3 +195,35 @@ df_omed <- trips_raw %>%
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
 write_csv(df_omed, "omed_est_tbl.csv")
+
+# N_HB_K12
+df_hb_k12 <- trips_raw %>%
+  filter(trip_type == "N_HB_K12_All") %>%
+  left_join(
+    hh_raw %>%
+      select(hhid, hh_income_midpt, num_adults),
+    by = "hhid"
+  ) %>%
+  group_by(personid, tour_num, a_taz) %>%
+  slice(1) %>%
+  mutate(
+    HomeTAZ = ifelse(pa_flag == 1, o_taz, d_taz),
+    AvgIncPerAdult = hh_income_midpt / num_adults,
+    LowIncome = ifelse(AvgIncPerAdult < 75000, 1, 0)
+  ) %>%
+  left_join(cluster, by = c("HomeTAZ" = "TAZ")) %>%
+  rename(Home_Cluster = Cluster) %>%
+  left_join(cluster, by = c("o_taz" = "TAZ")) %>%
+  rename(O_Cluster = Cluster) %>%
+  left_join(cluster, by = c("d_taz" = "TAZ")) %>%
+  rename(D_Cluster = Cluster) %>%
+  mutate(ZeroAutoHH = ifelse(num_vehicles == 0, 1, 0)) %>%
+  ungroup() %>%
+  select(
+    EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
+    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
+    tod,
+    ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
+  )
+write_csv(df_hb_k12, "n_hb_k12_est_tbl.csv")
