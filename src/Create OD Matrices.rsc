@@ -5,7 +5,8 @@
 Macro "Create OD Matrices" (Args)
 
     RunMacro("Apportion Trips", Args)
-    RunMacro("Directionality and Occupancy", Args)
+    RunMacro("Directionality", Args)
+    RunMacro("Occupancy", Args)
 
     return(1)
 endmacro
@@ -25,6 +26,10 @@ Macro "Apportion Trips" (Args)
 
     se_vw = OpenTable("se", "FFB", {se_file})
 
+    // Create a folder to hold the trip matrices
+    trip_dir = mc_dir + "/trip_tables"
+    RunMacro("Create Directory", trip_dir)
+
     trip_types = RunMacro("Get HB Trip Types", Args)
 // TODO: remove. For testing only
 trip_types = {"W_HB_W_All"}
@@ -34,7 +39,7 @@ trip_types = {"W_HB_W_All"}
                 then segments = {"v0", "ilvi", "ilvs", "ihvi", "ihvs"}
                 else segments = {"v0", "vi", "vs"}
             
-            out_mtx_file = out_dir + "/resident/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            out_mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
             if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
 // TODO: remove. for testing only
 segments = {"ihvi"}
@@ -77,21 +82,80 @@ Convert from PA to OD format and from person trips to vehicle trips for the
 auto modes.
 */
 
-Macro "Directionality and Occupancy" (Args)
+Macro "Directionality" (Args)
 
-    trip_dir = Args.[Output Folder] + "/resident"
+    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     dir_factor_file = Args.DirectionFactors
     periods = Args.periods
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+    rh = GetFirstRecord(fac_vw + "|", )
+    auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        period = fac_vw.tod
+        pa_factor = fac_vw.pa_fac
 
-    trip_types = RunMacro("Get HB Trip Types", Args)
-// TODO: remove. For testing only
-trip_types = {"W_HB_W_All"}
-    for trip_type in trip_types do
-        for period in periods do
+// TODO: Remove. for testing only
+trip_type = "W_HB_W_All"
+period = "AM"
+pa_factor = 0.996080828
 
+        mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
+        cores = mtx.GetCores()
+        t_mtx = mtx.Transpose({Cores: auto_modes})
+        t_cores = t_mtx.GetCores()
+        for mode in auto_modes do
+            cores.(mode) := cores.(mode) * pa_factor + t_cores.(mode) * (1 - pa_factor)
         end
+Throw()
+        rh = GetNextRecord(fac_vw + "|", rh, )
     end
+    CloseView(fac_vw)
+endmacro
 
+/*
+
+*/
+
+Macro "Occupancy" (Args)
+
+    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+    factor_file = Args.OccupancyFactors
+    periods = Args.periods
+
+    fac_vw = OpenTable("factors", "CSV", {factor_file})
+    // TODO: this applies only to HB trips currently. When NHB is in place,
+    // need to apply it to both.
+    SetView(fac_vw)
+    SelectByQuery("sel", "several", "Select * where trip_type contains '_HB_'")
+    // Loop by period first to reduce the amount of opening/closing matrices
+    rh = GetFirstRecord(fac_vw + "|sel", )
+    
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        period = fac_vw.tod
+        hov3_factor = fac_vw.hov3
+        auto_pay_factor = fac_vw.auto_pay
+        other_auto_factor = fac_vw.other_auto
+
+// TODO: Remove. for testing only
+trip_type = "W_HB_W_All"
+period = "AM"
+hov3_factor = 2
+auto_pay_factor = 2
+other_auto_factor = 2
+
+        mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
+        cores = mtx.GetCores()
+        cores.hov2 := cores.hov2 / 2
+        cores.hov3 := cores.hov3 / hov3_factor
+        cores.auto_pay := cores.hov3 / auto_pay_factor
+        cores.other_auto := cores.hov3 / other_auto_factor
+Throw()
+        rh = GetNextRecord(fac_vw + "|sel", rh, )
+    end
+    CloseView(fac_vw)
 endmacro
