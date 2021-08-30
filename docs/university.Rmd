@@ -12,8 +12,8 @@ editor_options:
 
 source("R/university_productions.R")
 source("R/university_attractions.R")
-# source("R/university_surveyTLD2.R")
-# source("R/university_surveyMC.R")
+#source("R/university_survey_TLD.R")
+#source("R/university_survey_MC.R")
 
 knitr::opts_chunk$set(echo = FALSE)
 options(dplyr.summarise.inform = FALSE)
@@ -206,7 +206,7 @@ As with the trip production rates, trip attraction rates for off-campus attracti
 For on-campus attractions (Home-based Campus, Campus-to-campus), the attractions are distributed among campus zones proportional to the distribution of the square footage of university buildings. 
 
 THe analysis begins with torrelations between the university attractions and land use characteristics at the TAZ level. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.  
-```{r,echo=FALSE}
+```{r correlations,echo=FALSE}
 correlations_df %>% 
   filter(str_count(term, "Campus") == 0) %>%
   filter(term != "AllStudents_Trips") %>%
@@ -219,7 +219,7 @@ correlations_df %>%
 
 #### Regression Models
 The regression models were estimated for each purpose using a dataset that includes all TAZs for which the survey included trip attractions, of any purpose.  The TAZs that do nothave any trip attractions in the survey were excluded from the dataset used for model estimation.
-```{r, echo=FALSE}
+```{r print function, echo=FALSE}
 print_model <- function(model) {
   df <- tibble(variable = colnames(model$model),
                estimate = model$coefficients,
@@ -284,22 +284,47 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution (UC1 T
 ```
 
 ## MODE CHOICE
-### Mode split from the NCSU survey
+### Mode split from NCSU survey
+Based on the NCSU survey, the majority of the trips by on-campus students are walk trips.  The mode split graph below shows that when segmenting by trip purpose, the survey dataset includes less than 20 trips (horizontal black line) for some of mode-purpose combinations. The graph does not show UC1 trips which are mostly walk trips.
+#### Sample overview
+```{r oncampus_modetrips, echo = FALSE}
+trips_bypurpose_oncampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
+                                     subtitle="On-campus students", 
+                                     caption = ("Source: NCSU survey (unweighted)"))
+```
+Based on the NCSU survey,the majority of the trips by off-campus students that are not within the campus(UC1) are car trips.  The mode split graph below shows that when segmenting by trip purpose, the survey dataset includes less than 20 trips (horizontal black line) for some of mode-purpose combinations. The graph does not show UC1 trips, which are mostly walk trips.
+```{r}
+trips_bypurpose_offcampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
+                                     subtitle="Off-campus students", 
+                                     caption = ("Source: NCSU survey (unweighted)"))
+
+```
 #### On-campus students mode split
 ```{r,echo=FALSE}
-modesplit_bypurpose_oncampus_2_df 
+modesplit_bypurpose_oncampus_2_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
+
 #### Off-campus students mode split
 ```{r,echo=FALSE}
-modesplit_bypurpose_offcampus_2_df
+modesplit_bypurpose_offcampus_2_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
+
 ### Mode split calibration targets
 #### On-campus students mode split calibration targets
 ```{r,echo=FALSE}
-calibrationtargets_bypurpose_oncampus_df
+calibrationtargets_bypurpose_oncampus_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
+
 #### Off-campus students mode split calibration targets
 ```{r,echo=FALSE}
-calibrationtargets_bypurpose_offcampus_df
+calibrationtargets_bypurpose_offcampus_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
 
