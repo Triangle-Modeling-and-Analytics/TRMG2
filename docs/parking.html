@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Caliper Corporation" />
 
+<meta name="date" content="2021-08-30" />
 
-<title>Triangle Regional Model G2</title>
+<title>Parking Model</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -440,14 +442,27 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Triangle Regional Model G2</h1>
+<h1 class="title toc-ignore">Parking Model</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">August 30, 2021</h4>
 
 </div>
 
 
-<p>This website is under construction.</p>
-<p>As the new Triangle Regional Model is developed, documentation will be added to the navigation bar at the top. All documentation is an interim product and is subject to change during the development process.</p>
-<p>For a list of common acronyms used in the documentation, click <a href="acronyms.html">here</a>.</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The parking model component of the TRMG2 determines where auto travelers will park and either walk or take transit to their ultimate destination. The model is only applied to CBD and campus areas where parking is generally limited and paid for.</p>
+<p>In the TRMG2, the results of the parking model influence both mode and destination choices, which means travelers react realistically to changes in both parking availability and price. The advanced non-home-based model also means that a zone with severely limited parking cannot generate many auto non-home-based trips. This increases model accuracy in parking-constrained areas like Chapel Hill.</p>
+</div>
+<div id="design" class="section level2">
+<h2>Design</h2>
+<p>The parking model is applied at the end of the demand model stream, just before assignment. Trip matrices in origin-destination format from the preceding demand models are combined across purposes maintaining only segmentation between trips on work tours and trips on non-work tours (and maintaining SOV and HOV for assignment classes – but applying the same models to them).</p>
+<p>The model is adapted from the one estimated as part of the 2016 Triangle Region Parking Behavior Study but reformulated for application in the regional model. The estimated model did not include the lowest level choices of parking zone, which Caliper has added. In addition, the TRMG2 model only includes “Park and Walk” and “Auto Intercept” options (“Drive and Park” and “Drive, Park &amp; Shuttle” in the 2016 study). The regional model handles transit upstream in the mode choice model. However, for the auto intercept mode, the modeled transit system is used directly for path building. This ensures travelers see accurate options rather than asserted average headways and fares.</p>
+<p>This design is a departure from the previous generation of the TRM in grouping the Auto Intercept mode as part of the parking choices at the end of the model stream rather than as part of the main mode choice model. The 2016 study supports this structure as evidenced by nesting parameters less than one for its Auto nest which included both the “Drive and Park” and the “Drive, Park &amp; Shuttle” modes. This structure and original nesting coefficient in the 2016 study imply that travelers view the auto intercept mode as a parking strategy and not a main mode choice.</p>
+<p><img src="img/parking/choice_tree.png" width="75%" style="display: block; margin: auto;" /></p>
+<p>The applied parking model in the TRM is a two-level, nested logit combined parking mode and destination choice model. Various coefficient values and implied values of time differ from those in the 2016 report for a number of reasons including that the RP to SP scaling has been applied here, these numbers correct an error in one table in the 2016 report, and because the values of time reported in the 2016 report were generally scaled in comparison to willingness to pay transit fare.</p>
+<p><img src="img/parking/coeffs.png" width="90%" style="display: block; margin: auto;" /></p>
+</div>
 
 <br>
 <br>

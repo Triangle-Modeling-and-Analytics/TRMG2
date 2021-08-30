@@ -27,6 +27,8 @@ navbar:
           href: time_of_day.html
         - text: "Non-motorized"
           href: resident_nonmotorized.html
+        - text: "Parking"
+          href: parking.html
         - text: "Non-homebased"
           href: nhb.html
     - text: Other Models
