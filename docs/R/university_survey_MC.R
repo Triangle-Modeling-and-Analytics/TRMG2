@@ -204,14 +204,16 @@ calibrationtargets_bypurpose_offcampus_df <- modesplit_bypurpose_offcampus_df %>
          Pct_AllModes) 
 calibrationtargets_bypurpose_offcampus_df
 
-# plots mode split -----------------------------------------------------------
+# plots mode split - all purposes except UC1-----------------------------------------------------------
+
 
 trips_bypurpose_oncampus_plot <-trip_subset_df %>%
   filter(Trip_Purpose != "99")%>%
   filter(Primary_Mode != "NA")%>%
   filter(On_campus == 1) %>%
   filter(Trip_Purpose != "UC1") %>%
-  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge")
+  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge") + 
+  geom_hline(yintercept = 20)
 
 trips_bypurpose_oncampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
                                      subtitle="On-campus students", 
@@ -222,13 +224,39 @@ trips_bypurpose_offcampus_plot <-trip_subset_df %>%
   filter(Primary_Mode != "NA")%>%
   filter(Trip_Purpose != "UC1") %>%
   filter(On_campus == 0) %>%
-  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge")
+  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge") + 
+  geom_hline(yintercept = 20)
 
 trips_bypurpose_offcampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
                                      subtitle="Off-campus students", 
                                      caption = ("Source: NCSU survey (unweighted)"))
 
 
+# plots mode split - only UC1-----------------------------------------------------------
+
+trips_bypurpose_oncampusUC1_plot <-trip_subset_df %>%
+  filter(Trip_Purpose != "99")%>%
+  filter(Primary_Mode != "NA")%>%
+  filter(On_campus == 1) %>%
+  filter(Trip_Purpose == "UC1") %>%
+  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge") + 
+  geom_hline(yintercept = 20)
+
+trips_bypurpose_oncampusUC1_plot + labs(title = "Mode Split for UC1 trips", 
+                                        subtitle="On-campus students", 
+                                        caption = ("Source: NCSU survey (unweighted)"))
+
+trips_bypurpose_offcampusUC1_plot <-trip_subset_df %>%
+  filter(Trip_Purpose != "99")%>%
+  filter(Primary_Mode != "NA")%>%
+  filter(Trip_Purpose == "UC1") %>%
+  filter(On_campus == 0) %>%
+  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge") + 
+  geom_hline(yintercept = 20)
+
+trips_bypurpose_offcampusUC1_plot + labs(title = "Mode Split for UC1 trips", 
+                                         subtitle="Off-campus students", 
+                                         caption = ("Source: NCSU survey (unweighted)"))
 
   
 # write results ------------------------------------------------------
