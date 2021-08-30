@@ -34,6 +34,7 @@ Body:
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create OD Matrices",,,)
+    FlowChartNode(model,"External Models",,,)
     //
     // Links
     //
@@ -206,6 +207,15 @@ Macro "Create OD Matrices" (Args,Result)
                   {"MacroNames",{"Create OD Matrices"}}}
 Body:
     ShowMessage('Running: Create OD Matrices')
+    Return(True)
+EndMacro
+
+
+Macro "External Models" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"External Models"}}}
+Body:
+    ShowMessage('Running: External Models')
     Return(True)
 EndMacro
 

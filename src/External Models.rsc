@@ -2,10 +2,11 @@
 
 */
 
-Macro "Internal External" (Args)
-    RunMacro("External", Args)
-	
-    return(1)
+Macro "External Models" (Args)
+  RunMacro("External", Args)
+  // RunMacro("IEEI", Args)
+
+  return(1)
 endmacro
 
 /*
@@ -13,7 +14,7 @@ EE Model
 */
 
 Macro "External" (Args)
-    RunMacro("TCB Init")
+  RunMacro("TCB Init")
 	RunMacro("Convert EE CSV to MTX", Args)
 	RunMacro("Calculate EE IPF Marginals", Args)
 	RunMacro("IPF EE Seed Table", Args)
@@ -27,22 +28,17 @@ The matrix is created based on the external stations in the node layer
 */
 
 Macro "Convert EE CSV to MTX" (Args)
-    //hwy_dbd = Args.Links
-	//ee_csv_file = Args.[Input Folder] + "\\external\\ee-seed.csv"
-	//ee_mtx_file = Args.[Output Folder] + "\\external\\base_ee_table.mtx
-	
-	// TODO-AK: delete the hard-coded paths (used for testing)
-	hwy_dbd = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\networks\\scenario_links.dbd"
-	ee_csv_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ee-seed.csv"
-	ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\base_ee_table.mtx"
+  hwy_dbd = Args.Links
+  ee_csv_file = Args.[Input Folder] + "\\external\\ee-seed.csv"
+  ee_mtx_file = Args.[Output Folder] + "\\external\\base_ee_table.mtx"
 	
 	// create empty EE matrix from node layer
 	{map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
 	
-    SetLayer(nlyr)
+  SetLayer(nlyr)
 	qry = "Select * where External = 1"
 	n = SelectByQuery("ext", "Several", qry)
-    if n = 0 then Throw("No external stations found")
+  if n = 0 then Throw("No external stations found")
 	
 	opts = null
 	opts.[File Name] = ee_mtx_file
@@ -78,23 +74,20 @@ Calculate the production and attraction marginals at each external station.
 */
 
 Macro "Calculate EE IPF Marginals" (Args)
-  //se_file = Args.SE
-  
-  // TODO-AK: delete the hard-coded paths (used for testing)
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  se_file = Args.SE
   
   se_vw = OpenTable("se", "FFB", {se_file})
   SetView(se_vw)
 
   data = GetDataVectors(
-    se_vw + "|",
-  	{
-	  "TAZ", 
-  	  "PCTAUTOEE",
-  	  "PCTCV",
-	  "PCTCVSUTEE",
-	  "PCTCVMUTEE",
-  	  "ADT"
+    se_vw + "|", 
+    {
+      "TAZ", 
+      "PCTAUTOEE",
+      "PCTCV",
+      "PCTCVSUTEE",
+      "PCTCVMUTEE",
+      "ADT"
   	},
   	{OptArray: TRUE}
   )
@@ -105,7 +98,7 @@ Macro "Calculate EE IPF Marginals" (Args)
   ee_cv_mut_marg = Nz(data.PCTAUTOEE)/100 * Nz(data.PCTCVMUTEE)/100 * Nz(data.ADT) / 2
   
   a_fields = {
-    {"EE_AUTO_MARG", "Real", 10, 2, , , , "ee auto marginal"},
+  {"EE_AUTO_MARG", "Real", 10, 2, , , , "ee auto marginal"},
 	{"EE_CV_SUT_MARG", "Real", 10, 2, , , , "ee cv sut marginal"},
 	{"EE_CV_MUT_MARG", "Real", 10, 2, , , , "ee cv mut marginal"}
   }
@@ -127,14 +120,9 @@ Use the calculated marginals to IPF the base-year ee matrix.
 */
 
 Macro "IPF EE Seed Table" (Args)
-  //base_mtx_file = Args.[Output Folder] + "\\external\\base_ee_table.mtx
-  //ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx
-  //se_file = Args.SE
-  
-  // TODO-AK: delete the hard-coded paths (used for testing)
-  base_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\base_ee_table.mtx"
-  ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ee_trips.mtx"
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  base_mtx_file = Args.[Output Folder] + "\\external\\base_ee_table.mtx"
+  ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx"
+  se_file = Args.SE
   
   mtx = OpenMatrix(base_mtx_file, )
   core_names = GetMatrixCoreNames(mtx)
@@ -175,10 +163,7 @@ This macro enforces symmetry on the EE matrix.
 */
 
 Macro "EE Symmetry"
-  //ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx
-  
-  //TODO-AK: Delete hard-coded file path
-  ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ee_trips.mtx"
+  ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx"
   
   // Open the IPFd EE mtx
   mtx = OpenMatrix(ee_mtx_file, )
@@ -201,7 +186,7 @@ Macro "EE Symmetry"
   for c = 1 to a_corename.length do
     corename = a_corename[c]
 	
-	// Add together and divide by two to ensure symmetry
+	  // Add together and divide by two to ensure symmetry
     Cur.(corename) := (Cur.(corename) + tcur.(corename))/2
   end
 EndMacro
