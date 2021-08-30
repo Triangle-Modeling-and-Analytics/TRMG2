@@ -37,6 +37,9 @@ navbar:
           href: airport.html
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
+  right:
+    - icon: fa-github fa-2x
+      href: https://github.com/Caliper-Corporation/TRMG2
 output:
   html_document:
     theme: flatly
