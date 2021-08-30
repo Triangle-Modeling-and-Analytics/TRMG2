@@ -604,12 +604,16 @@ agency_comp %>%
 
 These differences are large, but manual path checking did not uncover any
 errors. This test assignment was performed on a network with a rough initial
-guess of travel times, which likely contributed to these differences. More
-attention will be paid to agency- and route-level ridership comparisons during
-model validation. It may be that fares or other route attributes received from
-stakeholders need to be adjusted. One positive result of this early test was
-that all routes received ridership, which indicates no critical accessibility
-flaws in the network.
+guess of travel times, which likely contributed to these differences. Further
+differences may be because the surveys were from 2014 and 2015 while the transit
+network is 2016. Any changes in route alignments or offerings would lead to
+higher discrepancies.
+
+More attention will be paid to agency- and route-level ridership comparisons
+during model validation. It may be that fares or other route attributes received
+from stakeholders need to be adjusted. One positive result of this early test
+was that all routes received ridership, which indicates no critical
+accessibility flaws in the network.
 
 *TODO: Revise this section after validation*
 
