@@ -443,16 +443,16 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>On-board surveys ask transit riders a series of question while they are on the bus in order to obtain detailed information about demographics, trip purpose, modes used, and other variables. These targeted surveys are critical for understanding transit users in a region. Due to the small size of the transit market in the Triangle, the household survey does not contain enough transit trips to estimate the behavior of these travelers.</p>
-<p>In the Triangle, a survey of GoTriangle and DCHC transit agencies was collected in 2014. CAMPO agencies were collected in 2015 along with surveys of new GoTriangle routes.</p>
+<p>On-board surveys ask transit riders a series of question while they are on the bus in order to obtain detailed information about demographics, trip purpose, modes used, and other variables. These targeted surveys are critical for understanding transit users in the region. Due to the small size of the transit market in the Triangle and the small household survey sample size, the household survey does not contain enough transit trips to estimate the behavior of these travelers.</p>
+<p>In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014 (excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with new GoTriangle routes. These are used to gain insight into the transit market.</p>
 </div>
 <div id="combining-surveys" class="section level2">
 <h2>Combining surveys</h2>
-<p>Unlike the household surveys, the transit surveys were collected by different companies. Combining the surveys required translating the different field codes from each into a combined set of values. The surveys collected the same basic information, which made this process easier. Additionally, because different routes were collected in each survey, no adjustments to the weights were needed.</p>
+<p>Unlike the household surveys, the transit surveys were collected by different companies. Combining the surveys required translating the different field codes from each into a combined set of values. The surveys collected the same basic information, which made this process easier. Additionally, because different routes were collected in each survey, no routes were double counted and no adjustments to the sample weights were needed.</p>
 </div>
 <div id="geocoding" class="section level2">
 <h2>Geocoding</h2>
-<p>As with the household survey, the transit trip latitude/longitude values were translated into TRMG2 TAZs. For a transit trip, this includes the home, origin, destination, boarding, and alighting locations.</p>
+<p>As with the household survey, the transit trip latitude/longitude values were translated into TRMG2 TAZs. For a transit trip, this includes the home, origin, destination, boarding, and alighting locations. A sample of this is shown in the table below:</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -623,7 +623,7 @@ C-Tran: Route 5: INBOUND toward Train Station
 </div>
 <div id="reasonableness-checks" class="section level2 tabset">
 <h2>Reasonableness checks</h2>
-<p>A high level review of the combined survey was performed to make sure processing had not introduced errors. Some of those checks are shown in the charts below. All dimensions checked look reasonable.</p>
+<p>A high level review of the combined survey was performed to make sure processing had not introduced errors. Some of those checks are shown in the charts below. All dimensions checked looked reasonable.</p>
 <div id="agency" class="section level3">
 <h3>Agency</h3>
 <p><img src="obs_processing_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
@@ -791,7 +791,7 @@ TT
 </tr>
 </tbody>
 </table>
-<p>These differences are large, but manual path checking did not uncover any errors. This test assignment was performed on a network with a rough initial guess of travel times, which likely contributed to these differences. More attention will be paid to agency- and route-level ridership comparisons during model validation. It may be that fares or other route attributes received from stakeholders may need to be adjusted. One positive result of this early test was that all routes received ridership, which indicates no critical accessibility flaws in the network.</p>
+<p>These differences are large, but manual path checking did not uncover any errors. This test assignment was performed on a network with a rough initial guess of travel times, which likely contributed to these differences. More attention will be paid to agency- and route-level ridership comparisons during model validation. It may be that fares or other route attributes received from stakeholders need to be adjusted. One positive result of this early test was that all routes received ridership, which indicates no critical accessibility flaws in the network.</p>
 <p><em>TODO: Revise this section after validation</em></p>
 </div>
 

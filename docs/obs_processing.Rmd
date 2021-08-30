@@ -26,12 +26,13 @@ On-board surveys ask transit riders a series of question while they are on the
 bus in order to obtain detailed information about demographics, trip purpose,
 modes used, and other variables. These targeted surveys are critical for
 understanding transit users in the region. Due to the small size of the transit
-market in the Triangle, the household survey does not contain enough transit
-trips to estimate the behavior of these travelers.
+market in the Triangle and the small household survey sample size, the household
+survey does not contain enough transit trips to estimate the behavior of these
+travelers.
 
 In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014
 (excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with
-new GoTriangle routes.
+new GoTriangle routes. These are used to gain insight into the transit market.
 
 ## Combining surveys
 
@@ -39,7 +40,8 @@ Unlike the household surveys, the transit surveys were collected by different
 companies. Combining the surveys required translating the different field codes
 from each into a combined set of values. The surveys collected the same basic
 information, which made this process easier. Additionally, because different
-routes were collected in each survey, no adjustments to the weights were needed.
+routes were collected in each survey, no routes were double counted and no
+adjustments to the sample weights were needed.
 
 ```{r, include=FALSE}
 goraleigh_2015_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper/2015 GoRaleigh Transit On-Board/1_Data - Original (CDM-Smith)/2015TOB_GoRaleigh_Data_Weighted_Final_2016-04-05_CDMSmith.xlsx")
