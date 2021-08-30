@@ -11,9 +11,9 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-03-15" />
+<meta name="date" content="2021-08-30" />
 
-<title>On-board Survey Processing</title>
+<title>Parking Model</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -28,8 +28,6 @@
 <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
 <script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
@@ -444,366 +442,26 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">On-board Survey Processing</h1>
+<h1 class="title toc-ignore">Parking Model</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">March 15, 2021</h4>
+<h4 class="date">August 30, 2021</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>On-board surveys ask transit riders a series of question while they are on the bus in order to obtain detailed information about demographics, trip purpose, modes used, and other variables. These targeted surveys are critical for understanding transit users in the region. Due to the small size of the transit market in the Triangle and the small household survey sample size, the household survey does not contain enough transit trips to estimate the behavior of these travelers.</p>
-<p>In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014 (excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with new GoTriangle routes. These are used to gain insight into the transit market.</p>
+<p>The parking model component of the TRMG2 determines where auto travelers will park and either walk or take transit to their ultimate destination. The model is only applied to CBD and campus areas where parking is generally limited and paid for.</p>
+<p>In the TRMG2, the results of the parking model influence both mode and destination choices, which means travelers react realistically to changes in both parking availability and price. The advanced non-home-based model also means that a zone with severely limited parking cannot generate many auto non-home-based trips. This increases model accuracy in parking-constrained areas like Chapel Hill.</p>
 </div>
-<div id="combining-surveys" class="section level2">
-<h2>Combining surveys</h2>
-<p>Unlike the household surveys, the transit surveys were collected by different companies. Combining the surveys required translating the different field codes from each into a combined set of values. The surveys collected the same basic information, which made this process easier. Additionally, because different routes were collected in each survey, no routes were double counted and no adjustments to the sample weights were needed.</p>
-</div>
-<div id="geocoding" class="section level2">
-<h2>Geocoding</h2>
-<p>As with the household survey, the transit trip latitude/longitude values were translated into TRMG2 TAZs. For a transit trip, this includes the home, origin, destination, boarding, and alighting locations. A sample of this is shown in the table below:</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-route
-</th>
-<th style="text-align:right;">
-weight
-</th>
-<th style="text-align:right;">
-home_taz
-</th>
-<th style="text-align:right;">
-orig_taz
-</th>
-<th style="text-align:right;">
-board_taz
-</th>
-<th style="text-align:right;">
-alight_taz
-</th>
-<th style="text-align:right;">
-dest_taz
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Route 2: Falls of Neuse- INBOUND toward Downtown
-</td>
-<td style="text-align:right;">
-6.76
-</td>
-<td style="text-align:right;">
-1448
-</td>
-<td style="text-align:right;">
-2651
-</td>
-<td style="text-align:right;">
-2542
-</td>
-<td style="text-align:right;">
-1429
-</td>
-<td style="text-align:right;">
-1935
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Route 1: Capital- OUTBOUND toward Triangle Town Center
-</td>
-<td style="text-align:right;">
-7.45
-</td>
-<td style="text-align:right;">
-1781
-</td>
-<td style="text-align:right;">
-1435
-</td>
-<td style="text-align:right;">
-1429
-</td>
-<td style="text-align:right;">
-1446
-</td>
-<td style="text-align:right;">
-1448
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Route 2: Falls of Neuse- INBOUND toward Downtown
-</td>
-<td style="text-align:right;">
-6.76
-</td>
-<td style="text-align:right;">
-1467
-</td>
-<td style="text-align:right;">
-1700
-</td>
-<td style="text-align:right;">
-1699
-</td>
-<td style="text-align:right;">
-1429
-</td>
-<td style="text-align:right;">
-1467
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-C-Tran: Route 2: COUNTERCLOCKWISE
-</td>
-<td style="text-align:right;">
-2.83
-</td>
-<td style="text-align:right;">
-1892
-</td>
-<td style="text-align:right;">
-1892
-</td>
-<td style="text-align:right;">
-1874
-</td>
-<td style="text-align:right;">
-2209
-</td>
-<td style="text-align:right;">
-2209
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-C-Tran: Route 4: OUTBOUND toward NC Hwy 55
-</td>
-<td style="text-align:right;">
-2.73
-</td>
-<td style="text-align:right;">
-2339
-</td>
-<td style="text-align:right;">
-2335
-</td>
-<td style="text-align:right;">
-2269
-</td>
-<td style="text-align:right;">
-2326
-</td>
-<td style="text-align:right;">
-2339
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-C-Tran: Route 5: INBOUND toward Train Station
-</td>
-<td style="text-align:right;">
-2.45
-</td>
-<td style="text-align:right;">
-1646
-</td>
-<td style="text-align:right;">
-2180
-</td>
-<td style="text-align:right;">
-2180
-</td>
-<td style="text-align:right;">
-2269
-</td>
-<td style="text-align:right;">
-1646
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="reasonableness-checks" class="section level2 tabset">
-<h2>Reasonableness checks</h2>
-<p>A high level review of the combined survey was performed to make sure processing had not introduced errors. Some of those checks are shown in the charts below. All dimensions checked looked reasonable.</p>
-<div id="agency" class="section level3">
-<h3>Agency</h3>
-<p><img src="obs_processing_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-</div>
-<div id="time-of-day" class="section level3">
-<h3>Time of Day</h3>
-<p><img src="obs_processing_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-</div>
-<div id="access-mode" class="section level3">
-<h3>Access Mode</h3>
-<p><img src="obs_processing_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-</div>
-<div id="fare-type" class="section level3">
-<h3>Fare Type</h3>
-<p><img src="obs_processing_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-</div>
-</div>
-<div id="survey-assignment" class="section level2">
-<h2>Survey Assignment</h2>
-<p>For an additional check on both the on-board survey processing and the model’s route network, the on-board survey was assigned. This involved processing the survey into the appropriate matrices by time of day, transit mode, and accesss mode. The model assignment macros in TransCAD were used to assign these to the route system, and the results were compared to reported ridership by route.</p>
-<p>The percent root mean square error (%RMSE) for route-level boardings was 96.8%. The agency-level %RMSE was 52.63%. The table below shows the agency-level comparison.</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Agency
-</th>
-<th style="text-align:right;">
-Observed
-</th>
-<th style="text-align:right;">
-Modelled
-</th>
-<th style="text-align:right;">
-Difference
-</th>
-<th style="text-align:right;">
-Absolute Difference
-</th>
-<th style="text-align:right;">
-Percent Difference
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-CAT
-</td>
-<td style="text-align:right;">
-23,218
-</td>
-<td style="text-align:right;">
-39,299
-</td>
-<td style="text-align:right;">
-16,081
-</td>
-<td style="text-align:right;">
-16,081
-</td>
-<td style="text-align:right;">
-69.26
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-CHT
-</td>
-<td style="text-align:right;">
-26,371
-</td>
-<td style="text-align:right;">
-21,407
-</td>
-<td style="text-align:right;">
--4,964
-</td>
-<td style="text-align:right;">
-4,964
-</td>
-<td style="text-align:right;">
--18.82
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-CTRAN
-</td>
-<td style="text-align:right;">
-1,003
-</td>
-<td style="text-align:right;">
-1,805
-</td>
-<td style="text-align:right;">
-802
-</td>
-<td style="text-align:right;">
-802
-</td>
-<td style="text-align:right;">
-79.96
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-DATA
-</td>
-<td style="text-align:right;">
-21,601
-</td>
-<td style="text-align:right;">
-24,554
-</td>
-<td style="text-align:right;">
-2,953
-</td>
-<td style="text-align:right;">
-2,953
-</td>
-<td style="text-align:right;">
-13.67
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NCSU
-</td>
-<td style="text-align:right;">
-16,699
-</td>
-<td style="text-align:right;">
-18,255
-</td>
-<td style="text-align:right;">
-1,556
-</td>
-<td style="text-align:right;">
-1,556
-</td>
-<td style="text-align:right;">
-9.32
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-TT
-</td>
-<td style="text-align:right;">
-9,184
-</td>
-<td style="text-align:right;">
-15,399
-</td>
-<td style="text-align:right;">
-6,215
-</td>
-<td style="text-align:right;">
-6,215
-</td>
-<td style="text-align:right;">
-67.67
-</td>
-</tr>
-</tbody>
-</table>
-<p>These differences are large, but manual path checking did not uncover any errors. This test assignment was performed on a network with a rough initial guess of travel times, which likely contributed to these differences. Further differences may be because the surveys were from 2014 and 2015 while the transit network is 2016. Any changes in route alignments or offerings would lead to higher discrepancies.</p>
-<p>More attention will be paid to agency- and route-level ridership comparisons during model validation. It may be that fares or other route attributes received from stakeholders need to be adjusted. One positive result of this early test was that all routes received ridership, which indicates no critical accessibility flaws in the network.</p>
-<p><em>TODO: Revise this section after validation</em></p>
+<div id="design" class="section level2">
+<h2>Design</h2>
+<p>The parking model is applied at the end of the demand model stream, just before assignment. Trip matrices in origin-destination format from the preceding demand models are combined across purposes maintaining only segmentation between trips on work tours and trips on non-work tours (and maintaining SOV and HOV for assignment classes – but applying the same models to them).</p>
+<p>The model is adapted from the one estimated as part of the 2016 Triangle Region Parking Behavior Study but reformulated for application in the regional model. The estimated model did not include the lowest level choices of parking zone, which Caliper has added. In addition, the TRMG2 model only includes “Park and Walk” and “Auto Intercept” options (“Drive and Park” and “Drive, Park &amp; Shuttle” in the 2016 study). The regional model handles transit upstream in the mode choice model. However, for the auto intercept mode, the modeled transit system is used directly for path building. This ensures travelers see accurate options rather than asserted average headways and fares.</p>
+<p>This design is a departure from the previous generation of the TRM in grouping the Auto Intercept mode as part of the parking choices at the end of the model stream rather than as part of the main mode choice model. The 2016 study supports this structure as evidenced by nesting parameters less than one for its Auto nest which included both the “Drive and Park” and the “Drive, Park &amp; Shuttle” modes. This structure and original nesting coefficient in the 2016 study imply that travelers view the auto intercept mode as a parking strategy and not a main mode choice.</p>
+<p><img src="img/parking/choice_tree.png" width="75%" style="display: block; margin: auto;" /></p>
+<p>The applied parking model in the TRM is a two-level, nested logit combined parking mode and destination choice model. Various coefficient values and implied values of time differ from those in the 2016 report for a number of reasons including that the RP to SP scaling has been applied here, these numbers correct an error in one table in the 2016 report, and because the values of time reported in the 2016 report were generally scaled in comparison to willingness to pay transit fare.</p>
+<p><img src="img/parking/coeffs.png" width="90%" style="display: block; margin: auto;" /></p>
 </div>
 
 <br>
