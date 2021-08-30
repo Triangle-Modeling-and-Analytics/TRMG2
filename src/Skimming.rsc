@@ -135,6 +135,20 @@ Macro "Create Average Roadway Skims" (Args)
         rh = GetNextRecord(factor_vw + "|", , )
     end
     CloseView(factor_vw)
+
+    // Add a dummy intrazonal core that will be used by DC later
+    a_mtx_files = RunMacro("Catalog Files", skim_dir, "mtx")
+    for file in a_mtx_files do
+        {drive, folder, name, ext} = SplitPath(file)
+        if Left(name, 3) <> "avg" then continue
+        mtx = CreateObject("Matrix")
+        mtx.LoadMatrix(file)
+        mtx.AddCores("IZ")
+        cores = mtx.data.cores
+        cores.IZ := 0
+        v = Vector(cores.IZ.Rows, "Float", {Constant: 1})
+        SetMatrixVector(cores.IZ, v, {Diagonal: "true"})
+    end
 endmacro
 
 /*
@@ -217,6 +231,7 @@ Macro "Transit Skims" (Args, overrides)
                 // Flip to AP format in the PM period
                 if period = "PM" then do
                     label = label + " transposed to AP"
+                    // TODO: replace this with new matrix object method
                     RunMacro("Transpose Matrix", out_file, label)
                 end
             end
