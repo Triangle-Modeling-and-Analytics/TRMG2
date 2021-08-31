@@ -11,30 +11,23 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-05-18" />
+<meta name="date" content="2021-08-10" />
 
 <title>Airport</title>
 
-<script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.5/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<style>h1 {font-size: 34px;}
-       h1.title {font-size: 38px;}
-       h2 {font-size: 30px;}
-       h3 {font-size: 24px;}
-       h4 {font-size: 18px;}
-       h5 {font-size: 16px;}
-       h6 {font-size: 12px;}
-       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
-       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
@@ -51,7 +44,32 @@
 
 
 
-
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
 
 <link rel="stylesheet" href="styles.css" type="text/css" />
 
@@ -62,6 +80,10 @@
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -78,13 +100,40 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
-pre code {
-  padding: 0;
-}
 </style>
 
 
 <style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
 .dropdown-submenu {
   position: relative;
 }
@@ -112,7 +161,7 @@ pre code {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #adb5bd;
+  border-left-color: #ffffff;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -124,7 +173,7 @@ pre code {
 }
 </style>
 
-<script type="text/javascript">
+<script>
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -135,23 +184,10 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.tab('show');
+  menuAnchor.parent().addClass('active');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
-
-  // Navbar adjustments
-  var navHeight = $(".navbar").first().height() + 15;
-  var style = document.createElement('style');
-  var pt = "padding-top: " + navHeight + "px; ";
-  var mt = "margin-top: -" + navHeight + "px; ";
-  var css = "";
-  // offset scroll position for anchor links (for fixed navbar)
-  for (var i = 1; i <= 6; i++) {
-    css += ".section h" + i + "{ " + pt + mt + "}\n";
-  }
-  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
-  document.head.appendChild(style);
 });
 </script>
 
@@ -163,6 +199,7 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
+  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -288,13 +325,13 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-sm-12 col-md-4 col-lg-3">
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -340,7 +377,34 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Models
+    Resident Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
      
     <span class="caret"></span>
   </a>
@@ -349,19 +413,10 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="generation_disaggregation.html">Dissaggregation</a>
-    </li>
-    <li>
-      <a href="population_synthesis.html">Synthesis</a>
-    </li>
-    <li>
-      <a href="time_of_day.html">Time of Day</a>
-    </li>
-    <li>
-      <a href="nhb.html">Non-home-based</a>
-    </li>
-    <li>
       <a href="airport.html">Airport</a>
+    </li>
+    <li>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
     </li>
   </ul>
 </li>
@@ -373,13 +428,13 @@ div.tocify {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div id="header">
+<div class="fluid-row" id="header">
 
 
 
 <h1 class="title toc-ignore">Airport</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">May 18, 2021</h4>
+<h4 class="date">August 10, 2021</h4>
 
 </div>
 
@@ -387,7 +442,7 @@ div.tocify {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Air passenger travel to/from the Raleigh-Durham International Airport (RDU) is captured by the air passenger model.</p>
-<p>A limited amount of data on air passengers is available and the modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recordedfrom StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data include the following: <em>It does not distinguish between airport employees and air passengers.</em> It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region.</p>
+<p>A limited amount of data on air passengers is available. The modeling approach is therefore straightforward and requires a handful of assumptions. The available data is passive movements recorded from StreetLight Data. The benefits of this data is they provide a reasonable signal of movements to/from the airport. The drawbacks of this data are as follows: <em>It does not distinguish between airport employees and air passengers.</em> It cannot distinguish between trip legs, for example the movement from home to an off-airport parking location and the movement from the off-airport parking location to the airport terminal. And it cannot distinguish between residents of the Triangle region and visitors to the Triangle region.</p>
 </div>
 <div id="streetlight-data-summaries" class="section level2">
 <h2>StreetLight Data Summaries</h2>
@@ -426,6 +481,14 @@ employment
 </td>
 <td style="text-align:right;">
 0.264
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_paying_jobs
+</td>
+<td style="text-align:right;">
+0.238
 </td>
 </tr>
 <tr>
@@ -470,14 +533,6 @@ Office
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earners
-</td>
-<td style="text-align:right;">
-0.126
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 workers
 </td>
 <td style="text-align:right;">
@@ -514,6 +569,14 @@ Total_POP
 </td>
 <td style="text-align:right;">
 0.079
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_paying_jobs_distance
+</td>
+<td style="text-align:right;">
+0.069
 </td>
 </tr>
 <tr>
@@ -558,14 +621,6 @@ Inst_GQ
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earn_distance
-</td>
-<td style="text-align:right;">
--0.018
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Stud_GQ
 </td>
 <td style="text-align:right;">
@@ -590,12 +645,12 @@ NA
 </tr>
 </tbody>
 </table>
-<p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers,high income persons, and employment.</p>
+<p>The above table shows correlations between airport productions and the variables we would expect and like to be correlated with airport productions, including workers, employment, and high income employment.</p>
 <p>Using the correlations as a guide, we estimate a series of linear regression models in a search for a parsimonious balance between model fit and logical coefficients.</p>
 </div>
 <div id="model-estimation-results" class="section level3 tabset MODEL">
 <h3 class="tabset MODEL">Model Estimation Results</h3>
-<p>Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes <code>high earners</code>, which is the number of high earners in each TAZ. A second term that interacts high earners with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.</p>
+<p>Numerous model estimations were conducted to find the preferred specification shown below. The preferred specification includes <code>high paying jobs</code>, which is the number of high paying jobs in each TAZ. A second term that interacts high paying jobs with distance to the airport is included as well, which reduces the number of productions for high earners at greater distances from the airport.</p>
 <p>The preferred specification includes <code>employment</code> which captures movements to/from work locations to the airport. The preferred specification collapses the employment categories. Specifications with employment separated by industry did not always reveal logical coefficients (e.g., a larger coefficient on industrial employment than office employment).</p>
 <p>Other, non-preferred specifications are included in the tabs below.</p>
 <div id="preferred" class="section level4">
@@ -620,41 +675,13 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-<em>intercept</em>
-</td>
-<td style="text-align:right;">
-5.4539
-</td>
-<td style="text-align:right;">
-6.1304
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 employment
 </td>
 <td style="text-align:right;">
-0.0133
+0.0148
 </td>
 <td style="text-align:right;">
-15.7455
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-high_earn_distance
-</td>
-<td style="text-align:right;">
--0.0051
-</td>
-<td style="text-align:right;">
--14.7273
+9.7474
 </td>
 <td style="text-align:right;">
 0
@@ -662,13 +689,41 @@ high_earn_distance
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earners
+high_paying_jobs
 </td>
 <td style="text-align:right;">
-0.1315
+0.0479
 </td>
 <td style="text-align:right;">
-20.2635
+13.7852
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+high_paying_jobs_distance
+</td>
+<td style="text-align:right;">
+-0.0037
+</td>
+<td style="text-align:right;">
+-16.7011
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+workers
+</td>
+<td style="text-align:right;">
+0.0281
+</td>
+<td style="text-align:right;">
+22.0796
 </td>
 <td style="text-align:right;">
 0
@@ -679,7 +734,7 @@ high_earners
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.2686
+0.4410
 </td>
 <td style="text-align:right;">
 NA
@@ -795,24 +850,24 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-1.4671
+1.1720
 </td>
 <td style="text-align:right;">
-1.5752
+1.3157
 </td>
 <td style="text-align:right;">
-0.1154
+0.1884
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earn_distance
+high_paying_jobs
 </td>
 <td style="text-align:right;">
--0.0053
+0.0795
 </td>
 <td style="text-align:right;">
--16.0683
+18.1739
 </td>
 <td style="text-align:right;">
 0.0000
@@ -820,13 +875,13 @@ high_earn_distance
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earners
+high_paying_jobs_distance
 </td>
 <td style="text-align:right;">
-0.1027
+-0.0046
 </td>
 <td style="text-align:right;">
-12.1976
+-20.9730
 </td>
 <td style="text-align:right;">
 0.0000
@@ -837,13 +892,13 @@ high_earners
 hotel_rooms
 </td>
 <td style="text-align:right;">
--0.0071
+0.0187
 </td>
 <td style="text-align:right;">
--0.0969
+0.2639
 </td>
 <td style="text-align:right;">
-0.9228
+0.7919
 </td>
 </tr>
 <tr>
@@ -851,10 +906,10 @@ hotel_rooms
 Industry
 </td>
 <td style="text-align:right;">
-0.0344
+0.0368
 </td>
 <td style="text-align:right;">
-8.4089
+8.0544
 </td>
 <td style="text-align:right;">
 0.0000
@@ -865,10 +920,10 @@ Industry
 Office
 </td>
 <td style="text-align:right;">
-0.0126
+-0.0135
 </td>
 <td style="text-align:right;">
-8.5698
+-4.6289
 </td>
 <td style="text-align:right;">
 0.0000
@@ -879,10 +934,10 @@ Office
 Retail
 </td>
 <td style="text-align:right;">
-0.0336
+0.0319
 </td>
 <td style="text-align:right;">
-11.0723
+10.8343
 </td>
 <td style="text-align:right;">
 0.0000
@@ -893,10 +948,10 @@ Retail
 Service_RateHigh
 </td>
 <td style="text-align:right;">
-0.0559
+0.0785
 </td>
 <td style="text-align:right;">
-5.9880
+8.5147
 </td>
 <td style="text-align:right;">
 0.0000
@@ -907,10 +962,10 @@ Service_RateHigh
 workers
 </td>
 <td style="text-align:right;">
-0.0183
+0.0243
 </td>
 <td style="text-align:right;">
-5.3790
+14.8929
 </td>
 <td style="text-align:right;">
 0.0000
@@ -921,7 +976,7 @@ workers
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.3339
+0.3834
 </td>
 <td style="text-align:right;">
 NA
@@ -958,24 +1013,24 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-3.3970
+2.4434
 </td>
 <td style="text-align:right;">
-3.9278
+2.5874
 </td>
 <td style="text-align:right;">
-0.0001
+0.0097
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earn_distance
+employment
 </td>
 <td style="text-align:right;">
--0.0051
+0.0138
 </td>
 <td style="text-align:right;">
--15.3203
+8.7945
 </td>
 <td style="text-align:right;">
 0.0000
@@ -983,27 +1038,13 @@ high_earn_distance
 </tr>
 <tr>
 <td style="text-align:left;">
-high_earners
+high_paying_jobs
 </td>
 <td style="text-align:right;">
-0.1335
+0.0488
 </td>
 <td style="text-align:right;">
-21.4401
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Industry
-</td>
-<td style="text-align:right;">
-0.0317
-</td>
-<td style="text-align:right;">
-7.7504
+13.9853
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1011,27 +1052,13 @@ Industry
 </tr>
 <tr>
 <td style="text-align:left;">
-Office
+high_paying_jobs_distance
 </td>
 <td style="text-align:right;">
-0.0117
+-0.0037
 </td>
 <td style="text-align:right;">
-7.9367
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Retail
-</td>
-<td style="text-align:right;">
-0.0357
-</td>
-<td style="text-align:right;">
-11.7986
+-16.8790
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1039,13 +1066,27 @@ Retail
 </tr>
 <tr>
 <td style="text-align:left;">
-Service_RateHigh
+hotel_rooms
 </td>
 <td style="text-align:right;">
-0.0577
+-0.0041
 </td>
 <td style="text-align:right;">
-6.1372
+-0.0536
+</td>
+<td style="text-align:right;">
+0.9573
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+workers
+</td>
+<td style="text-align:right;">
+0.0251
+</td>
+<td style="text-align:right;">
+14.4132
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1056,7 +1097,7 @@ Service_RateHigh
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.3245
+0.2953
 </td>
 <td style="text-align:right;">
 NA
@@ -1071,7 +1112,7 @@ NA
 </div>
 <div id="predicted-productions" class="section level3">
 <h3>Predicted Productions</h3>
-<p>The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes 15343 daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high earner and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application.</p>
+<p>The map below plots the predicted airport productions. In model application, the calculated productions will be scaled to airport attractions, which is the number of enplanements at RDU entered by the model user. The current chart assumes 15343 daily enplanements. It is also possible for the regression model to return a negative number of enplanements due to the negative coefficient on the high paying jobs and distance interaction term. These productions have been censored at zero and will need to be similarly censored in model application.</p>
 <p><img src="img/airport/estimated_productions.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>The chart below plots the adjusted observed productions (truncated at 200 times the scaling necessary to matche the target attractions) against the estimated productions.</p>
 <p><img src="img/airport/scatter_plot.png" width="80%" style="display: block; margin: auto;" /></p>
@@ -1481,7 +1522,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open');
+    $(this).parent().toggleClass('nav-tabs-open')
   });
 });
 </script>

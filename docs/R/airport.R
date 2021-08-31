@@ -1,20 +1,3 @@
-# Packages ---------------------------------------------------------------------
-packages_vector <- c("tidyverse",
-                     "sf",
-                     "corrr",
-                     "geosphere",
-                     "measurements",
-                     "kableExtra",
-                     "knitr")
-
-need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
-
-if (length(need_to_install)) install.packages(need_to_install)
-
-for (package in packages_vector) {
-  library(package, character.only = TRUE)
-}
-
 # Remote I/O -------------------------------------------------------------------
 private_dir <- "data/_PRIVATE/"
 data_dir <- "data/input/"
@@ -131,16 +114,16 @@ productions_df <- working_df %>%
   filter(Type == "Internal") %>%
   mutate(employment = Industry + Office + Service_RateLow + Service_RateHigh + Retail) %>%
   mutate(workers = Pct_Worker/100.0 * HH_POP) %>%
-  mutate(high_earners = PctHighEarn/100.0 * workers) %>%
-  mutate(high_earn_distance = high_earners * dist_to_airport_miles)
+  mutate(high_paying_jobs = PctHighEarn/100.0 * employment) %>%
+  mutate(high_paying_jobs_distance = high_paying_jobs * dist_to_airport_miles)
 
 # Correlations -----------------------------------------------------------------
 correlations_df <- productions_df %>%
   select(airport_productions,
          workers,
          employment,
-         high_earners,
-         high_earn_distance,
+         high_paying_jobs,
+         high_paying_jobs_distance,
          hotel_rooms,
          dist_to_airport_miles,
          HH,
@@ -174,13 +157,20 @@ model_df <- model_df %>%
 model_01 <- lm(y ~ employment + workers,
                data = model_df)
 
-model_02 <- lm(y ~ workers + high_earners + Service_RateHigh + Industry + Office + Retail + high_earn_distance + hotel_rooms,
+model_02 <- lm(y ~ workers + 
+                 high_paying_jobs + 
+                 high_paying_jobs_distance + 
+                 Service_RateHigh + 
+                 Industry + 
+                 Office + 
+                 Retail + 
+                 hotel_rooms,
                data = model_df)
 
-model_03 <- lm(y ~ high_earners + high_earn_distance + employment,
+model_03 <- lm(y ~ workers + employment + high_paying_jobs + high_paying_jobs_distance + hotel_rooms,
                data = model_df)
 
-model_04 <- lm(y ~ high_earners + high_earn_distance + Industry + Office + Service_RateHigh + Retail,
+model_04 <- lm(y ~ 0 + workers + employment + high_paying_jobs + high_paying_jobs_distance,
                data = model_df)
 
 # Model Application ------------------------------------------------------------
@@ -188,10 +178,10 @@ output_df <- productions_df %>%
   mutate(observed_productions = if_else(airport_productions < OUTLIER_MIN,
                                         airport_productions * adjust_factor,
                                         OUTLIER_MIN * adjust_factor)) %>%
-  mutate(estimated_productions = model_03$coefficients["(Intercept)"] +
-           model_03$coefficients["high_earners"] * high_earners +
-           model_03$coefficients["high_earn_distance"] * high_earn_distance +
-           model_03$coefficients["employment"] * employment) %>%
+  mutate(estimated_productions = model_04$coefficients["workers"] * workers +
+           model_04$coefficients["employment"] * employment +
+           model_04$coefficients["high_paying_jobs"] * high_paying_jobs +
+           model_04$coefficients["high_paying_jobs_distance"] * high_paying_jobs_distance) %>%
   mutate(estimated_productions = if_else(estimated_productions < 0.0, 
                                          0.0,
                                          estimated_productions))
