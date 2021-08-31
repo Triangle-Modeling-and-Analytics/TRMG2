@@ -4,7 +4,7 @@
 
 Macro "External Models" (Args)
   RunMacro("External", Args)
-  // RunMacro("IEEI", Args)
+  RunMacro("IEEI", Args)
 
   return(1)
 endmacro
@@ -19,7 +19,6 @@ Macro "External" (Args)
 	RunMacro("Calculate EE IPF Marginals", Args)
 	RunMacro("IPF EE Seed Table", Args)
 	RunMacro("EE Symmetry", Args)
-	ShowMessage("done")
 endmacro
 
 /*
@@ -190,3 +189,174 @@ Macro "EE Symmetry"
     Cur.(corename) := (Cur.(corename) + tcur.(corename))/2
   end
 EndMacro
+
+/*
+Internal External Model
+*/
+
+Macro "IEEI" (Args)
+  RunMacro("TCB Init")
+  RunMacro("IEEI Productions", Args)
+  RunMacro("IEEI Attractions", Args)
+  RunMacro("IEEI Balance Ps and As", Args)
+  RunMacro("IEEI TOD", Args)
+  RunMacro("IEEI Gravity", Args)
+endmacro
+
+/*
+Calculate IEEI productions
+*/
+
+Macro "IEEI Productions" (Args)
+  se_file = Args.SE
+  
+  // TODO-AK: Delete after testing
+  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  SetView(se_vw)
+
+  data = GetDataVectors(
+    se_vw + "|", 
+    {
+      "TAZ", 
+      "PCTAUTOEE",
+      "PCTCV",
+      "PCTCVSUTEE",
+      "PCTCVMUTEE",
+      "ADT"
+  	},
+  	{OptArray: TRUE}
+  )
+  
+  ieei_productions = (1 - Nz(data.PCTAUTOEE)/100) * Nz(data.ADT) / 2
+  
+  a_fields = {{"IEEI_Prod", "Real", 10, 2, , , , "ieei productions"}}
+  RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+  
+  SetView(se_vw)
+  SetDataVector(se_vw + "|", "IEEI_Prod", ieei_productions, )
+  
+  CloseView(se_vw)
+endmacro
+
+/*
+Calculate IEEI Attractions
+*/
+
+Macro "IEEI Attractions" (Args)
+  se_file = Args.SE
+  ieei_model_file = Args.[Input Folder] + "\\external\\airport_model.csv"
+  
+  // TODO-AK: Delete after testing
+  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  ieei_model_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_model.csv"
+  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  
+  data = GetDataVectors(
+    se_vw + "|",
+    {
+      "TAZ", 
+      "HH_POP",
+      "TotalEmp"
+    },
+    {OptArray: TRUE}
+  )  
+
+  // read airport model file for coefficients
+  coeffs = RunMacro("Read Parameter File", {
+    file: ieei_model_file,
+    names: "variable",
+    values: "coefficient"
+  })
+
+  // compute ieei attractions
+  ieei_attractions = coeffs.employment * Nz(data.TotalEmp) + coeffs.population * Nz(data.HH_POP)
+
+  a_fields = {{"IEEI_Attr", "Real", 10, 2, , , , "ieei attractions"}}
+  RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+  
+  SetView(se_vw)
+  SetDataVector(se_vw + "|", "IEEI_Attr", ieei_attractions, )
+  
+  CloseView(se_vw)
+endmacro
+
+/*
+Balance IEEI production and attraction
+*/
+
+Macro "IEEI Balance Ps and As" (Args)
+  se_file = Args.SE
+  
+  // TODO-AK: Delete after testing
+  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  
+  productions = GetDataVector(se_vw + "|", "IEEI_Prod", )
+  attractions = GetDataVector(se_vw + "|", "IEEI_Attr", )
+  
+  total_p = VectorStatistic(productions, "sum", )
+  total_a = VectorStatistic(attractions, "sum", )
+  
+  // balancing to productions (external stations)
+  factor = total_p / total_a
+  attractions = attractions * factor
+  
+  SetView(se_vw)
+  SetDataVector(se_vw + "|", "IEEI_Attr", attractions, )
+  
+  CloseView(se_vw)
+  
+endmacro
+
+/*
+Split IEEI balanced productions and attractions by time periods
+*/
+
+Macro "IEEI TOD" (Args)
+  se_file = Args.SE
+  tod_file = Args.[Input Folder] + "\\external\\ieei_tod.csv"
+
+  // TODO-AK: Delete after testing
+  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  tod_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_tod.csv"
+  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  
+  {drive, folder, name, ext} = SplitPath(tod_file)
+  
+  RunMacro("Create Sum Product Fields", {
+      view: se_vw, factor_file: tod_file,
+      field_desc: "IEEI Productions and Attractions by Time of Day|See " + name + ext + " for details."
+  })
+
+  CloseView(se_vw)
+endmacro
+
+/*
+IEEI Gravity Distribution
+*/
+
+Macro "IEEI Gravity" (Args)
+  se_file = Args.SE
+  param_file = Args.[Input Folder] + "\\external\\ieei_gravity.csv"
+  skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_AM.mtx"
+  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
+  
+  // TODO-AK: Delete after testing
+  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+  param_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_gravity.csv"
+  skim_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_AM.mtx"
+  ieei_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ie_trips.mtx"
+  
+  opts = null
+  opts.se_file = se_file
+  opts.param_file = param_file
+  opts.skim_file = skim_file
+  opts.output_matrix = ieei_matrix_file
+  RunMacro("Gravity", opts)
+  
+endmacro

@@ -1,0 +1,5 @@
+purpose,p_field,a_field,constraint,imp_core,a,b,c
+IEEI_AM,IEEI_Prod_AM,IEEI_Attr_AM,Production,CongTime,5,1,0.1
+IEEI_MD,IEEI_Prod_MD,IEEI_Attr_MD,Production,CongTime,5,1,0.1
+IEEI_PM,IEEI_Prod_PM,IEEI_Attr_PM,Production,CongTime,5,1,0.1
+IEEI_NT,IEEI_Prod_NT,IEEI_Attr_NT,Production,CongTime,5,1,0.1

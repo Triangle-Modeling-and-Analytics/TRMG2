@@ -1,0 +1,9 @@
+to_field,from_field,factor,Description
+IEEI_Prod_AM,IEEI_Prod,0.141,
+IEEI_Prod_MD,IEEI_Prod,0.452,
+IEEI_Prod_PM,IEEI_Prod,0.0748,
+IEEI_Prod_NT,IEEI_Prod,0.331,
+IEEI_Attr_AM,IEEI_Attr,0.141,
+IEEI_Attr_MD,IEEI_Attr,0.452,
+IEEI_Attr_PM,IEEI_Attr,0.0748,
+IEEI_Attr_NT,IEEI_Attr,0.331,
