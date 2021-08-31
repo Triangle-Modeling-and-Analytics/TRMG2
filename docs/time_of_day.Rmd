@@ -584,8 +584,9 @@ used are defined as follows:
 - HOV3: 3+ person occupancy
 
 Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancy calculated for HOV3, auto pay, and other
-auto.
+factors for HOV3, auto pay, and other auto are shown below. The chart provides
+a visual example for two trip types, while the following tables provide all
+the factors.
 
 ```{r calculate veh occ factors}
 occ_tbl <- tripTbl %>%
@@ -662,6 +663,29 @@ oth_occ_tbl <- tripTbl %>%
 final_occ <- occ_tbl %>%
   left_join(oth_occ_tbl, by = c("trip_type", "tod"))
 ```
+
+```{r, fig.align="center"}
+to_plot <- final_occ %>%
+  pivot_longer(hov3:other_auto, names_to = "mode", values_to = "occ") %>%
+  filter(trip_type %in% c("N_HB_K12_All", "N_HB_OD_Long")) %>%
+  mutate(
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE),
+    mode = factor(mode, levels = c("hov3", "other_auto", "auto_pay"), ordered = TRUE)
+  ) %>%
+  arrange(trip_type, tod, mode)
+
+ggplot(to_plot, aes(x = tod, y = occ, color = mode, group = mode)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~trip_type) +
+  labs(
+    title = "Occupancy by Time of Day and Mode",
+    x = "Time Period",
+    y = "Occupancy"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 
 ## HOV3
 
