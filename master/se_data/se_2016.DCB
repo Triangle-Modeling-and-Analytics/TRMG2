@@ -1,5 +1,5 @@
 
-206
+218
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","Households||Census defined as occupied housing units",,"Sum",
@@ -41,8 +41,9 @@
 "EmpSpaces",I,167,4,0,11,0,,"","Number of parking spaces for employees",,"Sum",
 "StudSpaces",I,171,4,0,11,0,,"","Number of parking spaces for students",,"Sum",
 "OtherSpaces",I,175,4,0,11,0,,"","Number of parking spaces for visitors/other",,"Sum",
-"Enplanements",I,203,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
-"AWDT",I,179,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
-"PCTCV",I,183,4,0,11,0,,"","Percent of AWDT that are commercial vehicles|(external centroids only)",,"Sum",
-"PCTAUTOEE",R,187,8,0,15,4,,"","Percent of auto volume that pass through region|Auto volume = AWDT * (1 - PCTCV)|(external centroids only)",,"Sum",
-"PCTCVEE",R,195,8,0,15,4,,"","Percent of CV volume that pass through region|CV volume = AWDT * PCTCV|(external centroids only)",,"Sum",
+"Enplanements",I,179,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
+"ADT",I,183,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
+"PCTCV",R,187,8,0,10,2,,"","Percent of AWDT that are commercial vehicles|(external centroids only)",,"Sum",
+"PCTAUTOEE",R,195,8,0,15,4,,"","Percent of auto volume that pass through region|Auto volume = AWDT * (1 - PCTCV)|(external centroids only)",,"Sum",
+"PCTCVSUTEE",R,203,8,0,15,4,,"","",,"Sum",
+"PCTCVMUTEE",R,211,8,0,15,4,,"","",,"Sum",
