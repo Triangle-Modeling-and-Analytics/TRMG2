@@ -4,7 +4,8 @@
 
 Macro "Create OD Matrices" (Args)
 
-    RunMacro("Apportion Trips", Args)
+    RunMacro("Apportion Resident Trips", Args)
+    RunMacro("Add Airport Trips", Args)
     RunMacro("Directionality", Args)
     RunMacro("Occupancy", Args)
 
@@ -12,11 +13,11 @@ Macro "Create OD Matrices" (Args)
 endmacro
 
 /*
-With DC and MC probabilities calculated, trip productions can be distributed
-into zones and modes.
+With DC and MC probabilities calculated, resident trip productions can be 
+distributed into zones and modes.
 */
 
-Macro "Apportion Trips" (Args)
+Macro "Apportion Resident Trips" (Args)
 
     se_file = Args.SE
     out_dir = Args.[Output Folder]
@@ -34,6 +35,8 @@ Macro "Apportion Trips" (Args)
 // TODO: remove. For testing only
 trip_types = {"W_HB_W_All"}
     for period in periods do
+
+        // Resident trips
         for trip_type in trip_types do
             if Lower(trip_type) = "w_hb_w_all"
                 then segments = {"v0", "ilvi", "ilvs", "ihvi", "ihvs"}
@@ -75,6 +78,37 @@ segments = {"ihvi"}
     end
 
     return(1)
+endmacro
+
+/*
+The output of the airport model is a matrix of person trips by time of day.
+This macro adds them to the appropriate resident trip table.
+*/
+
+Macro "Add Airport Trips" (Args)
+    
+    periods = Args.periods
+    out_dir = Args.[Output Folder]
+    mc_dir = out_dir + "/resident/mode"
+
+    // Which trip type and segment to use for modal probabilities
+    trip_type = "N_HB_OD_Long"
+    segment = "vs"
+    
+    air_mtx = CreateObject("Matrix", out_dir + "/airport/Airport_Trips.mtx")
+    for period in periods do
+        mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_" + segment + "_" + period + ".mtx"
+        mc_mtx = CreateObject("Matrix", mc_mtx_file)
+        out_mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
+        out_mtx = CreateObject("Matrix", out_mtx_file)
+
+        air_core = air_mtx.GetCore("Trips_" + period)
+        mode_names = mc_mtx.GetCoreNames()
+        out_cores = out_mtx.GetCores()
+        for mode in mode_names do
+            out_cores.(mode) := nz(out_cores.(mode)) + air_core * mc_cores.(mode)
+        end
+    end
 endmacro
 
 /*

@@ -1,5 +1,8 @@
 /*
-
+Generates and distributes airport trips. Because the models are simple and
+do not depend on congsted times, it can be done outside the feedback loop.
+Mode choice for airport trips happens within the feedback loop and uses the
+N_HB_OD_Long_vs probabilities.
 */
 
 Macro "Airport" (Args)
