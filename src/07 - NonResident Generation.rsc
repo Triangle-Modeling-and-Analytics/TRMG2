@@ -4,7 +4,9 @@ non-residential markets. See their RSC files for the actual macros
 (e.g. Airport.rsc)
 */
 
-Macro "Other Productions" (Args)
-    RunMacro("Airport Production", Args)
+Macro "NonResident Generation" (Args)
+    RunMacro("Airport", Args)
+    RunMacro("CV Productions/Attractions", Args)
+    RunMacro("CV TOD", Args)
     return(1)
 endmacro

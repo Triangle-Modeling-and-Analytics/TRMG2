@@ -2,7 +2,7 @@
 Calculates aggregate mode choice probabilities between zonal ij pairs
 */
 
-Macro "Calculate MC Probabilities" (Args)
+Macro "Mode Choice" (Args)
 
     RunMacro("Create MC Features", Args)
     RunMacro("Calculate MC", Args)
