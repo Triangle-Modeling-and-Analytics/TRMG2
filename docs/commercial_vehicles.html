@@ -376,14 +376,11 @@ div.tocify {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Models
+    Resident Models
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="accessibility.html">Accessibility</a>
-    </li>
     <li>
       <a href="population_synthesis.html">Synthesis</a>
     </li>
@@ -391,10 +388,28 @@ div.tocify {
       <a href="auto_ownership.html">Auto Ownership</a>
     </li>
     <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
       <a href="time_of_day.html">Time of Day</a>
     </li>
     <li>
-      <a href="nhb.html">Non-home-based</a>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
       <a href="airport.html">Airport</a>
@@ -425,12 +440,16 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p><strong>TODO: Vince add intro</strong></p>
-<p>These models predict the behavior of commercial vehicles, single-unit trucks, and multi-unit trucks. The models are implementations of the <a href="https://trid.trb.org/view.aspx?id=859168">Quick Response Freight Manual</a> (QRFM) and are re-estimated were possible using the Triangle’s 2010 Commercial Vehicle survey.</p>
+<p>Commercial vehicles and trucks can be a significant source of congestion on major facilities in an urban area, and in most instances, their travel behavior distinct from residents. To better capture the commercial vehicle element of traffic in the TRMG2, a separate set of commercial vehicle models were developed. These include trip generation, time of day, and distribution for three commercial vehicle types: commercial autos, vans, and pickups (CV); single unit trucks (SUT); and multi-unit trucks (MUT).</p>
+<p>These classes are defined using the <a href="https://www.fhwa.dot.gov/policyinformation/tmguide/tmg_2013/vehicle-types.cfm">federal vehicle classification</a>.</p>
+<p>CV - Classes 1-3<br />
+SUT - Classes 5-7<br />
+MUT - Classes 8-13</p>
+<p>The models are implementations of the <a href="https://trid.trb.org/view.aspx?id=859168">Quick Response Freight Manual</a> (QRFM) and are re-estimated where possible using the Triangle’s 2010 Commercial Vehicle survey.</p>
 </div>
 <div id="trip-rates" class="section level2">
 <h2>Trip Rates</h2>
-<p>Initial estimation attempts led to poor model results. A fundamental problem may have been regressing a 2010 survey against 2016 land use data. In addition, stakeholders had previously listed some concerns with the survey. Given these issues, initial rates were adapted directly from the QRFM.</p>
+<p>Initial estimation attempts led to poor model results. A fundamental problem may be regressing a 2010 survey against 2016 land use data. In addition, stakeholders noted some concerns with the survey. Given these issues, initial rates were borrowed from the QRFM and mapped to the TRMG2 employment types.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -613,11 +632,12 @@ MUT
 </tr>
 </tbody>
 </table>
+<p>Directionality factors are not calculated for commercial vehicles and trucks. Instead, they are assumed to be evenly split by direction.</p>
 </div>
 <div id="distribution" class="section level2">
 <h2>Distribution</h2>
-<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the CV survey did not contain information on both ends of the trip, which means it could not be used to estimate model parameters. Initial model parameters were borrowed from the travel model in Blacksburg, VA.</p>
-<p><strong>TODO: Update this section after we calibrate the intitial rates</strong></p>
+<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the CV survey did not contain information on both ends of the trip, which meant it could not be used to estimate model parameters. Initial model parameters were borrowed from the travel model in Blacksburg, VA.</p>
+<p><strong>TODO: Update this section after we calibrate the initial rates/parameters</strong></p>
 </div>
 
 <br>

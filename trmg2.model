@@ -32,6 +32,8 @@ Body:
     FlowChartNode(model,"Calculate MC Probabilities",,,)
     FlowChartNode(model,"Commercial Vehicles",,,)
     FlowChartNode(model,"Destination Choice",,,)
+    FlowChartNode(model,"Aggregation",,,)
+    FlowChartNode(model,"Create OD Matrices",,,)
     //
     // Links
     //
@@ -40,10 +42,12 @@ Body:
     FlowChartLink(model,"Initial Processing","Accessibility",True,,)
     FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
     FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
-    FlowChartLink(model,"Resident Productions","Time of Day",True,,)
-    FlowChartLink(model,"Time of Day","Skimming",True,,)
-    FlowChartLink(model,"Skimming","NonMotorized Choice",True,,)
-    FlowChartLink(model,"NonMotorized Choice","Parking Model",True,,)
+    FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
+    FlowChartLink(model,"NonMotorized Choice","Aggregation",True,,)
+    FlowChartLink(model,"Aggregation","Time of Day",True,,)
+    FlowChartLink(model,"Time of Day","Airport",True,,)
+    FlowChartLink(model,"Airport","Skimming",True,,)
+    FlowChartLink(model,"Skimming","Parking Model",True,,)
     FlowChartLink(model,"Parking Model","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
@@ -188,3 +192,20 @@ Body:
     Return(True)
 EndMacro
 
+
+Macro "Aggregation" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Aggregation"}}}
+Body:
+    ShowMessage('Running: Aggregation')
+    Return(True)
+EndMacro
+
+
+Macro "Create OD Matrices" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Create OD Matrices"}}}
+Body:
+    ShowMessage('Running: Create OD Matrices')
+    Return(True)
+EndMacro

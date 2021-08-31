@@ -434,7 +434,7 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
 endMacro
 
 /*
-
+Determines how many autos each household owns
 */
 
 Macro "Auto Ownership" (Args)
@@ -457,7 +457,13 @@ Macro "Auto Ownership" (Args)
     o.OutputChoiceField = "Autos"
     o.AggregateModel = false
     ok = o.Run()
+
+    // Convert coded field/string pairs to simple integers
+    DetachTableTranslation(hh_vw)
+    v1 = GetDataVector(hh_vw + "|", "Autos", )
+    v2 = v1 - 1
+    SetDataVector(hh_vw + "|", "Autos", v2, )
     
-    CloseView(se_vw)
     CloseView(hh_vw)
+    CloseView(se_vw)
 endmacro

@@ -74,6 +74,7 @@
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
+        Args.OccupancyFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\veh_occ_factors.csv", "Description":"Resident vehicle occupancy factor file." }
     
     Section = "Commercial Vehicles/Trucks"
 
@@ -171,7 +172,7 @@
 
     Section = "Destination Choice"
 
-        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates" }
+        Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
 
     Section = "Parking Model|Coefficients"
     
