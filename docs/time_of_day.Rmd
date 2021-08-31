@@ -92,9 +92,9 @@ timTbl <- tibble(
 ```
 
 ```{r time_conv_formula}
-# Formula for converting minutes to chart format (e.g. 1000 for 10:00 am)
+# Formula for converting minutes to chart format (e.g. 5.25 for 5:15 am)
 chart_time <- function(minutes){
-  ((minutes %/% 60) * 100 + (minutes %% 60)) / 100
+  ((minutes %/% 60) + (minutes %% 60) / 60)
 }
 ```
 
