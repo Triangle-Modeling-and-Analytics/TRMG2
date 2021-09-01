@@ -135,6 +135,10 @@ Macro "Add Airport Trips" (Args)
     out_dir = Args.[Output Folder]
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+
+    RunMacro("Create Directory", assn_dir)
 
     // Which trip type and segment to use for modal probabilities
     trip_type = "N_HB_OD_Long"
@@ -147,7 +151,10 @@ segment = "ihvs"
     for period in periods do
         mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_" + segment + "_" + period + ".mtx"
         mc_mtx = CreateObject("Matrix", mc_mtx_file)
-        out_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        mc_cores = mc_mtx.GetCores()
+        res_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        out_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        CopyFile(res_mtx_file, out_mtx_file)
         out_mtx = CreateObject("Matrix", out_mtx_file)
 
         air_core = air_mtx.GetCore("Trips_" + period)
@@ -167,9 +174,10 @@ Collapse auto modes into sov/hov2/hov3
 
 Macro "Collapse Auto Modes" (Args)
     
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     shares_file = Args.OtherShares
     periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
     cores_to_collapse = {"auto_pay", "other_auto"}
     fac_vw = OpenTable("shares", "CSV", {shares_file})
@@ -187,7 +195,7 @@ hov2_fac = .33
 hov3_fac = .33
 
         for period in periods do
-            mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+            mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
             
             mtx = CreateObject("Matrix", mtx_file)
             cores = mtx.GetCores()
@@ -214,6 +222,8 @@ Macro "Occupancy" (Args)
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     factor_file = Args.HOV3OccFactors
     periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     // TODO: this applies only to HB trips currently. When NHB is in place,
@@ -234,8 +244,8 @@ trip_type = "W_HB_W_All"
 period = "AM"
 hov3_factor = 3.4
 
-        per_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        veh_mtx_file = trip_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
+        per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
         if trip_type <> prev_trip then CopyFile(per_mtx_file, veh_mtx_file)
         mtx = CreateObject("Matrix", veh_mtx_file)
         cores = mtx.GetCores()
