@@ -7,6 +7,7 @@ Macro "Destination Choice" (Args)
     // RunMacro("Split Employment by Earnings", Args)
     // RunMacro("DC Size Terms", Args)
     RunMacro("Calculate Destination Choice", Args)
+    RunMacro("Apportion Resident HB Trips", Args)
 
     return(1)
 endmacro
@@ -150,4 +151,73 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
         end
     end
 
+endmacro
+
+/*
+With DC and MC probabilities calculated, resident trip productions can be 
+distributed into zones and modes.
+*/
+
+Macro "Apportion Resident HB Trips" (Args)
+
+    se_file = Args.SE
+    out_dir = Args.[Output Folder]
+    dc_dir = out_dir + "/resident/dc"
+    mc_dir = out_dir + "/resident/mode"
+    trip_dir = out_dir + "/resident/trip_tables"
+    periods = Args.periods
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+
+    // Create a folder to hold the trip matrices
+    RunMacro("Create Directory", trip_dir)
+
+    trip_types = RunMacro("Get HB Trip Types", Args)
+// TODO: remove. For testing only
+trip_types = {"W_HB_W_All"}
+periods = {"AM"}
+    for period in periods do
+
+        // Resident trips
+        for trip_type in trip_types do
+            if Lower(trip_type) = "w_hb_w_all"
+                then segments = {"v0", "ilvi", "ilvs", "ihvi", "ihvs"}
+                else segments = {"v0", "vi", "vs"}
+            
+            out_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
+// TODO: remove. for testing only
+segments = {"ihvi"}
+            for segment in segments do
+                name = trip_type + "_" + segment + "_" + period
+                
+                dc_mtx_file = dc_dir + "/probabilities/probability_" + name + "_zone.mtx"
+                dc_mtx = CreateObject("Matrix", dc_mtx_file)
+                dc_cores = dc_mtx.GetCores()
+                mc_mtx_file = mc_dir + "/probabilities/probability_" + name + ".mtx"
+                if segment = segments[1] then do
+                    CopyFile(mc_mtx_file, out_mtx_file)
+                    out_mtx = CreateObject("Matrix", out_mtx_file)
+                    cores = out_mtx.GetCores()
+                    core_names = out_mtx.GetCoreNames()
+                    for core_name in core_names do
+                        cores.(core_name) := nz(cores.(core_name)) * 0
+                    end
+                end
+                mc_mtx = CreateObject("Matrix", mc_mtx_file)
+                mc_cores = mc_mtx.GetCores()
+
+                v_prods = nz(GetDataVector(se_vw + "|", name, ))
+                v_prods.rowbased = "false"
+
+                mode_names = mc_mtx.GetCoreNames()
+                out_cores = out_mtx.GetCores()
+                for mode in mode_names do
+                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
+                end
+            end
+        end
+    end
+
+    return(1)
 endmacro
