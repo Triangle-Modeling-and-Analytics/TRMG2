@@ -9,6 +9,7 @@ Macro "Create OD Matrices" (Args)
     RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
     RunMacro("Occupancy", Args)
+    // RunMacro("Collapse Purposes", Args)
 
     return(1)
 endmacro
@@ -219,7 +220,6 @@ endmacro
 
 Macro "Occupancy" (Args)
 
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     factor_file = Args.HOV3OccFactors
     periods = Args.periods
     iter = Args.FeedbackIteration
@@ -257,4 +257,18 @@ return()
         rh = GetNextRecord(fac_vw + "|sel", rh, )
     end
     CloseView(fac_vw)
+endmacro
+
+/*
+The final step is to collapse trip purposes such that we have a single
+matrix for each period.
+*/
+
+Macro "Collapse Purposes" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+
+
+
 endmacro

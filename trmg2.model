@@ -34,6 +34,7 @@ Body:
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create OD Matrices",,,)
+    FlowChartNode(model,"NonHomeBased",,,)
     //
     // Links
     //
@@ -52,9 +53,10 @@ Body:
     FlowChartLink(model,"Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"Destination Choice","NonResident Distribution",True,,)
     FlowChartLink(model,"NonResident Distribution","Create OD Matrices",True,,)
     FlowChartLink(model,"Create OD Matrices","Roadway Assignment",True,,)
+    FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
+    FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
     Return(model)
 EndMacro
 
@@ -211,6 +213,15 @@ Macro "Create OD Matrices" (Args,Result)
                   {"MacroNames",{"Create OD Matrices"}}}
 Body:
     ShowMessage('Running: Create OD Matrices')
+    Return(True)
+EndMacro
+
+
+Macro "NonHomeBased" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NonHomeBased"}}}
+Body:
+    ShowMessage('Running: NonHomeBased')
     Return(True)
 EndMacro
 
