@@ -4,8 +4,8 @@
 
 Macro "Destination Choice" (Args)
 
-    // RunMacro("Split Employment by Earnings", Args)
-    // RunMacro("DC Size Terms", Args)
+    RunMacro("Split Employment by Earnings", Args)
+    RunMacro("DC Size Terms", Args)
     RunMacro("Calculate Destination Choice", Args)
     RunMacro("Apportion Resident HB Trips", Args)
 
@@ -105,6 +105,7 @@ Macro "Calculate Destination Choice" (Args)
 trip_types = {"W_HB_W_All"} // TODO: remove after testing
 
     opts = null
+    opts.output_dir = output_dir
     opts.primary_spec = {Name: "sov_skim"}
     for trip_type in trip_types do
         if Lower(trip_type) = "w_hb_w_all"
@@ -112,8 +113,7 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             else segments = {"v0", "vi", "vs"}
         opts.trip_type = trip_type
         opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone.csv"
-        opts.cluster_utils = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
-        opts.cluster_thetas = input_dc_dir + "/" + Lower(trip_type) + "_cluster_thetas.csv"
+        opts.cluster_data = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
         
         if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
 
@@ -144,7 +144,6 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
                     sov_skim: {File: sov_skim},
                     mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }
-                opts.output_dir = output_dir
                 obj = CreateObject("NestedDC", opts)
                 obj.Run()
             end
