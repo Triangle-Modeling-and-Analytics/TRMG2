@@ -158,9 +158,9 @@ combine_df <- state_df %>%
 seed_df <- expand_grid(orig_taz = external_zones_vector, dest_taz = external_zones_vector) %>%
   filter(orig_taz != dest_taz) %>%
   left_join(., combine_df, by = c("orig_taz", "dest_taz")) %>%
-  replace_na(list(auto = 0.0,
-                  cv_sut = 0.0,
-                  cv_mut = 0.0))
+  replace_na(list(auto = 0.01,
+                  cv_sut = 0.01,
+                  cv_mut = 0.01))
 
 write_csv(seed_df, file = output_ee_seed_filename)
 
