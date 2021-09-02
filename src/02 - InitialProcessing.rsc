@@ -57,9 +57,10 @@ Macro "Determine Area Type" (Args)
     se_vw = OpenTable("se", "FFB", {se_bin, })
     a_fields =  {
         {"TotalEmp", "Integer", 10, ,,,, "Total employment"},
-        {"Density", "Real", 10, 2,,,, "Density"},
+        {"Density", "Real", 10, 2,,,, "Density used in area type calculation.|Considers HH and Emp."},
         {"AreaType", "Character", 10,,,,, "Area Type"},
-        {"ATSmoothed", "Integer", 10,,,,, "Whether or not the area type was smoothed"}
+        {"ATSmoothed", "Integer", 10,,,,, "Whether or not the area type was smoothed"},
+        {"EmpDensity", "Real", 10, 2,,,, "Employment density. Used in some DC models.|TotalEmp / Area."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 
@@ -84,6 +85,7 @@ Macro "Determine Area Type" (Args)
         data.Service_RateHigh + data.Retail
     factor = data.HH_POP.sum() / tot_emp.sum()
     density = (data.HH_POP + tot_emp * factor) / data.area
+    emp_density = tot_emp / data.area
     areatype = Vector(density.length, "String", )
     for i = 1 to area_tbl.length do
         name = area_tbl[i].AreaType
@@ -93,6 +95,7 @@ Macro "Determine Area Type" (Args)
     SetDataVector(jv + "|", "TotalEmp", tot_emp, )
     SetDataVector(jv + "|", se_vw + ".Density", density, )
     SetDataVector(jv + "|", se_vw + ".AreaType", areatype, )
+    SetDataVector(jv + "|", se_vw + ".EmpDensity", emp_density, )
 
     views.se_vw = se_vw
     views.jv = jv
