@@ -2086,3 +2086,28 @@ Macro "Get HB Trip Types" (Args)
   CloseView(rate_vw)
   return(trip_types)
 endmacro
+
+Macro "Get NHB Trip Types" (Args)
+  dir = Args.[Input Folder] + "/nhb/generation"
+  files = RunMacro("Catalog Files", dir)
+  for file in files do
+    {, , name, } = SplitPath(file)
+    {trip_type, mode} = RunMacro("Separate type and mode", name)
+    trip_types = trip_types + {trip_type}
+  end
+  trip_types = V2A(SortVector(A2V(trip_types), {Unique: "true"}))
+  return(trip_types)
+endmacro
+
+Macro "Separate type and mode" (name)
+  pieces = ParseString(name, "_")
+  trip_type = pieces[1]
+  for i = 2 to 4 do
+    trip_type = trip_type + "_" + pieces[i]
+  end
+  mode = pieces[5]
+  for i = 6 to pieces.length do
+    mode = mode + "_" + pieces[i]
+  end
+  return({trip_type, mode})
+endmacro

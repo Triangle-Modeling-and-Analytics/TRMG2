@@ -66,6 +66,7 @@ Macro "Create Folder Structure" (Args)
     "/resident/mode/logsums",
     "/resident/mode/utilities",
     "/resident/mode/model_files",
+    "/resident/nhb",
     "/directionality",
     "/assignment",
     "/assignment/transit",
