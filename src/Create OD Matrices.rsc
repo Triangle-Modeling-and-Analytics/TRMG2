@@ -4,11 +4,11 @@
 
 Macro "Create OD Matrices" (Args)
 
-    RunMacro("Directionality", Args)
-    RunMacro("Add Airport Trips", Args)
-    RunMacro("Collapse Auto Modes", Args)
-    RunMacro("Occupancy", Args)
-    // RunMacro("Collapse Purposes", Args)
+    // RunMacro("Directionality", Args)
+    // RunMacro("Add Airport Trips", Args)
+    // RunMacro("Collapse Auto Modes", Args)
+    // RunMacro("Occupancy", Args)
+    RunMacro("Collapse Purposes", Args)
 
     return(1)
 endmacro
@@ -145,7 +145,8 @@ return()
 endmacro
 
 /*
-
+Once the auto person trips have been collapsed into sov, hov2, and hov3, this
+converts from person trips to vehicle trips by apply occupancy factors.
 */
 
 Macro "Occupancy" (Args)
@@ -156,14 +157,9 @@ Macro "Occupancy" (Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
-    // TODO: this applies only to HB trips currently. When NHB is in place,
-    // need to apply it to both.
-    SetView(fac_vw)
-    SelectByQuery("sel", "several", "Select * where trip_type contains '_HB_'")
-    // Loop by period first to reduce the amount of opening/closing matrices
-    rh = GetFirstRecord(fac_vw + "|sel", )
     
     prev_trip = ""
+    rh = GetFirstRecord(fac_vw + "|", )
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
@@ -184,21 +180,49 @@ hov3_factor = 3.4
 CloseView(fac_vw)
 return()
         prev_trip = trip_type
-        rh = GetNextRecord(fac_vw + "|sel", rh, )
+        rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
 endmacro
 
 /*
 The final step is to collapse trip purposes such that we have a single
-matrix for each period.
+matrix for each period. This will contain sov, hov2, hov3, and also transit
+trips.
 */
 
 Macro "Collapse Purposes" (Args)
 
     iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    periods = Args.periods
 
+    trip_types = RunMacro("Get All Res Trip Types", Args)
 
+// TODO remove after testing
+trip_types = {"W_HB_W_All"}
+periods = {"AM"}
 
+    for period in periods do
+
+        // Create the final matrix for the period using the first trip type matrix
+        mtx_file = assn_dir + "/od_veh_trips_" + trip_types[1] + "_" + period + ".mtx"
+        out_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        CopyFile(mtx_file, out_file)
+        out_mtx = CreateObject("Matrix", out_file)
+        out_cores = out_mtx.GetCores()
+
+        // Add the remaining matrices to the output matrix
+        for t = 2 to trip_types.length do
+            trip_type = trip_types[t]
+
+            mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
+            mtx = CreateObject("Matrix", mtx_file)
+            cores = mtx.GetCores()
+            core_names = mtx.GetCoreNames()
+            for core_name in core_names do
+                out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
+            end
+        end
+    end
 endmacro

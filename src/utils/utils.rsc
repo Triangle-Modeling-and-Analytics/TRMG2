@@ -2084,7 +2084,7 @@ Macro "Get HB Trip Types" (Args)
   trip_types = GetDataVector(rate_vw + "|", "trip_type", )
   trip_types = SortVector(trip_types, {Unique: "true"})
   CloseView(rate_vw)
-  return(trip_types)
+  return(V2A(trip_types))
 endmacro
 
 Macro "Get NHB Trip Types" (Args)
@@ -2110,4 +2110,10 @@ Macro "Separate type and mode" (name)
     mode = mode + "_" + pieces[i]
   end
   return({trip_type, mode})
+endmacro
+
+Macro "Get All Res Trip Types" (Args)
+  hb_types = RunMacro("Get HB Trip Types", Args)
+  nhb_types = RunMacro("Get NHB Trip Types", Args)
+  return(hb_types + nhb_types)
 endmacro
