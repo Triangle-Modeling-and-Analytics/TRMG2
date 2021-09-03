@@ -2070,6 +2070,7 @@ Macro "Gravity" (MacroOpts)
 
   obj.Run()
   r = obj.GetResult()
+  CloseView(param_vw)
   return(r)
 endmacro
 

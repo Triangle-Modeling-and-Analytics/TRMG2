@@ -4,11 +4,12 @@
 
 Macro "Create OD Matrices" (Args)
 
-    // RunMacro("Directionality", Args)
-    // RunMacro("Add Airport Trips", Args)
-    // RunMacro("Collapse Auto Modes", Args)
-    // RunMacro("Occupancy", Args)
+    RunMacro("Directionality", Args)
+    RunMacro("Add Airport Trips", Args)
+    RunMacro("Collapse Auto Modes", Args)
+    RunMacro("Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
+    RunMacro("Add CVs and Trucks", Args)
 
     return(1)
 endmacro
@@ -186,7 +187,7 @@ return()
 endmacro
 
 /*
-The final step is to collapse trip purposes such that we have a single
+The next step is to collapse trip purposes such that we have a single
 matrix for each period. This will contain sov, hov2, hov3, and also transit
 trips.
 */
@@ -223,6 +224,32 @@ periods = {"AM"}
             for core_name in core_names do
                 out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
             end
+        end
+    end
+endmacro
+
+/*
+
+*/
+
+Macro "Add CVs and Trucks" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    cv_dir = Args.[Output Folder] + "/cv"
+    periods = Args.periods
+
+    for period in periods do
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+        cv_mtx_file = cv_dir + "/cv_gravity_" + period + ".mtx"
+        cv_mtx = CreateObject("Matrix", cv_mtx_file)
+        cv_cores = cv_mtx.GetCores()
+        cv_core_names = cv_mtx.GetCoreNames()
+        trip_mtx.AddCores(cv_core_names)
+        trip_cores = trip_mtx.GetCores()
+        for name in cv_core_names do
+            trip_cores.(name) := cv_cores.(name)
         end
     end
 endmacro

@@ -81,7 +81,6 @@
 
         Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
         Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
-        Args.[CV Gravity Params] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_gravity.csv", "Description":"CV gravity parameters" }
 
     Section = "Choice Model Sources|Tables"
 
