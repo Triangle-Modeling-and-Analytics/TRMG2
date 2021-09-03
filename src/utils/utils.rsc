@@ -2088,7 +2088,7 @@ Macro "Get HB Trip Types" (Args)
 endmacro
 
 Macro "Get NHB Trip Types" (Args)
-  dir = Args.[Input Folder] + "/nhb/generation"
+  dir = Args.[Input Folder] + "/resident/nhb/generation"
   files = RunMacro("Catalog Files", dir)
   for file in files do
     {, , name, } = SplitPath(file)
