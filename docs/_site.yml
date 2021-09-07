@@ -40,7 +40,7 @@ navbar:
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
   right:
-    - icon: fa-github fa-2x
+    - icon: fa-github fa-lg
       href: https://github.com/Caliper-Corporation/TRMG2
 output:
   html_document:
