@@ -5,6 +5,7 @@
 Macro "Destination Choice" (Args)
 
     RunMacro("Split Employment by Earnings", Args)
+    RunMacro("DC Attractions", Args)
     RunMacro("DC Size Terms", Args)
     RunMacro("Calculate Destination Choice", Args)
     RunMacro("Apportion Resident HB Trips", Args)
@@ -51,6 +52,26 @@ Macro "Split Employment by Earnings" (Args)
     output.Service_RateHigh_EH = input.Service_RateHigh * input.PctHighPay/100
     output.Service_RateHigh_EL = input.Service_RateHigh * (1 - input.PctHighPay/100)
     SetDataVectors(se_vw + "|", output, )
+endmacro
+
+/*
+Calculates attractions for the HB work trip type. These attractions are used
+as targets for double constraint in the DC.
+*/
+
+Macro "DC Attractions" (Args)
+
+    se_file = Args.SE
+    rate_file = Args.ResDCAttrRates
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    {drive, folder, name, ext} = SplitPath(rate_file)
+    RunMacro("Create Sum Product Fields", {
+        view: se_vw, factor_file: rate_file,
+        field_desc: "Resident DC Attractions|See " + name + ext + " for details."
+    })
+
+    CloseView(se_vw)
 endmacro
 
 /*
