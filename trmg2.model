@@ -28,12 +28,13 @@ Body:
     FlowChartNode(model,"Parking Model",,,)
     FlowChartNode(model,"Skimming",,,)
     FlowChartNode(model,"Transit Assignment",,,)
-    FlowChartNode(model,"Airport",,,)
-    FlowChartNode(model,"Calculate MC Probabilities",,,)
-    FlowChartNode(model,"Commercial Vehicles",,,)
+    FlowChartNode(model,"NonResident Generation",,,)
+    FlowChartNode(model,"Mode Choice",,,)
+    FlowChartNode(model,"NonResident Distribution",,,)
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create OD Matrices",,,)
+    FlowChartNode(model,"NonHomeBased",,,)
     //
     // Links
     //
@@ -45,12 +46,17 @@ Body:
     FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
     FlowChartLink(model,"NonMotorized Choice","Aggregation",True,,)
     FlowChartLink(model,"Aggregation","Time of Day",True,,)
-    FlowChartLink(model,"Time of Day","Airport",True,,)
-    FlowChartLink(model,"Airport","Skimming",True,,)
+    FlowChartLink(model,"Time of Day","NonResident Generation",True,,)
+    FlowChartLink(model,"NonResident Generation","Skimming",True,,)
     FlowChartLink(model,"Skimming","Parking Model",True,,)
-    FlowChartLink(model,"Parking Model","Roadway Assignment",True,,)
+    FlowChartLink(model,"Parking Model","Mode Choice",True,,)
     FlowChartLink(model,"Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
+    FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
+    FlowChartLink(model,"NonResident Distribution","Create OD Matrices",True,,)
+    FlowChartLink(model,"Create OD Matrices","Roadway Assignment",True,,)
+    FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
+    FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
     Return(model)
 EndMacro
 
@@ -157,29 +163,29 @@ Body:
 EndMacro
 
 
-Macro "Airport" (Args,Result)
+Macro "NonResident Generation" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Airport"}}}
+                  {"MacroNames",{"NonResident Generation"}}}
 Body:
-    ShowMessage('Running: Airport')
+    ShowMessage('Running: NonResident Generation')
     Return(True)
 EndMacro
 
 
-Macro "Calculate MC Probabilities" (Args,Result)
+Macro "Mode Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Calculate MC Probabilities"}}}
+                  {"MacroNames",{"Mode Choice"}}}
 Body:
-    ShowMessage('Running: Calculate MC Probabilities')
+    ShowMessage('Running: Mode Choice')
     Return(True)
 EndMacro
 
 
-Macro "Commercial Vehicles" (Args,Result)
+Macro "NonResident Distribution" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Commercial Vehicles"}}}
+                  {"MacroNames",{"NonResident Distribution"}}}
 Body:
-    ShowMessage('Running: Commercial Vehicles')
+    ShowMessage('Running: NonResident Distribution')
     Return(True)
 EndMacro
 
@@ -209,3 +215,13 @@ Body:
     ShowMessage('Running: Create OD Matrices')
     Return(True)
 EndMacro
+
+
+Macro "NonHomeBased" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NonHomeBased"}}}
+Body:
+    ShowMessage('Running: NonHomeBased')
+    Return(True)
+EndMacro
+

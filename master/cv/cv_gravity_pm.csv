@@ -1,0 +1,4 @@
+purpose,p_field,a_field,constraint,imp_core,a,b,c
+CV,CV_PM,CVa_PM,Production,CongTime,5,1,0.1
+SUT,SUT_PM,SUTa_PM,Production,CongTime,5,0.75,0.1
+MUT,MUT_PM,MUTa_PM,Production,CongTime,5,0.6,0.1

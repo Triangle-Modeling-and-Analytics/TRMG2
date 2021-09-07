@@ -74,13 +74,13 @@
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
-        Args.OccupancyFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\veh_occ_factors.csv", "Description":"Resident vehicle occupancy factor file." }
+        Args.HOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors.csv", "Description":"Resident hov3 vehicle occupancy factor file." }
+        Args.OtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares.csv", "Description":"Shares of auto_pay and other_auto modes that are sov, hov2, and hov3." }
     
     Section = "Commercial Vehicles/Trucks"
 
         Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
         Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
-        Args.[CV Gravity Params] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_gravity.csv", "Description":"CV gravity parameters" }
 
     Section = "Choice Model Sources|Tables"
 
@@ -172,6 +172,7 @@
 
     Section = "Destination Choice"
 
+        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates (for work double constraint)" }
         Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
 
     Section = "Parking Model|Coefficients"

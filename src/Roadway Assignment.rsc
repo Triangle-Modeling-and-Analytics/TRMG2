@@ -6,7 +6,7 @@ tie them in.
 
 Macro "Roadway Assignment" (Args)
 
-    // RunMacro("VOT Split", Args)
+    RunMacro("VOT Split", Args)
     // RunMacro("Run Roadway Assignment", Args)
     // RunMacro("Update Link Congested Times", Args)
     return(1)
@@ -28,6 +28,8 @@ Macro "VOT Split" (Args)
     skim_dir = Args.[Output Folder] + "/skims/roadway"
 
     p = RunMacro("Read Parameter File", {file: vot_params})
+    veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+    auto_classes = {"sov", "hov2", "hov3", "CV"}
 
     se_vw = OpenTable("se", "FFB", {se_file})
     {v_hh, v_inc} = GetDataVectors(
@@ -39,21 +41,14 @@ Macro "VOT Split" (Args)
         if period = "AM" or period = "PM"
             then pkop = "pk"
             else pkop = "op"
-        // TODO: change to actual file name
-        // input_file = assn_dir + "/TOT" + period + "_OD_conv_tod.mtx"
-        input_file = assn_dir + "/TOT" + period + "_OD_conv_tod_full.mtx"
-        output_file = Substitute(input_file, ".mtx", "_vot.mtx", )
-        CopyFile(input_file, output_file)
+        mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         skim_file = skim_dir + "/skim_sov_" + period + ".mtx"
         
-        skim = CreateObject("Matrix")
-        skim.LoadMatrix(skim_file)
+        skim = CreateObject("Matrix", skim_file)
         length_skim = skim.data.cores.("Length (Skim)")
 
         // Calculate weighted income
-        output = CreateObject("Matrix")
-        output.LoadMatrix(output_file)
-        veh_classes = output.CoreNames
+        output = CreateObject("Matrix", mtx_file)
         output.AddCores({"hh", "wgtinc", "otemp", "dtemp"})
         cores = output.data.cores
         cores.otemp := v_hh
@@ -73,7 +68,7 @@ Macro "VOT Split" (Args)
         for veh_class in veh_classes do
             
             // Auto classes
-            if veh_class = "SOV" or veh_class = "HOV" then do
+            if auto_classes.position(veh_class) > 0 then do
                 meanvot = p.(pkop + "_meanvot")
                 targetvot = p.(pkop + "_targetvot")
                 costcoef = p.(pkop + "_costcoef")
