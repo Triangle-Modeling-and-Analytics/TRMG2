@@ -4,6 +4,8 @@ Handle initial steps like capacity and speed calculations.
 
 Macro "Initial Processing" (Args)
     
+    created = RunMacro("Is Scenario Created", Args)
+    if !created then return(0)
     RunMacro("Create Output Copies", Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
@@ -15,6 +17,31 @@ Macro "Initial Processing" (Args)
 
     return(1)
 EndMacro
+
+/*
+This macro checks that the current scenario is created.
+*/
+
+Macro "Is Scenario Created" (Args)
+
+    files_to_check = {
+        Args.[Input Links],
+        Args.[Input Routes],
+        Args.[Input SE]
+    }
+    scenario_created = "true"
+    for file in files_to_check do
+        if GetFileInfo(file) = null then scenario_created = "false"
+    end
+    if scenario_created then return("true")
+    else do
+        MessageBox(
+            "This scenario has not been created\n" + 
+            "Use TRMG2 Menu -> Create Scenario",
+        )
+        return("false")
+    end
+endmacro
 
 /*
 Creates copies of the scenario/input SE, TAZs, and networks.
