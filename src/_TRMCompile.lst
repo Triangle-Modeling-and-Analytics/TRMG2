@@ -25,4 +25,5 @@ utils/mc.rsc
 utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc
+utils/link_diff_tool.rsc
 flow_chart/NLMCreateFromPMEClass.rsc

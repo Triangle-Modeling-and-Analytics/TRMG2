@@ -4,6 +4,8 @@ Handle initial steps like capacity and speed calculations.
 
 Macro "Initial Processing" (Args)
     
+    created = RunMacro("Is Scenario Created", Args)
+    if !created then return(0)
     RunMacro("Create Output Copies", Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
@@ -15,6 +17,48 @@ Macro "Initial Processing" (Args)
 
     return(1)
 EndMacro
+
+/*
+This macro checks that the current scenario is created. If output already
+exists, checks to make sure you want to overwrite it. This is most commonly
+encountered when you create a new scenario but forget to change the
+scenario folder to the new location. This check prevents you from accidently
+overwriting your already-run scenario.
+*/
+
+Macro "Is Scenario Created" (Args)
+
+    scen_dir = Args.[Scenario Folder]
+    if GetFileInfo(Args.SE) <> null then do
+        yesno = MessageBox(
+            "This scenario already has output data\n" + 
+            "Scenario folder:\n" +
+            scen_dir + "\n" + 
+            "Do you want to overwrite?",
+            {Buttons: "YesNo", Caption: "Overwrite scenario?"}
+        )
+        if yesno = "No" then return("false")
+    end
+
+    input_files_to_check = {
+        Args.[Input Links],
+        Args.[Input Routes],
+        Args.[Input SE]
+    }
+    scenario_created = "true"
+    for file in input_files_to_check do
+        if GetFileInfo(file) = null then scenario_created = "false"
+    end
+    if scenario_created then return("true")
+    else do
+        MessageBox(
+            "This scenario has not been created\n" + 
+            "Use TRMG2 Menu -> Create Scenario",
+            {Caption: "Scenario not created"}
+        )
+        return("false")
+    end
+endmacro
 
 /*
 Creates copies of the scenario/input SE, TAZs, and networks.

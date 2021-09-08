@@ -106,18 +106,6 @@ Body:
     skipemails:
     on error default
 
-    created = RunMacro("Is Scenario Created", Args)
-    if !created then do
-        MessageBox(
-            "This scenario has not been created\n" + 
-            "Use TRMG2 Menu -> Create Scenario",
-        )
-        Throw(
-            "This scenario has not been created\n" + 
-            "Use TRMG2 Menu -> Create Scenario"
-        )
-    end
-
     Return(Runtime_Args)
 EndMacro
 
@@ -145,28 +133,3 @@ Body:
 
     Return()
 EndMacro
-
-/*
-This macro checks that the current scenario is created.
-*/
-
-Macro "Is Scenario Created" (Args)
-
-    mr = CreateObject("Model.Runtime")
-    Args = mr.GetValues()
-    scen_dir = Args.[Scenario Folder]
-    {, scen_name} = mr.GetScenario()
-    files_to_check = {
-        Args.[Input Links],
-        Args.[Input Routes],
-        Args.[Input SE]
-    }
-
-    scenario_created = "true"
-    for file in files_to_check do
-        if GetFileInfo(file) = null then scenario_created = "false"
-    end
-    if scenario_created 
-        then return("true")
-        else return("false")
-endmacro
