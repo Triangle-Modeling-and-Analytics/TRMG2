@@ -13,6 +13,7 @@ Macro "Initial Processing" (Args)
     RunMacro("Other Attributes", Args)
     RunMacro("Calculate Bus Speeds", Args)
     RunMacro("Create Link Networks", Args)
+    RunMacro("Check Highway Networks", Args)
     RunMacro("Create Route Networks", Args)
 
     return(1)
@@ -785,6 +786,32 @@ Macro "Create Link Networks" (Args)
         netSetObj.LoadNetwork(net_file)
         netSetObj.CentroidFilter = "Centroid = 1"
         netSetObj.Run()
+    end
+endmacro
+
+/*
+The first time through the model, check the networks by running a 
+dummy assignment. This will catch any issues with missing capacities
+or speeds.
+*/
+
+Macro "Check Highway Networks" (Args)
+    feedback_iter = Args.FeedbackIteration
+    se_file = Args.SE
+
+    if feedback_iter = 1 then do
+        se_vw = OpenTable("se", "FFB", {se_file})
+        mtx_file = GetTempFileName(".mtx")
+        mh = CreateMatrixFromView("tmep", se_vw + "|", "TAZ", "TAZ", {"TAZ"}, {"File Name": mtx_file})
+        mtx = CreateObject("Matrix", mh)
+        mtx.AddCores({"SOV"})
+        cores = mtx.GetCores()
+        cores.SOV := cores.TAZ
+        mtx = null
+        mh = null
+        CloseView(se_vw)
+        test_opts.od_mtx = mtx_file
+        RunMacro("Run Roadway Assignment", Args, test_opts)
     end
 endmacro
 
