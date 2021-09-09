@@ -30,6 +30,8 @@
 <script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -372,6 +374,9 @@ div.tocify {
     <li>
       <a href="survey_processing.html">Household Survey</a>
     </li>
+    <li>
+      <a href="obs_processing.html">On-Board Survey</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
@@ -397,6 +402,9 @@ div.tocify {
       <a href="resident_nonmotorized.html">Non-motorized</a>
     </li>
     <li>
+      <a href="parking.html">Parking</a>
+    </li>
+    <li>
       <a href="nhb.html">Non-homebased</a>
     </li>
   </ul>
@@ -415,13 +423,21 @@ div.tocify {
       <a href="airport.html">Airport</a>
     </li>
     <li>
+      <a href="ieei.html">Internal/External</a>
+    </li>
+    <li>
       <a href="commercial_vehicles.html">Commercial Vehicles</a>
     </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/Caliper-Corporation/TRMG2">
+    <span class="fa fa-github fa-2x"></span>
+     
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -440,12 +456,12 @@ div.tocify {
 
 <div id="intro" class="section level2">
 <h2>Intro</h2>
-<p>The TRMG2 uses a dissaggregate, binary choice model to split trips into motorized and non-motorized categories. It is common to see the non-motorized mode as a nest within the larger mode choice model, but it was separated for two primary reasons:</p>
+<p>TRMG2 uses a disaggregate, binary choice model to split trips into motorized and non-motorized categories. It is common to see the non-motorized mode as a nest within the larger mode choice model, but it was separated for two primary reasons:</p>
 <ol style="list-style-type: decimal">
 <li>To use a disaggregate model to predict walk trips.</li>
 <li>To simplify the mode choice model and improve prediction power.</li>
 </ol>
-<p>In the TRMG2, the non-motorized model takes place after trip production but before trips are aggregated for destination and mode choice models. The advantage with a disaggregate model is that person- and household-level variables were available to improve non-motorized predictions. A potential downside of this approach is that the prediction does not know how long a trip is. This downside is mitigated by using accessibility measures, which in this case are logsums of the gravity model used to distribute walk trips. In this way, aggregate information about trips lengths is included. Further, a person living downtown will make more walk trips than one living in rural areas (all else equal).</p>
+<p>In TRMG2, the non-motorized model takes place after trip production but before trips are aggregated for destination and motorized mode choice models. The advantage with a disaggregate model is that person and household level variables were available to improve non-motorized predictions. A potential downside of this approach is that the prediction does not know the mileage or travel time of the trip. This downside is mitigated by using accessibility measures, which in this case are logsums of the gravity model used to distribute walk trips. In this way, aggregate information about trip lengths is included. Further, a person living downtown will make more walk trips than one living in rural areas (all else equal).</p>
 <p>The second benefit of a separate non-motorized model is a simplification of the larger mode choice nesting structure. For more detail on that model, and for information on logit choice models in general, see the resident mode choice page.</p>
 </div>
 <div id="estimation-results" class="section level2">
@@ -453,13 +469,13 @@ div.tocify {
 <p>All the models that follow are binary choice models with motorized as the reference alternative. Negative coefficients mean that non-motorized travel is less likely. Positive coefficients mean that non-motorized travel is more likely.</p>
 <p>Most coefficients are self-explanatory, but two need differentiation:</p>
 <ul>
-<li>Walk Accessibility: this is a measure of how accessible other zones are to the home zone.</li>
+<li>Walk Accessibility: this is a measure of how accessible other zones are to the home zone (see the <a href="accessibility.html">accessibility</a> page).</li>
 <li>Walkability: this is a measure of how walkable the home zone itself is. It encapsulates information on mixed use, the density of the street grid, and other factors. See the accessibility documentation for more detail.</li>
 </ul>
 <div id="work-tours" class="section level3">
 <h3>Work tours</h3>
-<p>The W_HB_W and W_HB_O trip types were estimated in a single model. Behaviorally, the decision to walk to work is made at the tour level and affects all trips made along that tour. A model was not estimated for W_HB_WR trips. Instead, these trips for deliveries, lawn care, and other activities are all assumed to be be motorized by the model. Similarly, all K12 escort trips on work tours (W_HB_EK12) are motorized as well.</p>
-<p>Children in the household or being a senior make it less likely that trips on work tour will be non-motorized. Higher car ownership has the same affect. Walk accessibility has a positive relationship, meaning that people who live in urban centers with high walk accessibility are more likely to make walk trips. All coefficients make behavioral sense and the model fit is strong.</p>
+<p>The W_HB_W and W_HB_O trip types were estimated in a single model. Behaviorally, the decision to walk to work is made at the tour level and affects all trips made along that tour. A model was not estimated for W_HB_WR trips. Instead, these trips for deliveries, lawn care, and other activities are all assumed to be motorized by the model. Similarly, all K12 escort trips on work tours (W_HB_EK12) are motorized as well.</p>
+<p>Children in the household or being a senior make it less likely that trips on a work tour will be non-motorized. Higher car ownership has the same affect. Walk accessibility has a positive relationship, meaning that people who live in urban centers with high walk accessibility are more likely to make walk trips. All coefficients make behavioral sense and the model fit is strong.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -842,7 +858,7 @@ Walkability
 </tr>
 <tr>
 <td style="text-align:left;">
-Chidren in HH
+Children in HH
 </td>
 <td style="text-align:right;">
 -0.57900
