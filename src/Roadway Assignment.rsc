@@ -159,15 +159,19 @@ Macro "erf_normdist" (matrix, out_corename)
 endMacro
 
 /*
+Runs highway assignment.
 
+Early in the model run, this macro is called in testing mode to check the
+validity of the highway network and prevent wasted run time.
 */
 
-Macro "Run Roadway Assignment" (Args)
+Macro "Run Roadway Assignment" (Args, test_opts)
 
     hwy_dbd = Args.Links
     net_dir = Args.[Output Folder] + "\\networks\\"
     periods = Args.periods
     feedback_iter = Args.FeedbackIteration
+    assign_iters = Args.AssignIterations
     prev_assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter - 1)
     assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
     RunMacro("Create Directory", assn_dir)
@@ -185,15 +189,21 @@ Macro "Run Roadway Assignment" (Args)
     if n > 0 then hov_exists = "true"
     CloseMap(map)
 
+
     for period in periods do
         od_mtx = od_dir + "\\TOT" + period + "_OD_conv_tod.mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
+
+        if test_opts <> null then do
+            od_mtx = test_opts.od_mtx
+            assign_iters = 1
+        end
 
         o = CreateObject("Network.Assignment")
         o.Network = net_file
         o.LayerDB = hwy_dbd
         o.ResetClasses()
-        o.Iterations = Args.AssignIterations
+        o.Iterations = assign_iters
         // TODO: move back to the official number (10e-5)
         // o.Convergence = Args.AssignConvergence
         o.Convergence = .0003
@@ -216,36 +226,79 @@ Macro "Run Roadway Assignment" (Args)
             Iteration: feedback_iter
         })
         o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"
-        class_opts = {
-            Demand: "SOV",
-            PCE: 1,
-            VOI: 1,
-            LinkTollField: "TollCostSOV"
-        }
-        if hov_exists then class_opts = class_opts + {ExclusionFilter: "HOV <> 'None'"}
-        o.AddClass(class_opts)
-        o.AddClass({
-            Demand: "HOV",
-            PCE: 1,
-            VOI: 1,
-            LinkTollField: "TollCostHOV"
-        })
-        class_opts = {
-            Demand: "SUT",
-            PCE: 1,
-            VOI: 1,
-            LinkTollField: "TollCostSUT"
-        }
-        if hov_exists then class_opts = class_opts + {ExclusionFilter: "HOV <> 'None'"}
-        o.AddClass(class_opts)
-        class_opts = {
-            Demand: "MUT",
-            PCE: 1,
-            VOI: 1,
-            LinkTollField: "TollCostMUT"
-        }
-        if hov_exists then class_opts = class_opts + {ExclusionFilter: "HOV <> 'None'"}
-        o.AddClass(class_opts)
+        // Add classes for each combination of vehicle type and VOT
+        // If doing a test assignment, just create a single class from the
+        // dummy matrix
+        if test_opts <> null then do
+            o.AddClass({
+                Demand: "TAZ",
+                PCE: 1,
+                VOI: 1
+            })
+        end else do
+            // sov
+            for i = 1 to 5 do
+                sov_opts = {
+                    Demand: "sov_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostSOV"
+                }
+                if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
+                o.AddClass(sov_opts)
+            end
+            // hov2
+            for i = 1 to 5 do
+                o.AddClass({
+                    Demand: "hov2_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostHOV"
+                })
+            end
+            // hov3
+            for i = 1 to 5 do
+                o.AddClass({
+                    Demand: "hov3_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostHOV"
+                })
+            end
+            // CV
+            for i = 1 to 5 do
+                cv_opts = {
+                    Demand: "SUT_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostSUT"
+                }
+                if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
+                o.AddClass(cv_opts)
+            end
+            // SUT
+            for i = 1 to 3 do
+                sut_opts = {
+                    Demand: "SUT_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostSUT"
+                }
+                if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
+                o.AddClass(sut_opts)
+            end
+            // MUT
+            for i = 1 to 5 do
+                mut_opts = {
+                    Demand: "MUT_VOT" + String(i),
+                    PCE: 1,
+                    VOI: 1,
+                    LinkTollField: "TollCostMUT"
+                }
+                if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
+                o.AddClass(mut_opts)
+            end
+        end
         ret_value = o.Run()
         results = o.GetResults()
         /*
@@ -256,8 +309,6 @@ Macro "Run Roadway Assignment" (Args)
         etc.
         */
     end
-
-    
 endmacro
 
 /*
