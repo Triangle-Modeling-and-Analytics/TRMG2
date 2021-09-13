@@ -100,9 +100,9 @@ Macro "DC Size Terms" (Args)
     field_names = ExcludeArrayElements(field_names, field_names.length, 1)
     input = GetDataVectors(se_vw + "|", field_names, {OptArray: TRUE})
     for field_name in field_names do
-        output.(field_name) = if input.(field_name) + 0
-        then null
-        else Log(1 + input.(field_name))
+        output.(field_name) = if input.(field_name) = 0
+            then null
+            else Log(1 + input.(field_name))
     end
     SetDataVectors(se_vw + "|", output, )
     CloseView(se_vw)
