@@ -1,0 +1,8 @@
+Expression,Segment,Coefficient,Description
+se.w_hbo_size.D,,0.5792,Size term
+nz(mc_logsums.transit),,0.2554,
+sov_skim.IZ,,1.1470,
+sov_skim.CongTime,,-0.2117,
+"max(0, sov_skim.CongTime - 30)",,0.1607,
+se.access_employment_sov.D,,0.1012,
+se.access_walk.D,v0,0.2780,
