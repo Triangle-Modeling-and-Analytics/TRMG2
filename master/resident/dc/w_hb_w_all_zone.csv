@@ -1,12 +1,12 @@
 Expression,Segment,Coefficient,Description
-log(se.w_hbw_size_H.D),ihvi,0.6416,Size term for high income workers
-log(se.w_hbw_size_H.D),ihvs,0.6416,Size term for high income workers
-log(se.w_hbw_size_L.D),ilvi,0.6416,Size term for low income workers
-log(se.w_hbw_size_L.D),ilvs,0.6416,Size term for low income workers
-log(se.w_hbw_size_L.D),v0,0.6416,Size term for low income workers
+se.w_hbw_size_H.D,ihvi,0.6416,Size term for high income workers
+se.w_hbw_size_H.D,ihvs,0.6416,Size term for high income workers
+se.w_hbw_size_L.D,ilvi,0.6416,Size term for low income workers
+se.w_hbw_size_L.D,ilvs,0.6416,Size term for low income workers
+se.w_hbw_size_L.D,v0,0.6416,Size term for low income workers
 nz(mc_logsums.nonhh_auto_vi),vi,0.7184,
 nz(mc_logsums.transit),,0.3237,
-sov_skim.IZ,,2.463,
+sov_skim.IZ,,2.4630,
 sov_skim.CongTime,,-0.0992,
 se.EmpDensity.D / 1000,,0.0018,
 se.access_hospital_sov.D,,0.3094,
