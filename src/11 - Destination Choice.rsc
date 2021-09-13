@@ -68,7 +68,7 @@ Macro "DC Attractions" (Args)
     {drive, folder, name, ext} = SplitPath(rate_file)
     RunMacro("Create Sum Product Fields", {
         view: se_vw, factor_file: rate_file,
-        field_desc: "Resident DC Attractions|See " + name + ext + " for details."
+        field_desc: "Resident DC Attractions|Used for double constraint.|See " + name + ext + " for details."
     })
 
     CloseView(se_vw)
@@ -84,14 +84,32 @@ Macro "DC Size Terms" (Args)
     se_file = Args.SE
     coeff_file = Args.ResDCSizeCoeffs
 
+    // Before calculating the size term fields, create any additional fields
+    // needed for that calculation.
     se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields =  {{
+        "Hosp_Service", "Real", 10, 2,,,, 
+        "Hospital * Total Service Employment.|Used in OMED dc model"
+    }}
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    input = GetDataVectors(
+        se_vw + "|",
+        {"Hospital", "Service_RateLow", "Service_RateHigh"},
+        {OptArray: "true"}
+    )
+    output.Hosp_Service = input.Hospital * (input.Service_RateLow + input.Service_RateHigh)
+    SetDataVectors(se_vw + "|", output, )
+
+    // Calculate the size term fields using the coefficient file
     {drive, folder, name, ext} = SplitPath(coeff_file)
     RunMacro("Create Sum Product Fields", {
         view: se_vw, factor_file: coeff_file,
-        field_desc: "Resident DC Attractions|See " + name + ext + " for details."
+        field_desc: "Resident DC Size Terms|" +
+        "These are already log transformed and used directly by the DC model.|" +
+        "See " + name + ext + " for details."
     })
 
-    // Log transform
+    // Log transform the results and set any 0s to nulls
     coeff_vw = OpenTable("coeff", "CSV", {coeff_file})
     {field_names, } = GetFields(coeff_vw, "All")
     CloseView(coeff_vw)
