@@ -138,6 +138,7 @@ Macro "Calculate Destination Choice" (Args)
     input_dc_dir = input_dir + "/resident/dc"
     output_dir = Args.[Output Folder] + "/resident/dc"
     periods = Args.periods
+    sp_file = Args.ShadowPrices
 
     // Determine trip purposes
     trip_types = RunMacro("Get HB Trip Types", Args)
@@ -173,7 +174,8 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             se_file = scen_dir + "/output/sedata/scenario_se.bin"
             opts.tables = {
                 se: {File: se_file, IDField: "TAZ"},
-                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"}
+                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"},
+                sp: {File: sp_file, IDField: "TAZ"}
             }
             opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
             opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
