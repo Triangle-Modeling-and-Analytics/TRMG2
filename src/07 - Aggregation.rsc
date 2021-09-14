@@ -5,8 +5,7 @@ the aggregate components.
 
 Macro "Aggregation" (Args)
 
-    // RunMacro("Aggregate HB Moto Trips", Args)
-    RunMacro("Aggregate HB NonMotorized Walk Trips", Args)
+    RunMacro("Aggregate HB Moto Trips", Args)
     return(1)
 endmacro
 
@@ -91,47 +90,4 @@ Macro "Aggregate HB Moto Trips" (Args)
     end
     se_df.remove("TAZ")
     se_df.update_bin(se_file)
-endmacro
-
-/*
-Aggregates the non-motorized trips to TAZ
-*/
-
-Macro "Aggregate HB NonMotorized Walk Trips" (Args)
-
-    hh_file = Args.Households
-    per_file = Args.Persons
-    se_file = Args.SE
-    nm_dir = Args.[Output Folder] + "/resident/nonmotorized"
-
-    per_df = CreateObject("df", per_file)
-    per_df.select({"PersonID", "HouseholdID"})
-    hh_df = CreateObject("df", hh_file)
-    hh_df.select({"HouseholdID", "ZoneID"})
-    per_df.left_join(hh_df, "HouseholdID", "HouseholdID")
-
-    trip_types = RunMacro("Get HB Trip Types", Args)
-    // Remove W_HB_EK12_All because it is all motorized by definition
-    pos = trip_types.position("W_HB_EK12_All")
-    trip_types = ExcludeArrayElements(trip_types, pos, 1)
-    for trip_type in trip_types do
-        file = nm_dir + "/" + trip_type + ".bin"
-        vw = OpenTable("temp", "FFB", {file})
-        v = GetDataVector(vw + "|", trip_type, )
-        CloseView(vw)
-        per_df.tbl.(trip_type) = v
-    end
-    per_df.group_by("ZoneID")
-    per_df.summarize(trip_types, "sum")
-    for trip_type in trip_types do
-        per_df.rename("sum_" + trip_type, trip_type)
-    end
-    
-    // Add the walk accessibility attractions from the SE bin file, which will
-    // be used in the gravity application.
-    se_df = CreateObject("df", se_file)
-    se_df.select({"TAZ", "access_walk_attr"})
-    per_df.left_join(se_df, "ZoneID", "TAZ")
-
-    per_df.write_bin(nm_dir + "/_agg_nm_trips_daily.bin")
 endmacro
