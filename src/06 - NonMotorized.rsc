@@ -8,6 +8,7 @@ Macro "NonMotorized" (Args)
     RunMacro("Calculate NM Probabilities", Args)
     RunMacro("Separate NM Trips", Args)
     RunMacro("Aggregate HB NonMotorized Walk Trips", Args)
+    RunMacro("NM Gravity", Args)
 
     return(1)
 endmacro
@@ -190,7 +191,26 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args)
     // be used in the gravity application.
     se_df = CreateObject("df", se_file)
     se_df.select({"TAZ", "access_walk_attr"})
-    per_df.left_join(se_df, "ZoneID", "TAZ")
+    se_df.left_join(per_df, "TAZ", "ZoneID")
 
-    per_df.write_bin(nm_dir + "/_agg_nm_trips_daily.bin")
+    se_df.write_bin(nm_dir + "/_agg_nm_trips_daily.bin")
+endmacro
+
+/*
+
+*/
+
+Macro "NM Gravity" (Args)
+
+    grav_params = Args.[Input Folder] + "/resident/nonmotorized/distribution/nm_gravity.csv"
+    out_dir = Args.[Output Folder] 
+    nm_dir = out_dir + "/resident/nonmotorized"
+    prod_file = nm_dir + "/_agg_nm_trips_daily.bin"
+
+    RunMacro("Gravity", {
+        se_file: prod_file,
+        skim_file: out_dir + "/skims/nonmotorized/walk_skim.mtx",
+        param_file: grav_params,
+        output_matrix: nm_dir + "/nm_gravity.mtx"
+    })
 endmacro
