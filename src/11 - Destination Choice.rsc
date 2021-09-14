@@ -142,7 +142,6 @@ Macro "Calculate Destination Choice" (Args)
 
     // Determine trip purposes
     trip_types = RunMacro("Get HB Trip Types", Args)
-trip_types = {"W_HB_W_All"} // TODO: remove after testing
 
     opts = null
     opts.output_dir = output_dir
@@ -190,7 +189,6 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             end
         end
     end
-
 endmacro
 
 /*
@@ -213,9 +211,7 @@ Macro "Apportion Resident HB Trips" (Args)
     RunMacro("Create Directory", trip_dir)
 
     trip_types = RunMacro("Get HB Trip Types", Args)
-// TODO: remove. For testing only
-trip_types = {"W_HB_W_All"}
-periods = {"AM"}
+
     for period in periods do
 
         // Resident trips
@@ -226,8 +222,7 @@ periods = {"AM"}
             
             out_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
             if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
-// TODO: remove. for testing only
-segments = {"ihvi"}
+
             for segment in segments do
                 name = trip_type + "_" + segment + "_" + period
                 
@@ -258,6 +253,4 @@ segments = {"ihvi"}
             end
         end
     end
-
-    return(1)
 endmacro
