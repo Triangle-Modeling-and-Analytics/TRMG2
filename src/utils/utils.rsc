@@ -2062,7 +2062,7 @@ Macro "Gravity" (MacroOpts)
         // ColIndex: ci
       },
       Gamma: {param_vw.a, param_vw.b, param_vw.c},
-      Constraint: param_vw.constraint
+      ConstraintType: param_vw.constraint
     })
 
     rh = GetNextRecord(param_vw + "|", , )
