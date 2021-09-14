@@ -1,6 +1,6 @@
 /*
 Generates and distributes airport trips. Because the models are simple and
-do not depend on congsted times, it can be done outside the feedback loop.
+do not depend on congested times, it can be done outside the feedback loop.
 Mode choice for airport trips happens within the feedback loop and uses the
 N_HB_OD_Long_vs probabilities.
 */
@@ -47,7 +47,7 @@ Macro "Airport Production" (Args)
 	taz_vec = data.TAZ
 
 	// get distance to airport zone
-	skim_mat = skim_dir + "skim_sov_MD.mtx"
+	skim_mat = skim_dir + "accessibility_sov_AM.mtx"
 	mat = CreateObject("Matrix")
 	mat.LoadMatrix(skim_mat)
 	cores = mat.data.cores
