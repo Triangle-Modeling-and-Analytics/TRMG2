@@ -237,7 +237,7 @@ Class "NestedDC" (ClassOpts)
         util_dir = self.ClassOpts.util_dir
         logsum_dir = self.ClassOpts.logsum_dir
         cluster_data = self.ClassOpts.cluster_data
-        cluster_util = self.ClassOpts.cluster_util
+        cluster_utils = self.ClassOpts.cluster_utils
 
         // Collect vectors of cluster names, IDs, and theta values
         theta_vw = OpenTable("thetas", "CSV", {cluster_data})
@@ -319,7 +319,7 @@ Class "NestedDC" (ClassOpts)
             {"mtx.ic", 1},
             {"mtx.final", 1}
         }, )
-        ExportView(util_vw + "|", "CSV", cluster_util, , {"CSV Header": "true"})
+        ExportView(util_vw + "|", "CSV", cluster_utils, , {"CSV Header": "true"})
         CloseView(util_vw)
     enditem
 
