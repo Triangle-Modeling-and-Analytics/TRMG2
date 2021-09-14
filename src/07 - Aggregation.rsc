@@ -126,5 +126,12 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args)
     for trip_type in trip_types do
         per_df.rename("sum_" + trip_type, trip_type)
     end
+    
+    // Add the walk accessibility attractions from the SE bin file, which will
+    // be used in the gravity application.
+    se_df = CreateObject("df", se_file)
+    se_df.select({"TAZ", "access_walk_attr"})
+    per_df.left_join(se_df, "ZoneID", "TAZ")
+
     per_df.write_bin(nm_dir + "/_agg_nm_trips_daily.bin")
 endmacro
