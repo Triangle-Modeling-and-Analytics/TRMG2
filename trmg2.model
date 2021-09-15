@@ -217,12 +217,13 @@ Body:
     Return(True)
 EndMacro
 
-
 Macro "External Models" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"External Models"}}}
 Body:
     ShowMessage('Running: External Models')
+EndMacro
+
 Macro "NonHomeBased" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NonHomeBased"}}}

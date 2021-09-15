@@ -31,11 +31,6 @@ Macro "Convert EE CSV to MTX" (Args)
   ee_csv_file = Args.[Input Folder] + "\\external\\ee-seed.csv"
   ee_mtx_file = Args.[Output Folder] + "\\external\\base_ee_table.mtx"
   
-  // TODO-AK: Delete after testing
-  hwy_dbd = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\networks\\scenario_links.dbd"
-  ee_csv_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ee-seed.csv"
-  ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\base_ee_table.mtx"
-  
   // create empty EE matrix from node layer
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
   
@@ -79,9 +74,6 @@ Calculate the production and attraction marginals at each external station.
 
 Macro "Calculate EE IPF Marginals" (Args)
   se_file = Args.SE
-  
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
   
   se_vw = OpenTable("se", "FFB", {se_file})
   SetView(se_vw)
@@ -129,11 +121,6 @@ Macro "IPF EE Seed Table" (Args)
   ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx"
   se_file = Args.SE
   
-  // TODO-AK: Delete after testing
-  base_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\base_ee_table.mtx"
-  ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ee_trips.mtx"
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-  
   mtx = OpenMatrix(base_mtx_file, )
   core_names = GetMatrixCoreNames(mtx)
   {ri, ci} = GetMatrixIndex(mtx)
@@ -172,11 +159,8 @@ endmacro
 This macro enforces symmetry on the EE matrix.
 */
 
-Macro "EE Symmetry"
+Macro "EE Symmetry" (Args)
   ee_mtx_file = Args.[Output Folder] + "\\external\\ee_trips.mtx"
-  
-  // TODO-AK: Delete after testing
-  ee_mtx_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ee_trips.mtx"
   
   // Open the IPFd EE mtx
   mtx = OpenMatrix(ee_mtx_file, )
@@ -224,9 +208,6 @@ Calculate IEEI productions
 
 Macro "IEEI Productions" (Args)
   se_file = Args.SE
-  
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
   
   se_vw = OpenTable("se", "FFB", {se_file})
   SetView(se_vw)
@@ -280,11 +261,7 @@ Calculate IEEI Attractions
 
 Macro "IEEI Attractions" (Args)
   se_file = Args.SE
-  ieei_model_file = Args.[Input Folder] + "\\external\\airport_model.csv"
-  
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-  ieei_model_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_model.csv"
+  ieei_model_file = Args.[Input Folder] + "\\external\\ieei_model.csv"
   
   se_vw = OpenTable("se", "FFB", {se_file})
   
@@ -336,9 +313,6 @@ Balance IEEI production and attraction
 
 Macro "IEEI Balance Ps and As" (Args)
   se_file = Args.SE
-  
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
   
   se_vw = OpenTable("se", "FFB", {se_file})
 
@@ -404,10 +378,6 @@ Macro "IEEI TOD" (Args)
   se_file = Args.SE
   tod_file = Args.[Input Folder] + "\\external\\ieei_tod.csv"
 
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-  tod_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_tod.csv"
-  
   se_vw = OpenTable("se", "FFB", {se_file})
   
   {drive, folder, name, ext} = SplitPath(tod_file)
@@ -427,14 +397,8 @@ IEEI Gravity Distribution
 Macro "IEEI Gravity" (Args)
   se_file = Args.SE
   param_file = Args.[Input Folder] + "\\external\\ieei_gravity.csv"
-  skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_NT.mtx"
+  skim_file =  Args.[Output Folder] + "\\skims\\roadway\\accessibility_sov_AM.mtx"
   ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
-  
-  // TODO-AK: Delete after testing
-  se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-  param_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\input\\external\\ieei_gravity.csv"
-  skim_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_NT.mtx"
-  ieei_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ie_trips.mtx"
   
   opts = null
   opts.se_file = se_file
@@ -453,10 +417,6 @@ Macro "IEEI Combine Matrix" (Args)
   ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
   periods = Args.periods
   
-  // TODO-AK: Delete after testing
-  ieei_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\external\\ie_trips.mtx"
-  periods = {"AM", "MD", "PM", "NT"}
-
   ieei_mtx = OpenMatrix(ieei_matrix_file, )
   mc = CreateMatrixCurrency(ieei_mtx,,,,)
   
