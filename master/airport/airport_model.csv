@@ -1,5 +1,5 @@
 variable,coefficient
-intercept,5.4539
-employment,0.0133
-high_earn_distance,-0.0051
-high_earner,0.1315
+employment,0.0148
+high_paying_jobs,0.0479
+high_paying_jobs_distance,-0.0037
+workers,0.0281

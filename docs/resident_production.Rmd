@@ -30,9 +30,9 @@ generation models, attractions are not estimated in this step. Instead, the
 destination choice models estimate coefficients on employment as part of the
 size term, which function similar to trip attractions.
 
-TRMG2 productions models are person-level models. This means that detailed
+TRMG2 production models are person-level models. This means that detailed
 information about each person (e.g. age), as well as the characteristics of their
-household and geographic location, are available to improve prediction making.
+household and geographic location, are used together in the prediction.
 
 ```{r}
 # Zero-Inflated Negative Binomial Distribution:  
@@ -337,7 +337,7 @@ hh_result <- tibble(
 ## Using DT to guide segmentation
 
 After attempting various forms of generalized linear models (GLM) and logistic
-regression models, Caliper opted to use decision trees from the machine learning
+regression models, Caliper opted to use Decision Trees (DT) from the machine learning
 stack. This model form had much stronger predictive power compared to
 traditional approaches while still being easy to understand and explain.
 
@@ -471,8 +471,8 @@ Their meanings are listed below for reference:
   - retired_hh: if the household contains only retirees
   - per_inc: per-capita income (household income / size)
   - oth_ppl: number of other people in the household
-  - oth_kids: number of other kids in the household
-- Zonal variables
+  - oth_kids: number of other children in the household
+- Zonal variables (see [accessibility page](accessibility.html) for more details)
   - g_access: general accessibility of the person's home zone
   - n_access: nearby accessibility of the person's home zone
   - e_access: employment accessibility of the person's home zone
@@ -481,9 +481,10 @@ Their meanings are listed below for reference:
 
 ### W_HB_W_All
 
-These are the traditional HBW (home-based work) trips. Unsuprisingly, the most
-important factor is whether or not the individual is a worker. After that,
-the person's age and living arrangements best predict trip rate.
+These are the traditional home-based work (HBW) trips. Unsurprisingly, the most
+important factor is whether or not the individual is a worker. After that, the
+person's age and living arrangements (e.g. other workers) best predict the trip
+rate.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -545,7 +546,7 @@ R-squared: `r r_sq`
 ### W_HB_O_All
 
 When someone makes a stop on their way to or from work, they are making a
-homebased other trip on a work tour. Work status is the most important predictor
+home-based other trip on a work tour. Work status is the most important predictor
 followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays
 a role in determining the frequency of these extra stops. In the bottom right
 of the tree, workers that live in areas with lower accessibility make more
@@ -750,11 +751,12 @@ R-squared: `r r_sq`
 
 ### N_HB_OME_All
 
-This trip type captures shopping, dining, and maintenance activities. These are
-trips where the primary purpose includes spending money. These trips are harder
-to predict based on the data collected in the survey, and this results in lower
-r-squared values. Nonetheless, factors like age, accessibility, work status, and
-income do help to differentiate trip rates.
+This trip type ("Other - Maintenance/Eat" or "OME") captures shopping, dining,
+and maintenance activities. These are trips where the primary purpose includes
+spending money. These trips are harder to predict based on the data collected in
+the survey, and this results in lower r-squared values. Nonetheless, factors
+like age, accessibility, work status, and income do help to differentiate trip
+rates.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -1068,10 +1070,10 @@ R-squared: `r r_sq`
 
 These are medical trips, and as a result, retirement and age play an important
 role in predicting trip rates. This trip type has the poorest r-squared
-regardless of model form used. The survey EDA shows that other aspects of this
-trip type are unique enough to keep it separated - even this model simply
-applied the total average trip rate of 0.066 trips to every person. This model
-is a small improvement on that.
+regardless of model form used. The survey exploratory data analysis shows that
+other aspects of this trip type are unique enough to keep it separated - even
+this model applied the total average trip rate of 0.066 trips to every person.
+The final model below does provide a small improvement over that approach.
 
 ```{r}
 dt_tbl <- est_tbl %>%

@@ -1,17 +1,4 @@
 /*
-
-*/
-
-Macro "Commercial Vehicles" (Args)
-
-    RunMacro("CV Productions/Attractions", Args)
-    RunMacro("CV TOD", Args)
-    RunMacro("CV Gravity", Args)
-
-    return(1)
-endmacro
-
-/*
 CV productions
 Attractions are the same as productions
 */
@@ -51,18 +38,22 @@ Macro "CV TOD" (Args)
 endmacro
 
 /*
-Prepares arguments for the "Gravity" macro
-in the Distribution.rsc library.
+Prepares arguments for the "Gravity" macro in the utils.rsc library.
 */
 
 Macro "CV Gravity" (Args)
 
     out_dir = Args.[Output Folder]
+    cv_dir = Args.[Input Folder] + "/cv"
+    periods = Args.periods
 
-    RunMacro("Gravity", {
-        se_file: Args.SE,
-        skim_file: out_dir + "/skims/roadway/avg_skim_MD_All_All_sov.mtx",
-        param_file: Args.[CV Gravity Params],
-        output_matrix: out_dir + "/cv/cv_gravity.mtx"
-    })
+    for period in periods do
+
+        RunMacro("Gravity", {
+            se_file: Args.SE,
+            skim_file: out_dir + "/skims/roadway/skim_sov_" + period + ".mtx",
+            param_file: cv_dir + "/cv_gravity_" + period + ".csv",
+            output_matrix: out_dir + "/cv/cv_gravity_" + period + ".mtx"
+        })
+    end
 EndMacro

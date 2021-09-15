@@ -39,16 +39,17 @@ taz_features <- se_raw %>%
     UnivStudents = StudGQ_NCSU + StudGQ_UNC + StudGQ_DUKE + StudGQ_NCCU,
     UnivBuildingS = BuildingS_NCSU + BuildingS_UNC + BuildingS_DUKE + BuildingS_NCCU,
     IsUniv = ifelse(UnivStudents > 0 | UnivBuildingS > 0, 1, 0),
-    Industry_EH = Industry * PctHighEarn/100,
-    Industry_EL = Industry * (1 - PctHighEarn/100),
-    Office_EH = Office * PctHighEarn/100,
-    Office_EL = Office * (1 - PctHighEarn/100),
-    Service_RL_EH = Service_RateLow * PctHighEarn/100,
-    Service_RL_EL = Service_RateLow * (1 - PctHighEarn/100),
-    Service_RH_EH = Service_RateHigh * PctHighEarn/100,
-    Service_RH_EL = Service_RateHigh * (1 - PctHighEarn/100),
-    Retail_EH = Retail * PctHighEarn/100,
-    Retail_EL = Retail * (1 - PctHighEarn/100),
+    Industry_EH = Industry * PctHighPay/100,
+    Industry_EL = Industry * (1 - PctHighPay/100),
+    Office_EH = Office * PctHighPay/100,
+    Office_EL = Office * (1 - PctHighPay/100),
+    Service_RL_EH = Service_RateLow * PctHighPay/100,
+    Service_RL_EL = Service_RateLow * (1 - PctHighPay/100),
+    Service_RH_EH = Service_RateHigh * PctHighPay/100,
+    Service_RH_EL = Service_RateHigh * (1 - PctHighPay/100),
+    Service = Service_RateLow + Service_RateHigh,
+    Retail_EH = Retail * PctHighPay/100,
+    Retail_EL = Retail * (1 - PctHighPay/100),
   ) %>%
   select(
     TAZ, HH, HH_POP,
@@ -57,6 +58,7 @@ taz_features <- se_raw %>%
     Industry_EL,
     Office_EH,
     Office_EL,
+    Service,
     Service_RL_EH,
     Service_RL_EL,
     Service_RH_EH,
@@ -84,7 +86,7 @@ district_features <- taz_features %>%
 
 ```{r}
 w_hb_w <- taz_features %>%
-  select(choice_segment, W_HB_W_All, HH:OtherSpaces) %>%
+  select(choice_segment, W_HB_W_All, HH:OtherSpaces, Service) %>%
   filter(W_HB_W_All > 0)
 
 il <- w_hb_w %>%
@@ -117,5 +119,17 @@ model <- lm(
 
 # broom::tidy(model)
 summary(model)
+```
+
+```{r}
+# combined model
+model <- lm(
+  W_HB_W_All ~ Industry + Office_EL + Retail + I(Service_RH_EL + Service_RL_EL) +
+    Office_EH + I(Service_RH_EH + Service_RL_EH) + 0,
+  data = w_hb_w
+)
+
+broom::tidy(model)
+# summary(model)
 ```
 

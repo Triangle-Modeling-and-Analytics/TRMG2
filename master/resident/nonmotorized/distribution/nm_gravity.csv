@@ -1,0 +1,8 @@
+purpose,p_field,a_field,constraint,imp_core,a,b,c
+N_HB_K12_All,N_HB_K12_All,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+N_HB_OD_Long,N_HB_OD_Long,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+N_HB_OD_Short,N_HB_OD_Short,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+N_HB_OME_All,N_HB_OME_All,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+N_HB_OMED_All,N_HB_OMED_All,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+W_HB_O_All,W_HB_O_All,access_walk_attr,Production,WalkTime,5,0.563,0.1896
+W_HB_W_All,W_HB_W_All,access_walk_attr,Production,WalkTime,5,0.563,0.1896

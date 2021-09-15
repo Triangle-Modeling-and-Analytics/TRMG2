@@ -139,7 +139,7 @@ dependent_vars <- c(
   "W_HB_EK12_All_hov",
   "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike",
+  # "W_HB_O_All_walkbike",
   "W_HB_W_All_auto"
 )
 
@@ -312,7 +312,7 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_EK12_All_auto",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike",
+  # "W_HB_O_All_walkbike",
   "W_HB_W_All_auto"
 )
 
@@ -551,8 +551,8 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_EK12_All_auto",
   "W_HB_O_All_hov",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike"
+  "W_HB_O_All_sov"
+  # "W_HB_O_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)

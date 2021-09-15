@@ -7,6 +7,9 @@ Macro "NonMotorized" (Args)
     RunMacro("Create NonMotorized Features", Args)
     RunMacro("Calculate NM Probabilities", Args)
     RunMacro("Separate NM Trips", Args)
+    RunMacro("Aggregate HB NonMotorized Walk Trips", Args)
+    RunMacro("NM Gravity", Args)
+    RunMacro("NM TOD", Args)
 
     return(1)
 endmacro
@@ -148,4 +151,96 @@ Macro "Separate NM Trips" (Args)
     end
 
     CloseView(per_vw)
+endmacro
+
+
+/*
+Aggregates the non-motorized trips to TAZ
+*/
+
+Macro "Aggregate HB NonMotorized Walk Trips" (Args)
+
+    hh_file = Args.Households
+    per_file = Args.Persons
+    se_file = Args.SE
+    nm_dir = Args.[Output Folder] + "/resident/nonmotorized"
+
+    per_df = CreateObject("df", per_file)
+    per_df.select({"PersonID", "HouseholdID"})
+    hh_df = CreateObject("df", hh_file)
+    hh_df.select({"HouseholdID", "ZoneID"})
+    per_df.left_join(hh_df, "HouseholdID", "HouseholdID")
+
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    // Remove W_HB_EK12_All because it is all motorized by definition
+    pos = trip_types.position("W_HB_EK12_All")
+    trip_types = ExcludeArrayElements(trip_types, pos, 1)
+    for trip_type in trip_types do
+        file = nm_dir + "/" + trip_type + ".bin"
+        vw = OpenTable("temp", "FFB", {file})
+        v = GetDataVector(vw + "|", trip_type, )
+        CloseView(vw)
+        per_df.tbl.(trip_type) = v
+    end
+    per_df.group_by("ZoneID")
+    per_df.summarize(trip_types, "sum")
+    for trip_type in trip_types do
+        per_df.rename("sum_" + trip_type, trip_type)
+    end
+    
+    // Add the walk accessibility attractions from the SE bin file, which will
+    // be used in the gravity application.
+    se_df = CreateObject("df", se_file)
+    se_df.select({"TAZ", "access_walk_attr"})
+    se_df.left_join(per_df, "TAZ", "ZoneID")
+
+    se_df.write_bin(nm_dir + "/_agg_nm_trips_daily.bin")
+endmacro
+
+/*
+
+*/
+
+Macro "NM Gravity" (Args)
+
+    grav_params = Args.[Input Folder] + "/resident/nonmotorized/distribution/nm_gravity.csv"
+    out_dir = Args.[Output Folder] 
+    nm_dir = out_dir + "/resident/nonmotorized"
+    prod_file = nm_dir + "/_agg_nm_trips_daily.bin"
+
+    RunMacro("Gravity", {
+        se_file: prod_file,
+        skim_file: out_dir + "/skims/nonmotorized/walk_skim.mtx",
+        param_file: grav_params,
+        output_matrix: nm_dir + "/nm_gravity.mtx"
+    })
+endmacro
+
+/*
+Split the non-motorized trips up by time of day using the same factors as
+the motorized trips.
+*/
+
+Macro "NM TOD" (Args)
+
+    nm_file = Args.[Output Folder] + "/resident/nonmotorized/nm_gravity.mtx"
+    tod_file = Args.ResTODFactors
+    
+    nm_mtx = CreateObject("Matrix", nm_file)
+    fac_vw = OpenTable("tod_fac", "CSV", {tod_file})
+    v_type = GetDataVector(fac_vw + "|", "trip_type", )
+    v_tod = GetDataVector(fac_vw + "|", "tod", )
+    v_fac = GetDataVector(fac_vw + "|", "factor", )
+
+    for i = 1 to v_type.length do
+        type = v_type[i]
+        tod = v_tod[i]
+        fac = v_fac[i]
+
+        core_name = type + "_" + tod
+        nm_mtx.AddCores({core_name})
+        if type = "W_HB_EK12_All" then continue
+        cores = nm_mtx.GetCores()
+        cores.(core_name) := cores.(type) * fac
+    end
 endmacro

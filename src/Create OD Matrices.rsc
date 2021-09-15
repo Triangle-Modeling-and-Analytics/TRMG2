@@ -4,82 +4,18 @@
 
 Macro "Create OD Matrices" (Args)
 
-    RunMacro("Apportion Trips", Args)
     RunMacro("Directionality", Args)
+    RunMacro("Add Airport Trips", Args)
+    RunMacro("Collapse Auto Modes", Args)
     RunMacro("Occupancy", Args)
+    RunMacro("Collapse Purposes", Args)
+    RunMacro("Add CVs and Trucks", Args)
 
     return(1)
 endmacro
 
 /*
-With DC and MC probabilities calculated, trip productions can be distributed
-into zones and modes.
-*/
-
-Macro "Apportion Trips" (Args)
-
-    se_file = Args.SE
-    out_dir = Args.[Output Folder]
-    dc_dir = out_dir + "/resident/dc"
-    mc_dir = out_dir + "/resident/mode"
-    periods = Args.periods
-
-    se_vw = OpenTable("se", "FFB", {se_file})
-
-    // Create a folder to hold the trip matrices
-    trip_dir = mc_dir + "/trip_tables"
-    RunMacro("Create Directory", trip_dir)
-
-    trip_types = RunMacro("Get HB Trip Types", Args)
-// TODO: remove. For testing only
-trip_types = {"W_HB_W_All"}
-    for period in periods do
-        for trip_type in trip_types do
-            if Lower(trip_type) = "w_hb_w_all"
-                then segments = {"v0", "ilvi", "ilvs", "ihvi", "ihvs"}
-                else segments = {"v0", "vi", "vs"}
-            
-            out_mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
-            if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
-// TODO: remove. for testing only
-segments = {"ihvi"}
-            for segment in segments do
-                name = trip_type + "_" + segment + "_" + period
-                
-                dc_mtx_file = dc_dir + "/probabilities/probability_" + name + "_zone.mtx"
-                dc_mtx = CreateObject("Matrix", dc_mtx_file)
-                dc_cores = dc_mtx.GetCores()
-                mc_mtx_file = mc_dir + "/probabilities/probability_" + name + ".mtx"
-                if segment = segments[1] then do
-                    CopyFile(mc_mtx_file, out_mtx_file)
-                    out_mtx = CreateObject("Matrix", out_mtx_file)
-                    cores = out_mtx.GetCores()
-                    core_names = out_mtx.GetCoreNames()
-                    for core_name in core_names do
-                        cores.(core_name) := nz(cores.(core_name)) * 0
-                    end
-                end
-                mc_mtx = CreateObject("Matrix", mc_mtx_file)
-                mc_cores = mc_mtx.GetCores()
-
-                v_prods = nz(GetDataVector(se_vw + "|", name, ))
-                v_prods.rowbased = "false"
-
-                mode_names = mc_mtx.GetCoreNames()
-                out_cores = out_mtx.GetCores()
-                for mode in mode_names do
-                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
-                end
-            end
-        end
-    end
-
-    return(1)
-endmacro
-
-/*
-Convert from PA to OD format and from person trips to vehicle trips for the
-auto modes.
+Convert from PA to OD format
 */
 
 Macro "Directionality" (Args)
@@ -91,6 +27,7 @@ Macro "Directionality" (Args)
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
     auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
+    prev_type = ""
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
@@ -101,61 +38,218 @@ trip_type = "W_HB_W_All"
 period = "AM"
 pa_factor = 0.996080828
 
-        mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
-        mtx = CreateObject("Matrix", mtx_file)
+        pa_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+        od_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        if trip_type <> prev_type then CopyFile(pa_mtx_file, od_mtx_file)
+        mtx = CreateObject("Matrix", od_mtx_file)
         cores = mtx.GetCores()
         t_mtx = mtx.Transpose({Cores: auto_modes})
         t_cores = t_mtx.GetCores()
         for mode in auto_modes do
             cores.(mode) := cores.(mode) * pa_factor + t_cores.(mode) * (1 - pa_factor)
         end
-Throw()
+CloseView(fac_vw)
+return()
+        prev_type = trip_type
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
 endmacro
 
 /*
+The output of the airport model is an OD person matrix of trips by time of day.
+This macro adds them to the appropriate resident od trip matrix.
+*/
 
+Macro "Add Airport Trips" (Args)
+    
+    periods = Args.periods
+    out_dir = Args.[Output Folder]
+    mc_dir = out_dir + "/resident/mode"
+    trip_dir = out_dir + "/resident/trip_tables"
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+
+    RunMacro("Create Directory", assn_dir)
+
+    // Which trip type and segment to use for modal probabilities
+    trip_type = "N_HB_OD_Long"
+    segment = "vs"
+// TODO remove after testing
+trip_type = "W_HB_W_All"
+segment = "ihvs"
+    
+    air_mtx = CreateObject("Matrix", out_dir + "/airport/Airport_Trips.mtx")
+    for period in periods do
+        mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_" + segment + "_" + period + ".mtx"
+        mc_mtx = CreateObject("Matrix", mc_mtx_file)
+        mc_cores = mc_mtx.GetCores()
+        res_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        out_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        CopyFile(res_mtx_file, out_mtx_file)
+        out_mtx = CreateObject("Matrix", out_mtx_file)
+
+        air_core = air_mtx.GetCore("Trips_" + period)
+        mode_names = mc_mtx.GetCoreNames()
+        out_cores = out_mtx.GetCores()
+        for mode in mode_names do
+            out_cores.(mode) := nz(out_cores.(mode)) + air_core * mc_cores.(mode)
+        end
+// TODO remove after testing
+return()
+    end
+endmacro
+
+/*
+Collapse auto modes into sov/hov2/hov3
+*/
+
+Macro "Collapse Auto Modes" (Args)
+    
+    shares_file = Args.OtherShares
+    periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+
+    cores_to_collapse = {"auto_pay", "other_auto"}
+    fac_vw = OpenTable("shares", "CSV", {shares_file})
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        sov_fac = fac_vw.sov
+        hov2_fac = fac_vw.hov2
+        hov3_fac = fac_vw.hov3
+
+//TODO remove after testing
+trip_type = "W_HB_W_All"
+sov_fac = .33
+hov2_fac = .33
+hov3_fac = .33
+
+        for period in periods do
+            mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+            
+            mtx = CreateObject("Matrix", mtx_file)
+            cores = mtx.GetCores()
+            for core_to_collapse in cores_to_collapse do
+                cores.sov := cores.sov + cores.(core_to_collapse) * sov_fac
+                cores.hov2 := cores.hov2 + cores.(core_to_collapse) * hov2_fac
+                cores.hov3 := cores.hov3 + cores.(core_to_collapse) * hov3_fac
+            end
+            mtx.DropCores({"auto_pay", "other_auto"})
+CloseView(fac_vw)
+return()
+        end
+        rh = GetNextRecord(fac_vw + "|", rh, )
+    end
+    CloseView(fac_vw)
+endmacro
+
+/*
+Once the auto person trips have been collapsed into sov, hov2, and hov3, this
+converts from person trips to vehicle trips by apply occupancy factors.
 */
 
 Macro "Occupancy" (Args)
 
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
-    factor_file = Args.OccupancyFactors
+    factor_file = Args.HOV3OccFactors
     periods = Args.periods
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
-    // TODO: this applies only to HB trips currently. When NHB is in place,
-    // need to apply it to both.
-    SetView(fac_vw)
-    SelectByQuery("sel", "several", "Select * where trip_type contains '_HB_'")
-    // Loop by period first to reduce the amount of opening/closing matrices
-    rh = GetFirstRecord(fac_vw + "|sel", )
     
+    prev_trip = ""
+    rh = GetFirstRecord(fac_vw + "|", )
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
-        auto_pay_factor = fac_vw.auto_pay
-        other_auto_factor = fac_vw.other_auto
 
 // TODO: Remove. for testing only
 trip_type = "W_HB_W_All"
 period = "AM"
-hov3_factor = 2
-auto_pay_factor = 2
-other_auto_factor = 2
+hov3_factor = 3.4
 
-        mtx_file = trip_dir + "/trips_" + trip_type + "_" + period + ".mtx"
-        mtx = CreateObject("Matrix", mtx_file)
+        per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
+        if trip_type <> prev_trip then CopyFile(per_mtx_file, veh_mtx_file)
+        mtx = CreateObject("Matrix", veh_mtx_file)
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
-        cores.auto_pay := cores.hov3 / auto_pay_factor
-        cores.other_auto := cores.hov3 / other_auto_factor
-Throw()
-        rh = GetNextRecord(fac_vw + "|sel", rh, )
+CloseView(fac_vw)
+return()
+        prev_trip = trip_type
+        rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
+endmacro
+
+/*
+The next step is to collapse trip purposes such that we have a single
+matrix for each period. This will contain sov, hov2, hov3, and also transit
+trips.
+*/
+
+Macro "Collapse Purposes" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    periods = Args.periods
+
+    trip_types = RunMacro("Get All Res Trip Types", Args)
+
+// TODO remove after testing
+trip_types = {"W_HB_W_All"}
+periods = {"AM"}
+
+    for period in periods do
+
+        // Create the final matrix for the period using the first trip type matrix
+        mtx_file = assn_dir + "/od_veh_trips_" + trip_types[1] + "_" + period + ".mtx"
+        out_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        CopyFile(mtx_file, out_file)
+        out_mtx = CreateObject("Matrix", out_file)
+        out_cores = out_mtx.GetCores()
+
+        // Add the remaining matrices to the output matrix
+        for t = 2 to trip_types.length do
+            trip_type = trip_types[t]
+
+            mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
+            mtx = CreateObject("Matrix", mtx_file)
+            cores = mtx.GetCores()
+            core_names = mtx.GetCoreNames()
+            for core_name in core_names do
+                out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
+            end
+        end
+    end
+endmacro
+
+/*
+
+*/
+
+Macro "Add CVs and Trucks" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    cv_dir = Args.[Output Folder] + "/cv"
+    periods = Args.periods
+
+    for period in periods do
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+        cv_mtx_file = cv_dir + "/cv_gravity_" + period + ".mtx"
+        cv_mtx = CreateObject("Matrix", cv_mtx_file)
+        cv_cores = cv_mtx.GetCores()
+        cv_core_names = cv_mtx.GetCoreNames()
+        trip_mtx.AddCores(cv_core_names)
+        trip_cores = trip_mtx.GetCores()
+        for name in cv_core_names do
+            trip_cores.(name) := cv_cores.(name)
+        end
+    end
 endmacro

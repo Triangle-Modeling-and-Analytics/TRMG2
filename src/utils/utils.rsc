@@ -2062,7 +2062,7 @@ Macro "Gravity" (MacroOpts)
         // ColIndex: ci
       },
       Gamma: {param_vw.a, param_vw.b, param_vw.c},
-      Constraint: param_vw.constraint
+      ConstraintType: param_vw.constraint
     })
 
     rh = GetNextRecord(param_vw + "|", , )
@@ -2070,6 +2070,7 @@ Macro "Gravity" (MacroOpts)
 
   obj.Run()
   r = obj.GetResult()
+  CloseView(param_vw)
   return(r)
 endmacro
 
@@ -2084,5 +2085,36 @@ Macro "Get HB Trip Types" (Args)
   trip_types = GetDataVector(rate_vw + "|", "trip_type", )
   trip_types = SortVector(trip_types, {Unique: "true"})
   CloseView(rate_vw)
+  return(V2A(trip_types))
+endmacro
+
+Macro "Get NHB Trip Types" (Args)
+  dir = Args.[Input Folder] + "/resident/nhb/generation"
+  files = RunMacro("Catalog Files", dir)
+  for file in files do
+    {, , name, } = SplitPath(file)
+    {trip_type, mode} = RunMacro("Separate type and mode", name)
+    trip_types = trip_types + {trip_type}
+  end
+  trip_types = V2A(SortVector(A2V(trip_types), {Unique: "true"}))
   return(trip_types)
+endmacro
+
+Macro "Separate type and mode" (name)
+  pieces = ParseString(name, "_")
+  trip_type = pieces[1]
+  for i = 2 to 4 do
+    trip_type = trip_type + "_" + pieces[i]
+  end
+  mode = pieces[5]
+  for i = 6 to pieces.length do
+    mode = mode + "_" + pieces[i]
+  end
+  return({trip_type, mode})
+endmacro
+
+Macro "Get All Res Trip Types" (Args)
+  hb_types = RunMacro("Get HB Trip Types", Args)
+  nhb_types = RunMacro("Get NHB Trip Types", Args)
+  return(hb_types + nhb_types)
 endmacro

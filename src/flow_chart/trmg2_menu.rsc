@@ -73,6 +73,11 @@ menu "TRMG2 Menu"
         return(1)
     enditem
 
+    separator
+
+    MenuItem "Utils" text: "Utilities"
+        menu "TRMG2 Utilities"
+
     /*
     Temporary macro to get initial congested skims. Keeping during development
     in case I need to re-run.
@@ -101,3 +106,13 @@ menu "TRMG2 Menu"
         return(1)
     enditem
 endMenu 
+
+menu "TRMG2 Utilities"
+    init do
+    enditem
+
+    MenuItem "diff" text: "Diff Tool" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCode("Open Diff Tool")
+    enditem
+endMenu

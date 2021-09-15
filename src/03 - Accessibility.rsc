@@ -307,7 +307,7 @@ Macro "Create Accessibility Skims" (Args)
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
     obj.OperationType = "Replace"
-    obj.TreatMissingAsZero = true
+    obj.TreatMissingAsZero = false
     obj.Neighbours = 3
     obj.Factor = .75
     // TODO: clean up if this class is modified to do all cores by default
