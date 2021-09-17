@@ -76,14 +76,14 @@ Macro "NHB Generation" (Args)
                     coef = params.(param)
 
                     {hb_trip_type, hb_mode} = RunMacro("Separate type and mode", param)
-                    if mode = "walkbike" then do
+                    if hb_mode = "walkbike" then do
                         hb_mtx_file = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
                         hb_core = hb_trip_type + "_" + period
                     end else do
                         hb_mtx_file = trip_dir + "/pa_per_trips_" + hb_trip_type + "_" + period + ".mtx"
                         hb_core = hb_mode
                     end
-                    if mode = "t" then hb_core = "all_transit"
+                    if hb_mode = "lb" then hb_core = "all_transit"
                     hb_mtx = CreateObject("Matrix", hb_mtx_file)
                     v = hb_mtx.GetVector(hb_core, {Marginal: "Column Sum"})
                     v.rowbased = "true"
