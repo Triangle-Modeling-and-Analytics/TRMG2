@@ -21,7 +21,7 @@ Macro "NHB Generation" (Args)
     periods = Args.periods
     se_file = Args.SE
     trip_types = RunMacro("Get NHB Trip Types", Args)
-    modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
+    modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "walkbike", "t"}
 
     // Create the output table with initial fields
     out_file = out_dir + "/resident/nhb/generation.bin"
