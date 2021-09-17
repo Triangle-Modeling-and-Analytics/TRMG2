@@ -25,6 +25,10 @@ Macro "NHB Generation" (Args)
 
     // Create the output table with initial fields
     out_file = out_dir + "/resident/nhb/generation.bin"
+    if GetFileInfo(out_file) <> null then do
+        DeleteFile(out_file)
+        DeleteFile(Substitute(out_file, ".bin", ".dcb", ))
+    end
     out_vw = CreateTable("out", out_file, "FFB", {
         {"TAZ", "Integer", 10, , , "Zone ID"},
         {"access_nearby_sov", "Real", 10, 2, , "sov accessibility"},
@@ -47,6 +51,16 @@ Macro "NHB Generation" (Args)
     SetDataVector(jv + "|", out_vw + ".access_walk", access.access_walk, )
     CloseView(jv)
     CloseView(se_vw)
+    CloseView(out_vw)
+
+    // Create a summary table by tour type and mode. This is used in calibration,
+    // but may also be helpful for future debugging.
+    summary_file = Substitute(out_file, ".bin", "_summary.bin", )
+    CopyFile(out_file, summary_file)
+    CopyFile(
+        Substitute(out_file, ".bin", ".dcb", ),
+        Substitute(summary_file, ".bin", ".dcb", )
+    )
 
     for trip_type in trip_types do
         for mode in modes do
@@ -105,11 +119,29 @@ Macro "NHB Generation" (Args)
                         then 0
                         else data.(field_name)
                 end
+
+                // Sum up data by tour type and mode
+                tour_type = Left(trip_type, 1)
+                summary.(tour_type + "_" + mode) = nz(summary.(tour_type + "_" + mode)) +
+                    nz(data.(field_name))
             end
         end
     end
 
+    // Fill in out the raw output table
+    out_vw = OpenTable("out", "FFB", {out_file})
     RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
     SetDataVectors(out_vw + "|", data, )
     CloseView(out_vw)
+
+    // Fill in summary info
+    summary_vw = OpenTable("summary", "FFB", {summary_file})
+    fields_to_add = null
+    for i = 1 to summary.length do
+        field_name = summary[i][1]
+        fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, ""}}
+    end
+    RunMacro("Add Fields", {view: summary_vw, a_fields: fields_to_add})
+    SetDataVectors(summary_vw + "|", summary, )
+    CloseView(summary_vw)
 endmacro
