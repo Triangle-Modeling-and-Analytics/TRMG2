@@ -21,7 +21,7 @@ Macro "NHB Generation" (Args)
     periods = Args.periods
     se_file = Args.SE
     trip_types = RunMacro("Get NHB Trip Types", Args)
-    modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "lb"}
+    modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
 
     // Create the output table with initial fields
     out_file = out_dir + "/resident/nhb/generation.bin"
@@ -53,6 +53,7 @@ Macro "NHB Generation" (Args)
             
             // Get the generation parameters for this type+mode combo
             file = param_dir + "/" + trip_type + "_" + mode + ".csv"
+            if GetFileInfo(file) = null then continue
             params = RunMacro("Read Parameter File", {
                 file: file,
                 names: "term",
@@ -75,25 +76,34 @@ Macro "NHB Generation" (Args)
                     coef = params.(param)
 
                     {hb_trip_type, hb_mode} = RunMacro("Separate type and mode", param)
-// TODO: remove after testing
-hb_trip_type = "W_HB_W_All"
-hb_mode = "sov"
-i = params.length + 1
-
-                    hb_mtx_file = trip_dir + "/pa_per_trips_" + hb_trip_type + "_" + period + ".mtx"
+                    if mode = "walkbike" then do
+                        hb_mtx_file = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
+                        hb_core = hb_trip_type + "_" + period
+                    end else do
+                        hb_mtx_file = trip_dir + "/pa_per_trips_" + hb_trip_type + "_" + period + ".mtx"
+                        hb_core = hb_mode
+                    end
+                    if mode = "t" then hb_core = "all_transit"
                     hb_mtx = CreateObject("Matrix", hb_mtx_file)
-                    v = hb_mtx.GetVector(hb_mode, {Marginal: "Column Sum"})
+                    v = hb_mtx.GetVector(hb_core, {Marginal: "Column Sum"})
                     v.rowbased = "true"
                     data.(field_name) = nz(data.(field_name)) + nz(v) * coef
                 end
 
                 // Boosting
+                access_field = if mode = "walkbike" then "access_walk"
+                    else if mode = "t" then "access_transit"
+                    else "access_nearby_sov"
                 if alpha <> null then do
-                    access_field = if mode = "walkbike" then "access_walk"
-                        else if mode = "lb" then "access_transit"
-                        else "access_nearby_sov"
                     boost_factor = pow(access.(access_field), gamma) * alpha
                     data.(field_name) = data.(field_name) * boost_factor
+                end
+                // Transit models are not boosted, but set generation to
+                // zero for zones with no transit access
+                if mode = "t" then do
+                    data.(field_name) = if access.(access_field) = 0
+                        then 0
+                        else data.(field_name)
                 end
             end
         end

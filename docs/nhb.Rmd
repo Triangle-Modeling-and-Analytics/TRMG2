@@ -634,7 +634,7 @@ model3 <- estimate_nhb(trips, type, equiv = equiv,
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1119,7 +1119,7 @@ model3 <- estimate_nhb(
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1422,7 +1422,7 @@ model3 <- estimate_nhb(
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1639,5 +1639,14 @@ for (i in 1:length(coeffs_list)) {
   df <- coeffs_list[[i]]
   write_csv(df, paste0(output_dir, name, ".csv"))
 }
+```
+
+## Calibration
+
+After applying the estimated model, Caliper checked the resulting trip totals
+by mode against the survey.
+
+```{r}
+results <- read_csv("data/input/nhb/estimated_model_app_results.csv")
 ```
 
