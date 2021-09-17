@@ -174,7 +174,6 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_O_All_auto",
   "W_HB_EK12_All_hov",
-  "W_HB_EK12_All_sov",
   "W_HB_O_All_walkbike"
 )
 
@@ -302,7 +301,6 @@ type <- "W_NH_WR_All_sov"
 equiv <- list(
   "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
   "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
   "W_HB_W_All_hov2" = "W_HB_W_All_auto",
   "W_HB_W_All_hov3" = "W_HB_W_All_auto",
   "W_HB_W_All_sov" = "W_HB_W_All_auto",
@@ -509,7 +507,6 @@ type <- "W_NH_O_All_sov"
 equiv <- list(
   "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
   "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
   "W_HB_O_All_hov2" = "W_HB_O_All_hov",
   "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
