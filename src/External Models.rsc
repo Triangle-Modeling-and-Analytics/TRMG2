@@ -17,6 +17,7 @@ Macro "External" (Args)
   RunMacro("TCB Init")
   RunMacro("Convert EE CSV to MTX", Args)
   RunMacro("Calculate EE IPF Marginals", Args)
+  RunMacro("EE TOD", Args)
   RunMacro("IPF EE Seed Table", Args)
   RunMacro("EE Symmetry", Args)
 endmacro
@@ -42,7 +43,9 @@ Macro "Convert EE CSV to MTX" (Args)
   opts = null
   opts.[File Name] = ee_mtx_file
   opts.Label = "EE Matrix"
-  opts.Tables = {"trips_auto", "trips_cv_sut", "trips_cv_mut"}
+  opts.Tables = {"EE_AUTO_AM", "EE_AUTO_MD", "EE_AUTO_PM", "EE_AUTO_NT",
+                 "EE_CVSUT_AM", "EE_CVSUT_MD", "EE_CVSUT_PM", "EE_CVSUT_NT",
+				 "EE_CVMUT_AM", "EE_CVMUT_MD", "EE_CVMUT_PM", "EE_CVMUT_NT"}
   row_spec = {nlyr + "|ext", nlyr + ".ID", "externals"}
   
   mtx = CreateMatrix(row_spec, , opts)
@@ -57,7 +60,9 @@ Macro "Convert EE CSV to MTX" (Args)
     "orig_taz",
     "dest_taz",
     null,
-    {view + ".auto", view + ".cv_sut", view + ".cv_mut"},
+    {view + ".auto", view + ".auto", view + ".auto", view + ".auto", 
+	 view + ".cv_sut", view + ".cv_sut", view + ".cv_sut", view + ".cv_sut",
+	 view + ".cv_mut", view + ".cv_mut", view + ".cv_mut", view + ".cv_mut"},
     "Replace",
     opts
   )
@@ -113,6 +118,27 @@ endmacro
 
 
 /*
+Split EE marginals by time period
+*/
+
+Macro "EE TOD" (Args)
+  se_file = Args.SE
+  tod_file = Args.[Input Folder] + "\\external\\ee_tod.csv"
+  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  
+  {drive, folder, name, ext} = SplitPath(tod_file)
+  
+  RunMacro("Create Sum Product Fields", {
+      view: se_vw, factor_file: tod_file,
+      field_desc: "EE Marginals by Time of Day|See " + name + ext + " for details."
+  })
+
+  CloseView(se_vw)
+endmacro
+
+
+/*
 Use the calculated marginals to IPF the base-year ee matrix.
 */
 
@@ -133,8 +159,12 @@ Macro "IPF EE Seed Table" (Args)
   Opts.Global.Iterations = 300
   Opts.Global.Convergence = 0.001
   Opts.Field.[Core Names Used] = core_names
-  Opts.Field.[P Core Fields] = {"se.EE_AUTO_MARG", "se.EE_CV_SUT_MARG", "se.EE_CV_MUT_MARG"}
-  Opts.Field.[A Core Fields] = {"se.EE_AUTO_MARG", "se.EE_CV_SUT_MARG", "se.EE_CV_MUT_MARG"}
+  Opts.Field.[P Core Fields] = {"se.EE_AUTO_MARG_AM", "se.EE_AUTO_MARG_MD", "se.EE_AUTO_MARG_PM", "se.EE_AUTO_MARG_NT" , 
+                                "se.EE_CV_SUT_MARG_AM", "se.EE_CV_SUT_MARG_MD", "se.EE_CV_SUT_MARG_PM", "se.EE_CV_SUT_MARG_NT",
+								"se.EE_CV_MUT_MARG_AM", "se.EE_CV_MUT_MARG_MD", "se.EE_CV_MUT_MARG_PM", "se.EE_CV_MUT_MARG_NT"}
+  Opts.Field.[A Core Fields] = {"se.EE_AUTO_MARG_AM", "se.EE_AUTO_MARG_MD", "se.EE_AUTO_MARG_PM", "se.EE_AUTO_MARG_NT",
+                                "se.EE_CV_SUT_MARG_AM", "se.EE_CV_SUT_MARG_MD", "se.EE_CV_SUT_MARG_PM", "se.EE_CV_SUT_MARG_NT",
+								"se.EE_CV_MUT_MARG_AM", "se.EE_CV_MUT_MARG_MD", "se.EE_CV_MUT_MARG_PM", "se.EE_CV_MUT_MARG_NT"}
   Opts.Output.[Output Matrix].Label = "EE Trips Matrix"
   Opts.Output.[Output Matrix].[File Name] = ee_mtx_file
   ok = RunMacro("TCB Run Procedure", "Growth Factor", Opts, &Ret)
