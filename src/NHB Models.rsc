@@ -20,8 +20,9 @@ Macro "NHB Generation" (Args)
     trip_dir = out_dir + "/resident/trip_tables"
     periods = Args.periods
     se_file = Args.SE
+    calib_fac_file = Args.NHBGenCalibFacs
     trip_types = RunMacro("Get NHB Trip Types", Args)
-    modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "walkbike", "t"}
+    modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
 
     // Create the output table with initial fields
     out_file = out_dir + "/resident/nhb/generation.bin"
@@ -53,6 +54,13 @@ Macro "NHB Generation" (Args)
     CloseView(se_vw)
     CloseView(out_vw)
 
+    // Get calibration factors
+    calib_facs = RunMacro("Read Parameter File", {
+        file: calib_fac_file,
+        names: "type",
+        values: "factor"
+    })
+
     // Create a summary table by tour type and mode. This is used in calibration,
     // but may also be helpful for future debugging.
     summary_file = Substitute(out_file, ".bin", "_summary.bin", )
@@ -63,8 +71,9 @@ Macro "NHB Generation" (Args)
     )
 
     for trip_type in trip_types do
+        tour_type = Left(trip_type, 1)
+
         for mode in modes do
-            
             // Get the generation parameters for this type+mode combo
             file = param_dir + "/" + trip_type + "_" + mode + ".csv"
             if GetFileInfo(file) = null then continue
@@ -120,8 +129,11 @@ Macro "NHB Generation" (Args)
                         else data.(field_name)
                 end
 
+                // Apply calibration factor
+                calib_fac = calib_facs.(tour_type + "_" + mode)
+                data.(field_name) = data.(field_name) * calib_fac
+
                 // Sum up data by tour type and mode
-                tour_type = Left(trip_type, 1)
                 summary.(tour_type + "_" + mode) = nz(summary.(tour_type + "_" + mode)) +
                     nz(data.(field_name))
             end

@@ -1642,21 +1642,55 @@ totals <- results %>%
   pivot_longer(everything(), names_to = "type", values_to = "trips")
 
 comparison <- trips %>%
+  mutate(
+    # mode_nhb = mode_final
+    mode_nhb = case_when(
+      homebased == "HB" ~ mode_final,
+      mode_final != "other_auto" ~ mode_final,
+      party_size == 1 ~ "sov",
+      party_size == 2 ~ "hov2",
+      party_size >= 3 ~ "hov3"
+    )
+  ) %>%
   filter(
     homebased == "NH",
     tour_type != "H",
     !(mode_nhb %in% c("school_bus", "XXX", "other"))
   ) %>%
-  mutate(mode_nhb = ifelse(mode_nhb %in% c("lb", "eb"), "t", mode_nhb)) %>%
+  mutate(
+    mode_nhb = ifelse(mode_nhb %in% c("lb", "eb"), "t", mode_nhb)
+  ) %>%
   group_by(tour_type, mode_nhb) %>%
   summarize(obs_trips = sum(trip_weight_combined)) %>%
   unite(type, c(tour_type, mode_nhb), sep = "_") %>%
   left_join(totals, by = "type") %>%
   mutate(
-    diff = obs_trips - trips,
-    pct_diff = (diff / obs_trips) * 100
+    diff = trips - obs_trips,
+    pct_diff = (diff / obs_trips) * 100,
+    factor = obs_trips / trips
   )
 
-write_csv(comparison, "nhb_calibration.csv")
+comparison %>%
+  select(-diff, -pct_diff) %>%
+  mutate(
+    obs_trips = round(obs_trips, 0),
+    trips = round(trips, 0),
+    tour_type = substring(type, 1, 1),
+    mode = substring(type, 3, length(type))
+  ) %>%
+  select(tour_type, mode, factor) %>%
+  pivot_wider(names_from = tour_type, values_from = factor) %>%
+  rename(
+    Mode = mode,
+    `NonWork Tour` = N,
+    `Work Tour` = W
+  ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+
+out_tbl <- comparison %>%
+  select(type, factor)
+  
+write_csv(out_tbl, "data/output/nhb/nhb_calibration_factors.csv")
 ```
 
