@@ -235,6 +235,18 @@ n_records <- trips %>%
   nrow()
 ```
 
+#### Other Auto
+
+No significant presence of this trip type in the survey (1 sample), and it is
+not an important source of travel demand. No model was estimated.
+
+```{r, W_NH_EK12_All_other_auto}
+type <- "W_NH_EK12_All_other_auto"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
 #### Transit
 
 No significant presence of this trip type in the survey (3 samples), and it is
@@ -402,6 +414,34 @@ equiv <- NULL
 dependent_vars <- c(
   'W_HB_O_All_auto_pay',
   'W_HB_O_All_sov'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
+#### Other Auto
+
+```{r, W_NH_WR_All_other_auto}
+type <- "W_NH_WR_All_other_auto"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'W_HB_O_All_other_auto',
+  'W_HB_O_All_sov',
+  'W_HB_W_All_other_auto'
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -603,6 +643,35 @@ type <- "W_NH_O_All_auto_pay"
 n_records <- trips %>%
   filter(trip_type == type) %>%
   nrow()
+```
+
+#### Other Auto
+
+```{r, W_NH_O_All_other_auto}
+type <- "W_NH_O_All_other_auto"
+
+# Collapse trip types
+equiv <- NULL
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'W_HB_W_All_other_auto',
+  'W_HB_O_All_walkbike',
+  'W_HB_O_All_other_auto',
+  'W_HB_O_All_sov'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
 #### Transit
@@ -843,6 +912,43 @@ n_records <- trips %>%
   nrow()
 ```
 
+#### Other Auto
+
+```{r, N_NH_K12_All_other_auto}
+type <- "N_NH_K12_All_other_auto"
+
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  'N_HB_OD_Long_other_auto',
+  'N_HB_K12_All_other_auto',
+  'N_HB_OD_Short_hov2',
+  'N_HB_OD_Short_hov3',
+  'N_HB_K12_All_school_bus',
+  'N_HB_K12_All_hov2',
+  'N_HB_OD_Short_other_auto',
+  'N_HB_K12_All_walkbike',
+  'N_HB_OD_Long_hov'
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
+
 #### Transit
 
 No significant presence of this trip type in the survey (5 samples), and it is
@@ -1061,24 +1167,42 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Auto Pay
 
+No significant presence of this trip type in the survey (21 samples), and it is
+not an important source of travel demand. No model was estimated.
+
 ```{r, N_NH_OME_All_auto_pay}
 type <- "N_NH_OME_All_auto_pay"
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
+```
+
+#### Other Auto
+
+```{r, N_NH_OME_All_other_auto}
+type <- "N_NH_OME_All_other_auto"
 
 # Collapse trip types
-equiv <- NULL
+equiv <- list(
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_hov2",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_hov2",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_Short_hov"
+)
 
 # Restrict dependent variables
 dependent_vars <- c(
-  "N_HB_OD_Short_auto_pay",
-  "N_HB_OME_All_auto_pay"
+  'N_HB_OD_Long_hov2',
+  'N_HB_OD_Short_hov',
+  'N_HB_OME_All_other_auto',
+  'N_HB_OD_Short_other_auto',
+  'N_HB_OMED_All_auto_pay'
 )
 
 # model1 <- estimate_nhb(trips, type)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(
-  trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
-)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
 
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
@@ -1387,7 +1511,39 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
+#### Other Auto
 
+```{r, N_NH_O_All_other_auto}
+type <- "N_NH_O_All_other_auto"
+
+# Collapse trip types
+equiv <- list(
+  "N_HB_OD_Long_hov2" = "N_HB_OD_Long_hov",
+  "N_HB_OD_Long_hov3" = "N_HB_OD_Long_hov",
+  "N_HB_OD_Short_hov2" = "N_HB_OD_Short_hov",
+  "N_HB_OD_Short_hov3" = "N_HB_OD_Short_hov"
+)
+
+# Restrict dependent variables
+dependent_vars <- c(
+  "N_HB_OD_Long_hov",
+  "N_HB_OD_Short_hov",
+  "N_HB_OME_All_other_auto",
+  "N_HB_OD_Long_other_auto"
+)
+
+# model1 <- estimate_nhb(trips, type)
+# model2 <- estimate_nhb(trips, type, equiv = equiv)
+model3 <- estimate_nhb(trips, type, equiv = equiv, 
+                       dependent_vars = dependent_vars)
+
+zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
+coeff_tbl <- model3$tbl %>%
+  add_row(term = "r_sq", estimate = zonal_result$r_sq)
+coeffs_list[type] <- list(coeff_tbl)
+make_table(coeff_tbl)
+p_tbl_list[type] <- list(model3$p_tbl)
+```
 
 #### Transit
 
@@ -1644,6 +1800,29 @@ After applying the estimated model, Caliper checked the resulting trip totals
 by mode against the survey.
 
 ```{r}
-results <- read_csv("data/input/nhb/estimated_model_app_results.csv")
+results <- read_csv("data/input/nhb/estimated_model_app_results.csv") %>%
+  select(-c(TAZ:access_walk))
+
+totals <- results %>%
+  summarize(across(.fns = sum)) %>%
+  pivot_longer(everything(), names_to = "type", values_to = "trips")
+
+comparison <- trips %>%
+  filter(
+    homebased == "NH",
+    tour_type != "H",
+    !(mode_nhb %in% c("school_bus", "XXX", "other"))
+  ) %>%
+  mutate(mode_nhb = ifelse(mode_nhb %in% c("lb", "eb"), "t", mode_nhb)) %>%
+  group_by(tour_type, mode_nhb) %>%
+  summarize(obs_trips = sum(trip_weight_combined)) %>%
+  unite(type, c(tour_type, mode_nhb), sep = "_") %>%
+  left_join(totals, by = "type") %>%
+  mutate(
+    diff = obs_trips - trips,
+    pct_diff = diff / obs_trips * 100
+  )
+
+write_csv(comparison, "nhb_calibration.csv")
 ```
 
