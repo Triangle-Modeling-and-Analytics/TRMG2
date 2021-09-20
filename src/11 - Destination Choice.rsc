@@ -4,10 +4,10 @@
 
 Macro "Destination Choice" (Args)
 
-    RunMacro("Split Employment by Earnings", Args)
-    RunMacro("DC Attractions", Args)
-    RunMacro("DC Size Terms", Args)
-    RunMacro("Calculate Destination Choice", Args)
+    // RunMacro("Split Employment by Earnings", Args)
+    // RunMacro("DC Attractions", Args)
+    // RunMacro("DC Size Terms", Args)
+    // RunMacro("Calculate Destination Choice", Args)
     RunMacro("Apportion Resident HB Trips", Args)
 
     return(1)
@@ -68,7 +68,7 @@ Macro "DC Attractions" (Args)
     {drive, folder, name, ext} = SplitPath(rate_file)
     RunMacro("Create Sum Product Fields", {
         view: se_vw, factor_file: rate_file,
-        field_desc: "Resident DC Attractions|See " + name + ext + " for details."
+        field_desc: "Resident DC Attractions|Used for double constraint.|See " + name + ext + " for details."
     })
 
     CloseView(se_vw)
@@ -84,14 +84,32 @@ Macro "DC Size Terms" (Args)
     se_file = Args.SE
     coeff_file = Args.ResDCSizeCoeffs
 
+    // Before calculating the size term fields, create any additional fields
+    // needed for that calculation.
     se_vw = OpenTable("se", "FFB", {se_file})
+    a_fields =  {{
+        "Hosp_Service", "Real", 10, 2,,,, 
+        "Hospital * Total Service Employment.|Used in OMED dc model"
+    }}
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    input = GetDataVectors(
+        se_vw + "|",
+        {"Hospital", "Service_RateLow", "Service_RateHigh"},
+        {OptArray: "true"}
+    )
+    output.Hosp_Service = input.Hospital * (input.Service_RateLow + input.Service_RateHigh)
+    SetDataVectors(se_vw + "|", output, )
+
+    // Calculate the size term fields using the coefficient file
     {drive, folder, name, ext} = SplitPath(coeff_file)
     RunMacro("Create Sum Product Fields", {
         view: se_vw, factor_file: coeff_file,
-        field_desc: "Resident DC Attractions|See " + name + ext + " for details."
+        field_desc: "Resident DC Size Terms|" +
+        "These are already log transformed and used directly by the DC model.|" +
+        "See " + name + ext + " for details."
     })
 
-    // Log transform
+    // Log transform the results and set any 0s to nulls
     coeff_vw = OpenTable("coeff", "CSV", {coeff_file})
     {field_names, } = GetFields(coeff_vw, "All")
     CloseView(coeff_vw)
@@ -100,9 +118,9 @@ Macro "DC Size Terms" (Args)
     field_names = ExcludeArrayElements(field_names, field_names.length, 1)
     input = GetDataVectors(se_vw + "|", field_names, {OptArray: TRUE})
     for field_name in field_names do
-        output.(field_name) = if input.(field_name) + 0
-        then null
-        else Log(1 + input.(field_name))
+        output.(field_name) = if input.(field_name) = 0
+            then null
+            else Log(1 + input.(field_name))
     end
     SetDataVectors(se_vw + "|", output, )
     CloseView(se_vw)
@@ -120,10 +138,10 @@ Macro "Calculate Destination Choice" (Args)
     input_dc_dir = input_dir + "/resident/dc"
     output_dir = Args.[Output Folder] + "/resident/dc"
     periods = Args.periods
+    sp_file = Args.ShadowPrices
 
     // Determine trip purposes
     trip_types = RunMacro("Get HB Trip Types", Args)
-trip_types = {"W_HB_W_All"} // TODO: remove after testing
 
     opts = null
     opts.output_dir = output_dir
@@ -155,7 +173,8 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             se_file = scen_dir + "/output/sedata/scenario_se.bin"
             opts.tables = {
                 se: {File: se_file, IDField: "TAZ"},
-                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"}
+                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"},
+                sp: {File: sp_file, IDField: "TAZ"}
             }
             opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
             opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
@@ -170,7 +189,6 @@ trip_types = {"W_HB_W_All"} // TODO: remove after testing
             end
         end
     end
-
 endmacro
 
 /*
@@ -193,9 +211,7 @@ Macro "Apportion Resident HB Trips" (Args)
     RunMacro("Create Directory", trip_dir)
 
     trip_types = RunMacro("Get HB Trip Types", Args)
-// TODO: remove. For testing only
-trip_types = {"W_HB_W_All"}
-periods = {"AM"}
+
     for period in periods do
 
         // Resident trips
@@ -206,8 +222,7 @@ periods = {"AM"}
             
             out_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
             if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
-// TODO: remove. for testing only
-segments = {"ihvi"}
+
             for segment in segments do
                 name = trip_type + "_" + segment + "_" + period
                 
@@ -236,8 +251,17 @@ segments = {"ihvi"}
                     out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
                 end
             end
+
+            // Create an extra core the combines all transit modes together
+            mode_names = out_mtx.GetCoreNames()
+            out_mtx.AddCores({"all_transit"})
+            cores = out_mtx.GetCores()
+            modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
+            for mode in mode_names do
+                if modes_to_skip.position(mode) > 0 then continue
+                cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
+                cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
+            end
         end
     end
-
-    return(1)
 endmacro

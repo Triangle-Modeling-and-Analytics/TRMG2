@@ -90,6 +90,7 @@ Macro "Create Folder Structure" (Args)
     "/resident/mode/utilities",
     "/resident/mode/model_files",
     "/resident/nhb",
+    "/resident/nonmotorized",
     "/directionality",
     "/assignment",
     "/assignment/transit",

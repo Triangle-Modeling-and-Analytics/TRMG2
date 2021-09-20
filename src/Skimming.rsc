@@ -72,7 +72,7 @@ Macro "Roadway Skims" (Args)
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")
             obj.OperationType = "Replace"
-            obj.TreatMissingAsZero = true
+            obj.TreatMissingAsZero = false
             obj.Neighbours = 3
             obj.Factor = .75
             m = CreateObject("Matrix")

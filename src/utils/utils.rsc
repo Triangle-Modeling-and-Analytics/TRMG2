@@ -2062,7 +2062,7 @@ Macro "Gravity" (MacroOpts)
         // ColIndex: ci
       },
       Gamma: {param_vw.a, param_vw.b, param_vw.c},
-      Constraint: param_vw.constraint
+      ConstraintType: param_vw.constraint
     })
 
     rh = GetNextRecord(param_vw + "|", , )
@@ -2093,6 +2093,7 @@ Macro "Get NHB Trip Types" (Args)
   files = RunMacro("Catalog Files", dir)
   for file in files do
     {, , name, } = SplitPath(file)
+    if name = "nhb_calibration_factors" then continue
     {trip_type, mode} = RunMacro("Separate type and mode", name)
     trip_types = trip_types + {trip_type}
   end

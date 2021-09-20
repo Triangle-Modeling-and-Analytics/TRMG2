@@ -98,54 +98,6 @@
         Args.SourceKeys = { "Type":"array" , "Value":{{"{P}","AM, PM, OP"},
                                                     {"{M}","Auto, PT"}}, "Style":"Keys" }
 
-
-    Section = "Choice Models|Nonmotorized"
-
-        Args.N_HB_K12_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.70873},
-                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-0.767476},
-                                                                    {"WalkAccessibility","SE.access_walk",null,0.58507},
-                                                                    {"Age16-18","Persons.age_16_18",null,-0.35873}},
-                                                                     "Caption":"N_HB_K12_nm_utils", "Style":"NonMotorized" }
-
-        Args.N_HB_ODL_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-1.7295},
-                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.13208},
-                                                                    {"WalkAccessibility","SE.access_walk",null,0.417888},
-                                                                    {"Age16-18","Persons.age_16_18",null,-0.464741},
-                                                                    {"IsWorker","Persons.is_worker",null,-0.283346},
-                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000004},
-                                                                    {"Walkability","SE.Walkability",null,0.000004}},
-                                                                     "Caption":"N_HB_ODL_nm_utils", "Style":"NonMotorized" }
-
-        Args.N_HB_ODS_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-0.22062},
-                                                                    {"IsSenior","Persons.is_senior",null,-0.361298},
-                                                                    {"IsWorker","Persons.is_worker",null,-0.188259},
-                                                                    {"Walkability","SE.Walkability",null,0.517794},
-                                                                    {"HHwKids","Households.HHKids = 0",null,-0.579603},
-                                                                    {"NoAutos","Households.Autos = 0",null,0.890337},
-                                                                    {"IncomePerCapita","Persons.per_inc",null,0.00001}},
-                                                                     "Caption":"N_HB_ODS_nm_utils", "Style":"NonMotorized" }
-
-        Args.N_HB_OME_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.58353},
-                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.93693},
-                                                                    {"WalkAccessibility","SE.access_walk",null,0.547638},
-                                                                    {"IsWorker","Persons.is_worker",null,0.311869},
-                                                                    {"IncomePerCapita","Persons.per_inc",null,0.000008},
-                                                                    {"Walkability","SE.Walkability",null,7.29904}},
-                                                                     "Caption":"N_HB_OME_nm_utils", "Style":"NonMotorized" }
-
-        Args.N_HB_OMED_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-11.207},
-                                                                    {"NoAutos","Households.Autos = 0",null,1.72786},
-                                                                    {"IsSenior","Persons.is_senior",null,-157479},
-                                                                    {"WalkAccessibility","SE.access_walk",null,4.63766}},
-                                                                     "Caption":"N_HB_OMED_nm_utils", "Style":"NonMotorized" }
-
-        Args.W_HB_nm_utils = { "Type":"array" , "Value":{{"ASC","Constant",,-2.12264},
-                                                                    {"IsSenior","Persons.is_senior",null,-0.595414},
-                                                                    {"HHwKids","Households.HHKids = 0",null,-0.641186},
-                                                                    {"VehPerAdult","Persons.veh_per_adult",null,-1.44481},
-                                                                    {"WalkAccessibility","SE.access_walk",null,0.999659}},
-                                                                     "Caption":"W_HB_nm_utils", "Style":"NonMotorized" }
-
     Section = "Choice Models|examples"
 
         Args.WorkModes = { "Type":"array" , "Value":{{"Root","Drive, NonMotorized, NonDriveNM",null},
@@ -172,8 +124,9 @@
 
     Section = "Destination Choice"
 
-        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates (for work double constraint)" }
         Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
+        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates (for work double constraint)" }
+        Args.ShadowPrices = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\shadow_prices.bin", "Caption":"Resident DC shadow prices (for work double constraint)" }
 
     Section = "Parking Model|Coefficients"
     
@@ -189,6 +142,10 @@
         Args.[Parking DC Util Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCUtility.mtx", "Caption":"Parking Destination Choice Utility Matrix" }
         Args.[Parking DC Prob Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx", "Caption":"Parking Destination Choice Probability Matrix" }
         Args.[Parking Logsums Table] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin", "Caption":"Parking Logsums Table" }
+
+    Section = "NonHomeBased"
+
+        Args.NHBGenCalibFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
 
     Section = "Numeric Parameters"
     
