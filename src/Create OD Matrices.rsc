@@ -5,6 +5,7 @@
 Macro "Create OD Matrices" (Args)
 
     RunMacro("Directionality", Args)
+Throw()
     RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
     RunMacro("Occupancy", Args)
@@ -29,29 +30,28 @@ Macro "Directionality" (Args)
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
     auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
+    ek12_modes = {"hov2", "hov3"}
     prev_type = ""
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
         pa_factor = fac_vw.pa_fac
 
-// TODO: Remove. for testing only
-trip_type = "W_HB_W_All"
-period = "AM"
-pa_factor = 0.996080828
+        if trip_type = "W_HB_EK12_All"
+            then modes = ek12_modes
+            else modes = auto_modes
 
         pa_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
         od_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        if trip_type <> prev_type then CopyFile(pa_mtx_file, od_mtx_file)
+        CopyFile(pa_mtx_file, od_mtx_file)
         mtx = CreateObject("Matrix", od_mtx_file)
         cores = mtx.GetCores()
-        t_mtx = mtx.Transpose({Cores: auto_modes})
+        t_mtx = mtx.Transpose()
         t_cores = t_mtx.GetCores()
-        for mode in auto_modes do
+        for mode in modes do
             cores.(mode) := cores.(mode) * pa_factor + t_cores.(mode) * (1 - pa_factor)
         end
-CloseView(fac_vw)
-return()
+        
         prev_type = trip_type
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
@@ -77,9 +77,6 @@ Macro "Add Airport Trips" (Args)
     // Which trip type and segment to use for modal probabilities
     trip_type = "N_HB_OD_Long"
     segment = "vs"
-// TODO remove after testing
-trip_type = "W_HB_W_All"
-segment = "ihvs"
     
     air_mtx = CreateObject("Matrix", out_dir + "/airport/Airport_Trips.mtx")
     for period in periods do
@@ -97,8 +94,6 @@ segment = "ihvs"
         for mode in mode_names do
             out_cores.(mode) := nz(out_cores.(mode)) + air_core * mc_cores.(mode)
         end
-// TODO remove after testing
-return()
     end
 endmacro
 
@@ -122,12 +117,6 @@ Macro "Collapse Auto Modes" (Args)
         hov2_fac = fac_vw.hov2
         hov3_fac = fac_vw.hov3
 
-//TODO remove after testing
-trip_type = "W_HB_W_All"
-sov_fac = .33
-hov2_fac = .33
-hov3_fac = .33
-
         for period in periods do
             mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
             
@@ -139,8 +128,6 @@ hov3_fac = .33
                 cores.hov3 := cores.hov3 + cores.(core_to_collapse) * hov3_fac
             end
             mtx.DropCores({"auto_pay", "other_auto"})
-CloseView(fac_vw)
-return()
         end
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
@@ -168,11 +155,6 @@ Macro "Occupancy" (Args)
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
 
-// TODO: Remove. for testing only
-trip_type = "W_HB_W_All"
-period = "AM"
-hov3_factor = 3.4
-
         per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
         if trip_type <> prev_trip then CopyFile(per_mtx_file, veh_mtx_file)
@@ -180,8 +162,7 @@ hov3_factor = 3.4
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
-CloseView(fac_vw)
-return()
+        
         prev_trip = trip_type
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
@@ -201,10 +182,6 @@ Macro "Collapse Purposes" (Args)
     periods = Args.periods
 
     trip_types = RunMacro("Get All Res Trip Types", Args)
-
-// TODO remove after testing
-trip_types = {"W_HB_W_All"}
-periods = {"AM"}
 
     for period in periods do
 
