@@ -143,6 +143,10 @@
         Args.[Parking DC Prob Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx", "Caption":"Parking Destination Choice Probability Matrix" }
         Args.[Parking Logsums Table] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin", "Caption":"Parking Logsums Table" }
 
+    Section = "NonHomeBased"
+
+        Args.NHBGenCalibFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
+
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }

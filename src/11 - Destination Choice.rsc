@@ -4,10 +4,10 @@
 
 Macro "Destination Choice" (Args)
 
-    RunMacro("Split Employment by Earnings", Args)
-    RunMacro("DC Attractions", Args)
-    RunMacro("DC Size Terms", Args)
-    RunMacro("Calculate Destination Choice", Args)
+    // RunMacro("Split Employment by Earnings", Args)
+    // RunMacro("DC Attractions", Args)
+    // RunMacro("DC Size Terms", Args)
+    // RunMacro("Calculate Destination Choice", Args)
     RunMacro("Apportion Resident HB Trips", Args)
 
     return(1)
@@ -250,6 +250,17 @@ Macro "Apportion Resident HB Trips" (Args)
                 for mode in mode_names do
                     out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
                 end
+            end
+
+            // Create an extra core the combines all transit modes together
+            mode_names = out_mtx.GetCoreNames()
+            out_mtx.AddCores({"all_transit"})
+            cores = out_mtx.GetCores()
+            modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
+            for mode in mode_names do
+                if modes_to_skip.position(mode) > 0 then continue
+                cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
+                cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
             end
         end
     end
