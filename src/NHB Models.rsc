@@ -140,7 +140,7 @@ Macro "NHB Generation" (Args)
         end
     end
 
-    // Fill in out the raw output table
+    // Fill in the raw output table
     out_vw = OpenTable("out", "FFB", {out_file})
     RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
     SetDataVectors(out_vw + "|", data, )

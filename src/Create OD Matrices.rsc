@@ -10,6 +10,8 @@ Macro "Create OD Matrices" (Args)
     RunMacro("Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
     RunMacro("Add CVs and Trucks", Args)
+    // TODO needs testing
+    // RunMacro("Add Externals", Args)
 
     return(1)
 endmacro
@@ -251,5 +253,43 @@ Macro "Add CVs and Trucks" (Args)
         for name in cv_core_names do
             trip_cores.(name) := cv_cores.(name)
         end
+    end
+endmacro
+
+/*
+
+*/
+
+Macro "Add Externals" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    ext_dir = Args.[Output Folder] + "/externals"
+    periods = Args.periods
+
+    ee_mtx_file = ext_dir + "/ee_trips.mtx"
+    ee_mtx = CreateObject("Matrix", ee_mtx_file)
+    ee_cores = ee_mtx.GetCores()
+    ee_core_names = ee_mtx.GetCoreNames()
+
+    ie_mtx_file = ext_dir + "/ie_trips.mtx"
+    ie_mtx = CreateObject("Matrix", ie_mtx_file)
+    ie_cores = ie_mtx.GetCores()
+    ie_core_names = ie_mtx.GetCoreNames()
+
+    for i = 1 to ee_core_names.length do
+        ee_core_name = ee_core_names[i]
+        ie_core_name = ie_core_names[i]
+
+        period = Right(ee_core_name, 2)
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+        trip_mtx.AddCores(ee_core_name)
+        trip_mtx.AddCores(ie_core_name)
+        trip_cores = trip_mtx.GetCores()
+        // The ee matrix only contains external centroids
+        trip_mtx.UpdateCore(trip_cores.(ee_core_name), ee_cores.(ee_core_name))
+        // The ie matrix contains all centroids
+        trip_cores.(ie_core_name) := trip_cores.(ie_core_name) + ie_cores.(ie_core_name)
     end
 endmacro
