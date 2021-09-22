@@ -253,6 +253,8 @@ Macro "Apportion Resident HB Trips" (Args)
             end
 
             // Create an extra core the combines all transit modes together
+            // This is not assigned, but is used in the NHB trip generation
+            // model.
             mode_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
@@ -260,8 +262,8 @@ Macro "Apportion Resident HB Trips" (Args)
             for mode in mode_names do
                 if modes_to_skip.position(mode) > 0 then continue
                 cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
-                cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
             end
+            cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
         end
     end
 endmacro

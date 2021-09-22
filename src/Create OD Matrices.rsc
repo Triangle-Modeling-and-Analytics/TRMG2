@@ -18,14 +18,13 @@ Throw()
 endmacro
 
 /*
-Convert from PA to OD format
+Convert from PA to OD format for auto modes
 */
 
 Macro "Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     dir_factor_file = Args.DirectionFactors
-    periods = Args.periods
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -50,6 +49,12 @@ Macro "Directionality" (Args)
         t_cores = t_mtx.GetCores()
         for mode in modes do
             cores.(mode) := cores.(mode) * pa_factor + t_cores.(mode) * (1 - pa_factor)
+        end
+
+        // Drop non-auto modes (these remain PA format)
+        core_names = mtx.GetCoreNames()
+        for core_name in core_names do
+            if auto_modes.position(core_name) = 0 then mtx.DropCores({core_name})
         end
         
         prev_type = trip_type
