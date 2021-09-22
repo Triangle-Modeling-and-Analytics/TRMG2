@@ -114,7 +114,6 @@ Macro "Collapse Auto Modes" (Args)
     iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
-    cores_to_collapse = {"auto_pay", "other_auto"}
     fac_vw = OpenTable("shares", "CSV", {shares_file})
     rh = GetFirstRecord(fac_vw + "|", )
     while rh <> null do
@@ -122,6 +121,14 @@ Macro "Collapse Auto Modes" (Args)
         sov_fac = fac_vw.sov
         hov2_fac = fac_vw.hov2
         hov3_fac = fac_vw.hov3
+
+        parts = ParseString(trip_type, "_")
+        homebased = parts[2]
+// TODO: remove. This is just for testing until the NHB matrices are ready
+if homebased = "NH" then goto skip
+        if homebased = "HB"
+            then cores_to_collapse = {"auto_pay", "other_auto"}
+            else cores_to_collapse = {"auto_pay"}
 
         for period in periods do
             mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -135,6 +142,8 @@ Macro "Collapse Auto Modes" (Args)
             end
             mtx.DropCores({"auto_pay", "other_auto"})
         end
+// TODO: remove. This is just for testing until the NHB matrices are ready
+skip:        
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
