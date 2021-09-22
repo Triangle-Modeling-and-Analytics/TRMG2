@@ -151,7 +151,7 @@ endmacro
 
 /*
 Once the auto person trips have been collapsed into sov, hov2, and hov3, this
-converts from person trips to vehicle trips by apply occupancy factors.
+converts from person trips to vehicle trips by applying occupancy factors.
 */
 
 Macro "Occupancy" (Args)
@@ -163,22 +163,26 @@ Macro "Occupancy" (Args)
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     
-    prev_trip = ""
     rh = GetFirstRecord(fac_vw + "|", )
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
 
+// TODO: remove. This is just for testing until the NHB matrices are ready
+parts = ParseString(trip_type, "_")
+homebased = parts[2]
+if homebased = "NH" then goto skip
+
         per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
-        if trip_type <> prev_trip then CopyFile(per_mtx_file, veh_mtx_file)
+        CopyFile(per_mtx_file, veh_mtx_file)
         mtx = CreateObject("Matrix", veh_mtx_file)
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
-        
-        prev_trip = trip_type
+// TODO: remove. This is just for testing until the NHB matrices are ready
+skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
