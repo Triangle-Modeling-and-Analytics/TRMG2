@@ -215,6 +215,11 @@ Macro "Collapse Purposes" (Args)
         for t = 2 to trip_types.length do
             trip_type = trip_types[t]
 
+// TODO: remove. This is just for testing until the NHB matrices are ready
+parts = ParseString(trip_type, "_")
+homebased = parts[2]
+if homebased = "NH" then continue
+
             mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
             mtx = CreateObject("Matrix", mtx_file)
             cores = mtx.GetCores()
