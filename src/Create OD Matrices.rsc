@@ -5,8 +5,8 @@
 Macro "Create OD Matrices" (Args)
 
     RunMacro("Directionality", Args)
-Throw()
-    RunMacro("Add Airport Trips", Args)
+    // TODO: update this once Ashish changes the airport code
+    // RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
     RunMacro("Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
@@ -25,29 +25,31 @@ Macro "Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     dir_factor_file = Args.DirectionFactors
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
     auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
-    ek12_modes = {"hov2", "hov3"}
-    prev_type = ""
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
         pa_factor = fac_vw.pa_fac
 
-        if trip_type = "W_HB_EK12_All"
-            then modes = ek12_modes
-            else modes = auto_modes
-
         pa_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
-        od_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         CopyFile(pa_mtx_file, od_mtx_file)
+
         mtx = CreateObject("Matrix", od_mtx_file)
+        // EK12 only has hov2 and hov3 cores at this point. Standardize the
+        // matrix here so that all further procedures can be simpler.
+        if trip_type = "W_HB_EK12_All" then do
+            mtx.AddCores({"sov", "auto_pay", "other_auto"})
+        end
         cores = mtx.GetCores()
         t_mtx = mtx.Transpose()
         t_cores = t_mtx.GetCores()
-        for mode in modes do
+        for mode in auto_modes do
             cores.(mode) := cores.(mode) * pa_factor + t_cores.(mode) * (1 - pa_factor)
         end
 
@@ -57,7 +59,6 @@ Macro "Directionality" (Args)
             if auto_modes.position(core_name) = 0 then mtx.DropCores({core_name})
         end
         
-        prev_type = trip_type
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -103,7 +104,7 @@ Macro "Add Airport Trips" (Args)
 endmacro
 
 /*
-Collapse auto modes into sov/hov2/hov3
+Collapse auto_pay and other_auto into sov/hov2/hov3
 */
 
 Macro "Collapse Auto Modes" (Args)
