@@ -33,7 +33,7 @@ Body:
     FlowChartNode(model,"NonResident Distribution",,,)
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
-    FlowChartNode(model,"Create OD Matrices",,,)
+    FlowChartNode(model,"Create Assignment Matrices",,,)
     FlowChartNode(model,"External Models",,,)
     FlowChartNode(model,"NonHomeBased",,,)
     //
@@ -54,8 +54,8 @@ Body:
     FlowChartLink(model,"Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"NonResident Distribution","Create OD Matrices",True,,)
-    FlowChartLink(model,"Create OD Matrices","Roadway Assignment",True,,)
+    FlowChartLink(model,"NonResident Distribution","Create Assignment Matrices",True,,)
+    FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
     FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
     FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
     Return(model)
@@ -209,11 +209,11 @@ Body:
 EndMacro
 
 
-Macro "Create OD Matrices" (Args,Result)
+Macro "Create Assignment Matrices" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Create OD Matrices"}}}
+                  {"MacroNames",{"Create Assignment Matrices"}}}
 Body:
-    ShowMessage('Running: Create OD Matrices')
+    ShowMessage('Running: Create Assignment Matrices')
     Return(True)
 EndMacro
 

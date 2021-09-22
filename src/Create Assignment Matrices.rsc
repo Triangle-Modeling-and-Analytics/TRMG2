@@ -2,7 +2,7 @@
 
 */
 
-Macro "Create OD Matrices" (Args)
+Macro "Create Assignment Matrices" (Args)
 
     RunMacro("Directionality", Args)
     // TODO: update this once Ashish changes the airport code

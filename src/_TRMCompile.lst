@@ -20,7 +20,7 @@ Skimming.rsc
 Airport.rsc
 External Models.rsc
 NHB Models.rsc
-Create OD Matrices.rsc
+Create Assignment Matrices.rsc
 nested_dc.rsc
 utils/utils.rsc
 utils/mc.rsc
