@@ -8,11 +8,11 @@ Macro "Create Assignment Matrices" (Args)
     // TODO: update this once Ashish changes the airport code
     // RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
+    RunMacro("Remove Interim Matrices", Args)
     RunMacro("Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
     RunMacro("Add CVs and Trucks", Args)
-    // TODO needs testing
-    // RunMacro("Add Externals", Args)
+    RunMacro("Add Externals", Args)
 
     return(1)
 endmacro
@@ -232,6 +232,32 @@ if homebased = "NH" then continue
 endmacro
 
 /*
+Simple macro that removes the interim matrices created in this folder to save
+space. For debugging these steps, comment out this macro in "Create Assignment
+Matrices".
+*/
+
+Macro "Remove Interim Matrices" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+
+    files = RunMacro("Catalog Files", assn_dir, "mtx")
+
+    files_to_keep = {
+        "od_veh_trips_AM",
+        "od_veh_trips_MD",
+        "od_veh_trips_PM",
+        "od_veh_trips_NT"
+    }
+
+    for file in files do
+        {, , name, } = SplitPath(file)
+        if files_to_keep.position(name) = 0 then DeleteFile(file)
+    end
+endmacro
+
+/*
 
 */
 
@@ -265,7 +291,7 @@ Macro "Add Externals" (Args)
 
     iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
-    ext_dir = Args.[Output Folder] + "/externals"
+    ext_dir = Args.[Output Folder] + "/external"
     periods = Args.periods
 
     ee_mtx_file = ext_dir + "/ee_trips.mtx"
@@ -282,15 +308,19 @@ Macro "Add Externals" (Args)
         ee_core_name = ee_core_names[i]
         ie_core_name = ie_core_names[i]
 
-        period = Right(ee_core_name, 2)
+        // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
+        parts = ParseString(ee_core_name, "_")
+        period = parts[3]
+        if parts[2] = "AUTO" then mode = "sov"
+        if parts[2] = "CVSUT" then mode = "SUT"
+        if parts[2] = "CVMUT" then mode = "MUT"
+
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
-        trip_mtx.AddCores(ee_core_name)
-        trip_mtx.AddCores(ie_core_name)
         trip_cores = trip_mtx.GetCores()
         // The ee matrix only contains external centroids
-        trip_mtx.UpdateCore(trip_cores.(ee_core_name), ee_cores.(ee_core_name))
+        trip_mtx.UpdateCore({core_name: mode, source_cores: ee_cores.(ee_core_name)})
         // The ie matrix contains all centroids
-        trip_cores.(ie_core_name) := trip_cores.(ie_core_name) + ie_cores.(ie_core_name)
+        trip_cores.(mode) := nz(trip_cores.(mode)) + nz(ie_cores.(ie_core_name))
     end
 endmacro
