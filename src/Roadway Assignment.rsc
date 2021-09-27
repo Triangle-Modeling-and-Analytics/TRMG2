@@ -6,7 +6,7 @@ tie them in.
 
 Macro "Roadway Assignment" (Args)
 
-    // RunMacro("Run Roadway Assignment", Args)
+    RunMacro("Run Roadway Assignment", Args)
     // RunMacro("Update Link Congested Times", Args)
     return(1)
 endmacro
@@ -29,9 +29,9 @@ Macro "Run Roadway Assignment" (Args, test_opts)
     assign_iters = Args.AssignIterations
     prev_assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter - 1)
     assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
-    RunMacro("Create Directory", assn_dir)
-    // TODO: Use actual OD matrices
-    od_dir = "C:\\projects\\TRM\\trm_project\\working_files\\initial_cong_skims"
+    vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+    
+    vot_params = RunMacro("Read Parameter File", {file: vot_params})
 
     // Check if HOV links exist. If so, they will be excluded from sov/truck
     // assignment.
@@ -46,9 +46,10 @@ Macro "Run Roadway Assignment" (Args, test_opts)
 
 
     for period in periods do
-        od_mtx = od_dir + "\\TOT" + period + "_OD_conv_tod.mtx"
+        od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
 
+        // If doing a test assignment, use the dummy OD matrix provided
         if test_opts <> null then do
             od_mtx = test_opts.od_mtx
             assign_iters = 1
@@ -59,9 +60,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
         o.LayerDB = hwy_dbd
         o.ResetClasses()
         o.Iterations = assign_iters
-        // TODO: move back to the official number (10e-5)
-        // o.Convergence = Args.AssignConvergence
-        o.Convergence = .0003
+        o.Convergence = Args.AssignConvergence
         o.Method = "CUE"
         o.DelayFunction = {
             Function: "bpr.vdf",
@@ -91,12 +90,17 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                 VOI: 1
             })
         end else do
+
+            if period = "AM" or period = "PM"
+                then pkop = "pk"
+                else pkop = "op"
+
             // sov
             for i = 1 to 5 do
                 sov_opts = {
                     Demand: "sov_VOT" + String(i),
                     PCE: 1,
-                    VOI: 1,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
                     LinkTollField: "TollCostSOV"
                 }
                 if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -107,7 +111,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                 o.AddClass({
                     Demand: "hov2_VOT" + String(i),
                     PCE: 1,
-                    VOI: 1,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
                     LinkTollField: "TollCostHOV"
                 })
             end
@@ -116,7 +120,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
             //     o.AddClass({
             //         Demand: "hov3_VOT" + String(i),
             //         PCE: 1,
-            //         VOI: 1,
+            //         VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
             //         LinkTollField: "TollCostHOV"
             //     })
             // end
@@ -125,7 +129,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
             //     cv_opts = {
             //         Demand: "CV_VOT" + String(i),
             //         PCE: 1,
-            //         VOI: 1,
+            //         VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
             //         LinkTollField: "TollCostSOV"
             //     }
             //     if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -135,8 +139,8 @@ Macro "Run Roadway Assignment" (Args, test_opts)
             for i = 1 to 3 do
                 sut_opts = {
                     Demand: "SUT_VOT" + String(i),
-                    PCE: 1,
-                    VOI: 1,
+                    PCE: 1.5,
+                    VOI: vot_params.("sut_vot" + String(i)) / 60 * 100,
                     LinkTollField: "TollCostSUT"
                 }
                 if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -146,8 +150,8 @@ Macro "Run Roadway Assignment" (Args, test_opts)
             for i = 1 to 5 do
                 mut_opts = {
                     Demand: "MUT_VOT" + String(i),
-                    PCE: 1,
-                    VOI: 1,
+                    PCE: 2.5,
+                    VOI: vot_params.("mut_vot" + String(i)) / 60 * 100,
                     LinkTollField: "TollCostMUT"
                 }
                 if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
