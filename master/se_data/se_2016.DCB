@@ -43,7 +43,7 @@
 "OtherSpaces",I,175,4,0,11,0,,"","Number of parking spaces for visitors/other",,"Sum",
 "Enplanements",I,179,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
 "Freeway_Stations",I,183,4,0,11,0,,"","",,"Sum",
-"ADT",I,187,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
+"AWDT",I,187,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
 "PCT_AUTO_EE",R,191,8,0,15,2,,"","Percent of EE AUTO volume at external station",,"Sum",
 "PCT_AUTO_IEEI",R,199,8,0,10,2,,"","Percent of IEEI AUTO volume at external station",,"Sum",
 "PCT_CVSUT_EE",R,207,8,0,15,2,,"","Percent of EE CV SUT volume at external station",,"Sum",

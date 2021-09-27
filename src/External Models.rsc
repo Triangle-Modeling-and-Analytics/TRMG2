@@ -87,7 +87,7 @@ Macro "Calculate EE IPF Marginals" (Args)
     se_vw + "|", 
     {
       "TAZ", 
-      "ADT",
+      "AWDT",
       "PCT_AUTO_EE",
       "PCT_CVSUT_EE",
       "PCT_CVMUT_EE"
@@ -95,9 +95,9 @@ Macro "Calculate EE IPF Marginals" (Args)
     {OptArray: TRUE}
   )
   
-  ee_auto_marg = Nz(data.ADT) * (Nz(data.PCT_AUTO_EE)/100) / 2
-  ee_cv_sut_marg = Nz(data.ADT) * (Nz(data.PCT_CVSUT_EE)/100) / 2
-  ee_cv_mut_marg = Nz(data.ADT) * (Nz(data.PCT_CVMUT_EE)/100) / 2
+  ee_auto_marg = Nz(data.AWDT) * (Nz(data.PCT_AUTO_EE)/100) / 2
+  ee_cv_sut_marg = Nz(data.AWDT) * (Nz(data.PCT_CVSUT_EE)/100) / 2
+  ee_cv_mut_marg = Nz(data.AWDT) * (Nz(data.PCT_CVMUT_EE)/100) / 2
   
   a_fields = {
     {"EE_AUTO_MARG", "Real", 10, 2, , , , "ee auto marginal"},
@@ -247,7 +247,7 @@ Macro "IEEI Productions" (Args)
     {
       "TAZ",
       "Freeway_Stations",	  
-      "ADT",
+      "AWDT",
       "PCT_AUTO_IEEI",
       "PCT_CVSUT_IEEI",
       "PCT_CVMUT_IEEI"
@@ -255,13 +255,13 @@ Macro "IEEI Productions" (Args)
     {OptArray: TRUE}
   )
   
-  ieei_auto_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2 else 0
-  ieei_cvsut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2 else 0
-  ieei_cvmut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2 else 0
+  ieei_auto_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2 else 0
+  ieei_cvsut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2 else 0
+  ieei_cvmut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2 else 0
   
-  ieei_auto_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2
-  ieei_cvsut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2
-  ieei_cvmut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2
+  ieei_auto_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2
+  ieei_cvsut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2
+  ieei_cvmut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2
 
   a_fields = {
     {"IEEI_AUTO_PROD_FREEWAY", "Real", 10, 2, , , , "ieei auto productions for freeway stations"},
