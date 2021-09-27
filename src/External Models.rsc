@@ -230,6 +230,7 @@ Macro "IEEI" (Args)
   RunMacro("IEEI TOD", Args)
   RunMacro("IEEI Gravity", Args)
   RunMacro("IEEI Combine Matrix", Args)
+  RunMacro("IEEI Directionality", Args)
 endmacro
 
 /*
@@ -428,7 +429,7 @@ Macro "IEEI Gravity" (Args)
   se_file = Args.SE
   param_file = Args.[Input Folder] + "\\external\\ieei_gravity.csv"
   skim_file =  Args.[Output Folder] + "\\skims\\roadway\\accessibility_sov_AM.mtx"
-  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
+  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
   
   opts = null
   opts.se_file = se_file
@@ -444,7 +445,7 @@ Combine IEEI Freeway and Non-Freeway stations matrix cores
 */
 
 Macro "IEEI Combine Matrix" (Args)
-  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
+  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
   periods = Args.periods
   
   ieei_mtx = OpenMatrix(ieei_matrix_file, )
@@ -484,4 +485,60 @@ Macro "IEEI Combine Matrix" (Args)
   
   DeleteFile(ieei_matrix_file)
   RenameFile(ieei_combined_matrix_file, ieei_matrix_file)
+endmacro
+
+
+/*
+Convert from PA to OD format
+*/
+
+Macro "IEEI Directionality" (Args)
+  ieei_pa_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
+  ieei_od_matrix_file = Args.[Output Folder] + "\\external\\ie_od_trips.mtx"
+  dir_factor_file = Args.[Input Folder] + "\\external\\ieei_directionality.csv"
+
+  CopyFile(ieei_pa_matrix_file, ieei_od_matrix_file)
+  
+  ieei_od_transpose_matrix_file = Substitute(ieei_od_matrix_file, ".mtx", "_transpose.mtx", )
+    
+  mat = OpenMatrix(ieei_od_matrix_file, )
+  tmat = TransposeMatrix(mat, {
+    {"File Name", ieei_od_transpose_matrix_file},
+    {"Label", "Transposed Trips"},
+    {"Type", "Double"}}
+  )
+  mat = null
+  tmat = null
+    
+  mtx = CreateObject("Matrix")
+  mtx.LoadMatrix(ieei_od_matrix_file)  
+  mtx_core_names = mtx.data.CoreNames
+  cores = mtx.data.cores
+
+  t_mtx = CreateObject("Matrix")
+  t_mtx.LoadMatrix(ieei_od_transpose_matrix_file)
+  t_cores = t_mtx.data.cores
+  
+  fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+  
+  rh = GetFirstRecord(fac_vw + "|", )
+  while rh <> null do
+    type = fac_vw.trip_type
+	period = fac_vw.tod
+	pa_factor = fac_vw.pa_fac
+	
+	core_name = "IEEI_" + type + "_" + period
+	
+	cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+
+    rh = GetNextRecord(fac_vw + "|", rh, )
+  end
+  
+  cores = null
+  t_cores = null
+  mtx = null
+  t_mtx = null
+  CloseView(fac_vw)
+  DeleteFile(ieei_od_transpose_matrix_file)
+  
 endmacro
