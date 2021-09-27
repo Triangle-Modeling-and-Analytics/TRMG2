@@ -30,6 +30,7 @@ Macro "Directionality" (Args)
     dir_factor_file = Args.DirectionFactors
     iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    RunMacro("Create Directory", assn_dir)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -81,7 +82,6 @@ Macro "Add Airport Trips" (Args)
     iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
 
-    RunMacro("Create Directory", assn_dir)
 
     // Which trip type and segment to use for modal probabilities
     trip_type = "N_HB_OD_Long"
