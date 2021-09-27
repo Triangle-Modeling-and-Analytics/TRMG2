@@ -111,26 +111,26 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                     LinkTollField: "TollCostHOV"
                 })
             end
-            // hov3
-            for i = 1 to 5 do
-                o.AddClass({
-                    Demand: "hov3_VOT" + String(i),
-                    PCE: 1,
-                    VOI: 1,
-                    LinkTollField: "TollCostHOV"
-                })
-            end
-            // CV
-            for i = 1 to 5 do
-                cv_opts = {
-                    Demand: "SUT_VOT" + String(i),
-                    PCE: 1,
-                    VOI: 1,
-                    LinkTollField: "TollCostSUT"
-                }
-                if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(cv_opts)
-            end
+            // // hov3
+            // for i = 1 to 5 do
+            //     o.AddClass({
+            //         Demand: "hov3_VOT" + String(i),
+            //         PCE: 1,
+            //         VOI: 1,
+            //         LinkTollField: "TollCostHOV"
+            //     })
+            // end
+            // // CV
+            // for i = 1 to 5 do
+            //     cv_opts = {
+            //         Demand: "CV_VOT" + String(i),
+            //         PCE: 1,
+            //         VOI: 1,
+            //         LinkTollField: "TollCostSOV"
+            //     }
+            //     if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
+            //     o.AddClass(cv_opts)
+            // end
             // SUT
             for i = 1 to 3 do
                 sut_opts = {

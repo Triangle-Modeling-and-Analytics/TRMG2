@@ -15,6 +15,7 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("Add Externals", Args)
     RunMacro("Create Transit Matrices", Args)
     RunMacro("VOT Split", Args)
+    RunMacro("VOT Aggregation", Args)
 
     return(1)
 endmacro
@@ -491,6 +492,7 @@ Macro "VOT Split" (Args)
             end
         end
         output.DropCores({"lognorm", "zscore", "wgtinc"})
+        output.DropCores(veh_classes)
     end
 
     CloseView(se_vw)
@@ -527,3 +529,39 @@ Macro "erf_normdist" (matrix, out_corename)
 	//Cleanup
     matrix.DropCores({"sign", "x", "t", "erf", "normdist"})
 endMacro
+
+/*
+The 'VOT Split' macro fully disaggregates values of time basedon the NCSTM
+approach; however, this leads to a lot of classes and much slower assignments.
+This collapses some of the classes. It's a separate macro to make it easy
+to disable in the future if desired.
+*/
+
+Macro "VOT Aggregation" (Args)
+
+    iter = Args.FeedbackIteration
+    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    periods = Args.periods
+
+    for period in periods do
+        mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
+        cores = mtx.GetCores()
+
+        // Collapse CV into SOV
+        for i = 1 to 5 do
+            sov_core = "sov_VOT" + String(i)
+            cv_core = "CV_VOT" + String(i)
+            cores.(sov_core) := nz(cores.(sov_core)) + nz(cores.(cv_core))
+            mtx.DropCores({cv_core})
+        end
+
+        // Collapse HOV3 into HOV2
+        for i = 1 to 5 do
+            hov2_core = "hov2_VOT" + String(i)
+            hov3_core = "hov3_VOT" + String(i)
+            cores.(hov2_core) := nz(cores.(hov2_core)) + nz(cores.(hov3_core))
+            mtx.DropCores({hov3_core})
+        end
+    end
+endmacro
