@@ -14,9 +14,11 @@ Macro "Roadway Assignment" (Args)
 endmacro
 
 /*
-The following macro are used by the flowchart to run the roadway assignment
-macro in parallel across time periods rather than in sequence.
+Macros running in parallel cannot access the same files at the same time.
+This macro performs a few tasks and stashes the data in Args. This allows it
+to be referenced in parallel.
 */
+
 Macro "Pre Assignment" (Args)
     hwy_dbd = Args.Links
     vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
@@ -38,6 +40,11 @@ Macro "Pre Assignment" (Args)
 
     return(1)
 endmacro
+
+/*
+The following macro are used by the flowchart to run the roadway assignment
+macro in parallel across time periods rather than in sequence.
+*/
 Macro "AM Roadway Assignment" (Args)
     RunMacro("Run Roadway Assignment", Args, {period: "AM"})
     return(1)
@@ -60,6 +67,9 @@ Runs highway assignment.
 
 Early in the model run, this macro is called in testing mode to check the
 validity of the highway network and prevent wasted run time.
+
+For actual assignment, this macro can run all periods in series or be provided
+with a specific period to run (if running in parallel).
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
