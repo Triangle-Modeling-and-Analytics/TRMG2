@@ -61,6 +61,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
         o.Iterations = assign_iters
         o.Convergence = Args.AssignConvergence
         o.Method = "CUE"
+        o.Conjugates = 3
         o.DelayFunction = {
             Function: "bpr.vdf",
             Fields: {"FFTime", "Capacity", "Alpha", "Beta", "None"}
