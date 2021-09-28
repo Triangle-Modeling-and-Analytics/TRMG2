@@ -65,10 +65,6 @@ Macro "Run Roadway Assignment" (Args, test_opts)
             Function: "bpr.vdf",
             Fields: {"FFTime", "Capacity", "Alpha", "Beta", "None"}
         }
-        o.OutPathFile = assn_dir + "\\assn_paths_" + period + ".path"
-        If Args.Iteraion > 1 then o.UsePathFile(
-            assn_dir + "\\assn_paths_" + period + ".path"
-        )
         o.DemandMatrix({
             MatrixFile: od_mtx,
             Matrix: "SOV"
