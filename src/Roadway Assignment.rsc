@@ -6,6 +6,7 @@ tie them in.
 
 Macro "Roadway Assignment" (Args)
 
+    RunMacro("Pre Assignment", Args)
     RunMacro("Run Roadway Assignment", Args)
     // TODO: uncomment when feeding back
     // RunMacro("Update Link Congested Times", Args)
@@ -77,22 +78,6 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
-    
-    if vot_params = null 
-        then vot_params = RunMacro("Read Parameter File", {file: vot_param_file})
-
-    // if hov_exists = null then do
-    //     // Check if HOV links exist. If so, they will be excluded from sov/truck
-    //     // assignment.
-    //     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
-    //     SetLayer(llyr)
-    //     n = SelectByQuery(
-    //         "hov", "several", 
-    //         "Select * where HOV <> 'None' and HOV <> null"
-    //     )
-    //     if n > 0 then hov_exists = "true" else hov_exists = "false"
-    //     CloseMap(map)
-    // end
 
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
