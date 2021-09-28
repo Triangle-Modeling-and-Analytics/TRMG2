@@ -534,7 +534,8 @@ endMacro
 The 'VOT Split' macro fully disaggregates values of time basedon the NCSTM
 approach; however, this leads to a lot of classes and much slower assignments.
 This collapses some of the classes. It's a separate macro to make it easy
-to disable in the future if desired.
+to disable in the future if desired (e.g. on a faster machine or for a
+detailed toll study).
 */
 
 Macro "VOT Aggregation" (Args)
@@ -543,25 +544,20 @@ Macro "VOT Aggregation" (Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
     periods = Args.periods
 
+    auto_cores = {"sov", "hov2", "hov3", "CV"}
+
     for period in periods do
         mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         mtx = CreateObject("Matrix", mtx_file)
         cores = mtx.GetCores()
 
-        // Collapse CV into SOV
-        for i = 1 to 5 do
-            sov_core = "sov_VOT" + String(i)
-            cv_core = "CV_VOT" + String(i)
-            cores.(sov_core) := nz(cores.(sov_core)) + nz(cores.(cv_core))
-            mtx.DropCores({cv_core})
-        end
-
-        // Collapse HOV3 into HOV2
-        for i = 1 to 5 do
-            hov2_core = "hov2_VOT" + String(i)
-            hov3_core = "hov3_VOT" + String(i)
-            cores.(hov2_core) := nz(cores.(hov2_core)) + nz(cores.(hov3_core))
-            mtx.DropCores({hov3_core})
-        end
+        // Collapse auto VOT classes 1-3 into just class 2
+        for auto_core in auto_cores do
+            core1 = auto_core + "_VOT1"
+            core2 = auto_core + "_VOT2"
+            core3 = auto_core + "_VOT3"
+            cores.(core2) := nz(cores.(core2)) + nz(cores.(core1)) + nz(cores.(core3))
+            mtx.DropCores({core1, core3})
+        end 
     end
 endmacro

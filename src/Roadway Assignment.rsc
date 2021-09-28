@@ -7,6 +7,7 @@ tie them in.
 Macro "Roadway Assignment" (Args)
 
     RunMacro("Run Roadway Assignment", Args)
+    // TODO: uncomment when feeding back
     // RunMacro("Update Link Congested Times", Args)
     return(1)
 endmacro
@@ -43,7 +44,6 @@ Macro "Run Roadway Assignment" (Args, test_opts)
     )
     if n > 0 then hov_exists = "true"
     CloseMap(map)
-
 
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
@@ -95,8 +95,11 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                 then pkop = "pk"
                 else pkop = "op"
 
+            // The 5 auto value of time bins are collapsed to 1->2<-3, 4, 5
+            auto_vot_ints = {2, 4, 5}
+
             // sov
-            for i = 1 to 5 do
+            for i in auto_vot_ints do
                 sov_opts = {
                     Demand: "sov_VOT" + String(i),
                     PCE: 1,
@@ -107,7 +110,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                 o.AddClass(sov_opts)
             end
             // hov2
-            for i = 1 to 5 do
+            for i in auto_vot_ints do
                 o.AddClass({
                     Demand: "hov2_VOT" + String(i),
                     PCE: 1,
@@ -115,26 +118,26 @@ Macro "Run Roadway Assignment" (Args, test_opts)
                     LinkTollField: "TollCostHOV"
                 })
             end
-            // // hov3
-            // for i = 1 to 5 do
-            //     o.AddClass({
-            //         Demand: "hov3_VOT" + String(i),
-            //         PCE: 1,
-            //         VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
-            //         LinkTollField: "TollCostHOV"
-            //     })
-            // end
-            // // CV
-            // for i = 1 to 5 do
-            //     cv_opts = {
-            //         Demand: "CV_VOT" + String(i),
-            //         PCE: 1,
-            //         VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
-            //         LinkTollField: "TollCostSOV"
-            //     }
-            //     if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
-            //     o.AddClass(cv_opts)
-            // end
+            // hov3
+            for i in auto_vot_ints do
+                o.AddClass({
+                    Demand: "hov3_VOT" + String(i),
+                    PCE: 1,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    LinkTollField: "TollCostHOV"
+                })
+            end
+            // CV
+            for i in auto_vot_ints do
+                cv_opts = {
+                    Demand: "CV_VOT" + String(i),
+                    PCE: 1,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    LinkTollField: "TollCostSOV"
+                }
+                if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
+                o.AddClass(cv_opts)
+            end
             // SUT
             for i = 1 to 3 do
                 sut_opts = {
