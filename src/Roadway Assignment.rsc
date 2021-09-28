@@ -28,8 +28,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
     periods = Args.periods
     feedback_iter = Args.FeedbackIteration
     assign_iters = Args.AssignIterations
-    prev_assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter - 1)
-    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
     
     vot_params = RunMacro("Read Parameter File", {file: vot_params})
@@ -68,7 +67,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
         }
         o.OutPathFile = assn_dir + "\\assn_paths_" + period + ".path"
         If Args.Iteraion > 1 then o.UsePathFile(
-            prev_assn_dir + "\\assn_paths_" + period + ".path"
+            assn_dir + "\\assn_paths_" + period + ".path"
         )
         o.DemandMatrix({
             MatrixFile: od_mtx,

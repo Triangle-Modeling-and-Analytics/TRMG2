@@ -28,8 +28,7 @@ Macro "Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     dir_factor_file = Args.DirectionFactors
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     RunMacro("Create Directory", assn_dir)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
@@ -79,8 +78,7 @@ Macro "Add Airport Trips" (Args)
     out_dir = Args.[Output Folder]
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
 
     // Which trip type and segment to use for modal probabilities
@@ -114,8 +112,7 @@ Macro "Collapse Auto Modes" (Args)
     
     shares_file = Args.OtherShares
     periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("shares", "CSV", {shares_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -161,8 +158,7 @@ Macro "Occupancy" (Args)
 
     factor_file = Args.HOV3OccFactors
     periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     
@@ -199,8 +195,7 @@ trips.
 
 Macro "Collapse Purposes" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     periods = Args.periods
 
     trip_types = RunMacro("Get All Res Trip Types", Args)
@@ -244,8 +239,7 @@ TODO: if parallelizing by time period, this has to change
 
 Macro "Remove Interim Matrices" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     files = RunMacro("Catalog Files", assn_dir, "mtx")
 
@@ -268,8 +262,7 @@ endmacro
 
 Macro "Add CVs and Trucks" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     cv_dir = Args.[Output Folder] + "/cv"
     periods = Args.periods
 
@@ -294,8 +287,7 @@ endmacro
 
 Macro "Add Externals" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     ext_dir = Args.[Output Folder] + "/external"
     periods = Args.periods
 
@@ -394,8 +386,7 @@ Macro "VOT Split" (Args)
     se_file = Args.SE
     vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
     periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     skim_dir = Args.[Output Folder] + "/skims/roadway"
 
     p = RunMacro("Read Parameter File", {file: vot_params})
@@ -540,8 +531,7 @@ detailed toll study).
 
 Macro "VOT Aggregation" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     periods = Args.periods
 
     auto_cores = {"sov", "hov2", "hov3", "CV"}
