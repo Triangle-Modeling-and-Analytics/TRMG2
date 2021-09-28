@@ -36,6 +36,7 @@ Body:
     FlowChartNode(model,"Create Assignment Matrices",,,)
     FlowChartNode(model,"External Models",,,)
     FlowChartNode(model,"NonHomeBased",,,)
+    FlowChartNode(model,"Assignment",,,)
     //
     // Links
     //
@@ -217,6 +218,7 @@ Body:
     Return(True)
 EndMacro
 
+
 Macro "External Models" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"External Models"}}}
@@ -224,11 +226,102 @@ Body:
     ShowMessage('Running: External Models')
 EndMacro
 
+
 Macro "NonHomeBased" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NonHomeBased"}}}
 Body:
     ShowMessage('Running: NonHomeBased')
     Return(True)
+EndMacro
+
+
+Macro "Pre Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    Return(True)
+EndMacro
+
+
+Macro "AM Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"AM Roadway Assignment"}}}
+Body:
+    Return(True)
+EndMacro
+
+
+Macro "MD Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"MD Roadway Assignment"}}}
+Body:
+    
+    Return(True)
+EndMacro
+
+
+Macro "trmg2.Pins" (Args)
+Body:
+   // Do not modify the following line:
+   Positions = null
+   Return(Positions)
+EndMacro
+
+
+Macro "PM Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"PM Roadway Assignment"}}}
+Body:
+    
+    Return(True)
+EndMacro
+
+
+Macro "NT Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NT Roadway Assignment"}}}
+Body:
+    
+    Return(True)
+EndMacro
+
+
+Macro "Post Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    Return(True)
+EndMacro
+
+
+Macro "Assignment" (Args,Result)
+    Attributes = {{"Description","Stage 1"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Pre Assignment"},{"Post Assignment"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Pre Assignment",,,)
+    FlowChartNode(model,"AM Assignment",,,)
+    FlowChartNode(model,"MD Assignment",,,)
+    FlowChartNode(model,"PM Assignment",,,)
+    FlowChartNode(model,"NT Assignment",,,)
+    FlowChartNode(model,"Post Assignment",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Pre Assignment","AM Assignment",True,,)
+    FlowChartLink(model,"Pre Assignment","MD Assignment",True,,)
+    FlowChartLink(model,"Pre Assignment","PM Assignment",True,,)
+    FlowChartLink(model,"Pre Assignment","NT Assignment",True,,)
+    FlowChartLink(model,"AM Assignment","Post Assignment",True,,)
+    FlowChartLink(model,"MD Assignment","Post Assignment",True,,)
+    FlowChartLink(model,"PM Assignment","Post Assignment",True,,)
+    FlowChartLink(model,"NT Assignment","Post Assignment",True,,)
+    Return(model)
 EndMacro
 

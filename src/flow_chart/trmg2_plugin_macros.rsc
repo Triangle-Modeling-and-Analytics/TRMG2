@@ -18,6 +18,8 @@ Attributes = {{"BannerHeight",80},
                   {"Requires",{{"Program","TransCAD"},
                   {"Version",9},
                   {"Build",32650}}},
+                  {"RunParallel", 1},
+                  {"ShowTaskMonitor", 1},
                   {"Shape","Rectangle"},
                   {"Time Stamp Format","yyyyMMdd_HHmm"}}
 

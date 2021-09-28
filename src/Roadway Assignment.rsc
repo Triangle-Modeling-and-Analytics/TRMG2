@@ -12,7 +12,47 @@ Macro "Roadway Assignment" (Args)
     return(1)
 endmacro
 
+/*
+The following macro are used by the flowchart to run the roadway assignment
+macro in parallel across time periods rather than in sequence.
+*/
+Macro "Pre Assignment" (Args)
+    hwy_dbd = Args.Links
+    vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
 
+    // Check if HOV links exist. If so, they will be excluded from sov/truck
+    // assignment.
+    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+    SetLayer(llyr)
+    n = SelectByQuery(
+        "hov", "several", 
+        "Select * where HOV <> 'None' and HOV <> null"
+    )
+    if n > 0 then hov_exists = "true" else hov_exists = "false"
+    CloseMap(map)
+    Args.hov_exists = hov_exists
+
+    vot_params = RunMacro("Read Parameter File", {file: vot_param_file})
+    Args.vot_params = vot_params
+
+    return(1)
+endmacro
+Macro "AM Roadway Assignment" (Args)
+    RunMacro("Run Roadway Assignment", Args, {period: "AM"})
+    return(1)
+endmacro
+Macro "MD Roadway Assignment" (Args)
+    RunMacro("Run Roadway Assignment", Args, {period: "MD"})
+    return(1)
+endmacro
+Macro "PM Roadway Assignment" (Args)
+    RunMacro("Run Roadway Assignment", Args, {period: "PM"})
+    return(1)
+endmacro
+Macro "NT Roadway Assignment" (Args)
+    RunMacro("Run Roadway Assignment", Args, {period: "NT"})
+    return(1)
+endmacro
 
 /*
 Runs highway assignment.
@@ -25,25 +65,34 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
 
     hwy_dbd = Args.Links
     net_dir = Args.[Output Folder] + "\\networks\\"
-    periods = Args.periods
     feedback_iter = Args.FeedbackIteration
     assign_iters = Args.AssignIterations
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
-    vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+    vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
     test_opts = OtherOpts.test_opts
+    // If no period is specified, run them all. Otherwise, only run the
+    // specified period. This allows the macro to be called in parallel
+    // by the flowchart, with each engine running a single period.
+    periods = Args.periods
+    if OtherOpts.period <> null then periods = {OtherOpts.period}
+    hov_exists = Args.hov_exists
+    vot_params = Args.vot_params
     
-    vot_params = RunMacro("Read Parameter File", {file: vot_params})
+    if vot_params = null 
+        then vot_params = RunMacro("Read Parameter File", {file: vot_param_file})
 
-    // Check if HOV links exist. If so, they will be excluded from sov/truck
-    // assignment.
-    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
-    SetLayer(llyr)
-    n = SelectByQuery(
-        "hov", "several", 
-        "Select * where HOV <> 'None' and HOV <> null"
-    )
-    if n > 0 then hov_exists = "true"
-    CloseMap(map)
+    // if hov_exists = null then do
+    //     // Check if HOV links exist. If so, they will be excluded from sov/truck
+    //     // assignment.
+    //     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+    //     SetLayer(llyr)
+    //     n = SelectByQuery(
+    //         "hov", "several", 
+    //         "Select * where HOV <> 'None' and HOV <> null"
+    //     )
+    //     if n > 0 then hov_exists = "true" else hov_exists = "false"
+    //     CloseMap(map)
+    // end
 
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
