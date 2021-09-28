@@ -21,7 +21,7 @@ Early in the model run, this macro is called in testing mode to check the
 validity of the highway network and prevent wasted run time.
 */
 
-Macro "Run Roadway Assignment" (Args, test_opts)
+Macro "Run Roadway Assignment" (Args, OtherOpts)
 
     hwy_dbd = Args.Links
     net_dir = Args.[Output Folder] + "\\networks\\"
@@ -30,6 +30,7 @@ Macro "Run Roadway Assignment" (Args, test_opts)
     assign_iters = Args.AssignIterations
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+    test_opts = OtherOpts.test_opts
     
     vot_params = RunMacro("Read Parameter File", {file: vot_params})
 

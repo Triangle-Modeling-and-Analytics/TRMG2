@@ -810,8 +810,8 @@ Macro "Check Highway Networks" (Args)
         mtx = null
         mh = null
         CloseView(se_vw)
-        test_opts.od_mtx = mtx_file
-        RunMacro("Run Roadway Assignment", Args, test_opts)
+        OtherOpts.test_opts.od_mtx = mtx_file
+        RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end
 endmacro
 
