@@ -1,18 +1,4 @@
 /*
-TODO: These functions are written and tested on interim data (for initial cong
-skims), but have not been officially put into the model stream. Still need to
-tie them in.
-*/
-
-Macro "Roadway Assignment" (Args)
-
-    RunMacro("Pre Assignment", Args)
-    RunMacro("Run Roadway Assignment", Args)
-    RunMacro("Update Link Congested Times", Args)
-    return(1)
-endmacro
-
-/*
 Macros running in parallel cannot access the same files at the same time.
 This macro performs a few tasks and stashes the data in Args. This allows it
 to be referenced in parallel.

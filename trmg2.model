@@ -23,7 +23,6 @@ Body:
     FlowChartNode(model,"Resident Productions",,,)
     FlowChartNode(model,"NonMotorized Choice",,,)
     FlowChartNode(model,"Time of Day",,,)
-    FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Summaries",,,)
     FlowChartNode(model,"Parking Model",,,)
     FlowChartNode(model,"Skimming",,,)
@@ -35,7 +34,7 @@ Body:
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create Assignment Matrices",,,)
     FlowChartNode(model,"NonHomeBased",,,)
-    FlowChartNode(model,"Assignment",,,)
+    FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Convergence",,,)
     //
     // Links
@@ -57,8 +56,8 @@ Body:
     FlowChartLink(model,"NonResident Distribution","Create Assignment Matrices",True,,)
     FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
     FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
-    FlowChartLink(model,"Create Assignment Matrices","Assignment",True,,)
-    FlowChartLink(model,"Assignment","Convergence",True,,)
+    FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
+    FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Convergence","Transit Assignment",True,,)
     FlowChartLink(model,"Convergence","Skimming",0,,1)
     Return(model)
@@ -118,15 +117,6 @@ Macro "Time of Day" (Args,Result)
                   {"MacroNames",{"Time of Day"}}}
 Body:
     ShowMessage('Running: Time of Day')
-    Return(True)
-EndMacro
-
-
-Macro "Roadway Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Roadway Assignment"}}}
-Body:
-    ShowMessage('Running: Roadway Assignment')
     Return(True)
 EndMacro
 
@@ -288,7 +278,7 @@ Body:
 EndMacro
 
 
-Macro "Assignment" (Args,Result)
+Macro "Roadway Assignment" (Args,Result)
     Attributes = {{"Description","Stage 1"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
