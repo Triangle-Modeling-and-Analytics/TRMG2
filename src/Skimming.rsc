@@ -1,21 +1,4 @@
 /*
-temp macro to get congested skims. called from menu.
-TODO: delete
-*/
-
-Macro "get cong skims" (Args)
-    
-    RunMacro("Initial Processing", Args)
-    RunMacro("Roadway Assignment", Args)
-    RunMacro("Create Link Networks", Args)
-    RunMacro("Create Route Networks", Args)
-    RunMacro("Skimming", Args)
-    RunMacro("Summaries", Args)
-
-    ShowMessage("Done")
-endmacro
-
-/*
 
 */
 
