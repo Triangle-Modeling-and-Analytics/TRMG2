@@ -44,7 +44,7 @@ Note: walk/bike skims are created once during accessibility calculations.
 Macro "Roadway Skims" (Args)
 
     link_dbd = Args.Links
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
 
@@ -169,7 +169,7 @@ Inputs
 Macro "Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     TransModeTable = Args.TransModeTable
     access_modes = Args.access_modes
     net_dir = Args.[Output Folder] + "/networks"

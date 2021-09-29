@@ -137,7 +137,7 @@ Macro "Calculate Destination Choice" (Args)
     input_dir = Args.[Input Folder]
     input_dc_dir = input_dir + "/resident/dc"
     output_dir = Args.[Output Folder] + "/resident/dc"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     sp_file = Args.ShadowPrices
 
     // Determine trip purposes
@@ -203,7 +203,7 @@ Macro "Apportion Resident HB Trips" (Args)
     dc_dir = out_dir + "/resident/dc"
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     se_vw = OpenTable("se", "FFB", {se_file})
 

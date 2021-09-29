@@ -45,7 +45,7 @@ Macro "CV Gravity" (Args)
 
     out_dir = Args.[Output Folder]
     cv_dir = Args.[Input Folder] + "/cv"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
 

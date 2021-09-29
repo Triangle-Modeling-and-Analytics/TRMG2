@@ -72,7 +72,7 @@ Macro "Calculate MC" (Args)
     input_dir = Args.[Input Folder]
     input_mc_dir = input_dir + "/resident/mode"
     output_dir = Args.[Output Folder] + "/resident/mode"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     // Determine trip purposes
     prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
@@ -134,7 +134,7 @@ endmacro
 Macro "Combine Logsum Files" (Args)
 
     ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     trip_types = RunMacro("Get HB Trip Types", Args)
     for trip_type in trip_types do
@@ -185,7 +185,7 @@ ultimate/root logsums (which are all positive already)
 Macro "Post Process Logsum" (Args)
     
     ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     trip_types = RunMacro("Get HB Trip Types", Args)
     for trip_type in trip_types do

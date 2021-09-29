@@ -81,14 +81,16 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
     test_opts = OtherOpts.test_opts
-    // If no period is specified, run them all. Otherwise, only run the
-    // specified period. This allows the macro to be called in parallel
+    // If no period is specified, run all that are unconverged. Otherwise, only
+    // run the specified period. This allows the macro to be called in parallel
     // by the flowchart, with each engine running a single period.
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
-
+// TODO: remove after testing
+periods = {"AM"}
+assign_iters = 1
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
@@ -204,6 +206,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         end
         ret_value = o.Run()
         results = o.GetResults()
+Throw()
         /*
         Use results.data to get rmse and other metrics:
         results.data.[Relative Gap]
@@ -224,7 +227,7 @@ After assignment, this macro updates the link layer congested time fields.
 Macro "Update Link Congested Times" (Args)
 
     hwy_dbd = Args.Links
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     feedback_iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
 

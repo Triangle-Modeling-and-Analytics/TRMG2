@@ -74,7 +74,7 @@ This macro adds them to the appropriate resident od trip matrix.
 
 Macro "Add Airport Trips" (Args)
     
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     out_dir = Args.[Output Folder]
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
@@ -111,7 +111,7 @@ Collapse auto_pay and other_auto into sov/hov2/hov3
 Macro "Collapse Auto Modes" (Args)
     
     shares_file = Args.OtherShares
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("shares", "CSV", {shares_file})
@@ -157,7 +157,7 @@ converts from person trips to vehicle trips by applying occupancy factors.
 Macro "Occupancy" (Args)
 
     factor_file = Args.HOV3OccFactors
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
@@ -196,7 +196,7 @@ trips.
 Macro "Collapse Purposes" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     trip_types = RunMacro("Get All Res Trip Types", Args)
 
@@ -264,7 +264,7 @@ Macro "Add CVs and Trucks" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     cv_dir = Args.[Output Folder] + "/cv"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
@@ -289,7 +289,7 @@ Macro "Add Externals" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     ext_dir = Args.[Output Folder] + "/external"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     ee_mtx_file = ext_dir + "/ee_trips.mtx"
     ee_mtx = CreateObject("Matrix", ee_mtx_file)
@@ -331,7 +331,7 @@ Macro "Create Transit Matrices" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     trn_dir = Args.[Output Folder] + "/assignment/transit"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     access_modes = {"w", "pnr", "knr"}
     files = RunMacro("Catalog Files", trip_dir, "mtx")
@@ -385,7 +385,7 @@ Macro "VOT Split" (Args)
 
     se_file = Args.SE
     vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     skim_dir = Args.[Output Folder] + "/skims/roadway"
 
@@ -522,7 +522,7 @@ Macro "erf_normdist" (matrix, out_corename)
 endMacro
 
 /*
-The 'VOT Split' macro fully disaggregates values of time basedon the NCSTM
+The 'VOT Split' macro fully disaggregates values of time based on the NCSTM
 approach; however, this leads to a lot of classes and much slower assignments.
 This collapses some of the classes. It's a separate macro to make it easy
 to disable in the future if desired (e.g. on a faster machine or for a
@@ -532,7 +532,7 @@ detailed toll study).
 Macro "VOT Aggregation" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     auto_cores = {"sov", "hov2", "hov3", "CV"}
 
