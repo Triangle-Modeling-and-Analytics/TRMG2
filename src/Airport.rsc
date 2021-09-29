@@ -277,6 +277,7 @@ Macro "Airport Separate Auto and Transit" (Args)
         auto_mtx = CreateObject("Matrix")
         auto_mtx.LoadMatrix(auto_mtx_file) 
         auto_mtx.DropCores(transit_modes)
+        auto_mtx.Pack()
         auto_mtx = null
         
         DeleteFile(pa_mtx_file)
