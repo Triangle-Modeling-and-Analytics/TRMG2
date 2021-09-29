@@ -8,8 +8,7 @@ Macro "Roadway Assignment" (Args)
 
     RunMacro("Pre Assignment", Args)
     RunMacro("Run Roadway Assignment", Args)
-    // TODO: uncomment when feeding back
-    // RunMacro("Update Link Congested Times", Args)
+    RunMacro("Update Link Congested Times", Args)
     return(1)
 endmacro
 
@@ -43,21 +42,30 @@ endmacro
 
 /*
 The following macro are used by the flowchart to run the roadway assignment
-macro in parallel across time periods rather than in sequence.
+macro in parallel across time periods rather than in sequence. Each macro
+checks to see if it's period needs to run.
 */
 Macro "AM Roadway Assignment" (Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    if periods.position("AM") = 0 then return(1)
     RunMacro("Run Roadway Assignment", Args, {period: "AM"})
     return(1)
 endmacro
 Macro "MD Roadway Assignment" (Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    if periods.position("MD") = 0 then return(1)
     RunMacro("Run Roadway Assignment", Args, {period: "MD"})
     return(1)
 endmacro
 Macro "PM Roadway Assignment" (Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    if periods.position("PM") = 0 then return(1)
     RunMacro("Run Roadway Assignment", Args, {period: "PM"})
     return(1)
 endmacro
 Macro "NT Roadway Assignment" (Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    if periods.position("NT") = 0 then return(1)
     RunMacro("Run Roadway Assignment", Args, {period: "NT"})
     return(1)
 endmacro

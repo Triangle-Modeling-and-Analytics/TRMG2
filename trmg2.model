@@ -290,7 +290,8 @@ EndMacro
 
 
 Macro "Post Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Update Link Congested Times"}}}
 Body:
     Return(True)
 EndMacro
