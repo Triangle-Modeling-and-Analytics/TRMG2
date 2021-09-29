@@ -37,6 +37,7 @@ Body:
     FlowChartNode(model,"External Models",,,)
     FlowChartNode(model,"NonHomeBased",,,)
     FlowChartNode(model,"Assignment",,,)
+    FlowChartNode(model,"Convergence",,,)
     //
     // Links
     //
@@ -52,13 +53,15 @@ Body:
     FlowChartLink(model,"NonResident Generation","Skimming",True,,)
     FlowChartLink(model,"Skimming","Parking Model",True,,)
     FlowChartLink(model,"Parking Model","Mode Choice",True,,)
-    FlowChartLink(model,"Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
     FlowChartLink(model,"NonResident Distribution","Create Assignment Matrices",True,,)
-    FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
     FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
     FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
+    FlowChartLink(model,"Create Assignment Matrices","Assignment",True,,)
+    FlowChartLink(model,"Assignment","Convergence",True,,)
+    FlowChartLink(model,"Convergence","Transit Assignment",True,,)
+    FlowChartLink(model,"Convergence","Skimming",0,,1)
     Return(model)
 EndMacro
 
@@ -323,5 +326,41 @@ Body:
     FlowChartLink(model,"PM Assignment","Post Assignment",True,,)
     FlowChartLink(model,"NT Assignment","Post Assignment",True,,)
     Return(model)
+EndMacro
+
+
+Macro "Convergence" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"Shape","Decision"}}
+Body:
+    
+    iter = Args.FeedbackIteration
+    max_iters = Args.FeedbackIterations
+    target_prmse = Args.FeedbackConvergence
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    for period in periods do
+        prmse = Args.(period + "_PRMSE")
+        RunMacro("Write PRMSE", Args, period)
+        if prmse <= target_prmse or iter >= max_iters 
+            then Args.converged_periods = Args.converged_periods + {period}
+    end
+    
+    // Feedback is done when all periods have converged
+    converged = 0
+    if Args.periods.length = Args.converged_periods.length then converged = 1
+    if converged = 0 then Args.FeedbackIteration = iter + 1
+    Return(converged)
+EndMacro
+
+
+Macro "Link.Convergence.Transit Assignm" (Args,Result)
+    Attributes = {{"Run_Always",0},
+                  {"Run_Condition","Result = 1"}}
+EndMacro
+
+
+Macro "Link.Convergence.Skimming" (Args,Result)
+    Attributes = {{"Run_Condition","Result = 0"}}
 EndMacro
 

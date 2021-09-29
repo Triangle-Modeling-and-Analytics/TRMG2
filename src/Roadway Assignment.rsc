@@ -209,8 +209,11 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         results.data.[Relative Gap]
         results.data.[Maximum Flow Change]
         results.data.[MSA RMSE]
+        results.data.[MSA PERCENT RMSE]
         etc.
         */
+
+        Args.(period + "_PRMSE") = res.Data.[MSA PERCENT RMSE]
     end
 endmacro
 
