@@ -1,15 +1,4 @@
 /*
-
-*/
-
-Macro "External Models" (Args)
-  RunMacro("External", Args)
-  RunMacro("IEEI", Args)
-
-  return(1)
-endmacro
-
-/*
 EE Model
 */
 

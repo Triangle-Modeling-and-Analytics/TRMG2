@@ -34,7 +34,6 @@ Body:
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create Assignment Matrices",,,)
-    FlowChartNode(model,"External Models",,,)
     FlowChartNode(model,"NonHomeBased",,,)
     FlowChartNode(model,"Assignment",,,)
     FlowChartNode(model,"Convergence",,,)
@@ -219,14 +218,6 @@ Macro "Create Assignment Matrices" (Args,Result)
 Body:
     ShowMessage('Running: Create Assignment Matrices')
     Return(True)
-EndMacro
-
-
-Macro "External Models" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"External Models"}}}
-Body:
-    ShowMessage('Running: External Models')
 EndMacro
 
 
