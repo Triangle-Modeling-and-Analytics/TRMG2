@@ -6,6 +6,8 @@ non-residential markets. See their RSC files for the actual macros
 
 Macro "NonResident Generation" (Args)
     RunMacro("Airport", Args)
+    RunMacro("External", Args)
+    RunMacro("IEEI", Args)
     RunMacro("CV Productions/Attractions", Args)
     RunMacro("CV TOD", Args)
     return(1)

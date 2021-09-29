@@ -507,7 +507,7 @@ Macro "Other Attributes" (Args)
     rts_file = Args.Routes
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     trans_ratio_auto = Args.TransponderRatioAuto
     trans_ratio_sut = Args.TransponderRatioSUT
     trans_ratio_mut = Args.TransponderRatioMUT
@@ -647,7 +647,7 @@ Macro "Calculate Bus Speeds" (Args)
 
     csv = Args.[Input Folder] + "\\networks\\bus_speeds.csv"
     link_dbd = Args.Links
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     dirs = {"AB", "BA"}
     modes = {"lb", "eb"}
 
@@ -721,7 +721,7 @@ Macro "Create Link Networks" (Args)
 
     link_dbd = Args.Links
     output_dir = Args.[Output Folder] + "/networks"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     // Create the auto networks
     // This array could be passed in as an argument to make the function more
@@ -810,8 +810,8 @@ Macro "Check Highway Networks" (Args)
         mtx = null
         mh = null
         CloseView(se_vw)
-        test_opts.od_mtx = mtx_file
-        RunMacro("Run Roadway Assignment", Args, test_opts)
+        OtherOpts.test_opts.od_mtx = mtx_file
+        RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end
 endmacro
 
@@ -824,7 +824,7 @@ Macro "Create Route Networks" (Args)
     link_dbd = Args.Links
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     access_modes = Args.access_modes
     TransModeTable = Args.TransModeTable
 

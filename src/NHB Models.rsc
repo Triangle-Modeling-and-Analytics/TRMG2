@@ -18,7 +18,7 @@ Macro "NHB Generation" (Args)
     param_dir = Args.[Input Folder] + "/resident/nhb/generation"
     out_dir = Args.[Output Folder]
     trip_dir = out_dir + "/resident/trip_tables"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
     calib_fac_file = Args.NHBGenCalibFacs
     trip_types = RunMacro("Get NHB Trip Types", Args)
@@ -140,7 +140,7 @@ Macro "NHB Generation" (Args)
         end
     end
 
-    // Fill in out the raw output table
+    // Fill in the raw output table
     out_vw = OpenTable("out", "FFB", {out_file})
     RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
     SetDataVectors(out_vw + "|", data, )

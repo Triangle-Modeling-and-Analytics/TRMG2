@@ -137,7 +137,7 @@ Macro "Calculate Destination Choice" (Args)
     input_dir = Args.[Input Folder]
     input_dc_dir = input_dir + "/resident/dc"
     output_dir = Args.[Output Folder] + "/resident/dc"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     sp_file = Args.ShadowPrices
 
     // Determine trip purposes
@@ -203,7 +203,7 @@ Macro "Apportion Resident HB Trips" (Args)
     dc_dir = out_dir + "/resident/dc"
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     se_vw = OpenTable("se", "FFB", {se_file})
 
@@ -253,6 +253,8 @@ Macro "Apportion Resident HB Trips" (Args)
             end
 
             // Create an extra core the combines all transit modes together
+            // This is not assigned, but is used in the NHB trip generation
+            // model.
             mode_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
@@ -260,8 +262,8 @@ Macro "Apportion Resident HB Trips" (Args)
             for mode in mode_names do
                 if modes_to_skip.position(mode) > 0 then continue
                 cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
-                cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
             end
+            cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
         end
     end
 endmacro

@@ -2119,3 +2119,42 @@ Macro "Get All Res Trip Types" (Args)
   nhb_types = RunMacro("Get NHB Trip Types", Args)
   return(hb_types + nhb_types)
 endmacro
+
+/*
+Used by the convergence macro to write out the %RMSE in each iteration
+*/
+
+Macro "Write PRMSE" (Args, period)
+
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  file = assn_dir + "/feedback_report_" + period + ".csv"
+  prmse = Args.(period + "_PRMSE")
+  iter = Args.FeedbackIteration
+
+  if iter = 1 then do
+    f = OpenFile(file, "w")
+    WriteLine(f, "Iteration,%RMSE")
+    CloseFile(f)
+  end
+  
+  f = OpenFile(file, "a")
+  WriteLine(f, String(iter) + "," + String(prmse))
+  CloseFile(f)
+endmacro
+
+/*
+The model manages feedback independently by time of day. It does this by
+building up an Args.converged_periods variable, which keeps track of which
+periods have finished. This macro returns the periods that are not converged.
+*/
+
+Macro "Get Unconverged Periods" (Args)
+  periods = Args.periods
+  converged_periods = Args.converged_periods
+
+  if converged_periods = null then return(periods)
+  for period in periods do
+    if converged_periods.position(period) = 0 then to_return = to_return + {period}
+  end
+  return(to_return)
+EndMacro

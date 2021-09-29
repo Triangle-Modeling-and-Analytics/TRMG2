@@ -1623,7 +1623,7 @@ knitr::include_graphics("img/nhb/nhb_trip_ends.png")
 After applying the estimated model, Caliper calculated calibration factors such
 that total NHB trips matched the expanded survey. Factors were calculated by
 tour type and mode. A coarser approach, such as calibrating a single factor for
-all NHB trips, would leave rarer modes (e.g. transit) with either too few or
+all NHB trips, would leave rarer modes like transit with either too few or
 to many trips.
 
 Some of the calibration factors are larger than those seen in other models (e.g.
@@ -1634,11 +1634,11 @@ is representative, the totals must be scaled up to account for these additional
 trips.
 
 Secondly, the scaling of trip productions by zonal accessibility also impacts
-the trip totals. There is no guarantee, for example, but that the number of
-trips scaled up and down will match or that the original total will be
-preserved. The impact is especially large for transit. No boosting coefficients
-could be estimated from the survey, but the model enforces logical consistency
-by removing transit NHB trip predicted where no transit access exists. This
+trip totals. There is no guarantee, for example, that the number of trips
+scaled up and down will match or that the original total will be preserved. The
+impact is especially large for transit. No boosting coefficients could be
+estimated from the survey, but the model enforces logical consistency by
+removing transit NHB trip predicted where no transit access exists. This
 requires that the remaining NHB transit trips be scaled up to compensate.
 
 For these reasons, these calibration factors are acceptable as long as
