@@ -4,6 +4,8 @@ Handle initial steps like capacity and speed calculations.
 
 Macro "Initial Processing" (Args)
     
+    created = RunMacro("Is Scenario Created", Args)
+    if !created then return(0)
     RunMacro("Create Output Copies", Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
@@ -11,10 +13,53 @@ Macro "Initial Processing" (Args)
     RunMacro("Other Attributes", Args)
     RunMacro("Calculate Bus Speeds", Args)
     RunMacro("Create Link Networks", Args)
+    RunMacro("Check Highway Networks", Args)
     RunMacro("Create Route Networks", Args)
 
     return(1)
 EndMacro
+
+/*
+This macro checks that the current scenario is created. If output already
+exists, checks to make sure you want to overwrite it. This is most commonly
+encountered when you create a new scenario but forget to change the
+scenario folder to the new location. This check prevents you from accidently
+overwriting your already-run scenario.
+*/
+
+Macro "Is Scenario Created" (Args)
+
+    scen_dir = Args.[Scenario Folder]
+    if GetFileInfo(Args.SE) <> null then do
+        yesno = MessageBox(
+            "This scenario already has output data\n" + 
+            "Scenario folder:\n" +
+            scen_dir + "\n" + 
+            "Do you want to overwrite?",
+            {Buttons: "YesNo", Caption: "Overwrite scenario?"}
+        )
+        if yesno = "No" then return("false")
+    end
+
+    input_files_to_check = {
+        Args.[Input Links],
+        Args.[Input Routes],
+        Args.[Input SE]
+    }
+    scenario_created = "true"
+    for file in input_files_to_check do
+        if GetFileInfo(file) = null then scenario_created = "false"
+    end
+    if scenario_created then return("true")
+    else do
+        MessageBox(
+            "This scenario has not been created\n" + 
+            "Use TRMG2 Menu -> Create Scenario",
+            {Caption: "Scenario not created"}
+        )
+        return("false")
+    end
+endmacro
 
 /*
 Creates copies of the scenario/input SE, TAZs, and networks.
@@ -57,9 +102,10 @@ Macro "Determine Area Type" (Args)
     se_vw = OpenTable("se", "FFB", {se_bin, })
     a_fields =  {
         {"TotalEmp", "Integer", 10, ,,,, "Total employment"},
-        {"Density", "Real", 10, 2,,,, "Density"},
+        {"Density", "Real", 10, 2,,,, "Density used in area type calculation.|Considers HH and Emp."},
         {"AreaType", "Character", 10,,,,, "Area Type"},
-        {"ATSmoothed", "Integer", 10,,,,, "Whether or not the area type was smoothed"}
+        {"ATSmoothed", "Integer", 10,,,,, "Whether or not the area type was smoothed"},
+        {"EmpDensity", "Real", 10, 2,,,, "Employment density. Used in some DC models.|TotalEmp / Area."}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 
@@ -84,6 +130,7 @@ Macro "Determine Area Type" (Args)
         data.Service_RateHigh + data.Retail
     factor = data.HH_POP.sum() / tot_emp.sum()
     density = (data.HH_POP + tot_emp * factor) / data.area
+    emp_density = tot_emp / data.area
     areatype = Vector(density.length, "String", )
     for i = 1 to area_tbl.length do
         name = area_tbl[i].AreaType
@@ -93,6 +140,7 @@ Macro "Determine Area Type" (Args)
     SetDataVector(jv + "|", "TotalEmp", tot_emp, )
     SetDataVector(jv + "|", se_vw + ".Density", density, )
     SetDataVector(jv + "|", se_vw + ".AreaType", areatype, )
+    SetDataVector(jv + "|", se_vw + ".EmpDensity", emp_density, )
 
     views.se_vw = se_vw
     views.jv = jv
@@ -459,7 +507,7 @@ Macro "Other Attributes" (Args)
     rts_file = Args.Routes
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     trans_ratio_auto = Args.TransponderRatioAuto
     trans_ratio_sut = Args.TransponderRatioSUT
     trans_ratio_mut = Args.TransponderRatioMUT
@@ -599,7 +647,7 @@ Macro "Calculate Bus Speeds" (Args)
 
     csv = Args.[Input Folder] + "\\networks\\bus_speeds.csv"
     link_dbd = Args.Links
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     dirs = {"AB", "BA"}
     modes = {"lb", "eb"}
 
@@ -673,7 +721,7 @@ Macro "Create Link Networks" (Args)
 
     link_dbd = Args.Links
     output_dir = Args.[Output Folder] + "/networks"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     // Create the auto networks
     // This array could be passed in as an argument to make the function more
@@ -742,6 +790,32 @@ Macro "Create Link Networks" (Args)
 endmacro
 
 /*
+The first time through the model, check the networks by running a 
+dummy assignment. This will catch any issues with missing capacities
+or speeds.
+*/
+
+Macro "Check Highway Networks" (Args)
+    feedback_iter = Args.FeedbackIteration
+    se_file = Args.SE
+
+    if feedback_iter = 1 then do
+        se_vw = OpenTable("se", "FFB", {se_file})
+        mtx_file = GetTempFileName(".mtx")
+        mh = CreateMatrixFromView("tmep", se_vw + "|", "TAZ", "TAZ", {"TAZ"}, {"File Name": mtx_file})
+        mtx = CreateObject("Matrix", mh)
+        mtx.AddCores({"SOV"})
+        cores = mtx.GetCores()
+        cores.SOV := cores.TAZ
+        mtx = null
+        mh = null
+        CloseView(se_vw)
+        OtherOpts.test_opts.od_mtx = mtx_file
+        RunMacro("Run Roadway Assignment", Args, OtherOpts)
+    end
+endmacro
+
+/*
 
 */
 
@@ -750,7 +824,7 @@ Macro "Create Route Networks" (Args)
     link_dbd = Args.Links
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     access_modes = Args.access_modes
     TransModeTable = Args.TransModeTable
 

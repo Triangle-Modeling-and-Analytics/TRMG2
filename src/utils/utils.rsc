@@ -2062,7 +2062,7 @@ Macro "Gravity" (MacroOpts)
         // ColIndex: ci
       },
       Gamma: {param_vw.a, param_vw.b, param_vw.c},
-      Constraint: param_vw.constraint
+      ConstraintType: param_vw.constraint
     })
 
     rh = GetNextRecord(param_vw + "|", , )
@@ -2070,6 +2070,7 @@ Macro "Gravity" (MacroOpts)
 
   obj.Run()
   r = obj.GetResult()
+  CloseView(param_vw)
   return(r)
 endmacro
 
@@ -2084,5 +2085,76 @@ Macro "Get HB Trip Types" (Args)
   trip_types = GetDataVector(rate_vw + "|", "trip_type", )
   trip_types = SortVector(trip_types, {Unique: "true"})
   CloseView(rate_vw)
+  return(V2A(trip_types))
+endmacro
+
+Macro "Get NHB Trip Types" (Args)
+  dir = Args.[Input Folder] + "/resident/nhb/generation"
+  files = RunMacro("Catalog Files", dir)
+  for file in files do
+    {, , name, } = SplitPath(file)
+    if name = "nhb_calibration_factors" then continue
+    {trip_type, mode} = RunMacro("Separate type and mode", name)
+    trip_types = trip_types + {trip_type}
+  end
+  trip_types = V2A(SortVector(A2V(trip_types), {Unique: "true"}))
   return(trip_types)
 endmacro
+
+Macro "Separate type and mode" (name)
+  pieces = ParseString(name, "_")
+  trip_type = pieces[1]
+  for i = 2 to 4 do
+    trip_type = trip_type + "_" + pieces[i]
+  end
+  mode = pieces[5]
+  for i = 6 to pieces.length do
+    mode = mode + "_" + pieces[i]
+  end
+  return({trip_type, mode})
+endmacro
+
+Macro "Get All Res Trip Types" (Args)
+  hb_types = RunMacro("Get HB Trip Types", Args)
+  nhb_types = RunMacro("Get NHB Trip Types", Args)
+  return(hb_types + nhb_types)
+endmacro
+
+/*
+Used by the convergence macro to write out the %RMSE in each iteration
+*/
+
+Macro "Write PRMSE" (Args, period)
+
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  file = assn_dir + "/feedback_report_" + period + ".csv"
+  prmse = Args.(period + "_PRMSE")
+  iter = Args.FeedbackIteration
+
+  if iter = 1 then do
+    f = OpenFile(file, "w")
+    WriteLine(f, "Iteration,%RMSE")
+    CloseFile(f)
+  end
+  
+  f = OpenFile(file, "a")
+  WriteLine(f, String(iter) + "," + String(prmse))
+  CloseFile(f)
+endmacro
+
+/*
+The model manages feedback independently by time of day. It does this by
+building up an Args.converged_periods variable, which keeps track of which
+periods have finished. This macro returns the periods that are not converged.
+*/
+
+Macro "Get Unconverged Periods" (Args)
+  periods = Args.periods
+  converged_periods = Args.converged_periods
+
+  if converged_periods = null then return(periods)
+  for period in periods do
+    if converged_periods.position(period) = 0 then to_return = to_return + {period}
+  end
+  return(to_return)
+EndMacro

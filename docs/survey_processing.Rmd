@@ -1449,10 +1449,25 @@ xfer_linked_out <- bus_flag %>%
 ```
 
 ```{r}
-# Create production/attraction fields
+# Create production/attraction fields. If a trip end is home, that is always the
+# production side. For NHB trips, the K12 side is always the production side (if
+# there is one). Other NHB trips just assume the origin is the production.
 flip_to_pa <- xfer_linked_out %>%
   mutate(
-    pa_flag = ifelse(d_place == "H", 0, 1),
+    homebased = ifelse(o_place == "H" | d_place == "H", "HB", "NH"),
+    nhb_k12_flag = case_when(
+      homebased == "HB" ~ 0,
+      o_activity %in% c("PUS", "DOS", "K12") ~ 1,
+      d_activity %in% c("PUS", "DOS", "K12") ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  mutate(
+    pa_flag = case_when(
+      d_place == "H" ~ 0,
+      nhb_k12_flag == 1 & d_activity %in% c("PUS", "DOS", "K12") ~ 0,
+      TRUE ~ 1
+    ),
     p_lng = ifelse(pa_flag == 1, origin_lng, destination_lng),
     a_lng = ifelse(pa_flag == 0, origin_lng, destination_lng),
     p_lat = ifelse(pa_flag == 1, origin_lat, destination_lat),
@@ -1682,7 +1697,6 @@ Column definitions:
 ```{r}
 prep_for_eda <- add_se_data %>%
   mutate(
-    homebased = ifelse(p_place == "H", "HB", "NH"),
     p_duration = ifelse(p_act_dur >= 30, "Long", "Short"),
     p_duration = ifelse(is.na(p_duration), "Long", p_duration),
     a_duration = ifelse(a_act_dur >= 30, "Long", "Short"),
@@ -2073,10 +2087,10 @@ scheme6 <- prep_for_eda %>%
     purp_scheme = case_when(
       tour_type != "W" ~ purp_scheme,
       homebased != "NH" ~ purp_scheme,
-      o_activity %in% c("PUS", "DOS") ~ "EK12",
+      p_activity %in% c("PUS", "DOS") ~ "EK12",
       a_activity %in% c("PUS", "DOS") ~ "EK12",
-      o_activity == "EK12" | a_activity == "EK12" ~ "EK12",
-      o_activity %in% c("W", "WR") | a_activity %in% c("W", "WR") ~ "WR",
+      p_activity == "EK12" | a_activity == "EK12" ~ "EK12",
+      p_activity == "WR" | a_activity == "WR" ~ "WR",
       TRUE ~ "O"
     ),
     dur_scheme = case_when(
@@ -2155,8 +2169,11 @@ add_obs_trip_type <- scheme6 %>%
 
 add_hh_data <- add_obs_trip_type %>%
   left_join(
-    hh_update_taz %>% select(
-      hhid, hhsize, num_workers, num_vehicles, hh_inc_final, hh_inc_final_lab, choice_segment),
+    hh_update_taz %>% 
+      select(
+        hhid, hhsize, num_workers, num_vehicles, hh_inc_final, 
+        hh_inc_final_lab, choice_segment
+      ),
     by = "hhid"
   )
 ```

@@ -37,10 +37,12 @@ navbar:
           href: accessibility.html
         - text: "Airport"
           href: airport.html
+        - text: "Internal/External"
+          href: ieei.html
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
   right:
-    - icon: fa-github fa-2x
+    - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2
 output:
   html_document:

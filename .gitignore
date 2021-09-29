@@ -9,3 +9,5 @@
 docs/data/_PRIVATE/*
 docs/site_libs/*
 docs/data/input/ieei/AMSOVDistanceSkim.csv
+docs/data/input/university/AMSOVDistanceSkim.csv
+trmg2.scenarios

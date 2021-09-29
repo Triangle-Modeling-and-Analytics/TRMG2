@@ -62,7 +62,7 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
       trip_type = "y",
       trip_weight_combined = 0
     )
-  
+
   combine_tbl <- bind_rows(temp1, temp2) %>%
     select(-keep) %>%
     filter(
@@ -83,12 +83,13 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     mutate(
       across(everything(), ~ifelse(is.na(.x), 0, .x)),
     )
-  
+
   if (!is.null(dependent_vars)) {
-    est_tbl <- est_tbl[, c("y", c("logsum", dependent_vars))]
+    est_tbl <- est_tbl[, c("y", c("personid", "tour_num", "logsum", dependent_vars))]
   }
   
-  model <- lm(y ~ . - logsum + 0, data = est_tbl)
+  # model <- lm(y ~ . - logsum + 0, data = est_tbl)
+  model <- lm(y ~ . - personid - tour_num - logsum + 0, data = est_tbl)
   adj_r_sq <- summary(model)$adj.r.squared
   coeffs <- broom::tidy(model) %>%
     mutate(p.value = round(p.value, 5))
@@ -161,7 +162,6 @@ estimate_nhb <- function(trips_df, trip_type, equiv = NULL,
     result$p_tbl <- p_tbl
     result$p <- p
   }
-  
   
   result$r_sq <- round(adj_r_sq, 2)
   result$tbl <- add_orig_types

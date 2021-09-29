@@ -8,7 +8,7 @@ Attributes = {{"BannerHeight",80},
                   {"ClearLogFiles",1},
                   {"CodeUI","src\\trmg2.dbd"},
                   {"ExpandStages","Side by Side"},
-                  {"MaxProgressBars",2},
+                  {"MaxProgressBars",4},
                   {"MinItemSpacing",20},
                   {"Output Folder Format","Output Folder\\Scenario Name"},
                   {"Output Folder Parameter","Output Folder"},
@@ -18,6 +18,8 @@ Attributes = {{"BannerHeight",80},
                   {"Requires",{{"Program","TransCAD"},
                   {"Version",9},
                   {"Build",32650}}},
+                  {"RunParallel", 1},
+                  {"ShowTaskMonitor", 1},
                   {"Shape","Rectangle"},
                   {"Time Stamp Format","yyyyMMdd_HHmm"}}
 
@@ -106,9 +108,6 @@ Body:
     skipemails:
     on error default
 
-    scenario_created = RunMacro("Check Scenario Creation", Args)
-    if !scenario_created then Throw("Scenario not created")
-
     Return(Runtime_Args)
 EndMacro
 
@@ -136,56 +135,3 @@ Body:
 
     Return()
 EndMacro
-
-/*
-This macro checks that the current scenario is created. If not, it prompts the
-user to create it. As a special case, the base scenario ("base_2016") is simply
-created without prompting.
-
-Returns true if the scenario is already created or is created by the macro.
-Returns false otherwise.
-*/
-
-Macro "Check Scenario Creation" (Args)
-
-    mr = CreateObject("Model.Runtime")
-    Args = mr.GetValues()
-    scen_dir = Args.[Scenario Folder]
-    {, scen_name} = mr.GetScenario()
-    files_to_check = {
-        Args.[Input Links],
-        Args.[Input Routes],
-        Args.[Input SE]
-    }
-
-    scenario_created = "true"
-    for file in files_to_check do
-        if GetFileInfo(file) = null then scenario_created = "false"
-    end
-    if scenario_created then return("true")
-
-    // Ensure the minimum files are present
-    if GetDirectoryInfo(scen_dir, "All") = null then Throw(
-        "The scenario directory does not exist.\n" +
-        "Scenario Directory: \n" +
-        scen_dir
-    )
-    else if GetFileInfo(scen_dir + "/RoadwayProjectList.csv") = null then Throw(
-        "The scenario directory is missing RoadwayProjectList.csv"
-    )
-    else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
-        "The scenario directory is missing TransitProjectList.csv"
-    )
-
-    // Ask to create scenario. If it's the base scenario, just create it.
-    yesno = MessageBox(
-        "The scenario has not been created\n(TRMG2 Menu -> Create Scenario)\n" +
-        "Would you like to create the scenario? After creation, you will be " +
-        "prompted to continue running the model.",
-        {Buttons: "YesNo"}
-    )
-    if yesno = "Yes" then do
-        mr.RunCode("Create Scenario", Args)
-        return("true")
-    end else return("false")
-endmacro

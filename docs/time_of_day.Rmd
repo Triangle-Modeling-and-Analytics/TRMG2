@@ -92,9 +92,9 @@ timTbl <- tibble(
 ```
 
 ```{r time_conv_formula}
-# Formula for converting minutes to chart format (e.g. 1000 for 10:00 am)
+# Formula for converting minutes to chart format (e.g. 5.25 for 5:15 am)
 chart_time <- function(minutes){
-  ((minutes %/% 60) * 100 + (minutes %% 60)) / 100
+  ((minutes %/% 60) + (minutes %% 60) / 60)
 }
 ```
 
@@ -572,7 +572,7 @@ skim_facs %>%
 ```
 
 
-# Vehicle occupancy factors {.tabset}
+# Vehicle occupancy factors
 In addition to applying directionality factors before assignment, the person 
 trip matrices are converted to vehicles using occupancy factors. These factors
 are calculated from the household survey, which includes information on the
@@ -584,14 +584,18 @@ used are defined as follows:
 - HOV3: 3+ person occupancy
 
 Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
-factors for HOV3, auto pay, and other auto are shown below. The chart provides
-a visual example for two trip types, while the following tables provide all
-the factors.
+factors for HOV3 are shown below.
 
 ```{r calculate veh occ factors}
-occ_tbl <- tripTbl %>%
+hov3_tbl <- tripTbl %>%
   filter(tour_type != "H", !is.na(mode_final)) %>%
-  filter(mode_final %in% c("sov", "hov2", "hov3")) %>%
+  # for this calculation, include large-party auto_pay and oth_auto
+  # trips in hov3
+  mutate(mode_final = ifelse(
+    mode_final %in% c("auto_pay", "oth_auto") & party_size >= 3,
+    "hov3", mode_final
+  )) %>%
+  filter(mode_final %in% c("hov3")) %>%
   mutate(
     party_size = num_hh_members + num_nonhh,
     mode = mode_final
@@ -615,88 +619,50 @@ occ_tbl <- tripTbl %>%
   arrange(trip_type, tod, mode) %>%
   select(trip_type, mode, tod, Value) %>%
   filter(mode == "hov3") %>%
-  select(-mode)
-
-occ_tbl <- occ_tbl %>%
+  select(-mode) %>%
   rename(hov3 = Value)
 ```
 
 ```{r}
-# calculate for auto_pay and other_auto
-oth_occ_tbl <- tripTbl %>%
+# Calculate the shares of auto_pay and other_auto trips that are sov/hov2/hov3
+trip_types <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final)) %>%
+  select(trip_type) %>%
+  group_by(trip_type) %>%
+  slice(1)
+trip_types <- expand(trip_types, mode_final = c("auto_pay", "other_auto"))
+
+temp <- tripTbl %>%
   filter(tour_type != "H", !is.na(mode_final)) %>%
   filter(mode_final %in% c("auto_pay", "other_auto")) %>%
   mutate(
     party_size = num_hh_members + num_nonhh,
-    mode = mode_final
-  ) %>%
-  group_by(trip_type, tod, mode) %>%
-  mutate(
-    Value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
-    Samples = n(),
-  ) %>%
-  # Low samples for some rows leads to high factors (e.g. 4.9). If the sample size
-  # is low, use the daily average. If it is still too low, combine modes.
-  group_by(trip_type) %>%
-  mutate(purpose_daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3)) %>%
-  group_by(trip_type, mode) %>%
-  mutate(
-    daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
-    daily_samples = n(),
-    # Value = ifelse(Samples < 30, daily_value, Value)
-    Value = case_when(
-      Samples > 30 ~ Value,
-      daily_samples > 30 ~ daily_value,
-      TRUE ~ purpose_daily_value
+    mode2 = case_when(
+      party_size == 1 ~ "sov",
+      party_size == 2 ~ "hov2",
+      TRUE ~ "hov3"
     )
   ) %>%
-  group_by(trip_type, tod, mode) %>%
-  slice(1) %>%
-  select(trip_type, tod, mode, Value) %>%
-  ungroup() %>%
-  arrange(trip_type, tod, mode) %>%
-  complete(mode, trip_type, tod) %>%
-  group_by(trip_type) %>%
-  mutate(Value = ifelse(is.na(Value), max(Value, na.rm = TRUE), Value)) %>%
-  pivot_wider(names_from = mode, values_from = Value)
+  select(trip_type, tod, mode_final, mode2, party_size, weight = trip_weight_combined)
 
-final_occ <- occ_tbl %>%
-  left_join(oth_occ_tbl, by = c("trip_type", "tod"))
+oth_shares <- temp %>%
+  mutate(mode2 = factor(mode2, levels = c("sov", "hov2", "hov3"), ordered = TRUE)) %>%
+  group_by(trip_type, mode2) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(pct = weight / sum(weight)) %>%
+  select(trip_type, mode2, pct) %>%
+  pivot_wider(names_from = mode2, values_from = pct) %>%
+  replace_na(list("sov" = 0, "hov2" = 0, "hov3" = 0))
 ```
-
-```{r, fig.align="center"}
-to_plot <- final_occ %>%
-  pivot_longer(hov3:other_auto, names_to = "mode", values_to = "occ") %>%
-  filter(trip_type %in% c("N_HB_K12_All", "N_HB_OD_Long")) %>%
-  mutate(
-    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE),
-    mode = factor(mode, levels = c("hov3", "other_auto", "auto_pay"), ordered = TRUE)
-  ) %>%
-  arrange(trip_type, tod, mode)
-
-ggplot(to_plot, aes(x = tod, y = occ, color = mode, group = mode)) +
-  geom_line() +
-  geom_point() +
-  facet_wrap(~trip_type) +
-  labs(
-    title = "Occupancy by Time of Day and Mode",
-    x = "Time Period",
-    y = "Occupancy"
-  ) +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-## HOV3
 
 ```{r}
-display_tbl <- final_occ %>%
+display_tbl <- hov3_tbl %>%
+  mutate(tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)) %>%
+  arrange(trip_type, tod) %>%
   rename(
     `Trip Type` = trip_type,
     Period = tod,
-    HOV3 = hov3,
-    `Auto Pay` = auto_pay,
-    `Other Auto` = other_auto
+    HOV3 = hov3
   )
 
 display_tbl %>%
@@ -706,25 +672,16 @@ display_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-## Auto Pay
+For Auto Pay and Other Auto modes, shares of sov, hov2, and hov3 were calculated.
+The model uses these to convert these modes into their respective assignment
+classes before highway assignment.
 
 ```{r}
-display_tbl %>%
-  select(`Trip Type`, Period, `Auto Pay`) %>%
-  pivot_wider(names_from = Period, values_from = `Auto Pay`) %>%
-  kable() %>%
+oth_shares %>%
+  kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
 ```
 
-## Other Auto
-
-```{r}
-display_tbl %>%
-  select(`Trip Type`, Period, `Other Auto`) %>%
-  pivot_wider(names_from = Period, values_from = `Other Auto`) %>%
-  kable() %>%
-  kable_styling(full_width = FALSE)
-```
 
 
 # Period capacity factors
@@ -927,8 +884,9 @@ write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 # Directionality factors
 write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
 
-# Occupancy factors
-write_csv(final_occ , "data/output/tod/veh_occ_factors.csv")
+# Occupancy factors/shares
+write_csv(hov3_tbl , "data/output/tod/hov3_occ_factors.csv")
+write_csv(oth_shares , "data/output/tod/other_shares.csv")
 
 # Period capacity table
 write_csv(
@@ -938,6 +896,6 @@ write_csv(
       Description = paste("Hours of capacity in", TOD, "period", sep = " "),
       Value = round(Value, 3)
     ),
-  "data/output/tod/period_capacity_factors.csv"
+  "data/output/tod/capacity_period_factors.csv"
 )
 ```

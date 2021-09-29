@@ -21,6 +21,7 @@ Macro "Create Scenario" (Args)
   end
 
   if yesno = "Yes" or yesno = null then do
+    RunMacro("Check for Creation Files", Args)
     RunMacro("Create Folder Structure", Args)
     RunMacro("Copy TAZ", Args)
     RunMacro("Create Scenario SE", Args)
@@ -32,7 +33,29 @@ Macro "Create Scenario" (Args)
 EndMacro
 
 /*
-- Creates input and output folders needed in the scenario directory
+
+*/
+
+Macro "Check for Creation Files" (Args)
+
+  scen_dir = Args.[Scenario Folder]
+
+  // Ensure the minimum files are present
+  if GetDirectoryInfo(scen_dir, "All") = null then Throw(
+    "The scenario directory does not exist.\n" +
+    "Scenario Directory: \n" +
+    scen_dir
+  )
+  else if GetFileInfo(scen_dir + "/RoadwayProjectList.csv") = null then Throw(
+    "The scenario directory is missing RoadwayProjectList.csv"
+  )
+  else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
+    "The scenario directory is missing TransitProjectList.csv"
+  )
+endmacro
+
+/*
+Creates input and output folders needed in the scenario directory
 */
 
 Macro "Create Folder Structure" (Args)
@@ -66,6 +89,9 @@ Macro "Create Folder Structure" (Args)
     "/resident/mode/logsums",
     "/resident/mode/utilities",
     "/resident/mode/model_files",
+    "/resident/nhb",
+    "/resident/nonmotorized",
+    "/resident/trip_tables",
     "/directionality",
     "/assignment",
     "/assignment/transit",

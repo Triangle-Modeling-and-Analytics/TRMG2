@@ -1,21 +1,4 @@
 /*
-temp macro to get congested skims. called from menu.
-TODO: delete
-*/
-
-Macro "get cong skims" (Args)
-    
-    RunMacro("Initial Processing", Args)
-    RunMacro("Roadway Assignment", Args)
-    RunMacro("Create Link Networks", Args)
-    RunMacro("Create Route Networks", Args)
-    RunMacro("Skimming", Args)
-    RunMacro("Summaries", Args)
-
-    ShowMessage("Done")
-endmacro
-
-/*
 
 */
 
@@ -44,7 +27,7 @@ Note: walk/bike skims are created once during accessibility calculations.
 Macro "Roadway Skims" (Args)
 
     link_dbd = Args.Links
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
 
@@ -72,7 +55,7 @@ Macro "Roadway Skims" (Args)
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")
             obj.OperationType = "Replace"
-            obj.TreatMissingAsZero = true
+            obj.TreatMissingAsZero = false
             obj.Neighbours = 3
             obj.Factor = .75
             m = CreateObject("Matrix")
@@ -169,7 +152,7 @@ Inputs
 Macro "Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     TransModeTable = Args.TransModeTable
     access_modes = Args.access_modes
     net_dir = Args.[Output Folder] + "/networks"

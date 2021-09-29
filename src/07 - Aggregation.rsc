@@ -5,16 +5,16 @@ the aggregate components.
 
 Macro "Aggregation" (Args)
 
-    RunMacro("Aggregate HB Trips by Market Segment", Args)
+    RunMacro("Aggregate HB Moto Trips", Args)
     return(1)
 endmacro
 
 /*
 Collapses the person-level home-based trip productions by trip type, market
-segment, and TAZ. Appends to the SE Data.
+segment, and TAZ. Appends to the SE Data. Motorized trips only.
 */
 
-Macro "Aggregate HB Trips by Market Segment" (Args)
+Macro "Aggregate HB Moto Trips" (Args)
 
     hh_file = Args.Households
     per_file = Args.Persons

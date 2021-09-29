@@ -1,0 +1,13 @@
+Cluster,ClusterName,Theta,ASC,IC
+6,ChapelHill,0.8696,0,1.0270
+3,Cary,0.7942,0,1.0230
+5,Durham,0.7760,0.5245,0.5757
+4,Garner,0.7852,0,0.8150
+82,Northeast,0.8544,0,0.3030
+81,Northwest,0.9521,0,0
+84,South,0.8721,0,0
+83,Southeast,0.9245,-1.1430,0.7147
+85,Southwest,0.8245,0.7820,0
+7,SouthernDurham,0.7132,0.5441,0.6073
+1,RTP,0.6745,0,0
+2,Raleigh,0.8102,0.2833,0.3321

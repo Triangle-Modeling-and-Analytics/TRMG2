@@ -11,12 +11,10 @@ Inputs
 * zone_utils
     * String
     * File path of the CSV file containing utility terms for zonal choice
-* cluster_utils
+* cluster_data
     * String
-    * File path of the CSV file containing utility terms for cluster choice
-* cluster_thetas
-    * String
-    * File path of the CSV file containing theta/nesting coefficients for cluster choice
+    * File path of the CSV file containing theta/nesting coefficients, ASCs,
+      and IZ coefficients for cluster choice
 * period
     * Optional string (default: null)
     * Time of day. Only used for file naming, so you can use "daily", "all",
@@ -57,24 +55,28 @@ Inputs
 Class "NestedDC" (ClassOpts)
 
     init do
+        // Check input options
         if ClassOpts.output_dir = null then Throw("NestedDC: 'output_dir' is null")
         if ClassOpts.trip_type = null then Throw("NestedDC: 'trip_type' is null")
         if ClassOpts.period = null then Throw("NestedDC: 'period' is null")
         if ClassOpts.segments = null then ClassOpts.segments = {null}
         if ClassOpts.zone_utils = null then Throw("NestedDC: 'zone_utils' is null")
-        if ClassOpts.cluster_utils = null then Throw("NestedDC: 'cluster_utils' is null")
-        if ClassOpts.cluster_thetas = null then Throw("NestedDC: 'cluster_thetas' is null")
+        if ClassOpts.cluster_data = null then Throw("NestedDC: 'cluster_data' is null")
         if ClassOpts.primary_spec = null then Throw("NestedDC: 'primary_spec' is null")
         if ClassOpts.dc_spec = null then Throw("NestedDC: 'dc_spec' is null")
         if ClassOpts.cluster_equiv_spec = null then Throw("NestedDC: 'cluster_equiv_spec' is null")
         if ClassOpts.tables = null then Throw("NestedDC: 'tables' is null")
         if ClassOpts.matrices = null then Throw("NestedDC: 'matrices' is null")
 
+        // Create additional class options
         self.ClassOpts = ClassOpts
         self.ClassOpts.mdl_dir = ClassOpts.output_dir + "/model_files"
         self.ClassOpts.prob_dir = ClassOpts.output_dir + "/probabilities"
         self.ClassOpts.logsum_dir = ClassOpts.output_dir + "/logsums"
         self.ClassOpts.util_dir = ClassOpts.output_dir + "/utilities"
+        {drive, path, name, ext} = SplitPath(self.ClassOpts.cluster_data)
+        file_name = self.ClassOpts.output_dir + "/" + name + "_utils.csv"
+        self.ClassOpts.cluster_utils = file_name
     enditem
 
     Macro "Run" do
@@ -92,6 +94,7 @@ Class "NestedDC" (ClassOpts)
         self.dc_spec = {DestinationsSource: "mtx", DestinationsIndex: "Col_AggregationID"}
         self.RunChoiceModels(cluster_opts)
 
+        // Combine cluster- and zone-level probabilities into final results
         self.CalcFinalProbs()
     enditem
 
@@ -220,7 +223,8 @@ Class "NestedDC" (ClassOpts)
     enditem
 
     /*
-    Aggregates the DC logsums into cluster-level values
+    Aggregates the DC logsums into cluster-level values. Also writes a simple
+    dc util spec csv file.
     */
 
     Macro "BuildClusterData" do
@@ -229,12 +233,14 @@ Class "NestedDC" (ClassOpts)
         period = self.ClassOpts.period
         segments = self.ClassOpts.segments
         equiv_spec = self.ClassOpts.cluster_equiv_spec
+        output_dir = self.ClassOpts.output_dir
         util_dir = self.ClassOpts.util_dir
         logsum_dir = self.ClassOpts.logsum_dir
-        cluster_thetas = self.ClassOpts.cluster_thetas
+        cluster_data = self.ClassOpts.cluster_data
+        cluster_utils = self.ClassOpts.cluster_utils
 
         // Collect vectors of cluster names, IDs, and theta values
-        theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+        theta_vw = OpenTable("thetas", "CSV", {cluster_data})
         {
             v_cluster_ids, v_cluster_names, v_cluster_theta, v_cluster_asc,
             v_cluster_ic
@@ -278,7 +284,7 @@ Class "NestedDC" (ClassOpts)
 
             // Aggregate the columns into clusters
             agg = mtx.Aggregate({
-                Matrix: {MatrixFile: logsum_dir + "/agg_zonal_ls_" + name + ".mtx", MatrixLabel: "Cluster Logsums"},
+                Matrix: {FileName: logsum_dir + "/agg_zonal_ls_" + name + ".mtx", MatrixLabel: "Cluster Logsums"},
                 Matrices: {"ExpScaledTotal", "IntraCluster"}, 
                 Method: "Sum",
                 Rows: {
@@ -292,33 +298,29 @@ Class "NestedDC" (ClassOpts)
                     AggregationID: equiv_spec.ClusterIDField
                 }
             })
-            o = CreateObject("Matrix", agg)
-            o.AddCores({"LnSumExpScaledTotal", "final", "ic", "asc"})
-            cores = o.GetCores()
+            agg.AddCores({"LnSumExpScaledTotal", "final", "ic", "asc"})
+            cores = agg.GetCores()
             cores.LnSumExpScaledTotal := Log(cores.[Sum of ExpScaledTotal])
             cores.final := cores.LnSumExpScaledTotal * v_cluster_theta
             cores.ic := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
             cores.ic := cores.ic * v_cluster_ic
             cores.asc := v_cluster_asc
-            
-            // TODO: this is needed because Matrix.Aggregate() is not writing to
-            // the correct place, but to a temp file. Remove after fixing
-            // Matrix.Aggregate()
-            temp_file = agg.Name
-            agg = null
-            CopyFile(temp_file, logsum_dir + "/agg_zonal_ls_" + name + ".mtx")
-
-            // // Export a table of IntraCluster flags with cluster names
-            // // instead of IDs
-            // opts.v_cluster_ids = v_cluster_ids
-            // opts.v_cluster_names = v_cluster_names
-            // opts.mc = cores.[Sum of IntraCluster]
-            // opts.out_file = logsum_dir + "/cluster_ic_" + name + ".bin"
-            // self.WriteClusterTables(opts)
-            // opts.mc = cores.final
-            // opts.out_file = logsum_dir + "/agg_zonal_ls_" + name + ".bin"
-            // self.WriteClusterTables(opts)
         end
+
+        // Write the simple cluster_utils csv file needed to run cluster dc
+        util_vw = CreateTable("util", , "MEM", {
+            {"Expression", "String", 32, },
+            {"Segment", "String", 32, },
+            {"Coefficient", "Real", 32, 2},
+            {"Description", "String", 32, }
+        })
+        AddRecords(util_vw, {"Expression", "Coefficient"}, {
+            {"mtx.asc", 1},
+            {"mtx.ic", 1},
+            {"mtx.final", 1}
+        }, )
+        ExportView(util_vw + "|", "CSV", cluster_utils, , {"CSV Header": "true"})
+        CloseView(util_vw)
     enditem
 
     /*
@@ -327,10 +329,10 @@ Class "NestedDC" (ClassOpts)
 
     Macro "CreateClusterIndices" (mtx) do
         
-        cluster_thetas = self.ClassOpts.cluster_thetas
+        cluster_data = self.ClassOpts.cluster_data
         equiv_spec = self.ClassOpts.cluster_equiv_spec
 
-        theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+        theta_vw = OpenTable("thetas", "CSV", {cluster_data})
         {v_cluster_ids, v_cluster_names} = GetDataVectors(
             theta_vw + "|",
             {"Cluster", "ClusterName"},
@@ -353,32 +355,6 @@ Class "NestedDC" (ClassOpts)
         end
     enditem
 
-    Macro "WriteClusterTables" (MacroOpts) do
-
-        mc = MacroOpts.mc
-        out_file = MacroOpts.out_file
-        v_cluster_ids = MacroOpts.v_cluster_ids
-        v_cluster_names = MacroOpts.v_cluster_names
-
-        col_ids = V2A(GetMatrixVector(mc, {Index: "Column"}))
-        ExportMatrix(
-            mc,
-            col_ids,
-            "Rows",
-            "FFB",
-            out_file,
-        )
-        // Convert the column names from IDs to names
-        vw = OpenTable("ls", "FFB", {out_file})
-        for i = 1 to v_cluster_ids.length do
-            id = v_cluster_ids[i]
-            name = v_cluster_names[i]
-            RunMacro("Rename Field", vw, String(id), name)
-        end
-        RunMacro("Rename Field", vw, "Row_AggregationID", "TAZ")
-        CloseView(vw)
-    enditem
-
     /*
     After the zonal and cluster probabilities are calculated, they must be
     combined into a final probability of choosing each zone. This is the
@@ -393,7 +369,7 @@ Class "NestedDC" (ClassOpts)
         period = self.ClassOpts.period
         segments = self.ClassOpts.segments
         prob_dir = self.ClassOpts.prob_dir
-        cluster_thetas = self.ClassOpts.cluster_thetas
+        cluster_data = self.ClassOpts.cluster_data
 
         for segment in segments do
             name = trip_type + "_" + segment + "_" + period
@@ -406,7 +382,7 @@ Class "NestedDC" (ClassOpts)
             // Add cluster indices to the zonal matrix
             self.CreateClusterIndices(z_mtx)
             
-            theta_vw = OpenTable("thetas", "CSV", {cluster_thetas})
+            theta_vw = OpenTable("thetas", "CSV", {cluster_data})
             {v_cluster_ids, v_cluster_names} = GetDataVectors(
                 theta_vw + "|",
                 {"Cluster", "ClusterName"},

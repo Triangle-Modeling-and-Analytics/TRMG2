@@ -81,11 +81,15 @@ trips_orig <- read_csv(
 ```{r, include = FALSE}
 trips <- trips_orig %>%
   mutate(
-    mode_nhb = case_when(
-      mode_final == "bus" ~ "t",
-      TRUE ~ mode_final
-    ),
-    trip_type = paste0(trip_type, "_", mode_nhb)
+    # mode_nhb = case_when(
+    #   homebased == "HB" ~ mode_final,
+    #   mode_final != "other_auto" ~ mode_final,
+    #   party_size == 1 ~ "sov",
+    #   party_size == 2 ~ "hov2",
+    #   party_size >= 3 ~ "hov3"
+    # ),
+    # trip_type = paste0(trip_type, "_", mode_nhb)
+    trip_type = paste0(trip_type, "_", mode_final)
   ) %>%
   filter(!is.na(p_taz) & !is.na(a_taz))
 
@@ -139,11 +143,11 @@ dependent_vars <- c(
   "W_HB_EK12_All_hov",
   "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike",
   "W_HB_W_All_auto"
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -174,7 +178,6 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_O_All_auto",
   "W_HB_EK12_All_hov",
-  "W_HB_EK12_All_sov",
   "W_HB_O_All_walkbike"
 )
 
@@ -248,7 +251,7 @@ n_records <- trips %>%
   nrow()
 ```
 
-#### Non-motorized (walk/bike)
+#### Non-motorized
 
 ```{r, W_NH_EK12_All_walkbike}
 type <- "W_NH_EK12_All_walkbike"
@@ -302,21 +305,23 @@ type <- "W_NH_WR_All_sov"
 equiv <- list(
   "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
   "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
   "W_HB_W_All_hov2" = "W_HB_W_All_auto",
   "W_HB_W_All_hov3" = "W_HB_W_All_auto",
-  "W_HB_W_All_sov" = "W_HB_W_All_auto"
+  "W_HB_W_All_sov" = "W_HB_W_All_auto",
+  "W_HB_O_All_sov" = "W_HB_O_All_auto",
+  "W_HB_O_All_hov2" = "W_HB_O_All_auto",
+  "W_HB_O_All_hov3" = "W_HB_O_All_auto"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   "W_HB_EK12_All_auto",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike",
+  "W_HB_O_All_auto",
   "W_HB_W_All_auto"
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -337,22 +342,17 @@ type <- "W_NH_WR_All_hov2"
 # Collapse trip types
 equiv <- list(
   "W_HB_O_All_hov2" = "W_HB_O_All_hov",
-  "W_HB_O_All_hov3" = "W_HB_O_All_hov",
-  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
-  "W_HB_W_All_hov3" = "W_HB_W_All_hov",
-  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
-  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
+  "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   'W_HB_O_All_hov',
-  'W_HB_W_All_hov',
-  'W_HB_O_All_sov',
-  'W_HB_EK12_All_hov'
+  'W_HB_O_All_sov'
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -374,20 +374,17 @@ type <- "W_NH_WR_All_hov3"
 equiv <- list(
   "W_HB_O_All_hov2" = "W_HB_O_All_hov",
   "W_HB_O_All_hov3" = "W_HB_O_All_hov",
-  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
-  "W_HB_W_All_hov3" = "W_HB_W_All_hov",
-  "W_HB_EK12_All_hov2" = "W_HB_EK12_All_hov",
-  "W_HB_EK12_All_hov3" = "W_HB_EK12_All_hov"
+  "W_HB_W_All_hov2" = "W_HB_W_All_hov"
 )
 
 # Restrict dependent variables
 dependent_vars <- c(
   'W_HB_O_All_hov',
-  'W_HB_W_All_hov',
-  'W_HB_EK12_All_hov'
+  "W_HB_W_All_hov3"
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -415,6 +412,7 @@ dependent_vars <- c(
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -429,36 +427,14 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Transit
 
+No significant presence of this trip type in the survey (3 samples), and it is
+not an important source of travel demand. No model was estimated.
+
 ```{r, W_NH_WR_All_lb}
 type <- "W_NH_WR_All_lb"
-
-# Collapse trip types
-equiv <- list(
-  "W_HB_W_All_walkbike" = "W_HB_WO_All_walkbike",
-  "W_HB_O_All_walkbike" = "W_HB_WO_All_walkbike",
-  "W_HB_W_All_hov2" = "W_HB_W_All_hov",
-  "W_HB_W_All_hov3" = "W_HB_W_All_hov"
-)
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "W_HB_WO_All_walkbike",
-  "W_HB_O_All_lb",
-  "W_HB_W_All_lb",
-  "W_HB_W_All_hov"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(trips, type, equiv = equiv, 
-                       dependent_vars = dependent_vars)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
 ```
 
 #### Non-motorized
@@ -475,15 +451,13 @@ equiv <- list(
 # Restrict dependent variables
 dependent_vars <- c(
   "W_HB_EK12_All_walkbike",
-  "W_HB_O_All_hov",
   "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike",
   "W_HB_W_All_sov",
-  "W_HB_W_All_lb",
   "W_HB_W_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
+# View(model1$tbl)
 # model2 <- estimate_nhb(trips, type, equiv = equiv)
 model3 <- estimate_nhb(trips, type, equiv = equiv, 
                        dependent_vars = dependent_vars)
@@ -542,7 +516,6 @@ type <- "W_NH_O_All_sov"
 equiv <- list(
   "W_HB_EK12_All_hov2" = "W_HB_EK12_All_auto",
   "W_HB_EK12_All_hov3" = "W_HB_EK12_All_auto",
-  "W_HB_EK12_All_sov" = "W_HB_EK12_All_auto",
   "W_HB_O_All_hov2" = "W_HB_O_All_hov",
   "W_HB_O_All_hov3" = "W_HB_O_All_hov"
 )
@@ -551,8 +524,8 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_EK12_All_auto",
   "W_HB_O_All_hov",
-  "W_HB_O_All_sov",
-  "W_HB_O_All_walkbike"
+  "W_HB_O_All_sov"
+  # "W_HB_O_All_walkbike"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -656,8 +629,7 @@ equiv <- list(
 dependent_vars <- c(
   "W_HB_O_All_walkbike",
   "W_HB_O_All_lb",
-  "W_HB_W_All_hov",
-  "W_HB_EK12_All_walkbike"
+  "W_HB_W_All_hov"
 )
 
 # model1 <- estimate_nhb(trips, type)
@@ -668,7 +640,7 @@ model3 <- estimate_nhb(trips, type, equiv = equiv,
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1098,31 +1070,14 @@ p_tbl_list[type] <- list(model3$p_tbl)
 
 #### Auto Pay
 
+No significant presence of this trip type in the survey (21 samples), and it is
+not an important source of travel demand. No model was estimated.
+
 ```{r, N_NH_OME_All_auto_pay}
 type <- "N_NH_OME_All_auto_pay"
-
-# Collapse trip types
-equiv <- NULL
-
-# Restrict dependent variables
-dependent_vars <- c(
-  "N_HB_OD_Short_auto_pay",
-  "N_HB_OME_All_auto_pay"
-)
-
-# model1 <- estimate_nhb(trips, type)
-# model2 <- estimate_nhb(trips, type, equiv = equiv)
-model3 <- estimate_nhb(
-  trips, type, equiv = equiv, dependent_vars = dependent_vars,
-  boost = FALSE
-)
-
-zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
-coeff_tbl <- model3$tbl %>%
-  add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
-make_table(coeff_tbl)
-p_tbl_list[type] <- list(model3$p_tbl)
+n_records <- trips %>%
+  filter(trip_type == type) %>%
+  nrow()
 ```
 
 #### Transit
@@ -1153,7 +1108,7 @@ model3 <- estimate_nhb(
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1424,8 +1379,6 @@ make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
 
-
-
 #### Transit
 
 ```{r, N_NH_O_All_lb}
@@ -1456,7 +1409,7 @@ model3 <- estimate_nhb(
 zonal_result <- apply_nhb_zonal(trips, type, model3$tbl)
 coeff_tbl <- model3$tbl %>%
   add_row(term = "r_sq", estimate = zonal_result$r_sq)
-coeffs_list[type] <- list(coeff_tbl)
+coeffs_list[gsub("_lb", "_t", type)] <- list(coeff_tbl)
 make_table(coeff_tbl)
 p_tbl_list[type] <- list(model3$p_tbl)
 ```
@@ -1665,6 +1618,107 @@ knitr::include_graphics("img/nhb/hb_attractions.png")
 knitr::include_graphics("img/nhb/nhb_trip_ends.png")
 ```
 
+## Calibration
+
+After applying the estimated model, Caliper calculated calibration factors such
+that total NHB trips matched the expanded survey. Factors were calculated by
+tour type and mode. A coarser approach, such as calibrating a single factor for
+all NHB trips, would leave rarer modes like transit with either too few or
+to many trips.
+
+Some of the calibration factors are larger than those seen in other models (e.g.
+homebased generation). This is the result of two features of this modeling
+approach. Firstly, recall that the estimated models do not predict chained NHB
+trips (see previous section). While the spatial distribution of predicted trips
+is representative, the totals must be scaled up to account for these additional
+trips.
+
+Secondly, the scaling of trip productions by zonal accessibility also impacts
+trip totals. There is no guarantee, for example, that the number of trips
+scaled up and down will match or that the original total will be preserved. The
+impact is especially large for transit. No boosting coefficients could be
+estimated from the survey, but the model enforces logical consistency by
+removing transit NHB trip predicted where no transit access exists. This
+requires that the remaining NHB transit trips be scaled up to compensate.
+
+For these reasons, these calibration factors are acceptable as long as
+assignment results and distribution patterns look reasonable.
+
+```{r, include=FALSE}
+results <- read_csv("data/input/nhb/estimated_model_app_results.csv") %>%
+  select(-c(TAZ:access_walk))
+```
+
+
+```{r}
+totals <- results %>%
+  summarize(across(.fns = sum)) %>%
+  pivot_longer(everything(), names_to = "type", values_to = "trips")
+
+comparison <- trips %>%
+  mutate(
+    # mode_nhb = mode_final
+    mode_nhb = case_when(
+      homebased == "HB" ~ mode_final,
+      mode_final != "other_auto" ~ mode_final,
+      party_size == 1 ~ "sov",
+      party_size == 2 ~ "hov2",
+      party_size >= 3 ~ "hov3"
+    )
+  ) %>%
+  filter(
+    homebased == "NH",
+    tour_type != "H",
+    !(mode_nhb %in% c("school_bus", "XXX", "other"))
+  ) %>%
+  mutate(
+    mode_nhb = ifelse(mode_nhb %in% c("lb", "eb"), "t", mode_nhb)
+  ) %>%
+  group_by(tour_type, mode_nhb) %>%
+  summarize(obs_trips = sum(trip_weight_combined)) %>%
+  unite(type, c(tour_type, mode_nhb), sep = "_") %>%
+  left_join(totals, by = "type") %>%
+  mutate(
+    diff = trips - obs_trips,
+    pct_diff = (diff / obs_trips) * 100,
+    factor = obs_trips / trips
+  )
+
+comparison %>%
+  select(-diff, -pct_diff) %>%
+  mutate(
+    obs_trips = round(obs_trips, 0),
+    trips = round(trips, 0),
+    tour_type = substring(type, 1, 1),
+    mode = substring(type, 3, length(type)),
+    mode = case_when(
+      mode == "auto_pay" ~ "Auto Pay",
+      mode == "sov" ~ "SOV",
+      mode == "hov2" ~ "HOV2",
+      mode == "hov3" ~ "HOV3",
+      mode == "t" ~ "Transit",
+      mode == "walkbike" ~ "Nonmotorized",
+    ),
+    mode = factor(
+      mode, 
+      levels = c("SOV", "HOV2", "HOV3", "Auto Pay", "Transit", "Nonmotorized"),
+      ordered = TRUE
+    )
+  ) %>%
+  select(tour_type, mode, factor) %>%
+  pivot_wider(names_from = tour_type, values_from = factor) %>%
+  arrange(mode) %>%
+  rename(
+    Mode = mode,
+    `NonWork Tour` = N,
+    `Work Tour` = W
+  ) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+
+calib_out_tbl <- comparison %>%
+  select(type, factor)
+```
 
 ```{r write_output, eval=FALSE}
 output_dir <- "data/output/nhb/"
@@ -1673,5 +1727,6 @@ for (i in 1:length(coeffs_list)) {
   df <- coeffs_list[[i]]
   write_csv(df, paste0(output_dir, name, ".csv"))
 }
-```
 
+write_csv(calib_out_tbl, "data/output/nhb/nhb_calibration_factors.csv")
+```
