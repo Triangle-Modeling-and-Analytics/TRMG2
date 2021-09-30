@@ -297,12 +297,10 @@ Macro "Create Accessibility Skims" (Args)
     obj.OutputMatrix({MatrixFile: out_files.bike, Matrix: "Bike Skim"})
     ret_value = obj.Run()
     // Transit Skim
-    // TODO: create a macro to determine the highest transit mode available
-    // and build the skim for that.
     overrides = {
         periods: {"AM"},
         access_modes: {"w"},
-        transit_modes: {"lb"}
+        transit_modes: {"all"}
     }
     RunMacro("Transit Skims", Args, overrides)
 
