@@ -77,34 +77,6 @@ menu "TRMG2 Menu"
 
     MenuItem "Utils" text: "Utilities"
         menu "TRMG2 Utilities"
-
-    /*
-    Temporary macro to get initial congested skims. Keeping during development
-    in case I need to re-run.
-    TODO: delete when done
-    */
-    MenuItem "Cong Skim" text: "Cong Skims"
-        do 
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        {, scen_name} = mr.GetScenario()
-
-        // Check that a scenario is selected and that a folder has been chosen
-        if scen_name = null then do
-            ShowMessage("Choose a scenario (not 'Model')")
-            return()
-        end
-        if Args.[Scenario Folder] = null then do
-            ShowMessage(
-                "Choose a folder for the current scenario\n" +
-                "(Parameters -> Files -> Scenario -> Input)"
-            )
-            return()
-        end
-
-        mr.RunCode("get cong skims", Args)
-        return(1)
-    enditem
 endMenu 
 
 menu "TRMG2 Utilities"

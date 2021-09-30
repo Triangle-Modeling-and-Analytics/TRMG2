@@ -5,14 +5,16 @@
 Macro "Create Assignment Matrices" (Args)
 
     RunMacro("Directionality", Args)
-    // TODO: update this once Ashish changes the airport code
-    // RunMacro("Add Airport Trips", Args)
+    RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
     RunMacro("Remove Interim Matrices", Args)
     RunMacro("Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
     RunMacro("Add CVs and Trucks", Args)
     RunMacro("Add Externals", Args)
+    RunMacro("Create Transit Matrices", Args)
+    RunMacro("VOT Split", Args)
+    RunMacro("VOT Aggregation", Args)
 
     return(1)
 endmacro
@@ -25,8 +27,8 @@ Macro "Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     dir_factor_file = Args.DirectionFactors
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    RunMacro("Create Directory", assn_dir)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -65,40 +67,31 @@ Macro "Directionality" (Args)
 endmacro
 
 /*
-The output of the airport model is an OD person matrix of trips by time of day.
-This macro adds them to the appropriate resident od trip matrix.
+Adds the airport auto trips to the resident OD matrices
 */
 
 Macro "Add Airport Trips" (Args)
     
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     out_dir = Args.[Output Folder]
-    mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    air_dir = out_dir + "/airport"
 
-    RunMacro("Create Directory", assn_dir)
-
-    // Which trip type and segment to use for modal probabilities
+    // Which trip type to add airport trips to
     trip_type = "N_HB_OD_Long"
-    segment = "vs"
     
-    air_mtx = CreateObject("Matrix", out_dir + "/airport/Airport_Trips.mtx")
     for period in periods do
-        mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_" + segment + "_" + period + ".mtx"
-        mc_mtx = CreateObject("Matrix", mc_mtx_file)
-        mc_cores = mc_mtx.GetCores()
-        res_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        out_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        CopyFile(res_mtx_file, out_mtx_file)
-        out_mtx = CreateObject("Matrix", out_mtx_file)
+        air_mtx_file = air_dir + "/airport_auto_trips_" + period + ".mtx"
+        air_mtx = CreateObject("Matrix", air_mtx_file)
+        od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        od_mtx = CreateObject("Matrix", od_mtx_file)
 
-        air_core = air_mtx.GetCore("Trips_" + period)
-        mode_names = mc_mtx.GetCoreNames()
-        out_cores = out_mtx.GetCores()
-        for mode in mode_names do
-            out_cores.(mode) := nz(out_cores.(mode)) + air_core * mc_cores.(mode)
+        core_names = air_mtx.GetCoreNames()
+        for core_name in core_names do
+            air_core = air_mtx.GetCore(core_name)
+            od_core = od_mtx.GetCore(core_name)
+            od_core := nz(od_core) + nz(air_core)
         end
     end
 endmacro
@@ -110,9 +103,8 @@ Collapse auto_pay and other_auto into sov/hov2/hov3
 Macro "Collapse Auto Modes" (Args)
     
     shares_file = Args.OtherShares
-    periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("shares", "CSV", {shares_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -157,9 +149,8 @@ converts from person trips to vehicle trips by applying occupancy factors.
 Macro "Occupancy" (Args)
 
     factor_file = Args.HOV3OccFactors
-    periods = Args.periods
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    periods = RunMacro("Get Unconverged Periods", Args)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     
@@ -196,9 +187,8 @@ trips.
 
 Macro "Collapse Purposes" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
-    periods = Args.periods
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     trip_types = RunMacro("Get All Res Trip Types", Args)
 
@@ -235,12 +225,13 @@ endmacro
 Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
+
+TODO: if parallelizing by time period, this has to change
 */
 
 Macro "Remove Interim Matrices" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     files = RunMacro("Catalog Files", assn_dir, "mtx")
 
@@ -263,10 +254,9 @@ endmacro
 
 Macro "Add CVs and Trucks" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     cv_dir = Args.[Output Folder] + "/cv"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
@@ -289,10 +279,9 @@ endmacro
 
 Macro "Add Externals" (Args)
 
-    iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "/assignment/roadway/iter_" + String(iter)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
     ext_dir = Args.[Output Folder] + "/external"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     ee_mtx_file = ext_dir + "/ee_trips.mtx"
     ee_mtx = CreateObject("Matrix", ee_mtx_file)
@@ -322,5 +311,255 @@ Macro "Add Externals" (Args)
         trip_mtx.UpdateCore({core_name: mode, source_cores: ee_cores.(ee_core_name)})
         // The ie matrix contains all centroids
         trip_cores.(mode) := nz(trip_cores.(mode)) + nz(ie_cores.(ie_core_name))
+    end
+endmacro
+
+/*
+TODO: if parallelizing over time periods, this must change
+TODO: need to update once we see what the NHB matrices look like
+*/
+
+Macro "Create Transit Matrices" (Args)
+
+    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+    trn_dir = Args.[Output Folder] + "/assignment/transit"
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    access_modes = {"w", "pnr", "knr"}
+    files = RunMacro("Catalog Files", trip_dir, "mtx")
+
+    // Create a starting transit matrix for each time period
+    for period in periods do
+        out_file = trn_dir + "/transit_" + period + ".mtx"
+        CopyFile(files[1], out_file)
+        mtx = CreateObject("Matrix", out_file)
+        core_names = mtx.GetCoreNames()
+        mtx.AddCores({"temp"})
+        mtx.DropCores(core_names)
+        mtxs.(period) = mtx
+    end
+
+    // Collapse the resident matrices
+    for file in files do
+        {, , name, } = SplitPath(file)
+        period = Right(name, 2)
+        out_mtx = mtxs.(period)
+        
+        trip_mtx = CreateObject("Matrix", file)
+        core_names = trip_mtx.GetCoreNames()
+        for core_name in core_names do
+            parts = ParseString(core_name, "_")
+            access_mode = parts[1]
+            // skip non-transit cores
+            if access_modes.position(access_mode) = 0 then continue
+            // initialize core if it doesn't exist
+            out_core_names = out_mtx.GetCoreNames()
+            if out_core_names.position(core_name) = 0 then do
+                out_mtx.AddCores({core_name})
+                out_core = out_mtx.GetCore(core_name)
+                out_core := 0
+            end
+            out_core = out_mtx.GetCore(core_name)
+            trip_core = trip_mtx.GetCore(core_name)
+            out_core := out_core + nz(trip_core)
+        end
+
+        mtxs.(period) = out_mtx
+    end
+
+    // Add in airport transit trips
+    air_dir = Args.[Output Folder] + "/airport"
+    for period in periods do
+        out_mtx = mtxs.(period)
+        air_mtx_file = air_dir + "/airport_transit_trips_" + period + ".mtx"
+
+        air_mtx = CreateObject("Matrix", air_mtx_file)
+        core_names = air_mtx.GetCoreNames()
+        for core_name in core_names do
+            out_core = out_mtx.GetCore(core_name)
+            air_core = air_mtx.GetCore(core_name)
+            out_core := nz(out_core) + nz(air_core)
+        end
+
+        mtxs.(period) = out_mtx
+    end
+
+    //TODO: add university transit trips
+endmacro
+
+/*
+This borrows the NCSTM approach to split OD matrices into distinct values of
+time. This is based both on the distance of the trip and the average HH incomes
+in the origin and destination zones.
+*/
+
+Macro "VOT Split" (Args)
+
+    se_file = Args.SE
+    vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+    periods = RunMacro("Get Unconverged Periods", Args)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    skim_dir = Args.[Output Folder] + "/skims/roadway"
+
+    p = RunMacro("Read Parameter File", {file: vot_params})
+    veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+    auto_classes = {"sov", "hov2", "hov3", "CV"}
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    {v_hh, v_inc} = GetDataVectors(
+        se_vw + "|", {"HH","Median_Inc"}, 
+        {{"Sort Order",{{"TAZ","Ascending"}}}}
+    )
+
+    for period in periods do
+        if period = "AM" or period = "PM"
+            then pkop = "pk"
+            else pkop = "op"
+        mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        skim_file = skim_dir + "/skim_sov_" + period + ".mtx"
+        
+        skim = CreateObject("Matrix", skim_file)
+        length_skim = skim.data.cores.("Length (Skim)")
+
+        // Calculate weighted income
+        output = CreateObject("Matrix", mtx_file)
+        output.AddCores({"hh", "wgtinc", "otemp", "dtemp"})
+        cores = output.data.cores
+        cores.otemp := v_hh
+        v_hh.rowbased = "false"
+        cores.dtemp := v_hh
+        v_hh.rowbased = true
+        cores.hh := cores.otemp + cores.dtemp
+        v_tothhinc = v_inc/100 * v_hh
+		cores.otemp    := v_tothhinc
+		v_tothhinc.rowbased = false
+		cores.dtemp    := v_tothhinc
+		v_tothhinc.rowbased = true
+		cores.wgtinc    := (cores.otemp + cores.dtemp) / cores.hh
+        output.DropCores({"hh", "otemp", "dtemp"})
+
+        output.AddCores({"lognorm", "zscore"})
+        for veh_class in veh_classes do
+            
+            // Auto classes
+            if auto_classes.position(veh_class) > 0 then do
+                meanvot = p.(pkop + "_meanvot")
+                targetvot = p.(pkop + "_targetvot")
+                costcoef = p.(pkop + "_costcoef")
+                meantime = p.(pkop + "_meantime")
+                sdtime = p.(pkop + "_sdtime")
+                for i = 1 to 5 do
+                    votcut = p.("votcut" + i2s(i))
+                    out_core = veh_class + "_VOT" + i2s(i)
+                    cumu_prob = veh_class + "_VOT" + i2s(i) + "_cumuprob"
+                    prob_core = veh_class + "_VOT" + i2s(i) + "_prob"
+                    output.AddCores({cumu_prob, prob_core, out_core})
+                    cores = output.data.cores
+
+                    // Calculate cumulative probability
+                    cores.lognorm := (votcut * costcoef) / (log(cores.wgtinc) * log(10 * length_skim + 5) * 60 * (targetvot/meanvot))
+                    cores.zscore := (log(-1 * cores.lognorm) - meantime) / sdtime
+                    RunMacro("erf_normdist", output, cumu_prob)
+
+                    // Convert cumulative probability to individual
+                    if i = 1 then do
+                        cores.(prob_core) := cores.(cumu_prob)
+                    end else do
+                        prev_cumu = veh_class + "_VOT" + i2s(i - 1) + "_cumuprob"
+                        if i = 5 then cores.(prob_core) := 1 - cores.(prev_cumu)
+                        else cores.(prob_core) := cores.(cumu_prob) - cores.(prev_cumu)
+                    end
+
+                    // Calculate final core
+                    cores.(out_core) := cores.(veh_class) * cores.(prob_core)    
+                end
+
+                // Cleanup
+                for i = 1 to 5 do
+                    cumu_prob = veh_class + "_VOT" + i2s(i) + "_cumuprob"
+                    prob_core = veh_class + "_VOT" + i2s(i) + "_prob"
+                    output.DropCores({prob_core, cumu_prob})
+                end
+            end
+
+            // Truck Classes
+            if veh_class = "SUT" then truck_classes = 3
+            else if veh_class = "MUT" then truck_classes = 5
+            else truck_classes = 0
+            for i = 1 to truck_classes do
+                weight = p.(Lower(veh_class) + "wgt" + i2s(i))
+                out_core = veh_class + "_VOT" + i2s(i)
+                output.AddCores({out_core})
+                cores = output.data.cores
+                cores.(out_core) := cores.(veh_class) * weight
+            end
+        end
+        output.DropCores({"lognorm", "zscore", "wgtinc"})
+        output.DropCores(veh_classes)
+    end
+
+    CloseView(se_vw)
+endmacro
+
+/*
+Helper function for "VOT Split"
+
+Calculates NORMDIST(z) by using an error function approximation (modified using Horner's method)
+https://www.codeproject.com/Articles/408214/Excel-Function-NORMSDIST-z_score
+*/
+
+Macro "erf_normdist" (matrix, out_corename)
+
+    matrix.AddCores({"sign", "x", "t", "erf", "normdist"})
+    cores = matrix.data.cores
+
+	//Calculate erf(x)
+	cores.x := Abs(cores.zscore)/Sqrt(2)
+	a1 = 0.254829592
+	a2 = -0.284496736
+	a3 = 1.421413741
+	a4 = -1.453152027
+	a5 = 1.061405429
+	p = 0.3275911
+	cores.x := Abs(cores.x)
+	cores.t := 1 / (1 + p * cores.x)
+	cores.erf := 1 - ((((((a5 * cores.t + a4) * cores.t) + a3) * cores.t + a2) * cores.t) + a1) * cores.t * Exp(-1 * cores.x * cores.x)
+	//Calculate normdist(zscore)
+	cores.sign := if cores.zscore < 0 then -1 else 1
+	cores.normdist := 0.5 * (1.0 + cores.sign * cores.erf)
+	cores.(out_corename) := cores.normdist
+
+	//Cleanup
+    matrix.DropCores({"sign", "x", "t", "erf", "normdist"})
+endMacro
+
+/*
+The 'VOT Split' macro fully disaggregates values of time based on the NCSTM
+approach; however, this leads to a lot of classes and much slower assignments.
+This collapses some of the classes. It's a separate macro to make it easy
+to disable in the future if desired (e.g. on a faster machine or for a
+detailed toll study).
+*/
+
+Macro "VOT Aggregation" (Args)
+
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    auto_cores = {"sov", "hov2", "hov3", "CV"}
+
+    for period in periods do
+        mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
+        cores = mtx.GetCores()
+
+        // Collapse auto VOT classes 1-3 into just class 2
+        for auto_core in auto_cores do
+            core1 = auto_core + "_VOT1"
+            core2 = auto_core + "_VOT2"
+            core3 = auto_core + "_VOT3"
+            cores.(core2) := nz(cores.(core2)) + nz(cores.(core1)) + nz(cores.(core3))
+            mtx.DropCores({core1, core3})
+        end 
     end
 endmacro

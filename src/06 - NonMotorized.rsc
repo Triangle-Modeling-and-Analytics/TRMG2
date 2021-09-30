@@ -111,7 +111,6 @@ Macro "Separate NM Trips" (Args)
     
     output_dir = Args.[Output Folder] + "/resident/nonmotorized"
     per_file = Args.Persons
-    // periods = Args.periods
     
     per_vw = OpenTable("persons", "FFB", {per_file})
 

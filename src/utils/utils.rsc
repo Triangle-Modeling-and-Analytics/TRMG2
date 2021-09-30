@@ -2178,3 +2178,38 @@ Macro "Create Intra Cluster Matrix"(Args)
   mc = null
   mat = null
 endMacro
+/*
+Used by the convergence macro to write out the %RMSE in each iteration
+*/
+
+Macro "Write PRMSE" (Args, period)
+
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  file = assn_dir + "/feedback_report_" + period + ".csv"
+  prmse = Args.(period + "_PRMSE")
+  iter = Args.FeedbackIteration
+
+  f = OpenFile(file, "w")
+  if iter = 1 then do
+    WriteLine(f, "Iteration,%RMSE")
+    WriteLine(f, "1,0")
+  end else WriteLine(f, String(iter) + "," + String(prmse))
+  CloseFile(f)
+endmacro
+
+/*
+The model manages feedback independently by time of day. It does this by
+building up an Args.converged_periods variable, which keeps track of which
+periods have finished. This macro returns the periods that are not converged.
+*/
+
+Macro "Get Unconverged Periods" (Args)
+  periods = Args.periods
+  converged_periods = Args.converged_periods
+
+  if converged_periods = null then return(periods)
+  for period in periods do
+    if converged_periods.position(period) = 0 then to_return = to_return + {period}
+  end
+  return(to_return)
+EndMacro

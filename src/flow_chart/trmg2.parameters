@@ -38,7 +38,7 @@
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
-        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"} }
+        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
         Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
         Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
@@ -154,4 +154,4 @@
         Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1 }
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
-        Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
+        Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
