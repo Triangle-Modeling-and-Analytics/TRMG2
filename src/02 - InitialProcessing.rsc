@@ -517,10 +517,10 @@ Macro "Other Attributes" (Args)
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "AutoTollRate * Length|Influenced by TransponderRatioAuto"},
+        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length|TollRate Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "SUTTollRate * Length * 2|Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "MUTTollRate * Length * 4|Influenced by TransponderRatioMUT"},
+        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2|TollRate Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4|TollRate Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
