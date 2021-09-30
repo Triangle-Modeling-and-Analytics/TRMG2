@@ -310,7 +310,6 @@ Macro "Create Accessibility Skims" (Args)
     obj.TreatMissingAsZero = false
     obj.Neighbours = 3
     obj.Factor = .75
-    // TODO: clean up if this class is modified to do all cores by default
     obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "FFTime"})
     ok = obj.Run()
     obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "Length (Skim)"})
@@ -337,8 +336,7 @@ Macro "Calculate Logsum Accessibilities" (Args)
     skim_dir = Args.[Output Folder] + "\\skims"
     sov_skim = skim_dir + "\\roadway\\accessibility_sov_AM.mtx"
     walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
-    // TODO: change to highest transit mode available
-    transit_skim = skim_dir + "\\transit\\skim_AM_w_lb.mtx"
+    transit_skim = skim_dir + "\\transit\\skim_AM_w_all.mtx"
 
     RunMacro("Accessibility Calculator", {
         table: se_file,
