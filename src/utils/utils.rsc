@@ -2131,14 +2131,11 @@ Macro "Write PRMSE" (Args, period)
   prmse = Args.(period + "_PRMSE")
   iter = Args.FeedbackIteration
 
+  f = OpenFile(file, "w")
   if iter = 1 then do
-    f = OpenFile(file, "w")
     WriteLine(f, "Iteration,%RMSE")
-    CloseFile(f)
-  end
-  
-  f = OpenFile(file, "a")
-  WriteLine(f, String(iter) + "," + String(prmse))
+    WriteLine(f, "1,0")
+  end else WriteLine(f, String(iter) + "," + String(prmse))
   CloseFile(f)
 endmacro
 
