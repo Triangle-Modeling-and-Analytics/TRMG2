@@ -4,16 +4,16 @@ Handle initial steps like capacity and speed calculations.
 
 Macro "Initial Processing" (Args)
     
-    // created = RunMacro("Is Scenario Created", Args)
-    // if !created then return(0)
-    // RunMacro("Create Output Copies", Args)
-    // RunMacro("Determine Area Type", Args)
-    // RunMacro("Capacity", Args)
-    // RunMacro("Set CC Speeds", Args)
-    // RunMacro("Other Attributes", Args)
-    // RunMacro("Calculate Bus Speeds", Args)
-    // RunMacro("Create Link Networks", Args)
-    // RunMacro("Check Highway Networks", Args)
+    created = RunMacro("Is Scenario Created", Args)
+    if !created then return(0)
+    RunMacro("Create Output Copies", Args)
+    RunMacro("Determine Area Type", Args)
+    RunMacro("Capacity", Args)
+    RunMacro("Set CC Speeds", Args)
+    RunMacro("Other Attributes", Args)
+    RunMacro("Calculate Bus Speeds", Args)
+    RunMacro("Create Link Networks", Args)
+    RunMacro("Check Highway Networks", Args)
     RunMacro("Create Route Networks", Args)
 
     return(1)
@@ -829,11 +829,16 @@ Macro "Create Route Networks" (Args)
     TransModeTable = Args.TransModeTable
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+    transit_modes = {"all"} + transit_modes
 
     for period in periods do
         for transit_mode in transit_modes do
 
-            for access_mode in access_modes do
+            if transit_mode = "all" 
+                then access_mode_subset = {"w"}
+                else access_mode_subset = access_modes
+
+            for access_mode in access_mode_subset do
                 
                 // create transit network .tnw file
                 file_name = output_dir + "\\tnet_" + period + "_" + access_mode + "_" + transit_mode + ".tnw"
