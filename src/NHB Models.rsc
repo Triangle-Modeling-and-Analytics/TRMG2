@@ -19,6 +19,7 @@ Macro "NHB Generation" (Args)
     param_dir = Args.[Input Folder] + "/resident/nhb/generation"
     out_dir = Args.[Output Folder]
     trip_dir = out_dir + "/resident/trip_tables"
+    nhb_dir = out_dir + "/resident/nhb/generation"
     periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
     calib_fac_file = Args.NHBGenCalibFacs
@@ -26,7 +27,7 @@ Macro "NHB Generation" (Args)
     modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
 
     // Create the output table with initial fields
-    out_file = out_dir + "/resident/nhb/generation.bin"
+    out_file = nhb_dir + "/generation.bin"
     if GetFileInfo(out_file) <> null then do
         DeleteFile(out_file)
         DeleteFile(Substitute(out_file, ".bin", ".dcb", ))
@@ -213,7 +214,7 @@ Macro "Combine NHB trips for DC"(Args)
     out_vw = CreateTable("out", out_file, "FFB", spec)
 
     // Obtain values from NHB trip generation table
-    tgenFile = out_dir + "/resident/nhb/generation.bin"
+    tgenFile = out_dir + "/resident/nhb/generation/generation.bin"
     tgen_vw = OpenTable("out", "FFB", {tgenFile})
     {flds, specs} = GetFields(tgen_vw,)
     vecs = GetDataVectors(tgen_vw + "|", flds, {OptArray: 1})
