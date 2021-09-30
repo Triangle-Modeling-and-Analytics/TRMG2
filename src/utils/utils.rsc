@@ -2119,3 +2119,62 @@ Macro "Get All Res Trip Types" (Args)
   nhb_types = RunMacro("Get NHB Trip Types", Args)
   return(hb_types + nhb_types)
 endmacro
+
+
+Macro "Create Intra Cluster Matrix"(Args)
+  se = Args.SE
+  se_vw = OpenTable("SE", "FFB", {se})
+  vTAZ = GetDataVector(se_vw + "|", "TAZ",)
+  nTAZ = vTAZ.length
+  CloseView(se_vw)
+
+  outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
+  // Create empty matrix
+  obj = CreateObject("Matrix") 
+  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+  opts.RowIds = v2a(vTAZ) 
+  opts.ColIds = v2a(vTAZ)
+  opts.MatrixNames = {"IC", "IZ"}
+  opts.RowIndexName = "All Zones"
+  opts.ColIndexName = "All Zones"
+  mat = obj.CreateFromArrays(opts)
+  obj = null
+  
+  // Intialize IC and IZ cores
+  mtx = CreateObject("Matrix", mat)
+  mc = mtx.GetCore("IC")
+  mc := 0
+  
+  mc = mtx.GetCore("IZ")
+  mc := 0
+  v = Vector(nTAZ, "Short", {{"Constant", 1}})
+  SetMatrixVector(mc, v, {{"Diagonal"}})
+  
+  // Cluster definitions from dc spec for the 2 level model
+  cluster_data = Args.[Input Folder] + "/resident/dc/w_hb_w_all_cluster.csv"
+  theta_vw = OpenTable("thetas", "CSV", {cluster_data})
+  {v_cluster_ids, v_cluster_names} = GetDataVectors(theta_vw + "|", {"Cluster", "ClusterName"},)
+  CloseView(theta_vw)
+
+  for i = 1 to v_cluster_ids.length do
+      cluster_id = v_cluster_ids[i]
+      cluster_name = v_cluster_names[i]
+
+      mtx.AddIndex({
+          Matrix: mtx.GetMatrixHandle(),
+          IndexName: cluster_name,
+          Filter: "Cluster = " + String(cluster_id),
+          Dimension: "Both",
+          TableName: se,
+          OriginalID: "TAZ",
+          NewID: "TAZ"
+      })
+      
+      mtx.SetRowIndex(cluster_name)
+      mtx.SetColIndex(cluster_name)
+      mc = mtx.GetCore("IC")
+      mc := 1
+  end
+  mc = null
+  mat = null
+endMacro
