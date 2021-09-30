@@ -140,7 +140,7 @@ assign_iters = 1
                 sov_opts = {
                     Demand: "sov_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostSOV"
                 }
                 if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -151,7 +151,7 @@ assign_iters = 1
                 o.AddClass({
                     Demand: "hov2_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostHOV"
                 })
             end
@@ -160,7 +160,7 @@ assign_iters = 1
                 o.AddClass({
                     Demand: "hov3_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostHOV"
                 })
             end
@@ -169,7 +169,7 @@ assign_iters = 1
                 cv_opts = {
                     Demand: "CV_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostSOV"
                 }
                 if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
