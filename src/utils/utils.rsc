@@ -1845,7 +1845,6 @@ Macro "Accessibility Calculator" (MacroOpts)
   // Remove first and last column (param names and description info)
   out_fields = ExcludeArrayElements(out_fields, 1, 1)
   out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
-  // TODO: use vector.position() after bug fix
   a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
   skim_pos = a_first_col.position("skim")
   core_pos = a_first_col.position("core")
