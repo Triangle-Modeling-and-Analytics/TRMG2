@@ -366,6 +366,7 @@ Macro "Create Transit Matrices" (Args)
 
         mtxs.(period) = out_mtx
     end
+    mtx.DropCores({"temp"})
 
     // Add in airport transit trips
     air_dir = Args.[Output Folder] + "/airport"

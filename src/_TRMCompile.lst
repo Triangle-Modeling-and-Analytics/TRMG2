@@ -22,6 +22,7 @@ External Models.rsc
 NHB Models.rsc
 Create Assignment Matrices.rsc
 nested_dc.rsc
+DesireLines.rsc
 utils/utils.rsc
 utils/mc.rsc
 utils/df.rsc

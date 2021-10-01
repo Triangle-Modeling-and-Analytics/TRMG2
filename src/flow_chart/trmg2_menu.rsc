@@ -83,6 +83,12 @@ menu "TRMG2 Utilities"
     init do
     enditem
 
+    MenuItem "desire_lines" text: "Desire Lines" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Desire Lines Dbox", Args)
+    enditem
+
     MenuItem "diff" text: "Diff Tool" do
         mr = CreateObject("Model.Runtime")
         mr.RunCode("Open Diff Tool")
