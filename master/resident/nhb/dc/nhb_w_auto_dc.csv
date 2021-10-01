@@ -1,0 +1,14 @@
+Expression,Segment,Coefficient,Description
+se.nhb_w_auto_size.D,,0.7798,Size term
+skim.CongTime,,-0.2023,
+(skim.CongTime > 30)*(skim.CongTime - 30),,0.1473,Time excess of 30 min
+IntraCluster.IC,,0.1654,Intra Cluster Dummy
+se.Cluster.D = 2,,-0.226,Raleigh Cluster ASC
+se.Cluster.D = 3,,-0.1221,Cary Cluster ASC
+se.Cluster.D = 5,,-0.2917,Durham Cluster ASC
+se.Cluster.D = 7,,-0.1294,Southern Durham Cluster ASC
+se.Cluster.D = 81,,0.2299,Other NW Cluster ASC
+se.Cluster.D = 82,,0.1457,Other NE Cluster ASC
+se.Cluster.D = 83,,0.3218,Other SE Cluster ASC
+se.Cluster.D = 84,,0.1778,Other S Cluster ASC
+se.Cluster.D = 85,,0.7452,Other SW Cluster ASC

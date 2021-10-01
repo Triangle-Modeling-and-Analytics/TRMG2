@@ -1,0 +1,13 @@
+Expression,Segment,Coefficient,Description
+se.nhb_walkbike_size.D,,0.5405,Size term
+skim.[Length (skim)],,-0.4924,
+skim.[Length (skim)] > 1,,-2.462,Destination more than a mile away
+IntraCluster.IC,,0.4923,Intra Cluster Dummy
+IntraCluster.IZ,,1.158,Intra Zonal Dummy
+se.Cluster.D = 1,,-0.7972,Park Cluster ASC
+se.Cluster.D = 5,,-1.718,Durham Cluster ASC
+se.Cluster.D = 6,,-1.161,Chapel Hill Cluster ASC
+se.Cluster.D = 7,,-1.381,Southern Durham Cluster ASC
+se.Cluster.D = 82,,1.165,Other NE Cluster ASC
+se.Cluster.D = 83,,-1.327,Other SE Cluster ASC
+se.Cluster.D = 85,,1.256,Other SW Cluster ASC

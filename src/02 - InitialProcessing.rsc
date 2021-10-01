@@ -517,10 +517,10 @@ Macro "Other Attributes" (Args)
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "AutoTollRate * Length|Influenced by TransponderRatioAuto"},
+        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length|TollRate Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "SUTTollRate * Length * 2|Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "MUTTollRate * Length * 4|Influenced by TransponderRatioMUT"},
+        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2|TollRate Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4|TollRate Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -829,17 +829,16 @@ Macro "Create Route Networks" (Args)
     TransModeTable = Args.TransModeTable
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+    transit_modes = {"all"} + transit_modes
 
     for period in periods do
         for transit_mode in transit_modes do
 
-            // Busses use the bus speed equations, but rail/brt will use
-            // auto times + stop dwell times.
-            if transit_mode = "lb" or transit_mode = "eb" 
-                then use_dwell = "false"
-                else use_dwell = "true"
+            if transit_mode = "all" 
+                then access_mode_subset = {"w"}
+                else access_mode_subset = access_modes
 
-            for access_mode in access_modes do
+            for access_mode in access_mode_subset do
                 
                 // create transit network .tnw file
                 file_name = output_dir + "\\tnet_" + period + "_" + access_mode + "_" + transit_mode + ".tnw"
@@ -852,16 +851,25 @@ Macro "Create Route Networks" (Args)
                 o.WalkLinkFilter = "W = 1"
                 o.AddRouteField({Name: period + "Headway", Field: period + "Headway"})
                 o.AddRouteField({Name: "Fare", Field: "Fare"})
-                if use_dwell then suffix = "Time" else suffix = Upper(transit_mode) + "Time"
+                // Add IVTT fields for all modes regardless of which net is being built.
+                // The mode table and ModesUsedField will control which are allowed.
                 o.AddLinkField({
-                    Name: "IVTT", 
-                    TransitFields: {"AB" + period + suffix, "BA" + period + suffix}, 
+                    Name: "LBTime",
+                    TransitFields: {"AB" + period + "LBTime", "BA" + period + "LBTime"},
                     NonTransitFields: {"WalkTime", "WalkTime"}
                 })
-                if use_dwell then do
-                    o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
-                    o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
-                end
+                o.AddLinkField({
+                    Name: "EBTime",
+                    TransitFields: {"AB" + period + "EBTime", "BA" + period + "EBTime"},
+                    NonTransitFields: {"WalkTime", "WalkTime"}
+                })
+                o.AddLinkField({
+                    Name: "FGTime",
+                    TransitFields: {"AB" + period + "Time", "BA" + period + "Time"},
+                    NonTransitFields: {"WalkTime", "WalkTime"}
+                })
+                o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
+                o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
                 o.AddStopField({Name: "xfer_pen", Field: "xfer_pen"})
                 o.UseModes({
                     TransitModeField: "Mode",
@@ -883,7 +891,7 @@ Macro "Create Route Networks" (Args)
                 o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
                 o.UserClasses = {"Class1"}
                 o.CentroidFilter = "Centroid = 1"
-                o.LinkImpedance = "IVTT"
+                // o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 999,
                     MaxTransfers = 4,
@@ -891,12 +899,14 @@ Macro "Create Route Networks" (Args)
                 })
                 o.AccessControl({PermitWalkOnly: false})
                 o.Combination({CombinationFactor: .1})
-                stop_time_opts = {
+                o.StopTimeFields({
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen"
-                }
-                time_global_opts = {
-                    Headway: 14,
+                    TransferPenalty: "xfer_pen",
+                    DwellOn: "dwell_on",
+                    DwellOff: "dwell_off"
+                })
+                o.TimeGlobals({
+                    // Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 3,
                     MaxInitialWait: 20,
@@ -907,30 +917,14 @@ Macro "Create Route Networks" (Args)
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
                     MaxModalTotal: 240
-                }
-                if use_dwell then do
-                    stop_time_opts = stop_time_opts + {
-                        DwellOn: "dwell_on",
-                        DwellOff: "dwell_off"
-                    }
-                    if transit_mode = "brt"
-                        then dwell_time = 1 // 1 minute stop time brt assumption
-                        else dwell_time = 5 // 5 minute stop time rail assumption
-                    time_global_opts = time_global_opts + {
-                        DwellOn: dwell_time / 2,
-                        DwellOff: dwell_time / 2
-                    }
-                end else do
-                    time_global_opts = time_global_opts + {
-                        DwellOn: 0,
-                        DwellOff: 0
-                    }
-                end
-                o.StopTimeFields(stop_time_opts)
-                o.TimeGlobals(time_global_opts)
+                })
                 o.RouteTimeFields({Headway: period + "Headway"})
                 o.ModeTable({
                     TableName: TransModeTable,
+                    // A field in the mode table that contains a list of
+                    // link network field names. These network field names
+                    // in turn point to the AB/BA fields on the link layer.
+                    TimeByMode: "IVTT",
                     ModesUsedField: transit_mode,
                     OnlyCombineSameMode: true,
                     FreeTransfers: 0
@@ -958,7 +952,9 @@ Macro "Create Route Networks" (Args)
                 o.Fare({
                     Type: "Flat",
                     RouteFareField: "Fare",
-                    RouteXFareField: "Fare"
+                    RouteXFareField: "Fare",
+                    FareValue: 0,
+                    TransferFareValue: 0
                 })
 
                 // Drive attributes for network settings

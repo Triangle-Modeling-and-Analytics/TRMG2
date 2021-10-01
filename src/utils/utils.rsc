@@ -1845,7 +1845,6 @@ Macro "Accessibility Calculator" (MacroOpts)
   // Remove first and last column (param names and description info)
   out_fields = ExcludeArrayElements(out_fields, 1, 1)
   out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
-  // TODO: use vector.position() after bug fix
   a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
   skim_pos = a_first_col.position("skim")
   core_pos = a_first_col.position("core")
@@ -2120,6 +2119,64 @@ Macro "Get All Res Trip Types" (Args)
   return(hb_types + nhb_types)
 endmacro
 
+
+Macro "Create Intra Cluster Matrix"(Args)
+  se = Args.SE
+  se_vw = OpenTable("SE", "FFB", {se})
+  vTAZ = GetDataVector(se_vw + "|", "TAZ",)
+  nTAZ = vTAZ.length
+  CloseView(se_vw)
+
+  outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
+  // Create empty matrix
+  obj = CreateObject("Matrix") 
+  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+  opts.RowIds = v2a(vTAZ) 
+  opts.ColIds = v2a(vTAZ)
+  opts.MatrixNames = {"IC", "IZ"}
+  opts.RowIndexName = "All Zones"
+  opts.ColIndexName = "All Zones"
+  mat = obj.CreateFromArrays(opts)
+  obj = null
+  
+  // Intialize IC and IZ cores
+  mtx = CreateObject("Matrix", mat)
+  mc = mtx.GetCore("IC")
+  mc := 0
+  
+  mc = mtx.GetCore("IZ")
+  mc := 0
+  v = Vector(nTAZ, "Short", {{"Constant", 1}})
+  SetMatrixVector(mc, v, {{"Diagonal"}})
+  
+  // Cluster definitions from dc spec for the 2 level model
+  cluster_data = Args.[Input Folder] + "/resident/dc/w_hb_w_all_cluster.csv"
+  theta_vw = OpenTable("thetas", "CSV", {cluster_data})
+  {v_cluster_ids, v_cluster_names} = GetDataVectors(theta_vw + "|", {"Cluster", "ClusterName"},)
+  CloseView(theta_vw)
+
+  for i = 1 to v_cluster_ids.length do
+      cluster_id = v_cluster_ids[i]
+      cluster_name = v_cluster_names[i]
+
+      mtx.AddIndex({
+          Matrix: mtx.GetMatrixHandle(),
+          IndexName: cluster_name,
+          Filter: "Cluster = " + String(cluster_id),
+          Dimension: "Both",
+          TableName: se,
+          OriginalID: "TAZ",
+          NewID: "TAZ"
+      })
+      
+      mtx.SetRowIndex(cluster_name)
+      mtx.SetColIndex(cluster_name)
+      mc = mtx.GetCore("IC")
+      mc := 1
+  end
+  mc = null
+  mat = null
+endMacro
 /*
 Used by the convergence macro to write out the %RMSE in each iteration
 */
@@ -2131,14 +2188,11 @@ Macro "Write PRMSE" (Args, period)
   prmse = Args.(period + "_PRMSE")
   iter = Args.FeedbackIteration
 
+  f = OpenFile(file, "w")
   if iter = 1 then do
-    f = OpenFile(file, "w")
     WriteLine(f, "Iteration,%RMSE")
-    CloseFile(f)
-  end
-  
-  f = OpenFile(file, "a")
-  WriteLine(f, String(iter) + "," + String(prmse))
+    WriteLine(f, "1,0")
+  end else WriteLine(f, String(iter) + "," + String(prmse))
   CloseFile(f)
 endmacro
 

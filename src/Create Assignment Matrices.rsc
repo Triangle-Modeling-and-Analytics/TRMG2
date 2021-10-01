@@ -5,8 +5,7 @@
 Macro "Create Assignment Matrices" (Args)
 
     RunMacro("Directionality", Args)
-    // TODO: update this once Ashish changes the airport code
-    // RunMacro("Add Airport Trips", Args)
+    RunMacro("Add Airport Trips", Args)
     RunMacro("Collapse Auto Modes", Args)
     RunMacro("Remove Interim Matrices", Args)
     RunMacro("Occupancy", Args)
@@ -68,38 +67,31 @@ Macro "Directionality" (Args)
 endmacro
 
 /*
-The output of the airport model is an OD person matrix of trips by time of day.
-This macro adds them to the appropriate resident od trip matrix.
+Adds the airport auto trips to the resident OD matrices
 */
 
 Macro "Add Airport Trips" (Args)
     
     periods = RunMacro("Get Unconverged Periods", Args)
     out_dir = Args.[Output Folder]
-    mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_tables"
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    air_dir = out_dir + "/airport"
 
-
-    // Which trip type and segment to use for modal probabilities
+    // Which trip type to add airport trips to
     trip_type = "N_HB_OD_Long"
-    segment = "vs"
     
-    air_mtx = CreateObject("Matrix", out_dir + "/airport/Airport_Trips.mtx")
     for period in periods do
-        mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_" + segment + "_" + period + ".mtx"
-        mc_mtx = CreateObject("Matrix", mc_mtx_file)
-        mc_cores = mc_mtx.GetCores()
-        res_mtx_file = trip_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        out_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-        CopyFile(res_mtx_file, out_mtx_file)
-        out_mtx = CreateObject("Matrix", out_mtx_file)
+        air_mtx_file = air_dir + "/airport_auto_trips_" + period + ".mtx"
+        air_mtx = CreateObject("Matrix", air_mtx_file)
+        od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+        od_mtx = CreateObject("Matrix", od_mtx_file)
 
-        air_core = air_mtx.GetCore("Trips_" + period)
-        mode_names = mc_mtx.GetCoreNames()
-        out_cores = out_mtx.GetCores()
-        for mode in mode_names do
-            out_cores.(mode) := nz(out_cores.(mode)) + air_core * mc_cores.(mode)
+        core_names = air_mtx.GetCoreNames()
+        for core_name in core_names do
+            air_core = air_mtx.GetCore(core_name)
+            od_core = od_mtx.GetCore(core_name)
+            od_core := nz(od_core) + nz(air_core)
         end
     end
 endmacro
@@ -234,7 +226,7 @@ Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
 
-TODO: if parallelizing by time period, this has to change
+Note: if parallelizing by time period, this has to change
 */
 
 Macro "Remove Interim Matrices" (Args)
@@ -323,7 +315,7 @@ Macro "Add Externals" (Args)
 endmacro
 
 /*
-TODO: if parallelizing over time periods, this must change
+Note: if parallelizing over time periods, this must change
 TODO: need to update once we see what the NHB matrices look like
 */
 
@@ -347,6 +339,7 @@ Macro "Create Transit Matrices" (Args)
         mtxs.(period) = mtx
     end
 
+    // Collapse the resident matrices
     for file in files do
         {, , name, } = SplitPath(file)
         period = Right(name, 2)
@@ -373,6 +366,25 @@ Macro "Create Transit Matrices" (Args)
 
         mtxs.(period) = out_mtx
     end
+
+    // Add in airport transit trips
+    air_dir = Args.[Output Folder] + "/airport"
+    for period in periods do
+        out_mtx = mtxs.(period)
+        air_mtx_file = air_dir + "/airport_transit_trips_" + period + ".mtx"
+
+        air_mtx = CreateObject("Matrix", air_mtx_file)
+        core_names = air_mtx.GetCoreNames()
+        for core_name in core_names do
+            out_core = out_mtx.GetCore(core_name)
+            air_core = air_mtx.GetCore(core_name)
+            out_core := nz(out_core) + nz(air_core)
+        end
+
+        mtxs.(period) = out_mtx
+    end
+
+    //TODO: add university transit trips
 endmacro
 
 /*

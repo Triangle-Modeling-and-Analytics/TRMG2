@@ -4,10 +4,10 @@
 
 Macro "Destination Choice" (Args)
 
-    // RunMacro("Split Employment by Earnings", Args)
-    // RunMacro("DC Attractions", Args)
-    // RunMacro("DC Size Terms", Args)
-    // RunMacro("Calculate Destination Choice", Args)
+    RunMacro("Split Employment by Earnings", Args)
+    RunMacro("DC Attractions", Args)
+    RunMacro("DC Size Terms", Args)
+    RunMacro("Calculate Destination Choice", Args)
     RunMacro("Apportion Resident HB Trips", Args)
 
     return(1)
@@ -80,7 +80,6 @@ of those fields so it can be fed directly into the DC utility equation.
 */
 
 Macro "DC Size Terms" (Args)
-
     se_file = Args.SE
     coeff_file = Args.ResDCSizeCoeffs
 
@@ -99,6 +98,17 @@ Macro "DC Size Terms" (Args)
     )
     output.Hosp_Service = input.Hospital * (input.Service_RateLow + input.Service_RateHigh)
     SetDataVectors(se_vw + "|", output, )
+    CloseView(se_vw)
+
+    sizeSpec = {DataFile: se_file, CoeffFile: coeff_file}
+    RunMacro("Compute Size Terms", sizeSpec)
+endmacro
+
+
+// Generic size term computation macro, given the view with all relevnt fields and the coeff file. Add fields to the view.
+Macro "Compute Size Terms"(sizeSpec)
+    coeff_file = sizeSpec.CoeffFile
+    se_vw = OpenTable("Data", "FFB", {sizeSpec.DataFile})
 
     // Calculate the size term fields using the coefficient file
     {drive, folder, name, ext} = SplitPath(coeff_file)
@@ -113,6 +123,7 @@ Macro "DC Size Terms" (Args)
     coeff_vw = OpenTable("coeff", "CSV", {coeff_file})
     {field_names, } = GetFields(coeff_vw, "All")
     CloseView(coeff_vw)
+    
     // Remove the first and last fields ("Field" and "Description")
     field_names = ExcludeArrayElements(field_names, 1, 1)
     field_names = ExcludeArrayElements(field_names, field_names.length, 1)
@@ -124,8 +135,7 @@ Macro "DC Size Terms" (Args)
     end
     SetDataVectors(se_vw + "|", output, )
     CloseView(se_vw)
-endmacro
-
+endMacro
 /*
 
 */
