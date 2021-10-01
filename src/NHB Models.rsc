@@ -162,16 +162,15 @@ endmacro
 
 
 /* Macro runs the destination choice models for NHB purposes
-    ** Step 1: Combine the columns of the NHB trip gen outputs into 4 main categories:
-               Work Auto, NonWork Auto, Transit and WalkBike
+    ** Step 1: Combine the columns of the NHB trip gen outputs into 10 main categories:
+               (Work Tour, NonWork Tour) X (sov, hov2, hov3 & auto_pay), Transit and WalkBike
                Retain columns by time period
-               For example: For N_Auto combine 'SOV', 'HOV2', 'HOV3' for N_NH_K12, N_NH_OME and N_NH_O purposes and 'auto_pay' for N_NH_O
 
-    ** Step 2: Run DC model for 4*4(periods) = 16 sub models. Use appropriate skim whereever applicable
+    ** Step 2: Run DC model for 10*4(periods) = 40 sub models. Use appropriate skim wherever applicable
                Generate applied totals matrices as part of the DC process
 
-    ** Step 3: Produce combined matrix file for NHB trip with 12 cores
-               Combination of (Auto, WalkBike, Transit) by period (AM, PM, MD, NT)
+    ** Step 3: Produce combined matrix file for NHB trip with 24 cores
+               Combination of (sov, hov2, hov3, auto_pay, walkbike, transit) X (AM, PM, MD, NT)
 
 */
 Macro "NHB DC"(Args)
@@ -184,20 +183,24 @@ Macro "NHB DC"(Args)
     totals_dir = out_folder + "/resident/nhb/dc/trip_matrices"
     if GetDirectoryInfo(totals_dir, "All") = null then CreateDirectory(totals_dir)
     
+    Spec.SubModels = {'w_sov', 'w_hov2', 'w_hov3', 'w_auto_pay', 
+                      'n_sov', 'n_hov2', 'n_hov3', 'n_auto_pay', 
+                      'walkbike', 
+                      'transit'}
     // Step 1: Combine Trips
-    RunMacro("Combine NHB trips for DC", Args)
+    RunMacro("Combine NHB trips for DC", Args, Spec)
 
     // Step 2: Run DC
-    RunMacro("Evaluate NHB DC", Args)
+    RunMacro("Evaluate NHB DC", Args, Spec)
 
     // Step 3: Final NHB Matrix
-    RunMacro("Create NHB Trip Matrix", Args)
+    RunMacro("Create NHB Trip Matrix", Args, Spec)
 endMacro
 
 
 // Create a table of NHB productions for the DC model
-// Collapses the NHB trips by purpose and mode into 4 categories: 'WorkAuto', 'NonWorkAuto', 'WalkBike', 'Transit'
-Macro "Combine NHB trips for DC"(Args)
+// Collapses the NHB trips by purpose and mode into 10 categories ('W_Auto', 'N_Auto') X (sov, hov2, hov3, auto_pay), 'Transit', 'WalkBike')
+Macro "Combine NHB trips for DC"(Args, Spec)
     periods = Args.periods
     trip_types = RunMacro("Get NHB Trip Types", Args)
 
@@ -205,7 +208,7 @@ Macro "Combine NHB trips for DC"(Args)
     out_dir = Args.[Output Folder]
     out_file = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
     spec = {{"TAZ", "Integer", 10, , , "Zone ID"}}
-    categories = {'W_Auto', 'N_Auto', 'WalkBike', 'Transit'}
+    categories = Spec.SubModels
     for category in categories do
         for period in periods do
             spec = spec + {{"NHB_" + category + "_" + period, "Real", 12, 2}}
@@ -224,19 +227,17 @@ Macro "Combine NHB trips for DC"(Args)
     vecsSet = null
     vecsSet.TAZ = vecs.TAZ
     for fld in flds do
+        fld = Lower(fld)
         tour_type = Left(fld, 1)
-        if Lower(tour_type) <> "w" and Lower(tour_type) <> "n" then // Non trip fields
+        if tour_type <> "w" and tour_type <> "n" then // Non trip fields
             continue
         
         period = Right(fld,2)
-        if Lower(fld) contains "walkbike" then
-            outfld = "NHB_WalkBike_" + period
-        else if Lower(fld) contains "_t_" then
-            outfld = "NHB_Transit_" + period
-        else if Lower(tour_type) = "w" then // Auto and Work
-            outfld = "NHB_W_Auto_" + period
+        {mainMode, subMode} = RunMacro("Get Mode Info", fld)
+        if mainMode = "auto" then // Append tour type to field name
+            outfld = "NHB_" + tour_type + "_" + subMode + "_" + period    
         else
-            outfld = "NHB_N_Auto_" + period
+            outfld = "NHB_" + subMode + "_" + period
 
         vecsSet.(outfld) = nz(vecsSet.(outfld)) + nz(vecs.(fld))   
     end
@@ -252,7 +253,7 @@ endMacro
     4 categories: Auto_Work, Auto_NonWork, Transit and WalkBike
     4 time periods
 */
-Macro "Evaluate NHB DC"(Args)
+Macro "Evaluate NHB DC"(Args, Spec)
     // Folders
     in_folder = Args.[Input Folder] + "/resident/nhb/dc/"
     out_folder = Args.[Output Folder]
@@ -274,20 +275,28 @@ Macro "Evaluate NHB DC"(Args)
 
     // Run DC Loop over categories and time periods
     periods = Args.periods
-    categories = {'W_Auto', 'N_Auto', 'WalkBike', 'Transit'}
+    categories = Spec.SubModels
     for category in categories do
-        coeffFile = in_folder + "nhb_" + category + "_dc.csv"
-        util = RunMacro("Import MC Spec", coeffFile) 
+        {mainMode, subMode} = RunMacro("Get Mode Info", category)
+        
+        fName = mainMode
+        if mainMode = "auto" then // Append w_ or n_
+            fName = Left(category,2) + fName // "w_auto" or "n_auto"
+
+        coeffFile = in_folder + "nhb_" + fName + "_dc.csv" // One of "nhb_w_auto_dc.csv", "nhb_n_auto_dc.csv", "nhb_transit_dc.csv", "nhb_walkbike_dc.csv"
+        util = RunMacro("Import MC Spec", coeffFile)
         
         for period in periods do
             tag = "NHB_" + category + "_" + period
 
-            if category = 'WalkBike' then
+            if subMode = 'walkbike' then
                 skimFile = skims_folder + "nonmotorized/walk_skim.mtx"
-            else if category = 'Transit' then
+            else if subMode = 'transit' then
                 skimFile = skims_folder + "transit/skim_" + period + "_w_lb.mtx"
-            else // Auto
+            else if subMode = 'sov' then
                 skimFile = skims_folder + "roadway/skim_sov_" + period + ".mtx"
+            else // auto_pay, hov2 or hov3
+                skimFile = skims_folder + "roadway/skim_hov_" + period + ".mtx"
             
             obj = CreateObject("PMEChoiceModel", {ModelName: tag})
             obj.OutputModelFile = mdl_folder + tag + "_zone.dcm"
@@ -324,21 +333,19 @@ Macro "Evaluate NHB DC"(Args)
 endMacro
 
 
-Macro "Create NHB Trip Matrix"(Args)
+Macro "Create NHB Trip Matrix"(Args, Spec)
     out_folder = Args.[Output Folder]
     trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
 
     // Create output matrix
-    modes = {"Auto", "Transit", "WalkBike"}
-    categories = {'W_Auto', 'N_Auto', 'WalkBike', 'Transit'}
-    periods = Args.periods
-
     se = Args.SE
     se_vw = OpenTable("SE", "FFB", {se})
     vTAZ = GetDataVector(se_vw + "|", "TAZ",)
     CloseView(se_vw)
 
     cores = null
+    modes = {'sov', 'hov2', 'hov3', 'auto_pay', 'transit', 'walkbike'}
+    periods = Args.periods
     for mode in modes do
         for period in periods do
             cores = cores + {mode + "_" + period}
@@ -359,22 +366,45 @@ Macro "Create NHB Trip Matrix"(Args)
     // Fill matrix
     obj = CreateObject("Matrix", mat)
     mcsOut = obj.GetCores()
+    categories = Spec.SubModels
     for category in categories do
         for period in periods do
-            if category contains "Auto" then
-                mode = "Auto"
-            else
-                mode = category
+            {mainMode, subMode} = RunMacro("Get Mode Info", category)
 
             totals_mtx = trips_folder + "NHB_" + category + "_" + period + ".mtx"
             objC = CreateObject("Matrix", totals_mtx)
             mcs = objC.GetCores()
             mc = mcs[1][2]  // Matrix has only one core with applied totals 
 
-            outCore = mode + "_" + period
+            outCore = subMode + "_" + period
             mcsOut.(outCore) := nz(mcsOut.(outCore)) + nz(mc)
             objC = null
         end
     end
     mat = null
+endMacro
+
+
+Macro "Get Mode Info"(category)
+    categoryL = Lower(category)
+    if categoryL contains "transit" or categoryL contains "_t_" then do
+        mainMode = "transit"
+        subMode = "transit"
+    end
+    else if categoryL contains "walkbike" then do
+        mainMode = "walkbike"
+        subMode = "walkbike"
+    end
+    else do
+        mainMode = "auto"
+        if categoryL contains "sov" then
+            subMode = "sov"
+        if categoryL contains "hov2" then
+            subMode = "hov2"
+        if categoryL contains "hov3" then
+            subMode = "hov3"
+        if categoryL contains "auto_pay" then
+            subMode = "auto_pay"
+    end
+    Return({mainMode, subMode})    
 endMacro
