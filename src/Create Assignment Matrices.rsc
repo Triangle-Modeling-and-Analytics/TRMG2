@@ -226,7 +226,7 @@ Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
 
-TODO: if parallelizing by time period, this has to change
+Note: if parallelizing by time period, this has to change
 */
 
 Macro "Remove Interim Matrices" (Args)
@@ -315,7 +315,7 @@ Macro "Add Externals" (Args)
 endmacro
 
 /*
-TODO: if parallelizing over time periods, this must change
+Note: if parallelizing over time periods, this must change
 TODO: need to update once we see what the NHB matrices look like
 */
 

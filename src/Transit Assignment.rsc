@@ -65,9 +65,6 @@ Macro "Aggregate Transit Assignment Results" (Args)
         {, , name, } = SplitPath(net)
         name = Substitute(name, "tnet_", "", )
         name = Substitute(name, ".tnw", "", )
-        // TODO: this is only needed because the OBS didn't have any of these
-        // remove it once done assigning the OBS
-        if name = "NT_knr_eb" then continue
         {tod, access, mode} = ParseString(name, "_")
 
         for suffix in suffixes do

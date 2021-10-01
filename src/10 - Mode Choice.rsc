@@ -7,8 +7,6 @@ Macro "Mode Choice" (Args)
     RunMacro("Create MC Features", Args)
     RunMacro("Calculate MC", Args)
     RunMacro("Post Process Logsum", Args)
-    // TODO: remove this line and the macro itself if we aren't going to do this
-    // RunMacro("Combine Logsum Files", Args)
 
     return(1)
 endmacro
@@ -123,55 +121,6 @@ Macro "Calculate MC" (Args)
             }
             opts.output_dir = output_dir
             RunMacro("MC", Args, opts)
-        end
-    end
-endmacro
-
-/*
-
-*/
-
-Macro "Combine Logsum Files" (Args)
-
-    ls_dir = Args.[Output Folder] + "/resident/mode/logsums"
-    periods = RunMacro("Get Unconverged Periods", Args)
-
-    trip_types = RunMacro("Get HB Trip Types", Args)
-    for trip_type in trip_types do
-        
-        if Lower(trip_type) = "w_hb_w_all"
-            then segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
-            else segments = {"v0", "vi", "vs"}
-
-        for period in periods do
-
-            a_mtx_to_combine = null
-            a_files_to_delete = null
-            for i = 1 to segments.length do
-                segment = segments[i]
-
-                mtx = CreateObject("Matrix")
-                mtx_file = ls_dir + "/logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"
-                mtx.LoadMatrix(mtx_file)
-                core_names = mtx._GetCoreNames()
-                mh = mtx._GetMatrixHandle()
-                for core in core_names do
-                    SetMatrixCoreName(mh, core, core + "_" + segment)
-                end
-                a_mtx_to_combine = a_mtx_to_combine + {mh}
-                a_files_to_delete = a_files_to_delete + {mtx_file}
-            end
-            out_file = ls_dir + "/logsum_" + trip_type + "_" + period + ".mtx"
-            ConcatMatrices(a_mtx_to_combine, "true", {
-                "File Name": out_file,
-                Label: trip_type + " " + period
-            })
-            a_mtx_to_combine = null
-            mtx = null
-            mh = null
-            for mtx in a_files_to_delete do
-                DeleteFile(mtx)
-            end
         end
     end
 endmacro

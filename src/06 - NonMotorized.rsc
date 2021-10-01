@@ -101,7 +101,7 @@ This reduces the trip counts on the synthetic persons tables to represent
 only the motorized person trips. The non-motorized person trips are stored
 in separate tables in output/resident/nonmotorized.
 
-TODO: This step spends a lot of time reading/writing. It could potentially be
+Note: This step spends a lot of time reading/writing. It could potentially be
 sped up further by doing a single write to the person table at the end. This
 only works if all NM output probability files have the exact same order
 (it fills a joined view).
