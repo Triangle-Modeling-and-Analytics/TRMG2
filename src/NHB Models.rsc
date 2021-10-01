@@ -336,49 +336,47 @@ endMacro
 Macro "Create NHB Trip Matrix"(Args, Spec)
     out_folder = Args.[Output Folder]
     trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
+    periods = Args.periods
+    se = Args.SE
 
     // Create output matrix
-    se = Args.SE
     se_vw = OpenTable("SE", "FFB", {se})
     vTAZ = GetDataVector(se_vw + "|", "TAZ",)
     CloseView(se_vw)
 
-    cores = null
-    modes = {'sov', 'hov2', 'hov3', 'auto_pay', 'transit', 'walkbike'}
-    periods = Args.periods
-    for mode in modes do
-        for period in periods do
-            cores = cores + {mode + "_" + period}
-        end
-    end
     outMtx = out_folder + "/resident/trip_tables/" + "pa_per_trips_NHB.mtx"
 
     obj = CreateObject("Matrix") 
     obj.SetMatrixOptions({Compressed: 1, DataType: "Double", FileName: outMtx, MatrixLabel: "NHBTrips"})
     opts.RowIds = v2a(vTAZ) 
     opts.ColIds = v2a(vTAZ)
-    opts.MatrixNames = cores
+    opts.MatrixNames = {"temp"}
     opts.RowIndexName = "Origin"
     opts.ColIndexName = "Destination"
     mat = obj.CreateFromArrays(opts)
     obj = null
 
-    // Fill matrix
+    // Add cores to output matrix
     obj = CreateObject("Matrix", mat)
-    mcsOut = obj.GetCores()
     categories = Spec.SubModels
     for category in categories do
         for period in periods do
-            {mainMode, subMode} = RunMacro("Get Mode Info", category)
+            cores = cores + {category + "_" + period}
+        end
+    end
+    obj.AddCores(cores)
+    obj.DropCores({"temp"})
+    
+    // Fill matrix
+    for category in categories do
+        for period in periods do
+            totals_mtx_file = trips_folder + "NHB_" + category + "_" + period + ".mtx"
+            total_mtx = CreateObject("Matrix", totals_mtx_file)
+            total = total_mtx.GetCore("Total")
 
-            totals_mtx = trips_folder + "NHB_" + category + "_" + period + ".mtx"
-            objC = CreateObject("Matrix", totals_mtx)
-            mcs = objC.GetCores()
-            mc = mcs[1][2]  // Matrix has only one core with applied totals 
-
-            outCore = subMode + "_" + period
-            mcsOut.(outCore) := nz(mcsOut.(outCore)) + nz(mc)
-            objC = null
+            outCore = obj.GetCore(category + "_" + period)
+            outCore := nz(outCore) + nz(total)
+            total_mtx = null
         end
     end
     mat = null
