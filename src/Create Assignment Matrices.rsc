@@ -6,10 +6,11 @@ Macro "Create Assignment Matrices" (Args)
 
     RunMacro("Directionality", Args)
     RunMacro("Add Airport Trips", Args)
-    RunMacro("Collapse Auto Modes", Args)
-    RunMacro("Remove Interim Matrices", Args)
-    RunMacro("Occupancy", Args)
+    RunMacro("HB Collapse Auto Modes", Args)
+    RunMacro("HB Occupancy", Args)
     RunMacro("Collapse Purposes", Args)
+    RunMacro("Remove Interim Matrices", Args)
+    RunMacro("Add NHB Auto Trips", Args)
     RunMacro("Add CVs and Trucks", Args)
     RunMacro("Add Externals", Args)
     RunMacro("Create Transit Matrices", Args)
@@ -100,12 +101,13 @@ endmacro
 Collapse auto_pay and other_auto into sov/hov2/hov3
 */
 
-Macro "Collapse Auto Modes" (Args)
+Macro "HB Collapse Auto Modes" (Args)
     
-    shares_file = Args.OtherShares
+    shares_file = Args.HBOtherShares
     periods = RunMacro("Get Unconverged Periods", Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
+    // HB Trips
     fac_vw = OpenTable("shares", "CSV", {shares_file})
     rh = GetFirstRecord(fac_vw + "|", )
     while rh <> null do
@@ -114,13 +116,7 @@ Macro "Collapse Auto Modes" (Args)
         hov2_fac = fac_vw.hov2
         hov3_fac = fac_vw.hov3
 
-        parts = ParseString(trip_type, "_")
-        homebased = parts[2]
-// TODO: remove. This is just for testing until the NHB matrices are ready
-if homebased = "NH" then goto skip
-        if homebased = "HB"
-            then cores_to_collapse = {"auto_pay", "other_auto"}
-            else cores_to_collapse = {"auto_pay"}
+        cores_to_collapse = {"auto_pay", "other_auto"}
 
         for period in periods do
             mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -134,8 +130,6 @@ if homebased = "NH" then goto skip
             end
             mtx.DropCores({"auto_pay", "other_auto"})
         end
-// TODO: remove. This is just for testing until the NHB matrices are ready
-skip:        
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -146,9 +140,9 @@ Once the auto person trips have been collapsed into sov, hov2, and hov3, this
 converts from person trips to vehicle trips by applying occupancy factors.
 */
 
-Macro "Occupancy" (Args)
+Macro "HB Occupancy" (Args)
 
-    factor_file = Args.HOV3OccFactors
+    factor_file = Args.HBHOV3OccFactors
     periods = RunMacro("Get Unconverged Periods", Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
@@ -160,11 +154,6 @@ Macro "Occupancy" (Args)
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
 
-// TODO: remove. This is just for testing until the NHB matrices are ready
-parts = ParseString(trip_type, "_")
-homebased = parts[2]
-if homebased = "NH" then goto skip
-
         per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
         CopyFile(per_mtx_file, veh_mtx_file)
@@ -172,8 +161,6 @@ if homebased = "NH" then goto skip
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
-// TODO: remove. This is just for testing until the NHB matrices are ready
-skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -246,6 +233,105 @@ Macro "Remove Interim Matrices" (Args)
         {, , name, } = SplitPath(file)
         if files_to_keep.position(name) = 0 then DeleteFile(file)
     end
+endmacro
+
+/*
+
+*/
+
+Macro "Add NHB Auto Trips" (Args)
+    
+    hov3_file = Args.NHBHOV3OccFactors
+    shares_file = Args.NHBOtherShares
+    out_dir = Args.[Output Folder]
+    nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+
+    // Distribute auto_pay to other modes
+    share_vw = OpenTable("shares", "CSV", {shares_file})
+    share_data = GetDataVectors(
+        share_vw + "|",
+        {"tour_type", "sov", "hov2", "hov3"},
+        {OptArray: true}
+    )
+    CloseView(share_vw)
+    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    for nhb_mtx_file in nhb_mtxs do
+        
+        // Skip everything but auto_pay matrices
+        {, , name, } = SplitPath(nhb_mtx_file)
+        parts = ParseString(name, "_")
+        if parts[2] = "transit" or parts[2] = "walkbike" then continue
+        if parts[3] <> "auto" then continue
+        
+        period = parts[5]
+        tour_type = parts[2]
+        lookup = if tour_type = "n" then "NonWork" else "Work"
+        pos = share_data.tour_type.position(lookup)
+        
+        to_modes = {"sov", "hov2", "hov3"}
+        for mode in to_modes do
+            pct = share_data.(mode)
+            pct = pct[pos]
+
+            from_mtx_file = nhb_dir + "/NHB_" + tour_type + "_auto_pay_" + period + ".mtx"
+            from_mtx = CreateObject("Matrix", from_mtx_file)
+            from_core = from_mtx.GetCore("Total")
+            to_mtx_file = nhb_dir + "/NHB_" + tour_type + "_" + mode + "_" + period + ".mtx"
+            to_mtx = CreateObject("Matrix", to_mtx_file)
+            to_core = to_mtx.GetCore("Total")
+            to_core := nz(to_core) + nz(from_core) * pct
+        end
+
+        from_mtx = null
+        from_core = null
+        DeleteFile(nhb_mtx_file)
+    end
+
+    // Add NHB trips to OD assignment matrices (and convert to veh trips)
+    hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
+    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    for nhb_mtx_file in nhb_mtxs do
+        
+        // Skip transit and walkbike matrices
+        {, , name, } = SplitPath(nhb_mtx_file)
+        parts = ParseString(name, "_")
+        if parts[2] = "transit" or parts[2] = "walkbike" then continue
+        tour_type = parts[2]
+        mode = parts[3]
+        period = parts[4]
+
+        nhb_mtx = CreateObject("Matrix", nhb_mtx_file)
+        nhb_core = nhb_mtx.GetCore("Total")
+
+        // Get vehicle factor and convert to veh trips
+        if mode = "sov" then occ_rate = 1
+        else if mode = "hov2" then occ_rate = 2
+        else do
+            SetView(hov3_vw)
+            n = SelectByQuery(
+                "sel", "several", 
+                "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + period + "'"
+            )
+            if n = 0 then Throw(
+                "Trying to add NHB trips into assignment matrix./n" +
+                "HOV3 factor not found in lookup table."
+            )
+            occ_rate = GetDataVector(hov3_vw + "|sel", "hov3", )
+            occ_rate = occ_rate[1]
+        end
+        nhb_core := nhb_core / occ_rate
+
+        trans_mtx = nhb_mtx.Transpose()
+        nhb_t_core = trans_mtx.GetCore("Total")
+
+        assn_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        assn_mtx = CreateObject("Matrix", assn_mtx_file)
+        assn_core = assn_mtx.GetCore(mode)
+        // directionality is assumed to be 50/50
+        assn_core := assn_core + (nhb_core + nhb_t_core) / 2
+    end
+    CloseView(hov3_vw)
 endmacro
 
 /*
