@@ -193,8 +193,9 @@ Macro "NHB DC"(Args)
     // Step 2: Run DC
     RunMacro("Evaluate NHB DC", Args, Spec)
 
-    // Step 3: Final NHB Matrix
-    RunMacro("Create NHB Trip Matrix", Args, Spec)
+    // TODO: remove this and the macro completely after confirming with Srini
+    // // Step 3: Final NHB Matrix
+    // RunMacro("Create NHB Trip Matrix", Args, Spec)
 endMacro
 
 
@@ -274,7 +275,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
     intraClusterMtx = skims_folder + "IntraCluster.mtx"
 
     // Run DC Loop over categories and time periods
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     categories = Spec.SubModels
     for category in categories do
         {mainMode, subMode} = RunMacro("Get Mode Info", category)
@@ -333,54 +334,54 @@ Macro "Evaluate NHB DC"(Args, Spec)
 endMacro
 
 
-Macro "Create NHB Trip Matrix"(Args, Spec)
-    out_folder = Args.[Output Folder]
-    trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
-    periods = Args.periods
-    se = Args.SE
+// Macro "Create NHB Trip Matrix"(Args, Spec)
+//     out_folder = Args.[Output Folder]
+//     trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
+//     periods = Args.periods
+//     se = Args.SE
 
-    // Create output matrix
-    se_vw = OpenTable("SE", "FFB", {se})
-    vTAZ = GetDataVector(se_vw + "|", "TAZ",)
-    CloseView(se_vw)
+//     // Create output matrix
+//     se_vw = OpenTable("SE", "FFB", {se})
+//     vTAZ = GetDataVector(se_vw + "|", "TAZ",)
+//     CloseView(se_vw)
 
-    outMtx = out_folder + "/resident/trip_tables/" + "pa_per_trips_NHB.mtx"
+//     outMtx = out_folder + "/resident/trip_tables/" + "pa_per_trips_NHB.mtx"
 
-    obj = CreateObject("Matrix") 
-    obj.SetMatrixOptions({Compressed: 1, DataType: "Double", FileName: outMtx, MatrixLabel: "NHBTrips"})
-    opts.RowIds = v2a(vTAZ) 
-    opts.ColIds = v2a(vTAZ)
-    opts.MatrixNames = {"temp"}
-    opts.RowIndexName = "Origin"
-    opts.ColIndexName = "Destination"
-    mat = obj.CreateFromArrays(opts)
-    obj = null
+//     obj = CreateObject("Matrix") 
+//     obj.SetMatrixOptions({Compressed: 1, DataType: "Double", FileName: outMtx, MatrixLabel: "NHBTrips"})
+//     opts.RowIds = v2a(vTAZ) 
+//     opts.ColIds = v2a(vTAZ)
+//     opts.MatrixNames = {"temp"}
+//     opts.RowIndexName = "Origin"
+//     opts.ColIndexName = "Destination"
+//     mat = obj.CreateFromArrays(opts)
+//     obj = null
 
-    // Add cores to output matrix
-    obj = CreateObject("Matrix", mat)
-    categories = Spec.SubModels
-    for category in categories do
-        for period in periods do
-            cores = cores + {category + "_" + period}
-        end
-    end
-    obj.AddCores(cores)
-    obj.DropCores({"temp"})
+//     // Add cores to output matrix
+//     obj = CreateObject("Matrix", mat)
+//     categories = Spec.SubModels
+//     for category in categories do
+//         for period in periods do
+//             cores = cores + {category + "_" + period}
+//         end
+//     end
+//     obj.AddCores(cores)
+//     obj.DropCores({"temp"})
     
-    // Fill matrix
-    for category in categories do
-        for period in periods do
-            totals_mtx_file = trips_folder + "NHB_" + category + "_" + period + ".mtx"
-            total_mtx = CreateObject("Matrix", totals_mtx_file)
-            total = total_mtx.GetCore("Total")
+//     // Fill matrix
+//     for category in categories do
+//         for period in periods do
+//             totals_mtx_file = trips_folder + "NHB_" + category + "_" + period + ".mtx"
+//             total_mtx = CreateObject("Matrix", totals_mtx_file)
+//             total = total_mtx.GetCore("Total")
 
-            outCore = obj.GetCore(category + "_" + period)
-            outCore := nz(outCore) + nz(total)
-            total_mtx = null
-        end
-    end
-    mat = null
-endMacro
+//             outCore = obj.GetCore(category + "_" + period)
+//             outCore := nz(outCore) + nz(total)
+//             total_mtx = null
+//         end
+//     end
+//     mat = null
+// endMacro
 
 
 Macro "Get Mode Info"(category)
