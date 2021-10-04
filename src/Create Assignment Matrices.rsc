@@ -8,7 +8,7 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("Add Airport Trips", Args)
     RunMacro("HB Collapse Auto Modes", Args)
     RunMacro("HB Occupancy", Args)
-    RunMacro("Collapse Purposes", Args)
+    RunMacro("HB Collapse Trip Types", Args)
     RunMacro("Remove Interim Matrices", Args)
     RunMacro("Add NHB Auto Trips", Args)
     RunMacro("Add CVs and Trucks", Args)
@@ -172,7 +172,7 @@ matrix for each period. This will contain sov, hov2, hov3, and also transit
 trips.
 */
 
-Macro "Collapse Purposes" (Args)
+Macro "HB Collapse Trip Types" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     periods = RunMacro("Get Unconverged Periods", Args)
@@ -191,11 +191,6 @@ Macro "Collapse Purposes" (Args)
         // Add the remaining matrices to the output matrix
         for t = 2 to trip_types.length do
             trip_type = trip_types[t]
-
-// TODO: remove. This is just for testing until the NHB matrices are ready
-parts = ParseString(trip_type, "_")
-homebased = parts[2]
-if homebased = "NH" then continue
 
             mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
             mtx = CreateObject("Matrix", mtx_file)
