@@ -14,7 +14,6 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
     RunMacro("Add Externals", Args)
-    RunMacro("Create Transit Matrices", Args)
     RunMacro("VOT Split", Args)
     RunMacro("VOT Aggregation", Args)
 
@@ -419,80 +418,6 @@ Macro "Add Externals" (Args)
         // The ie matrix contains all centroids
         trip_cores.(mode) := nz(trip_cores.(mode)) + nz(ie_cores.(ie_core_name))
     end
-endmacro
-
-/*
-Note: if parallelizing over time periods, this must change
-TODO: need to update once we see what the NHB matrices look like
-*/
-
-Macro "Create Transit Matrices" (Args)
-
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
-    trn_dir = Args.[Output Folder] + "/assignment/transit"
-    periods = RunMacro("Get Unconverged Periods", Args)
-
-    access_modes = {"w", "pnr", "knr"}
-    files = RunMacro("Catalog Files", trip_dir, "mtx")
-
-    // Create a starting transit matrix for each time period
-    for period in periods do
-        out_file = trn_dir + "/transit_" + period + ".mtx"
-        CopyFile(files[1], out_file)
-        mtx = CreateObject("Matrix", out_file)
-        core_names = mtx.GetCoreNames()
-        mtx.AddCores({"temp"})
-        mtx.DropCores(core_names)
-        mtxs.(period) = mtx
-    end
-
-    // Collapse the resident matrices
-    for file in files do
-        {, , name, } = SplitPath(file)
-        period = Right(name, 2)
-        out_mtx = mtxs.(period)
-        
-        trip_mtx = CreateObject("Matrix", file)
-        core_names = trip_mtx.GetCoreNames()
-        for core_name in core_names do
-            parts = ParseString(core_name, "_")
-            access_mode = parts[1]
-            // skip non-transit cores
-            if access_modes.position(access_mode) = 0 then continue
-            // initialize core if it doesn't exist
-            out_core_names = out_mtx.GetCoreNames()
-            if out_core_names.position(core_name) = 0 then do
-                out_mtx.AddCores({core_name})
-                out_core = out_mtx.GetCore(core_name)
-                out_core := 0
-            end
-            out_core = out_mtx.GetCore(core_name)
-            trip_core = trip_mtx.GetCore(core_name)
-            out_core := out_core + nz(trip_core)
-        end
-
-        mtxs.(period) = out_mtx
-    end
-    mtx.DropCores({"temp"})
-
-    // Add in airport transit trips
-    air_dir = Args.[Output Folder] + "/airport"
-    for period in periods do
-        out_mtx = mtxs.(period)
-        air_mtx_file = air_dir + "/airport_transit_trips_" + period + ".mtx"
-
-        air_mtx = CreateObject("Matrix", air_mtx_file)
-        core_names = air_mtx.GetCoreNames()
-        for core_name in core_names do
-            out_core = out_mtx.GetCore(core_name)
-            air_core = air_mtx.GetCore(core_name)
-            out_core := nz(out_core) + nz(air_core)
-        end
-
-        mtxs.(period) = out_mtx
-    end
-
-    //TODO: add university transit trips
 endmacro
 
 /*
