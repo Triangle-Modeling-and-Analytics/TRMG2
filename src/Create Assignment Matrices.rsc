@@ -9,8 +9,9 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("HB Collapse Auto Modes", Args)
     RunMacro("HB Occupancy", Args)
     RunMacro("HB Collapse Trip Types", Args)
-    RunMacro("Remove Interim Matrices", Args)
-    RunMacro("Add NHB Auto Trips", Args)
+    RunMacro("HB Remove Interim Matrices", Args)
+    RunMacro("NHB Collapse Auto Modes", Args)
+    RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
     RunMacro("Add Externals", Args)
     RunMacro("Create Transit Matrices", Args)
@@ -208,10 +209,10 @@ Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
 
-Note: if parallelizing by time period, this has to change
+Note: if parallelizing more than assignment by time period, this has to change
 */
 
-Macro "Remove Interim Matrices" (Args)
+Macro "HB Remove Interim Matrices" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
@@ -231,16 +232,13 @@ Macro "Remove Interim Matrices" (Args)
 endmacro
 
 /*
-
+NHB auto_pay trips are converted to sov, hov2, and hov3 vehicle classes
 */
 
-Macro "Add NHB Auto Trips" (Args)
-    
-    hov3_file = Args.NHBHOV3OccFactors
+Macro "NHB Collapse Auto Modes" (Args)
     shares_file = Args.NHBOtherShares
     out_dir = Args.[Output Folder]
     nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
-    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     // Distribute auto_pay to other modes
     share_vw = OpenTable("shares", "CSV", {shares_file})
@@ -282,6 +280,18 @@ Macro "Add NHB Auto Trips" (Args)
         from_core = null
         DeleteFile(nhb_mtx_file)
     end
+endmacro
+
+/*
+Add the NHB trips into the assignment matrices. This requires a conversion from
+person to vehicle trips.
+*/
+
+Macro "NHB Collapse Matrices and Occupancy" (Args)
+    hov3_file = Args.NHBHOV3OccFactors
+    out_dir = Args.[Output Folder]
+    nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
     // Add NHB trips to OD assignment matrices (and convert to veh trips)
     hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
