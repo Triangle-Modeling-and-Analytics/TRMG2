@@ -6,7 +6,6 @@ Macro "Skimming" (Args)
 
     feedback_iteration = Args.FeedbackIteration
 
-    // TODO: move this network updating into the feedback step when it exists
     if feedback_iteration > 1 then do
         RunMacro("Calculate Bus Speeds", Args)
         RunMacro("Create Link Networks", Args)

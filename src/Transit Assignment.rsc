@@ -12,7 +12,7 @@ Macro "Transit Assignment" (Args)
 endmacro
 
 /*
-TODO: need to update once we see what the NHB matrices look like
+
 */
 
 Macro "Create Transit Matrices" (Args)

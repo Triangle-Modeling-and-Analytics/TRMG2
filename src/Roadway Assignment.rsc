@@ -82,9 +82,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
-// TODO: remove after testing
-periods = {"AM"}
-assign_iters = 1
+    
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
@@ -200,7 +198,6 @@ assign_iters = 1
         end
         ret_value = o.Run()
         results = o.GetResults()
-Throw()
         /*
         Use results.data to get rmse and other metrics:
         results.data.[Relative Gap]
