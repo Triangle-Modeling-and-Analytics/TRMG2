@@ -168,10 +168,6 @@ endmacro
 
     ** Step 2: Run DC model for 10*4(periods) = 40 sub models. Use appropriate skim wherever applicable
                Generate applied totals matrices as part of the DC process
-
-    ** Step 3: Produce combined matrix file for NHB trip with 24 cores
-               Combination of (sov, hov2, hov3, auto_pay, walkbike, transit) X (AM, PM, MD, NT)
-
 */
 Macro "NHB DC"(Args)
     // Create Folders
@@ -192,10 +188,6 @@ Macro "NHB DC"(Args)
 
     // Step 2: Run DC
     RunMacro("Evaluate NHB DC", Args, Spec)
-
-    // TODO: remove this and the macro completely after confirming with Srini
-    // // Step 3: Final NHB Matrix
-    // RunMacro("Create NHB Trip Matrix", Args, Spec)
 endMacro
 
 
@@ -332,57 +324,6 @@ Macro "Evaluate NHB DC"(Args, Spec)
         end
     end
 endMacro
-
-
-// Macro "Create NHB Trip Matrix"(Args, Spec)
-//     out_folder = Args.[Output Folder]
-//     trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
-//     periods = Args.periods
-//     se = Args.SE
-
-//     // Create output matrix
-//     se_vw = OpenTable("SE", "FFB", {se})
-//     vTAZ = GetDataVector(se_vw + "|", "TAZ",)
-//     CloseView(se_vw)
-
-//     outMtx = out_folder + "/resident/trip_tables/" + "pa_per_trips_NHB.mtx"
-
-//     obj = CreateObject("Matrix") 
-//     obj.SetMatrixOptions({Compressed: 1, DataType: "Double", FileName: outMtx, MatrixLabel: "NHBTrips"})
-//     opts.RowIds = v2a(vTAZ) 
-//     opts.ColIds = v2a(vTAZ)
-//     opts.MatrixNames = {"temp"}
-//     opts.RowIndexName = "Origin"
-//     opts.ColIndexName = "Destination"
-//     mat = obj.CreateFromArrays(opts)
-//     obj = null
-
-//     // Add cores to output matrix
-//     obj = CreateObject("Matrix", mat)
-//     categories = Spec.SubModels
-//     for category in categories do
-//         for period in periods do
-//             cores = cores + {category + "_" + period}
-//         end
-//     end
-//     obj.AddCores(cores)
-//     obj.DropCores({"temp"})
-    
-//     // Fill matrix
-//     for category in categories do
-//         for period in periods do
-//             totals_mtx_file = trips_folder + "NHB_" + category + "_" + period + ".mtx"
-//             total_mtx = CreateObject("Matrix", totals_mtx_file)
-//             total = total_mtx.GetCore("Total")
-
-//             outCore = obj.GetCore(category + "_" + period)
-//             outCore := nz(outCore) + nz(total)
-//             total_mtx = null
-//         end
-//     end
-//     mat = null
-// endMacro
-
 
 Macro "Get Mode Info"(category)
     categoryL = Lower(category)
