@@ -262,23 +262,17 @@ Macro "NHB Collapse Auto Modes" (Args)
         lookup = if tour_type = "n" then "NonWork" else "Work"
         pos = share_data.tour_type.position(lookup)
         
+        mtx_file = nhb_dir + "/NHB_" + tour_type + "_auto_pay_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
         to_modes = {"sov", "hov2", "hov3"}
+        mtx.AddCores(to_modes)
+        cores = mtx.GetCores()
         for mode in to_modes do
             pct = share_data.(mode)
             pct = pct[pos]
 
-            from_mtx_file = nhb_dir + "/NHB_" + tour_type + "_auto_pay_" + period + ".mtx"
-            from_mtx = CreateObject("Matrix", from_mtx_file)
-            from_core = from_mtx.GetCore("Total")
-            to_mtx_file = nhb_dir + "/NHB_" + tour_type + "_" + mode + "_" + period + ".mtx"
-            to_mtx = CreateObject("Matrix", to_mtx_file)
-            to_core = to_mtx.GetCore("Total")
-            to_core := nz(to_core) + nz(from_core) * pct
+            cores.(mode) := nz(cores.Total) * pct
         end
-
-        from_mtx = null
-        from_core = null
-        DeleteFile(nhb_mtx_file)
     end
 endmacro
 
@@ -303,11 +297,17 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
         parts = ParseString(name, "_")
         if parts[2] = "transit" or parts[2] = "walkbike" then continue
         tour_type = parts[2]
-        mode = parts[3]
-        period = parts[4]
+        if parts[3] = "auto" then auto_pay = "true" else auto_pay = "false"
+        if auto_pay then do
+            mode = "auto_pay"
+            period = parts[5]
+        end else do
+            mode = parts[3]
+            period = parts[4]
+        end
 
         nhb_mtx = CreateObject("Matrix", nhb_mtx_file)
-        nhb_core = nhb_mtx.GetCore("Total")
+        nhb_cores = nhb_mtx.GetCores()
 
         // Get vehicle factor and convert to veh trips
         if mode = "sov" then occ_rate = 1
@@ -325,16 +325,32 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
             occ_rate = GetDataVector(hov3_vw + "|sel", "hov3", )
             occ_rate = occ_rate[1]
         end
-        nhb_core := nhb_core / occ_rate
+        // auto_pay matrices have four cores while all others only have 1
+        if auto_pay then do
+            nhb_cores.hov2 := nhb_cores.hov2 / 2
+            nhb_cores.hov3 := nhb_cores.hov3 / occ_rate
+        end else nhb_cores.Total := nhb_cores.Total / occ_rate
 
         trans_mtx = nhb_mtx.Transpose()
-        nhb_t_core = trans_mtx.GetCore("Total")
+        nhb_t_cores = trans_mtx.GetCores()
 
         assn_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         assn_mtx = CreateObject("Matrix", assn_mtx_file)
-        assn_core = assn_mtx.GetCore(mode)
+        assn_cores = assn_mtx.GetCores()
+        
+        // For assignment, auto_pay trips need to count the driver for purposes
+        // of hov lane restrictions. This means:
+        // sov -> hov2
+        // hov2 -> hov3
+        // hov3 -> hov3
         // directionality is assumed to be 50/50
-        assn_core := assn_core + (nhb_core + nhb_t_core) / 2
+        if auto_pay then do
+            assn_cores.hov2 := assn_cores.hov2 + (nhb_cores.sov + nhb_t_cores.sov) / 2
+            assn_cores.hov3 := assn_cores.hov3 + (nhb_cores.hov2 + nhb_t_cores.hov2) / 2
+            assn_cores.hov3 := assn_cores.hov3 + (nhb_cores.hov3 + nhb_t_cores.hov3) / 2
+        end else do
+            assn_cores.(mode) := assn_cores.(mode) + (nhb_cores.Total + nhb_t_cores.Total) / 2
+        end
     end
     CloseView(hov3_vw)
 endmacro
