@@ -90,8 +90,8 @@ Macro "Create Transit Matrices" (Args)
 
         trn_mtx_file = trn_dir + "/transit_" + period + ".mtx"
         trn_mtx = CreateObject("Matrix", trn_mtx_file)
-        trn_mtx.AddCores({"nhb_all_t"})
-        trn_core = trn_mtx.GetCore("nhb_all_t")
+        trn_mtx.AddCores({"w_all"})
+        trn_core = trn_mtx.GetCore("w_all")
         trn_core := nz(trn_core) + nz(nhb_core)
     end
 
