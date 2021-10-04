@@ -324,7 +324,7 @@ Body:
     for period in periods do
         prmse = Args.(period + "_PRMSE")
         RunMacro("Write PRMSE", Args, period)
-        if prmse <= target_prmse or iter >= max_iters 
+        if (prmse <= target_prmse and iter > 1) or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
     
