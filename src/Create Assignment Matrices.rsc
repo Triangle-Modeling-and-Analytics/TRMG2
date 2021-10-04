@@ -26,7 +26,7 @@ Convert from PA to OD format for auto modes
 
 Macro "Directionality" (Args)
 
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+    trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     dir_factor_file = Args.DirectionFactors
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     RunMacro("Create Directory", assn_dir)
@@ -75,7 +75,7 @@ Macro "Add Airport Trips" (Args)
     
     periods = RunMacro("Get Unconverged Periods", Args)
     out_dir = Args.[Output Folder]
-    trip_dir = out_dir + "/resident/trip_tables"
+    trip_dir = out_dir + "/resident/trip_matrices"
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     air_dir = out_dir + "/airport"
 

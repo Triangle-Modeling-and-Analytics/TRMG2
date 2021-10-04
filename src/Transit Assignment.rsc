@@ -18,8 +18,7 @@ TODO: need to update once we see what the NHB matrices look like
 Macro "Create Transit Matrices" (Args)
 
     trn_dir = Args.[Output Folder] + "/assignment/transit"
-    // TODO: change this to resident/trip_matrices everwhere
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+    trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     nhb_dir = Args.[Output Folder] + "/resident/nhb//dc/trip_matrices"
     periods = Args.periods
 

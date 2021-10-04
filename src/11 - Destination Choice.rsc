@@ -212,7 +212,7 @@ Macro "Apportion Resident HB Trips" (Args)
     out_dir = Args.[Output Folder]
     dc_dir = out_dir + "/resident/dc"
     mc_dir = out_dir + "/resident/mode"
-    trip_dir = out_dir + "/resident/trip_tables"
+    trip_dir = out_dir + "/resident/trip_matrices"
     periods = RunMacro("Get Unconverged Periods", Args)
 
     se_vw = OpenTable("se", "FFB", {se_file})

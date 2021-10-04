@@ -18,7 +18,7 @@ Macro "NHB Generation" (Args)
 
     param_dir = Args.[Input Folder] + "/resident/nhb/generation"
     out_dir = Args.[Output Folder]
-    trip_dir = out_dir + "/resident/trip_tables"
+    trip_dir = out_dir + "/resident/trip_matrices"
     nhb_dir = out_dir + "/resident/nhb/generation"
     periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
