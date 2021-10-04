@@ -415,7 +415,7 @@ Macro "Add Externals" (Args)
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
         trip_cores = trip_mtx.GetCores()
         // The ee matrix only contains external centroids
-        trip_mtx.UpdateCore({core_name: mode, source_cores: ee_cores.(ee_core_name)})
+        trip_mtx.UpdateCore({CoreName: mode, SourceCores: ee_cores.(ee_core_name)})
         // The ie matrix contains all centroids
         trip_cores.(mode) := nz(trip_cores.(mode)) + nz(ie_cores.(ie_core_name))
     end
