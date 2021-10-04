@@ -6,7 +6,8 @@ Macro "Transit Assignment" (Args)
 
     RunMacro("Create Transit Matrices", Args)
     RunMacro("Run Transit Assignment", Args)
-    RunMacro("Aggregate Transit Assignment Results", Args)
+    // TODO: update this macro
+    // RunMacro("Aggregate Transit Assignment Results", Args)
     return(1)
 endmacro
 
@@ -108,30 +109,31 @@ Macro "Run Transit Assignment" (Args)
     out_dir = Args.[Output Folder]
     net_dir = out_dir + "/networks"
     assn_dir = out_dir + "/assignment/transit"
+    periods = Args.periods
 
-    transit_nets = RunMacro("Catalog Files", net_dir, "tnw")
+    for period in periods do
+        mtx_file = assn_dir + "/transit_" + period + ".mtx"
+        mtx = CreateObject("Matrix", mtx_file)
+        core_names = mtx.GetCoreNames()
+        for core_name in core_names do
+            net_file = net_dir + "/tnet_" + period + "_" + core_name + ".tnw"
 
-    for net in transit_nets do
-        {, , name, } = SplitPath(net)
-        name = Substitute(name, "tnet_", "", )
-        name = Substitute(name, ".tnw", "", )
-
-        o = CreateObject("Network.PublicTransportAssignment", {RS: rts_file, NetworkName: net})
-        o.FlowTable = assn_dir + "/" + name + ".bin"
-        o.OnOffTable = assn_dir + "/" + name + "_onoff.bin"
-        o.TransitLinkFlowsTable = assn_dir + "/" + name + "_linkflow.bin"
-        o.WalkFlowTable = assn_dir + "/" + name + "_walkflow.bin"
-        mtx_file = assn_dir + "/" + "obs_" + name + ".mtx" // TODO: change this to final file name
-        // TODO: this exist check is only for assigning the obs. Remove.
-        if GetFileInfo(mtx_file) <> null then do
+            o = CreateObject(
+                "Network.PublicTransportAssignment",
+                {RS: rts_file, NetworkName: net_file}
+            )
+            name = period + "_" + core_name
+            o.FlowTable = assn_dir + "/" + name + ".bin"
+            o.OnOffTable = assn_dir + "/" + name + "_onoff.bin"
+            o.TransitLinkFlowsTable = assn_dir + "/" + name + "_linkflow.bin"
+            o.WalkFlowTable = assn_dir + "/" + name + "_walkflow.bin"
             o.DemandMatrix({
                 MatrixFile: mtx_file,
-                Matrix: "weight"
+                Matrix: core_name
             })
             o.Run()
         end
     end
-
 endmacro
 
 /*
