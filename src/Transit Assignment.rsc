@@ -16,8 +16,10 @@ TODO: need to update once we see what the NHB matrices look like
 
 Macro "Create Transit Matrices" (Args)
 
-    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
     trn_dir = Args.[Output Folder] + "/assignment/transit"
+    // TODO: change this to resident/trip_matrices everwhere
+    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+    nhb_dir = Args.[Output Folder] + "/resident/nhb//dc/trip_matrices"
     periods = Args.periods
 
     access_modes = {"w", "pnr", "knr"}
@@ -59,9 +61,9 @@ Macro "Create Transit Matrices" (Args)
             out_core := out_core + nz(trip_core)
         end
 
+        out_mtx.DropCores({"temp"})
         mtxs.(period) = out_mtx
     end
-    mtx.DropCores({"temp"})
 
     // Add in airport transit trips
     air_dir = Args.[Output Folder] + "/airport"
@@ -80,7 +82,20 @@ Macro "Create Transit Matrices" (Args)
         mtxs.(period) = out_mtx
     end
 
-    //TODO: add university and NHB transit trips
+    // NHB Trips
+    for period in periods do
+        nhb_mtx_file = nhb_dir + "/NHB_transit_" + period + ".mtx"
+        nhb_mtx = CreateObject("Matrix", nhb_mtx_file)
+        nhb_core = nhb_mtx.GetCore("Total")
+
+        trn_mtx_file = trn_dir + "/transit_" + period + ".mtx"
+        trn_mtx = CreateObject("Matrix", trn_mtx_file)
+        trn_mtx.AddCores({"nhb_all_t"})
+        trn_core = trn_mtx.GetCore("nhb_all_t")
+        trn_core := nz(trn_core) + nz(nhb_core)
+    end
+
+    //TODO: add university transit trips
 endmacro
 
 /*
