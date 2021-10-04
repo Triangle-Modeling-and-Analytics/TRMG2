@@ -159,7 +159,8 @@ Macro "Transit Skims" (Args, overrides)
     out_dir = Args.[Output Folder] + "/skims/transit"
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
-    
+    transit_modes = {"all"} + transit_modes
+  
     // overrides
     if overrides.periods <> null then periods = overrides.periods
     if overrides.transit_modes <> null then transit_modes = overrides.transit_modes
@@ -167,7 +168,12 @@ Macro "Transit Skims" (Args, overrides)
 
     for period in periods do
         for mode in transit_modes do
-            for access in access_modes do
+
+            if transit_mode = "all" 
+                then access_mode_subset = {"w"}
+                else access_mode_subset = access_modes
+
+            for access in access_mode_subset do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
                 obj = CreateObject("Network.TransitSkims")
