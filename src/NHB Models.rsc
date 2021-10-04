@@ -293,7 +293,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
             if subMode = 'walkbike' then
                 skimFile = skims_folder + "nonmotorized/walk_skim.mtx"
             else if subMode = 'transit' then
-                skimFile = skims_folder + "transit/skim_" + period + "_w_lb.mtx"
+                skimFile = skims_folder + "transit/skim_" + period + "_w_all.mtx"
             else if subMode = 'sov' then
                 skimFile = skims_folder + "roadway/skim_sov_" + period + ".mtx"
             else // auto_pay, hov2 or hov3
