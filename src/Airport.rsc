@@ -9,9 +9,8 @@ Macro "Airport" (Args)
     RunMacro("Airport Productions", Args)
     RunMacro("Airport Distribution", Args)
     RunMacro("Airport TOD", Args)
-    RunMacro("Airport Mode Choice", Args)
-    RunMacro("Airport Separate Auto and Transit", Args)
-    RunMacro("Airport Directionality", Args)
+    // The remaining airport macros in this script are called during feedback.
+    // MC, for example, borrows from the resident MC model.
 
     return(1)
 endmacro
@@ -187,13 +186,13 @@ Macro "Airport TOD" (Args)
 endmacro
 
 /*
-Apply mode choice probabilities to split airport trips by mode
+Apply mode choice probabilities to split airport trips by mode.
 */
 
 Macro "Airport Mode Choice" (Args)
     trips_dir = Args.[Output Folder] + "\\airport"
     mc_dir = Args.[Output Folder] + "\\resident\\mode"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     
     for period in periods do 
         mc_mtx_file = mc_dir + "/probabilities/probability_N_HB_OD_Long_vs_" + period + ".mtx"
@@ -240,7 +239,7 @@ Separate out auto and transit trip tables
 
 Macro "Airport Separate Auto and Transit" (Args)
     trips_dir = Args.[Output Folder] + "\\airport"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     
     auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
     
@@ -292,7 +291,7 @@ Convert from PA to OD format for Auto trips
 Macro "Airport Directionality" (Args)
     trips_dir = Args.[Output Folder] + "\\airport"
     dir_factor_file = Args.[Input Folder] + "\\airport\\airport_directionality.csv"
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     
     dir_factors = RunMacro("Read Parameter File", {
         file: dir_factor_file,

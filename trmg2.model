@@ -29,7 +29,7 @@ Body:
     FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"NonResident Generation",,,)
     FlowChartNode(model,"Mode Choice",,,)
-    FlowChartNode(model,"NonResident Distribution",,,)
+    FlowChartNode(model,"NonResident DC and MC",,,)
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create Assignment Matrices",,,)
@@ -53,9 +53,9 @@ Body:
     FlowChartLink(model,"Parking Model","Mode Choice",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"NonResident Distribution","Create Assignment Matrices",True,,)
+    FlowChartLink(model,"NonResident DC and MC","Create Assignment Matrices",True,,)
     FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
-    FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
+    FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
     FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Convergence","Transit Assignment",True,,)
@@ -175,11 +175,11 @@ Body:
 EndMacro
 
 
-Macro "NonResident Distribution" (Args,Result)
+Macro "NonResident DC and MC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident Distribution"}}}
+                  {"MacroNames",{"NonResident DC and MC"}}}
 Body:
-    ShowMessage('Running: NonResident Distribution')
+    ShowMessage('Running: NonResident DC and MC')
     Return(True)
 EndMacro
 
