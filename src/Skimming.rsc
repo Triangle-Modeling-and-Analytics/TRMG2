@@ -168,7 +168,7 @@ Macro "Transit Skims" (Args, overrides)
     for period in periods do
         for mode in transit_modes do
 
-            if transit_mode = "all" 
+            if mode = "all" 
                 then access_mode_subset = {"w"}
                 else access_mode_subset = access_modes
 
