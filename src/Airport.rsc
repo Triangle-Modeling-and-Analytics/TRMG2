@@ -22,7 +22,7 @@ Calculate airport productions
 
 Macro "Airport Productions" (Args)
     se_file = Args.SE
-    skim_dir = Args.[Output Folder] + "\\skims\\roadway\\"
+    skim_dir = Args.[Output Folder] + "\\skims\\roadway"
     airport_model_file = Args.[Input Folder] + "\\airport\\airport_model.csv"
 
     se_vw = OpenTable("se", "FFB", {se_file})
@@ -50,7 +50,7 @@ Macro "Airport Productions" (Args)
     taz_vec = data.TAZ
     
     // get distance to airport zone
-    skim_mat = skim_dir + "accessibility_sov_AM.mtx"
+    skim_mat = skim_dir + "/accessibility_sov_AM.mtx"
     mat = CreateObject("Matrix")
     mat.LoadMatrix(skim_mat)
     cores = mat.GetCores()
@@ -101,10 +101,10 @@ There is only one airport zone, so distribution is very simple
 Macro "Airport Distribution" (Args)
     se_file = Args.SE
     hwy_dbd = Args.Links
-    trips_dir = Args.[Output Folder] + "\\airport\\"
+    trips_dir = Args.[Output Folder] + "\\airport"
     periods = Args.periods
 
-    airport_matrix = trips_dir + "airport_pa_trips.mtx"
+    airport_matrix = trips_dir + "/airport_pa_trips.mtx"
     
     se_vw = OpenTable("se", "FFB", {se_file})
     
@@ -155,11 +155,11 @@ Split airport trips by time period
 */
 
 Macro "Airport TOD" (Args)
-    trips_dir = Args.[Output Folder] + "\\airport\\"
+    trips_dir = Args.[Output Folder] + "\\airport"
     tod_file = Args.[Input Folder] + "\\airport\\airport_tod.csv"
     periods = Args.periods
 	
-    airport_mtx_file = trips_dir + "airport_pa_trips.mtx"
+    airport_mtx_file = trips_dir + "/airport_pa_trips.mtx"
     
     tod_factors = RunMacro("Read Parameter File", {
         file: tod_file,
@@ -191,14 +191,14 @@ Apply mode choice probabilities to split airport trips by mode
 */
 
 Macro "Airport Mode Choice" (Args)
-    trips_dir = Args.[Output Folder] + "\\airport\\"
-    mc_dir = Args.[Output Folder] + "\\resident\\mode\\"
+    trips_dir = Args.[Output Folder] + "\\airport"
+    mc_dir = Args.[Output Folder] + "\\resident\\mode"
     periods = Args.periods
     
     for period in periods do 
         mc_mtx_file = mc_dir + "/probabilities/probability_N_HB_OD_Long_vs_" + period + ".mtx"
         
-        airport_mtx_file = trips_dir + "airport_pa_trips_" + period + ".mtx"
+        airport_mtx_file = trips_dir + "/airport_pa_trips_" + period + ".mtx"
         
         out_mtx_file = trips_dir + "/airport_pa_mode_trips_" + period + ".mtx"
         if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
@@ -239,15 +239,15 @@ Separate out auto and transit trip tables
 */
 
 Macro "Airport Separate Auto and Transit" (Args)
-    trips_dir = Args.[Output Folder] + "\\airport\\"
+    trips_dir = Args.[Output Folder] + "\\airport"
     periods = Args.periods
     
     auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
     
     for period in periods do
-        pa_mtx_file = trips_dir + "airport_pa_mode_trips_" + period + ".mtx"
-        auto_mtx_file = trips_dir + "airport_pa_auto_trips_" + period + ".mtx"
-        transit_mtx_file = trips_dir + "airport_transit_trips_" + period + ".mtx"
+        pa_mtx_file = trips_dir + "/airport_pa_mode_trips_" + period + ".mtx"
+        auto_mtx_file = trips_dir + "/airport_pa_auto_trips_" + period + ".mtx"
+        transit_mtx_file = trips_dir + "/airport_transit_trips_" + period + ".mtx"
         
         mtx = CreateObject("Matrix")
         mtx.LoadMatrix(pa_mtx_file) 
@@ -290,7 +290,7 @@ Convert from PA to OD format for Auto trips
 */
 
 Macro "Airport Directionality" (Args)
-    trips_dir = Args.[Output Folder] + "\\airport\\"
+    trips_dir = Args.[Output Folder] + "\\airport"
     dir_factor_file = Args.[Input Folder] + "\\airport\\airport_directionality.csv"
     periods = Args.periods
     
@@ -301,8 +301,8 @@ Macro "Airport Directionality" (Args)
     })
     
     for period in periods do
-        pa_mtx_file = trips_dir + "airport_pa_auto_trips_" + period + ".mtx"
-        od_mtx_file = trips_dir + "airport_auto_trips_" + period + ".mtx"
+        pa_mtx_file = trips_dir + "/airport_pa_auto_trips_" + period + ".mtx"
+        od_mtx_file = trips_dir + "/airport_auto_trips_" + period + ".mtx"
         CopyFile(pa_mtx_file, od_mtx_file)
         
         od_transpose_mtx_file = Substitute(od_mtx_file, ".mtx", "_transpose.mtx", )
