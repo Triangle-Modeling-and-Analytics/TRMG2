@@ -50,7 +50,7 @@ Macro "Airport Productions" (Args)
     taz_vec = data.TAZ
     
     // get distance to airport zone
-    skim_mat = skim_dir + "skim_sov_MD.mtx"
+    skim_mat = skim_dir + "accessibility_sov_AM.mtx"
     mat = CreateObject("Matrix")
     mat.LoadMatrix(skim_mat)
     cores = mat.GetCores()
