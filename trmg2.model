@@ -322,9 +322,10 @@ Body:
     periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
-        prmse = Args.(period + "_PRMSE")
         RunMacro("Write PRMSE", Args, period)
-        if (prmse <= target_prmse and iter > 1) or iter >= max_iters 
+        prmse = Args.(period + "_PRMSE")
+        if iter = 1 then continue
+        if prmse <= target_prmse or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
     
