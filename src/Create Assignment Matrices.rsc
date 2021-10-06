@@ -177,7 +177,7 @@ Macro "HB Collapse Trip Types" (Args)
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     periods = RunMacro("Get Unconverged Periods", Args)
 
-    trip_types = RunMacro("Get All Res Trip Types", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
 
     for period in periods do
 
