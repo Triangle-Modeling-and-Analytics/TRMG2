@@ -105,10 +105,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             Function: "bpr.vdf",
             Fields: {"FFTime", "Capacity", "Alpha", "Beta", "None"}
         }
-        o.DemandMatrix({
-            MatrixFile: od_mtx,
-            Matrix: "SOV"
-        })
+        o.DemandMatrix({MatrixFile: od_mtx})
         o.MSAFeedback({
             Flow: "MSAFlow",
             Time: "MSATime",
