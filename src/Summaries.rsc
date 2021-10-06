@@ -21,15 +21,13 @@ This loads the final assignment results onto the link layer.
 Macro "Load Link Layer" (Args)
 
     hwy_dbd = Args.Links
-    feedback_iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\"
     periods = Args.periods
 
     {nlyr, llyr} = GetDBLayers(hwy_dbd)
 
     for period in periods do
         assn_file = assn_dir + "\\roadway_assignment_" + period + ".bin"
-        assn_dcb = Substitute(assn_file, ".bin", ".dcb", )
 
         vw = OpenTable("temp", "FFB", {assn_file})
         {field_names, } = GetFields(vw, "All")
@@ -105,94 +103,14 @@ Macro "Calculate Daily Fields" (Args)
   a_periods = Args.periods
   loaded_dbd = Args.Links
   a_dir = {"AB", "BA"}
-  a_classes = {"SOV", "HOV", "SUT", "MUT"}
+  modes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
 
   // Add link layer to workspace
   {nlyr, llyr} = GetDBLayers(loaded_dbd)
   llyr = AddLayerToWorkspace(llyr, loaded_dbd, llyr)
 
-  // Add "Flow_" to the assignment class name.
-  a_fields = V2A("Flow_" + A2V(a_classes))
-
-  // Add other fields to be summed
-  a_fields = a_fields + {"Flow", "VMT", "VHT", "Delay"}
-
-  // Calculate additive daily fields
-  for f = 1 to a_fields.length do
-    field = a_fields[f]
-
-    for d = 1 to a_dir.length do
-      dir = a_dir[d]
-
-      field_name = dir + "_" + field + "_Daily"
-      a_fields2 = {
-        {field_name, "Real", 10, 2,,,,"Daily " + dir + " " + field}
-      }
-      RunMacro("Add Fields", {view: llyr, a_fields: a_fields2, initial_values: 0})
-      v_final = nz(GetDataVector(llyr + "|", field_name, ))
-
-      for p = 1 to a_periods.length do
-        period = a_periods[p]
-
-        per_field = dir + "_" + field + "_" + period
-        v_add = GetDataVector(llyr + "|", per_field, )
-        v_final = v_final + v_add
-      end
-
-      // Set field values
-      SetDataVector(llyr + "|", field_name, v_final, )
-    end
-  end
-
-  // Combine AB/BA into total daily flows commonly used to compare to counts.
-  // Flow is done separately from VMT, VHT, and Delay because the flow fields
-  // are by assignment class. The others are not.
-  a_type = a_classes + {""}
-  for t = 1 to a_type.length do
-    type = a_type[t]
-
-    if type = "" then do
-      field_name = "Flow_Daily"
-      ab_field = "AB_Flow_Daily"
-      ba_field = "BA_Flow_Daily"
-    end else do
-      field_name = type + "_" + "Flow_Daily"
-      ab_field = "AB_Flow_" + type + "_Daily"
-      ba_field = "BA_Flow_" + type + "_Daily"
-    end
-    a_fields = {{
-      field_name, "Real", 10, 2,,,,
-      "Daily " + type + " flow in both directions"
-    }}
-    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-
-    v_ab = nz(GetDataVector(llyr + "|", ab_field, ))
-    v_ba = nz(GetDataVector(llyr + "|", ba_field, ))
-    v_tot = v_ab + v_ba
-
-    SetDataVector(llyr + "|", field_name, v_tot, )
-  end
-
-  // Combine AB/BA daily fields for VMT, VHT, and Delay
-  a_type = {"VMT", "VHT", "Delay"}
-  for t = 1 to a_type.length do
-    type = a_type[t]
-
-    a_fields = {{
-      type + "_Daily", "Real", 10, 2,,,,
-      "Daily " + type + " in both directions"
-    }}
-    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-
-    v_ab = nz(GetDataVector(llyr + "|", "AB_" + type + "_Daily", ))
-    v_ba = nz(GetDataVector(llyr + "|", "BA_" + type + "_Daily", ))
-    v_tot = v_ab + v_ba
-
-    SetDataVector(llyr + "|", type + "_Daily", v_tot, )
-  end
-
   // Calculate non-additive daily fields
-  a_fields = {
+  fields_to_add = {
     {"AB_Speed_Daily", "Real", 10, 2,,,, "Slowest speed throughout day"},
     {"BA_Speed_Daily", "Real", 10, 2,,,, "Slowest speed throughout day"},
     {"AB_Time_Daily", "Real", 10, 2,,,, "Highest time throughout day"},
@@ -202,7 +120,7 @@ Macro "Calculate Daily Fields" (Args)
     {"AB_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"},
     {"BA_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"}
   }
-  RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
 
   for d = 1 to a_dir.length do
     dir = a_dir[d]
@@ -235,6 +153,60 @@ Macro "Calculate Daily Fields" (Args)
     SetDataVector(llyr + "|", dir + "_VOCE_Daily", v_max_voce, )
     SetDataVector(llyr + "|", dir + "_VOCD_Daily", v_max_vocd, )
   end
+
+  // Sum up the flow fields
+  for mode in modes do
+    if mode = "SUT" then vots = {1, 2, 3}
+    else if mode = "MUT" then vots = {1, 2, 3, 4, 5}
+    else vots = {2, 4, 5}
+
+    for dir in a_dir do
+      out_field = dir + "_" + mode + "_Flow_Daily"
+      fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + mode + " Flow"}}
+      v_output = null
+
+      // For this direction and mode, sum every combination of VOT and period
+      for vot in vots do
+        for period in a_periods do
+          input_field = dir + "_Flow_" + mode + "_VOT" + String(vot) + "_" + period
+          v_add = GetDataVector(llyr + "|", input_field, )
+          v_output = nz(v_output) + nz(v_add)
+        end
+      end
+
+      output.(out_field) = v_output
+      output.(dir + "_Flow_Daily") = nz(output.(dir + "_Flow_Daily")) + v_output
+      output.Total_Flow_Daily = nz(output.Total_Flow_Daily) + v_output
+    end
+  end
+  fields_to_add = fields_to_add + {
+    {"AB_Flow_Daily", "Real", 10, 2,,,,"AB Daily Flow"},
+    {"BA_Flow_Daily", "Real", 10, 2,,,,"BA Daily Flow"},
+    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"}
+  }
+
+  // Other fields to sum
+  a_fields = {"VMT", "VHT", "Delay"}
+  for field in a_fields do
+    for dir in a_dir do
+      v_output = null
+      out_field = dir + "_" + field + "_Daily"
+      fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + field}}
+      for period in a_periods do
+        input_field = dir + "_" + field + "_" + period
+        v_add = GetDataVector(llyr + "|", input_field, )
+        v_output = nz(v_output) + nz(v_add)
+      end
+      output.(out_field) = v_output
+      output.("Total_" + field + "_Daily") = nz(output.("Total_" + field + "_Daily")) + v_output
+    end
+
+    fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,,"Daily " + field + " in both directions"}}
+  end
+
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  SetDataVectors(llyr + "|", output, )
+  DropLayerFromWorkspace(llyr)
 EndMacro
 
 /*
