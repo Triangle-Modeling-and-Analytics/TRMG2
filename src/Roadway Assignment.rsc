@@ -216,8 +216,7 @@ Macro "Update Link Congested Times" (Args)
 
     hwy_dbd = Args.Links
     periods = RunMacro("Get Unconverged Periods", Args)
-    feedback_iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    assn_dir = Args.[Output Folder] + "\\assignment\\roadway"
 
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
     
@@ -246,4 +245,5 @@ Macro "Update Link Congested Times" (Args)
     end
 
     CloseMap(map)
+    return(1)
 endmacro
