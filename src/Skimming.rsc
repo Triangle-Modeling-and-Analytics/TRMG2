@@ -212,14 +212,13 @@ Macro "Transit Skims" (Args, overrides)
                     MatrixFile: out_file,
                     MatrixLabel : label, 
                     Compression: true, ColumnMajor: false
-                })   
+                })
                 obj.Run()
                 obj = null
 
                 // Flip to AP format in the PM period
                 if period = "PM" then do
                     label = label + " transposed to AP"
-                    // TODO: replace this with new matrix object method
                     RunMacro("Transpose Matrix", out_file, label)
                 end
             end
