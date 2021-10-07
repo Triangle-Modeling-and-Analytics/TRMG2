@@ -13,9 +13,9 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("NHB Collapse Auto Modes", Args)
     RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
-    RunMacro("Add Externals", Args)
     RunMacro("VOT Split", Args)
     RunMacro("VOT Aggregation", Args)
+    RunMacro("Add Externals", Args)
 
     return(1)
 endmacro
@@ -406,17 +406,17 @@ Macro "Add Externals" (Args)
         // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
-        if parts[2] = "AUTO" then mode = "sov"
-        if parts[2] = "CVSUT" then mode = "SUT"
-        if parts[2] = "CVMUT" then mode = "MUT"
+        if parts[2] = "AUTO" then core_name = "sov_VOT2"
+        if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
+        if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
 
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
         trip_cores = trip_mtx.GetCores()
         // The ee matrix only contains external centroids
-        trip_mtx.UpdateCore({CoreName: mode, SourceCores: ee_cores.(ee_core_name)})
+        trip_mtx.UpdateCore({CoreName: core_name, SourceCores: ee_cores.(ee_core_name)})
         // The ie matrix contains all centroids
-        trip_cores.(mode) := nz(trip_cores.(mode)) + nz(ie_cores.(ie_core_name))
+        trip_cores.(core_name) := nz(trip_cores.(core_name)) + nz(ie_cores.(ie_core_name))
     end
 endmacro
 
