@@ -225,7 +225,7 @@ Macro "Create Count Difference Map" (Args)
   opts.hwy_dbd = hwy_dbd
   opts.count_id_field = "CountID"
   opts.count_field = "DailyCount"
-  opts.vol_field = "Flow_Daily"
+  opts.vol_field = "Total_Flow_Daily"
   opts.field_suffix = "All"
   RunMacro("Count Difference Map", opts)
 
