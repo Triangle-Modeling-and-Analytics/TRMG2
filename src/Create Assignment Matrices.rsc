@@ -394,7 +394,7 @@ Macro "Add Externals" (Args)
     ee_cores = ee_mtx.GetCores()
     ee_core_names = ee_mtx.GetCoreNames()
 
-    ie_mtx_file = ext_dir + "/ie_trips.mtx"
+    ie_mtx_file = ext_dir + "/ie_od_trips.mtx"
     ie_mtx = CreateObject("Matrix", ie_mtx_file)
     ie_cores = ie_mtx.GetCores()
     ie_core_names = ie_mtx.GetCoreNames()
