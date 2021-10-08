@@ -227,8 +227,6 @@ Macro "Airport Mode Choice" (Args)
         out_mtx = null
         mc_mtx = null
         airport_mtx = null
-        
-        DeleteFile(airport_mtx_file)
     end
 
 endmacro
