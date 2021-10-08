@@ -14,7 +14,7 @@ distance_filename <- paste0(data_dir, "distance-skim.RDS")
 output_ee_seed_filename <- paste0(output_dir, "ee-seed.csv")
 output_ei_attractions_filename <- paste0(output_dir, "ei-attractions.csv")
 output_ei_distance_filename <- paste0(output_dir, "ei-distance.csv")
-output_ee_shares_filename <- paste0(output_dir, "ee-station-shares.csv")
+output_ext_shares_filename <- paste0(output_dir, "ext-station-shares.csv")
 
 # Parameters -------------------------------------------------------------------
 LAT_LNG_EPSG <- 4326
@@ -105,9 +105,26 @@ ext_shares_ncstm_df <- temp_both_df %>%
   select(-contains("flow_")) %>%
   select(-contains("total_"))
 
+ext_shares_df <- temp_both_df %>%
+  pivot_wider(., id_cols = c("ext_station"), 
+              names_from = c("vehicle_type", "purpose"), 
+              values_from = flow, 
+              values_fill = 0.0,
+              names_prefix = "flow_") %>%
+  left_join(., adt_df, by = c("ext_station")) %>%
+  mutate(adt = total_auto + total_mut + total_sut) %>%
+  mutate(pct_auto_ieei = 100.0 * flow_auto_IX / adt) %>%
+  mutate(pct_sut_ieei = 100.0 * flow_sut_IX / adt) %>%
+  mutate(pct_mut_ieei = 100.0 * flow_mut_IX / adt) %>%
+  mutate(pct_auto_ee = 100.0 * flow_auto_XX / adt) %>%
+  mutate(pct_sut_ee = 100.0 * flow_sut_XX / adt) %>%
+  mutate(pct_mut_ee = 100.0 * flow_mut_XX / adt) %>%
+  select(-contains("flow_")) %>%
+  select(-contains("total_"))
+
 remove(working_df, adt_df, temp_both_df, temp_orig_df)
 
-write_csv(ext_shares_ncstm_df, file = output_ee_shares_filename)
+write_csv(ext_shares_df, file = output_ext_shares_filename)
 
 # External station shares (blended) --------------------------------------------
 ext_shares_df <- select(ext_shares_sl_df, ext_station, station_name, ADT, PCTCV, PCTAUTOEE,
@@ -300,7 +317,7 @@ ei_distance_df <- working_df %>%
   mutate(category = "Non-freeway") %>%
   mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
   mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category))
-  
+
 write_csv(ei_attractions_df, file = output_ei_attractions_filename)
 write_csv(ei_distance_df, file = output_ei_distance_filename)
 
