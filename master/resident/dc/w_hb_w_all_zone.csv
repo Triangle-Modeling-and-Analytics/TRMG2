@@ -12,4 +12,4 @@ se.EmpDensity.D / 1000,,0.0018,
 se.access_hospital_sov.D,,0.3094,
 se.access_transit.D,,0.0737,
 se.access_walk.D,v0,0.3248,
-sp.hbw.D,,1,
+sp.hbw.D,,1,Shadow price
