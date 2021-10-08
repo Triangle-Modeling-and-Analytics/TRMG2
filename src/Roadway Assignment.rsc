@@ -82,7 +82,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
-    
+
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
@@ -204,7 +204,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         etc.
         */
 
-        Args.(period + "_PRMSE") = res.Data.[MSA PERCENT RMSE]
+        Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
     end
 endmacro
 
