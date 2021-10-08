@@ -1721,12 +1721,12 @@ calib_out_tbl <- comparison %>%
 ```
 
 ```{r write_output, eval=FALSE}
-output_dir <- "data/output/nhb/"
+output_dir <- "../master/resident/nhb/generation/"
 for (i in 1:length(coeffs_list)) {
   name <- names(coeffs_list)[i]
   df <- coeffs_list[[i]]
   write_csv(df, paste0(output_dir, name, ".csv"))
 }
 
-write_csv(calib_out_tbl, "data/output/nhb/nhb_calibration_factors.csv")
+write_csv(calib_out_tbl, paste0(output_dir, "nhb_calibration_factors.csv"))
 ```
