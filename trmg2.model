@@ -58,8 +58,8 @@ Body:
     FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
     FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
-    FlowChartLink(model,"Convergence","Transit Assignment",True,,)
-    FlowChartLink(model,"Convergence","Skimming",0,,1)
+    FlowChartLink(model,"Convergence","Transit Assignment",2,,)
+    FlowChartLink(model,"Convergence","Skimming",True,,1)
     Return(model)
 EndMacro
 
@@ -319,10 +319,14 @@ Body:
     iter = Args.FeedbackIteration
     max_iters = Args.FeedbackIterations
     target_prmse = Args.FeedbackConvergence
-    periods = RunMacro("Get Unconverged Periods", Args)
+
+    mr = CreateObject("Model.Runtime")
+    periods = mr.RunCode("Get Unconverged Periods", Args)
+
+    // periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
-        RunMacro("Write PRMSE", Args, period)
+        mr.RunCode("Write PRMSE", Args, period)
         prmse = Args.(period + "_PRMSE")
         if iter = 1 then continue
         if prmse <= target_prmse or iter >= max_iters 
@@ -333,17 +337,16 @@ Body:
     converged = 0
     if Args.periods.length = Args.converged_periods.length then converged = 1
     if converged = 0 then Args.FeedbackIteration = iter + 1
-    Return(converged)
+    Return(converged + 1)
 EndMacro
 
 
 Macro "Link.Convergence.Transit Assignm" (Args,Result)
-    Attributes = {{"Run_Always",0},
-                  {"Run_Condition","Result = 1"}}
+    Attributes = {{"Run_Condition","Result = 2"}}
 EndMacro
 
 
 Macro "Link.Convergence.Skimming" (Args,Result)
-    Attributes = {{"Run_Condition","Result = 0"}}
+    Attributes = {{"Run_Condition","Result = 1"}}
 EndMacro
 
