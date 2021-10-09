@@ -735,10 +735,10 @@ Macro "Get RTS Roadway File" (MacroOpts)
   
   // If the right roadway file exists in the directory but the route system
   // is pointing elsewhere, fix it.
-  if GetFileInfo(hwy_dbd) <> null and hwy_dbd <> hwy_dbd1 then do
-    {nlyr, llyr} = GetDBLayers(hwy_dbd)
-    ModifyRouteSystem(rts_file, {{"Geography", hwy_dbd, llyr}})
-  end
+  // if GetFileInfo(hwy_dbd) <> null and hwy_dbd <> hwy_dbd1 then do
+  //   {nlyr, llyr} = GetDBLayers(hwy_dbd)
+  //   ModifyRouteSystem(rts_file, {{"Geography", hwy_dbd, llyr}})
+  // end
 
   // If the roadway file does not exist in the same folder as the rts_file,
   // use the original path returned by GetRouteSystemInfo().
