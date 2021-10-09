@@ -6,6 +6,7 @@ Macro "Resident Productions" (Args)
 
     RunMacro("Create Production Features", Args)
     RunMacro("Apply Production Rates", Args)
+    RunMacro("Apply Calibration Factors", Args)
 
     return(1)
 endmacro
