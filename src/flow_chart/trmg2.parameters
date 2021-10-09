@@ -68,6 +68,7 @@
     Section = "Resident Productions"
     
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
+        Args.ProdCalibFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv", "Description":"Resident production calibration factors." }
     
     Section = "Time of Day"
     

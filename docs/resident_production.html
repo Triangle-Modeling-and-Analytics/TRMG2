@@ -545,8 +545,12 @@ div.tocify {
 </div>
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
-<p>The table below shows the production model results compared back to the total trips in the survey. Overall, the model performs extremely well even without calibration.</p>
-<p><em>TODO: These results are close enough that we are not going to adjust them unless we need to for validation. We will revisit this section then if needed.</em></p>
+<p>Calibrating the production rates is done to ensure that the final model is producing the same number of trips per person on average as the survey. One compicating factor in this comparison is that the survey and model socio-economic data have different total populations.</p>
+<ul>
+<li>Survey: 1.71 million</li>
+<li>Model: 1.83 million</li>
+</ul>
+<p>As a consequence, the survey trip totals will be increased by 1.07 and then compared to model results. The table below shows the production model results compared back to the total trips in the survey (factored up). While close, the model consistently predicts fewer trips compared to the survey.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -573,16 +577,16 @@ Difference
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-577,069
+615,997
 </td>
 <td style="text-align:right;">
 568,913
 </td>
 <td style="text-align:right;">
--8,156
+-47,084
 </td>
 <td style="text-align:right;">
--1
+-8
 </td>
 </tr>
 <tr>
@@ -590,16 +594,16 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-894,211
+954,533
 </td>
 <td style="text-align:right;">
 921,201
 </td>
 <td style="text-align:right;">
-26,990
+-33,332
 </td>
 <td style="text-align:right;">
-3
+-4
 </td>
 </tr>
 <tr>
@@ -607,16 +611,16 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-726,812
+775,841
 </td>
 <td style="text-align:right;">
 717,464
 </td>
 <td style="text-align:right;">
--9,348
+-58,378
 </td>
 <td style="text-align:right;">
--1
+-8
 </td>
 </tr>
 <tr>
@@ -624,16 +628,16 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-1,022,986
+1,091,994
 </td>
 <td style="text-align:right;">
 999,919
 </td>
 <td style="text-align:right;">
--23,067
+-92,076
 </td>
 <td style="text-align:right;">
--2
+-8
 </td>
 </tr>
 <tr>
@@ -641,16 +645,16 @@ N_HB_OME_All
 N_HB_OMED_All
 </td>
 <td style="text-align:right;">
-113,515
+121,173
 </td>
 <td style="text-align:right;">
 99,865
 </td>
 <td style="text-align:right;">
--13,650
+-21,307
 </td>
 <td style="text-align:right;">
--12
+-18
 </td>
 </tr>
 <tr>
@@ -658,16 +662,16 @@ N_HB_OMED_All
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
-57,304
+61,169
 </td>
 <td style="text-align:right;">
 58,643
 </td>
 <td style="text-align:right;">
-1,340
+-2,526
 </td>
 <td style="text-align:right;">
-2
+-4
 </td>
 </tr>
 <tr>
@@ -675,16 +679,16 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-287,277
+306,656
 </td>
 <td style="text-align:right;">
 292,151
 </td>
 <td style="text-align:right;">
-4,874
+-14,505
 </td>
 <td style="text-align:right;">
-2
+-5
 </td>
 </tr>
 <tr>
@@ -692,16 +696,16 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-766,618
+818,332
 </td>
 <td style="text-align:right;">
 789,298
 </td>
 <td style="text-align:right;">
-22,680
+-29,034
 </td>
 <td style="text-align:right;">
-3
+-4
 </td>
 </tr>
 <tr>
@@ -709,16 +713,95 @@ W_HB_W_All
 Total
 </td>
 <td style="text-align:right;">
-4,445,792
+4,745,696
 </td>
 <td style="text-align:right;">
 4,447,454
 </td>
 <td style="text-align:right;">
-1,661
+-298,243
 </td>
 <td style="text-align:right;">
-0
+-6
+</td>
+</tr>
+</tbody>
+</table>
+<p>The calibration factors below are the ratio of the observed to modeled trips. This are applied to each trip type to ensure total trip making is correct.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Type
+</th>
+<th style="text-align:right;">
+Factor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N_HB_K12_All
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:right;">
+1.21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All
+</td>
+<td style="text-align:right;">
+1.04
 </td>
 </tr>
 </tbody>

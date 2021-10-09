@@ -151,3 +151,27 @@ Macro "Apply Rates with Queries" (MacroOpts)
         end
     end
 endmacro
+
+/*
+Apply calibration factors by trip type
+*/
+
+Macro "Apply Calibration Factors" (Args)
+    per_file = Args.Persons
+    factor_file = Args.ProdCalibFactors
+    
+    per_vw = OpenTable("per", "FFB", {per_file})
+
+    factor_vw = OpenTable("factor", "CSV", {factor_file})
+    trip_types = GetDataVector(factor_vw + "|", "trip_type", )
+    factors = GetDataVector(factor_vw + "|", "factor", )
+    CloseView(factor_vw)
+    
+    for i = 1 to trip_types.length do
+        trip_type = trip_types[i]
+        factor = factors[i]
+
+        output.(trip_type) = GetDataVector(per_vw + "|", trip_type, ) * factor
+    end
+    SetDataVectors(per_vw + "|", output, )
+endmacro
