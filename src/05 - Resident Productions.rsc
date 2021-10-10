@@ -6,6 +6,7 @@ Macro "Resident Productions" (Args)
 
     RunMacro("Create Production Features", Args)
     RunMacro("Apply Production Rates", Args)
+    RunMacro("Apply Calibration Factors", Args)
 
     return(1)
 endmacro
@@ -171,7 +172,8 @@ Macro "Apply Calibration Factors" (Args)
         trip_type = trip_types[i]
         factor = factors[i]
 
-        output.(trip_type) = GetDataVector(per_vw + "|", trip_type, ) * factor
+        v = GetDataVector(per_vw + "|", trip_type, )
+        output.(trip_type) = v * factor
     end
     SetDataVectors(per_vw + "|", output, )
 endmacro
