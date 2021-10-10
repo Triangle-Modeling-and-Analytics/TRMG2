@@ -97,14 +97,7 @@ Macro "Calculate NM Probabilities" (Args)
 endmacro
 
 /*
-This reduces the trip counts on the synthetic persons tables to represent
-only the motorized person trips. The non-motorized person trips are stored
-in separate tables in output/resident/nonmotorized.
-
-Note: This step spends a lot of time reading/writing. It could potentially be
-sped up further by doing a single write to the person table at the end. This
-only works if all NM output probability files have the exact same order
-(it fills a joined view).
+This creates new, motorized-only fields on the person table
 */
 
 Macro "Separate NM Trips" (Args)
@@ -117,34 +110,39 @@ Macro "Separate NM Trips" (Args)
     trip_types = RunMacro("Get HB Trip Types", Args)
 
     for trip_type in trip_types do
-        // All escort-k12 trips are motorized so skip
-        if trip_type = "W_HB_EK12_All" then continue
+        
+        // Add field to person table
+        per_out_field = trip_type + "_m"
+        per_fields_to_add = per_fields_to_add + {
+            {per_out_field, "Real", 10, 2,,,, "Motorized " + trip_type + " person trips"}
+        }
+        RunMacro("Add Fields", {view: per_vw, a_fields: per_fields_to_add})
+        
+        // All escort-k12 trips are motorized
+        if trip_type = "W_HB_EK12_All" then do
+            v = GetDataVector(per_vw + "|", trip_type, )
+            SetDataVector(per_vw + "|", per_out_field, v, )
+            continue
+        end
         
         nm_file = output_dir + "/" + trip_type + ".bin"
         nm_vw = OpenTable("nm", "FFB", {nm_file})
         
-        // Add fields to the NM table before joining
-        a_fields_to_add = null
-        output = null
-        a_fields_to_add = a_fields_to_add + {
+        // Add field to nm table
+        nm_fields_to_add = {
             {trip_type, "Real", 10, 2,,,, "Non-motorized person trips"}
         }
-        RunMacro("Add Fields", {view: nm_vw, a_fields: a_fields_to_add})
+        RunMacro("Add Fields", {view: nm_vw, a_fields: nm_fields_to_add})
 
         // Join tables and calculate results
         jv = JoinViews("jv", per_vw + ".PersonID", nm_vw + ".ID", )
         v_pct_nm = GetDataVector(jv + "|", "nonmotorized Probability", )
-        nmoto_data = null
-        per_fields = null
-        per_fields = per_fields + {per_vw + "." + trip_type}
-        person_data = GetDataVectors(jv + "|", per_fields, {OptArray: "true"})
+        v_person = GetDataVector(jv + "|", per_vw + "." + trip_type, )
+        v_nm = v_person * v_pct_nm
+        v_person = v_person * (1 - v_pct_nm)
         
-            field_name = trip_type
-            nmoto_data.(nm_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * v_pct_nm
-            person_data.(per_vw + "." + field_name) = person_data.(per_vw + "." + field_name) * (1 - v_pct_nm)
-        
-        SetDataVectors(jv + "|", nmoto_data, )
-        SetDataVectors(jv + "|", person_data, )
+        SetDataVector(jv + "|", nm_vw + "." + trip_type, v_nm, )
+        SetDataVector(jv + "|", per_vw + "." + per_out_field, v_person, )
         CloseView(jv)
         CloseView(nm_vw)
     end
