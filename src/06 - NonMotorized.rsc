@@ -53,9 +53,16 @@ endmacro
 /*
 Loops over each trip type and applies the binary choice model to split
 trips into a "motorized" or "nonmotorized" mode.
+
+Inputs
+    * trip_types
+        * Optional Array
+        * Specific trip types to run this macro for
+        * If null, will run for all HB trip types
+        * Used by calibration macros
 */
 
-Macro "Calculate NM Probabilities" (Args)
+Macro "Calculate NM Probabilities" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
     input_dir = Args.[Input Folder]
@@ -64,7 +71,7 @@ Macro "Calculate NM Probabilities" (Args)
     households = Args.Households
     persons = Args.Persons
 
-    trip_types = RunMacro("Get HB Trip Types", Args)
+    if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
     primary_spec = {Name: "person", OField: "ZoneID"}
     for trip_type in trip_types do
         // All escort-k12 trips are motorized so skip
@@ -98,16 +105,23 @@ endmacro
 
 /*
 This creates new, motorized-only fields on the person table
+
+Inputs
+    * trip_types
+        * Optional Array
+        * Specific trip types to run this macro for
+        * If null, will run for all HB trip types
+        * Used by calibration macros
 */
 
-Macro "Separate NM Trips" (Args)
+Macro "Separate NM Trips" (Args, trip_types)
     
     output_dir = Args.[Output Folder] + "/resident/nonmotorized"
     per_file = Args.Persons
     
     per_vw = OpenTable("persons", "FFB", {per_file})
 
-    trip_types = RunMacro("Get HB Trip Types", Args)
+    if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
 
     for trip_type in trip_types do
         
@@ -153,9 +167,16 @@ endmacro
 
 /*
 Aggregates the non-motorized trips to TAZ
+
+Inputs
+    * trip_types
+        * Optional Array
+        * Specific trip types to run this macro for
+        * If null, will run for all HB trip types
+        * Used by calibration macros
 */
 
-Macro "Aggregate HB NonMotorized Walk Trips" (Args)
+Macro "Aggregate HB NonMotorized Walk Trips" (Args, trip_types)
 
     hh_file = Args.Households
     per_file = Args.Persons
@@ -168,10 +189,10 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args)
     hh_df.select({"HouseholdID", "ZoneID"})
     per_df.left_join(hh_df, "HouseholdID", "HouseholdID")
 
-    trip_types = RunMacro("Get HB Trip Types", Args)
+    if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
     // Remove W_HB_EK12_All because it is all motorized by definition
     pos = trip_types.position("W_HB_EK12_All")
-    trip_types = ExcludeArrayElements(trip_types, pos, 1)
+    if pos > 0 then trip_types = ExcludeArrayElements(trip_types, pos, 1)
     for trip_type in trip_types do
         file = nm_dir + "/" + trip_type + ".bin"
         vw = OpenTable("temp", "FFB", {file})

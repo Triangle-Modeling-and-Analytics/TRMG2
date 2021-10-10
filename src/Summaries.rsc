@@ -388,7 +388,7 @@ EndMacro
 
 */
 
-Macro "Summarize NM" (Args)
+Macro "Summarize NM" (Args, trip_types)
   
   out_dir = Args.[Output Folder]
   
@@ -403,7 +403,7 @@ Macro "Summarize NM" (Args)
   f = OpenFile(summary_file, "w")
   WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
-  trip_types = RunMacro("Get HB Trip Types", Args)
+  if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
     moto_v = GetDataVector(per_vw + "|", trip_type, )
     moto_total = VectorStatistic(moto_v, "Sum", )
