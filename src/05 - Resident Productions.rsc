@@ -172,7 +172,8 @@ Macro "Apply Calibration Factors" (Args)
         trip_type = trip_types[i]
         factor = factors[i]
 
-        output.(trip_type) = GetDataVector(per_vw + "|", trip_type, ) * factor
+        v = GetDataVector(per_vw + "|", trip_type, )
+        output.(trip_type) = v * factor
     end
     SetDataVectors(per_vw + "|", output, )
 endmacro
