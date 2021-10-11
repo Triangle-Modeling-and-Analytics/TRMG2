@@ -205,6 +205,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         */
 
         Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
+        RunMacro("Write PRMSE", Args, period)
     end
 endmacro
 

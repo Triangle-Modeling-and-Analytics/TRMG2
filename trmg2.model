@@ -326,14 +326,13 @@ Body:
     // periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
-        mr.RunCode("Write PRMSE", Args, period)
         prmse = Args.(period + "_PRMSE")
         if iter = 1 then continue
         if prmse <= target_prmse or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
     
-    // Feedback is done when all periods have converged
+    // Feedback is done when all periods have converged or hit max iters
     converged = 0
     if Args.periods.length = Args.converged_periods.length then converged = 1
     if converged = 0 then Args.FeedbackIteration = iter + 1
