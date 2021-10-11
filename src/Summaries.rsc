@@ -5,12 +5,13 @@ and tables.
 
 Macro "Summaries" (Args)
 
-    RunMacro("Load Link Layer", Args)
-    RunMacro("Calculate Daily Fields", Args)
-    RunMacro("Create Count Difference Map", Args)
-    RunMacro("VOC Maps", Args)
-    RunMacro("Summarize by FT and AT", Args)
-    RunMacro("Transit Summary", Args)
+    // RunMacro("Load Link Layer", Args)
+    // RunMacro("Calculate Daily Fields", Args)
+    // RunMacro("Create Count Difference Map", Args)
+    RunMacro("Count PRMSEs", Args)
+    // RunMacro("VOC Maps", Args)
+    // RunMacro("Summarize by FT and AT", Args)
+    // RunMacro("Transit Summary", Args)
     return(1)
 endmacro
 
@@ -251,6 +252,22 @@ Macro "Create Count Difference Map" (Args)
 //   opts.field_suffix = "MUT"
 //   RunMacro("Count Difference Map", opts)
 EndMacro
+
+/*
+Creates tables with %RMSE and volume % diff by facility type and volume group
+*/
+
+Macro "Count PRMSEs" (Args)
+  hwy_dbd = Args.Links
+
+  opts.hwy_bin = Substitute(hwy_dbd, ".dbd", ".bin", )
+  opts.volume_field = "Total_Flow_Daily"
+  opts.count_field = "DailyCount"
+  opts.class_field = "HCMType"
+  opts.volume_breaks = {10000, 25000, 50000, 100000}
+  opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  RunMacro("Roadway Count Comparison Tables", opts)
+endmacro
 
 /*
 Creates V/C maps for each time period and LOS (D and E)

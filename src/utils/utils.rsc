@@ -2215,3 +2215,149 @@ Macro "Get Unconverged Periods" (Args)
   end
   return(to_return)
 EndMacro
+
+/*
+Calculates the RMSE and %RMSE of two vectors.
+
+Inputs
+  * v_target
+    * Vector
+    * First vector to use in calculation.
+  * v_compare
+    * Vector
+    * Second vector to use in calculation.
+    
+Returns
+  * Array in form of {RMSE, %RMSE}
+*/
+
+Macro "Calculate Vector RMSE" (v_target, v_compare)
+
+  // Argument check
+  if v_target.length = null then Throw("Missing 'v_target'")
+  if v_compare.length = null then Throw("Missing 'v_compare'")
+  if TypeOf(v_target) = "array" then v_target = A2V(v_target)
+  if TypeOf(v_compare) = "array" then v_target = A2V(v_compare)
+  if TypeOf(v_target) <> "vector" then Throw("'v_target' must be vector or array")
+  if TypeOf(v_compare) <> "vector" then Throw("'v_compare' must be vector or array")
+  if v_target.length <> v_compare.length then Throw("Vectors must be the same length")
+
+  n = v_target.length
+  tot_target = VectorStatistic(v_target, "Sum", )
+  tot_result = VectorStatistic(v_compare, "Sum", )
+
+  // RMSE and Percent RMSE
+  diff_sq = Pow(v_target - v_compare, 2)
+  sum_sq = VectorStatistic(diff_sq, "Sum", )
+  rmse = sqrt(sum_sq / n)
+  pct_rmse = 100 * rmse / (tot_target / n)
+  return({rmse, pct_rmse})
+EndMacro
+
+/*
+
+*/
+
+Macro "Roadway Count Comparison Tables" (MacroOpts)
+
+  hwy_bin = MacroOpts.hwy_bin
+  volume_field = MacroOpts.volume_field
+  count_field = MacroOpts.count_field
+  class_field = MacroOpts.class_field
+  volume_breaks = MacroOpts.volume_breaks
+  out_dir = MacroOpts.out_dir
+
+  if volume_breaks = null
+    then volume_breaks = {0, 10000, 25000, 50000, 100000, 1000000}
+    else do
+      if volume_breaks[1] <> 0 then volume_breaks = {0} + volume_breaks
+      volume_breaks = volume_breaks + {1000000}
+    end
+
+  RunMacro("Create Directory", out_dir)
+
+  hwy_vw = OpenTable("hwy", "FFB", {hwy_bin})
+  SetView(hwy_vw)
+  count_set = "count_set"
+  query = "Select * where nz(" + count_field + ") > 0"
+  n = SelectByQuery(count_set, "several", query)
+
+  // overall/total fields
+  {v_count, v_volume, v_class} = GetDataVectors(
+    hwy_vw + "|" + count_set, {count_field, volume_field, class_field}, 
+  )
+  total_count = VectorStatistic(v_count, "Sum", )
+  total_volume = VectorStatistic(v_volume, "Sum", )
+  total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+  {, total_prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+  total_prmse = round(total_prmse, 2)
+  total_line = {
+    "All," + String(total_count) + "," + String(total_volume) + 
+    "," + String(total_pct_diff) + "," + String(total_prmse)
+  }
+
+  // Facility type table
+  lines = null
+  v_class = SortVector(v_class, {Unique: "true"})
+  for class_name in v_class do
+    class_set = "class"
+    if TypeOf(class_name) <> "string" then class_name = String(class_name)
+    query = "Select * where " + class_field + " = '" + class_name + "'"
+    n = SelectByQuery(class_set, "several", query, {"Source And": count_set})
+    if n = 0 then continue
+    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + class_set, {count_field, volume_field}, )
+    total_count = VectorStatistic(v_count, "Sum", )
+    total_volume = VectorStatistic(v_volume, "Sum", )
+    pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+    {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+    prmse = round(prmse, 2)
+    lines = lines + {
+      class_name + "," + String(total_count) + "," + String(total_volume) + 
+      "," + String(pct_diff) + "," + String(prmse)
+    }
+  end
+  file = out_dir + "/facility_type.csv"
+  lines = {"HCMType,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
+
+  // Volume group table
+  lines = null
+  for i = 2 to volume_breaks.length do
+    low_vol = volume_breaks[i - 1]
+    high_vol = volume_breaks[i]
+
+    vol_set = "class"
+    query = "Select * where " + volume_field + " > " + String(low_vol) + 
+      " and " + volume_field + " <= " + String(high_vol)
+    n = SelectByQuery(vol_set, "several", query, {"Source And": count_set})
+    if n = 0 then continue
+    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + vol_set, {count_field, volume_field}, )
+    total_count = VectorStatistic(v_count, "Sum", )
+    total_volume = VectorStatistic(v_volume, "Sum", )
+    pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+    {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+    prmse = round(prmse, 2)
+    if i = volume_breaks.length
+      then label = String(low_vol) + "+"
+      else label = String(high_vol)
+    lines = lines + {
+      label + "," + String(total_count) + "," + String(total_volume) + 
+      "," + String(pct_diff) + "," + String(prmse)
+    }
+  end
+  file = out_dir + "/volume_groups.csv"
+  lines = {"VolumeGroup,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
+  
+  CloseView(hwy_vw)
+endmacro
+
+Macro "Write CSV by Line" (file, lines)
+  f = OpenFile(file, "w")
+  for line in lines do
+    WriteLine(f, line)
+  end
+  CloseFile(f)
+endmacro
