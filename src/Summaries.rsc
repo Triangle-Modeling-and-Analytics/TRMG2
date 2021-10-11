@@ -5,13 +5,15 @@ and tables.
 
 Macro "Summaries" (Args)
 
-    // RunMacro("Load Link Layer", Args)
-    // RunMacro("Calculate Daily Fields", Args)
-    // RunMacro("Create Count Difference Map", Args)
+    RunMacro("Load Link Layer", Args)
+    RunMacro("Calculate Daily Fields", Args)
+    RunMacro("Create Count Difference Map", Args)
     RunMacro("Count PRMSEs", Args)
-    // RunMacro("VOC Maps", Args)
-    // RunMacro("Summarize by FT and AT", Args)
-    // RunMacro("Transit Summary", Args)
+    RunMacro("VOC Maps", Args)
+    RunMacro("Summarize NM", Args)
+    RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Transit Summary", Args)
+
     return(1)
 endmacro
 
@@ -399,6 +401,48 @@ Macro "VOC Maps" (Args)
     end
   end
 EndMacro
+
+/*
+
+*/
+
+Macro "Summarize NM" (Args, trip_types)
+  
+  out_dir = Args.[Output Folder]
+  
+  per_dir = out_dir + "/resident/population_synthesis"
+  per_file = per_dir + "/Synthesized_Persons.bin"
+  per_vw = OpenTable("per", "FFB", {per_file})
+  nm_dir = out_dir + "/resident/nonmotorized"
+  nm_file = nm_dir + "/_agg_nm_trips_daily.bin"
+  nm_vw = OpenTable("nm", "FFB", {nm_file})
+
+  summary_file = out_dir + "/_summaries/nm_summary.csv"
+  f = OpenFile(summary_file, "w")
+  WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
+
+  if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
+  for trip_type in trip_types do
+    moto_v = GetDataVector(per_vw + "|", trip_type, )
+    moto_total = VectorStatistic(moto_v, "Sum", )
+    if trip_type = "W_HB_EK12_All" then do
+      moto_share = 100
+      nm_total = 0
+      nm_share = 0
+    end else do
+      nm_v = GetDataVector(nm_vw + "|", trip_type, )
+      nm_total = VectorStatistic(nm_v, "Sum", )
+      moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
+      nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
+    end
+
+    WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
+  end
+
+  CloseView(per_vw)
+  CloseView(nm_vw)
+  CloseFile(f)
+endmacro
 
 /*
 Summarize highway stats like VMT and VHT
