@@ -48,6 +48,8 @@ Macro "Calibrate NM" (Args)
             iter = iter + 1
         end
     end
+
+    ShowMessage("Nonmotorized calibration complete")
 endmacro
 
 Macro "Get Share" (MacroOpts)
