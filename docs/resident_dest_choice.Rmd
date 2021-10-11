@@ -84,6 +84,11 @@ district_features <- taz_features %>%
   ungroup()
 ```
 
+## Attraction model
+
+For work trips (W_HB_W_All), an attraction model was estimated. The predicted
+attractions in each zone are used to doubly constrain the work trips.
+
 ```{r}
 w_hb_w <- taz_features %>%
   select(choice_segment, W_HB_W_All, HH:OtherSpaces, Service) %>%
@@ -97,31 +102,6 @@ ih <- w_hb_w %>%
 ```
 
 ```{r}
-# lm were estimated with intercepts to determine which terms to include.
-# Then remove the intercept to get attraction rates that assure 0 attractions
-# in empty zones.
-model <- lm(
-  W_HB_W_All ~ Industry_EL + Office_EL + Retail + I(Service_RH_EL + Service_RL_EL) +
-    Hospital + 0,
-  data = il
-)
-
-# broom::tidy(model)
-summary(model)
-```
-
-```{r}
-model <- lm(
-  W_HB_W_All ~ Industry_EH + Office_EH + I(Service_RH_EH + Service_RL_EH) + 
-    + Hospital + UnivStudents + 0,
-  data = ih
-)
-
-# broom::tidy(model)
-summary(model)
-```
-
-```{r}
 # combined model
 model <- lm(
   W_HB_W_All ~ Industry + Office_EL + Retail + I(Service_RH_EL + Service_RL_EL) +
@@ -129,7 +109,10 @@ model <- lm(
   data = w_hb_w
 )
 
-broom::tidy(model)
+
+# Calibration: all rates multiplied by 2.45 after seeing total Ps and As
+broom::tidy(model) %>%
+  mutate(estimate = estimate * 2.45)
 # summary(model)
 ```
 
