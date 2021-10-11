@@ -38,7 +38,7 @@ Macro "Calibrate NM" (Args)
 
             gap = abs(est_share - obs_share)
 
-            constant = round(Log(obs_share/est_share), 4)
+            constant = round(Log(obs_share/est_share) * .75, 4)
             param_file = param_dir + "/" + trip_type + ".csv"
             line = "nonmotorized,Constant,," + String(constant) + ",Added by calibrator routine. gap = " + String(gap)
             RunMacro("Append Line", {file: param_file, line: line})

@@ -1,6 +1,6 @@
 Field,w_hbw_a,Description
-Industry,0.557,Attractions for destination choice double constraint (separate from size terms in the DC model)
-Office_EL,0.42,Separate attraction rates are used for high- and low-income households for work trips
-Office_EH,0.291,"The 'EL' and 'EH' suffice on employment is 'Earning Low' and ""Earning High'"
-Service_RateLow,0.361,See PctHighPay field (source: LEHD)
-Service_RateHigh,0.202,
+Industry,1.365,Attractions for destination choice double constraint (separate from size terms in the DC model)
+Office_EL,1.029,Separate attraction rates are used for high- and low-income households for work trips
+Office_EH,0.713,"The 'EL' and 'EH' suffice on employment is 'Earning Low' and ""Earning High'"
+Service_RateLow,0.884,See PctHighPay field (source: LEHD)
+Service_RateHigh,0.495,
