@@ -281,7 +281,11 @@ Macro "Update Shadow Price" (Args)
         end
     end
     
-    v_sp = v_sp + nz(Log(v_attrs/v_total_trips)) * .75
+    // Calculate constant adjustmente. avoid Log(0) = -inf
+    delta = if v_attrs = 0 or v_total_trips = 0
+        then 0
+        else nz(Log(v_attrs/v_total_trips)) * .75
+    v_sp = v_sp + delta
     SetDataVector(sp_vw + "|", "hbw", v_sp, )
 
     CloseView(se_vw)
