@@ -2361,3 +2361,61 @@ Macro "Write CSV by Line" (file, lines)
   end
   CloseFile(f)
 endmacro
+
+/*
+Takes a matrix (or array of matrices) and generates a CSV table of stats similar
+to the table created by Matrix -> Statistics from the TC drop menu.
+
+Inputs
+  * matrices
+    * String or array/vector of strings
+    * Full paths to matrix files to be summarized.
+
+Returns
+  * Returns a gplyr data frame
+*/
+
+Macro "Matrix Stats" (matrices)
+  
+  if matrices = null then Throw("Matrix Statistics: 'matrices' not provided")
+  if TypeOf(matrices) = "string" then matrices = {matrices}
+  if TypeOf(matrices) = "vector" then matrices = V2A(matrices)
+  if TypeOf(matrices) <> "array" then Throw(
+    "Matrix Statistics: 'matrices' must be string, array, or vector"
+  )
+  
+  // Create table of statistics
+  for mtx_file in matrices do
+
+    // get matrix core names and stats
+    {drive, folder, name, ext} = SplitPath(mtx_file)
+    mtx = OpenMatrix(mtx_file, )
+    a_corenames = GetMatrixCoreNames(mtx)
+    a_stats = MatrixStatistics(mtx, )
+
+    // Set data frame rows to be the stats
+    for corename in a_corenames do
+      stats = a_stats.(corename)
+
+      df_temp = CreateObject("df", stats)
+      a_init_colnames = df_temp.colnames()
+      df_temp.mutate("matrix", name)
+      df_temp.mutate("core", corename)
+      df_temp.select({"matrix", "core"} + a_init_colnames)
+
+      if corename = a_corenames[1]
+        then df = df_temp.copy()
+        else df.bind_rows(df_temp)
+    end
+
+    // Attach to final table
+    if mtx_file = matrices[1]
+      then df_final = df.copy() 
+      else df_final.bind_rows(df)
+
+    mtx = null
+  end
+
+  // Write out csv
+  return(df_final)
+EndMacro

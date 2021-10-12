@@ -10,6 +10,7 @@ Macro "Summaries" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
+    RunMacro("Summarize DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
     RunMacro("Transit Summary", Args)
@@ -399,6 +400,118 @@ Macro "VOC Maps" (Args)
       SaveMap(map, mapFile)
       CloseMap(map)
     end
+  end
+EndMacro
+
+/*
+Creates a table of statistics and writes out
+final tables to CSV.
+*/
+
+Macro "Summarize DC and MC" (Args)
+
+  periods = Args.periods
+  scen_dir = Args.[Scenario Folder]
+  trip_dir = scen_dir + "/output/resident/trip_matrices"
+  output_dir = scen_dir + "/output/_summaries/dc"
+  skim_dir = scen_dir + "/output/skims/roadway"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  mtx_files = RunMacro("Catalog Files", trip_dir, "mtx")
+
+  // Create table of statistics
+  df = RunMacro("Matrix Stats", mtx_files)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  df.mutate("matrix", Substitute(df.tbl.matrix, "pa_per_trips_", "", ))
+  v = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  df.mutate("matrix", v)
+  df.rename({"matrix", "core"}, {"trip_type", "mode"})
+  df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
+  df.filter("mode <> 'all_transit'")
+  modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
+  df.write_csv(modal_file)
+
+  // Summarize by mode
+  mc_dir = scen_dir + "/output/_summaries/mc"
+  df = CreateObject("df", modal_file)
+  df.group_by({"trip_type", "mode"})
+  df.summarize("Sum", "sum")
+  df.rename("sum_Sum", "Sum")
+  df_tot = df.copy()
+  df_tot.group_by({"trip_type"})
+  df_tot.summarize("Sum", "sum")
+  df_tot.rename("sum_Sum", "total")
+  df.left_join(df_tot, "trip_type", "trip_type")
+  df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
+  df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
+  Throw()
+
+  // Create a totals matrix for each trip type
+  trip_types = RunMacro("Get HB Trip Types", Args)
+  for trip_type in trip_types do
+    total_file = output_dir + "/" + trip_type + ".mtx"
+    total_files = total_files + {total_file}
+
+    for period in periods do
+      in_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+      if period = periods[1] then do
+        CopyFile(in_file, total_file)
+        total_mtx = CreateObject("Matrix", total_file)
+        to_drop = total_mtx.GetCoreNames()
+        total_mtx.AddCores({"total"})
+        total_mtx.DropCores(to_drop)
+        total_core = total_mtx.GetCore("total")
+        total_core := 0
+      end
+
+      in_mtx = CreateObject("Matrix", in_file)
+      core_names = in_mtx.GetCoreNames()
+      for core_name in core_names do
+        if core_name = "all_transit" then continue
+        in_core = in_mtx.GetCore(core_name)
+        total_core := total_core + nz(in_core)
+      end
+    end
+  end
+  total_mtx = null
+  total_core = null
+
+  // Summarize totals matrices
+  df = RunMacro("Matrix Stats", total_files)
+  df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
+  stats_file = output_dir + "/hb_trip_stats_by_type.csv"
+  df.write_csv(stats_file)
+
+  // Calculate TLFDs
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_core = skim_mtx.GetCore("Length (Skim)")
+  for mtx_file in total_files do
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("total")
+
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_core
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+  end
+  mtx = null
+  trip_core = null
+
+  df = CreateObject("df", stats_file)
+  df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.write_csv(stats_file)
+
+  // Remove the totals matrices to save space
+  for file in total_files do
+    DeleteFile(file)
   end
 EndMacro
 
