@@ -49,7 +49,7 @@ Macro "Aggregate HB Moto Trips" (Args)
     for name in names do
         if Left(name, 4) = "sum_" then do
             new_name = Substitute(name, "sum_", "", 1)
-            new_name = Substitute(name, "_m", "", 1)
+            new_name = Substitute(new_name, "_m", "", 1)
             df.rename(name, new_name)
         end
     end
