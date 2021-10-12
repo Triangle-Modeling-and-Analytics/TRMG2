@@ -82,36 +82,9 @@ Macro "DC Attractions" (Args)
     p_sum = VectorStatistic(total_p, "sum",)
     a_sum = VectorStatistic(v_a, "sum",)
     total_a = v_a * (p_sum / a_sum)
-    Throw(0)
     SetDataVector(se_vw + "|", "w_hbw_a", total_a, )
 
-
-    // // Split the attractions by time period using the HBW factors
-    // fac_vw = OpenTable("tod_fac", "CSV", {tod_file})
-    // SetView(fac_vw)
-    // set = "hbw"
-    // query = "Select * where trip_type = 'W_HB_W_All'"
-    // SelectByQuery(set, "several", query)
-    // v_type = GetDataVector(fac_vw + "|" + set, "trip_type", )
-    // v_tod = GetDataVector(fac_vw + "|" + set, "tod", )
-    // v_fac = GetDataVector(fac_vw + "|" + set, "factor", )
-    // v_daily_attrs = GetDataVector(se_vw + "|", "w_hbw_a",)
-    // for i = 1 to v_type.length do
-    //     type = v_type[i]
-    //     tod = v_tod[i]
-    //     fac = v_fac[i]
-
-    //     field_name = "w_hbw_a_" + tod
-    //     a_fields_to_add = a_fields_to_add + {
-    //         {field_name, "Real", 10, 2,,,, "Resident DC Attractions by TOD|Used for double constraint."}
-    //     }
-    //     data.(field_name) = v_daily_attrs * fac
-    // end
-    // RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
-    // SetDataVectors(se_vw + "|", data, ) 
-
     CloseView(se_vw)
-    // CloseView(fac_vw)
 endmacro
 
 /*
