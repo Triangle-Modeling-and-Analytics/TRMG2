@@ -321,6 +321,14 @@ Macro "Evaluate NHB DC"(Args, Spec)
             ret = obj.Evaluate()
             if !ret then
                 Throw("Running '" + tag + "' destination choice model failed.")
+
+            // Convert any nulls to zero in the resulting trip matrix
+            mtx = CreateObject("Matrix", trips_folder + tag + ".mtx")
+            core_names = mtx.GetCoreNames()
+            for core_name in core_names do
+                core = mtx.GetCore(core_name)
+                core := nz(core)
+            end
         end
     end
 endMacro

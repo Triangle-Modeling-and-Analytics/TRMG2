@@ -381,6 +381,7 @@ Macro "Apportion Resident HB Trips" (Args)
             mode_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
+            cores.all_transit := 0
             modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
             for mode in mode_names do
                 if modes_to_skip.position(mode) > 0 then continue

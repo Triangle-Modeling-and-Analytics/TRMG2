@@ -1,5 +1,8 @@
 /*
-
+The macros in this script stitch together all the various travel markets
+into four assignment matrices (one for each period). Along the way,
+trip conservation snapshots are taken to help identify if trips are being
+lost during the conversion.
 */
 
 Macro "Create Assignment Matrices" (Args)
@@ -134,9 +137,9 @@ Macro "HB Collapse Auto Modes" (Args)
             mtx = CreateObject("Matrix", mtx_file)
             cores = mtx.GetCores()
             for core_to_collapse in cores_to_collapse do
-                cores.sov := cores.sov + cores.(core_to_collapse) * sov_fac
-                cores.hov2 := cores.hov2 + cores.(core_to_collapse) * hov2_fac
-                cores.hov3 := cores.hov3 + cores.(core_to_collapse) * hov3_fac
+                cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
+                cores.hov2 := cores.hov2 + nz(cores.(core_to_collapse)) * hov2_fac
+                cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
             end
             mtx.DropCores({"auto_pay", "other_auto"})
         end
@@ -346,7 +349,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
                 "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + period + "'"
             )
             if n = 0 then Throw(
-                "Trying to add NHB trips into assignment matrix./n" +
+                "Trying to add NHB trips into assignment matrix.\n" +
                 "HOV3 factor not found in lookup table."
             )
             occ_rate = GetDataVector(hov3_vw + "|sel", "hov3", )
@@ -416,52 +419,6 @@ Macro "Add CVs and Trucks" (Args)
 endmacro
 
 /*
-
-*/
-
-Macro "Add Externals" (Args)
-
-    assn_dir = Args.[Output Folder] + "/assignment/roadway"
-    ext_dir = Args.[Output Folder] + "/external"
-    periods = RunMacro("Get Unconverged Periods", Args)
-
-    ee_mtx_file = ext_dir + "/ee_trips.mtx"
-    ee_mtx = CreateObject("Matrix", ee_mtx_file)
-    ee_cores = ee_mtx.GetCores()
-    ee_core_names = ee_mtx.GetCoreNames()
-
-    ie_mtx_file = ext_dir + "/ie_od_trips.mtx"
-    ie_mtx = CreateObject("Matrix", ie_mtx_file)
-    ie_cores = ie_mtx.GetCores()
-    ie_core_names = ie_mtx.GetCoreNames()
-
-    for i = 1 to ee_core_names.length do
-        ee_core_name = ee_core_names[i]
-        ie_core_name = ie_core_names[i]
-
-        // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
-        parts = ParseString(ee_core_name, "_")
-        period = parts[3]
-        if parts[2] = "AUTO" then core_name = "sov_VOT2"
-        if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
-        if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
-
-        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
-        trip_mtx = CreateObject("Matrix", trip_mtx_file)
-        trip_cores = trip_mtx.GetCores()
-        // The ee matrix only contains external centroids
-        trip_mtx.UpdateCore({CoreName: core_name, SourceCores: ee_cores.(ee_core_name)})
-        // The ie matrix contains all centroids
-        trip_cores.(core_name) := nz(trip_cores.(core_name)) + nz(ie_cores.(ie_core_name))
-    end
-
-    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 external trips.csv"
-    RunMacro("Trip Conservation Snapshot", ext_dir, out_file)
-    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/10 after Add Externals.csv"
-    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
-endmacro
-
-/*
 This borrows the NCSTM approach to split OD matrices into distinct values of
 time. This is based both on the distance of the trip and the average HH incomes
 in the origin and destination zones.
@@ -510,6 +467,9 @@ Macro "VOT Split" (Args)
 		cores.dtemp    := v_tothhinc
 		v_tothhinc.rowbased = true
 		cores.wgtinc    := (cores.otemp + cores.dtemp) / cores.hh
+        a_stats = MatrixStatistics(output.GetMatrixHandle(), {Tables: {"wgtinc"}})
+        mean_inc = a_stats.wgtinc.Mean
+        cores.wgtinc := if cores.wgtinc = null then mean_inc else cores.wgtinc
         output.DropCores({"hh", "otemp", "dtemp"})
 
         output.AddCores({"lognorm", "zscore"})
@@ -574,7 +534,7 @@ Macro "VOT Split" (Args)
 
     CloseView(se_vw)
 
-    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/11 after VOT Split.csv"
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/10 after VOT Split.csv"
     RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
@@ -640,6 +600,53 @@ Macro "VOT Aggregation" (Args)
         end 
     end
 
-    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/12 after VOT Aggregation.csv"
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/11 after VOT Aggregation.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
+endmacro
+
+
+/*
+
+*/
+
+Macro "Add Externals" (Args)
+
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    ext_dir = Args.[Output Folder] + "/external"
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    ee_mtx_file = ext_dir + "/ee_trips.mtx"
+    ee_mtx = CreateObject("Matrix", ee_mtx_file)
+    ee_cores = ee_mtx.GetCores()
+    ee_core_names = ee_mtx.GetCoreNames()
+
+    ie_mtx_file = ext_dir + "/ie_od_trips.mtx"
+    ie_mtx = CreateObject("Matrix", ie_mtx_file)
+    ie_cores = ie_mtx.GetCores()
+    ie_core_names = ie_mtx.GetCoreNames()
+
+    for i = 1 to ee_core_names.length do
+        ee_core_name = ee_core_names[i]
+        ie_core_name = ie_core_names[i]
+
+        // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
+        parts = ParseString(ee_core_name, "_")
+        period = parts[3]
+        if parts[2] = "AUTO" then core_name = "sov_VOT2"
+        if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
+        if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
+
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+        trip_cores = trip_mtx.GetCores()
+        // The ee matrix only contains external centroids
+        trip_mtx.UpdateCore({CoreName: core_name, SourceCores: ee_cores.(ee_core_name)})
+        // The ie matrix contains all centroids
+        trip_cores.(core_name) := nz(trip_cores.(core_name)) + nz(ie_cores.(ie_core_name))
+    end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 external trips.csv"
+    RunMacro("Trip Conservation Snapshot", ext_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/12 after Add Externals.csv"
     RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro

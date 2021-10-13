@@ -57,6 +57,15 @@ Macro "Convert EE CSV to MTX" (Args)
   )
   
   mtx = null
+
+  // Remove any nulls
+  mtx = CreateObject("Matrix", ee_mtx_file)
+  core_names = mtx.GetCoreNames()
+  for core_name in core_names do
+    core = mtx.GetCore(core_name)
+    core := nz(core)
+  end
+
   CloseView(view)
   CloseMap(map)
 endmacro 
