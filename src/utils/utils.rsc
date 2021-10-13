@@ -2377,7 +2377,7 @@ Returns
 
 Macro "Matrix Stats" (matrices)
   
-  if matrices = null then Throw("Matrix Statistics: 'matrices' not provided")
+  if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
   if TypeOf(matrices) = "vector" then matrices = V2A(matrices)
   if TypeOf(matrices) <> "array" then Throw(
@@ -2419,3 +2419,21 @@ Macro "Matrix Stats" (matrices)
   // Write out csv
   return(df_final)
 EndMacro
+
+/*
+Creates a summary CSV of all matrices in the given directory.
+These snapshots make it much easier to track and identify trip
+conservation issues.
+*/
+
+Macro "Trip Conservation Snapshot" (dir, out_file)
+  
+  // Write stats to check trip conservation
+  matrices = RunMacro("Catalog Files", dir, "mtx")
+  df = RunMacro("Matrix Stats", matrices)
+  v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  v_type = Substitute(v_type, "od_per_trips_", "", )
+  df.mutate("trip_type", v_type)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  df.write_csv(out_file)
+endmacro

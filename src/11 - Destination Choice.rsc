@@ -232,24 +232,25 @@ Macro "Calculate Destination Choice" (Args, trip_types)
                     mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }
                 
-                task = CreateObject("Parallel.Task", "DC Runner", GetInterface())
-                task.Run(opts)
-                tasks = tasks + {task}
+                // RunMacro("Parallel.SetMaxEngines", 3)
+                // task = CreateObject("Parallel.Task", "DC Runner", GetInterface())
+                // task.Run(opts)
+                // tasks = tasks + {task}
                 
                 // To run this code in series (and not in parallel), comment out the "task"
                 // and "monitor" lines of code. Uncomment the two lines below. This can be
                 // helpful for debugging.
-                // obj = CreateObject("NestedDC", opts)
-                // obj.Run()
+                obj = CreateObject("NestedDC", opts)
+                obj.Run()
             end
         end
     end
 
-    monitor = CreateObject("Parallel.TaskMonitor", tasks)
-    monitor.DisplayStatus()
-    monitor.WaitForAll()
-    if monitor.IsFailed then Throw("MC Failed")
-    monitor.CloseStatusDbox()
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
 endmacro
 
 Macro "DC Runner" (opts)
@@ -370,7 +371,7 @@ Macro "Apportion Resident HB Trips" (Args)
                 mode_names = mc_mtx.GetCoreNames()
                 out_cores = out_mtx.GetCores()
                 for mode in mode_names do
-                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
+                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
                 end
             end
 

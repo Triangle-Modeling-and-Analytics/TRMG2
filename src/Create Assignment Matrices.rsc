@@ -65,6 +65,11 @@ Macro "Directionality" (Args)
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 hb trips.csv"
+    RunMacro("Trip Conservation Snapshot", trip_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/1 after Directionality.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -95,6 +100,11 @@ Macro "Add Airport Trips" (Args)
             od_core := nz(od_core) + nz(air_core)
         end
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 airport trips.csv"
+    RunMacro("Trip Conservation Snapshot", air_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/2 after Add Airport Trips.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -133,6 +143,9 @@ Macro "HB Collapse Auto Modes" (Args)
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/3 after HB Collapse Auto Modes.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -164,6 +177,9 @@ Macro "HB Occupancy" (Args)
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/4 after HB Occupancy.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -201,6 +217,9 @@ Macro "HB Collapse Trip Types" (Args)
             end
         end
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/5 after HB Collapse Trip Types.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -228,6 +247,9 @@ Macro "HB Remove Interim Matrices" (Args)
         {, , name, } = SplitPath(file)
         if files_to_keep.position(name) = 0 then DeleteFile(file)
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/6 after HB Remove Interim Matrices.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -238,6 +260,9 @@ Macro "NHB Collapse Auto Modes" (Args)
     shares_file = Args.NHBOtherShares
     out_dir = Args.[Output Folder]
     nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 nhb trips.csv"
+    RunMacro("Trip Conservation Snapshot", nhb_dir, out_file)
 
     // Distribute auto_pay to other modes
     share_vw = OpenTable("shares", "CSV", {shares_file})
@@ -273,6 +298,9 @@ Macro "NHB Collapse Auto Modes" (Args)
             cores.(mode) := nz(cores.Total) * pct
         end
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/7 nhb trips after NHB Collapse Auto Modes.csv"
+    RunMacro("Trip Conservation Snapshot", nhb_dir, out_file)
 endmacro
 
 /*
@@ -352,6 +380,9 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
         end
     end
     CloseView(hov3_vw)
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/8 after NHB Collapse Matrices and Occupancy.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -377,6 +408,11 @@ Macro "Add CVs and Trucks" (Args)
             trip_cores.(name) := cv_cores.(name)
         end
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 cv and truck trips.csv"
+    RunMacro("Trip Conservation Snapshot", cv_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/9 after Add CVs and Trucks.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -418,6 +454,11 @@ Macro "Add Externals" (Args)
         // The ie matrix contains all centroids
         trip_cores.(core_name) := nz(trip_cores.(core_name)) + nz(ie_cores.(ie_core_name))
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 external trips.csv"
+    RunMacro("Trip Conservation Snapshot", ext_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/10 after Add Externals.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -532,6 +573,9 @@ Macro "VOT Split" (Args)
     end
 
     CloseView(se_vw)
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/11 after VOT Split.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro
 
 /*
@@ -595,4 +639,7 @@ Macro "VOT Aggregation" (Args)
             mtx.DropCores({core1, core3})
         end 
     end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/12 after VOT Aggregation.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro

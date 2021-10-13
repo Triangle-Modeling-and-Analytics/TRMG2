@@ -575,9 +575,10 @@ Class "df" (tbl, desc, groups)
     // Check validity of table
     self.check()
 
-    // Create a view and export to bin
+    // Create a view and export to csv
     vw = self.create_view()
     ExportView(vw + "|", "CSV", file, , {"CSV Header": "true"})
+    DeleteFile(Substitute(file, ".csv", ".DCC"))
   EndItem
 
   /*doc

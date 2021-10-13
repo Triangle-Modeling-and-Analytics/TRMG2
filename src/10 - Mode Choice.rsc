@@ -121,19 +121,20 @@ Macro "Calculate MC" (Args)
             }
             opts.output_dir = output_dir
             
-            task = CreateObject("Parallel.Task", "MC", GetInterface())
-            task.Run(opts)
-            tasks = tasks + {task}
+            // RunMacro("Parallel.SetMaxEngines", 3)
+            // task = CreateObject("Parallel.Task", "MC", GetInterface())
+            // task.Run(opts)
+            // tasks = tasks + {task}
             // If running in series use the following and comment out the task/monitor lines
-            // RunMacro("MC", opts)
+            RunMacro("MC", opts)
         end
     end
 
-    monitor = CreateObject("Parallel.TaskMonitor", tasks)
-    monitor.DisplayStatus()
-    monitor.WaitForAll()
-    if monitor.IsFailed then Throw("MC Failed")
-    monitor.CloseStatusDbox()
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
 endmacro
 
 /*
