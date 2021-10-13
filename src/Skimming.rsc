@@ -8,7 +8,9 @@ Macro "Skimming" (Args)
 
     if feedback_iteration > 1 then do
         RunMacro("Calculate Bus Speeds", Args)
-        RunMacro("Create Link Networks", Args)
+        // TODO: decide if this is needed. Skimming after feedback is going to minimize MSA time anyway
+        // If not using, delete this and the macro.
+        // RunMacro("Update Link Networks", Args)
         RunMacro("Create Route Networks", Args)
     end
     RunMacro("Roadway Skims", Args)
@@ -16,6 +18,29 @@ Macro "Skimming" (Args)
     RunMacro("Transit Skims", Args)
 
     return(1)
+endmacro
+
+/*
+
+*/
+
+Macro "Update Link Networks" (Args)
+
+    net_dir = Args.[Output Folder] + "/networks"
+    hwy_dbd = Args.Links
+
+    files = RunMacro("Catalog Files", net_dir, "net")
+    for file in files do
+        {, , name, } = SplitPath(file)
+        {, period, mode} = ParseString(name, "_")
+        if period = "bike" or period = "walk" then continue
+
+        obj = CreateObject("Network.Update")
+        obj.LayerDB = hwy_dbd
+        obj.Network = file
+        obj.UpdateLinkField({Name: "CongTime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
+        obj.Run()
+    end
 endmacro
 
 /*
@@ -29,6 +54,7 @@ Macro "Roadway Skims" (Args)
     periods = RunMacro("Get Unconverged Periods", Args)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
+    feedback_iteration = Args.FeedbackIteration
 
     modes = {"sov", "hov"}
 
@@ -39,7 +65,9 @@ Macro "Roadway Skims" (Args)
             obj.LayerDB = link_dbd
             obj.Origins = "Centroid = 1" 
             obj.Destinations = "Centroid = 1"
-            obj.Minimize = "CongTime"
+            if feedback_iteration = 1
+                then obj.Minimize = "CongTime"
+                else obj.Minimize = "MSATime"
             obj.AddSkimField({"Length", "All"})
             toll_field = "TollCost" + Upper(mode)
             obj.AddSkimField({toll_field, "All"})
@@ -51,14 +79,20 @@ Macro "Roadway Skims" (Args)
             })
             ret_value = obj.Run()
 
+            // Rename time core to always be "CongTime"
+            if feedback_iteration > 1 then do
+                m = CreateObject("Matrix", out_file)
+                m.RenameCores({CurrentNames: {"MSATime"}, NewNames: {"CongTime"}})
+                m = null
+            end
+
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")
             obj.OperationType = "Replace"
             obj.TreatMissingAsZero = false
             obj.Neighbours = 3
             obj.Factor = .75
-            m = CreateObject("Matrix")
-            m.LoadMatrix(out_file)
+            m = CreateObject("Matrix", out_file)
             for core in m.CoreNames do
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
