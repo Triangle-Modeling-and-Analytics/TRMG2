@@ -2328,8 +2328,8 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     high_vol = volume_breaks[i]
 
     vol_set = "class"
-    query = "Select * where " + volume_field + " > " + String(low_vol) + 
-      " and " + volume_field + " <= " + String(high_vol)
+    query = "Select * where " + count_field + " > " + String(low_vol) + 
+      " and " + count_field + " <= " + String(high_vol)
     n = SelectByQuery(vol_set, "several", query, {"Source And": count_set})
     if n = 0 then continue
     {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + vol_set, {count_field, volume_field}, )

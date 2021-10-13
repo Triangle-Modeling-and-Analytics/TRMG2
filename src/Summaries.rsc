@@ -264,8 +264,8 @@ Macro "Count PRMSEs" (Args)
   hwy_dbd = Args.Links
 
   opts.hwy_bin = Substitute(hwy_dbd, ".dbd", ".bin", )
-  opts.volume_field = "Total_Flow_Daily"
-  opts.count_field = "DailyCount"
+  opts.volume_field = "Volume_All"
+  opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
