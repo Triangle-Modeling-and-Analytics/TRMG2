@@ -444,7 +444,6 @@ Macro "Summarize DC and MC" (Args)
   df.left_join(df_tot, "trip_type", "trip_type")
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
   df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
-  Throw()
 
   // Create a totals matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
