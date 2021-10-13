@@ -229,8 +229,8 @@ Macro "Update Link Congested Times" (Args)
         jv = JoinViews("jv", llyr + ".ID", assn_vw + ".ID1", )
 
         for dir in dirs do
-            old_field = llyr + ".AB" + period + "Time"
-            new_field = assn_vw + "." + dir + "_Time"
+            old_field = llyr + "." + dir + period + "Time"
+            new_field = assn_vw + "." + dir + "_MSA_Time"
             v_old = GetDataVector(jv + "|", old_field, )
             v_new = GetDataVector(jv + "|", new_field, )
             // This check keeps TransitOnly links and any others not included

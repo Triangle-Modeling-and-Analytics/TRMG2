@@ -8,9 +8,7 @@ Macro "Skimming" (Args)
 
     if feedback_iteration > 1 then do
         RunMacro("Calculate Bus Speeds", Args)
-        // TODO: decide if this is needed. Skimming after feedback is going to minimize MSA time anyway
-        // If not using, delete this and the macro.
-        // RunMacro("Update Link Networks", Args)
+        RunMacro("Update Link Networks", Args)
         RunMacro("Create Route Networks", Args)
     end
     RunMacro("Roadway Skims", Args)
@@ -38,7 +36,7 @@ Macro "Update Link Networks" (Args)
         obj = CreateObject("Network.Update")
         obj.LayerDB = hwy_dbd
         obj.Network = file
-        obj.UpdateLinkField({Name: "CongTime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
+        obj.UpdateLinkField({Name: "MSATime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
         obj.Run()
     end
 endmacro
