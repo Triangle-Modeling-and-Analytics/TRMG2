@@ -2292,7 +2292,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   {, total_prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
   total_prmse = round(total_prmse, 2)
   total_line = {
-    "All," + String(total_count) + "," + String(total_volume) + 
+    "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
   }
 
@@ -2312,12 +2312,12 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
     lines = lines + {
-      class_name + "," + String(total_count) + "," + String(total_volume) + 
+      class_name + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
   file = out_dir + "/facility_type.csv"
-  lines = {"HCMType,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = {"HCMType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
 
@@ -2342,12 +2342,12 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
       then label = String(low_vol) + "+"
       else label = String(high_vol)
     lines = lines + {
-      label + "," + String(total_count) + "," + String(total_volume) + 
+      label + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
   file = out_dir + "/volume_groups.csv"
-  lines = {"VolumeGroup,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = {"VolumeGroup,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
   
