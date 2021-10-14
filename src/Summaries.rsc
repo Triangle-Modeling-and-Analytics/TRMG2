@@ -13,7 +13,7 @@ Macro "Summaries" (Args)
     RunMacro("Summarize DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
-    RunMacro("Transit Summary", Args)
+    // RunMacro("Transit Summary", Args)
 
     return(1)
 endmacro
