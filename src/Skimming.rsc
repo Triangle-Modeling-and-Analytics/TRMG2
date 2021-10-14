@@ -6,10 +6,9 @@ Macro "Skimming" (Args)
 
     feedback_iteration = Args.FeedbackIteration
 
-    // TODO: move this network updating into the feedback step when it exists
     if feedback_iteration > 1 then do
         RunMacro("Calculate Bus Speeds", Args)
-        RunMacro("Create Link Networks", Args)
+        RunMacro("Update Link Networks", Args)
         RunMacro("Create Route Networks", Args)
     end
     RunMacro("Roadway Skims", Args)
@@ -17,6 +16,29 @@ Macro "Skimming" (Args)
     RunMacro("Transit Skims", Args)
 
     return(1)
+endmacro
+
+/*
+
+*/
+
+Macro "Update Link Networks" (Args)
+
+    net_dir = Args.[Output Folder] + "/networks"
+    hwy_dbd = Args.Links
+
+    files = RunMacro("Catalog Files", net_dir, "net")
+    for file in files do
+        {, , name, } = SplitPath(file)
+        {, period, mode} = ParseString(name, "_")
+        if period = "bike" or period = "walk" then continue
+
+        obj = CreateObject("Network.Update")
+        obj.LayerDB = hwy_dbd
+        obj.Network = file
+        obj.UpdateLinkField({Name: "MSATime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
+        obj.Run()
+    end
 endmacro
 
 /*
@@ -30,6 +52,7 @@ Macro "Roadway Skims" (Args)
     periods = RunMacro("Get Unconverged Periods", Args)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
+    feedback_iteration = Args.FeedbackIteration
 
     modes = {"sov", "hov"}
 
@@ -40,7 +63,9 @@ Macro "Roadway Skims" (Args)
             obj.LayerDB = link_dbd
             obj.Origins = "Centroid = 1" 
             obj.Destinations = "Centroid = 1"
-            obj.Minimize = "CongTime"
+            if feedback_iteration = 1
+                then obj.Minimize = "CongTime"
+                else obj.Minimize = "MSATime"
             obj.AddSkimField({"Length", "All"})
             toll_field = "TollCost" + Upper(mode)
             obj.AddSkimField({toll_field, "All"})
@@ -52,14 +77,20 @@ Macro "Roadway Skims" (Args)
             })
             ret_value = obj.Run()
 
+            // Rename time core to always be "CongTime"
+            if feedback_iteration > 1 then do
+                m = CreateObject("Matrix", out_file)
+                m.RenameCores({CurrentNames: {"MSATime"}, NewNames: {"CongTime"}})
+                m = null
+            end
+
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")
             obj.OperationType = "Replace"
             obj.TreatMissingAsZero = false
             obj.Neighbours = 3
             obj.Factor = .75
-            m = CreateObject("Matrix")
-            m.LoadMatrix(out_file)
+            m = CreateObject("Matrix", out_file)
             for core in m.CoreNames do
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
@@ -159,7 +190,8 @@ Macro "Transit Skims" (Args, overrides)
     out_dir = Args.[Output Folder] + "/skims/transit"
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
-    
+    transit_modes = {"all"} + transit_modes
+  
     // overrides
     if overrides.periods <> null then periods = overrides.periods
     if overrides.transit_modes <> null then transit_modes = overrides.transit_modes
@@ -167,7 +199,12 @@ Macro "Transit Skims" (Args, overrides)
 
     for period in periods do
         for mode in transit_modes do
-            for access in access_modes do
+
+            if mode = "all" 
+                then access_mode_subset = {"w"}
+                else access_mode_subset = access_modes
+
+            for access in access_mode_subset do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
                 obj = CreateObject("Network.TransitSkims")
@@ -207,14 +244,13 @@ Macro "Transit Skims" (Args, overrides)
                     MatrixFile: out_file,
                     MatrixLabel : label, 
                     Compression: true, ColumnMajor: false
-                })   
+                })
                 obj.Run()
                 obj = null
 
                 // Flip to AP format in the PM period
                 if period = "PM" then do
                     label = label + " transposed to AP"
-                    // TODO: replace this with new matrix object method
                     RunMacro("Transpose Matrix", out_file, label)
                 end
             end

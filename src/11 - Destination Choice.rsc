@@ -4,10 +4,13 @@
 
 Macro "Destination Choice" (Args)
 
-    RunMacro("Split Employment by Earnings", Args)
-    RunMacro("DC Attractions", Args)
-    RunMacro("DC Size Terms", Args)
-    RunMacro("Calculate Destination Choice", Args)
+    if Args.FeedbackIteration = 1 then do
+        RunMacro("Split Employment by Earnings", Args)
+        RunMacro("DC Attractions", Args)
+        RunMacro("DC Size Terms", Args)
+    end
+    RunMacro("HBW DC", Args)
+    RunMacro("Other HB DC", Args)
     RunMacro("Apportion Resident HB Trips", Args)
 
     return(1)
@@ -63,6 +66,7 @@ Macro "DC Attractions" (Args)
 
     se_file = Args.SE
     rate_file = Args.ResDCAttrRates
+    tod_file = Args.ResTODFactors
 
     se_vw = OpenTable("se", "FFB", {se_file})
     {drive, folder, name, ext} = SplitPath(rate_file)
@@ -70,6 +74,17 @@ Macro "DC Attractions" (Args)
         view: se_vw, factor_file: rate_file,
         field_desc: "Resident DC Attractions|Used for double constraint.|See " + name + ext + " for details."
     })
+
+    // Balance these to match total hbw productions
+    {p1, p2, p3, p4, p5, v_a} = GetDataVectors(
+        se_vw + "|",
+        {"W_HB_W_All_v0", "W_HB_W_All_ilvi", "W_HB_W_All_ilvs", "W_HB_W_All_ihvi", "W_HB_W_All_ihvs", "w_hbw_a"},
+    )
+    total_p = p1 + p2 + p3 + p4 + p5
+    p_sum = VectorStatistic(total_p, "sum",)
+    a_sum = VectorStatistic(v_a, "sum",)
+    total_a = v_a * (p_sum / a_sum)
+    SetDataVector(se_vw + "|", "w_hbw_a", total_a, )
 
     CloseView(se_vw)
 endmacro
@@ -136,11 +151,36 @@ Macro "Compute Size Terms"(sizeSpec)
     SetDataVectors(se_vw + "|", output, )
     CloseView(se_vw)
 endMacro
+
+/*
+Applies double constraint to work trips. Iterates 3 times.
+*/
+
+Macro "HBW DC" (Args)
+
+    trip_types = {"W_HB_W_All"}
+    for i = 1 to 3 do
+        RunMacro("Calculate Destination Choice", Args, trip_types)
+        if i < 3 then RunMacro("Update Shadow Price", Args, trip_types)
+    end
+endmacro
+
+/*
+Remaining trip types are not doubly constrained
+*/
+
+Macro "Other HB DC" (Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    pos = trip_types.position("W_HB_W_All")
+    trip_types = ExcludeArrayElements(trip_types, pos, 1)
+    RunMacro("Calculate Destination Choice", Args, trip_types)
+endmacro
+
 /*
 
 */
 
-Macro "Calculate Destination Choice" (Args)
+Macro "Calculate Destination Choice" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
     skims_dir = scen_dir + "\\output\\skims\\"
@@ -149,9 +189,6 @@ Macro "Calculate Destination Choice" (Args)
     output_dir = Args.[Output Folder] + "/resident/dc"
     periods = RunMacro("Get Unconverged Periods", Args)
     sp_file = Args.ShadowPrices
-
-    // Determine trip purposes
-    trip_types = RunMacro("Get HB Trip Types", Args)
 
     opts = null
     opts.output_dir = output_dir
@@ -194,11 +231,87 @@ Macro "Calculate Destination Choice" (Args)
                     sov_skim: {File: sov_skim},
                     mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }
+                
+                // RunMacro("Parallel.SetMaxEngines", 3)
+                // task = CreateObject("Parallel.Task", "DC Runner", GetInterface())
+                // task.Run(opts)
+                // tasks = tasks + {task}
+                
+                // To run this code in series (and not in parallel), comment out the "task"
+                // and "monitor" lines of code. Uncomment the two lines below. This can be
+                // helpful for debugging.
                 obj = CreateObject("NestedDC", opts)
                 obj.Run()
             end
         end
     end
+
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
+endmacro
+
+Macro "DC Runner" (opts)
+    obj = CreateObject("NestedDC", opts)
+    obj.Run()
+endmacro
+
+/*
+Note: could re-factor this along with the "Apportion Resident HB Trips" macro
+to avoid duplicate code.
+*/
+
+Macro "Update Shadow Price" (Args)
+    
+    se_file = Args.SE
+    out_dir = Args.[Output Folder]
+    dc_dir = out_dir + "/resident/dc"
+    sp_file = Args.ShadowPrices
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+    sp_vw = OpenTable("sp", "FFB", {sp_file})
+
+    trip_type = "W_HB_W_All"
+    segments = {"v0", "ilvi", "ilvs", "ihvi", "ihvs"}
+
+    v_sp = GetDataVector(sp_vw + "|", "hbw", )
+    v_attrs = GetDataVector(se_vw + "|", "w_hbw_a", )
+
+    for period in periods do
+        for segment in segments do
+            name = trip_type + "_" + segment + "_" + period
+            dc_mtx_file = dc_dir + "/probabilities/probability_" + name + "_zone.mtx"
+            out_mtx_file = Substitute(dc_mtx_file, ".mtx", "_temp.mtx", )
+            if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
+            CopyFile(dc_mtx_file, out_mtx_file)
+            
+            out_mtx = CreateObject("Matrix", out_mtx_file)
+            cores = out_mtx.GetCores()
+            
+            v_prods = nz(GetDataVector(se_vw + "|", name, ))
+            v_prods.rowbased = "false"
+            cores.Total := cores.Total * v_prods
+            v_trips = out_mtx.GetVector("Total", {Marginal: "Column Sum"})
+            v_total_trips = nz(v_total_trips) + v_trips
+
+            out_mtx = null
+            cores = null
+            DeleteFile(out_mtx_file)
+        end
+    end
+    
+    // Calculate constant adjustmente. avoid Log(0) = -inf
+    delta = if v_attrs = 0 or v_total_trips = 0
+        then 0
+        else nz(Log(v_attrs/v_total_trips)) * .75
+    v_sp = v_sp + delta
+    SetDataVector(sp_vw + "|", "hbw", v_sp, )
+
+    CloseView(se_vw)
+    CloseView(sp_vw)
 endmacro
 
 /*
@@ -212,7 +325,7 @@ Macro "Apportion Resident HB Trips" (Args)
     out_dir = Args.[Output Folder]
     dc_dir = out_dir + "/resident/dc"
     mc_dir = out_dir + "/resident/mode"
-    trip_dir = out_dir + "/resident/trip_tables"
+    trip_dir = out_dir + "/resident/trip_matrices"
     periods = RunMacro("Get Unconverged Periods", Args)
 
     se_vw = OpenTable("se", "FFB", {se_file})
@@ -258,7 +371,7 @@ Macro "Apportion Resident HB Trips" (Args)
                 mode_names = mc_mtx.GetCoreNames()
                 out_cores = out_mtx.GetCores()
                 for mode in mode_names do
-                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * dc_cores.final_prob * mc_cores.(mode)
+                    out_cores.(mode) := nz(out_cores.(mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
                 end
             end
 
@@ -268,6 +381,7 @@ Macro "Apportion Resident HB Trips" (Args)
             mode_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
+            cores.all_transit := 0
             modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
             for mode in mode_names do
                 if modes_to_skip.position(mode) > 0 then continue

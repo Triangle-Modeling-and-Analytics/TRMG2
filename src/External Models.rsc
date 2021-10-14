@@ -57,6 +57,15 @@ Macro "Convert EE CSV to MTX" (Args)
   )
   
   mtx = null
+
+  // Remove any nulls
+  mtx = CreateObject("Matrix", ee_mtx_file)
+  core_names = mtx.GetCoreNames()
+  for core_name in core_names do
+    core = mtx.GetCore(core_name)
+    core := nz(core)
+  end
+
   CloseView(view)
   CloseMap(map)
 endmacro 
@@ -76,7 +85,7 @@ Macro "Calculate EE IPF Marginals" (Args)
     se_vw + "|", 
     {
       "TAZ", 
-      "ADT",
+      "AWDT",
       "PCT_AUTO_EE",
       "PCT_CVSUT_EE",
       "PCT_CVMUT_EE"
@@ -84,9 +93,9 @@ Macro "Calculate EE IPF Marginals" (Args)
     {OptArray: TRUE}
   )
   
-  ee_auto_marg = Nz(data.ADT) * (Nz(data.PCT_AUTO_EE)/100) / 2
-  ee_cv_sut_marg = Nz(data.ADT) * (Nz(data.PCT_CVSUT_EE)/100) / 2
-  ee_cv_mut_marg = Nz(data.ADT) * (Nz(data.PCT_CVMUT_EE)/100) / 2
+  ee_auto_marg = Nz(data.AWDT) * (Nz(data.PCT_AUTO_EE)/100) / 2
+  ee_cv_sut_marg = Nz(data.AWDT) * (Nz(data.PCT_CVSUT_EE)/100) / 2
+  ee_cv_mut_marg = Nz(data.AWDT) * (Nz(data.PCT_CVMUT_EE)/100) / 2
   
   a_fields = {
     {"EE_AUTO_MARG", "Real", 10, 2, , , , "ee auto marginal"},
@@ -219,6 +228,7 @@ Macro "IEEI" (Args)
   RunMacro("IEEI TOD", Args)
   RunMacro("IEEI Gravity", Args)
   RunMacro("IEEI Combine Matrix", Args)
+  RunMacro("IEEI Directionality", Args)
 endmacro
 
 /*
@@ -236,7 +246,7 @@ Macro "IEEI Productions" (Args)
     {
       "TAZ",
       "Freeway_Stations",	  
-      "ADT",
+      "AWDT",
       "PCT_AUTO_IEEI",
       "PCT_CVSUT_IEEI",
       "PCT_CVMUT_IEEI"
@@ -244,13 +254,13 @@ Macro "IEEI Productions" (Args)
     {OptArray: TRUE}
   )
   
-  ieei_auto_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2 else 0
-  ieei_cvsut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2 else 0
-  ieei_cvmut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.ADT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2 else 0
+  ieei_auto_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100) else 0
+  ieei_cvsut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100) else 0
+  ieei_cvmut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100) else 0
   
-  ieei_auto_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_AUTO_IEEI)/100) / 2
-  ieei_cvsut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_CVSUT_IEEI)/100) / 2
-  ieei_cvmut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.ADT) * (Nz(data.PCT_CVMUT_IEEI)/100) / 2
+  ieei_auto_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100)
+  ieei_cvsut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100)
+  ieei_cvmut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100)
 
   a_fields = {
     {"IEEI_AUTO_PROD_FREEWAY", "Real", 10, 2, , , , "ieei auto productions for freeway stations"},
@@ -417,7 +427,7 @@ Macro "IEEI Gravity" (Args)
   se_file = Args.SE
   param_file = Args.[Input Folder] + "\\external\\ieei_gravity.csv"
   skim_file =  Args.[Output Folder] + "\\skims\\roadway\\accessibility_sov_AM.mtx"
-  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
+  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
   
   opts = null
   opts.se_file = se_file
@@ -433,7 +443,7 @@ Combine IEEI Freeway and Non-Freeway stations matrix cores
 */
 
 Macro "IEEI Combine Matrix" (Args)
-  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_trips.mtx"
+  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
   periods = Args.periods
   
   ieei_mtx = OpenMatrix(ieei_matrix_file, )
@@ -473,4 +483,60 @@ Macro "IEEI Combine Matrix" (Args)
   
   DeleteFile(ieei_matrix_file)
   RenameFile(ieei_combined_matrix_file, ieei_matrix_file)
+endmacro
+
+
+/*
+Convert from PA to OD format
+*/
+
+Macro "IEEI Directionality" (Args)
+  ieei_pa_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
+  ieei_od_matrix_file = Args.[Output Folder] + "\\external\\ie_od_trips.mtx"
+  dir_factor_file = Args.[Input Folder] + "\\external\\ieei_directionality.csv"
+
+  CopyFile(ieei_pa_matrix_file, ieei_od_matrix_file)
+  
+  ieei_od_transpose_matrix_file = Substitute(ieei_od_matrix_file, ".mtx", "_transpose.mtx", )
+    
+  mat = OpenMatrix(ieei_od_matrix_file, )
+  tmat = TransposeMatrix(mat, {
+    {"File Name", ieei_od_transpose_matrix_file},
+    {"Label", "Transposed Trips"},
+    {"Type", "Double"}}
+  )
+  mat = null
+  tmat = null
+    
+  mtx = CreateObject("Matrix")
+  mtx.LoadMatrix(ieei_od_matrix_file)  
+  mtx_core_names = mtx.data.CoreNames
+  cores = mtx.data.cores
+
+  t_mtx = CreateObject("Matrix")
+  t_mtx.LoadMatrix(ieei_od_transpose_matrix_file)
+  t_cores = t_mtx.data.cores
+  
+  fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+  
+  rh = GetFirstRecord(fac_vw + "|", )
+  while rh <> null do
+    type = fac_vw.trip_type
+	period = fac_vw.tod
+	pa_factor = fac_vw.pa_fac
+	
+	core_name = "IEEI_" + type + "_" + period
+	
+	cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+
+    rh = GetNextRecord(fac_vw + "|", rh, )
+  end
+  
+  cores = null
+  t_cores = null
+  mtx = null
+  t_mtx = null
+  CloseView(fac_vw)
+  DeleteFile(ieei_od_transpose_matrix_file)
+  
 endmacro

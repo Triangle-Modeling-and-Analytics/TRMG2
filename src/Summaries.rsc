@@ -8,9 +8,13 @@ Macro "Summaries" (Args)
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
+    RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
+    RunMacro("Summarize DC and MC", Args)
+    RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
-    RunMacro("Transit Summary", Args)
+    // RunMacro("Transit Summary", Args)
+
     return(1)
 endmacro
 
@@ -21,15 +25,13 @@ This loads the final assignment results onto the link layer.
 Macro "Load Link Layer" (Args)
 
     hwy_dbd = Args.Links
-    feedback_iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\"
     periods = Args.periods
 
     {nlyr, llyr} = GetDBLayers(hwy_dbd)
 
     for period in periods do
         assn_file = assn_dir + "\\roadway_assignment_" + period + ".bin"
-        assn_dcb = Substitute(assn_file, ".bin", ".dcb", )
 
         vw = OpenTable("temp", "FFB", {assn_file})
         {field_names, } = GetFields(vw, "All")
@@ -105,94 +107,14 @@ Macro "Calculate Daily Fields" (Args)
   a_periods = Args.periods
   loaded_dbd = Args.Links
   a_dir = {"AB", "BA"}
-  a_classes = {"SOV", "HOV", "SUT", "MUT"}
+  modes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
 
   // Add link layer to workspace
   {nlyr, llyr} = GetDBLayers(loaded_dbd)
   llyr = AddLayerToWorkspace(llyr, loaded_dbd, llyr)
 
-  // Add "Flow_" to the assignment class name.
-  a_fields = V2A("Flow_" + A2V(a_classes))
-
-  // Add other fields to be summed
-  a_fields = a_fields + {"Flow", "VMT", "VHT", "Delay"}
-
-  // Calculate additive daily fields
-  for f = 1 to a_fields.length do
-    field = a_fields[f]
-
-    for d = 1 to a_dir.length do
-      dir = a_dir[d]
-
-      field_name = dir + "_" + field + "_Daily"
-      a_fields2 = {
-        {field_name, "Real", 10, 2,,,,"Daily " + dir + " " + field}
-      }
-      RunMacro("Add Fields", {view: llyr, a_fields: a_fields2, initial_values: 0})
-      v_final = nz(GetDataVector(llyr + "|", field_name, ))
-
-      for p = 1 to a_periods.length do
-        period = a_periods[p]
-
-        per_field = dir + "_" + field + "_" + period
-        v_add = GetDataVector(llyr + "|", per_field, )
-        v_final = v_final + v_add
-      end
-
-      // Set field values
-      SetDataVector(llyr + "|", field_name, v_final, )
-    end
-  end
-
-  // Combine AB/BA into total daily flows commonly used to compare to counts.
-  // Flow is done separately from VMT, VHT, and Delay because the flow fields
-  // are by assignment class. The others are not.
-  a_type = a_classes + {""}
-  for t = 1 to a_type.length do
-    type = a_type[t]
-
-    if type = "" then do
-      field_name = "Flow_Daily"
-      ab_field = "AB_Flow_Daily"
-      ba_field = "BA_Flow_Daily"
-    end else do
-      field_name = type + "_" + "Flow_Daily"
-      ab_field = "AB_Flow_" + type + "_Daily"
-      ba_field = "BA_Flow_" + type + "_Daily"
-    end
-    a_fields = {{
-      field_name, "Real", 10, 2,,,,
-      "Daily " + type + " flow in both directions"
-    }}
-    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-
-    v_ab = nz(GetDataVector(llyr + "|", ab_field, ))
-    v_ba = nz(GetDataVector(llyr + "|", ba_field, ))
-    v_tot = v_ab + v_ba
-
-    SetDataVector(llyr + "|", field_name, v_tot, )
-  end
-
-  // Combine AB/BA daily fields for VMT, VHT, and Delay
-  a_type = {"VMT", "VHT", "Delay"}
-  for t = 1 to a_type.length do
-    type = a_type[t]
-
-    a_fields = {{
-      type + "_Daily", "Real", 10, 2,,,,
-      "Daily " + type + " in both directions"
-    }}
-    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-
-    v_ab = nz(GetDataVector(llyr + "|", "AB_" + type + "_Daily", ))
-    v_ba = nz(GetDataVector(llyr + "|", "BA_" + type + "_Daily", ))
-    v_tot = v_ab + v_ba
-
-    SetDataVector(llyr + "|", type + "_Daily", v_tot, )
-  end
-
   // Calculate non-additive daily fields
-  a_fields = {
+  fields_to_add = {
     {"AB_Speed_Daily", "Real", 10, 2,,,, "Slowest speed throughout day"},
     {"BA_Speed_Daily", "Real", 10, 2,,,, "Slowest speed throughout day"},
     {"AB_Time_Daily", "Real", 10, 2,,,, "Highest time throughout day"},
@@ -202,7 +124,7 @@ Macro "Calculate Daily Fields" (Args)
     {"AB_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"},
     {"BA_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"}
   }
-  RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
 
   for d = 1 to a_dir.length do
     dir = a_dir[d]
@@ -235,6 +157,60 @@ Macro "Calculate Daily Fields" (Args)
     SetDataVector(llyr + "|", dir + "_VOCE_Daily", v_max_voce, )
     SetDataVector(llyr + "|", dir + "_VOCD_Daily", v_max_vocd, )
   end
+
+  // Sum up the flow fields
+  for mode in modes do
+    if mode = "SUT" then vots = {1, 2, 3}
+    else if mode = "MUT" then vots = {1, 2, 3, 4, 5}
+    else vots = {2, 4, 5}
+
+    for dir in a_dir do
+      out_field = dir + "_" + mode + "_Flow_Daily"
+      fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + mode + " Flow"}}
+      v_output = null
+
+      // For this direction and mode, sum every combination of VOT and period
+      for vot in vots do
+        for period in a_periods do
+          input_field = dir + "_Flow_" + mode + "_VOT" + String(vot) + "_" + period
+          v_add = GetDataVector(llyr + "|", input_field, )
+          v_output = nz(v_output) + nz(v_add)
+        end
+      end
+
+      output.(out_field) = v_output
+      output.(dir + "_Flow_Daily") = nz(output.(dir + "_Flow_Daily")) + v_output
+      output.Total_Flow_Daily = nz(output.Total_Flow_Daily) + v_output
+    end
+  end
+  fields_to_add = fields_to_add + {
+    {"AB_Flow_Daily", "Real", 10, 2,,,,"AB Daily Flow"},
+    {"BA_Flow_Daily", "Real", 10, 2,,,,"BA Daily Flow"},
+    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"}
+  }
+
+  // Other fields to sum
+  a_fields = {"VMT", "VHT", "Delay"}
+  for field in a_fields do
+    for dir in a_dir do
+      v_output = null
+      out_field = dir + "_" + field + "_Daily"
+      fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + field}}
+      for period in a_periods do
+        input_field = dir + "_" + field + "_" + period
+        v_add = GetDataVector(llyr + "|", input_field, )
+        v_output = nz(v_output) + nz(v_add)
+      end
+      output.(out_field) = v_output
+      output.("Total_" + field + "_Daily") = nz(output.("Total_" + field + "_Daily")) + v_output
+    end
+
+    fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,,"Daily " + field + " in both directions"}}
+  end
+
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  SetDataVectors(llyr + "|", output, )
+  DropLayerFromWorkspace(llyr)
 EndMacro
 
 /*
@@ -253,7 +229,7 @@ Macro "Create Count Difference Map" (Args)
   opts.hwy_dbd = hwy_dbd
   opts.count_id_field = "CountID"
   opts.count_field = "DailyCount"
-  opts.vol_field = "Flow_Daily"
+  opts.vol_field = "Total_Flow_Daily"
   opts.field_suffix = "All"
   RunMacro("Count Difference Map", opts)
 
@@ -279,6 +255,22 @@ Macro "Create Count Difference Map" (Args)
 //   opts.field_suffix = "MUT"
 //   RunMacro("Count Difference Map", opts)
 EndMacro
+
+/*
+Creates tables with %RMSE and volume % diff by facility type and volume group
+*/
+
+Macro "Count PRMSEs" (Args)
+  hwy_dbd = Args.Links
+
+  opts.hwy_bin = Substitute(hwy_dbd, ".dbd", ".bin", )
+  opts.volume_field = "Volume_All"
+  opts.count_field = "Count_All"
+  opts.class_field = "HCMType"
+  opts.volume_breaks = {10000, 25000, 50000, 100000}
+  opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  RunMacro("Roadway Count Comparison Tables", opts)
+endmacro
 
 /*
 Creates V/C maps for each time period and LOS (D and E)
@@ -410,6 +402,159 @@ Macro "VOC Maps" (Args)
     end
   end
 EndMacro
+
+/*
+Creates a table of statistics and writes out
+final tables to CSV.
+*/
+
+Macro "Summarize DC and MC" (Args)
+
+  periods = Args.periods
+  scen_dir = Args.[Scenario Folder]
+  trip_dir = scen_dir + "/output/resident/trip_matrices"
+  output_dir = scen_dir + "/output/_summaries/dc"
+  skim_dir = scen_dir + "/output/skims/roadway"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  mtx_files = RunMacro("Catalog Files", trip_dir, "mtx")
+
+  // Create table of statistics
+  df = RunMacro("Matrix Stats", mtx_files)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  df.mutate("matrix", Substitute(df.tbl.matrix, "pa_per_trips_", "", ))
+  v = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  df.mutate("matrix", v)
+  df.rename({"matrix", "core"}, {"trip_type", "mode"})
+  df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
+  df.filter("mode <> 'all_transit'")
+  modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
+  df.write_csv(modal_file)
+
+  // Summarize by mode
+  mc_dir = scen_dir + "/output/_summaries/mc"
+  df = CreateObject("df", modal_file)
+  df.group_by({"trip_type", "mode"})
+  df.summarize("Sum", "sum")
+  df.rename("sum_Sum", "Sum")
+  df_tot = df.copy()
+  df_tot.group_by({"trip_type"})
+  df_tot.summarize("Sum", "sum")
+  df_tot.rename("sum_Sum", "total")
+  df.left_join(df_tot, "trip_type", "trip_type")
+  df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
+  df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
+
+  // Create a totals matrix for each trip type
+  trip_types = RunMacro("Get HB Trip Types", Args)
+  for trip_type in trip_types do
+    total_file = output_dir + "/" + trip_type + ".mtx"
+    total_files = total_files + {total_file}
+
+    for period in periods do
+      in_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+      if period = periods[1] then do
+        CopyFile(in_file, total_file)
+        total_mtx = CreateObject("Matrix", total_file)
+        to_drop = total_mtx.GetCoreNames()
+        total_mtx.AddCores({"total"})
+        total_mtx.DropCores(to_drop)
+        total_core = total_mtx.GetCore("total")
+        total_core := 0
+      end
+
+      in_mtx = CreateObject("Matrix", in_file)
+      core_names = in_mtx.GetCoreNames()
+      for core_name in core_names do
+        if core_name = "all_transit" then continue
+        in_core = in_mtx.GetCore(core_name)
+        total_core := total_core + nz(in_core)
+      end
+    end
+  end
+  total_mtx = null
+  total_core = null
+
+  // Summarize totals matrices
+  df = RunMacro("Matrix Stats", total_files)
+  df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
+  stats_file = output_dir + "/hb_trip_stats_by_type.csv"
+  df.write_csv(stats_file)
+
+  // Calculate TLFDs
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_core = skim_mtx.GetCore("Length (Skim)")
+  for mtx_file in total_files do
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("total")
+
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_core
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+  end
+  mtx = null
+  trip_core = null
+
+  df = CreateObject("df", stats_file)
+  df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.write_csv(stats_file)
+
+  // Remove the totals matrices to save space
+  for file in total_files do
+    DeleteFile(file)
+  end
+EndMacro
+
+/*
+
+*/
+
+Macro "Summarize NM" (Args, trip_types)
+  
+  out_dir = Args.[Output Folder]
+  
+  per_dir = out_dir + "/resident/population_synthesis"
+  per_file = per_dir + "/Synthesized_Persons.bin"
+  per_vw = OpenTable("per", "FFB", {per_file})
+  nm_dir = out_dir + "/resident/nonmotorized"
+  nm_file = nm_dir + "/_agg_nm_trips_daily.bin"
+  nm_vw = OpenTable("nm", "FFB", {nm_file})
+
+  summary_file = out_dir + "/_summaries/nm_summary.csv"
+  f = OpenFile(summary_file, "w")
+  WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
+
+  if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
+  for trip_type in trip_types do
+    moto_v = GetDataVector(per_vw + "|", trip_type, )
+    moto_total = VectorStatistic(moto_v, "Sum", )
+    if trip_type = "W_HB_EK12_All" then do
+      moto_share = 100
+      nm_total = 0
+      nm_share = 0
+    end else do
+      nm_v = GetDataVector(nm_vw + "|", trip_type, )
+      nm_total = VectorStatistic(nm_v, "Sum", )
+      moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
+      nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
+    end
+
+    WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
+  end
+
+  CloseView(per_vw)
+  CloseView(nm_vw)
+  CloseFile(f)
+endmacro
 
 /*
 Summarize highway stats like VMT and VHT

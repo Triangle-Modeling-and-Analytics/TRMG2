@@ -29,7 +29,7 @@ Body:
     FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"NonResident Generation",,,)
     FlowChartNode(model,"Mode Choice",,,)
-    FlowChartNode(model,"NonResident Distribution",,,)
+    FlowChartNode(model,"NonResident DC and MC",,,)
     FlowChartNode(model,"Destination Choice",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Create Assignment Matrices",,,)
@@ -53,13 +53,13 @@ Body:
     FlowChartLink(model,"Parking Model","Mode Choice",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"NonResident Distribution","Create Assignment Matrices",True,,)
+    FlowChartLink(model,"NonResident DC and MC","Create Assignment Matrices",True,,)
     FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
-    FlowChartLink(model,"NonHomeBased","NonResident Distribution",True,,)
+    FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
     FlowChartLink(model,"Create Assignment Matrices","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
-    FlowChartLink(model,"Convergence","Transit Assignment",True,,)
-    FlowChartLink(model,"Convergence","Skimming",0,,1)
+    FlowChartLink(model,"Convergence","Transit Assignment",2,,)
+    FlowChartLink(model,"Convergence","Skimming",True,,1)
     Return(model)
 EndMacro
 
@@ -175,11 +175,11 @@ Body:
 EndMacro
 
 
-Macro "NonResident Distribution" (Args,Result)
+Macro "NonResident DC and MC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident Distribution"}}}
+                  {"MacroNames",{"NonResident DC and MC"}}}
 Body:
-    ShowMessage('Running: NonResident Distribution')
+    ShowMessage('Running: NonResident DC and MC')
     Return(True)
 EndMacro
 
@@ -221,7 +221,8 @@ EndMacro
 
 
 Macro "Pre Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Pre Assignment"}}}
 Body:
     Return(True)
 EndMacro
@@ -319,30 +320,33 @@ Body:
     iter = Args.FeedbackIteration
     max_iters = Args.FeedbackIterations
     target_prmse = Args.FeedbackConvergence
-    periods = RunMacro("Get Unconverged Periods", Args)
+
+    mr = CreateObject("Model.Runtime")
+    periods = mr.RunCode("Get Unconverged Periods", Args)
+
+    // periods = RunMacro("Get Unconverged Periods", Args)
 
     for period in periods do
         prmse = Args.(period + "_PRMSE")
-        RunMacro("Write PRMSE", Args, period)
+        if iter = 1 then continue
         if prmse <= target_prmse or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
     
-    // Feedback is done when all periods have converged
+    // Feedback is done when all periods have converged or hit max iters
     converged = 0
     if Args.periods.length = Args.converged_periods.length then converged = 1
     if converged = 0 then Args.FeedbackIteration = iter + 1
-    Return(converged)
+    Return(converged + 1)
 EndMacro
 
 
 Macro "Link.Convergence.Transit Assignm" (Args,Result)
-    Attributes = {{"Run_Always",0},
-                  {"Run_Condition","Result = 1"}}
+    Attributes = {{"Run_Condition","Result = 2"}}
 EndMacro
 
 
 Macro "Link.Convergence.Skimming" (Args,Result)
-    Attributes = {{"Run_Condition","Result = 0"}}
+    Attributes = {{"Run_Condition","Result = 1"}}
 EndMacro
 

@@ -82,9 +82,25 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
-// TODO: remove after testing
-periods = {"AM"}
-assign_iters = 1
+
+    // If this macro is called without the pre-assignment step, then fill in
+    // these variables.
+    if vot_params = null then do
+        vot_params = RunMacro("Read Parameter File", {file: vot_param_file})    
+        Args.vot_params = vot_params
+    end
+    if hov_exists = null then do
+        {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+        SetLayer(llyr)
+        n = SelectByQuery(
+            "hov", "several", 
+            "Select * where HOV <> 'None' and HOV <> null"
+        )
+        if n > 0 then hov_exists = "true" else hov_exists = "false"
+        CloseMap(map)
+        Args.hov_exists = hov_exists
+    end
+
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
@@ -107,10 +123,7 @@ assign_iters = 1
             Function: "bpr.vdf",
             Fields: {"FFTime", "Capacity", "Alpha", "Beta", "None"}
         }
-        o.DemandMatrix({
-            MatrixFile: od_mtx,
-            Matrix: "SOV"
-        })
+        o.DemandMatrix({MatrixFile: od_mtx})
         o.MSAFeedback({
             Flow: "MSAFlow",
             Time: "MSATime",
@@ -180,7 +193,7 @@ assign_iters = 1
                 sut_opts = {
                     Demand: "SUT_VOT" + String(i),
                     PCE: 1.5,
-                    VOI: vot_params.("sut_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.("sut_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostSUT"
                 }
                 if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -191,7 +204,7 @@ assign_iters = 1
                 mut_opts = {
                     Demand: "MUT_VOT" + String(i),
                     PCE: 2.5,
-                    VOI: vot_params.("mut_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.("mut_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostMUT"
                 }
                 if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -200,7 +213,6 @@ assign_iters = 1
         end
         ret_value = o.Run()
         results = o.GetResults()
-Throw()
         /*
         Use results.data to get rmse and other metrics:
         results.data.[Relative Gap]
@@ -210,7 +222,8 @@ Throw()
         etc.
         */
 
-        Args.(period + "_PRMSE") = res.Data.[MSA PERCENT RMSE]
+        Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
+        RunMacro("Write PRMSE", Args, period)
     end
 endmacro
 
@@ -222,8 +235,7 @@ Macro "Update Link Congested Times" (Args)
 
     hwy_dbd = Args.Links
     periods = RunMacro("Get Unconverged Periods", Args)
-    feedback_iter = Args.FeedbackIteration
-    assn_dir = Args.[Output Folder] + "\\assignment\\roadway\\iter_" + String(feedback_iter)
+    assn_dir = Args.[Output Folder] + "\\assignment\\roadway"
 
     {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
     
@@ -235,8 +247,8 @@ Macro "Update Link Congested Times" (Args)
         jv = JoinViews("jv", llyr + ".ID", assn_vw + ".ID1", )
 
         for dir in dirs do
-            old_field = llyr + ".AB" + period + "Time"
-            new_field = assn_vw + "." + dir + "_Time"
+            old_field = llyr + "." + dir + period + "Time"
+            new_field = assn_vw + "." + dir + "_MSA_Time"
             v_old = GetDataVector(jv + "|", old_field, )
             v_new = GetDataVector(jv + "|", new_field, )
             // This check keeps TransitOnly links and any others not included
@@ -252,4 +264,5 @@ Macro "Update Link Congested Times" (Args)
     end
 
     CloseMap(map)
+    return(1)
 endmacro

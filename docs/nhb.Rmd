@@ -1645,7 +1645,9 @@ For these reasons, these calibration factors are acceptable as long as
 assignment results and distribution patterns look reasonable.
 
 ```{r, include=FALSE}
-results <- read_csv("data/input/nhb/estimated_model_app_results.csv") %>%
+# This file is produced by the model. Importantly, it must be generated
+# by a model run with calibration factors set to 1.
+results <- read_csv("data/input/nhb/generation_summary.csv") %>%
   select(-c(TAZ:access_walk))
 ```
 
@@ -1681,7 +1683,7 @@ comparison <- trips %>%
   mutate(
     diff = trips - obs_trips,
     pct_diff = (diff / obs_trips) * 100,
-    factor = obs_trips / trips
+    factor = round(obs_trips / trips, 4)
   )
 
 comparison %>%
@@ -1721,12 +1723,12 @@ calib_out_tbl <- comparison %>%
 ```
 
 ```{r write_output, eval=FALSE}
-output_dir <- "data/output/nhb/"
+output_dir <- "../master/resident/nhb/generation/"
 for (i in 1:length(coeffs_list)) {
   name <- names(coeffs_list)[i]
   df <- coeffs_list[[i]]
   write_csv(df, paste0(output_dir, name, ".csv"))
 }
 
-write_csv(calib_out_tbl, "data/output/nhb/nhb_calibration_factors.csv")
+write_csv(calib_out_tbl, paste0(output_dir, "nhb_calibration_factors.csv"))
 ```

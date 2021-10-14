@@ -4,7 +4,7 @@ Calculates aggregate mode choice probabilities between zonal ij pairs
 
 Macro "Mode Choice" (Args)
 
-    RunMacro("Create MC Features", Args)
+    if Args.FeedbackIteration = 1 then RunMacro("Create MC Features", Args)
     RunMacro("Calculate MC", Args)
     RunMacro("Post Process Logsum", Args)
 
@@ -120,9 +120,21 @@ Macro "Calculate MC" (Args)
                 knr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_eb.mtx"}
             }
             opts.output_dir = output_dir
-            RunMacro("MC", Args, opts)
+            
+            // RunMacro("Parallel.SetMaxEngines", 3)
+            // task = CreateObject("Parallel.Task", "MC", GetInterface())
+            // task.Run(opts)
+            // tasks = tasks + {task}
+            // If running in series use the following and comment out the task/monitor lines
+            RunMacro("MC", opts)
         end
     end
+
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
 endmacro
 
 /*

@@ -43,7 +43,7 @@ Inputs
       * File: (string) file path of the matrix
 */
 
-Macro "MC" (Args, MacroOpts)
+Macro "MC" (MacroOpts)
     
     output_dir = MacroOpts.output_dir
     trip_type = MacroOpts.trip_type

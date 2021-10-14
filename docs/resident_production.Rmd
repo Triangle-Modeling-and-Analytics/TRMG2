@@ -1134,14 +1134,29 @@ R-squared: `r r_sq`
 
 ## Calibration
 
-The table below shows the production model results compared back to the total
-trips in the survey. Overall, the model performs extremely well even without
-calibration.
+Calibrating the production rates is done to ensure that the final model is
+producing the same number of trips per person on average as the survey. One
+compicating factor in this comparison is that the survey and model
+socio-economic data have different total populations.
 
-*TODO: These results are close enough that we are not going to adjust them unless
-we need to for validation. We will revisit this section then if needed.*
+- Survey: 1.71 million
+- Model: 1.83 million
+
+```{r}
+survey_pop <- sum(person_df$hh_weight_combined)
+model_pop <- 1826973
+pop_factor <- model_pop / survey_pop
+```
+
+As a consequence, the survey trip totals will be increased by 
+`r round(pop_factor, 2)` and then compared to model results. The table below shows
+the production model results compared back to the total trips in the survey
+(factored up). While close, the model consistently predicts fewer trips compared
+to the survey.
 
 ```{r, include=FALSE}
+# Importantly, this file must be from a model run without any calibration
+# factors applied.
 model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibrated.csv")
 ```
 
@@ -1149,7 +1164,7 @@ model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibra
 calibration_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
   group_by(trip_type) %>%
-  summarize(obs_trips = sum(hh_weight_combined)) %>%
+  summarize(obs_trips = sum(hh_weight_combined) * pop_factor) %>%
   left_join(model_trips, by = "trip_type") %>%
   mutate(
     diff = model_trips - obs_trips,
@@ -1168,9 +1183,9 @@ total <- calibration_trips %>%
     `pct_diff` = round(diff / obs_trips * 100, 1)
   )
 
-calibration_trips <- bind_rows(calibration_trips, total)
+total <- bind_rows(calibration_trips, total)
 
-calibration_trips %>%
+total %>%
   rename(
     `Trip Type` = trip_type,
     Observed = obs_trips,
@@ -1181,6 +1196,21 @@ calibration_trips %>%
   kable(digits = 0, format.args = list(big.mark = ",")) %>%
   kable_styling(full_width = FALSE)
 ```
+
+The calibration factors below are the ratio of the observed to modeled trips.
+This are applied to each trip type to ensure total trip making is correct.
+
+```{r}
+calib_factors <- calibration_trips %>%
+  mutate(factor = round(obs_trips / model_trips, 4)) %>%
+  select(trip_type, factor)
+
+calib_factors %>%
+  rename(`Trip Type` = trip_type, Factor = factor) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
+
 
 ```{r, eval=FALSE}
 # For the TRB paper, a cross-class model was estimated for N_HB_K12_All
@@ -1233,5 +1263,10 @@ out_df <- bind_rows(rate_list) %>%
   mutate(rule = gsub("2,99", "2", rule, fixed = TRUE)) %>%
   select(-category)
 write_csv(out_df, "../master/resident/generation/production_rates.csv")
+
+write_csv(
+  calib_factors,
+  "../master/resident/generation/calibration_factors.csv"
+)
 ```
 

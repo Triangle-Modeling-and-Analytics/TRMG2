@@ -830,7 +830,7 @@ Macro "Create Route Networks" (Args)
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     transit_modes = {"all"} + transit_modes
-
+    
     for period in periods do
         for transit_mode in transit_modes do
 
@@ -856,17 +856,22 @@ Macro "Create Route Networks" (Args)
                 o.AddLinkField({
                     Name: "LBTime",
                     TransitFields: {"AB" + period + "LBTime", "BA" + period + "LBTime"},
-                    NonTransitFields: {"WalkTime", "WalkTime"}
+                    NonTransitFields: "WalkTime"
                 })
                 o.AddLinkField({
                     Name: "EBTime",
                     TransitFields: {"AB" + period + "EBTime", "BA" + period + "EBTime"},
-                    NonTransitFields: {"WalkTime", "WalkTime"}
+                    NonTransitFields: "WalkTime"
                 })
                 o.AddLinkField({
                     Name: "FGTime",
                     TransitFields: {"AB" + period + "Time", "BA" + period + "Time"},
-                    NonTransitFields: {"WalkTime", "WalkTime"}
+                    NonTransitFields: "WalkTime"
+                })
+                o.AddLinkField({
+                    Name: "WalkTime",
+                    TransitFields: "WalkTime",
+                    NonTransitFields: "WalkTime"
                 })
                 o.AddStopField({Name: "dwell_on", Field: "dwell_on"})
                 o.AddStopField({Name: "dwell_off", Field: "dwell_off"})
@@ -893,11 +898,14 @@ Macro "Create Route Networks" (Args)
                 o.CentroidFilter = "Centroid = 1"
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
-                    MaxTripCost = 999,
+                    MaxTripCost = 240,
                     MaxTransfers = 4,
                     VOT = .1984 // $/min (40% of the median wage)
                 })
-                o.AccessControl({PermitWalkOnly: false})
+                o.AccessControl({
+                    PermitWalkOnly: false,
+                    MaxWalkAccessPaths: 10
+                })
                 o.Combination({CombinationFactor: .1})
                 o.StopTimeFields({
                     InitialPenalty: null,
@@ -916,7 +924,7 @@ Macro "Create Route Networks" (Args)
                     Layover: 5, 
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
-                    MaxModalTotal: 240
+                    MaxModalTotal: 120
                 })
                 o.RouteTimeFields({Headway: period + "Headway"})
                 o.ModeTable({

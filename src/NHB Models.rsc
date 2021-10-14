@@ -18,7 +18,7 @@ Macro "NHB Generation" (Args)
 
     param_dir = Args.[Input Folder] + "/resident/nhb/generation"
     out_dir = Args.[Output Folder]
-    trip_dir = out_dir + "/resident/trip_tables"
+    trip_dir = out_dir + "/resident/trip_matrices"
     nhb_dir = out_dir + "/resident/nhb/generation"
     periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
@@ -168,10 +168,6 @@ endmacro
 
     ** Step 2: Run DC model for 10*4(periods) = 40 sub models. Use appropriate skim wherever applicable
                Generate applied totals matrices as part of the DC process
-
-    ** Step 3: Produce combined matrix file for NHB trip with 24 cores
-               Combination of (sov, hov2, hov3, auto_pay, walkbike, transit) X (AM, PM, MD, NT)
-
 */
 Macro "NHB DC"(Args)
     // Create Folders
@@ -192,9 +188,6 @@ Macro "NHB DC"(Args)
 
     // Step 2: Run DC
     RunMacro("Evaluate NHB DC", Args, Spec)
-
-    // Step 3: Final NHB Matrix
-    RunMacro("Create NHB Trip Matrix", Args, Spec)
 endMacro
 
 
@@ -274,7 +267,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
     intraClusterMtx = skims_folder + "IntraCluster.mtx"
 
     // Run DC Loop over categories and time periods
-    periods = Args.periods
+    periods = RunMacro("Get Unconverged Periods", Args)
     categories = Spec.SubModels
     for category in categories do
         {mainMode, subMode} = RunMacro("Get Mode Info", category)
@@ -292,7 +285,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
             if subMode = 'walkbike' then
                 skimFile = skims_folder + "nonmotorized/walk_skim.mtx"
             else if subMode = 'transit' then
-                skimFile = skims_folder + "transit/skim_" + period + "_w_lb.mtx"
+                skimFile = skims_folder + "transit/skim_" + period + "_w_all.mtx"
             else if subMode = 'sov' then
                 skimFile = skims_folder + "roadway/skim_sov_" + period + ".mtx"
             else // auto_pay, hov2 or hov3
@@ -328,62 +321,17 @@ Macro "Evaluate NHB DC"(Args, Spec)
             ret = obj.Evaluate()
             if !ret then
                 Throw("Running '" + tag + "' destination choice model failed.")
+
+            // Convert any nulls to zero in the resulting trip matrix
+            mtx = CreateObject("Matrix", trips_folder + tag + ".mtx")
+            core_names = mtx.GetCoreNames()
+            for core_name in core_names do
+                core = mtx.GetCore(core_name)
+                core := nz(core)
+            end
         end
     end
 endMacro
-
-
-Macro "Create NHB Trip Matrix"(Args, Spec)
-    out_folder = Args.[Output Folder]
-    trips_folder = out_folder + "/resident/nhb/dc/trip_matrices/"
-
-    // Create output matrix
-    se = Args.SE
-    se_vw = OpenTable("SE", "FFB", {se})
-    vTAZ = GetDataVector(se_vw + "|", "TAZ",)
-    CloseView(se_vw)
-
-    cores = null
-    modes = {'sov', 'hov2', 'hov3', 'auto_pay', 'transit', 'walkbike'}
-    periods = Args.periods
-    for mode in modes do
-        for period in periods do
-            cores = cores + {mode + "_" + period}
-        end
-    end
-    outMtx = out_folder + "/resident/trip_tables/" + "pa_per_trips_NHB.mtx"
-
-    obj = CreateObject("Matrix") 
-    obj.SetMatrixOptions({Compressed: 1, DataType: "Double", FileName: outMtx, MatrixLabel: "NHBTrips"})
-    opts.RowIds = v2a(vTAZ) 
-    opts.ColIds = v2a(vTAZ)
-    opts.MatrixNames = cores
-    opts.RowIndexName = "Origin"
-    opts.ColIndexName = "Destination"
-    mat = obj.CreateFromArrays(opts)
-    obj = null
-
-    // Fill matrix
-    obj = CreateObject("Matrix", mat)
-    mcsOut = obj.GetCores()
-    categories = Spec.SubModels
-    for category in categories do
-        for period in periods do
-            {mainMode, subMode} = RunMacro("Get Mode Info", category)
-
-            totals_mtx = trips_folder + "NHB_" + category + "_" + period + ".mtx"
-            objC = CreateObject("Matrix", totals_mtx)
-            mcs = objC.GetCores()
-            mc = mcs[1][2]  // Matrix has only one core with applied totals 
-
-            outCore = subMode + "_" + period
-            mcsOut.(outCore) := nz(mcsOut.(outCore)) + nz(mc)
-            objC = null
-        end
-    end
-    mat = null
-endMacro
-
 
 Macro "Get Mode Info"(category)
     categoryL = Lower(category)

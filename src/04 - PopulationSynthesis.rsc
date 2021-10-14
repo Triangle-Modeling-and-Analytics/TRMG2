@@ -69,15 +69,7 @@ Macro "DisaggregateSED"(Args)
     CloseView(vwJ)
     objLyrs = null
 
-//     obj = null
-//     ret_value = 1
-//    quit:
-//     on error, notfound, escape default
-//     if !ret_value then do
-//         if ErrorMsg <> null then
-//             AppendToLogFile(0, ErrorMsg)
-//     end
-//     Return(ret_value)
+    obj = null
 endMacro
 
 
@@ -167,11 +159,7 @@ endMacro
             * Age - Three categories. Kids: [0, 17], AdultsUnder65: [18, 64], Seniors: 65+.
 */
 Macro "Synthesize Population"(Args)
-    // on escape, error, notfound do
-    //     ErrorMsg = GetLastError()
-    //     ret_value = 0
-    //     goto quit
-    // end
+
     // Set up and run the synthesis
     o = CreateObject("PopulationSynthesis")
     o.RandomSeed = 314159
@@ -247,14 +235,6 @@ Macro "Synthesize Population"(Args)
     o.ExportIPUWeights(outputFolder + "IPUWeights")
     o.Tolerance = 0.01
     ret_value = o.Run()
-
-//    quit:
-//     on error, notfound, escape default
-//     if !ret_value then do
-//         if ErrorMsg <> null then
-//             AppendToLogFile(0, ErrorMsg)
-//     end
-//     Return(ret_value)
 endMacro
 
 
@@ -263,11 +243,6 @@ endMacro
     * Adds HH summary fields to the synhtesied HH file
 */
 Macro "PopSynth Post Process"(Args)
-    // on escape, error, notfound do
-    //     ErrorMsg = GetLastError()
-    //     ret_value = 0
-    //     goto quit
-    // end
 
     // Generate tabulations from the synthesis output
     RunMacro("Generate Tabulations", Args)
@@ -284,15 +259,6 @@ Macro "PopSynth Post Process"(Args)
     BuildInternalIndex(GetFieldFullSpec(vw_hh, "ZoneID"))
     BuildInternalIndex(GetFieldFullSpec(vw_per, "PersonID"))
     BuildInternalIndex(GetFieldFullSpec(vw_per, "HouseholdID"))
-
-//     ret_value = 1
-//  quit:
-//     on escape, error, notfound default
-//     if !ret_value then do
-//         if ErrorMsg <> null then
-//             AppendToLogFile(0, ErrorMsg)
-//     end
-//     Return(ret_value)
 endMacro
 
 

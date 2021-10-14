@@ -3,4 +3,5 @@ motorized,Constant,,0,
 nonmotorized,person.is_senior,,-157479,Person is a senior
 nonmotorized,person.Autos = 0,,1.728,Person has access to 0 HH vehicles
 nonmotorized,se.access_walk.O,,4.638,Interzonal walk accessiblity
-nonmotorized,Constant,,-11.207,
+nonmotorized,Constant,,-11.207,Estimated constant
+nonmotorized,Constant,,-4.5627,Calibration constant

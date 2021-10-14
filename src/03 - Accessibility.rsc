@@ -423,4 +423,5 @@ Macro "Calculate TNC Wait Time" (Args)
     v_pk_wait = v_op_wait + 3.5
     SetDataVector(se_vw + "|", "PKTNCWait", v_pk_wait, )
     SetDataVector(se_vw + "|", "OPTNCWait", v_op_wait, )
+    CloseView(se_vw)
 endmacro

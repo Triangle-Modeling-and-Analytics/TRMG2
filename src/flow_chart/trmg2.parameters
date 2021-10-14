@@ -68,14 +68,17 @@
     Section = "Resident Productions"
     
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
+        Args.ProdCalibFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv", "Description":"Resident production calibration factors." }
     
     Section = "Time of Day"
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
-        Args.HOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors.csv", "Description":"Resident hov3 vehicle occupancy factor file." }
-        Args.OtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares.csv", "Description":"Shares of auto_pay and other_auto modes that are sov, hov2, and hov3." }
+        Args.HBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_hb.csv", "Description":"Resident hov3 HB vehicle occupancy factor file." }
+        Args.NHBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_nhb.csv", "Description":"Resident hov3 NHB vehicle occupancy factor file." }
+        Args.HBOtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares_hb.csv", "Description":"Shares of auto_pay and other_auto HB trips that are sov, hov2, and hov3." }
+        Args.NHBOtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares_nhb.csv", "Description":"Shares of auto_pay NHB trips that are sov, hov2, and hov3." }
     
     Section = "Commercial Vehicles/Trucks"
 
@@ -152,6 +155,6 @@
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
         Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
-        Args.FeedbackIteration = { "Type":"hidden" , "Value":1 }
+        Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
