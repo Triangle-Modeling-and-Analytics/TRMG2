@@ -83,6 +83,24 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
 
+    // If this macro is called without the pre-assignment step, then fill in
+    // these variables.
+    if vot_params = null then do
+        vot_params = RunMacro("Read Parameter File", {file: vot_param_file})    
+        Args.vot_params = vot_params
+    end
+    if hov_exists = null then do
+        {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+        SetLayer(llyr)
+        n = SelectByQuery(
+            "hov", "several", 
+            "Select * where HOV <> 'None' and HOV <> null"
+        )
+        if n > 0 then hov_exists = "true" else hov_exists = "false"
+        CloseMap(map)
+        Args.hov_exists = hov_exists
+    end
+
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         net_file = net_dir + "net_" + period + "_hov.net"
