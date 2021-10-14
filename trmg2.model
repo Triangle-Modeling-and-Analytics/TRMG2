@@ -221,7 +221,8 @@ EndMacro
 
 
 Macro "Pre Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Pre Assignment"}}}
 Body:
     Return(True)
 EndMacro

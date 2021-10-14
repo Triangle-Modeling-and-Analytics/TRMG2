@@ -175,7 +175,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 sut_opts = {
                     Demand: "SUT_VOT" + String(i),
                     PCE: 1.5,
-                    VOI: vot_params.("sut_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.("sut_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostSUT"
                 }
                 if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -186,7 +186,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 mut_opts = {
                     Demand: "MUT_VOT" + String(i),
                     PCE: 2.5,
-                    VOI: vot_params.("mut_vot" + String(i)) / 60 * 100,
+                    VOI: vot_params.("mut_vot" + String(i)) / 60, // ($/min)
                     LinkTollField: "TollCostMUT"
                 }
                 if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
