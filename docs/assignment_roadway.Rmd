@@ -37,21 +37,37 @@ In addition, the classes are further segmented by value of time. This is done
 to accurately capture toll road usage. Finally, vehicles are assigned separately
 by time period. More details are provided in the sections below.
 
+## Assignment by time period
+
+A defining feature of TRMG2 is the independent treatment of each time period.
+Traditionally, travel models used the AM period to represent both AM and PM
+periods. The primary benefit of this approach was reduced computational burden,
+and as long as the AM and PM periods were nearly symmetrical, errors introduced
+by this simplification were small.
+
+In the Triangle, the AM and PM periods are not symmetrical. The
+[trips-in-motion](time_of_day.html) analysis performed using the travel survey
+shows a large disparity between the peaks driven largely by non-work travel. The
+PM peak lasts longer, and places more demand on the transportation system. In 
+order to capture these differences, model estimation and application must treat
+the PM peak separately.
+
 ## Matrix creation
 
 TRMG2 has models to predict demand for many markets including residents,
-commercial vehicles, university students, external travelers, and more. The
+commercial vehicles, university students, and external travelers. The
 output of these models is combined into a single trip matrix for each time
-period. This is also when directional and occupancy factors are applied to
+period. During this process, directional and occupancy factors are applied to
 arrive at vehicle trip matrices in Origin-Destination format (click
 [here](time_of_day.html#Directionality_factors) for resident factors).
 
-During this process, special attention is paid to the "auto pay" mode (Uber,
-Lyft, etc.). When converting person trips to vehicle trips, a person traveling
-alone is a single vehicle trip. However, by definition, they have a driver,
-which means they are eligible for any HOV lanes the region might construct
-in the future. For this reason, a person traveling alone is added to the HOV2
-matrix while a person traveling with one or more family members is added to HOV3+.
+A separate note about the "auto pay" mode (Uber, Lyft, etc.) is warranted. When
+converting person trips to vehicle trips, a person traveling alone is a single
+vehicle trip (1 person trip = 1 vehicle trip). However, by definition, they have
+a driver. This means they are eligible for any HOV lanes the region might
+construct in the future. For this reason, a person traveling alone is added to
+the HOV2 matrix while a person traveling with one or more family members is
+added to HOV3+.
 
 ## Value of time
 
@@ -59,14 +75,22 @@ Once trips are collapsed into the primary vehicle classes, they are split into
 different value of time categories. The procedure for doing this is borrowed
 from the NC Statewide Model
 ([documentation](other_docs/NCSTM_TollDocumentation_Section11-2.docx)). For
-residents, this stratification is informed by the household incomes at the
-origin and destination as well as by the length of the trip.
+residents, this stratification is informed by household income, time of day of
+the trip, and by the length of the trip. 
 
-This procedure divides each class into five VOT categories, except SUT which is
-divided into three. These are shown in the table below.
+Qualitatively, value of time goes up:
+
+- As income increases
+- As trip length increases
+- In the peak periods (where work trips are most common)
+
+The NCSTM/TRMG2 procedure divides each class into five VOT categories, except
+SUT which is divided into three. These are shown in the table below.
+```{r, include=FALSE}
+tbl <- read_csv("../master/assignment/vot_params.csv")
+```
 
 ```{r}
-tbl <- read_csv("../master/assignment/vot_params.csv")
 tbl <- tbl[1:18, c("Name", "Value")]
 tbl <- tbl %>%
   separate(Name, into = c("a", "b", "c"), fill = "right") %>%
@@ -100,18 +124,40 @@ higher VOT categories that are most likely to consider toll facilities.
 Relevant assignment details are listed below:
 
 - Algorithm: N-conjugate Frank-Wolfe
-- VDF: BPR
+- Volume-Delay Function (VDF): BPR
 - Relative Gap: .0001 (1e-4)
 - Maximum Iterations: 500
 
-## Assignment by time period
+### VDF parameters {.tabset}
 
-A defining feature of TRMG2 is the independent treatment of each time period.
-Traditionally, travel models used the AM period to represent both AM and PM
-periods. The primary benefit of this approach was reduced computational burden,
-and as long as the AM and PM periods were nearly symmetrical, errors introduced
-by this simplification were small.
+The table below shows the alpha and beta values used for the BPR VDF.
 
-In the Triangle, the AM and PM periods are not symmetrical. The
-[trips-in-motion](time_of_day.html) analysis performed using the travel survey
-shows a large disparity between the peaks driven largely by non-work travel.
+**TODO: Add info on scaling process**
+
+```{r, include=FALSE}
+df <- read_csv("../master/networks/ff_speed_alpha_beta.csv") %>%
+  select(HCMType, AreaType, Alpha, Beta) %>%
+  mutate(Beta = round(Beta,0)) %>%
+  filter(!(HCMType %in% c("CC", "TransitOnly")))
+```
+
+#### Alphas
+
+```{r}
+df %>%
+  select(-Beta) %>%
+  pivot_wider(names_from = AreaType, values_from = Alpha) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+#### Betas
+
+```{r}
+df %>%
+  select(-Alpha) %>%
+  pivot_wider(names_from = AreaType, values_from = Beta) %>%
+  select(HCMType, Betas = Downtown) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
