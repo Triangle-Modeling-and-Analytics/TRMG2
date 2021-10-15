@@ -1,5 +1,5 @@
 Expression,Segment,Coefficient,Description
-log(se.n_hbome_size.D),,0.7402,Size term
+se.n_hbome_size.D,,0.7402,Size term
 nz(mc_logsums.auto),,1.517,
 nz(mc_logsums.transit),,1.801,
 sov_skim.IZ,,0.6102,
