@@ -41,6 +41,8 @@ navbar:
           href: ieei.html
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
+        - text: "Roadway Assignment"
+          href: assignment_roadway.html
   right:
     - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2
