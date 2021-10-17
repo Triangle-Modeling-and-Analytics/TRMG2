@@ -42,7 +42,7 @@ Macro "Directionality" (Args)
         period = fac_vw.tod
         pa_factor = fac_vw.pa_fac
 
-        if periods.position(period) = 0 then continue
+        if periods.position(period) = 0 then goto skip
 
         pa_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
         od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -67,6 +67,7 @@ Macro "Directionality" (Args)
             if auto_modes.position(core_name) = 0 then mtx.DropCores({core_name})
         end
         
+        skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -172,7 +173,7 @@ Macro "HB Occupancy" (Args)
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
 
-        if periods.position(period) = 0 then continue
+        if periods.position(period) = 0 then goto skip
 
         per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
@@ -181,6 +182,8 @@ Macro "HB Occupancy" (Args)
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
+
+        skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -234,7 +237,7 @@ Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
 
-Note: if parallelizing more than assignment by time period, this has to change
+Note: if parallelizing the entire feedback loop, this has to change
 */
 
 Macro "HB Remove Interim Matrices" (Args)
@@ -641,6 +644,7 @@ Macro "Add Externals" (Args)
         // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
+        if periods.position(period) = 0 then continue
         if parts[2] = "AUTO" then core_name = "sov_VOT2"
         if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
         if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
