@@ -1732,7 +1732,7 @@ Macro "Link Summary by FT and AT" (MacroOpts)
   end
 
   // Open the highway link layer and read into a data frame
-  objLyrs = CreateObject("AddDBLayers", {FileName: LineDB})
+  objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
   {nlyr, llyr} = objLyrs.Layers
   hwy_df = CreateObject("df")
   opts = null

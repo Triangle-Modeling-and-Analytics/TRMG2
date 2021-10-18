@@ -32,7 +32,7 @@ Macro "Directionality" (Args)
     trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     dir_factor_file = Args.DirectionFactors
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
-    RunMacro("Create Directory", assn_dir)
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
@@ -41,6 +41,8 @@ Macro "Directionality" (Args)
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
         pa_factor = fac_vw.pa_fac
+
+        if periods.position(period) = 0 then goto skip
 
         pa_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
         od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -65,6 +67,7 @@ Macro "Directionality" (Args)
             if auto_modes.position(core_name) = 0 then mtx.DropCores({core_name})
         end
         
+        skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -170,6 +173,8 @@ Macro "HB Occupancy" (Args)
         period = fac_vw.tod
         hov3_factor = fac_vw.hov3
 
+        if periods.position(period) = 0 then goto skip
+
         per_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         veh_mtx_file = assn_dir + "/od_veh_trips_" + trip_type + "_" + period + ".mtx"
         CopyFile(per_mtx_file, veh_mtx_file)
@@ -177,6 +182,8 @@ Macro "HB Occupancy" (Args)
         cores = mtx.GetCores()
         cores.hov2 := cores.hov2 / 2
         cores.hov3 := cores.hov3 / hov3_factor
+
+        skip:
         rh = GetNextRecord(fac_vw + "|", rh, )
     end
     CloseView(fac_vw)
@@ -230,7 +237,7 @@ Simple macro that removes the interim matrices created in this folder to save
 space. For debugging these steps, comment out this macro in "Create Assignment
 Matrices".
 
-Note: if parallelizing more than assignment by time period, this has to change
+Note: if parallelizing the entire feedback loop, this has to change
 */
 
 Macro "HB Remove Interim Matrices" (Args)
@@ -263,6 +270,7 @@ Macro "NHB Collapse Auto Modes" (Args)
     shares_file = Args.NHBOtherShares
     out_dir = Args.[Output Folder]
     nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 nhb trips.csv"
     RunMacro("Trip Conservation Snapshot", nhb_dir, out_file)
@@ -278,11 +286,13 @@ Macro "NHB Collapse Auto Modes" (Args)
     nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
     for nhb_mtx_file in nhb_mtxs do
         
-        // Skip everything but auto_pay matrices
+        // Skip everything but auto_pay matrices. Also skip converged periods.
         {, , name, } = SplitPath(nhb_mtx_file)
         parts = ParseString(name, "_")
         if parts[2] = "transit" or parts[2] = "walkbike" then continue
         if parts[3] <> "auto" then continue
+        period = parts[5]
+        if periods.position(period) = 0 then continue
         
         period = parts[5]
         tour_type = parts[2]
@@ -316,13 +326,14 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
     out_dir = Args.[Output Folder]
     nhb_dir = out_dir + "/resident/nhb/dc/trip_matrices"
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    periods = RunMacro("Get Unconverged Periods", Args)
 
     // Add NHB trips to OD assignment matrices (and convert to veh trips)
     hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
     nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
     for nhb_mtx_file in nhb_mtxs do
         
-        // Skip transit and walkbike matrices
+        // Skip transit and walkbike matrices and any converged periods
         {, , name, } = SplitPath(nhb_mtx_file)
         parts = ParseString(name, "_")
         if parts[2] = "transit" or parts[2] = "walkbike" then continue
@@ -335,6 +346,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
             mode = parts[3]
             period = parts[4]
         end
+        if periods.position(period) = 0 then continue
 
         nhb_mtx = CreateObject("Matrix", nhb_mtx_file)
         nhb_cores = nhb_mtx.GetCores()
@@ -632,6 +644,7 @@ Macro "Add Externals" (Args)
         // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
+        if periods.position(period) = 0 then continue
         if parts[2] = "AUTO" then core_name = "sov_VOT2"
         if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
         if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
