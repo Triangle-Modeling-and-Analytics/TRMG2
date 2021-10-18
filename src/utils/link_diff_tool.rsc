@@ -85,6 +85,15 @@ Macro "Diff Line Layers" (MacroOpts)
   // Create separate maps for both dbds
   {new_map, {new_nlyr, new_llyr}} = RunMacro("Create Map", {file: new_dbd, map_name: "new layer"})
   {old_map, {old_nlyr, old_llyr}} = RunMacro("Create Map", {file: old_dbd, map_name: "old layer"})
+  // Handle duplicate layer names
+  if Position(old_nlyr, ":") > 0 then do
+    RenameLayer(old_nlyr, "old_nodes", )
+    old_nlyr = "old_nodes"
+  end
+  if Position(old_llyr, ":") > 0 then do
+    RenameLayer(old_llyr, "old_links", )
+    old_llyr = "old_links"
+  end
 
   // Get field info for both line layers
   {new_fld_names, new_fld_specs} = RunMacro("Get Fields", {view_name: new_llyr})
