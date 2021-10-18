@@ -553,7 +553,8 @@ Macro "Summarize by FT and AT" (Args)
 
   opts.hwy_dbd = Args.Links
   out_dir = Args.[Output Folder]
-  opts.output_dir = out_dir + "/_summaries"
+  opts.output_dir = out_dir + "/_summaries/roadway_tables"
+  opts.summary_fields = {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
   RunMacro("Link Summary by FT and AT", opts)
 
   RunMacro("Close All")
