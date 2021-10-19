@@ -287,25 +287,14 @@ Macro "VOC Maps" (Args)
   for period in periods do
     for los in levels do
 
-      mapFile = output_dir + "/voc_" + period + "_LOS" + los + "_" + ".map"
+      mapFile = output_dir + "/voc_" + period + "_LOS" + los + ".map"
 
       //Create a new, blank map
-      {nlyr,llyr} = GetDBLayers(hwy_dbd)
-      a_info = GetDBInfo(hwy_dbd)
-      maptitle = period + " V/C"
-      map = CreateMap(maptitle,{
-        {"Scope",a_info[1]},
-        {"Auto Project","True"}
-      })
-      MinimizeWindow(GetWindowName())
-
-      //Add highway layer to the map
-      llyr = AddLayer(map,llyr,hwy_dbd,llyr)
-      RunMacro("G30 new layer default settings", llyr)
-      SetArrowheads(llyr + "|", "None")
+      {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+      SetLayerVisibility(map + "|" + nlyr, "false")
       SetLayer(llyr)
 
-      // Dualized Scaled Symbol Theme (from Caliper Support - not in Help)
+      // Dualized Scaled Symbol Theme
       flds = {llyr+".AB_Flow_" + period}
       opts = null
       opts.Title = period + " Flow"
@@ -392,11 +381,11 @@ Macro "VOC Maps" (Args)
       solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
       SetLegendOptions (GetMap(), {{"Background Style", solid}})
 
-      // Refresh Map Window
-      RedrawMap(map)
-
       // Save map
-      RestoreWindow(GetWindowName())
+      RedrawMap(map)
+      windows = GetWindows("Map")
+      window = windows[1][1]
+      RestoreWindow(window)
       SaveMap(map, mapFile)
       CloseMap(map)
     end
@@ -564,7 +553,8 @@ Macro "Summarize by FT and AT" (Args)
 
   opts.hwy_dbd = Args.Links
   out_dir = Args.[Output Folder]
-  opts.output_dir = out_dir + "/_summaries"
+  opts.output_dir = out_dir + "/_summaries/roadway_tables"
+  opts.summary_fields = {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
   RunMacro("Link Summary by FT and AT", opts)
 
   RunMacro("Close All")
