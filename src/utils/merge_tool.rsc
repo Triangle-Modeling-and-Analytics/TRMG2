@@ -57,8 +57,14 @@ Class "MergeTool" (MacroOpts)
         )
         if n = 0 then Throw("Replace: your polygon does not intersect any links")
         SetInvert("sel", "sel")
-        {, field_specs} = GetFields(old_llyr, "All")
-        ExportGeography(old_llyr + "|sel", out_dbd, {"Field Spec": field_specs})
+        {, link_specs} = GetFields(old_llyr, "All")
+        {, node_specs} = GetFields(old_nlyr, "All")
+        ExportGeography(old_llyr + "|sel", out_dbd, {
+            "Field Spec": link_specs,
+            "Node Field Spec": node_specs,
+            "Layer Name": old_llyr,
+            "Node Name": old_nlyr
+        })
 
         // Export new links inside polygon to a new dbd
         SetLayer(new_llyr)
@@ -67,9 +73,15 @@ Class "MergeTool" (MacroOpts)
             {Inclusion: "Intersecting"}
         )
         if n = 0 then Throw("Replace: your polygon does not intersect any links")
-        {, field_specs} = GetFields(new_llyr, "All")
+        {, link_specs} = GetFields(new_llyr, "All")
+        {, node_specs} = GetFields(new_nlyr, "All")
         sub_dbd = out_dir + "/subarea.dbd"
-        ExportGeography(new_llyr + "|sel", sub_dbd, {"Field Spec": field_specs})
+        ExportGeography(new_llyr + "|sel", sub_dbd, {
+            "Field Spec": link_specs,
+            "Node Field Spec": node_specs,
+            "Layer Name": old_llyr,
+            "Node Name": old_nlyr
+        })
         CloseMap(map)
 
         // Merge two pieces
