@@ -121,7 +121,8 @@ Macro "Diff Line Layers" (MacroOpts)
   a_fields = {
 		{"diff_fields", "Character", 16, , , , , "Marks the start of fields added|by the diff tool"},
 		{"diff_new", "Integer", 10, , , , , "New links marked with a 1"},
-		{"diff_modified", "Integer", 10, , , , , "Links with spatial modifications|marked with a 1"}
+		{"diff_modified", "Integer", 10, , , , , "Links with spatial modifications|marked with a 1"},
+		{"diff_att_mod", "Integer", 10, , , , , "Links with attribute modifications|marked with a 1"}
 	}
     RunMacro("Add Fields", new_llyr, a_fields, {"--------------->", null})
 
@@ -176,8 +177,8 @@ Macro "Diff Line Layers" (MacroOpts)
 	SetInvert(temp_set, temp_set)
 	{, a_field_specs} = GetFields(jv, "All")
 	data = GetDataVectors(jv + "|" + temp_set, a_field_specs, {OptArray: "true"})
-	DeleteSet(temp_set)
 	CloseView(jv) // will be modifying columns in the loop
+  v_any_at_change = Vector(GetSetCount(temp_set), "Long", )
 	for i = 1 to data.length do
 		// To avoid processing duplicate fields twice, skip any from the
 		// old_llyr. Also skip ID, Length, and the diff fields added by this
@@ -193,6 +194,9 @@ Macro "Diff Line Layers" (MacroOpts)
 		v_tf = if data.(old_field) <> data.(new_field)
 			then 1
 			else 0
+    // keep track of changes across fields in order to mark links with any
+    // attributes changed.
+    v_any_at_change = if v_tf = 1 then 1 else v_any_at_change
 		if VectorStatistic(v_tf, "sum", ) > 0 then do
 			field_type = data.(old_field).type
 			if ArrayPosition({"integer", "short", "long"}, {field_type}, ) then type = "Integer"
@@ -212,19 +216,15 @@ Macro "Diff Line Layers" (MacroOpts)
 	end
 	if diff_data <> null then do
 		jv = JoinViews("jv", new_fld_specs.ID, old_fld_specs.ID, )
-		temp_set = CreateSet("temp_set")
-		SetOR("temp_set", {new_set})
-		SetInvert(temp_set, temp_set)
 		SetDataVectors(jv + "|" + temp_set, diff_data, )
-		for i = 1 to diff_data.length do
-			field_name = diff_data[i][1]
-      field_spec = GetFieldFullSpec(new_llyr, field_name)
-      query = "Select * where " + field_spec + " <> null"
-			SelectByQuery(att_setname, "more", query)
-		end
-		DeleteSet(temp_set)
 		CloseView(jv)
 	end
+  SetDataVector(new_llyr + "|" + temp_set, "diff_att_mod", v_any_at_change, )
+  SetLayer(new_llyr)
+  DeleteSet(temp_set)
+  query = "Select * where diff_att_mod <> null"
+  SelectByQuery(att_setname, "several", query)
+
 
   SetMap(new_map)
   SetLayer(new_llyr)
