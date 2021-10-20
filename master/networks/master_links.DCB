@@ -1,11 +1,11 @@
 
 516
-"ID",I,1,4,0,10,0,,"","",,"Sum",
+"ID",I,1,4,0,4,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "AltName",C,37,32,0,32,0,,"","",,"Copy",
 "PrimaryLink",I,69,4,0,8,0,,"","1: Major roadways. E.g. the ones used in auto networks.|0: Minor roads. The remaining streets used to improve nm/transit paths.",,"Sum",
 "NCDOTClass",C,73,20,0,20,0,,"","This field does not affect model output and is only used|for reporting purposes. The NCDOT roadway classification|is a political classification and does not always accurately|reflect the road's operating characteristics.||Interstate|OtherFreeway|PrincipalArterial|MinorArterial|MajorCollector|MinorCollector|Local|NA",,"Copy",
-"HCMType",C,93,20,0,20,0,,"","Highway Capacity Manual Type|This classification describes the operational characteristics|of the link and is used to determine capacity and freeflow|speed.||Freeway|MLHighway|TLHighway|Arterial|Collector|Superstreet|Ramp|CC|TransitOnly",,"Copy",
+"HCMType",C,93,20,0,20,0,,"","Highway Capacity Manual Type|This classification describes the operational characteristics|of the link and is used to determine capacity and freeflow|speed.||Freeway|MLHighway|TLHighway|Superstreet|MajorArterial|Arterial|MajorCollector|Collector|Local|Ramp|CC|TransitOnly",,"Copy",
 "ABLanes",I,113,4,0,8,0,,"","Number of lanes in the topological direction|(direction link was drawn)|Layer style settings can be used to show link topo direction.",,"Copy",
 "BALanes",I,117,4,0,8,0,,"","Number of lanes against the topological direction|(direction link was drawn)|Layer style settings can be used to show link topo direction.",,"Copy",
 "PostedSpeed",I,121,4,0,8,0,,"","Speed as posted on roadway signage",,"Copy",
