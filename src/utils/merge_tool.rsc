@@ -104,6 +104,9 @@ Class "MergeTool" (MacroOpts)
         {node_fields, } = GetFields(out_nlyr, "All")
         for node_field in node_fields do
             if node_field = "ID" then continue
+            if node_field = "Longitude" then continue
+            if node_field = "Latitude" then continue
+            if node_field = "Elevation" then continue
             n_fields = n_fields + {{node_field, node_field}}
         end
         MergeGeography(out_llyr, sub_llyr + "|", {
