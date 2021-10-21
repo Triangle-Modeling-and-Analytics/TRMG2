@@ -249,7 +249,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     a_fields = {{"AreaType", "Character", 10, }}
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     SetLayer(llyr)
-    SelectByQuery("primary", "several", "Select * where D = 1")
+    SelectByQuery("primary", "several", "Select * where DTWB contains 'D'")
 
     // Loop over each area type starting with most dense.  Skip the first.
     // All remaining links after this loop will be tagged with the lowest
@@ -294,7 +294,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     // Select all remaining links and assign them to the
     // first (lowest density) area type.
     SetLayer(llyr)
-    query = "Select * where AreaType = null and D = 1"
+    query = "Select * where AreaType = null and DTWB contains 'D'"
     n = SelectByQuery("links", "Several", query)
     if n > 0 then do
         type = area_tbl[1].AreaType
@@ -830,7 +830,7 @@ Macro "Create Route Networks" (Args)
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     transit_modes = {"all"} + transit_modes
-    
+
     for period in periods do
         for transit_mode in transit_modes do
 
