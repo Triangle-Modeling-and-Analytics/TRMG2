@@ -267,6 +267,7 @@ Macro "Count PRMSEs" (Args)
   opts.volume_field = "Volume_All"
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
+  opts.area_field = "AreaType"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
   RunMacro("Roadway Count Comparison Tables", opts)

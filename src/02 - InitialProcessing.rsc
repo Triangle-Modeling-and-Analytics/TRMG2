@@ -294,7 +294,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     // Select all remaining links and assign them to the
     // first (lowest density) area type.
     SetLayer(llyr)
-    query = "Select * where AreaType = null and DTWB contains 'D' or DTWB contains 'T'"
+    query = "Select * where AreaType = null and (DTWB contains 'D' or DTWB contains 'T')"
     n = SelectByQuery("links", "Several", query)
     if n > 0 then do
         type = area_tbl[1].AreaType

@@ -2264,6 +2264,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   volume_field = MacroOpts.volume_field
   count_field = MacroOpts.count_field
   class_field = MacroOpts.class_field
+  area_field = MacroOpts.area_field
   volume_breaks = MacroOpts.volume_breaks
   out_dir = MacroOpts.out_dir
 
@@ -2281,7 +2282,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   count_set = "count_set"
   query = "Select * where nz(" + count_field + ") > 0"
   n = SelectByQuery(count_set, "several", query)
-
+  
   // overall/total fields
   {v_count, v_volume, v_class} = GetDataVectors(
     hwy_vw + "|" + count_set, {count_field, volume_field, class_field}, 
@@ -2293,6 +2294,10 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   total_prmse = round(total_prmse, 2)
   total_line = {
     "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+    "," + String(total_pct_diff) + "," + String(total_prmse)
+  }
+  area_total_line = {
+    "All,All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
   }
 
@@ -2316,10 +2321,41 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
-  file = out_dir + "/facility_type.csv"
+  file = out_dir + "/count_comparison_by_fac_type.csv"
   lines = {"HCMType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
+
+  // Facility type and area type table
+  if area_field <> null then do
+    lines = null
+    v_area = GetDataVector(hwy_vw + "|" + count_set, area_field, )
+    v_area = SortVector(v_area, {Unique: "true"})
+    for class_name in v_class do
+      for area in v_area do
+        set_name = "class_area"
+        if TypeOf(class_name) <> "string" then class_name = String(class_name)
+        if TypeOf(area) <> "string" then area = String(area)
+        query = "Select * where " + class_field + " = '" + class_name + "' and " + area_field + " = '" + area + "'"
+        n = SelectByQuery(set_name, "several", query, {"Source And": count_set})
+        if n = 0 then continue
+        {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + set_name, {count_field, volume_field}, )
+        total_count = VectorStatistic(v_count, "Sum", )
+        total_volume = VectorStatistic(v_volume, "Sum", )
+        pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+        {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+        prmse = round(prmse, 2)
+        lines = lines + {
+          class_name + "," + area + "," + String(n) + "," + String(total_count) + "," +
+          String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
+        }
+      end
+    end
+    lines = {"HCMType,AreaType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+    lines = lines + area_total_line
+    file = out_dir + "/count_comparison_by_ft_and_at.csv"
+    RunMacro("Write CSV by Line", file, lines)
+  end
 
   // Volume group table
   lines = null
@@ -2346,7 +2382,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
-  file = out_dir + "/volume_groups.csv"
+  file = out_dir + "/count_comparison_by_vol_group.csv"
   lines = {"VolumeGroup,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
