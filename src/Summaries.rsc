@@ -10,6 +10,7 @@ Macro "Summaries" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
+    RunMacro("Speed Maps", Args)
     RunMacro("Summarize DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
@@ -389,6 +390,129 @@ Macro "VOC Maps" (Args)
       SaveMap(map, mapFile)
       CloseMap(map)
     end
+  end
+EndMacro
+
+/*
+Creates a map showing speed reductions (similar to Google) for each period
+*/
+
+Macro "Speed Maps" (Args)
+
+  hwy_dbd = Args.Links
+  periods = Args.periods
+  output_dir = Args.[Output Folder] + "/_summaries/maps"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  for period in periods do
+
+    mapFile = output_dir + "/speed_" + period + ".map"
+
+    //Create a new, blank map
+    {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+    SetLayerVisibility(map + "|" + nlyr, "false")
+    SetLayer(llyr)
+
+    // Dualized Scaled Symbol Theme
+    flds = {llyr+".AB_Flow_" + period}
+    opts = null
+    opts.Title = period + " Flow"
+    opts.[Data Source] = "All"
+    opts.[Minimum Size] = 1
+    opts.[Maximum Size] = 10
+    theme_name = CreateContinuousTheme("Flows", flds, opts)
+    // Set color to white to make it disappear in legend
+    SetThemeLineColors(theme_name , {ColorRGB(65535,65535,65535)})
+    dual_linestyles = {LineStyle({{{1, -1, 0}}})}
+    SetThemeLineStyles(theme_name , dual_linestyles)
+    ShowTheme(, theme_name)
+
+    // Apply color theme based on the % speed reduction
+    ab_expr_field = CreateExpression(
+      llyr, "ABSpeedRedux",
+      "min((AB_Speed_" + period + " - PostedSpeed) / PostedSpeed * 100, 0)",
+      {Type: "Real", Decimals: 0}
+    )
+    ba_expr_field = CreateExpression(
+      llyr, "BASpeedRedux",
+      "min((BA_Speed_" + period + " - PostedSpeed) / PostedSpeed * 100, 0)",
+      {Type: "Real", Decimals: 0}
+    )
+    num_classes = 5
+    theme_title = period + " Speed Reduction %"
+    cTheme = CreateTheme(
+      theme_title, llyr + "." + ab_expr_field, "Manual",
+      num_classes,
+      {
+        {"Values",{
+          {-10,"True", 100,"True"},
+          {-20,"True", -10,"False"},
+          {-35,"True", -20,"False"},
+          {-50,"True", -35,"False"},
+          {-100,"True", -50,"False"}
+          }}
+      }
+    )
+    line_colors =	{
+      ColorRGB(6682, 38550, 16705),
+      ColorRGB(42662, 55769, 27242),
+      ColorRGB(65535, 65535, 49087),
+      ColorRGB(65021, 44718, 24929),
+      ColorRGB(55255, 6425, 7196)
+    }
+    // dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
+    dualline = LineStyle({{{1, -1, 0}}})
+
+    for i = 1 to num_classes do
+        class_id = llyr +"|" + cTheme + "|" + String(i + 1) // 1 is the other class
+        SetLineStyle(class_id, dualline)
+        SetLineColor(class_id, line_colors[i])
+        SetLineWidth(class_id, 2)
+    end
+
+    // Change the labels of the classes for legend
+    labels = {
+      "Other",
+      "Reduction < 10%",
+      "Reduction < 20%",
+      "Reduction < 35%",
+      "Reduction < 50%",
+      "Reduction > 50%"
+    }
+    SetThemeClassLabels(cTheme, labels)
+    ShowTheme(,cTheme)
+
+    // Hide centroid connectors
+    SetLayer(llyr)
+    ccquery = "Select * where HCMType = 'CC'"
+    n1 = SelectByQuery ("CCs", "Several", ccquery,)
+    if n1 > 0 then SetDisplayStatus(llyr + "|CCs", "Invisible")
+
+    // Configure Legend
+    SetLegendDisplayStatus(llyr + "|", "False")
+    RunMacro("G30 create legend", "Theme")
+    subtitle = period + " Period"
+    SetLegendSettings (
+      GetMap(),
+      {
+        "Automatic",
+        {0, 1, 0, 0, 1, 4, 0},
+        {1, 1, 1},
+        {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
+        {"", subtitle}
+      }
+    )
+    str1 = "XXXXXXXX"
+    solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+    SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+    // Save map
+    RedrawMap(map)
+    windows = GetWindows("Map")
+    window = windows[1][1]
+    RestoreWindow(window)
+    SaveMap(map, mapFile)
+    CloseMap(map)
   end
 EndMacro
 
