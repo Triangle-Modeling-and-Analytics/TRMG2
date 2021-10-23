@@ -64,7 +64,7 @@ Macro "Fixed OD Assignment" (full_scen_dir)
     // Run assignments
     periods = Args.periods
     for period in periods do
-        RunMacro("Run Roadway Assignment", Args, {period: period, assign_iters: 1})
+        RunMacro("Run Roadway Assignment", Args, {period: period})
     end
 
     // Run summary macros of interest
