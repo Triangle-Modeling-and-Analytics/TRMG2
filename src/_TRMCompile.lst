@@ -29,5 +29,6 @@ utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc
 utils/link_diff_tool.rsc
+utils/fixed_od_assignment.rsc
 flow_chart/NLMCreateFromPMEClass.rsc
 Calibrators.rsc

@@ -810,7 +810,8 @@ Macro "Check Highway Networks" (Args)
         mtx = null
         mh = null
         CloseView(se_vw)
-        OtherOpts.test_opts.od_mtx = mtx_file
+        OtherOpts.od_mtx = mtx_file
+        OtherOpts.assign_iters = 1
         RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end
 endmacro
@@ -820,6 +821,11 @@ endmacro
 */
 
 Macro "Create Route Networks" (Args)
+
+    // Initial processing is called by the main model, but also by the Fixed
+    // OD assignment tool. When doing fixed highway assignment, skip this step
+    // to save time.
+    if Args.fixed_od then return()
 
     link_dbd = Args.Links
     rts_file = Args.Routes

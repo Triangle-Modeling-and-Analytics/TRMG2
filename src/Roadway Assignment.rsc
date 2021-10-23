@@ -64,6 +64,12 @@ validity of the highway network and prevent wasted run time.
 
 For actual assignment, this macro can run all periods in series or be provided
 with a specific period to run (if running in parallel).
+
+OtherOpts
+    Can be used to override defaults
+    od_mtx (used by "Check Highway Networks" macro)
+    assign_iters (used by "Check Highway Networks" macro)
+    periods (used by the TOD assignment macros)
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
@@ -71,15 +77,13 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     hwy_dbd = Args.Links
     net_dir = Args.[Output Folder] + "\\networks\\"
     feedback_iter = Args.FeedbackIteration
-    assign_iters = Args.AssignIterations
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
     test_opts = OtherOpts.test_opts
-    // If no period is specified, run all that are unconverged. Otherwise, only
-    // run the specified period. This allows the macro to be called in parallel
-    // by the flowchart, with each engine running a single period.
+    assign_iters = Args.AssignIterations
+    if OtherOpts.assign_iters <> null then assign_iters = OtherOpts.assign_iters
     periods = RunMacro("Get Unconverged Periods", Args)
-    if OtherOpts.period <> null then periods = {OtherOpts.period}
+    if OtherOpts.periods <> null then periods = OtherOpts.periods
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
 
@@ -103,13 +107,8 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
 
     for period in periods do
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        if OtherOpts.od_mtx <> null then od_mtx = OtherOpts.od_mtx
         net_file = net_dir + "net_" + period + "_hov.net"
-
-        // If doing a test assignment, use the dummy OD matrix provided
-        if test_opts <> null then do
-            od_mtx = test_opts.od_mtx
-            assign_iters = 1
-        end
 
         o = CreateObject("Network.Assignment")
         o.Network = net_file
@@ -133,7 +132,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         // Add classes for each combination of vehicle type and VOT
         // If doing a test assignment, just create a single class from the
         // dummy matrix
-        if test_opts <> null then do
+        if OtherOpts.od_mtx <> null then do
             o.AddClass({
                 Demand: "TAZ",
                 PCE: 1,
