@@ -31,10 +31,10 @@ Collector,Downtown,950,855
 Collector,Urban,950,855
 Collector,Suburban,725,652
 Collector,Rural,600,540
-Local,Downtown,850,765
-Local,Urban,850,765
-Local,Suburban,625,562
-Local,Rural,500,450
+Local,Downtown,900,810
+Local,Urban,900,810
+Local,Suburban,675,607.5
+Local,Rural,550,495
 CC,Downtown,10000,10000
 CC,Urban,10000,10000
 CC,Suburban,10000,10000
