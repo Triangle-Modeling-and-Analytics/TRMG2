@@ -34,6 +34,7 @@ dBox "FixedOD" (Args) center, center, 50, 8 Title: "Fixed OD Assignment" Help: "
         return()
     end
     RunMacro("Fixed OD Assignment", full_scen_dir)
+    ShowMessage("Fixed OD Assignment Complete")
   enditem
   Button 20, same Prompt: "Quit" do
     Return()
