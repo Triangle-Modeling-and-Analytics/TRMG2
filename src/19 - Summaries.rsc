@@ -266,6 +266,7 @@ Macro "Count PRMSEs" (Args)
 
   opts.hwy_bin = Substitute(hwy_dbd, ".dbd", ".bin", )
   opts.volume_field = "Volume_All"
+  opts.count_id_field = "CountID"
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"

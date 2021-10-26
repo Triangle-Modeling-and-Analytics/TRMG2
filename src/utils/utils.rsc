@@ -2262,6 +2262,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
 
   hwy_bin = MacroOpts.hwy_bin
   volume_field = MacroOpts.volume_field
+  count_id_field = MacroOpts.count_id_field
   count_field = MacroOpts.count_field
   class_field = MacroOpts.class_field
   area_field = MacroOpts.area_field
@@ -2282,11 +2283,31 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   count_set = "count_set"
   query = "Select * where nz(" + count_field + ") > 0"
   n = SelectByQuery(count_set, "several", query)
-  
+
+  // Counts split across paired 1-way links are duplicated. Keep only 1.
+  df = CreateObject("df")
+  df.read_view({
+    view: hwy_vw,
+    set: count_set,
+    fields: {count_id_field, count_field, volume_field, class_field, area_field}
+  })
+  df.group_by(count_id_field)
+  df.summarize({count_field, volume_field, class_field, area_field}, "first")
+  field_names = df.colnames()
+  for field_name in field_names do
+    if Left(field_name, 6) = "first_"
+      then new_name = Substitute(field_name, "first_", "", )
+      else new_name = field_name
+      df.rename(field_name, new_name)
+  end
+  agg_vw = df.create_view("agg")
+  SetView(agg_vw)
+
   // overall/total fields
   {v_count, v_volume, v_class} = GetDataVectors(
-    hwy_vw + "|" + count_set, {count_field, volume_field, class_field}, 
+    agg_vw + "|", {count_field, volume_field, class_field}, 
   )
+  n = v_count.length
   total_count = VectorStatistic(v_count, "Sum", )
   total_volume = VectorStatistic(v_volume, "Sum", )
   total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2308,9 +2329,9 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     class_set = "class"
     if TypeOf(class_name) <> "string" then class_name = String(class_name)
     query = "Select * where " + class_field + " = '" + class_name + "'"
-    n = SelectByQuery(class_set, "several", query, {"Source And": count_set})
+    n = SelectByQuery(class_set, "several", query, )
     if n = 0 then continue
-    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + class_set, {count_field, volume_field}, )
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + class_set, {count_field, volume_field}, )
     total_count = VectorStatistic(v_count, "Sum", )
     total_volume = VectorStatistic(v_volume, "Sum", )
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2329,7 +2350,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   // Facility type and area type table
   if area_field <> null then do
     lines = null
-    v_area = GetDataVector(hwy_vw + "|" + count_set, area_field, )
+    v_area = GetDataVector(agg_vw + "|", area_field, )
     v_area = SortVector(v_area, {Unique: "true"})
     for class_name in v_class do
       for area in v_area do
@@ -2337,9 +2358,9 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
         if TypeOf(class_name) <> "string" then class_name = String(class_name)
         if TypeOf(area) <> "string" then area = String(area)
         query = "Select * where " + class_field + " = '" + class_name + "' and " + area_field + " = '" + area + "'"
-        n = SelectByQuery(set_name, "several", query, {"Source And": count_set})
+        n = SelectByQuery(set_name, "several", query, )
         if n = 0 then continue
-        {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + set_name, {count_field, volume_field}, )
+        {v_count, v_volume} = GetDataVectors(agg_vw + "|" + set_name, {count_field, volume_field}, )
         total_count = VectorStatistic(v_count, "Sum", )
         total_volume = VectorStatistic(v_volume, "Sum", )
         pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2366,9 +2387,9 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     vol_set = "class"
     query = "Select * where " + count_field + " > " + String(low_vol) + 
       " and " + count_field + " <= " + String(high_vol)
-    n = SelectByQuery(vol_set, "several", query, {"Source And": count_set})
+    n = SelectByQuery(vol_set, "several", query, )
     if n = 0 then continue
-    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + vol_set, {count_field, volume_field}, )
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + vol_set, {count_field, volume_field}, )
     total_count = VectorStatistic(v_count, "Sum", )
     total_volume = VectorStatistic(v_volume, "Sum", )
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2388,6 +2409,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   RunMacro("Write CSV by Line", file, lines)
   
   CloseView(hwy_vw)
+  CloseView(agg_vw)
 endmacro
 
 Macro "Write CSV by Line" (file, lines)
