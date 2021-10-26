@@ -144,15 +144,19 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 then pkop = "pk"
                 else pkop = "op"
 
-            // The 5 auto value of time bins are collapsed to 1->2<-3, 4, 5
-            auto_vot_ints = {2, 4, 5}
+            // // The 5 auto value of time bins are collapsed to 1->2<-3, 4, 5
+            // auto_vot_ints = {2, 4, 5}
+
+            // Auto VOT 1 and 2 are collapsed into 2
+            auto_vot_ints = {2, 3, 4, 5}
 
             // sov
             for i in auto_vot_ints do
+                voi = vot_params.auto_calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
                 sov_opts = {
                     Demand: "sov_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
+                    VOI: voi,
                     LinkTollField: "TollCostSOV"
                 }
                 if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
@@ -160,28 +164,31 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             end
             // hov2
             for i in auto_vot_ints do
+                voi = vot_params.auto_calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
                 o.AddClass({
                     Demand: "hov2_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
+                    VOI: voi,
                     LinkTollField: "TollCostHOV"
                 })
             end
             // hov3
             for i in auto_vot_ints do
+                voi = vot_params.auto_calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
                 o.AddClass({
                     Demand: "hov3_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
+                    VOI: voi,
                     LinkTollField: "TollCostHOV"
                 })
             end
             // CV
             for i in auto_vot_ints do
+                voi = vot_params.auto_calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
                 cv_opts = {
                     Demand: "CV_VOT" + String(i),
                     PCE: 1,
-                    VOI: vot_params.(pkop + "_auto_vot" + String(i)) / 60, // ($/min)
+                    VOI: voi,
                     LinkTollField: "TollCostSOV"
                 }
                 if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}

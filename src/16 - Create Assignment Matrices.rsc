@@ -602,13 +602,21 @@ Macro "VOT Aggregation" (Args)
         mtx = CreateObject("Matrix", mtx_file)
         cores = mtx.GetCores()
 
-        // Collapse auto VOT classes 1-3 into just class 2
+        // // Collapse auto VOT classes 1-3 into just class 2
+        // for auto_core in auto_cores do
+        //     core1 = auto_core + "_VOT1"
+        //     core2 = auto_core + "_VOT2"
+        //     core3 = auto_core + "_VOT3"
+        //     cores.(core2) := nz(cores.(core2)) + nz(cores.(core1)) + nz(cores.(core3))
+        //     mtx.DropCores({core1, core3})
+        // end 
+
+        // Collapse auto VOT classes 1 and 2 into just class 2
         for auto_core in auto_cores do
             core1 = auto_core + "_VOT1"
             core2 = auto_core + "_VOT2"
-            core3 = auto_core + "_VOT3"
-            cores.(core2) := nz(cores.(core2)) + nz(cores.(core1)) + nz(cores.(core3))
-            mtx.DropCores({core1, core3})
+            cores.(core2) := nz(cores.(core2)) + nz(cores.(core1))
+            mtx.DropCores({core1})
         end 
     end
 

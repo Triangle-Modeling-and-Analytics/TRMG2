@@ -163,7 +163,7 @@ Macro "Calculate Daily Fields" (Args)
   for mode in modes do
     if mode = "SUT" then vots = {1, 2, 3}
     else if mode = "MUT" then vots = {1, 2, 3, 4, 5}
-    else vots = {2, 4, 5}
+    else vots = {2, 3, 4, 5}
 
     for dir in a_dir do
       out_field = dir + "_" + mode + "_Flow_Daily"
