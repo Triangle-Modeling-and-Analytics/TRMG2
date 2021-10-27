@@ -65,11 +65,22 @@ validity of the highway network and prevent wasted run time.
 For actual assignment, this macro can run all periods in series or be provided
 with a specific period to run (if running in parallel).
 
-OtherOpts
-    Can be used to override defaults
-    od_mtx (used by "Check Highway Networks" macro)
-    assign_iters (used by "Check Highway Networks" macro)
-    periods (used by the TOD assignment macros)
+Inputs
+    * OtherOpts
+        * Optional named array
+        * Can be used to override defaults
+        * `od_mtx`
+            * String
+            * File path of OD matrix to use
+            * used by "Check Highway Networks" macro
+        * `assign_iters`
+            * Integer
+            * Number of max assignment iterations
+            * used by "Check Highway Networks" macro
+        * `period`
+            * String
+            * Used to run a single period instead of all
+            * used by the TOD assignment macros
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
@@ -79,11 +90,10 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     feedback_iter = Args.FeedbackIteration
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     vot_param_file = Args.[Input Folder] + "/assignment/vot_params.csv"
-    test_opts = OtherOpts.test_opts
     assign_iters = Args.AssignIterations
     if OtherOpts.assign_iters <> null then assign_iters = OtherOpts.assign_iters
     periods = RunMacro("Get Unconverged Periods", Args)
-    if OtherOpts.periods <> null then periods = OtherOpts.periods
+    if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
 
