@@ -648,23 +648,7 @@ Macro "Summarize HB DC and MC" (Args)
     mtx_agg = null
     mtx = null
     core = null
-
-  //   // Build up a final matrix that is the sum of all aggregated matrices
-  //   if mtx_file = total_files[1] then do
-  //     final_mtx_file = cluster_dir + "/hb_c2c_flows.mtx"
-  //     CopyFile(agg_file, final_mtx_file)
-  //     mtx_final = CreateObject("Matrix", final_mtx_file)
-  //     final_core = mtx_final.GetCore("total")
-  //   end else do
-  //     mtx_agg = CreateObject("Matrix", agg_file)
-  //     agg_core = mtx_agg.GetCore("total")
-  //     final_core := nz(final_core) + nz(agg_core)
-  //   end
-  // end
-  //   final_core = null
-  //   final_mtx = null
-  //   agg_core = null
-  //   mtx_agg = null
+  end
 
   // Remove the totals matrices to save space
   for file in total_files do
