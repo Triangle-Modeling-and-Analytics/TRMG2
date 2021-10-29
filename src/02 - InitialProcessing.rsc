@@ -517,10 +517,10 @@ Macro "Other Attributes" (Args)
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length|TollRate Influenced by TransponderRatioAuto"},
+        {"TollCostSOV", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2|TollRate Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4|TollRate Influenced by TransponderRatioMUT"},
+        {"TollCostSUT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -554,15 +554,15 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate_t, v_tollrate_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             llyr + ".TollType",
-            llyr + ".TollRateT",
-            llyr + ".TollRateNT",
+            llyr + ".TollCostT",
+            llyr + ".TollCostNT",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
@@ -573,14 +573,13 @@ Macro "Other Attributes" (Args)
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
-    // Determine weighted average toll rate based on transponder usage
-    v_tollrate_auto = v_tollrate_t * trans_ratio_auto + v_tollrate_nt * (1 - trans_ratio_auto)
-    v_tollrate_sut = v_tollrate_t * trans_ratio_sut + v_tollrate_nt * (1 - trans_ratio_sut)
-    v_tollrate_mut = v_tollrate_t * trans_ratio_mut + v_tollrate_nt * (1 - trans_ratio_mut)
-    v_tollcost_auto = v_tollrate_auto * v_len
-    v_tollcost_sut = v_tollrate_sut * v_len * 2
-    v_tollcost_mut = v_tollrate_mut * v_len * 4
-    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_auto
+    // Determine weighted average toll cost based on transponder usage
+    v_tollcost_auto = v_tollcost_t * trans_ratio_auto + v_tollcost_nt * (1 - trans_ratio_auto)
+    v_tollcost_hov = if v_tolltype = "HOT" then 0 else v_tollcost_auto
+    v_tollcost_sut = v_tollcost_t * trans_ratio_sut + v_tollcost_nt * (1 - trans_ratio_sut)
+    v_tollcost_sut = v_tollcost_sut * 2
+    v_tollcost_mut = v_tollcost_t * trans_ratio_mut + v_tollcost_nt * (1 - trans_ratio_mut)
+    v_tollcost_mut = v_tollcost_mut * 4
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -589,7 +588,7 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
     SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
-    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hot, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hov, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
     v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
