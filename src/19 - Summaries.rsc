@@ -14,7 +14,7 @@ Macro "Summaries" (Args)
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
-    // RunMacro("Transit Summary", Args)
+    RunMacro("Transit Summary", Args)
 
     return(1)
 endmacro
@@ -726,7 +726,7 @@ Macro "Transit Summary" (Args)
   opts = null
   RunMacro("Summarize Transit", {
     transit_asn_dir: assn_dir,
-    output_dir: out_dir + "/_summaries",
+    output_dir: out_dir + "/_summaries/transit",
     loaded_network: Args.Links
   })
 EndMacro

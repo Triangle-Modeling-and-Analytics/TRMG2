@@ -1918,14 +1918,14 @@ Macro "Summarize Transit" (MacroOpts)
     then Throw("Summarize Transit:\n`loaded_network` does not exist")
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
-
+  
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
-  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  onoff.group_by({"ROUTE", "access", "mode", "period"})
   cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
   onoff.summarize(cols_to_summarize, "sum")
   opts = null
-  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  opts.new_names = {"route", "access", "mode", "period"} + cols_to_summarize
   onoff.colnames(opts)
   daily = onoff.copy()
   daily.group_by("route")
@@ -1935,8 +1935,8 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("access", "All")
   daily.mutate("mode", "All")
-  daily.mutate("tod", "Daily")
-  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.mutate("period", "Daily")
+  daily.select({"route", "access", "mode", "period"} + cols_to_summarize)
   daily.bind_rows(onoff)
   daily.write_csv(output_dir + "/boardings_and_alightings.csv")
 
@@ -1967,10 +1967,7 @@ Macro "Summarize Transit" (MacroOpts)
 EndMacro
 
 /*
-The GT transit assignment macro "Pathfinder Assignment" does some basic
-aggregation of the transit outputs and writes out CSV files. The transit
-summary macro uses this function to collect the names of all those outputs
-files in `transit_asn_dir`.
+
 
 Inputs
   * `transit_asn_dir`
@@ -1996,9 +1993,21 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
   transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
   
-  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  files = RunMacro("Catalog Files", transit_asn_dir, "bin")
   for file in files do
     df = CreateObject("df", file)
+
+    {, , name, } = SplitPath(file)
+    parts = ParseString(name, "_")
+    period = parts[1]
+    v_period = Vector(df.nrow(), "String", {Constant: period})
+    df.mutate("period", v_period)
+    access = parts[2]
+    v_access = Vector(df.nrow(), "String", {Constant: access})
+    df.mutate("access", v_access)
+    mode = parts[3]
+    v_mode = Vector(df.nrow(), "String", {Constant: mode})
+    df.mutate("mode", v_mode)
     
     if Position(file, "onoff") <> 0 then do
       if onoff = null then onoff = df.copy()
@@ -2009,7 +2018,7 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     end else if Position(file, "walkflow") <> 0 then do
       if walk = null then walk = df.copy()
       else walk.bind_rows(df)
-    end else if Position(file, "flow") <> 0 then do
+    end else do
       if flow = null then flow = df.copy()
       else flow.bind_rows(df)
     end
