@@ -33,8 +33,8 @@
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
         Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
                                                     {"Suburban",35},
-                                                    {"Urban",25},
-                                                    {"Downtown",15}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
+                                                    {"Urban",30},
+                                                    {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
@@ -154,7 +154,7 @@
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
-        Args.FeedbackIterations = { "Type":"int" , "Value":4, "Description":"Max number of feedback iterations" }
+        Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }

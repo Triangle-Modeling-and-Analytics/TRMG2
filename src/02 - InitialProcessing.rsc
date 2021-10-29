@@ -249,7 +249,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     a_fields = {{"AreaType", "Character", 10, }}
     RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     SetLayer(llyr)
-    SelectByQuery("primary", "several", "Select * where PrimaryLink = 1")
+    SelectByQuery("primary", "several", "Select * where DTWB contains 'D' or DTWB contains 'T'")
 
     // Loop over each area type starting with most dense.  Skip the first.
     // All remaining links after this loop will be tagged with the lowest
@@ -294,7 +294,7 @@ Macro "Tag Highway with Area Type" (Args, map, views)
     // Select all remaining links and assign them to the
     // first (lowest density) area type.
     SetLayer(llyr)
-    query = "Select * where AreaType = null and PrimaryLink = 1"
+    query = "Select * where AreaType = null and (DTWB contains 'D' or DTWB contains 'T')"
     n = SelectByQuery("links", "Several", query)
     if n > 0 then do
         type = area_tbl[1].AreaType
@@ -517,10 +517,10 @@ Macro "Other Attributes" (Args)
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollRate * Length|TollRate Influenced by TransponderRatioAuto"},
+        {"TollCostSOV", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
         {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollRate * Length * 2|TollRate Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollRate * Length * 4|TollRate Influenced by TransponderRatioMUT"},
+        {"TollCostSUT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -554,15 +554,15 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollrate_t, v_tollrate_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
             llyr + ".TollType",
-            llyr + ".TollRateT",
-            llyr + ".TollRateNT",
+            llyr + ".TollCostT",
+            llyr + ".TollCostNT",
             ffs_tbl + ".ModifyPosted",
             ffs_tbl + ".Alpha",
             ffs_tbl + ".Beta"
@@ -573,14 +573,13 @@ Macro "Other Attributes" (Args)
     v_wt = v_len / 3 * 60
     v_bt = v_len / 15 * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
-    // Determine weighted average toll rate based on transponder usage
-    v_tollrate_auto = v_tollrate_t * trans_ratio_auto + v_tollrate_nt * (1 - trans_ratio_auto)
-    v_tollrate_sut = v_tollrate_t * trans_ratio_sut + v_tollrate_nt * (1 - trans_ratio_sut)
-    v_tollrate_mut = v_tollrate_t * trans_ratio_mut + v_tollrate_nt * (1 - trans_ratio_mut)
-    v_tollcost_auto = v_tollrate_auto * v_len
-    v_tollcost_sut = v_tollrate_sut * v_len * 2
-    v_tollcost_mut = v_tollrate_mut * v_len * 4
-    v_tollcost_hot = if v_tolltype = "HOT" then 0 else v_tollcost_auto
+    // Determine weighted average toll cost based on transponder usage
+    v_tollcost_auto = v_tollcost_t * trans_ratio_auto + v_tollcost_nt * (1 - trans_ratio_auto)
+    v_tollcost_hov = if v_tolltype = "HOT" then 0 else v_tollcost_auto
+    v_tollcost_sut = v_tollcost_t * trans_ratio_sut + v_tollcost_nt * (1 - trans_ratio_sut)
+    v_tollcost_sut = v_tollcost_sut * 2
+    v_tollcost_mut = v_tollcost_t * trans_ratio_mut + v_tollcost_nt * (1 - trans_ratio_mut)
+    v_tollcost_mut = v_tollcost_mut * 4
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -589,7 +588,7 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
     SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
-    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hot, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hov, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
     v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
@@ -810,7 +809,8 @@ Macro "Check Highway Networks" (Args)
         mtx = null
         mh = null
         CloseView(se_vw)
-        OtherOpts.test_opts.od_mtx = mtx_file
+        OtherOpts.od_mtx = mtx_file
+        OtherOpts.assign_iters = 1
         RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end
 endmacro
@@ -821,6 +821,11 @@ endmacro
 
 Macro "Create Route Networks" (Args)
 
+    // Initial processing is called by the main model, but also by the Fixed
+    // OD assignment tool. When doing fixed highway assignment, skip this step
+    // to save time.
+    if Args.fixed_od then return()
+
     link_dbd = Args.Links
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
@@ -830,7 +835,7 @@ Macro "Create Route Networks" (Args)
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     transit_modes = {"all"} + transit_modes
-    
+
     for period in periods do
         for transit_mode in transit_modes do
 

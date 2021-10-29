@@ -1918,14 +1918,14 @@ Macro "Summarize Transit" (MacroOpts)
     then Throw("Summarize Transit:\n`loaded_network` does not exist")
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
-
+  
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
-  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  onoff.group_by({"ROUTE", "access", "mode", "period"})
   cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
   onoff.summarize(cols_to_summarize, "sum")
   opts = null
-  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  opts.new_names = {"route", "access", "mode", "period"} + cols_to_summarize
   onoff.colnames(opts)
   daily = onoff.copy()
   daily.group_by("route")
@@ -1935,8 +1935,8 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("access", "All")
   daily.mutate("mode", "All")
-  daily.mutate("tod", "Daily")
-  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.mutate("period", "Daily")
+  daily.select({"route", "access", "mode", "period"} + cols_to_summarize)
   daily.bind_rows(onoff)
   daily.write_csv(output_dir + "/boardings_and_alightings.csv")
 
@@ -1967,10 +1967,7 @@ Macro "Summarize Transit" (MacroOpts)
 EndMacro
 
 /*
-The GT transit assignment macro "Pathfinder Assignment" does some basic
-aggregation of the transit outputs and writes out CSV files. The transit
-summary macro uses this function to collect the names of all those outputs
-files in `transit_asn_dir`.
+
 
 Inputs
   * `transit_asn_dir`
@@ -1996,9 +1993,21 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
   transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
   
-  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  files = RunMacro("Catalog Files", transit_asn_dir, "bin")
   for file in files do
     df = CreateObject("df", file)
+
+    {, , name, } = SplitPath(file)
+    parts = ParseString(name, "_")
+    period = parts[1]
+    v_period = Vector(df.nrow(), "String", {Constant: period})
+    df.mutate("period", v_period)
+    access = parts[2]
+    v_access = Vector(df.nrow(), "String", {Constant: access})
+    df.mutate("access", v_access)
+    mode = parts[3]
+    v_mode = Vector(df.nrow(), "String", {Constant: mode})
+    df.mutate("mode", v_mode)
     
     if Position(file, "onoff") <> 0 then do
       if onoff = null then onoff = df.copy()
@@ -2009,7 +2018,7 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     end else if Position(file, "walkflow") <> 0 then do
       if walk = null then walk = df.copy()
       else walk.bind_rows(df)
-    end else if Position(file, "flow") <> 0 then do
+    end else do
       if flow = null then flow = df.copy()
       else flow.bind_rows(df)
     end
@@ -2262,8 +2271,10 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
 
   hwy_bin = MacroOpts.hwy_bin
   volume_field = MacroOpts.volume_field
+  count_id_field = MacroOpts.count_id_field
   count_field = MacroOpts.count_field
   class_field = MacroOpts.class_field
+  area_field = MacroOpts.area_field
   volume_breaks = MacroOpts.volume_breaks
   out_dir = MacroOpts.out_dir
 
@@ -2282,10 +2293,30 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   query = "Select * where nz(" + count_field + ") > 0"
   n = SelectByQuery(count_set, "several", query)
 
+  // Counts split across paired 1-way links are duplicated. Keep only 1.
+  df = CreateObject("df")
+  df.read_view({
+    view: hwy_vw,
+    set: count_set,
+    fields: {count_id_field, count_field, volume_field, class_field, area_field}
+  })
+  df.group_by(count_id_field)
+  df.summarize({count_field, volume_field, class_field, area_field}, "first")
+  field_names = df.colnames()
+  for field_name in field_names do
+    if Left(field_name, 6) = "first_"
+      then new_name = Substitute(field_name, "first_", "", )
+      else new_name = field_name
+      df.rename(field_name, new_name)
+  end
+  agg_vw = df.create_view("agg")
+  SetView(agg_vw)
+
   // overall/total fields
   {v_count, v_volume, v_class} = GetDataVectors(
-    hwy_vw + "|" + count_set, {count_field, volume_field, class_field}, 
+    agg_vw + "|", {count_field, volume_field, class_field}, 
   )
+  n = v_count.length
   total_count = VectorStatistic(v_count, "Sum", )
   total_volume = VectorStatistic(v_volume, "Sum", )
   total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2293,6 +2324,10 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   total_prmse = round(total_prmse, 2)
   total_line = {
     "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+    "," + String(total_pct_diff) + "," + String(total_prmse)
+  }
+  area_total_line = {
+    "All,All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
   }
 
@@ -2303,9 +2338,9 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     class_set = "class"
     if TypeOf(class_name) <> "string" then class_name = String(class_name)
     query = "Select * where " + class_field + " = '" + class_name + "'"
-    n = SelectByQuery(class_set, "several", query, {"Source And": count_set})
+    n = SelectByQuery(class_set, "several", query, )
     if n = 0 then continue
-    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + class_set, {count_field, volume_field}, )
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + class_set, {count_field, volume_field}, )
     total_count = VectorStatistic(v_count, "Sum", )
     total_volume = VectorStatistic(v_volume, "Sum", )
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2316,10 +2351,41 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
-  file = out_dir + "/facility_type.csv"
+  file = out_dir + "/count_comparison_by_fac_type.csv"
   lines = {"HCMType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
+
+  // Facility type and area type table
+  if area_field <> null then do
+    lines = null
+    v_area = GetDataVector(agg_vw + "|", area_field, )
+    v_area = SortVector(v_area, {Unique: "true"})
+    for class_name in v_class do
+      for area in v_area do
+        set_name = "class_area"
+        if TypeOf(class_name) <> "string" then class_name = String(class_name)
+        if TypeOf(area) <> "string" then area = String(area)
+        query = "Select * where " + class_field + " = '" + class_name + "' and " + area_field + " = '" + area + "'"
+        n = SelectByQuery(set_name, "several", query, )
+        if n = 0 then continue
+        {v_count, v_volume} = GetDataVectors(agg_vw + "|" + set_name, {count_field, volume_field}, )
+        total_count = VectorStatistic(v_count, "Sum", )
+        total_volume = VectorStatistic(v_volume, "Sum", )
+        pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+        {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+        prmse = round(prmse, 2)
+        lines = lines + {
+          class_name + "," + area + "," + String(n) + "," + String(total_count) + "," +
+          String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
+        }
+      end
+    end
+    lines = {"HCMType,AreaType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+    lines = lines + area_total_line
+    file = out_dir + "/count_comparison_by_ft_and_at.csv"
+    RunMacro("Write CSV by Line", file, lines)
+  end
 
   // Volume group table
   lines = null
@@ -2330,9 +2396,9 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     vol_set = "class"
     query = "Select * where " + count_field + " > " + String(low_vol) + 
       " and " + count_field + " <= " + String(high_vol)
-    n = SelectByQuery(vol_set, "several", query, {"Source And": count_set})
+    n = SelectByQuery(vol_set, "several", query, )
     if n = 0 then continue
-    {v_count, v_volume} = GetDataVectors(hwy_vw + "|" + vol_set, {count_field, volume_field}, )
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + vol_set, {count_field, volume_field}, )
     total_count = VectorStatistic(v_count, "Sum", )
     total_volume = VectorStatistic(v_volume, "Sum", )
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
@@ -2346,12 +2412,13 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
       "," + String(pct_diff) + "," + String(prmse)
     }
   end
-  file = out_dir + "/volume_groups.csv"
+  file = out_dir + "/count_comparison_by_vol_group.csv"
   lines = {"VolumeGroup,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
   
   CloseView(hwy_vw)
+  CloseView(agg_vw)
 endmacro
 
 Macro "Write CSV by Line" (file, lines)
