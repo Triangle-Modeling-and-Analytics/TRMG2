@@ -106,7 +106,6 @@ Macro "Create Folder Structure" (Args)
     RunMacro("Create Directory", dir)
   end
 
-  RunMacro("Close All")
 EndMacro
 
 /*
