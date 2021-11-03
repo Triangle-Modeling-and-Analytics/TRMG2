@@ -22,7 +22,7 @@ input_dir <-"data/input/university/"
 univ_dir<-"data/output/university/"
 
 trip_subset_filename <- paste0(private_dir,"Trip_subset_df.RDS")
-apply_productions_filename <- paste0(univ_dir,"Apply_Produtions_df.RDS")
+apply_productions_filename <- paste0(univ_dir,"Apply_Productions.RDS")
 
 # Read data -------------------------------------------------------------------
 trip_subset_df <-readRDS(trip_subset_filename)

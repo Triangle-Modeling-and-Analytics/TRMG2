@@ -12,8 +12,8 @@ editor_options:
 
 source("R/university_productions.R")
 source("R/university_attractions.R")
-#source("R/university_survey_TLD.R")
-#source("R/university_survey_MC.R")
+source("R/university_survey_TLD.R")
+source("R/university_survey_MC.R")
 
 knitr::opts_chunk$set(echo = FALSE)
 options(dplyr.summarise.inform = FALSE)
@@ -270,7 +270,7 @@ print_model(Model_Offcampus_UHO_2)
 
 
 ```
-## TRIP DISTRIBUTION  
+## Trip Distribution  
 ### Trip length distribution from the NCSU survey
 ```{r,echo=FALSE}
 zonetozonedistance_bypurpose_histogram + labs(title = "Trip Length Distribution (All purposes,except UC1)", 
@@ -283,31 +283,34 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution (UC1 T
                                         caption = ("Source: NCSU survey (unweighted)"))
 ```
 
-## MODE CHOICE
+## Mode Choice
 ### Mode split from NCSU survey
 Based on the NCSU survey, the majority of the trips by on-campus students are walk trips.  The mode split graph below shows that when segmenting by trip purpose, the survey dataset includes less than 20 trips (horizontal black line) for some of mode-purpose combinations. The graph does not show UC1 trips which are mostly walk trips.
+
 #### Sample overview
-```{r oncampus_modetrips, echo = FALSE}
+```{r oncampus_modesplit plot, echo = FALSE}
 trips_bypurpose_oncampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
                                      subtitle="On-campus students", 
                                      caption = ("Source: NCSU survey (unweighted)"))
 ```
 Based on the NCSU survey,the majority of the trips by off-campus students that are not within the campus(UC1) are car trips.  The mode split graph below shows that when segmenting by trip purpose, the survey dataset includes less than 20 trips (horizontal black line) for some of mode-purpose combinations. The graph does not show UC1 trips, which are mostly walk trips.
-```{r}
+
+```{r,offcampus_modesplit plot, echo = FALSE}
 trips_bypurpose_offcampus_plot + labs(title = "Mode Split by Purpose (except UC1)", 
                                      subtitle="Off-campus students", 
                                      caption = ("Source: NCSU survey (unweighted)"))
 
 ```
+
 #### On-campus students mode split
-```{r,echo=FALSE}
+```{r,oncampus_modesplit table, echo = FALSE}
 modesplit_bypurpose_oncampus_2_df %>% 
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
 ```
 
 #### Off-campus students mode split
-```{r,echo=FALSE}
+```{r,offcampus_modesplit table, echo = FALSE}
 modesplit_bypurpose_offcampus_2_df %>% 
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
@@ -324,6 +327,30 @@ calibrationtargets_bypurpose_oncampus_df %>%
 #### Off-campus students mode split calibration targets
 ```{r,echo=FALSE}
 calibrationtargets_bypurpose_offcampus_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+### Mode choice coefficients
+
+#### Undergraduate
+```{r}
+UG_IVTT_Coeff <-  -0.02
+UG_OVTT_Coeff <- UG_IVTT_Coeff * 1.5
+UG_Cost_Coeff <-  -0.2  
+
+tibble(Coefficient =c("IVTT","OVTT","Cost"),Value = c(UG_IVTT_Coeff,UG_OVTT_Coeff,UG_Cost_Coeff))%>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+#### Graduate
+```{r}
+G_IVTT_Coeff <-  -0.04
+G_OVTT_Coeff <- G_IVTT_Coeff * 1.5
+G_Cost_Coeff <-  -0.2  
+
+tibble(Coefficient =c("IVTT","OVTT","Cost"),Value = c(G_IVTT_Coeff,G_OVTT_Coeff,G_Cost_Coeff))%>% 
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
 ```
