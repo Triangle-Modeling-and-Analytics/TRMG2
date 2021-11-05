@@ -335,7 +335,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
         
         // Skip transit and walkbike matrices and any converged periods
         {, , name, } = SplitPath(nhb_mtx_file)
-        parts = ParseString(name, "_")
+        parts = ParseString(Lower(name), "_")
         if parts[2] = "transit" or parts[2] = "walkbike" then continue
         tour_type = parts[2]
         if parts[3] = "auto" then auto_pay = "true" else auto_pay = "false"
@@ -358,7 +358,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
             SetView(hov3_vw)
             n = SelectByQuery(
                 "sel", "several", 
-                "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + period + "'"
+                "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + Upper(period) + "'"
             )
             if n = 0 then Throw(
                 "Trying to add NHB trips into assignment matrix.\n" +
