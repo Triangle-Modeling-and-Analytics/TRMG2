@@ -1,14 +1,15 @@
 /*
-
+University Model
 */
 
-Macro "test" (Args)
+Macro "University" (Args)
     RunMacro("University Productions", Args)
     RunMacro("University Attractions", Args)
     RunMacro("University Balance Ps and As", Args)
     RunMacro("University TOD", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Matrix", Args)
+    RunMacro("University Directionality", Args)
     ShowMessage("done")
     return(1)
 endmacro
@@ -397,4 +398,64 @@ Macro "University Combine Matrix" (Args)
     
     DeleteFile(university_matrix_file)
     RenameFile(university_combined_matrix_file, university_matrix_file)
+endmacro
+
+/*
+Convert from PA to OD format
+*/
+
+Macro "University Directionality" (Args)
+    univ_pa_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
+    univ_od_matrix_file = Args.[Output Folder] + "\\university\\university_od_trips.mtx"
+    dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
+    
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    univ_pa_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
+    univ_od_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_od_trips.mtx"
+    dir_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_directionality.csv"
+    
+    CopyFile(univ_pa_matrix_file, univ_od_matrix_file)
+    
+    univ_od_transpose_matrix_file = Substitute(univ_od_matrix_file, ".mtx", "_transpose.mtx", )
+      
+    mat = OpenMatrix(univ_od_matrix_file, )
+    tmat = TransposeMatrix(mat, {
+        {"File Name", univ_od_transpose_matrix_file},
+        {"Label", "Transposed Trips"},
+        {"Type", "Double"}}
+    )
+    mat = null
+    tmat = null
+      
+    mtx = CreateObject("Matrix")
+    mtx.LoadMatrix(univ_od_matrix_file)  
+    mtx_core_names = mtx.data.CoreNames
+    cores = mtx.data.cores
+    
+    t_mtx = CreateObject("Matrix")
+    t_mtx.LoadMatrix(univ_od_transpose_matrix_file)
+    t_cores = t_mtx.data.cores
+    
+    fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+    
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        type = fac_vw.trip_type
+        period = fac_vw.tod
+        pa_factor = fac_vw.pa_fac
+        
+        core_name = type + "_" + period
+        
+        cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+        
+        rh = GetNextRecord(fac_vw + "|", rh, )
+    end
+    
+    cores = null
+    t_cores = null
+    mtx = null
+    t_mtx = null
+    CloseView(fac_vw)
+    DeleteFile(univ_od_transpose_matrix_file)
+  
 endmacro
