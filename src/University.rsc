@@ -8,6 +8,7 @@ Macro "test" (Args)
     RunMacro("University Balance Ps and As", Args)
     RunMacro("University TOD", Args)
     RunMacro("University Gravity", Args)
+    RunMacro("University Combine Matrix", Args)
     ShowMessage("done")
     return(1)
 endmacro
@@ -342,4 +343,58 @@ Macro "University Gravity" (Args)
     opts.output_matrix = university_matrix_file
     RunMacro("Gravity", opts)
     
+endmacro
+
+/*
+Combine university trips for all campus
+*/
+
+Macro "University Combine Matrix" (Args)
+    university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
+    periods = Args.periods
+    
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
+    periods = {"AM", "MD", "PM", "NT"}
+    
+    univ_mtx = OpenMatrix(university_matrix_file, )
+    mc = CreateMatrixCurrency(univ_mtx,,,,)
+    
+    new_cores = null
+    for period in periods do 
+        new_cores = new_cores + {"UHC_" + period, "UHO_" + period, "UCO_" + period, "UCC_" + period}
+    end
+    
+    university_combined_matrix_file = Substitute(university_matrix_file, ".mtx", "_temp.mtx", )
+    matOpts = {{"File Name", university_combined_matrix_file}, {"Label", "University Trips Matrix"}, {"File Based", "Yes"}, {"Tables", new_cores}}
+    univ_combined_mtx = CopyMatrixStructure({mc}, matOpts)
+    
+    mc = null
+    univ_mtx = null
+    univ_combined_mtx = null
+    
+    
+    univ_mtx = CreateObject("Matrix")
+    univ_mtx.LoadMatrix(university_matrix_file)
+    
+    univ_combined_mtx = CreateObject("Matrix")
+    univ_combined_mtx.LoadMatrix(university_combined_matrix_file)
+    
+    for period in periods do
+        cores = univ_mtx.data.cores
+        combined_cores = univ_combined_mtx.data.cores
+          
+        combined_cores.("UHC_" + period) := Nz(cores.("UHC_NCSU_" + period)) + Nz(cores.("UHC_UNC_" + period)) + Nz(cores.("UHC_DUKE_" + period)) + Nz(cores.("UHC_NCCU_" + period))
+        combined_cores.("UHO_" + period) := Nz(cores.("UHO_NCSU_" + period)) + Nz(cores.("UHO_UNC_" + period)) + Nz(cores.("UHO_DUKE_" + period)) + Nz(cores.("UHO_NCCU_" + period))
+        combined_cores.("UCO_" + period) := Nz(cores.("UCO_NCSU_" + period)) + Nz(cores.("UCO_UNC_" + period)) + Nz(cores.("UCO_DUKE_" + period)) + Nz(cores.("UCO_NCCU_" + period))
+        combined_cores.("UCC_" + period) := Nz(cores.("UCC_NCSU_" + period)) + Nz(cores.("UCC_UNC_" + period)) + Nz(cores.("UCC_DUKE_" + period)) + Nz(cores.("UCC_NCCU_" + period))
+    end 
+    
+    cores = null
+    combined_cores = null
+    univ_mtx = null
+    univ_combined_mtx = null
+    
+    DeleteFile(university_matrix_file)
+    RenameFile(university_combined_matrix_file, university_matrix_file)
 endmacro
