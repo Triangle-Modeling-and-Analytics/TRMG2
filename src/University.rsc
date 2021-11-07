@@ -6,6 +6,8 @@ Macro "test" (Args)
     RunMacro("University Productions", Args)
     RunMacro("University Attractions", Args)
     RunMacro("University Balance Ps and As", Args)
+    RunMacro("University TOD", Args)
+    RunMacro("University Gravity", Args)
     ShowMessage("done")
     return(1)
 endmacro
@@ -110,7 +112,7 @@ Calculate university attractions
 
 Macro "University Attractions" (Args)
     se_file = Args.SE
-    rate_file = Args.[Access Attr Rates]
+    rate_file = Args.[Input Folder] + "\\university\\university_attraction_rates.csv"
 
     // TODO-AK: delete the hard-coded paths (used for testing)
     se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
@@ -291,4 +293,53 @@ Macro "University Balance Ps and As" (Args)
 
     CloseView(se_vw)
 
+endmacro
+
+/*
+Split university balanced productions and attractions by time periods
+*/
+
+Macro "University TOD" (Args)
+    se_file = Args.SE
+    tod_file = Args.[Input Folder] + "\\university\\university_tod.csv"
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    tod_file = "D:\\Models\\TRMG2\\master\\university\\university_tod.csv"
+
+    se_vw = OpenTable("se", "FFB", {se_file})
+
+    {drive, folder, name, ext} = SplitPath(tod_file)
+
+    RunMacro("Create Sum Product Fields", {
+        view: se_vw, factor_file: tod_file,
+        field_desc: "University Productions and Attractions by Time of Day|See " + name + ext + " for details."
+    })
+
+    CloseView(se_vw)
+endmacro
+
+/*
+University Gravity Distribution
+*/
+
+Macro "University Gravity" (Args)
+    se_file = Args.SE
+    param_file = Args.[Input Folder] + "\\university\\university_gravity.csv"
+    skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_AM.mtx"
+    university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
+    
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    param_file = "D:\\Models\\TRMG2\\master\\university\\university_gravity.csv"
+    skim_file =  "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_AM.mtx"
+    university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
+    
+    opts = null
+    opts.se_file = se_file
+    opts.param_file = param_file
+    opts.skim_file = skim_file
+    opts.output_matrix = university_matrix_file
+    RunMacro("Gravity", opts)
+    
 endmacro
