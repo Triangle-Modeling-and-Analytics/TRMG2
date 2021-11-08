@@ -2,10 +2,7 @@
 title: "Resident Destination Choice"
 author: "Caliper Corporation"
 date: "November 8, 2021"
-output:
-  html_document:
-    toc: TRUE
-    toc_depth: 4
+output: html_document
 editor_options: 
   chunk_output_type: console
 ---
@@ -46,7 +43,7 @@ NL models were attempted for the latter set of purposes but did not provide
 justifiably better models.
 - All models were estimated using Larch (Newman, 2021).
 
-## A note on model fit
+### A note on model fit
 
 While the fit of a discrete choice model is popularly assessed through the
 rho-squared and asymptotic rho-squared statistics, they are tricky to interpret
@@ -63,7 +60,7 @@ falls. This should not be taken as automatic evidence of a poorer model. The
 selection of the model should still (as always) be based on the reasonableness
 of its coefficients, their statistical significance, and model sensitivities.
 
-## Distance terms in destination choice models
+### Distance terms
 
 Destination choice models in practice sometimes include distance and its
 mathematical transforms as part of each zone’s utility equation. While these
@@ -94,7 +91,7 @@ For the above reasons, the destination choice models for TRM rely on travel
 times, logsums by mode type, and other skims rather than distance-based
 variables.
 
-## Model structure for home-based trip purposes
+## Home-Based Trips
 
 The TRM region features eight home-based trip purposes as revealed by an
 analysis of the survey. Each purpose’s destination choice model is based on
@@ -115,7 +112,7 @@ Various model structures and specifications were tried:
 
 The nested specification outperformed all other approaches.
 
-## W_HB_W
+### W_HB_W
 
 W_HB_W corresponds to trips that are part of a work tour, have one end at home,
 and the other end at work. This segment captures trips that directly connect the
@@ -123,12 +120,12 @@ home and work locations and translates to the HBW trip purpose in traditional
 models. Destination choice in this context relates to the long-term decision of
 work location, to which work trips are made with regularity.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “W_HB_W_All”
 - Sample size: 3,662
 
-### Utility specification
+#### Utility specification
 
 *TODO add final*
 
@@ -136,11 +133,11 @@ Note that the exponentiated values of the attraction coefficients from the above
 specification will be directly reported in the results sections of each model
 below.
 
-### Estimated coefficients and t statistics
+#### Estimated coefficients and t statistics
 
 *TODO add this and the other model result sections*
 
-### Notes
+#### Notes
 
 - ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
 - Intrazonal effects are strong.
@@ -151,7 +148,7 @@ below.
 - The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.) and has an MNL-type sub-nest.
 - The size variables are stratified by income. The percentage of low and high paying jobs in each zone was used to split the total attraction into income-specific attractions.
 
-### Double constraint and attraction model
+#### Double constraint and attraction model
 
 All trip types other than work are singly-constrained. This means that the row
 sums of the resulting trip table will match starting productions, but column
@@ -303,7 +300,7 @@ high or too low, adding additional employment to a zone will have unexpectedly
 high or low impact on trips attracted (given the scaling that must be done
 to attractions).
 
-## W_HB_O
+### W_HB_O
 
 W_HB_O corresponds to trips that are part of a work tour, have one end at home,
 and the other end at a non-work location. This segment captures trips that
@@ -311,14 +308,14 @@ directly connect the home to an intermediate stop on the way to or from work and
 translates to the HBO trip purpose in traditional models. Destination choice in
 this context relates to a short-term decision of intermediate stop location.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “W_HB_O_All”
 - Sample size: 2,129
 
 *TODO add model results when final*
 
-## Notes
+#### Notes
 
 - ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
 - Intrazonal effects are strong.
@@ -328,7 +325,7 @@ this context relates to a short-term decision of intermediate stop location.
 - The number of households is a major factor in the calculation of the size variable, reflecting the inclusion of personal visits in this trip purpose. Logically, the retail and service employment also help drive trips to specific destinations. Income-based stratifications of employment did not make a difference.
 - The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.) and has a nearly MNL-type sub-nest.
 
-## W_HB_EK12
+### W_HB_EK12
 
 W_HB_EK12 corresponds to trips that are part of a work tour, have one end at
 home, and the other end at a school. This segment captures trips that directly
@@ -336,34 +333,34 @@ connect the home to school on the way to or from work and translates to the HB
 School trip purpose in traditional models. It includes worker dropping
 off/picking up children on the way to/from work, and workers who attend school.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “W_HB_EK12_All”
 - Sample size: 228
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - School location choice is driven by travel time.
 - Attractions are driven by school enrollment.
 - Some of the cluster nest coefficients are significantly different from 1, so the nested structure is justified.
 
-## N_HB_OME
+### N_HB_OME
 
 N_HB_OME corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at an “other” activity that involved the spending of
 money. This segment is close to the HBO (Home-Based Other) trip purpose in
 traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “N_HB_OME_All”
 - Sample size: 5,822
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
 - Intrazonal effects are strong.
@@ -374,20 +371,20 @@ traditional models.
 
 The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. 
 
-## N_HB_OMED
+### N_HB_OMED
 
 N_HB_OMed corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at a medical-related activity. This segment would have
 been rolled into the HBO (Home-Based Other) trip purpose in traditional models.
 
-## Survey data
+#### Survey data
 
 - Records: trip_type = “N_HB_OMED_All”
 - Sample size: 557
 
 *TODO add results*
 
-## Notes
+#### Notes
 
 - ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
 - Intrazonal effects are strong.
@@ -399,41 +396,41 @@ been rolled into the HBO (Home-Based Other) trip purpose in traditional models.
 
 Most of the cluster nest coefficients are significantly different from 1, so the nested structure is justified. 
 
-## N_HB_K12
+### N_HB_K12
 
 N_HB_K12 corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at a school. This segment would have been part of the HB
 School trip purpose in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “N_HB_K12_All”
 - Sample size: 1,708
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
 - Intra-zonal and intra-cluster effects are strong.
 - Attractions are driven by school enrollment.
 Some of the cluster nest coefficients are significantly different from 1, so the nested structure is justified. Others default to an MNL-like behavior.
 
-## N_HB_OD_Long
+### N_HB_OD_Long
 
 N_HB_ODLong corresponds to trips that are not part of a work tour, have one end
 at home, and the other end at an “other” activity that is at least 30 minutes
 long. This segment would have been rolled into the HBO (Home-Based Other) trip
 purpose in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “N_HB_ODLong_All”
 - Sample size: 4,540
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - Longer drive times penalize a destination’s appeal, though times over 30 minutes are not perceived to be as onerous.
 - Hospital accessibility impacts destination attractiveness in a positive manner, likely accounting for longer medical appointments.
@@ -443,21 +440,21 @@ purpose in traditional models.
 
 The cluster nest coefficients are all significantly different from 1, so the nested structure is justified. 
 
-## N_HB_OD_Short
+### N_HB_OD_Short
 
 N_HB_ODShort corresponds to trips that are not part of a work tour, have one end
 at home, and the other end at an “other” activity shorter than 30 minutes in
 duration. This segment would have been rolled into the HBO (Home-Based Other)
 trip purpose in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “N_HB_ODShort_All”
 - Sample size: 3,400
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - Drive time attenuates the attractiveness of farther destinations, though times beyond 20 minutes are perceived as less onerous than the first 20.
 - Home cluster effects are also strong across all clusters, indicating a strong preference for proximate destinations for relatively short non-mandatory activities. 
@@ -467,7 +464,7 @@ trip purpose in traditional models.
 
 All cluster nest coefficients are significantly different from 1, so the nested structure is justified.
 
-## Model structure for non-home-based trip purposes
+## Non-Home-Based trips
 
 The non-home-based trip purposes are multinomial logit (MNL) specifications.
 Though the cluster-based nested structure of the home-based purposes was not
@@ -496,7 +493,7 @@ categories that combine trip purpose with travel mode:
 - NHB Tours by Public Transit
 - NHB Tours by Bike/Walk
 
-## NHB Work Auto
+### NHB Work Auto
 
 This segment corresponds to trips that are part of a work tour, do not have
 either end at home, have at least one end at school, work, work-related or
@@ -504,72 +501,72 @@ either end at home, have at least one end at school, work, work-related or
 have been rolled into the HBO (Home-Based Other) trip purpose in traditional
 models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “W_NH_EK12” or “W_NH_O” or “W_NH_WR”, with a drive tour mode
 - Sample size: 4,371
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.
 - The generic intra-cluster effect is strong. 
 - Attractions are driven by a variety of employment totals, as well as school enrollment.
 
-## NHB NonWork Auto
+### NHB NonWork Auto
 
 This segment corresponds to trips that are part of a non-work tour, do not have
 either end at home, and have at least one end at school or “other” activities.
 This segment would have been rolled into the HBO (Home-Based Other) trip purpose
 in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = “N_NH_K12” or “N_NH_OME” or “N_NH_O”, with a drive tour mode
 - Sample size: 7,099
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.
 - Intra-cluster and intra-zonal effects, both generic, are strong. 
 - Attractions are driven by school enrollment (perhaps related to after-school activities) and various employment totals.
 - Higher values of the parking logsum lead to more desirable destination owing to enhanced ease of parking.
 
-## NHB Transit
+### NHB Transit
 
 This segment corresponds to trips that are part of a non-work tour, and do not
 have either end at home. This segment would have been rolled into the HBO
 (Home-Based Other) trip purpose in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = all six non-home-based trip types, with a public transit travel mode
 - Sample size: 244
 
-### Notes
+#### Notes
 
 - Both in-vehicle time and the number of transfers are significant predictors in the attractiveness of destinations accessible by public transit modes.
 - Transit accessibility positively impacts destination choice.
 - Attractions are driven by office, retail and service employment totals.
 
-## NHB NonMotorized
+### NHB NonMotorized
 
 This segment corresponds to trips that are part of a non-work tour, do not have
 either end at home, and are associated with a non-motorized (e.g. bike, walk)
 mode. This segment would have been rolled into the HBO (Home-Based Other) trip
 purpose in traditional models.
 
-### Survey data
+#### Survey data
 
 - Records: trip_type = all six non-home-based trip types, with a non-motorized travel mode
 - Sample size: 1,438
 
 *TODO add results*
 
-### Notes
+#### Notes
 
 - As expected, walk distance poses a highly significant deterrent to destinations that are farther away from the origin. A high penalty is imposed on destinations that are more than a mile away.
 - Intra-zonal and intra-cluster effects are also strong, favoring short-range trips by non-motorized modes.

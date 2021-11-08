@@ -465,13 +465,12 @@ div.tocify {
 <li>Nested Logit (NL) models were estimated for the home-based trip purposes while multinomial logit (MNL) models were estimated for non-home-based trip purposes. NL models were attempted for the latter set of purposes but did not provide justifiably better models.</li>
 <li>All models were estimated using Larch (Newman, 2021).</li>
 </ul>
-</div>
-<div id="a-note-on-model-fit" class="section level2">
-<h2>A note on model fit</h2>
+<div id="a-note-on-model-fit" class="section level3">
+<h3>A note on model fit</h3>
 <p>While the fit of a discrete choice model is popularly assessed through the rho-squared and asymptotic rho-squared statistics, they are tricky to interpret in the context of destination choice. The presence of the size term complicates the calculation of the base log-likelihood, LL(0), which forms the reference for the rho-squared calculation. LL(0) is based on the assumption that all alternatives are equally likely. However, the zone alternatives in destination choice are not truly elemental alternatives but are themselves rather the collection of individual employment (say) options available within that zone. The size variable with its default coefficient of 1 must therefore be included when determining LL(0). This provides an automatic “improvement” of LL(0) over the case where the size variable is not included. Consequently, rho-squared falls. This should not be taken as automatic evidence of a poorer model. The selection of the model should still (as always) be based on the reasonableness of its coefficients, their statistical significance, and model sensitivities.</p>
 </div>
-<div id="distance-terms-in-destination-choice-models" class="section level2">
-<h2>Distance terms in destination choice models</h2>
+<div id="distance-terms" class="section level3">
+<h3>Distance terms</h3>
 <p>Destination choice models in practice sometimes include distance and its mathematical transforms as part of each zone’s utility equation. While these terms might improve statistical fit, they can cause unintended sensitivities that are counter-intuitive. These effects stem from the non-monotonic shape of the combined distance effect, as illustrated by the example below. Taken from a real-world model, this graph clearly shows how farther zones are less attractive only up to a certain threshold. Beyond that distance, the effect is reversed so that the farthest zones become more attractive (all else being the same).</p>
 <p><img src="img/dc/distance_poly.png" width="115%" height="115%" /></p>
 <p>Such models only remain valid for the range of distances observed in the survey data used for model estimation. Scenarios involving longer distances will produce unintuitive model sensitivities.</p>
@@ -479,8 +478,9 @@ div.tocify {
 <p>In addition, distance is highly correlated with travel times so that the inclusion of both variables often causes difficulties in model estimation as the algorithm struggles to uniquely split the effects between them.</p>
 <p>For the above reasons, the destination choice models for TRM rely on travel times, logsums by mode type, and other skims rather than distance-based variables.</p>
 </div>
-<div id="model-structure-for-home-based-trip-purposes" class="section level2">
-<h2>Model structure for home-based trip purposes</h2>
+</div>
+<div id="home-based-trips" class="section level2">
+<h2>Home-Based Trips</h2>
 <p>The TRM region features eight home-based trip purposes as revealed by an analysis of the survey. Each purpose’s destination choice model is based on nested logit with zone clusters as nests. Each cluster has its constituent zones under it:</p>
 <p><img src="img/dc/model_structure.png" width="115%" height="115%" /></p>
 <p>Various model structures and specifications were tried:</p>
@@ -494,28 +494,27 @@ div.tocify {
 <li>NESTED (simultaneous choice of cluster and zone)</li>
 </ul>
 <p>The nested specification outperformed all other approaches.</p>
-</div>
-<div id="w_hb_w" class="section level2">
-<h2>W_HB_W</h2>
+<div id="w_hb_w" class="section level3">
+<h3>W_HB_W</h3>
 <p>W_HB_W corresponds to trips that are part of a work tour, have one end at home, and the other end at work. This segment captures trips that directly connect the home and work locations and translates to the HBW trip purpose in traditional models. Destination choice in this context relates to the long-term decision of work location, to which work trips are made with regularity.</p>
-<div id="survey-data" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “W_HB_W_All”</li>
 <li>Sample size: 3,662</li>
 </ul>
 </div>
-<div id="utility-specification" class="section level3">
-<h3>Utility specification</h3>
+<div id="utility-specification" class="section level4">
+<h4>Utility specification</h4>
 <p><em>TODO add final</em></p>
 <p>Note that the exponentiated values of the attraction coefficients from the above specification will be directly reported in the results sections of each model below.</p>
 </div>
-<div id="estimated-coefficients-and-t-statistics" class="section level3">
-<h3>Estimated coefficients and t statistics</h3>
+<div id="estimated-coefficients-and-t-statistics" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
 <p><em>TODO add this and the other model result sections</em></p>
 </div>
-<div id="notes" class="section level3">
-<h3>Notes</h3>
+<div id="notes" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
 <li>Intrazonal effects are strong.</li>
@@ -527,8 +526,8 @@ div.tocify {
 <li>The size variables are stratified by income. The percentage of low and high paying jobs in each zone was used to split the total attraction into income-specific attractions.</li>
 </ul>
 </div>
-<div id="double-constraint-and-attraction-model" class="section level3">
-<h3>Double constraint and attraction model</h3>
+<div id="double-constraint-and-attraction-model" class="section level4">
+<h4>Double constraint and attraction model</h4>
 <p>All trip types other than work are singly-constrained. This means that the row sums of the resulting trip table will match starting productions, but column sums will not necessarily be proportional to the amount of employment in each zone. As an example, for two zones with the same employment, the more accessible zone will attract more trips.</p>
 <p>For work trips, a traditional assumption to make is that each job of the same type must attract the same work trips - even if the zone is in a remote location. The justification for this assumption has weakened in recent years with the rise in telecommuting, flex schedules, and other changes, but the TRMG2 model implements double constraint for work trips. In the context of destination choice models, this is achieved by assigning each zone a “shadow price”. This extra term in the utility equation is adjusted in an iterative fashion to match predicted attractions.</p>
 <p>These predicted attractions come from a regression model estimated from the survey data.</p>
@@ -661,20 +660,19 @@ Retail
 <p>The coefficients in the table above were multiplied by 2.45 during model calibration to achieve the appropriate PA balance of 1.0. If the ratio is too high or too low, adding additional employment to a zone will have unexpectedly high or low impact on trips attracted (given the scaling that must be done to attractions).</p>
 </div>
 </div>
-<div id="w_hb_o" class="section level2">
-<h2>W_HB_O</h2>
+<div id="w_hb_o" class="section level3">
+<h3>W_HB_O</h3>
 <p>W_HB_O corresponds to trips that are part of a work tour, have one end at home, and the other end at a non-work location. This segment captures trips that directly connect the home to an intermediate stop on the way to or from work and translates to the HBO trip purpose in traditional models. Destination choice in this context relates to a short-term decision of intermediate stop location.</p>
-<div id="survey-data-1" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-1" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “W_HB_O_All”</li>
 <li>Sample size: 2,129</li>
 </ul>
 <p><em>TODO add model results when final</em></p>
 </div>
-</div>
-<div id="notes-1" class="section level2">
-<h2>Notes</h2>
+<div id="notes-1" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
 <li>Intrazonal effects are strong.</li>
@@ -685,19 +683,20 @@ Retail
 <li>The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.) and has a nearly MNL-type sub-nest.</li>
 </ul>
 </div>
-<div id="w_hb_ek12" class="section level2">
-<h2>W_HB_EK12</h2>
+</div>
+<div id="w_hb_ek12" class="section level3">
+<h3>W_HB_EK12</h3>
 <p>W_HB_EK12 corresponds to trips that are part of a work tour, have one end at home, and the other end at a school. This segment captures trips that directly connect the home to school on the way to or from work and translates to the HB School trip purpose in traditional models. It includes worker dropping off/picking up children on the way to/from work, and workers who attend school.</p>
-<div id="survey-data-2" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-2" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “W_HB_EK12_All”</li>
 <li>Sample size: 228</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-2" class="section level3">
-<h3>Notes</h3>
+<div id="notes-2" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>School location choice is driven by travel time.</li>
 <li>Attractions are driven by school enrollment.</li>
@@ -705,19 +704,19 @@ Retail
 </ul>
 </div>
 </div>
-<div id="n_hb_ome" class="section level2">
-<h2>N_HB_OME</h2>
+<div id="n_hb_ome" class="section level3">
+<h3>N_HB_OME</h3>
 <p>N_HB_OME corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that involved the spending of money. This segment is close to the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-3" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-3" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_HB_OME_All”</li>
 <li>Sample size: 5,822</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-3" class="section level3">
-<h3>Notes</h3>
+<div id="notes-3" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
 <li>Intrazonal effects are strong.</li>
@@ -729,20 +728,19 @@ Retail
 <p>The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified.</p>
 </div>
 </div>
-<div id="n_hb_omed" class="section level2">
-<h2>N_HB_OMED</h2>
+<div id="n_hb_omed" class="section level3">
+<h3>N_HB_OMED</h3>
 <p>N_HB_OMed corresponds to trips that are not part of a work tour, have one end at home, and the other end at a medical-related activity. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-</div>
-<div id="survey-data-4" class="section level2">
-<h2>Survey data</h2>
+<div id="survey-data-4" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_HB_OMED_All”</li>
 <li>Sample size: 557</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-4" class="section level2">
-<h2>Notes</h2>
+<div id="notes-4" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
 <li>Intrazonal effects are strong.</li>
@@ -754,19 +752,20 @@ Retail
 </ul>
 <p>Most of the cluster nest coefficients are significantly different from 1, so the nested structure is justified.</p>
 </div>
-<div id="n_hb_k12" class="section level2">
-<h2>N_HB_K12</h2>
+</div>
+<div id="n_hb_k12" class="section level3">
+<h3>N_HB_K12</h3>
 <p>N_HB_K12 corresponds to trips that are not part of a work tour, have one end at home, and the other end at a school. This segment would have been part of the HB School trip purpose in traditional models.</p>
-<div id="survey-data-5" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-5" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_HB_K12_All”</li>
 <li>Sample size: 1,708</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-5" class="section level3">
-<h3>Notes</h3>
+<div id="notes-5" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
 <li>Intra-zonal and intra-cluster effects are strong.</li>
@@ -774,19 +773,19 @@ Retail
 </ul>
 </div>
 </div>
-<div id="n_hb_od_long" class="section level2">
-<h2>N_HB_OD_Long</h2>
+<div id="n_hb_od_long" class="section level3">
+<h3>N_HB_OD_Long</h3>
 <p>N_HB_ODLong corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that is at least 30 minutes long. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-6" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-6" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_HB_ODLong_All”</li>
 <li>Sample size: 4,540</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-6" class="section level3">
-<h3>Notes</h3>
+<div id="notes-6" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>Longer drive times penalize a destination’s appeal, though times over 30 minutes are not perceived to be as onerous.</li>
 <li>Hospital accessibility impacts destination attractiveness in a positive manner, likely accounting for longer medical appointments.</li>
@@ -797,19 +796,19 @@ Retail
 <p>The cluster nest coefficients are all significantly different from 1, so the nested structure is justified.</p>
 </div>
 </div>
-<div id="n_hb_od_short" class="section level2">
-<h2>N_HB_OD_Short</h2>
+<div id="n_hb_od_short" class="section level3">
+<h3>N_HB_OD_Short</h3>
 <p>N_HB_ODShort corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity shorter than 30 minutes in duration. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-7" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-7" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_HB_ODShort_All”</li>
 <li>Sample size: 3,400</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-7" class="section level3">
-<h3>Notes</h3>
+<div id="notes-7" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>Drive time attenuates the attractiveness of farther destinations, though times beyond 20 minutes are perceived as less onerous than the first 20.</li>
 <li>Home cluster effects are also strong across all clusters, indicating a strong preference for proximate destinations for relatively short non-mandatory activities.</li>
@@ -820,8 +819,9 @@ Retail
 <p>All cluster nest coefficients are significantly different from 1, so the nested structure is justified.</p>
 </div>
 </div>
-<div id="model-structure-for-non-home-based-trip-purposes" class="section level2">
-<h2>Model structure for non-home-based trip purposes</h2>
+</div>
+<div id="non-home-based-trips" class="section level2">
+<h2>Non-Home-Based trips</h2>
 <p>The non-home-based trip purposes are multinomial logit (MNL) specifications. Though the cluster-based nested structure of the home-based purposes was not adopted, cluster-level alternative-specific constants (ASCs) are included to help capture cluster-level preferences.</p>
 <p>The non-home-based trip purposes consist of:</p>
 <ul>
@@ -845,20 +845,19 @@ Retail
 <li>NHB Tours by Public Transit</li>
 <li>NHB Tours by Bike/Walk</li>
 </ul>
-</div>
-<div id="nhb-work-auto" class="section level2">
-<h2>NHB Work Auto</h2>
+<div id="nhb-work-auto" class="section level3">
+<h3>NHB Work Auto</h3>
 <p>This segment corresponds to trips that are part of a work tour, do not have either end at home, have at least one end at school, work, work-related or “other” activities, and are associated with a drive mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-8" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-8" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “W_NH_EK12” or “W_NH_O” or “W_NH_WR”, with a drive tour mode</li>
 <li>Sample size: 4,371</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-8" class="section level3">
-<h3>Notes</h3>
+<div id="notes-8" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.</li>
 <li>The generic intra-cluster effect is strong.</li>
@@ -866,19 +865,19 @@ Retail
 </ul>
 </div>
 </div>
-<div id="nhb-nonwork-auto" class="section level2">
-<h2>NHB NonWork Auto</h2>
+<div id="nhb-nonwork-auto" class="section level3">
+<h3>NHB NonWork Auto</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and have at least one end at school or “other” activities. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-9" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-9" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = “N_NH_K12” or “N_NH_OME” or “N_NH_O”, with a drive tour mode</li>
 <li>Sample size: 7,099</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-9" class="section level3">
-<h3>Notes</h3>
+<div id="notes-9" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.</li>
 <li>Intra-cluster and intra-zonal effects, both generic, are strong.</li>
@@ -887,18 +886,18 @@ Retail
 </ul>
 </div>
 </div>
-<div id="nhb-transit" class="section level2">
-<h2>NHB Transit</h2>
+<div id="nhb-transit" class="section level3">
+<h3>NHB Transit</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, and do not have either end at home. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-10" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-10" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = all six non-home-based trip types, with a public transit travel mode</li>
 <li>Sample size: 244</li>
 </ul>
 </div>
-<div id="notes-10" class="section level3">
-<h3>Notes</h3>
+<div id="notes-10" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>Both in-vehicle time and the number of transfers are significant predictors in the attractiveness of destinations accessible by public transit modes.</li>
 <li>Transit accessibility positively impacts destination choice.</li>
@@ -906,25 +905,26 @@ Retail
 </ul>
 </div>
 </div>
-<div id="nhb-nonmotorized" class="section level2">
-<h2>NHB NonMotorized</h2>
+<div id="nhb-nonmotorized" class="section level3">
+<h3>NHB NonMotorized</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and are associated with a non-motorized (e.g. bike, walk) mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-11" class="section level3">
-<h3>Survey data</h3>
+<div id="survey-data-11" class="section level4">
+<h4>Survey data</h4>
 <ul>
 <li>Records: trip_type = all six non-home-based trip types, with a non-motorized travel mode</li>
 <li>Sample size: 1,438</li>
 </ul>
 <p><em>TODO add results</em></p>
 </div>
-<div id="notes-11" class="section level3">
-<h3>Notes</h3>
+<div id="notes-11" class="section level4">
+<h4>Notes</h4>
 <ul>
 <li>As expected, walk distance poses a highly significant deterrent to destinations that are farther away from the origin. A high penalty is imposed on destinations that are more than a mile away.</li>
 <li>Intra-zonal and intra-cluster effects are also strong, favoring short-range trips by non-motorized modes.</li>
 <li>Walk accessibility is key to choosing destinations.</li>
 <li>Attractions are driven by office, retail and service employment totals.</li>
 </ul>
+</div>
 </div>
 </div>
 <div id="references" class="section level2">
@@ -985,7 +985,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3,h4",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
