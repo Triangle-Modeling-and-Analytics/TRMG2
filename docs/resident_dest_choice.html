@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Caliper Corporation" />
+
+<meta name="date" content="2021-11-08" />
+
+<title>Resident Destination Choice</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">TRMG2</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Databases
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+    </li>
+    <li>
+      <a href="networks.html">Networks</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Surveys
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="survey_processing.html">Household Survey</a>
+    </li>
+    <li>
+      <a href="obs_processing.html">On-Board Survey</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Resident Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="parking.html">Parking</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="accessibility.html">Accessibility</a>
+    </li>
+    <li>
+      <a href="airport.html">Airport</a>
+    </li>
+    <li>
+      <a href="ieei.html">Internal/External</a>
+    </li>
+    <li>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
+    <li>
+      <a href="assignment_roadway.html">Roadway Assignment</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Resident Destination Choice</h1>
+<h4 class="author">Caliper Corporation</h4>
+<h4 class="date">November 8, 2021</h4>
+
+</div>
+
+
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>This document summarizes the destination choice (DC) models estimated using travel survey and other data from the Triangle region. These models will become a part of the G2 hybrid travel demand model. Within the hybrid framework, destination choice is modeled in the aggregate for each of several trip purposes. Vehicle sufficiency and income are used to further refine the market segments.</p>
+<p>General modeling aspects:</p>
+<ul>
+<li>Destinations are predicted at the zone (TAZ) level.</li>
+<li>Based on an analysis of the region, the zones were logically grouped into the following clusters:</li>
+</ul>
+<p><img src="img/dc/clusters.png" width="100%" height="100%" /></p>
+<ul>
+<li>Nested Logit (NL) models were estimated for the home-based trip purposes while multinomial logit (MNL) models were estimated for non-home-based trip purposes. NL models were attempted for the latter set of purposes but did not provide justifiably better models.</li>
+<li>All models were estimated using Larch (Newman, 2021).</li>
+</ul>
+</div>
+<div id="a-note-on-model-fit" class="section level2">
+<h2>A note on model fit</h2>
+<p>While the fit of a discrete choice model is popularly assessed through the rho-squared and asymptotic rho-squared statistics, they are tricky to interpret in the context of destination choice. The presence of the size term complicates the calculation of the base log-likelihood, LL(0), which forms the reference for the rho-squared calculation. LL(0) is based on the assumption that all alternatives are equally likely. However, the zone alternatives in destination choice are not truly elemental alternatives but are themselves rather the collection of individual employment (say) options available within that zone. The size variable with its default coefficient of 1 must therefore be included when determining LL(0). This provides an automatic “improvement” of LL(0) over the case where the size variable is not included. Consequently, rho-squared falls. This should not be taken as automatic evidence of a poorer model. The selection of the model should still (as always) be based on the reasonableness of its coefficients, their statistical significance, and model sensitivities.</p>
+</div>
+<div id="distance-terms-in-destination-choice-models" class="section level2">
+<h2>Distance terms in destination choice models</h2>
+<p>Destination choice models in practice sometimes include distance and its mathematical transforms as part of each zone’s utility equation. While these terms might improve statistical fit, they can cause unintended sensitivities that are counter-intuitive. These effects stem from the non-monotonic shape of the combined distance effect, as illustrated by the example below. Taken from a real-world model, this graph clearly shows how farther zones are less attractive only up to a certain threshold. Beyond that distance, the effect is reversed so that the farthest zones become more attractive (all else being the same).</p>
+<p><img src="img/dc/distance_poly.png" width="115%" height="115%" /></p>
+<p>Such models only remain valid for the range of distances observed in the survey data used for model estimation. Scenarios involving longer distances will produce unintuitive model sensitivities.</p>
+<p>Another concern with distance variables is their static nature. Since they are not responsive to congestion, they cannot capture destination choice sensitivity to this key real-world and policy-relevant aspect.</p>
+<p>In addition, distance is highly correlated with travel times so that the inclusion of both variables often causes difficulties in model estimation as the algorithm struggles to uniquely split the effects between them.</p>
+<p>For the above reasons, the destination choice models for TRM rely on travel times, logsums by mode type, and other skims rather than distance-based variables.</p>
+</div>
+<div id="model-structure-for-home-based-trip-purposes" class="section level2">
+<h2>Model structure for home-based trip purposes</h2>
+<p>The TRM region features eight home-based trip purposes as revealed by an analysis of the survey. Each purpose’s destination choice model is based on nested logit with zone clusters as nests. Each cluster has its constituent zones under it:</p>
+<p><img src="img/dc/model_structure.png" width="115%" height="115%" /></p>
+<p>Various model structures and specifications were tried:</p>
+<ul>
+<li>FLAT: No nesting</li>
+<li>SEQUENTIAL CHOICE OF CLUSTER + WITHIN-CLUSTER ZONE
+<ul>
+<li>Sub-model approach 1: Separate sub-model for each cluster</li>
+<li>Sub-model approach 2: Common model across all clusters (with appropriate availabilities)</li>
+</ul></li>
+<li>NESTED (simultaneous choice of cluster and zone)</li>
+</ul>
+<p>The nested specification outperformed all other approaches.</p>
+</div>
+<div id="w_hb_w" class="section level2">
+<h2>W_HB_W</h2>
+<p>W_HB_W corresponds to trips that are part of a work tour, have one end at home, and the other end at work. This segment captures trips that directly connect the home and work locations and translates to the HBW trip purpose in traditional models. Destination choice in this context relates to the long-term decision of work location, to which work trips are made with regularity.</p>
+<div id="survey-data" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “W_HB_W_All”</li>
+<li>Sample size: 3,662</li>
+</ul>
+</div>
+<div id="utility-specification" class="section level3">
+<h3>Utility specification</h3>
+<p><em>TODO add final</em></p>
+<p>Note that the exponentiated values of the attraction coefficients from the above specification will be directly reported in the results sections of each model below.</p>
+</div>
+<div id="estimated-coefficients-and-t-statistics" class="section level3">
+<h3>Estimated coefficients and t statistics</h3>
+<p><em>TODO add this and the other model result sections</em></p>
+</div>
+<div id="notes" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intrazonal effects are strong.</li>
+<li>Home cluster effects are also strong, with residents of Cary, Durham, Chapel Hill, Garner often living and working in the same cluster. Similar effects are also true for the peripheral clusters toward the northeast and south.</li>
+<li>Mode choice logsums are significant for workers from zero-auto households, capturing a coupling with access to public transit modes.</li>
+<li>Using mode choice logsums for the other auto sufficiency markets (with or without the presence of congested time) caused unrealistic signs as well as much poorer model fit. This can be explained by the fact that these logsums are primarily driven by auto skims, which are already a part of the utility equation.</li>
+<li>Hospitals being a major source of employment in the region, accessibility to hospital jobs helps drive work destination attractiveness. Transit and walk accessibilities are also drivers of a zone’s attractiveness for work tours.</li>
+<li>The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.) and has an MNL-type sub-nest.</li>
+<li>The size variables are stratified by income. The percentage of low and high paying jobs in each zone was used to split the total attraction into income-specific attractions.</li>
+</ul>
+</div>
+<div id="double-constraint-and-attraction-model" class="section level3">
+<h3>Double constraint and attraction model</h3>
+<p>All trip types other than work are singly-constrained. This means that the row sums of the resulting trip table will match starting productions, but column sums will not necessarily be proportional to the amount of employment in each zone. As an example, for two zones with the same employment, the more accessible zone will attract more trips.</p>
+<p>For work trips, a traditional assumption to make is that each job of the same type must attract the same work trips - even if the zone is in a remote location. The justification for this assumption has weakened in recent years with the rise in telecommuting, flex schedules, and other changes, but the TRMG2 model implements double constraint for work trips. In the context of destination choice models, this is achieved by assigning each zone a “shadow price”. This extra term in the utility equation is adjusted in an iterative fashion to match predicted attractions.</p>
+<p>These predicted attractions come from a regression model estimated from the survey data.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Industry
+</td>
+<td style="text-align:right;">
+1.43
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+8.58
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+High-Pay Office
+</td>
+<td style="text-align:right;">
+0.71
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:right;">
+7.92
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Low-Pay Office
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+6.33
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+High-Pay Service
+</td>
+<td style="text-align:right;">
+0.88
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:right;">
+9.94
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Low-Pay Service
+</td>
+<td style="text-align:right;">
+0.49
+</td>
+<td style="text-align:right;">
+0.05
+</td>
+<td style="text-align:right;">
+3.94
+</td>
+<td style="text-align:right;">
+0.0000842
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Retail
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+0.05
+</td>
+<td style="text-align:right;">
+6.95
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+</tbody>
+</table>
+<p>During model application, predicted attractions are always scaled to match predicted productions to match double constraint. As a consequence, the attraction model should predict total attractions that is close to predicted productions. This is referred to as PA balance (“production/attraction balance”).</p>
+<p>The coefficients in the table above were multiplied by 2.45 during model calibration to achieve the appropriate PA balance of 1.0. If the ratio is too high or too low, adding additional employment to a zone will have unexpectedly high or low impact on trips attracted (given the scaling that must be done to attractions).</p>
+</div>
+</div>
+<div id="w_hb_o" class="section level2">
+<h2>W_HB_O</h2>
+<p>W_HB_O corresponds to trips that are part of a work tour, have one end at home, and the other end at a non-work location. This segment captures trips that directly connect the home to an intermediate stop on the way to or from work and translates to the HBO trip purpose in traditional models. Destination choice in this context relates to a short-term decision of intermediate stop location.</p>
+<div id="survey-data-1" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “W_HB_O_All”</li>
+<li>Sample size: 2,129</li>
+</ul>
+<p><em>TODO add model results when final</em></p>
+</div>
+</div>
+<div id="notes-1" class="section level2">
+<h2>Notes</h2>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intrazonal effects are strong.</li>
+<li>Travel time is more important up to the first 30 minutes. Excess time beyond this threshold is perceived as being less onerous.</li>
+<li>Home cluster effects are also strong, with residents of Cary, Garner, Raleigh, Southern Durham and the southeastern periphery often stopping in the same cluster for their intermediate stops.</li>
+<li>The public transit mode choice logsum is significant.</li>
+<li>The number of households is a major factor in the calculation of the size variable, reflecting the inclusion of personal visits in this trip purpose. Logically, the retail and service employment also help drive trips to specific destinations. Income-based stratifications of employment did not make a difference.</li>
+<li>The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.) and has a nearly MNL-type sub-nest.</li>
+</ul>
+</div>
+<div id="w_hb_ek12" class="section level2">
+<h2>W_HB_EK12</h2>
+<p>W_HB_EK12 corresponds to trips that are part of a work tour, have one end at home, and the other end at a school. This segment captures trips that directly connect the home to school on the way to or from work and translates to the HB School trip purpose in traditional models. It includes worker dropping off/picking up children on the way to/from work, and workers who attend school.</p>
+<div id="survey-data-2" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “W_HB_EK12_All”</li>
+<li>Sample size: 228</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-2" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>School location choice is driven by travel time.</li>
+<li>Attractions are driven by school enrollment.</li>
+<li>Some of the cluster nest coefficients are significantly different from 1, so the nested structure is justified.</li>
+</ul>
+</div>
+</div>
+<div id="n_hb_ome" class="section level2">
+<h2>N_HB_OME</h2>
+<p>N_HB_OME corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that involved the spending of money. This segment is close to the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-3" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “N_HB_OME_All”</li>
+<li>Sample size: 5,822</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-3" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intrazonal effects are strong.</li>
+<li>Travel time is more important up to the first 30 minutes. Excess time beyond this threshold is perceived as being less onerous.</li>
+<li>Auto and transit logsums (by the relevant auto sufficiency category) play a role in the perception of zones’ attractiveness.</li>
+<li>Home cluster effects are strong, with residents often choosing to shop in the same cluster as their residence.</li>
+<li>Attractions are driven by office, retail and service employment, which is expected for a trip purpose that involves shopping.</li>
+</ul>
+<p>The cluster nest coefficients are mostly significantly different from 1, so the nested structure is justified.</p>
+</div>
+</div>
+<div id="n_hb_omed" class="section level2">
+<h2>N_HB_OMED</h2>
+<p>N_HB_OMed corresponds to trips that are not part of a work tour, have one end at home, and the other end at a medical-related activity. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+</div>
+<div id="survey-data-4" class="section level2">
+<h2>Survey data</h2>
+<ul>
+<li>Records: trip_type = “N_HB_OMED_All”</li>
+<li>Sample size: 557</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-4" class="section level2">
+<h2>Notes</h2>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intrazonal effects are strong.</li>
+<li>Travel time is more important up to the first 30 minutes. Excess time beyond this threshold is perceived as being less onerous.</li>
+<li>Auto logsums (by the relevant auto sufficiency category) play a role in the perception of zones’ attractiveness.</li>
+<li>Accessibility to hospitals plays a positive role in boosting a zone’s attractiveness, which is apt for this trip purpose.</li>
+<li>Home cluster effects are also strong, particularly with residents of Garner, Raleigh, Southern Durham and the north-eastern.</li>
+<li>Attractions are driven by retail and service employment, with an added boost from service employment related to the presence of hospitals.</li>
+</ul>
+<p>Most of the cluster nest coefficients are significantly different from 1, so the nested structure is justified.</p>
+</div>
+<div id="n_hb_k12" class="section level2">
+<h2>N_HB_K12</h2>
+<p>N_HB_K12 corresponds to trips that are not part of a work tour, have one end at home, and the other end at a school. This segment would have been part of the HB School trip purpose in traditional models.</p>
+<div id="survey-data-5" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “N_HB_K12_All”</li>
+<li>Sample size: 1,708</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-5" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Several of them had values close to zero with poor significance. These were dropped and only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intra-zonal and intra-cluster effects are strong.</li>
+<li>Attractions are driven by school enrollment. Some of the cluster nest coefficients are significantly different from 1, so the nested structure is justified. Others default to an MNL-like behavior.</li>
+</ul>
+</div>
+</div>
+<div id="n_hb_od_long" class="section level2">
+<h2>N_HB_OD_Long</h2>
+<p>N_HB_ODLong corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that is at least 30 minutes long. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-6" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “N_HB_ODLong_All”</li>
+<li>Sample size: 4,540</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-6" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>Longer drive times penalize a destination’s appeal, though times over 30 minutes are not perceived to be as onerous.</li>
+<li>Hospital accessibility impacts destination attractiveness in a positive manner, likely accounting for longer medical appointments.</li>
+<li>Walk access is viewed positively, especially in h</li>
+<li>Most home cluster effects are also strong.</li>
+<li>Attractions are driven by employment and school enrollment totals as well as the residential population, the latter due to longer social visits.</li>
+</ul>
+<p>The cluster nest coefficients are all significantly different from 1, so the nested structure is justified.</p>
+</div>
+</div>
+<div id="n_hb_od_short" class="section level2">
+<h2>N_HB_OD_Short</h2>
+<p>N_HB_ODShort corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity shorter than 30 minutes in duration. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-7" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “N_HB_ODShort_All”</li>
+<li>Sample size: 3,400</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-7" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>Drive time attenuates the attractiveness of farther destinations, though times beyond 20 minutes are perceived as less onerous than the first 20.</li>
+<li>Home cluster effects are also strong across all clusters, indicating a strong preference for proximate destinations for relatively short non-mandatory activities.</li>
+<li>Additionally, intra-zonal destinations are accorded higher preference.</li>
+<li>Mode choice logsums related to public transit and non-household auto modes (such as ride-hailing) play a positive role in elevating the desirability of destinations.</li>
+<li>Attractions are driven by employment and school enrollment totals as well as each zone’s residential population, an indication of the propensity to participate in social visits.</li>
+</ul>
+<p>All cluster nest coefficients are significantly different from 1, so the nested structure is justified.</p>
+</div>
+</div>
+<div id="model-structure-for-non-home-based-trip-purposes" class="section level2">
+<h2>Model structure for non-home-based trip purposes</h2>
+<p>The non-home-based trip purposes are multinomial logit (MNL) specifications. Though the cluster-based nested structure of the home-based purposes was not adopted, cluster-level alternative-specific constants (ASCs) are included to help capture cluster-level preferences.</p>
+<p>The non-home-based trip purposes consist of:</p>
+<ul>
+<li>Work tours
+<ul>
+<li>W_NH_EK12</li>
+<li>W_NH_O</li>
+<li>W_NH_WR</li>
+</ul></li>
+<li>Non-work tours
+<ul>
+<li>N_NH_K12</li>
+<li>N_NH_OME</li>
+<li>N_NH_O</li>
+</ul></li>
+</ul>
+<p>Given the strong dependence of destination choice on the prior home-based trip’s travel mode for non-home-based trips, separate destination choice models have been estimated by mode. For simplicity and statistical efficiency of model estimation, the above trip purposes were combined into the following four categories that combine trip purpose with travel mode:</p>
+<ul>
+<li>NHB Work Tours by Auto</li>
+<li>NHB Non-work Tours by Auto</li>
+<li>NHB Tours by Public Transit</li>
+<li>NHB Tours by Bike/Walk</li>
+</ul>
+</div>
+<div id="nhb-work-auto" class="section level2">
+<h2>NHB Work Auto</h2>
+<p>This segment corresponds to trips that are part of a work tour, do not have either end at home, have at least one end at school, work, work-related or “other” activities, and are associated with a drive mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-8" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “W_NH_EK12” or “W_NH_O” or “W_NH_WR”, with a drive tour mode</li>
+<li>Sample size: 4,371</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-8" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.</li>
+<li>The generic intra-cluster effect is strong.</li>
+<li>Attractions are driven by a variety of employment totals, as well as school enrollment.</li>
+</ul>
+</div>
+</div>
+<div id="nhb-nonwork-auto" class="section level2">
+<h2>NHB NonWork Auto</h2>
+<p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and have at least one end at school or “other” activities. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-9" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = “N_NH_K12” or “N_NH_OME” or “N_NH_O”, with a drive tour mode</li>
+<li>Sample size: 7,099</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-9" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes.</li>
+<li>Intra-cluster and intra-zonal effects, both generic, are strong.</li>
+<li>Attractions are driven by school enrollment (perhaps related to after-school activities) and various employment totals.</li>
+<li>Higher values of the parking logsum lead to more desirable destination owing to enhanced ease of parking.</li>
+</ul>
+</div>
+</div>
+<div id="nhb-transit" class="section level2">
+<h2>NHB Transit</h2>
+<p>This segment corresponds to trips that are part of a non-work tour, and do not have either end at home. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-10" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = all six non-home-based trip types, with a public transit travel mode</li>
+<li>Sample size: 244</li>
+</ul>
+</div>
+<div id="notes-10" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>Both in-vehicle time and the number of transfers are significant predictors in the attractiveness of destinations accessible by public transit modes.</li>
+<li>Transit accessibility positively impacts destination choice.</li>
+<li>Attractions are driven by office, retail and service employment totals.</li>
+</ul>
+</div>
+</div>
+<div id="nhb-nonmotorized" class="section level2">
+<h2>NHB NonMotorized</h2>
+<p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and are associated with a non-motorized (e.g. bike, walk) mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<div id="survey-data-11" class="section level3">
+<h3>Survey data</h3>
+<ul>
+<li>Records: trip_type = all six non-home-based trip types, with a non-motorized travel mode</li>
+<li>Sample size: 1,438</li>
+</ul>
+<p><em>TODO add results</em></p>
+</div>
+<div id="notes-11" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>As expected, walk distance poses a highly significant deterrent to destinations that are farther away from the origin. A high penalty is imposed on destinations that are more than a mile away.</li>
+<li>Intra-zonal and intra-cluster effects are also strong, favoring short-range trips by non-motorized modes.</li>
+<li>Walk accessibility is key to choosing destinations.</li>
+<li>Attractions are driven by office, retail and service employment totals.</li>
+</ul>
+</div>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li>J. Newman (2021) “Larch: The Logit Architect.” URL: <a href="https://github.com/jpn--/larch" class="uri">https://github.com/jpn--/larch</a>, Accessed September 1, 2021.</li>
+</ol>
+</div>
+
+<br>
+<br>
+<br>
+<hr>
+<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+
+</body>
+</html>
