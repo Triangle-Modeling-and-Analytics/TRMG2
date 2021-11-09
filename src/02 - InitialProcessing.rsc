@@ -7,6 +7,7 @@ Macro "Initial Processing" (Args)
     created = RunMacro("Is Scenario Created", Args)
     if !created then return(0)
     RunMacro("Create Output Copies", Args)
+    RunMacro("Check SE Data", Args)
     RunMacro("Determine Area Type", Args)
     RunMacro("Capacity", Args)
     RunMacro("Set CC Speeds", Args)
@@ -81,6 +82,52 @@ Macro "Create Output Copies" (Args)
     ExportView(se + "|", "FFB", Args.SE, , )
     CloseView(se)
 EndMacro
+
+/*
+Checks the SE data for logical problems
+*/
+
+Macro "Check SE Data" (Args)
+
+    se_bin = Args.SE
+
+    se_vw = OpenTable("se", "FFB", {se_bin})
+    SetView(se_vw)
+    
+    // Internal checks
+    query = "Select * where Type = 'Internal'"
+    n = SelectByQuery("internal", "several", query)
+    if n = 0 then Throw("No internal zones found (query = '" + query + "')")
+    fields = {"HH", "HH_POP", "Median_Inc", "Pct_Worker", "Pct_Child", "Pct_Senior"}
+    data = GetDataVectors(
+        se_vw + "|internal", fields,
+        {OptArray: "true", "Missing As Zero": "true"}
+    )
+    if RunMacro("Any True", data.HH > 0 and data.HH_POP = 0) 
+        then Throw("SE Check: Zones with households are missing population")
+    if RunMacro("Any True", data.HH_POP > 0 and data.HH = 0)
+        then Throw("SE Check: Zones with population are missing households")
+    if RunMacro("Any True", data.HH > 0 and data.Median_Inc = 0)
+        then Throw("SE Check: Zones with households are missing median income")
+    if RunMacro("Any True", data.HH > 0 and data.HH_POP / data.HH < 1)
+        then Throw("SE Check: Some zones have fewer than 1 person per household")
+    if RunMacro("Any True", data.Pct_worker > 100)
+        then Throw("SE Check: Zones have 'Pct_Worker' > 100")
+    if RunMacro("Any True", data.Pct_Child > 100)
+        then Throw("SE Check: Zones have 'Pct_Child' > 100")
+    if RunMacro("Any True", data.Pct_Senior > 100)
+        then Throw("SE Check: Zones have 'Pct_Senior' > 100")
+                
+    CloseView(se_vw)
+endmacro
+
+/*
+Helper macro for se check. Checks if any member of a vector is true.
+*/
+
+Macro "Any True" (v)
+    if v.position(1) <> 0 then return("true")
+endmacro
 
 /*
 Prepares input options for the AreaType.rsc library of tools, which
