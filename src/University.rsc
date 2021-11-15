@@ -330,74 +330,84 @@ Macro "University Gravity" (Args)
     param_file = Args.[Input Folder] + "\\university\\university_gravity.csv"
     skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_AM.mtx"
     university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
-    
+
     // TODO-AK: delete the hard-coded paths (used for testing)
     se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
     param_file = "D:\\Models\\TRMG2\\master\\university\\university_gravity.csv"
     skim_file =  "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_AM.mtx"
     university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
-    
+
     opts = null
     opts.se_file = se_file
     opts.param_file = param_file
     opts.skim_file = skim_file
     opts.output_matrix = university_matrix_file
     RunMacro("Gravity", opts)
-    
+
 endmacro
 
 /*
-Combine university trips for all campus
+Combine university trips for all campus and create period specific matrices
 */
 
 Macro "University Combine Matrix" (Args)
-    university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
+    trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
-    
+
     // TODO-AK: delete the hard-coded paths (used for testing)
-    university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
     periods = {"AM", "MD", "PM", "NT"}
-    
-    univ_mtx = OpenMatrix(university_matrix_file, )
-    mc = CreateMatrixCurrency(univ_mtx,,,,)
-    
-    new_cores = null
-    for period in periods do 
-        new_cores = new_cores + {"UHC_" + period, "UHO_" + period, "UCO_" + period, "UCC_" + period}
-    end
-    
-    university_combined_matrix_file = Substitute(university_matrix_file, ".mtx", "_temp.mtx", )
-    matOpts = {{"File Name", university_combined_matrix_file}, {"Label", "University Trips Matrix"}, {"File Based", "Yes"}, {"Tables", new_cores}}
-    univ_combined_mtx = CopyMatrixStructure({mc}, matOpts)
-    
-    mc = null
-    univ_mtx = null
-    univ_combined_mtx = null
-    
-    
-    univ_mtx = CreateObject("Matrix")
-    univ_mtx.LoadMatrix(university_matrix_file)
-    
-    univ_combined_mtx = CreateObject("Matrix")
-    univ_combined_mtx.LoadMatrix(university_combined_matrix_file)
-    
+
+    campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
+
+    university_mtx_file = trips_dir + "university_pa_trips.mtx"
+
+    out_core_names = {"UHC", "UHO", "UCO", "UCC"}
+
     for period in periods do
+        out_mtx_file = trips_dir + "university_pa_trips_" + period + ".mtx"
+        if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
+
+        univ_mtx = OpenMatrix(university_mtx_file, )
+        mc = CreateMatrixCurrency(univ_mtx,,,,)
+
+        matOpts = {{"File Name", out_mtx_file}, {"Label", "University " + period + " Trips Matrix"}, {"File Based", "Yes"}, {"Tables", out_core_names}}
+
+        out_mtx = CopyMatrixStructure({mc}, matOpts)
+
+        mc = null
+        univ_mtx = null
+        out_mtx = null
+
+        univ_mtx = CreateObject("Matrix")
+        univ_mtx.LoadMatrix(university_mtx_file)
+
+        out_mtx = CreateObject("Matrix")
+        out_mtx.LoadMatrix(out_mtx_file)
+
         cores = univ_mtx.data.cores
-        combined_cores = univ_combined_mtx.data.cores
-          
-        combined_cores.("UHC_" + period) := Nz(cores.("UHC_NCSU_" + period)) + Nz(cores.("UHC_UNC_" + period)) + Nz(cores.("UHC_DUKE_" + period)) + Nz(cores.("UHC_NCCU_" + period))
-        combined_cores.("UHO_" + period) := Nz(cores.("UHO_NCSU_" + period)) + Nz(cores.("UHO_UNC_" + period)) + Nz(cores.("UHO_DUKE_" + period)) + Nz(cores.("UHO_NCCU_" + period))
-        combined_cores.("UCO_" + period) := Nz(cores.("UCO_NCSU_" + period)) + Nz(cores.("UCO_UNC_" + period)) + Nz(cores.("UCO_DUKE_" + period)) + Nz(cores.("UCO_NCCU_" + period))
-        combined_cores.("UCC_" + period) := Nz(cores.("UCC_NCSU_" + period)) + Nz(cores.("UCC_UNC_" + period)) + Nz(cores.("UCC_DUKE_" + period)) + Nz(cores.("UCC_NCCU_" + period))
-    end 
-    
+        out_cores = out_mtx.data.cores
+
+        out_cores.("UHC") := 0
+        out_cores.("UHO") := 0
+        out_cores.("UCO") := 0
+        out_cores.("UCC") := 0
+
+        for campus in campus_list do
+            out_cores.("UHC") := out_cores.("UHC") + Nz(cores.("UHC_" + campus + "_" + period))
+            out_cores.("UHO") := out_cores.("UHO") + Nz(cores.("UHO_" + campus + "_" + period))
+            out_cores.("UCO") := out_cores.("UCO") + Nz(cores.("UCO_" + campus + "_" + period))
+            out_cores.("UCC") := out_cores.("UCC") + Nz(cores.("UCC_" + campus + "_" + period))
+        end
+
+    end
+
     cores = null
-    combined_cores = null
+    out_cores = null
     univ_mtx = null
-    univ_combined_mtx = null
-    
-    DeleteFile(university_matrix_file)
-    RenameFile(university_combined_matrix_file, university_matrix_file)
+    out_mtx = null
+
+    DeleteFile(university_mtx_file)
 endmacro
 
 /*
@@ -405,57 +415,63 @@ Convert from PA to OD format
 */
 
 Macro "University Directionality" (Args)
-    univ_pa_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
-    univ_od_matrix_file = Args.[Output Folder] + "\\university\\university_od_trips.mtx"
+    trips_dir = Args.[Output Folder] + "\\university\\"
     dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
-    
+    periods = Args.periods
+
     // TODO-AK: delete the hard-coded paths (used for testing)
-    univ_pa_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
-    univ_od_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_od_trips.mtx"
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
     dir_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_directionality.csv"
-    
-    CopyFile(univ_pa_matrix_file, univ_od_matrix_file)
-    
-    univ_od_transpose_matrix_file = Substitute(univ_od_matrix_file, ".mtx", "_transpose.mtx", )
-      
-    mat = OpenMatrix(univ_od_matrix_file, )
-    tmat = TransposeMatrix(mat, {
-        {"File Name", univ_od_transpose_matrix_file},
-        {"Label", "Transposed Trips"},
-        {"Type", "Double"}}
-    )
-    mat = null
-    tmat = null
-      
-    mtx = CreateObject("Matrix")
-    mtx.LoadMatrix(univ_od_matrix_file)  
-    mtx_core_names = mtx.data.CoreNames
-    cores = mtx.data.cores
-    
-    t_mtx = CreateObject("Matrix")
-    t_mtx.LoadMatrix(univ_od_transpose_matrix_file)
-    t_cores = t_mtx.data.cores
-    
+    periods = {"AM", "MD", "PM", "NT"}
+
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
-    
-    rh = GetFirstRecord(fac_vw + "|", )
-    while rh <> null do
-        type = fac_vw.trip_type
-        period = fac_vw.tod
-        pa_factor = fac_vw.pa_fac
-        
-        core_name = type + "_" + period
-        
-        cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
-        
-        rh = GetNextRecord(fac_vw + "|", rh, )
+
+    dir_factors = RunMacro("Read Parameter File", {
+        file: dir_factor_file,
+        names: "period",
+        values: "pa_factor"
+    })
+
+    for period in periods do
+        pa_matrix_file = trips_dir + "university_pa_trips_" + period + ".mtx"
+        od_matrix_file = trips_dir + "university_trips_" + period + ".mtx"
+        od_transpose_matrix_file = trips_dir + "university_transpose_trips_" + period + ".mtx"
+
+        CopyFile(pa_matrix_file, od_matrix_file)
+
+        mat = OpenMatrix(od_matrix_file, )
+        tmat = TransposeMatrix(mat, {
+            {"File Name", od_transpose_matrix_file},
+            {"Label", "Transposed Trips"},
+            {"Type", "Double"}}
+        )
+
+        mat = null
+        tmat = null
+
+        mtx = CreateObject("Matrix")
+        mtx.LoadMatrix(od_matrix_file)
+        mtx_core_names = mtx.data.CoreNames
+        cores = mtx.data.cores
+
+        t_mtx = CreateObject("Matrix")
+        t_mtx.LoadMatrix(od_transpose_matrix_file)
+        t_cores = t_mtx.data.cores
+
+        pa_factor = dir_factors.(period)
+
+        for core_name in mtx_core_names do
+            cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+        end
+
+        cores = null
+        t_cores = null
+        mtx = null
+        t_mtx = null
+
+        DeleteFile(od_matrix_file)
+        DeleteFile(od_transpose_matrix_file)
+
     end
-    
-    cores = null
-    t_cores = null
-    mtx = null
-    t_mtx = null
-    CloseView(fac_vw)
-    DeleteFile(univ_od_transpose_matrix_file)
-  
+
 endmacro
