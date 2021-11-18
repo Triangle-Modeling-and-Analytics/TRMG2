@@ -2,7 +2,7 @@
 Handle initial steps like capacity and speed calculations.
 */
 
-Macro "Initial Processing" (Args)
+Macro "Network Calculations" (Args)
     
     created = RunMacro("Is Scenario Created", Args)
     if !created then return(0)

@@ -11,13 +11,13 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processing"},{"Summaries"},)
+    model = FlowChart({"Network Calculations"},{"Summaries"},)
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
-    FlowChartNode(model,"Initial Processing",,,)
+    FlowChartNode(model,"Network Calculations",,,)
     FlowChartNode(model,"Accessibility",,,)
     FlowChartNode(model,"Population Synthesis",,,)
     FlowChartNode(model,"Resident Productions",,,)
@@ -41,7 +41,7 @@ Body:
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Initial Processing","Accessibility",True,,)
+    FlowChartLink(model,"Network Calculations","Accessibility",True,,)
     FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
     FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
     FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
@@ -64,9 +64,9 @@ Body:
 EndMacro
 
 
-Macro "Initial Processing" (Args,Result)
+Macro "Network Calculations" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Initial Processing"}},
+                  {"MacroNames",{"Network Calculations"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
 Body:
     ShowMessage('Running: Initial Processing')

@@ -25,7 +25,7 @@
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
         Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
     
-    Section = "Initial Processing"
+    Section = "Network Calculations"
     
         Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
                                                      {"Suburban",1000,0.5},
