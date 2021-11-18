@@ -1,4 +1,4 @@
-variable,uco_on,uho_on,uco_off,uho_off
-intercept,20.9149,12.2253,90.475,100.1907
-retail_employment,0.0218,0.0254,0.0329,0.0394
-student_off_campus,0.1052,0.0217,0.2615,0.224
+variable,uho_on,uho_off,uco
+intercept,12.2253,100.1907,20.9149
+retail_employment,0.0254,0.0394,0.0218
+student_off_campus,0.0217,0.224,0.1052
