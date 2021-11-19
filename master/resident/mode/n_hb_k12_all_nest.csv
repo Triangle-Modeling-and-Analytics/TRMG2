@@ -1,5 +1,2 @@
 Parent,Alternatives,ParentNestCoeff
-Root,"auto, nonhh_auto, transit, school_bus",1
-auto,"sov, hov2, hov3",1
-nonhh_auto,"auto_pay, other_auto",1
-transit,w_lb,1
+Root,"sov, hov2, hov3, other_auto, w_lb, school_bus",1

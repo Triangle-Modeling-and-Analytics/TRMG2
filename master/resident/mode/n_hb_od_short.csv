@@ -1,48 +1,29 @@
 Alternative,Expression,Segment,Coefficient,Description
+sov,Constant,,4.516,
 sov,Constant,v0,-99,Auto Availability
-sov,Constant,,4.526711,
-sov,sov_skim.CongTime,,-0.086735,Travel time
-sov,sov_skim.[TollCostSOV (Skim)],,-0.437392,Toll cost
-sov,se.HiIncomePct.O,,0.607451,High Income Pct
-sov,parking.MC_LS_Work.D,,0.157958,Parking
+sov,sov_skim.CongTime,,-0.1965,Travel time
+sov,sov_skim.[TollCostSOV (Skim)],,-0.990923,Toll cost
+hov2,Constant,,4.467,Constant
 hov2,Constant,v0,-99,Auto Availability
-hov2,Constant,vi,0.7501,Vehicle insufficient households
-hov2,Constant,,4.292945,Constant
-hov2,hov_skim.CongTime,,-0.086735,Travel time
-hov2,hov_skim.[TollCostHOV (Skim)],,-0.437392,Toll cost
-hov2,se.HiIncomePct.O,,0.607451,High Income Pct
-hov2,se.HHSize1Pct.O,,-1.963763,Percent of 1-person HHs
-hov2,parking.MC_LS_Work.D,,0.157958,Parking
+hov2,hov_skim.CongTime,,-0.1965,Travel time
+hov2,hov_skim.[TollCostHOV (Skim)],,-0.990923,Toll cost
+hov2,se.HHSize1Pct.O,,-0.4996,Percent of 1-person HHs
+hov3,Constant,,4.44,
 hov3,Constant,v0,-99,Auto Availability
-hov3,Constant,vi,0.7501,Vehicle insufficient households
-hov3,Constant,,4.184041,
-hov3,hov_skim.CongTime,,-0.086735,Travel time
-hov3,hov_skim.[TollCostHOV (Skim)],,-0.437392,Toll cost
-hov3,se.HHSize1Pct.O,,-1.963763,Percent of 1-person HHs
-hov3,se.HiIncomePct.O,,0.607451,High Income Pct
-hov3,parking.MC_LS_Work.D,,0.157958,Parking
-other_auto,Constant,v0,1.358308,Zero-vehicle households
-other_auto,Constant,vi,1.358308,Vehicle insufficient households
-other_auto,Constant,,2.398,Constant
-other_auto,sov_skim.CongTime,,-0.0247,Travel time
-auto_pay,Constant,v0,1.358308,Zero-vehicle households
-auto_pay,Constant,vi,1.358308,Vehicle insufficient households
-auto_pay,Constant,,0.2475,Constant
-auto_pay,hov_skim.CongTime,,-0.0247,Travel time
-auto_pay,se.PKTNCWait.O,,-0.0247,Auto wait time
-auto_pay,hov_skim.auto_pay_fare,,-0.00675,Auto fare
-auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,,3.93,Airport related
-walk,Constant,v0,2.6358,Zero-vehicle households
-walk,Constant,vi,2.8608,Vehicle insufficient households
-walk,Constant,,-1.22,Constant
-pnr,Constant,v0,1.224,Zero-vehicle households
-pnr,Constant,vi,1.449,Vehicle insufficient households
-pnr,Constant,,-1.22,Constant
-knr,Constant,v0,1.224,Zero-vehicle households
-knr,Constant,vi,1.449,Vehicle insufficient households
-knr,Constant,,-1.22,Constant
-w_lb,Constant,v0,0.58,Zero-vehicle households
-w_lb,Constant,,5.8837,Constant
+hov3,hov_skim.CongTime,,-0.1965,Travel time
+hov3,hov_skim.[TollCostHOV (Skim)],,-0.990923,Toll cost
+hov3,se.HHSize1Pct.O,,-0.4996,Percent of 1-person HHs
+other_auto,Constant,,-4.305,Constant
+other_auto,sov_skim.CongTime,,-0.1614,Travel time
+other_auto,sov_skim.[TollCostSOV (Skim)],,-0.813918,Toll cost
+other_auto,parking.MC_LS_NonWork.D,,0.3945,Parking
+auto_pay,Constant,,-0.4568,Constant
+auto_pay,hov_skim.CongTime,,-0.08114,Travel time
+auto_pay,se.PKTNCWait.O,,-0.08114,Auto wait time
+auto_pay,hov_skim.auto_pay_fare,,-0.409178,Auto fare
+w_lb,Constant,,2.165,Constant
+w_lb,Constant,v0,1.1173,Zero-vehicle households
+w_lb,Constant,vi,0.5373,Vehicle Insufficient households
 w_lb,w_lb_skim.[In-Vehicle Time],,-0.02129,IVTT
 w_lb,w_lb_skim.Fare,,-0.107363,Fare
 w_lb,w_lb_skim.[Access Walk Time],,-0.09,Access walk time
@@ -50,8 +31,9 @@ w_lb,w_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
 w_lb,w_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
 w_lb,w_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
 w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
-w_eb,Constant,v0,0.58,Zero-vehicle households
-w_eb,Constant,,4.6188,Constant
+w_lb,se.HiIncomePct.O,,-0.8481,High income household percentage
+w_eb,Constant,v0,1.1173,Zero-vehicle households
+w_eb,Constant,vi,0.5373,Vehicle Insufficient households
 w_eb,w_eb_skim.[In-Vehicle Time],,-0.02129,IVTT
 w_eb,w_eb_skim.Fare,,-0.107363,Fare
 w_eb,w_eb_skim.[Access Walk Time],,-0.09,Access walk time
@@ -59,38 +41,4 @@ w_eb,w_eb_skim.[Initial Wait Time],,-0.0826,Initial wait time
 w_eb,w_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
 w_eb,w_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
 w_eb,w_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
-knr_lb,Constant,,-0.095,Constant
-knr_lb,knr_lb_skim.[In-Vehicle Time],,-0.02129,IVTT
-knr_lb, knr_lb_skim.Fare,,-0.107363,Fare
-knr_lb,knr_lb_skim.[Access Walk Time],,-0.09,Access walk time
-knr_lb,knr_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
-knr_lb,knr_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
-knr_lb,knr_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
-knr_lb,knr_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
-knr_eb,knr_eb_skim.[In-Vehicle Time],,-0.02129,IVTT
-knr_eb,knr_eb_skim.Fare,,-0.107363,Fare
-knr_eb,knr_eb_skim.[Access Walk Time],,-0.09,Access walk time
-knr_eb,knr_eb_skim.[Initial Wait Time],,-0.0826,Initial wait time
-knr_eb,knr_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
-knr_eb,knr_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
-knr_eb,knr_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
-pnr_lb,Constant,v0,-99,Zero-vehicle households
-pnr_lb,Constant,vi,-1.4118,Vehicle insufficient households
-pnr_lb,Constant,,2.69,Constant
-pnr_lb,pnr_lb_skim.[In-Vehicle Time],,-0.02129,IVTT
-pnr_lb,pnr_lb_skim.Fare,,-0.107363,Fare
-pnr_lb,pnr_lb_skim.[Access Walk Time],,-0.09,Access walk time
-pnr_lb,pnr_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
-pnr_lb,pnr_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
-pnr_lb,pnr_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
-pnr_lb,pnr_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
-pnr_eb,Constant,v0,-99,Zero-vehicle households
-pnr_eb,Constant,vi,-1.4118,Vehicle insufficient households
-pnr_eb,Constant,,2.63,Constant
-pnr_eb,pnr_eb_skim.[In-Vehicle Time],,-0.02129,IVTT
-pnr_eb,pnr_eb_skim.Fare,,-0.107363,Fare
-pnr_eb,pnr_eb_skim.[Access Walk Time],,-0.09,Access walk time
-pnr_eb,pnr_eb_skim.[Initial Wait Time],,-0.0826,Initial wait time
-pnr_eb,pnr_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
-pnr_eb,pnr_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
-pnr_eb,pnr_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
+w_eb,se.HiIncomePct.O,,-0.8481,High income household percentage
