@@ -73,31 +73,44 @@ menu "TRMG2 Menu"
         return(1)
     enditem
 
-    /*
-    Temporary macro to get initial congested skims. Keeping during development
-    in case I need to re-run.
-    TODO: delete when done
-    */
-    MenuItem "Cong Skim" text: "Cong Skims"
-        do 
+    separator
+
+    MenuItem "Utils" text: "Utilities"
+        menu "TRMG2 Utilities"
+    
+    MenuItem "Calibrators" text: "Calibrators"
+        menu "TRMG2 Calibrators"
+endMenu 
+
+menu "TRMG2 Utilities"
+    init do
+    enditem
+
+    MenuItem "desire_lines" text: "Desire Lines" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        {, scen_name} = mr.GetScenario()
-
-        // Check that a scenario is selected and that a folder has been chosen
-        if scen_name = null then do
-            ShowMessage("Choose a scenario (not 'Model')")
-            return()
-        end
-        if Args.[Scenario Folder] = null then do
-            ShowMessage(
-                "Choose a folder for the current scenario\n" +
-                "(Parameters -> Files -> Scenario -> Input)"
-            )
-            return()
-        end
-
-        mr.RunCode("get cong skims", Args)
-        return(1)
+        mr.RunCode("Open Desire Lines Dbox", Args)
     enditem
-endMenu 
+
+    MenuItem "diff" text: "Diff Tool" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCode("Open Diff Tool")
+    enditem
+
+    MenuItem "fixed_od" text: "Fixed OD Assignment" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Fixed OD Dbox", Args)
+    enditem
+endMenu
+
+menu "TRMG2 Calibrators"
+    init do
+    enditem
+
+    MenuItem "NM" text: "Nonmotorized" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Calibrate NM", Args)
+    enditem
+endMenu

@@ -292,10 +292,11 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
         util = CopyArray(opts.UtilityFunction)
         if util <> null then do
             self.CheckUtilityTable(util)
-            if self.AlternateUtilFormat = 0 then
-                self.Utility = util
-            else 
-                self.Utility = self.ChangeUtilityFormat(util)
+            self.Utility = util
+            if self.ModelType = "Mode Choice" then do
+                if self.AlternateUtilFormat = 1 then
+                    self.Utility = self.ChangeUtilityFormat(util)
+            end
         end
 
         // Availability Expressions
@@ -327,8 +328,11 @@ Class "PMEChoiceModel"(opts) inherits: "TransCAD.Task"
 
         if util.Coefficient <> null then do
             self.AlternateUtilFormat = 1       // Flag to indicate the alternate utility format
-            chkArr = chkArr + {{"alternative", "string", 1},
-                               {"coefficient", "double", 1}}    
+            if self.ModelType = "Mode Choice" then
+                chkArr = chkArr + {{"alternative", "string", 1},
+                                    {"coefficient", "double", 1}}
+            else
+                chkArr = chkArr + {{"coefficient", "double", 1}}     
         end
 
         count = 0

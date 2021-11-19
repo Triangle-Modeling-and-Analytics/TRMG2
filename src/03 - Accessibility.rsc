@@ -300,17 +300,16 @@ Macro "Create Accessibility Skims" (Args)
     overrides = {
         periods: {"AM"},
         access_modes: {"w"},
-        transit_modes: {"lb"}
+        transit_modes: {"all"}
     }
     RunMacro("Transit Skims", Args, overrides)
 
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
     obj.OperationType = "Replace"
-    obj.TreatMissingAsZero = true
+    obj.TreatMissingAsZero = false
     obj.Neighbours = 3
     obj.Factor = .75
-    // TODO: clean up if this class is modified to do all cores by default
     obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "FFTime"})
     ok = obj.Run()
     obj.SetMatrix({MatrixFile: out_files.sov, Matrix: "Length (Skim)"})
@@ -337,7 +336,7 @@ Macro "Calculate Logsum Accessibilities" (Args)
     skim_dir = Args.[Output Folder] + "\\skims"
     sov_skim = skim_dir + "\\roadway\\accessibility_sov_AM.mtx"
     walk_skim = skim_dir + "\\nonmotorized\\walk_skim.mtx"
-    transit_skim = skim_dir + "\\transit\\skim_AM_w_lb.mtx"
+    transit_skim = skim_dir + "\\transit\\skim_AM_w_all.mtx"
 
     RunMacro("Accessibility Calculator", {
         table: se_file,
@@ -424,4 +423,5 @@ Macro "Calculate TNC Wait Time" (Args)
     v_pk_wait = v_op_wait + 3.5
     SetDataVector(se_vw + "|", "PKTNCWait", v_pk_wait, )
     SetDataVector(se_vw + "|", "OPTNCWait", v_op_wait, )
+    CloseView(se_vw)
 endmacro

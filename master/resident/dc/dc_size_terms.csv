@@ -1,0 +1,20 @@
+Field,w_hbw_size_H,w_hbw_size_L,w_hbo_size,w_hbek12_size,n_hbome_size,n_hbomed_size,n_hbods_size,n_hbodl_size,n_hbk12_size,Description
+Service_RateLow_EH,0.392546609,0,0,0,0,0,0,0,0,Attractions/Size terms for destination choice
+Service_RateHigh_EH,0.392546609,0,0,0,0,0,0,0,0,Separate attraction rates are used for high- and low-income households for work trips
+Office_EH,1.1551,0,0,0,0,0,0,0,0,"The 'EL' and 'EH' suffice on employment is 'Earning Low' and ""Earning High'"
+Industry_EH,1,0,0,0,0,0,0,0,0,See PctHighEarn field (source: LEHD)
+Retail_EH,0.517730729,0,0,0,0,0,0,0,0,
+Service_RateLow_EL,0,0.22900762,0,0,0,0,0,0,0,
+Service_RateHigh_EL,0,0.22900762,0,0,0,0,0,0,0,
+Office_EL,0,0.866927437,0,0,0,0,0,0,0,
+Industry_EL,0,1,0,0,0,0,0,0,0,
+Retail_EL,0,0.3204593,0,0,0,0,0,0,0,
+Service_RateLow,0,0,1,0,0.031682209,1,2.049098622,9.679400814,0,
+Service_RateHigh,0,0,4.026912688,0,0.093480726,1,9.78646198,136.5922212,0,
+Office,0,0,1.210459452,0,0.000710174,0,1.394171037,14.0553,0,
+Industry,0,0,0,0,0,0,0,3.687689094,0,
+Retail,0,0,12.42859666,0,1,0.203111539,1.133148453,7.885297898,0,
+HH,0,0,0.0721,0,0,0,0,0,0,
+HH_POP,0,0,0,0,0,0,1,1,0,
+K12,0,0,0,1,0,0,4.132985388,6.807330185,1,
+Hosp_Service,0,0,0,0,0,0.2395,0,0,0,

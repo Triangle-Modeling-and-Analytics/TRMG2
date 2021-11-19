@@ -13,6 +13,8 @@ navbar:
       menu:
         - text: "Household Survey"
           href: survey_processing.html
+        - text: "On-Board Survey"
+          href: obs_processing.html
     - text: Resident Models
       menu:
         - text: "Synthesis"
@@ -25,6 +27,10 @@ navbar:
           href: time_of_day.html
         - text: "Non-motorized"
           href: resident_nonmotorized.html
+        - text: "Parking"
+          href: parking.html
+        - text: "Destination Choice"
+          href: resident_dest_choice.html
         - text: "Non-homebased"
           href: nhb.html
     - text: Other Models
@@ -33,8 +39,15 @@ navbar:
           href: accessibility.html
         - text: "Airport"
           href: airport.html
+        - text: "Internal/External"
+          href: ieei.html
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
+        - text: "Roadway Assignment"
+          href: assignment_roadway.html
+  right:
+    - text: "Github"
+      href: https://github.com/Caliper-Corporation/TRMG2
 output:
   html_document:
     theme: flatly

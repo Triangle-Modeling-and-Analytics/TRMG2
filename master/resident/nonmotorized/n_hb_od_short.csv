@@ -2,7 +2,9 @@ Alternative,Expression,Segment,Coefficient,Description
 motorized,Constant,,0,
 nonmotorized,person.is_senior,,-0.361,Person is a senior
 nonmotorized,person.is_worker,,-0.188,Person is a worker
+nonmotorized,person.is_child + person.oth_kids > 0,,-0.5796,Household has kids
 nonmotorized,person.Autos = 0,,0.89,Person has access to 0 HH vehicles
-nonmotorized,person.inc_per_capita,,0.00001,Income per person in the household
+nonmotorized,person.inc_per_capita,,0.0000101,Income per person in the household
 nonmotorized,se.Walkability.O,,0.518,Intrazonal walkability
-nonmotorized,Constant,,-0.221,
+nonmotorized,Constant,,-0.221,Estimated constant
+nonmotorized,Constant,,1.4607,Calibration constant
