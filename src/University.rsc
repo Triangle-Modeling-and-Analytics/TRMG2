@@ -3,16 +3,16 @@ University Model
 */
 
 Macro "University" (Args)
-    RunMacro("University Productions", Args)
-    RunMacro("University Attractions", Args)
-    RunMacro("University Balance Ps and As", Args)
-    RunMacro("University TOD", Args)
-    RunMacro("University Gravity", Args)
-    RunMacro("University Combine Matrix", Args)
-    RunMacro("University Directionality", Args)
-    RunMacro("University MC Probabilities", Args)
-    RunMacro("University Mode Choice", Args)
-    ShowMessage("done")
+    // RunMacro("University Productions", Args)
+    // RunMacro("University Attractions", Args)
+    // RunMacro("University Balance Ps and As", Args)
+    // RunMacro("University TOD", Args)
+    // RunMacro("University Gravity", Args)
+    // RunMacro("University Combine Matrix", Args)
+    // RunMacro("University Directionality", Args)
+    // RunMacro("University MC Probabilities", Args)
+    // RunMacro("University Mode Choice", Args)
+    // ShowMessage("done")
     return(1)
 endmacro
 
@@ -23,10 +23,6 @@ Calculate university productions
 Macro "University Productions" (Args)
     se_file = Args.SE
     production_rate_file = Args.[Input Folder] + "\\university\\university_production_rates.csv"
-
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-    production_rate_file = "D:\\Models\\TRMG2\\master\\university\\university_production_rates.csv"
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -112,10 +108,6 @@ Calculate university attractions
 Macro "University Attractions" (Args)
     se_file = Args.SE
     rate_file = Args.[Input Folder] + "\\university\\university_attraction_rates.csv"
-
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-    rate_file = "D:\\Models\\TRMG2\\master\\university\\university_attraction_rates.csv"
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -206,9 +198,6 @@ Balance university production and attraction
 Macro "University Balance Ps and As" (Args)
     se_file = Args.SE
 
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-
     se_vw = OpenTable("se", "FFB", {se_file})
     SetView(se_vw)
 
@@ -280,10 +269,6 @@ Macro "University TOD" (Args)
     se_file = Args.SE
     tod_file = Args.[Input Folder] + "\\university\\university_tod.csv"
 
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-    tod_file = "D:\\Models\\TRMG2\\master\\university\\university_tod.csv"
-
     se_vw = OpenTable("se", "FFB", {se_file})
 
     {drive, folder, name, ext} = SplitPath(tod_file)
@@ -306,19 +291,12 @@ Macro "University Gravity" (Args)
     skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_AM.mtx"
     university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
 
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
-    param_file = "D:\\Models\\TRMG2\\master\\university\\university_gravity.csv"
-    skim_file =  "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_AM.mtx"
-    university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
-
     opts = null
     opts.se_file = se_file
     opts.param_file = param_file
     opts.skim_file = skim_file
     opts.output_matrix = university_matrix_file
     RunMacro("Gravity", opts)
-
 endmacro
 
 /*
@@ -328,10 +306,6 @@ Combine university trips for all campus and create period specific matrices
 Macro "University Combine Matrix" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
-
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
-    periods = {"AM", "MD", "PM", "NT"}
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -393,11 +367,6 @@ Macro "University Directionality" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
     periods = Args.periods
-
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
-    dir_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_directionality.csv"
-    periods = {"AM", "MD", "PM", "NT"}
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
 
@@ -462,13 +431,6 @@ Macro "University MC Probabilities" (Args)
     periods = Args.periods
     parking_logsum_table = Args.[Parking Logsums Table]
 
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    input_dir = "D:\\Models\\TRMG2\\master\\university\\mode"
-    skims_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims"
-    output_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\mode"
-    periods = {"AM", "MD", "PM", "NT"}
-    parking_logsum_table = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\resident\\parking\\ParkingLogsums.bin"
-
     RunMacro("Create Directory", output_dir)
 
     trip_types = {"UHC", "UHO", "UCO", "UCC", "UC1"}
@@ -500,7 +462,7 @@ Macro "University MC Probabilities" (Args)
 
             opts.output_dir = output_dir
 
-            RunMacro("MC", Args, opts)
+            RunMacro("MC", opts)
         end
     end
 endmacro
@@ -512,10 +474,6 @@ Apply mode choice probabilities to split university trips by mode
 Macro "University Mode Choice" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
-
-    // TODO-AK: delete the hard-coded paths (used for testing)
-    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
-    periods = {"AM", "MD", "PM", "NT"}
 
     mode_names = {"auto", "transit", "walk", "bike"}
 
@@ -571,6 +529,4 @@ Macro "University Mode Choice" (Args)
 
         end
     end
-
 endmacro
-
