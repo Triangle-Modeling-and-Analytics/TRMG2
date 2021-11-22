@@ -1,5 +1,5 @@
 /*
-TODO: flesh this out into a general macro that can be called from
+Note: Could flesh this out into a general macro that can be called from
 the drop down menu of tools.
 */
 

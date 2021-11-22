@@ -372,11 +372,44 @@ div.tocify {
     <li>
       <a href="survey_processing.html">Household Survey</a>
     </li>
+    <li>
+      <a href="obs_processing.html">On-Board Survey</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Models
+    Resident Models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="population_synthesis.html">Synthesis</a>
+    </li>
+    <li>
+      <a href="auto_ownership.html">Auto Ownership</a>
+    </li>
+    <li>
+      <a href="resident_production.html">Production</a>
+    </li>
+    <li>
+      <a href="time_of_day.html">Time of Day</a>
+    </li>
+    <li>
+      <a href="resident_nonmotorized.html">Non-motorized</a>
+    </li>
+    <li>
+      <a href="parking.html">Parking</a>
+    </li>
+    <li>
+      <a href="nhb.html">Non-homebased</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other Models
      
     <span class="caret"></span>
   </a>
@@ -385,19 +418,24 @@ div.tocify {
       <a href="accessibility.html">Accessibility</a>
     </li>
     <li>
-      <a href="population_synthesis.html">Synthesis</a>
+      <a href="airport.html">Airport</a>
     </li>
     <li>
-      <a href="time_of_day.html">Time of Day</a>
+      <a href="ieei.html">Internal/External</a>
     </li>
     <li>
-      <a href="nhb.html">Non-home-based</a>
+      <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
+    <li>
+      <a href="assignment_roadway.html">Roadway Assignment</a>
     </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -478,56 +516,9 @@ Pathing before and after
 <div id="tolls" class="section level3">
 <h3>Tolls</h3>
 <p>Tolling is an important policy lever for the Triangle. The Triangle Expressway is an approximately 18 mile long freeway that charges a toll. In addition, the region is considering additional toll facilities include high-occupancy toll (HOT) lanes in the future.</p>
-<p>Toll rates were collected from the <a href="https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx">NC Quick Pass website</a>. The listed prices were used to come up with an average cost per mile for 2-axle vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more axles pay four times that rate.</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Payment Method
-</th>
-<th style="text-align:left;">
-Cost
-</th>
-<th style="text-align:right;">
-Distance (mi)
-</th>
-<th style="text-align:left;">
-Rate
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Transponder
-</td>
-<td style="text-align:left;">
-$3.25
-</td>
-<td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:left;">
-$0.183
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-By Mail
-</td>
-<td style="text-align:left;">
-$5.00
-</td>
-<td style="text-align:right;">
-17.8
-</td>
-<td style="text-align:left;">
-$0.281
-</td>
-</tr>
-</tbody>
-</table>
-<p>The TRMG2 does not predict transponder ownership, but instead has parameters that can be modified during scenario testing. For the base year, the parameters were calculated using data obtained from NC Turnpike Authority. These allowed transponder utilization to be calculated by vehicle class as shown in the table below.</p>
+<p>Toll rates were collected from the <a href="https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx">NC Quick Pass website</a>. Small links representing the toll gantries were added to the link layer. This approach makes it easy to add accurate toll prices to the network. If a user crosses the gantry link, they pay the listed price. In the image below, the first price is for travelers with a transponder and the second is for those without.</p>
+<p><img src="img/networks/toll_gantry.png" width="262" /></p>
+<p>The TRMG2 does not predict transponder ownership, but has parameters to describe the percent of toll users that have one. For the base year, the parameters were calculated using data obtained from NC Turnpike Authority. These allowed transponder utilization to be calculated by vehicle class as shown in the table below.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -566,6 +557,8 @@ MUT
 </tr>
 </tbody>
 </table>
+<p>These parameters can be modified during scenario planning.</p>
+<p>Finally, the model automatically increases the toll rates for single- and multi-unit trucks based on the stated policy of the turnpike. SUT pay double the listed price while MUT pay four times as much.</p>
 </div>
 <div id="bus-speeds" class="section level3">
 <h3>Bus Speeds</h3>
@@ -758,6 +751,118 @@ Rural
 </tr>
 <tr>
 <td style="text-align:left;">
+Superstreet
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Superstreet
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Superstreet
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Superstreet
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Arterial
 </td>
 <td style="text-align:left;">
@@ -814,6 +919,62 @@ Rural
 </tr>
 <tr>
 <td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Collector
 </td>
 <td style="text-align:left;">
@@ -857,6 +1018,62 @@ Suburban
 <tr>
 <td style="text-align:left;">
 Collector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
 </td>
 <td style="text-align:left;">
 Rural

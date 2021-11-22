@@ -5,4 +5,5 @@ nonmotorized,person.is_child,,-0.465,Person is a child
 nonmotorized,person.is_worker,,-0.283,Person is a worker
 nonmotorized,person.inc_per_capita,,0.000004,Income per person in the household
 nonmotorized,se.Walkability.O,,3.702,Intrazonal walkability
-nonmotorized,Constant,,-1.729,
+nonmotorized,Constant,,-1.729,Estimated constant
+nonmotorized,Constant,,0.4559,Calibration constant

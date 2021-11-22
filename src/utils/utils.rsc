@@ -735,10 +735,10 @@ Macro "Get RTS Roadway File" (MacroOpts)
   
   // If the right roadway file exists in the directory but the route system
   // is pointing elsewhere, fix it.
-  if GetFileInfo(hwy_dbd) <> null and hwy_dbd <> hwy_dbd1 then do
-    {nlyr, llyr} = GetDBLayers(hwy_dbd)
-    ModifyRouteSystem(rts_file, {{"Geography", hwy_dbd, llyr}})
-  end
+  // if GetFileInfo(hwy_dbd) <> null and hwy_dbd <> hwy_dbd1 then do
+  //   {nlyr, llyr} = GetDBLayers(hwy_dbd)
+  //   ModifyRouteSystem(rts_file, {{"Geography", hwy_dbd, llyr}})
+  // end
 
   // If the roadway file does not exist in the same folder as the rts_file,
   // use the original path returned by GetRouteSystemInfo().
@@ -1732,7 +1732,7 @@ Macro "Link Summary by FT and AT" (MacroOpts)
   end
 
   // Open the highway link layer and read into a data frame
-  objLyrs = CreateObject("AddDBLayers", {FileName: LineDB})
+  objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
   {nlyr, llyr} = objLyrs.Layers
   hwy_df = CreateObject("df")
   opts = null
@@ -1845,7 +1845,6 @@ Macro "Accessibility Calculator" (MacroOpts)
   // Remove first and last column (param names and description info)
   out_fields = ExcludeArrayElements(out_fields, 1, 1)
   out_fields = ExcludeArrayElements(out_fields, out_fields.length, 1)
-  // TODO: use vector.position() after bug fix
   a_first_col = V2A(GetDataVector(param_vw + "|", first_col, ))
   skim_pos = a_first_col.position("skim")
   core_pos = a_first_col.position("core")
@@ -1919,14 +1918,14 @@ Macro "Summarize Transit" (MacroOpts)
     then Throw("Summarize Transit:\n`loaded_network` does not exist")
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
-
+  
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
-  onoff.group_by({"ROUTE", "access", "mode", "tod"})
+  onoff.group_by({"ROUTE", "access", "mode", "period"})
   cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
   onoff.summarize(cols_to_summarize, "sum")
   opts = null
-  opts.new_names = {"route", "access", "mode", "tod"} + cols_to_summarize
+  opts.new_names = {"route", "access", "mode", "period"} + cols_to_summarize
   onoff.colnames(opts)
   daily = onoff.copy()
   daily.group_by("route")
@@ -1936,8 +1935,8 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("access", "All")
   daily.mutate("mode", "All")
-  daily.mutate("tod", "Daily")
-  daily.select({"route", "access", "mode", "tod"} + cols_to_summarize)
+  daily.mutate("period", "Daily")
+  daily.select({"route", "access", "mode", "period"} + cols_to_summarize)
   daily.bind_rows(onoff)
   daily.write_csv(output_dir + "/boardings_and_alightings.csv")
 
@@ -1968,10 +1967,7 @@ Macro "Summarize Transit" (MacroOpts)
 EndMacro
 
 /*
-The GT transit assignment macro "Pathfinder Assignment" does some basic
-aggregation of the transit outputs and writes out CSV files. The transit
-summary macro uses this function to collect the names of all those outputs
-files in `transit_asn_dir`.
+
 
 Inputs
   * `transit_asn_dir`
@@ -1997,9 +1993,21 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
   transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
   
-  files = RunMacro("Catalog Files", transit_asn_dir, "csv")
+  files = RunMacro("Catalog Files", transit_asn_dir, "bin")
   for file in files do
     df = CreateObject("df", file)
+
+    {, , name, } = SplitPath(file)
+    parts = ParseString(name, "_")
+    period = parts[1]
+    v_period = Vector(df.nrow(), "String", {Constant: period})
+    df.mutate("period", v_period)
+    access = parts[2]
+    v_access = Vector(df.nrow(), "String", {Constant: access})
+    df.mutate("access", v_access)
+    mode = parts[3]
+    v_mode = Vector(df.nrow(), "String", {Constant: mode})
+    df.mutate("mode", v_mode)
     
     if Position(file, "onoff") <> 0 then do
       if onoff = null then onoff = df.copy()
@@ -2010,7 +2018,7 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     end else if Position(file, "walkflow") <> 0 then do
       if walk = null then walk = df.copy()
       else walk.bind_rows(df)
-    end else if Position(file, "flow") <> 0 then do
+    end else do
       if flow = null then flow = df.copy()
       else flow.bind_rows(df)
     end
@@ -2062,7 +2070,7 @@ Macro "Gravity" (MacroOpts)
         // ColIndex: ci
       },
       Gamma: {param_vw.a, param_vw.b, param_vw.c},
-      Constraint: param_vw.constraint
+      ConstraintType: param_vw.constraint
     })
 
     rh = GetNextRecord(param_vw + "|", , )
@@ -2070,5 +2078,429 @@ Macro "Gravity" (MacroOpts)
 
   obj.Run()
   r = obj.GetResult()
+  CloseView(param_vw)
   return(r)
+endmacro
+
+/*
+Simple macro specific to TRMG2. Uses the resident production table to
+get and return the list of trip types.
+*/
+
+Macro "Get HB Trip Types" (Args)
+  prod_rate_file = Args.[Input Folder] + "/resident/generation/production_rates.csv"
+  rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
+  trip_types = GetDataVector(rate_vw + "|", "trip_type", )
+  trip_types = SortVector(trip_types, {Unique: "true"})
+  CloseView(rate_vw)
+  return(V2A(trip_types))
+endmacro
+
+Macro "Get NHB Trip Types" (Args)
+  dir = Args.[Input Folder] + "/resident/nhb/generation"
+  files = RunMacro("Catalog Files", dir)
+  for file in files do
+    {, , name, } = SplitPath(file)
+    if name = "nhb_calibration_factors" then continue
+    {trip_type, mode} = RunMacro("Separate type and mode", name)
+    trip_types = trip_types + {trip_type}
+  end
+  trip_types = V2A(SortVector(A2V(trip_types), {Unique: "true"}))
+  return(trip_types)
+endmacro
+
+Macro "Separate type and mode" (name)
+  pieces = ParseString(name, "_")
+  trip_type = pieces[1]
+  for i = 2 to 4 do
+    trip_type = trip_type + "_" + pieces[i]
+  end
+  mode = pieces[5]
+  for i = 6 to pieces.length do
+    mode = mode + "_" + pieces[i]
+  end
+  return({trip_type, mode})
+endmacro
+
+Macro "Get All Res Trip Types" (Args)
+  hb_types = RunMacro("Get HB Trip Types", Args)
+  nhb_types = RunMacro("Get NHB Trip Types", Args)
+  return(hb_types + nhb_types)
+endmacro
+
+
+Macro "Create Intra Cluster Matrix"(Args)
+  se = Args.SE
+  se_vw = OpenTable("SE", "FFB", {se})
+  vTAZ = GetDataVector(se_vw + "|", "TAZ",)
+  nTAZ = vTAZ.length
+  CloseView(se_vw)
+
+  outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
+  // Create empty matrix
+  obj = CreateObject("Matrix") 
+  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+  opts.RowIds = v2a(vTAZ) 
+  opts.ColIds = v2a(vTAZ)
+  opts.MatrixNames = {"IC", "IZ"}
+  opts.RowIndexName = "All Zones"
+  opts.ColIndexName = "All Zones"
+  mat = obj.CreateFromArrays(opts)
+  obj = null
+  
+  // Intialize IC and IZ cores
+  mtx = CreateObject("Matrix", mat)
+  mc = mtx.GetCore("IC")
+  mc := 0
+  
+  mc = mtx.GetCore("IZ")
+  mc := 0
+  v = Vector(nTAZ, "Short", {{"Constant", 1}})
+  SetMatrixVector(mc, v, {{"Diagonal"}})
+  
+  // Cluster definitions from dc spec for the 2 level model
+  cluster_data = Args.[Input Folder] + "/resident/dc/w_hb_w_all_cluster.csv"
+  theta_vw = OpenTable("thetas", "CSV", {cluster_data})
+  {v_cluster_ids, v_cluster_names} = GetDataVectors(theta_vw + "|", {"Cluster", "ClusterName"},)
+  CloseView(theta_vw)
+
+  for i = 1 to v_cluster_ids.length do
+      cluster_id = v_cluster_ids[i]
+      cluster_name = v_cluster_names[i]
+
+      mtx.AddIndex({
+          Matrix: mtx.GetMatrixHandle(),
+          IndexName: cluster_name,
+          Filter: "Cluster = " + String(cluster_id),
+          Dimension: "Both",
+          TableName: se,
+          OriginalID: "TAZ",
+          NewID: "TAZ"
+      })
+      
+      mtx.SetRowIndex(cluster_name)
+      mtx.SetColIndex(cluster_name)
+      mc = mtx.GetCore("IC")
+      mc := 1
+  end
+  mc = null
+  mat = null
+endMacro
+/*
+Used by the convergence macro to write out the %RMSE in each iteration
+*/
+
+Macro "Write PRMSE" (Args, period)
+
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  file = assn_dir + "/feedback_report_" + period + ".csv"
+  prmse = Args.(period + "_PRMSE")
+  iter = Args.FeedbackIteration
+
+  if iter = 1 then do
+    f = OpenFile(file, "w")
+    WriteLine(f, "Iteration,%RMSE")
+    WriteLine(f, "1,0")
+  end else do
+    f = OpenFile(file, "a")
+    WriteLine(f, String(iter) + "," + String(prmse))
+  end
+  CloseFile(f)
+endmacro
+
+/*
+The model manages feedback independently by time of day. It does this by
+building up an Args.converged_periods variable, which keeps track of which
+periods have finished. This macro returns the periods that are not converged.
+*/
+
+Macro "Get Unconverged Periods" (Args)
+  periods = Args.periods
+  converged_periods = Args.converged_periods
+
+  if converged_periods = null then return(periods)
+  for period in periods do
+    if converged_periods.position(period) = 0 then to_return = to_return + {period}
+  end
+  return(to_return)
+EndMacro
+
+/*
+Calculates the RMSE and %RMSE of two vectors.
+
+Inputs
+  * v_target
+    * Vector
+    * First vector to use in calculation.
+  * v_compare
+    * Vector
+    * Second vector to use in calculation.
+    
+Returns
+  * Array in form of {RMSE, %RMSE}
+*/
+
+Macro "Calculate Vector RMSE" (v_target, v_compare)
+
+  // Argument check
+  if v_target.length = null then Throw("Missing 'v_target'")
+  if v_compare.length = null then Throw("Missing 'v_compare'")
+  if TypeOf(v_target) = "array" then v_target = A2V(v_target)
+  if TypeOf(v_compare) = "array" then v_target = A2V(v_compare)
+  if TypeOf(v_target) <> "vector" then Throw("'v_target' must be vector or array")
+  if TypeOf(v_compare) <> "vector" then Throw("'v_compare' must be vector or array")
+  if v_target.length <> v_compare.length then Throw("Vectors must be the same length")
+
+  n = v_target.length
+  tot_target = VectorStatistic(v_target, "Sum", )
+  tot_result = VectorStatistic(v_compare, "Sum", )
+
+  // RMSE and Percent RMSE
+  diff_sq = Pow(v_target - v_compare, 2)
+  sum_sq = VectorStatistic(diff_sq, "Sum", )
+  rmse = sqrt(sum_sq / n)
+  pct_rmse = 100 * rmse / (tot_target / n)
+  return({rmse, pct_rmse})
+EndMacro
+
+/*
+
+*/
+
+Macro "Roadway Count Comparison Tables" (MacroOpts)
+
+  hwy_bin = MacroOpts.hwy_bin
+  volume_field = MacroOpts.volume_field
+  count_id_field = MacroOpts.count_id_field
+  count_field = MacroOpts.count_field
+  class_field = MacroOpts.class_field
+  area_field = MacroOpts.area_field
+  volume_breaks = MacroOpts.volume_breaks
+  out_dir = MacroOpts.out_dir
+
+  if volume_breaks = null
+    then volume_breaks = {0, 10000, 25000, 50000, 100000, 1000000}
+    else do
+      if volume_breaks[1] <> 0 then volume_breaks = {0} + volume_breaks
+      volume_breaks = volume_breaks + {1000000}
+    end
+
+  RunMacro("Create Directory", out_dir)
+
+  hwy_vw = OpenTable("hwy", "FFB", {hwy_bin})
+  SetView(hwy_vw)
+  count_set = "count_set"
+  query = "Select * where nz(" + count_field + ") > 0"
+  n = SelectByQuery(count_set, "several", query)
+
+  // Counts split across paired 1-way links are duplicated. Keep only 1.
+  df = CreateObject("df")
+  df.read_view({
+    view: hwy_vw,
+    set: count_set,
+    fields: {count_id_field, count_field, volume_field, class_field, area_field}
+  })
+  df.group_by(count_id_field)
+  df.summarize({count_field, volume_field, class_field, area_field}, "first")
+  field_names = df.colnames()
+  for field_name in field_names do
+    if Left(field_name, 6) = "first_"
+      then new_name = Substitute(field_name, "first_", "", )
+      else new_name = field_name
+      df.rename(field_name, new_name)
+  end
+  agg_vw = df.create_view("agg")
+  SetView(agg_vw)
+
+  // overall/total fields
+  {v_count, v_volume, v_class} = GetDataVectors(
+    agg_vw + "|", {count_field, volume_field, class_field}, 
+  )
+  n = v_count.length
+  total_count = VectorStatistic(v_count, "Sum", )
+  total_volume = VectorStatistic(v_volume, "Sum", )
+  total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+  {, total_prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+  total_prmse = round(total_prmse, 2)
+  total_line = {
+    "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+    "," + String(total_pct_diff) + "," + String(total_prmse)
+  }
+  area_total_line = {
+    "All,All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+    "," + String(total_pct_diff) + "," + String(total_prmse)
+  }
+
+  // Facility type table
+  lines = null
+  v_class = SortVector(v_class, {Unique: "true"})
+  for class_name in v_class do
+    class_set = "class"
+    if TypeOf(class_name) <> "string" then class_name = String(class_name)
+    query = "Select * where " + class_field + " = '" + class_name + "'"
+    n = SelectByQuery(class_set, "several", query, )
+    if n = 0 then continue
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + class_set, {count_field, volume_field}, )
+    total_count = VectorStatistic(v_count, "Sum", )
+    total_volume = VectorStatistic(v_volume, "Sum", )
+    pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+    {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+    prmse = round(prmse, 2)
+    lines = lines + {
+      class_name + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+      "," + String(pct_diff) + "," + String(prmse)
+    }
+  end
+  file = out_dir + "/count_comparison_by_fac_type.csv"
+  lines = {"HCMType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
+
+  // Facility type and area type table
+  if area_field <> null then do
+    lines = null
+    v_area = GetDataVector(agg_vw + "|", area_field, )
+    v_area = SortVector(v_area, {Unique: "true"})
+    for class_name in v_class do
+      for area in v_area do
+        set_name = "class_area"
+        if TypeOf(class_name) <> "string" then class_name = String(class_name)
+        if TypeOf(area) <> "string" then area = String(area)
+        query = "Select * where " + class_field + " = '" + class_name + "' and " + area_field + " = '" + area + "'"
+        n = SelectByQuery(set_name, "several", query, )
+        if n = 0 then continue
+        {v_count, v_volume} = GetDataVectors(agg_vw + "|" + set_name, {count_field, volume_field}, )
+        total_count = VectorStatistic(v_count, "Sum", )
+        total_volume = VectorStatistic(v_volume, "Sum", )
+        pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+        {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+        prmse = round(prmse, 2)
+        lines = lines + {
+          class_name + "," + area + "," + String(n) + "," + String(total_count) + "," +
+          String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
+        }
+      end
+    end
+    lines = {"HCMType,AreaType,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+    lines = lines + area_total_line
+    file = out_dir + "/count_comparison_by_ft_and_at.csv"
+    RunMacro("Write CSV by Line", file, lines)
+  end
+
+  // Volume group table
+  lines = null
+  for i = 2 to volume_breaks.length do
+    low_vol = volume_breaks[i - 1]
+    high_vol = volume_breaks[i]
+
+    vol_set = "class"
+    query = "Select * where " + count_field + " > " + String(low_vol) + 
+      " and " + count_field + " <= " + String(high_vol)
+    n = SelectByQuery(vol_set, "several", query, )
+    if n = 0 then continue
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + vol_set, {count_field, volume_field}, )
+    total_count = VectorStatistic(v_count, "Sum", )
+    total_volume = VectorStatistic(v_volume, "Sum", )
+    pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+    {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+    prmse = round(prmse, 2)
+    if i = volume_breaks.length
+      then label = String(low_vol) + "+"
+      else label = String(high_vol)
+    lines = lines + {
+      label + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+      "," + String(pct_diff) + "," + String(prmse)
+    }
+  end
+  file = out_dir + "/count_comparison_by_vol_group.csv"
+  lines = {"VolumeGroup,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
+  
+  CloseView(hwy_vw)
+  CloseView(agg_vw)
+endmacro
+
+Macro "Write CSV by Line" (file, lines)
+  f = OpenFile(file, "w")
+  for line in lines do
+    WriteLine(f, line)
+  end
+  CloseFile(f)
+endmacro
+
+/*
+Takes a matrix (or array of matrices) and generates a CSV table of stats similar
+to the table created by Matrix -> Statistics from the TC drop menu.
+
+Inputs
+  * matrices
+    * String or array/vector of strings
+    * Full paths to matrix files to be summarized.
+
+Returns
+  * Returns a gplyr data frame
+*/
+
+Macro "Matrix Stats" (matrices)
+  
+  if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
+  if TypeOf(matrices) = "string" then matrices = {matrices}
+  if TypeOf(matrices) = "vector" then matrices = V2A(matrices)
+  if TypeOf(matrices) <> "array" then Throw(
+    "Matrix Statistics: 'matrices' must be string, array, or vector"
+  )
+  
+  // Create table of statistics
+  for mtx_file in matrices do
+
+    // get matrix core names and stats
+    {drive, folder, name, ext} = SplitPath(mtx_file)
+    mtx = OpenMatrix(mtx_file, )
+    a_corenames = GetMatrixCoreNames(mtx)
+    a_stats = MatrixStatistics(mtx, )
+
+    // Set data frame rows to be the stats
+    for corename in a_corenames do
+      stats = a_stats.(corename)
+
+      df_temp = CreateObject("df", stats)
+      a_init_colnames = df_temp.colnames()
+      df_temp.mutate("matrix", name)
+      df_temp.mutate("core", corename)
+      df_temp.select({"matrix", "core"} + a_init_colnames)
+
+      if corename = a_corenames[1]
+        then df = df_temp.copy()
+        else df.bind_rows(df_temp)
+    end
+
+    // Attach to final table
+    if mtx_file = matrices[1]
+      then df_final = df.copy() 
+      else df_final.bind_rows(df)
+
+    mtx = null
+  end
+
+  // Write out csv
+  return(df_final)
+EndMacro
+
+/*
+Creates a summary CSV of all matrices in the given directory.
+These snapshots make it much easier to track and identify trip
+conservation issues.
+*/
+
+Macro "Trip Conservation Snapshot" (dir, out_file)
+  
+  // Write stats to check trip conservation
+  matrices = RunMacro("Catalog Files", dir, "mtx")
+  df = RunMacro("Matrix Stats", matrices)
+  v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  v_type = Substitute(v_type, "od_per_trips_", "", )
+  df.mutate("trip_type", v_type)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  df.write_csv(out_file)
 endmacro

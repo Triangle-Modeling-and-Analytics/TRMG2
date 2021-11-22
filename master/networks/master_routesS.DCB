@@ -2,6 +2,6 @@
 32
 "STOP_ID",I,1,4,0,9,0,,"","",,"Sum",
 "shape_stop",I,5,4,0,8,0,,"","These are stops used to improve the transit project|manager, but are then removed so that boarding/|alighting is not possible.",,"Sum",
-"dwell_on",R,9,8,0,8,2,,"","Dwell time for people boardings (minutes)|.25 by default. Use this field to override.",,"Sum",
-"dwell_off",R,17,8,0,8,2,,"","Dwell time for people alighting (minutes)|.25 by default. Use this field to override.",,"Sum",
+"dwell_on",R,9,8,0,8,2,,"","Dwell time for people boardings (minutes)|Defaults are set in the transit mode table:|Bus: 0 minutes|Rail/BRT: .5 minutes|Use this field to override those defaults",,"Sum",
+"dwell_off",R,17,8,0,8,2,,"","Dwell time for people alighting (minutes)|Defaults are set in the transit mode table:|Bus: 0 minutes|Rail/BRT: .5 minutes|Use this field to override those defaults",,"Sum",
 "xfer_pen",R,25,8,0,10,2,,"","Specifies the transfer penalty (in minutes) for the stop.|If null, the global penalty is used (currently 3 minutes).|If filled in, this is used instead. Use this to lower the transfer|penalty for major bus stops and transit centers where transfers|are scheduled to be shorter.",,"Sum",

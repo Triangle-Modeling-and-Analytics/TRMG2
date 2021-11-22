@@ -1,4 +1,23 @@
 Name,Value,Description
+pk_auto_vot1,3.28,$/hr These $/hr values are the actual VOTs used. The remaining values are used in the disaggregation process.
+pk_auto_vot2,7.15,$/hr
+pk_auto_vot3,12.29,$/hr
+pk_auto_vot4,19.53,$/hr
+pk_auto_vot5,38.58,$/hr
+op_auto_vot1,3.22,$/hr
+op_auto_vot2,7.08,$/hr
+op_auto_vot3,12.21,$/hr
+op_auto_vot4,19.41,$/hr
+op_auto_vot5,36.37,$/hr
+sut_vot1,20.52,$/hr
+sut_vot2,38.79,$/hr
+sut_vot3,56.75,$/hr
+mut_vot1,12.57,$/hr
+mut_vot2,31.12,$/hr
+mut_vot3,49.54,$/hr
+mut_vot4,67.95,$/hr
+mut_vot5,88.34,$/hr
+calib_factor,2.1,VOT values above are multiplied by this factor. Calibrated to match base year 540 counts.
 votcut1,5.02,VOT Q1 cutline
 votcut2,9.63,VOT Q2 cutline
 votcut3,15.73,VOT Q3 cutline

@@ -92,9 +92,9 @@ timTbl <- tibble(
 ```
 
 ```{r time_conv_formula}
-# Formula for converting minutes to chart format (e.g. 1000 for 10:00 am)
+# Formula for converting minutes to chart format (e.g. 5.25 for 5:15 am)
 chart_time <- function(minutes){
-  ((minutes %/% 60) * 100 + (minutes %% 60)) / 100
+  ((minutes %/% 60) + (minutes %% 60) / 60)
 }
 ```
 
@@ -584,12 +584,18 @@ used are defined as follows:
 - HOV3: 3+ person occupancy
 
 Vehicle occupancy for SOV and HOV2 modes are 1.0 and 2.0, respectively. The
-table below shows the occupancy calculated for HOV3.
+factors for HOV3 are shown below.
 
 ```{r calculate veh occ factors}
-occ_tbl <- tripTbl %>%
-  filter(tour_type != "H", !is.na(mode_final)) %>%
-  filter(mode_final %in% c("sov", "hov2", "hov3")) %>%
+hb_hov3_tbl <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final), homebased == "HB") %>%
+  # for this calculation, include large-party auto_pay and oth_auto
+  # trips in hov3
+  mutate(mode_final = ifelse(
+    mode_final %in% c("auto_pay", "oth_auto") & party_size >= 3,
+    "hov3", mode_final
+  )) %>%
+  filter(mode_final %in% c("hov3")) %>%
   mutate(
     party_size = num_hh_members + num_nonhh,
     mode = mode_final
@@ -606,43 +612,142 @@ occ_tbl <- tripTbl %>%
     daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
     Value = ifelse(Samples < 30, daily_value, Value)
   ) %>%
-  group_by(Purpose = trip_type, Period = tod, Mode = mode) %>%
+  group_by(trip_type, tod, mode) %>%
   slice(1) %>%
-  select(Purpose, Period, Mode, Value, Samples) %>%
+  select(trip_type, tod, mode, Value, Samples) %>%
   ungroup() %>%
-  arrange(Purpose, Period, Mode) %>%
-  select(Purpose, Mode, Period, Value)
+  arrange(trip_type, tod, mode) %>%
+  select(trip_type, mode, tod, Value) %>%
+  filter(mode == "hov3") %>%
+  select(-mode) %>%
+  rename(hov3 = Value)
 
-occ_tbl %>%
-  spread(key = Period, value = Value) %>%
-  filter(Mode == "hov3") %>%
-  kable(digits = 2) %>%
+nhb_hov3_tbl <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final), homebased == "NH") %>%
+  # for this calculation, include large-party auto_pay and oth_auto
+  # trips in hov3
+  mutate(mode_final = ifelse(
+    mode_final %in% c("auto_pay", "oth_auto") & party_size >= 3,
+    "hov3", mode_final
+  )) %>%
+  filter(mode_final %in% c("hov3")) %>%
+  mutate(
+    party_size = num_hh_members + num_nonhh,
+    mode = mode_final
+  ) %>%
+  group_by(tour_type, tod, mode) %>%
+  mutate(
+    Value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    Samples = n(),
+  ) %>%
+  # Low samples for some rows leads to high factors (e.g. 4.9). If the sample size
+  # is low, use the daily average.
+  group_by(tour_type, mode) %>%
+  mutate(
+    daily_value = round(weighted.mean(party_size, w = trip_weight_combined), 3),
+    Value = ifelse(Samples < 30, daily_value, Value)
+  ) %>%
+  group_by(tour_type, tod, mode) %>%
+  slice(1) %>%
+  select(tour_type, tod, mode, Value, Samples) %>%
+  ungroup() %>%
+  arrange(tour_type, tod, mode) %>%
+  select(tour_type, mode, tod, Value) %>%
+  filter(mode == "hov3") %>%
+  select(-mode) %>%
+  rename(hov3 = Value)
+```
+
+```{r}
+display_tbl <- hb_hov3_tbl %>%
+  mutate(tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)) %>%
+  arrange(trip_type, tod) %>%
+  rename(
+    `Trip Type` = trip_type,
+    Period = tod,
+    HOV3 = hov3
+  )
+
+display_tbl %>%
+  select(`Trip Type`, Period, HOV3) %>%
+  pivot_wider(names_from = Period, values_from = HOV3) %>%
+  kable() %>%
   kable_styling(full_width = FALSE)
+```
 
-# TODO: create parameter table
+Roadway assignment in the model is done by vehicle class (sov, hov2, hov3). As a
+result, "auto pay" and "other modes" must be converted into those classes. The
+table below shows the homebased trip factors calculated from the survey used to
+do this.
 
-# # Repeat occupancy factors by market segment to match model
-# # matrix core names
-# occ1 <- occ_tbl %>%
-#   filter(Purpose %in% c("HBW", "HBO")) %>%
-#   merge(c("v0", "ilvi", "ilvs", "ihvi", "ihvs")) %>%
-#   select(Purpose, Segment = y, Mode, Period, Value)
-# occ2 <- occ_tbl %>%
-#   filter(!(Purpose %in% c("HBW", "HBO"))) %>%
-#   mutate(Segment = "all") %>%
-#   select(Purpose, Segment, Mode, Period, Value)
-# occ_tbl <- bind_rows(occ1, occ2) %>%
-#   arrange(Purpose, Segment, Mode, Period)
-# 
-# 
-# # No need to add CV, IX, etc. By not being in the table, it's the same
-# # as if they were and had a factor of 1.
-# 
-# # add description column
-# v_desc <- vector(mode = "character", nrow(occ_tbl))
-# v_desc[1] <- "Vehicle occupancy rates (per/veh)"
-# v_desc[2] <- "CREATION: this file created by TimeOfDay.Rmd and University.Rmd"
-# occ_tbl$Description <- v_desc
+```{r}
+# Calculate the shares of HB auto_pay and other_auto trips that
+# are sov/hov2/hov3
+hb_oth_shares <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final), homebased == "HB") %>%
+  filter(mode_final %in% c("auto_pay", "other_auto")) %>%
+  mutate(
+    party_size = num_hh_members + num_nonhh,
+    mode2 = case_when(
+      party_size == 1 ~ "sov",
+      party_size == 2 ~ "hov2",
+      TRUE ~ "hov3"
+    )
+  ) %>%
+  select(
+    trip_type, tod, mode_final, mode2, party_size,
+    weight = trip_weight_combined
+  ) %>%
+  mutate(
+    mode2 = factor(mode2, levels = c("sov", "hov2", "hov3"), ordered = TRUE)
+  ) %>%
+  group_by(trip_type, mode2) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(pct = weight / sum(weight)) %>%
+  select(trip_type, mode2, pct) %>%
+  pivot_wider(names_from = mode2, values_from = pct) %>%
+  replace_na(list("sov" = 0, "hov2" = 0, "hov3" = 0))
+
+hb_oth_shares %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
+For non-homebased trips, the factors are calculated by tour type (work or
+non work). They are shown in the table below.
+
+```{r}
+nhb_oth_shares <- tripTbl %>%
+  filter(tour_type != "H", !is.na(mode_final), homebased == "NH") %>%
+  filter(mode_final %in% c("auto_pay")) %>%
+  mutate(
+    party_size = num_hh_members + num_nonhh,
+    mode2 = case_when(
+      party_size == 1 ~ "sov",
+      party_size == 2 ~ "hov2",
+      TRUE ~ "hov3"
+    )
+  ) %>%
+  select(
+    tour_type, tod, mode_final, mode2, party_size,
+    weight = trip_weight_combined
+  ) %>%
+  mutate(
+    mode2 = factor(mode2, levels = c("sov", "hov2", "hov3"), ordered = TRUE)
+  ) %>%
+  group_by(tour_type, mode2) %>%
+  summarize(weight = sum(weight)) %>%
+  mutate(
+    tour_type = ifelse(tour_type == "N", "NonWork", "Work"),
+    pct = weight / sum(weight)
+  ) %>%
+  select(tour_type, mode2, pct) %>%
+  pivot_wider(names_from = mode2, values_from = pct) %>%
+  replace_na(list("sov" = 0, "hov2" = 0, "hov3" = 0))
+
+nhb_oth_shares %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
 
 
@@ -846,8 +951,12 @@ write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 # Directionality factors
 write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
 
-# Occupancy factors. HBU gets appended by University.Rmd
-write_csv(occ_tbl , "../master/directionality/veh_occ_factors.csv")
+# Occupancy factors/shares
+write_csv(hb_hov3_tbl , "data/output/tod/hov3_occ_factors_hb.csv")
+write_csv(nhb_hov3_tbl , "data/output/tod/hov3_occ_factors_nhb.csv")
+
+write_csv(hb_oth_shares , "data/output/tod/other_shares_hb.csv")
+write_csv(nhb_oth_shares , "data/output/tod/other_shares_nhb.csv")
 
 # Period capacity table
 write_csv(
@@ -857,6 +966,6 @@ write_csv(
       Description = paste("Hours of capacity in", TOD, "period", sep = " "),
       Value = round(Value, 3)
     ),
-  "data/output/tod/period_capacity_factors.csv"
+  "data/output/tod/capacity_period_factors.csv"
 )
 ```

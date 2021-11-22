@@ -155,35 +155,21 @@ region is considering additional toll facilities include high-occupancy toll
 
 Toll rates were collected from the [NC Quick Pass
 website](https://www.ncquickpass.com/rates-facilities/Pages/toll-rates.aspx).
-The listed prices were used to come up with an average cost per mile for 2-axle
-vehicles shown below. 3-axle vehicles pay double while vehicles with 4 or more
-axles pay four times that rate.
+Small links representing the toll gantries were added to the link layer. This
+approach makes it easy to add accurate toll prices to the network. If a user
+crosses the gantry link, they pay the listed price. In the image below, the
+first price is for travelers with a transponder and the second is for those
+without.
 
 ```{r}
-# 2016
-tribble(
-  ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
-  "Transponder",    "$3.25", 17.8,             "$0.183",
-  "By Mail",        "$5.00", 17.8,             "$0.281"
-) %>%
-  kable() %>%
-  kable_styling(full_width = FALSE)
+knitr::include_graphics("img/networks/toll_gantry.png")
 
 # TODO: update to 2020 toll rates when updating base year to 2020
-
-# # 2020
-# tribble(
-#   ~`Payment Method`, ~Cost, ~`Distance (mi)`, ~Rate,
-#   "Transponder",    "$3.60", 17.8,             "$0.202",
-#   "By Mail",        "$5.52", 17.8,             "$0.310"
-# ) %>%
-#   kable() %>%
-#   kable_styling(full_width = FALSE)
 ```
 
-The TRMG2 does not predict transponder ownership, but instead has parameters
-that can be modified during scenario testing. For the base year, the parameters
-were calculated using data obtained from NC Turnpike Authority. These allowed
+The TRMG2 does not predict transponder ownership, but has parameters to describe
+the percent of toll users that have one. For the base year, the parameters were
+calculated using data obtained from NC Turnpike Authority. These allowed
 transponder utilization to be calculated by vehicle class as shown in the table
 below.
 
@@ -230,6 +216,11 @@ toll_summary %>%
 # TODO: update for 2020
 # The final weighted toll rate for 2-axle vehicles is $0.25/mi.
 ```
+
+These parameters can be modified during scenario planning.
+
+Finally, the model automatically increases the toll rates for single- and multi-unit trucks based on the stated policy of the turnpike. SUT pay double the
+listed price while MUT pay four times as much.
 
 ### Bus Speeds
 

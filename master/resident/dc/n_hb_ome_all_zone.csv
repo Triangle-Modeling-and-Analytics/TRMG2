@@ -1,0 +1,8 @@
+Expression,Segment,Coefficient,Description
+se.n_hbome_size.D,,0.7402,Size term
+nz(mc_logsums.auto),,1.517,
+nz(mc_logsums.transit),,1.801,
+sov_skim.IZ,,0.6102,
+sov_skim.CongTime,,-0.2581,
+"max(0, sov_skim.CongTime - 30)",,0.2437,
+se.access_employment_sov.D,,0.0943,
