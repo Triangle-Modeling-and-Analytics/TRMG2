@@ -149,8 +149,10 @@ Offcampus_students<-w_avg_trips_byresidence_df%>%
   select(students)%>%
   pull()
 
+# Trip Production Rates for UHC and UHO trip purposes (segmented by home location)
 w_avg_trips_bypurpose_Oncampus_df<-Productions_bymode_df%>%
   filter(On_campus==1 & !is.na(Weight))%>%
+  filter(Trip_Purpose %in% c("UHC","UHO")) %>%
   group_by(Trip_Purpose)%>%
   summarize(segment="On_campus Students",
             trips=sum(Trips_Weighted),
@@ -161,6 +163,7 @@ w_avg_trips_bypurpose_Oncampus_df<-Productions_bymode_df%>%
 
 w_avg_trips_bypurpose_Offcampus_df<-Productions_bymode_df%>%
   filter(On_campus==0)%>%
+  filter(Trip_Purpose %in% c("UHC","UHO")) %>%
   group_by(Trip_Purpose)%>%
   summarize(segment = "Off_campus Students",
             trips=sum(Trips_Weighted),
@@ -170,15 +173,59 @@ w_avg_trips_bypurpose_Offcampus_df<-Productions_bymode_df%>%
             .groups = "drop")
 
 
-w_avg_trips_bypurpose_df<-rbind(w_avg_trips_bypurpose_Oncampus_df,w_avg_trips_bypurpose_Offcampus_df)
-w_avg_trips_bypurpose_col=c("segment","Trip_Purpose","avg_trips","respondents")
+w_avg_trips_bypurpose_UHC_UHO_df<-rbind(w_avg_trips_bypurpose_Oncampus_df,w_avg_trips_bypurpose_Offcampus_df)%>% 
+  select(segment,
+         Trip_Purpose, 
+         avg_trips, 
+         respondents)
 
-# summarize weighted and raw trip rates
+
+# summarize weighted and raw trip rates 
+###unweighted average still includes all trips purposes
 
 headers<-c("Segment","Trip Purpose","Trip Rate", "Segment Sample Size")
 kable(avg_trips_bypurpose_df[,avg_trips_bypurpose_col],caption ="Trip Rates by Purpose",col.names=headers)
-kable(w_avg_trips_bypurpose_df[,w_avg_trips_bypurpose_col],caption ="Weighted Trip Rates by Purpose",col.names = headers)
+kable(w_avg_trips_bypurpose_UHC_UHO_df[,w_avg_trips_bypurpose_col],caption ="Weighted Trip Rates by Purpose",col.names = headers)
 
+# Trip production rates for UCO, UCC, and UC1 (not segmented by home location)
+trips_bypurpose_byTAZ_df <- Trip_subset_df %>%  
+  filter(Trip_Purpose=="UCO"|Trip_Purpose=="UCC" |Trip_Purpose=="UC1") %>%
+  group_by(Trip_Purpose, TAZ_P)%>%
+  summarize(weighted_trips = sum(Weight, na.rm = TRUE))%>%
+  left_join(socioecon2_df, by=c("TAZ_P"="TAZ"))
+
+
+## 2 Methods 
+###M1: not used
+avgtrips_bypurpose_bybldgsf_M1_df <- trips_bypurpose_byTAZ_df %>%
+  select(TAZ_P,
+         Trip_Purpose,
+         weighted_trips, 
+         BuildingS_NCSU) %>%
+  filter(BuildingS_NCSU!=0 & !is.na(BuildingS_NCSU))%>%
+  mutate(weighted_trips = if_else(is.na(weighted_trips),0,weighted_trips))%>%
+  mutate (tripsbyblgdsf = weighted_trips/BuildingS_NCSU)%>%
+  group_by(Trip_Purpose) %>%
+  summarize(tripsper1000SF_M1=median(tripsbyblgdsf))
+###M2: used -- may change when BuildingS_NCSU field in TAZ file is fixed
+avgtrips_bypurpose_bybldgsf_M2_df <- trips_bypurpose_byTAZ_df %>%
+  filter(BuildingS_NCSU!=0 & !is.na(BuildingS_NCSU))%>%
+  select(Trip_Purpose,
+         weighted_trips, 
+         BuildingS_NCSU) %>%
+  mutate(weighted_trips = if_else(is.na(weighted_trips),0,weighted_trips))%>%
+  group_by(Trip_Purpose)%>%
+  summarize(total_trips = sum(weighted_trips), 
+            total_SF = sum(BuildingS_NCSU),
+            tripsper1000SF_M2= total_trips/total_SF)
+
+w_avg_trips_bypurpose_UC1_UCO_UCC_df <- avgtrips_bypurpose_bybldgsf_M2_df %>%
+  mutate(segment ="All Students",
+         respondents ="TBD")%>%
+  select(segment, 
+         Trip_Purpose,
+         avg_trips=tripsper1000SF_M2,
+         respondents)
 
 # Trip Production Rates by Mode for UOO trips ----------------------------------
 ## Trip Production Rates by modes by purpose -----------------------------------
@@ -320,19 +367,18 @@ non_cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose 
 P_rates_ratioUOOtoUHOUCO_df <-tibble(cartrips_ratioUOOtoUHOUCO,non_cartrips_ratioUOOtoUHOUCO)
 
 
+
 # Selected Production Rates-----------------------------------------------------
+w_avg_trips_bypurpose_df <- 
+rbind(w_avg_trips_bypurpose_UHC_UHO_df,w_avg_trips_bypurpose_UC1_UCO_UCC_df)
+
 P_rates_df<-w_avg_trips_bypurpose_df %>% 
   select(segment,
          Trip_Purpose, 
          avg_trips, 
          respondents) %>% 
   rename("Production Rate"= avg_trips, 
-         "Sample Size"= respondents) %>%
-  filter(Trip_Purpose =="UC1" | 
-           Trip_Purpose == "UCO" |
-           Trip_Purpose == "UHC" |  
-           Trip_Purpose == "UHO" |
-           Trip_Purpose == "UCC")
+         "Sample Size"= respondents) 
 
 # Apply Selected Production Rates-----------------------------------------------
 # Apply productions for UHC, UHO, UCO, UC1  
@@ -428,3 +474,4 @@ saveRDS(Summary_Productions_df,paste0(univ_dir,"Summary_Productions.RDS"))
 saveRDS(Summary_Productions_df,paste0(univ_dir,"Apply_Productions.RDS"))
 write_csv(P_rates_df,paste0(univ_dir,"P_rates.CSV"))
 write_csv(P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))
+
