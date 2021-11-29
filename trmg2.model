@@ -54,7 +54,7 @@ EndMacro
 Macro "Accessibility" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Accessibility"}},
-                  {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
@@ -67,103 +67,103 @@ EndMacro
 
 Macro "Resident Productions" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Resident Productions"}}}
+                  {"MacroNames",{"Resident Productions"}}, {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "NonMotorized Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonMotorized"}}}
+                  {"MacroNames",{"NonMotorized"}}, {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "Time of Day" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Time of Day"}}}
+                  {"MacroNames",{"Time of Day"}}, {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Summaries" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Summaries"}}}
+                  {"MacroNames",{"Summaries"}}, {"Picture","bmp\\planpeople_v3.bmp"}}
 EndMacro
 
 
 Macro "Parking Model" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Parking Model"}}}
+                  {"MacroNames",{"Parking Model"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Skimming" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Skimming"}}}
+                  {"MacroNames",{"Skimming"}}, {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Transit Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Transit Assignment"}}}
+                  {"MacroNames",{"Transit Assignment"}}, {"Picture","bmp\\planassignbus_v3.bmp"}}
 EndMacro
 
 
 Macro "NonResident Generation" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident Generation"}}}
+                  {"MacroNames",{"NonResident Generation"}}, {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Mode Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Mode Choice"}}}
+                  {"MacroNames",{"Mode Choice"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "NonResident DC and MC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident DC and MC"}}}
+                  {"MacroNames",{"NonResident DC and MC"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Destination Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Destination Choice"}}}
+                  {"MacroNames",{"Destination Choice"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Aggregation" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Aggregation"}}}
+                  {"MacroNames",{"Aggregation"}}, {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Create Assignment Matrices" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Create Assignment Matrices"}}}
+                  {"MacroNames",{"Create Assignment Matrices"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "NonHomeBased" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonHomeBased"}}}
+                  {"MacroNames",{"NonHomeBased"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Pre Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Pre Assignment"}}}
+                  {"MacroNames",{"Pre Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "AM Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"AM Roadway Assignment"}}}
+                  {"MacroNames",{"AM Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "MD Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"MD Roadway Assignment"}}}
+                  {"MacroNames",{"MD Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
@@ -177,19 +177,19 @@ EndMacro
 
 Macro "PM Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"PM Roadway Assignment"}}}
+                  {"MacroNames",{"PM Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "NT Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NT Roadway Assignment"}}}
+                  {"MacroNames",{"NT Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "Post Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Update Link Congested Times"}}}
+                  {"MacroNames",{"Update Link Congested Times"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
@@ -233,7 +233,7 @@ EndMacro
 
 
 Macro "Network Processing" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"}, {"Picture","bmp\\plan_config_v3.bmp"}}
 Body:
     model = FlowChart({"Network Calculations"},{"Accessibility"},"Group steps")
     //
@@ -254,7 +254,7 @@ EndMacro
 
 
 Macro "Disaggregate Models" (Args,Result)
-    Attributes = {{"Description","Stage 2"}}
+    Attributes = {{"Description","Stage 2"}, {"Picture","bmp\\planlanduse_v3.bmp"}}
 Body:
     model = FlowChart({"Population Synthesis"},{"NonMotorized Choice"},"Group steps")
     //
@@ -277,7 +277,7 @@ EndMacro
 
 
 Macro "Pre Feedback" (Args,Result)
-    Attributes = {{"Description","Stage 3"}}
+    Attributes = {{"Description","Stage 3"}, {"Picture","bmp\\planskim_v3.bmp"}}
 Body:
     model = FlowChart({"Aggregation"},{"NonResident Generation"},"Group steps")
     //
@@ -300,7 +300,7 @@ EndMacro
 
 
 Macro "Choice Models" (Args,Result)
-    Attributes = {{"Description","Stage 4"}}
+    Attributes = {{"Description","Stage 4"}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
 Body:
     model = FlowChart({"Parking Model"},{"NonResident DC and MC"},"Group steps")
     //
@@ -327,7 +327,7 @@ EndMacro
 
 
 Macro "Roadway Assignment" (Args,Result)
-    Attributes = {{"Description","Stage 5"}}
+    Attributes = {{"Description","Stage 5"}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 Body:
     model = FlowChart({"Create Assignment Matrices"},{"Post Assignment"},"Group steps")
     //
