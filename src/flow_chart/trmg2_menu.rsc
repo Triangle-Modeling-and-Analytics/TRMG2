@@ -113,4 +113,10 @@ menu "TRMG2 Calibrators"
         Args = mr.GetValues()
         mr.RunCode("Calibrate NM", Args)
     enditem
+
+    MenuItem "HB Mode Choice" text: "Home Based Trips Mode Choice" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Calibrate HB MC", Args)
+    enditem
 endMenu

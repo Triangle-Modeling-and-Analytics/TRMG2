@@ -294,7 +294,7 @@ Macro "Update Shadow Price" (Args)
             v_prods = nz(GetDataVector(se_vw + "|", name, ))
             v_prods.rowbased = "false"
             cores.Total := cores.Total * v_prods
-            v_trips = out_mtx.GetVector("Total", {Marginal: "Column Sum"})
+            v_trips = out_mtx.GetVector({"Core": "Total", Marginal: "Column Sum"})
             v_total_trips = nz(v_total_trips) + v_trips
 
             out_mtx = null

@@ -1605,7 +1605,7 @@ add_taz_id <- mc_code %>%
 
 ```{r}
 # The full skim table is large (160MB). Instead of commit that to the
-# repo, I did the join below first. I think saved only the OD pairs
+# repo, I did the join below first. I then saved only the OD pairs
 # that we actually needed for trips in the survey. This shrunk the file
 # to 560kb.
 skim <- read_csv(
@@ -1619,6 +1619,14 @@ add_skim_info <- add_taz_id %>%
     skim, by = c("p_taz" = "Origin", "a_taz" = "Destination")
   ) %>%
   rename(skim_length = Length)
+
+# small_skim <- add_skim_info %>%
+#   ungroup() %>%
+#   filter(!is.na(skim_length)) %>%
+#   select(Origin = p_taz, Destination = a_taz, Length = skim_length) %>%
+#   group_by(Origin, Destination) %>%
+#   slice(1)
+# write_csv(small_skim, "data/input/survey_processing/length_skim.csv")
 ```
 
 ```{r}

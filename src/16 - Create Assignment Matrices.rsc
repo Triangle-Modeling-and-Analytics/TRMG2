@@ -49,11 +49,14 @@ Macro "Directionality" (Args)
         CopyFile(pa_mtx_file, od_mtx_file)
 
         mtx = CreateObject("Matrix", od_mtx_file)
-        // EK12 only has hov2 and hov3 cores at this point. Standardize the
-        // matrix here so that all further procedures can be simpler.
-        if trip_type = "W_HB_EK12_All" then do
+        // W_HB_EK12 only has hov2 and hov3 cores at this point. 
+        // N_HB_K12 does not have auto_pay
+        // Standardize the matrix here so that all further procedures can be simpler.
+        if trip_type = "W_HB_EK12_All" then
             mtx.AddCores({"sov", "auto_pay", "other_auto"})
-        end
+        else if trip_type = "N_HB_K12_All" then
+            mtx.AddCores({"auto_pay"})
+
         cores = mtx.GetCores()
         t_mtx = mtx.Transpose()
         t_cores = t_mtx.GetCores()
@@ -335,7 +338,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
         
         // Skip transit and walkbike matrices and any converged periods
         {, , name, } = SplitPath(nhb_mtx_file)
-        parts = ParseString(name, "_")
+        parts = ParseString(Lower(name), "_")
         if parts[2] = "transit" or parts[2] = "walkbike" then continue
         tour_type = parts[2]
         if parts[3] = "auto" then auto_pay = "true" else auto_pay = "false"
@@ -358,7 +361,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
             SetView(hov3_vw)
             n = SelectByQuery(
                 "sel", "several", 
-                "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + period + "'"
+                "Select * where tour_type = '" + Upper(tour_type) + "' and tod = '" + Upper(period) + "'"
             )
             if n = 0 then Throw(
                 "Trying to add NHB trips into assignment matrix.\n" +

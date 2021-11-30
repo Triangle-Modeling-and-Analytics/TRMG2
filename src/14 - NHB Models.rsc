@@ -110,7 +110,7 @@ Macro "NHB Generation" (Args)
                     end
                     if hb_mode = "lb" then hb_core = "all_transit"
                     hb_mtx = CreateObject("Matrix", hb_mtx_file)
-                    v = hb_mtx.GetVector(hb_core, {Marginal: "Column Sum"})
+                    v = hb_mtx.GetVector({"Core": hb_core, Marginal: "Column Sum"})
                     v.rowbased = "true"
                     data.(field_name) = nz(data.(field_name)) + nz(v) * coef
                 end
