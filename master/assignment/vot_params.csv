@@ -17,7 +17,7 @@ mut_vot2,31.12,$/hr
 mut_vot3,49.54,$/hr
 mut_vot4,67.95,$/hr
 mut_vot5,88.34,$/hr
-calib_factor,1.9,VOT values above are multiplied by this factor. Calibrated to match base year 540 counts.
+calib_factor,2.1,VOT values above are multiplied by this factor. Calibrated to match base year 540 counts.
 votcut1,5.02,VOT Q1 cutline
 votcut2,9.63,VOT Q2 cutline
 votcut3,15.73,VOT Q3 cutline
