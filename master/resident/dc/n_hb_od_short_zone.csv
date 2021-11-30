@@ -1,6 +1,7 @@
 Expression,Segment,Coefficient,Description
 se.n_hbods_size.D,,0.3791,Size term
-nz(mc_logsums.auto),,1.52,
+nz(mc_logsums.auto),vi,1.52,
+nz(mc_logsums.auto),vs,1.52,
 nz(mc_logsums.transit),,0.0812,
 sov_skim.IZ,,2.006,
 sov_skim.CongTime,,-0.2413,
