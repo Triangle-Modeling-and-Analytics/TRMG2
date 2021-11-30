@@ -84,7 +84,6 @@ endmacro
 */
 Macro "Calibrate HB MC"(Args)
     trip_types = RunMacro("Get HB Trip Types", Args)
-    trip_types = {"w_hb_w_all"}
     //pbar1 = CreateObject("G30 Progress Bar", "Calibrating MC models for each trip type ...", true, trip_types.length)
     for trip_type in trip_types do
         if Lower(trip_type) = "w_hb_ek12_all" then
@@ -237,9 +236,9 @@ Macro "Get Targets"(Args, Opts)
     vw = OpenTable("Targets", "CSV", {targetsFile})
     {flds, specs} = GetFields(vw,)
     SetView(vw)
-    n = SelectByQuery("Selection", "several", "Select * where Purpose = '" + trip_type + "' and Segment = '" + segment + "'", )
+    n = SelectByQuery("Selection", "several", "Select * where Lower(Purpose) = '" + Lower(trip_type) + "' and Lower(Segment) = '" + Lower(segment) + "'", )
     if n <> 1 then
-        Throw("Error in mode choice targets file. File does not have exactly one record for '" + trip_type + " and '" + segment)
+        Throw("Error in mode choice targets file. File does not have exactly one record for '" + trip_type + "' and '" + segment +"'")
     vecs = GetDataVectors(vw + "|Selection", flds, {OptArray: 1})
     CloseView(vw)
     
@@ -292,6 +291,15 @@ Macro "MC Eval for Calibration"(Args, Opts)
         tag = trip_type + "_" + segment + "_" + period
         mdlFile = mc_dir + "/model_files/" + tag + "_Calib.mdl"
 
+        // Get list of model sources
+        model = CreateObject("NLM.Model")
+        model.Read(mdlFile, true)
+        modelSources = null
+        for src in model.Sources.Items do
+            modelSources = modelSources + {src[1]}
+        end
+        model.Clear()
+
         if period = "MD" or period = "NT" then do
             tour_type = "All"
             homebased = "All"
@@ -313,10 +321,13 @@ Macro "MC Eval for Calibration"(Args, Opts)
         
         o = CreateObject("Choice.Mode")
         o.ModelFile = mdlFile
-        o.OpenTableSource({SourceName: "se", FileName: Args.SE})
-        o.OpenTableSource({SourceName: "parking", FileName: Args.[Parking Logsums Table], ViewName: "parking"})
+        if ArrayPosition(modelSources, {"se"},) > 0 then
+            o.OpenTableSource({SourceName: "se", FileName: Args.SE})
+        if ArrayPosition(modelSources, {"parking"},) > 0 then
+            o.OpenTableSource({SourceName: "parking", FileName: Args.[Parking Logsums Table], ViewName: "parking"})
         for src in mtxSources do
-            o.OpenMatrixSource({SourceName: src[1], FileName: src[2]})
+            if ArrayPosition(modelSources, {src[1]},) > 0 then
+                o.OpenMatrixSource({SourceName: src[1], FileName: src[2]})
         end
         o.UtilityScaling = "By Theta Product"
         probMtx = mc_dir + "/probabilities/probability_" + tag + ".mtx"

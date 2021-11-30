@@ -6,12 +6,14 @@ sov,se.HiIncomePct.O,,0.384,High income
 sov,sov_skim.CongTime,,-0.03586,Travel time
 sov,sov_skim.[TollCostSOV (Skim)],,-0.180837,Toll cost
 hov2,Constant,,-0.5574,Constant
+hov2,Constant,v0,-99,Auto Availability
 hov2,parking.MC_LS_NonWork.D,,0.8998,Parking
 hov2,se.HiIncomePct.O,,0.3153,High income
 hov2,hov_skim.CongTime,,-0.03586,Travel time
 hov2,hov_skim.[TollCostHOV (Skim)],,-0.180837,Toll cost
 hov2,se.HHSize1Pct.O,,-0.2811,Percent of 1-person HHs
 hov3,Constant,,-0.6465,Constant
+hov3,Constant,v0,-99,Auto Availability
 hov3,parking.MC_LS_NonWork.D,,0.8998,Parking
 hov3,se.HiIncomePct.O,,0.3153,High income
 hov3,hov_skim.CongTime,,-0.03586,Travel time
