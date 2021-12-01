@@ -408,7 +408,7 @@ Macro "Copy Directory" (MacroOpts)
 
   from = "\"" +  from + "\""
   to = "\"" +  to + "\""
-  cmd = "cmd /C robocopy " + from + " " + to
+  cmd = "cmd /C C:/Windows/System32/Robocopy.exe " + from + " " + to
   if !copy_files then cmd = cmd + " /t"
   if subdirectories then cmd = cmd + " /e"
   if purge then cmd = cmd + " /purge"
