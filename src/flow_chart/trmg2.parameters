@@ -5,7 +5,7 @@
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
         Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\se_data\\se_2016.bin", "Description":"Master SE data bin file" }
+        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2016.bin", "Description":"Master SE data bin file" }
     
     Section = "Files|Scenario|Input"
     
