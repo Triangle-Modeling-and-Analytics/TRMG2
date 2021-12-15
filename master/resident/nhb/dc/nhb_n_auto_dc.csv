@@ -1,17 +1,16 @@
 Expression,Segment,Coefficient,Description
-se.nhb_n_auto_size.D,,0.6895,Size term
-skim.CongTime,,-0.2638,
-(skim.CongTime > 30)*(skim.CongTime - 30),,0.2347,Time excess of 30 min
-IntraCluster.IC,,0.1102,Intra Cluster Dummy
-IntraCluster.IZ,,0.8198,Intra Zonal Dummy
-Parking.MC_LS_NonWork.D,,0.1587,Parking Mode Logsum
-se.Cluster.D = 1,,-0.8252,RTP Cluster ASC
-se.Cluster.D = 2,,-0.2554,Raleigh Cluster ASC
-se.Cluster.D = 3,,-0.2342,Cary Cluster ASC
-se.Cluster.D = 5,,-0.4878,Durham Cluster ASC
-se.Cluster.D = 7,,-0.1843,Southern Durham Cluster ASC
-se.Cluster.D = 81,,0.1626,Other NW Cluster ASC
-se.Cluster.D = 82,,0.3009,Other NE Cluster ASC
-se.Cluster.D = 83,,0.2371,Other SE Cluster ASC
-se.Cluster.D = 84,,0.1266,Other S Cluster ASC
-se.Cluster.D = 85,,1,Other SW Cluster ASC
+se.nhb_n_auto_size.D,,0.685,Size term
+skim.CongTime,,-0.256,
+"Max(skim.CongTime - 30, 0)",,0.222,Time excess of 30 min
+IntraCluster.IC,,0.113,Intra Cluster Dummy
+IntraCluster.IZ,,0.84,Intra Zonal Dummy
+Parking.MC_LS_NonWork.D,,0.171,Parking Mode Logsum
+se.Cluster.D = 1,,-0.818,RTP Cluster ASC
+se.Cluster.D = 2,,-0.252,Raleigh Cluster ASC
+se.Cluster.D = 3,,-0.226,Cary Cluster ASC
+se.Cluster.D = 5,,-0.497,Durham Cluster ASC
+se.Cluster.D = 7,,-0.178,Southern Durham Cluster ASC
+se.Cluster.D = 81,,0.235,Other NW Cluster ASC
+se.Cluster.D = 82,,0.341,Other NE Cluster ASC
+se.Cluster.D = 83,,0.232,Other SE Cluster ASC
+se.Cluster.D = 85,,1.05,Other SW Cluster ASC
