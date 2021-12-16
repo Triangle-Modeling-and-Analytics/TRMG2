@@ -134,26 +134,6 @@ production_end_df %>%
 Figure 1 shows the average number of trips per student per day for the two home-based trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data. Figure 2 shows the average number of trips per student for the three campus-based trip purposes.  For most trip purpose, the distribution is skewed to the right, with most students making few trips and a few students making many trips.  
 
 ```{r histogram,echo=FALSE}
-purpose_map_df <- tibble(code = c("UHC", "UHO", "UCO", "UC1", "UCC", "UOO"),
-                         name = c("Home-Campus",
-                                  "Home-Other",
-                                  "Campus-Other",
-                                  "On-campus",
-                                  "Campus-to-campus",
-                                  "Other-to-other"))
-
-Triprates_histogram <- Productions_bymode_df %>% 
-  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code")) %>%
-  mutate(On_campus = if_else(On_campus == 0, "Off-campus", "On-campus")) %>%
-  group_by(Person_ID,
-           name, 
-           On_campus) %>%
-  summarize(`Trips per Student` = sum(Trips), .groups = "drop") %>%
-  rename(`Trip Purpose` = name) %>%
-  group_by(On_campus) %>%
-  ggplot(aes(`Trips per Student`, fill = `Trip Purpose`)) + 
-  geom_histogram(bins=20) + 
-  facet_grid(`Trip Purpose` ~ On_campus)
 
 Triprates_histogram1 + labs(title = "Figure 1 - Home-based trips per student, by purpose and by home location", 
                            caption = ("Source: NCSU survey (unweighted)"))
@@ -169,7 +149,7 @@ As part of the cross-classification approach, daily trips per student reported i
 * For home-based trips (Home-Campus,Home-Other): on-campus and off-campus place of residence 
 * For Other-to-Other trips: Travel mode  (walk, bike, transit, and auto (includes drive and carpool)) 
 
-Production rates were developed based on the weighted and unweighted data, as a check on the influence of the weighting. We found that the rates based on the weighted data are very similar to the rates based on the unweighted data.  [Question: delete all unweighted calculations and delete this sentence?]
+Production rates were developed based on the weighted and unweighted data, as a check on the influence of the weighting. We found that the rates based on the weighted data are very similar to the rates based on the unweighted data.  
 
 The average daily trip rate, using the weighted data, is `r w_avg_trips_df[,"avg_trips"]`.  On-campus students make an average of `r w_avg_trips_byresidence_df[2,"avg_trips"]` trips per day, while off-campus students make an average of `r w_avg_trips_byresidence_df[1,"avg_trips"]` trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.
 

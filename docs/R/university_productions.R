@@ -54,27 +54,42 @@ SurveyRespondent_Residence_Weighted_df<-Person_subset_df%>%
   group_by(On_campus) %>%
   summarize(count=n(), .groups = "drop")
 
-# Trip Production Histograms ---------------------------------------------------
-Triprates_histogram1<-Productions_bymode_df %>% 
+# Trip Production Histograms --------------------------------------------------
+
+
+purpose_map_df <- tibble(code = c("UHC", "UHO", "UCO", "UC1", "UCC", "UOO"),
+                         name = c("Home-Campus",
+                                  "Home-Other",
+                                  "Campus-Other",
+                                  "On-campus",
+                                  "Campus-to-campus",
+                                  "Other-to-other"))
+
+Triprates_histogram1 <- Productions_bymode_df %>% 
   filter(Trip_Purpose =="UHC"| Trip_Purpose =="UHO")%>%
+  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code")) %>%
+  mutate(On_campus = if_else(On_campus == 0, "Off-campus", "On-campus")) %>%
   group_by(Person_ID,
-           Trip_Purpose, 
-           On_campus)%>%
-  summarize(Trips_per_student=sum(Trips),.groups = "drop")%>%
-  group_by(On_campus) %>% 
-  ggplot(aes(Trips_per_student, fill=Trip_Purpose)) + 
+           name, 
+           On_campus) %>%
+  summarize(`Trips per Student` = sum(Trips), .groups = "drop") %>%
+  rename(`Trip Purpose` = name) %>%
+  group_by(On_campus) %>%
+  ggplot(aes(`Trips per Student`, fill = `Trip Purpose`)) + 
   geom_histogram(bins=20) + 
-  facet_grid(Trip_Purpose~On_campus)
+  facet_grid(`Trip Purpose` ~ On_campus)
 
-
-Triprates_histogram2<-Productions_bymode_df %>% 
+Triprates_histogram2 <- Productions_bymode_df %>% 
   filter(Trip_Purpose == "UC1"| Trip_Purpose == "UCO"| Trip_Purpose == "UCC")%>%
+  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code")) %>%
+  mutate(On_campus = if_else(On_campus == 0, "Off-campus", "On-campus")) %>%
   group_by(Person_ID,
-           Trip_Purpose)%>%
-  summarize(Trips_per_student = sum(Trips),.groups = "drop")%>%
-  ggplot(aes(Trips_per_student, fill = Trip_Purpose)) + 
-  geom_histogram(bins = 20) + 
-  facet_grid(Trip_Purpose~.)
+           name) %>%
+  summarize(`Trips per Student` = sum(Trips), .groups = "drop") %>%
+  rename(`Trip Purpose` = name) %>%
+  ggplot(aes(`Trips per Student`, fill = `Trip Purpose`)) + 
+  geom_histogram(bins=20) + 
+  facet_grid(`Trip Purpose` ~ .)
 
 
 # Trip Production Rates based on Cross-Classification --------------------------
