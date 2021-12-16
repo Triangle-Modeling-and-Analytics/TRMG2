@@ -329,30 +329,19 @@ Attractions_byTAZbySegment_df<-Trip_subset_df %>%
   summarize(Trips=n()) %>%
   mutate(Trips_Weighted= Trips * Weight,
          OnCampusStudents_UHOTrips = if_else(Trip_Purpose == "UHO" & On_campus == 1,Trips_Weighted,0),
-         OnCampusStudents_UCOTrips = if_else(Trip_Purpose == "UCO" & On_campus == 1,Trips_Weighted,0),
-         OnCampusStudents_UOOTrips = if_else(Trip_Purpose == "UOO" & On_campus == 1,Trips_Weighted,0),
          OffCampusStudents_UHOTrips = if_else(Trip_Purpose == "UHO" & On_campus == 0,Trips_Weighted,0),
-         OffCampusStudents_UCOTrips = if_else(Trip_Purpose == "UCO" & On_campus == 0,Trips_Weighted,0),
-         OffCampusStudents_UOOTrips = if_else(Trip_Purpose == "UOO" & On_campus == 0,Trips_Weighted,0),
-         OnCampusStudents_UHOUCOTrips = OnCampusStudents_UHOTrips + OnCampusStudents_UCOTrips,
-         OffCampusStudents_UHOUCOTrips = OffCampusStudents_UHOTrips + OffCampusStudents_UCOTrips, 
-         OnCampusStudents_Trips =   OnCampusStudents_UHOUCOTrips  + OnCampusStudents_UOOTrips,
-         OffCampusStudents_Trips =  OffCampusStudents_UHOUCOTrips + OffCampusStudents_UOOTrips,
-         AllStudents_Trips = OnCampusStudents_Trips + OffCampusStudents_Trips) 
-
+         AllStudents_UCOTrips = if_else(Trip_Purpose == "UCO",Trips_Weighted,0),
+         AllStudents_UOOTrips = if_else(Trip_Purpose == "UOO" & On_campus == 1,Trips_Weighted,0),
+         AllStudents_UHOUCOTrips = OnCampusStudents_UHOTrips + OffCampusStudents_UHOTrips + AllStudents_UCOTrips,
+         AllStudents_Trips = OnCampusStudents_UHOTrips + OffCampusStudents_UHOTrips +  AllStudents_UCOTrips + AllStudents_UOOTrips + AllStudents_UHOUCOTrips)
 Attractions_byTAZ_df<-Attractions_byTAZbySegment_df%>%  
   ungroup()%>%
   select(TAZ_A,
          OnCampusStudents_UHOTrips,
-         OnCampusStudents_UCOTrips,
-         OnCampusStudents_UOOTrips,
          OffCampusStudents_UHOTrips,
-         OffCampusStudents_UCOTrips,
-         OffCampusStudents_UOOTrips,
-         OnCampusStudents_UHOUCOTrips,
-         OffCampusStudents_UHOUCOTrips,
-         OnCampusStudents_Trips,
-         OffCampusStudents_Trips,
+         AllStudents_UCOTrips,
+         AllStudents_UOOTrips,
+         AllStudents_UHOUCOTrips,
          AllStudents_Trips)%>%
   group_by(TAZ_A)%>%
   summarize_all(sum)%>%
