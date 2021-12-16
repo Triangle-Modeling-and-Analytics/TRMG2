@@ -29,29 +29,49 @@ trip_subset_df <-readRDS(trip_subset_filename)
 Apply_Productions_df <-readRDS(apply_productions_filename)    
 
 # Histogram trip distance zone to zone ----------------------------------------
+purpose_map_df <- tibble(code = c("UHC", "UHO", "UCO", "UC1", "UCC", "UOO"),
+                         name = c("Home-Campus",
+                                  "Home-Other",
+                                  "Campus-Other",
+                                  "On-campus",
+                                  "Campus-to-campus",
+                                  "Other-to-other"))
 
-zonetozonedistance_bypurpose_histogram<-trip_subset_df %>%
+trip_subset2_df <-trip_subset_df %>%
+  filter(!is.na(distance_zonetozone))
+
+zonetozonedistance_bypurposeHB_histogram<-trip_subset2_df %>%
   filter(Trip_Purpose !="99")%>%
   filter(Trip_Purpose !="UC1")%>%
+  filter(Trip_Purpose =="UHO"| Trip_Purpose =="UHC") %>%
   filter(distance_zonetozone < 30)%>%
-  group_by(On_campus,Trip_Purpose) %>%
+  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code"))%>%
+mutate(On_campus = if_else(On_campus == 0, "Off-campus", "On-campus")) %>%
+  group_by(On_campus,name) %>%
+  rename(`Trip Purpose` = name) %>%
+  rename(`On-campus`= On_campus)%>%
   ggplot(aes(distance_zonetozone)) +
   geom_histogram(binwidth = 1) +
-  facet_grid(On_campus ~ Trip_Purpose)
+  facet_grid(`On-campus` ~ `Trip Purpose`)
 
-zonetozonedistance_bypurpose_histogram + labs(title = "Trip Length Distribution (All purposes,except UC1)", 
-                                              subtitle="for off-campus students (On_campus== 0) and on-campus students (On_campus == 1) students", 
-                                              caption = ("Source: NCSU survey (unweighted)"))
+zonetozonedistance_bypurposeCB_histogram<-trip_subset2_df %>%
+  filter(Trip_Purpose !="99")%>%
+  filter(Trip_Purpose !="UC1")%>%
+  filter(Trip_Purpose =="UCO" | Trip_Purpose =="UCC") %>%
+  filter(distance_zonetozone < 30)%>%
+  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code"))%>%
+  group_by(name) %>%
+  rename(`Trip Purpose` = name) %>%
+  ggplot(aes(distance_zonetozone)) +
+  geom_histogram(binwidth = 1) +
+facet_grid(`Trip Purpose`~ .)
 
-zonetozonedistance_UC1_histogram<-trip_subset_df %>%
+zonetozonedistance_UC1_histogram<-trip_subset2_df %>%
   filter(Trip_Purpose =="UC1")%>%
-  group_by(On_campus) %>%
+  filter(Trip_Purpose !="99")%>%
   ggplot(aes(distance_zonetozone)) +
-  geom_histogram(binwidth = 1) +
-  facet_grid(On_campus ~ .)
-zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution (UC1 Trips)", 
-                                        subtitle="for off-campus students (On_campus== 0) and on-campus students (On_campus == 1) students", 
-                                        caption = ("Source: NCSU survey (unweighted)"))
+  geom_histogram(binwidth = 1) 
+
 
 
 

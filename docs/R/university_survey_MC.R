@@ -41,6 +41,7 @@ modesplit_campusbased_df<-trip_subset_df %>%
   mutate(Trip_Purpose_long = case_when(Trip_Purpose == "UCO" ~ "Campus-Other",
                                        Trip_Purpose == "UC1"  ~ "On-campus",
                                        Trip_Purpose == "UCC" ~ "Campus-to-campus")) %>%
+  filter(!is.na(Trip_Purpose_long))%>%
   group_by(Trip_Purpose_long)%>% 
   summarize(Temp_Total = sum(Weight),
             TotalBicycle = sum(Bicycle_W),
@@ -86,13 +87,14 @@ calibrationtargets_bypurpose_campusbasedtrips_df<- modesplit_campusbased_df %>%
 ## Mode Split on-campus students home-based trips-------------------------------
 
 modesplit_bypurpose_oncampus_df<-trip_subset_df %>%
-  filter(Trip_Purpose !="99") %>%
+filter(Trip_Purpose !="99") %>%
   filter(Trip_Purpose != "UOO") %>%
   filter(!is.na(Walk_W)) %>%
   filter(On_campus == 1) %>%
   filter(Trip_Purpose == "UHO" | Trip_Purpose == "UHC")%>%
   mutate(Trip_Purpose_long = case_when(Trip_Purpose == "UHC" ~ "Home-Campus",
                                        Trip_Purpose == "UHO" ~ "Home-Other")) %>%
+  filter(!is.na(Trip_Purpose_long))%>%
   group_by(Trip_Purpose_long)%>% 
   summarize(Temp_Total = sum(Weight),
             TotalBicycle = sum(Bicycle_W),
@@ -143,7 +145,8 @@ modesplit_bypurpose_offcampus_df<-trip_subset_df %>%
   filter(On_campus == 0) %>%
   filter(!is.na(Walk_W)) %>%
   mutate(Trip_Purpose_long = case_when(Trip_Purpose == "UHC" ~ "Home-Campus",
-                                        Trip_Purpose == "UHO" ~ "Home-Other"))%>%
+                                        Trip_Purpose == "UHO" ~ "Home-Other"))%>%  
+  filter(!is.na(Trip_Purpose_long))%>%
   group_by(Trip_Purpose_long)%>%
   summarize(Temp_Total = sum(Weight),
             TotalBicycle = sum(Bicycle_W),
@@ -190,8 +193,7 @@ trips_bypurpose_plot <-trip_subset_df %>%
   filter(Primary_Mode != "NA")%>%
 
   filter(Trip_Purpose != "UC1") %>%
-  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge") + 
-  geom_hline(yintercept = 20)
+  ggplot(aes(Trip_Purpose, fill=Primary_Mode)) + geom_bar(position="dodge")
 
 # plots mode split - only UC1-----------------------------------------------------------
 

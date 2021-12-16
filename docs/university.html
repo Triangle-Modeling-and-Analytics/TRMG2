@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-12-15" />
+<meta name="date" content="2021-12-16" />
 
 <title>University</title>
 
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">December 15, 2021</h4>
+<h4 class="date">December 16, 2021</h4>
 
 </div>
 
@@ -423,7 +423,7 @@ div.tocify {
 <h2>Introduction</h2>
 <p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84481, with 31025 students at NCSU, 29437 at UNC, 15904 at Duke and 8115 at NCCU.</p>
 <p>On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
-<p>The model design (TODO: link to design document) calls for the following trip purposes: (Question: do we want to keep referencing the names of the scope here and put our names next to it or just use our names?)</p>
+<p>The model design calls for the following trip purposes:</p>
 <ul>
 <li>Home-Based-Campus (Home-Campus or UHC)<br />
 </li>
@@ -600,13 +600,13 @@ Origin
 <p>To develop production rates, two methods were explored/discussed: cross-classification and regression. Explanatory variables in regression models could include student characteristics such as class status (undergraduate and graduate), on and/or off-campus employment, credit hours (full-time or part-time), and car availability. These variables were expected, and/or shown by other research, to affect university trip production rates. However, using these variables would require that forecast year socio-economic datasets and/or upstream model steps included these variables, which is not currently expected. We therefore used cross-classification techniques, as discussed below.</p>
 <p>As part of the cross-classification approach, daily trips per student reported in the NCSU survey were classified based on the following criteria:</p>
 <ul>
-<li>Trip purpose: Home-Campus, Home-Other, Campus-Other, On-campus, Other-to-other, Campus-to-campus)</li>
+<li>Trip purpose: Home-Campus, Home-Other, Campus-Other, On-campus, Other-to-other, Campus-to-campus</li>
 <li>For home-based trips (Home-Campus,Home-Other): on-campus and off-campus place of residence</li>
 <li>For Other-to-Other trips: Travel mode (walk, bike, transit, and auto (includes drive and carpool))</li>
 </ul>
 <p>Production rates were developed based on the weighted and unweighted data, as a check on the influence of the weighting. We found that the rates based on the weighted data are very similar to the rates based on the unweighted data.</p>
 <p>The average daily trip rate, using the weighted data, is 5.797. On-campus students make an average of 7.125 trips per day, while off-campus students make an average of 5.158 trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.</p>
-<p>The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below. [Table no longer shows this when we don’t break down the on-campus trips by home location: Consistent with our findings, Khattak et al (2012) found that students in Virginia who reside on-campus make more trips (especially on-campus trips) than those who reside off-campus. On-campus students and that they walk more and drive less than off-campus students.]</p>
+<p>The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below.</p>
 <p>The production rates selected for the Triangle Model are somewhat higher than the production trip rates estimated by Khattak et al (2012) based on the Virginia student travel surveys. During first round of surveys at Old Dominion (ODU), Virginia Tech (VT), University of Virginia and Virginia Commonwealth, daily trip rates ranged from 4.4 to 4.9. For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -750,57 +750,7 @@ Campus Building SF (in 000s)
 </tr>
 </tbody>
 </table>
-<p>The trip production rates by mode will be used to estimate productions for Other-to-other trips. More specifically, the Other-to-other productions will be a function of Home-based Other and Campus-to-Other attractions, as discussed in the model design document. This approach ensures consistency between the “Other” trip ends by mode, i.e., it is not possible to have only automobile Home-Other and Campus-Other movements and only bicycle Other-to-other movements. The tables below summarize the Other-to-other trips and the Home-Other and Campus-Other trips by mode: (1)Auto, which includes both drive and carpool; (2) Transit; (3) Walk; and (4) Bicycle. The NCSU survey sample did not include any Other-to-other trips by bicycle.</p>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Trip Purpose
-</th>
-<th style="text-align:left;">
-Mode
-</th>
-<th style="text-align:right;">
-Trip Rate
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Other-to-other
-</td>
-<td style="text-align:left;">
-Auto
-</td>
-<td style="text-align:right;">
-0.283
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Other-to-other
-</td>
-<td style="text-align:left;">
-Transit
-</td>
-<td style="text-align:right;">
-0.011
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Other-to-other
-</td>
-<td style="text-align:left;">
-Walk
-</td>
-<td style="text-align:right;">
-0.029
-</td>
-</tr>
-</tbody>
-</table>
+<p>The trip production rates by mode will be used to estimate productions for Other-to-other trips. More specifically, the Other-to-other productions will be a function of Home-based Other and Campus-to-Other attractions, as discussed in the model design document. This approach ensures consistency between the “Other” trip ends by mode, i.e., it is not possible to have only automobile Home-Other and Campus-Other movements and only bicycle Other-to-other movements. The table below summarizes the Home-Other and Campus-Other trips by mode: (1) Auto, which includes both drive and carpool; (2) Transit; (3) Walk; and (4) Bicycle. The NCSU survey sample did not include any Other-to-other trips by bicycle.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -832,10 +782,10 @@ Auto
 Home-Other and Campus-Other
 </td>
 <td style="text-align:left;">
-Bicycle
+Walk
 </td>
 <td style="text-align:right;">
-0.034
+0.256
 </td>
 </tr>
 <tr>
@@ -854,15 +804,76 @@ Transit
 Home-Other and Campus-Other
 </td>
 <td style="text-align:left;">
-Walk
+Bicycle
 </td>
 <td style="text-align:right;">
-0.256
+0.034
 </td>
 </tr>
 </tbody>
 </table>
-<p>The ratios between the production rates for Other-to-other trips and the production rates for Home-Other and Campus-Other trips are 0.228 for car trips and 0.094 for non-car trips. The small sample sizes prevent further segmentation by mode. Other-to-other trips by auto are estimated to equal 0.228 times the number of Home-Other and Home-Campus auto trips. For each of the three non-auto modes, the Other-to-other trips are estimated by multiplying the Home-Other and Home-Campus trips made with that mode by 0.094.</p>
+<p>The ratios between the production rates for Other-to-other trips and the production rates for Home-Other and Campus-Other trips are 0.228 for car trips and 0.094 for non-car trips. The small sample sizes prevent further segmentation by mode. Other-to-other trips by auto are estimated to equal 0.228 times the number of Home-Other and Home-Campus auto trips. For each of the three non-auto modes, the Other-to-other trips are estimated by multiplying the Home-Other and Home-Campus trips made with that mode by 0.094. The resulting Other-to-other production rates are in the table below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Purpose
+</th>
+<th style="text-align:left;">
+Mode
+</th>
+<th style="text-align:right;">
+Trip Rate
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Other-to-other
+</td>
+<td style="text-align:left;">
+Auto
+</td>
+<td style="text-align:right;">
+0.283
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other-to-other
+</td>
+<td style="text-align:left;">
+Walk
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other-to-other
+</td>
+<td style="text-align:left;">
+Transit
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other-to-other
+</td>
+<td style="text-align:left;">
+Bicycle
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+</tr>
+</tbody>
+</table>
 A summary of the productions across universities is presented in the table below.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1165,7 +1176,7 @@ p.value
 <tbody>
 <tr>
 <td style="text-align:left;">
-AllStudents_UCOTrips
+<em>intercept</em>
 </td>
 <td style="text-align:right;">
 73.7073
@@ -1221,7 +1232,7 @@ NA
 </tr>
 </tbody>
 </table>
-<p>[Question: are we selecting an attraction model that includes distance?] As Campus-other trips by on-campus students, Home-Other trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ, the number of retail jobs and the distance to campus. The distance is calculated as the average of the distances between the centroid of the TAZ and each of the centroids of the different NCSU campus TAZs. All coefficients have the expected sign. As expected, trip attractions decrease as the distance increases and trip attractions increase as student population and retail jobs increase.</p>
+<p>As Campus-other trips by on-campus students, Home-Other trips by on-campus students are trips between the campus and off-campus location. The model explains the number of trips based on the number of off-campus students residing in the TAZ and the number of retail jobs.</p>
 </div>
 <div id="home-other-trip-attractions-on-campus-students" class="section level5">
 <h5>Home-Other Trip Attractions, On-Campus students</h5>
@@ -1248,27 +1259,13 @@ p.value
 <em>intercept</em>
 </td>
 <td style="text-align:right;">
-12.2253
+5.5856
 </td>
 <td style="text-align:right;">
-2.51
+1.67
 </td>
 <td style="text-align:right;">
-0.0129
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-avg_distance_NCSU
-</td>
-<td style="text-align:right;">
--0.7520
-</td>
-<td style="text-align:right;">
--1.87
-</td>
-<td style="text-align:right;">
-0.0634
+0.0968
 </td>
 </tr>
 <tr>
@@ -1276,13 +1273,13 @@ avg_distance_NCSU
 Retail
 </td>
 <td style="text-align:right;">
-0.0254
+0.0247
 </td>
 <td style="text-align:right;">
-3.33
+3.22
 </td>
 <td style="text-align:right;">
-0.0011
+0.0015
 </td>
 </tr>
 <tr>
@@ -1290,13 +1287,13 @@ Retail
 StudOff_NCSU
 </td>
 <td style="text-align:right;">
-0.0217
+0.0292
 </td>
 <td style="text-align:right;">
-1.34
+1.84
 </td>
 <td style="text-align:right;">
-0.1829
+0.0666
 </td>
 </tr>
 <tr>
@@ -1304,7 +1301,7 @@ StudOff_NCSU
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.0648
+0.0528
 </td>
 <td style="text-align:right;">
 NA
@@ -1403,9 +1400,7 @@ NA
 <h2>Trip Distribution</h2>
 <div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">
 <h3>Trip length distribution from the NCSU survey</h3>
-<p><img src="university_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<pre><code>## Warning: Removed 10 rows containing non-finite values (stat_bin).</code></pre>
-<p><img src="university_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p><img src="university_files/figure-html/unnamed-chunk-5-1.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-2.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
 </div>
 </div>
 <div id="mode-choice" class="section level2">
@@ -1617,7 +1612,7 @@ Home-Campus
 54.5
 </td>
 <td style="text-align:right;">
-1.555
+1.55
 </td>
 </tr>
 <tr>
@@ -1637,27 +1632,7 @@ Home-Other
 90.0
 </td>
 <td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-2.46
-</td>
-<td style="text-align:right;">
-48.16
-</td>
-<td style="text-align:right;">
-17.30
-</td>
-<td style="text-align:right;">
-31.8
-</td>
-<td style="text-align:right;">
-0.302
+0.00
 </td>
 </tr>
 </tbody>
@@ -1885,26 +1860,6 @@ Home-Other
 </td>
 <td style="text-align:right;">
 90.0
-</td>
-<td style="text-align:right;">
-100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:right;">
-2.47
-</td>
-<td style="text-align:right;">
-48.30
-</td>
-<td style="text-align:right;">
-17.36
-</td>
-<td style="text-align:right;">
-31.9
 </td>
 <td style="text-align:right;">
 100

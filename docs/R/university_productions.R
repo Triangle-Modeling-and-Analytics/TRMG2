@@ -220,11 +220,11 @@ w_avg_trips_bypurpose_UC1_UCO_UCC_df <- avgtrips_bypurpose_bybldgsf_M2_df %>%
 
 w_avg_trips_bypurpose_bymode_df<-Productions_bymode_df%>%
   filter(!is.na(Primary_Mode))%>%
-  mutate(mode = case_when (Primary_Mode == "Car" ~ "Auto",
-                           Primary_Mode == "Carpool" ~ "Auto",
-                           Primary_Mode == "Bus" ~ "Transit",
+  mutate(mode = case_when (Primary_Mode == "Bicycle" ~ "Bicycle",
                            Primary_Mode == "Walk" ~ "Walk",
-                           Primary_Mode == "Bicycle" ~ "Bicycle"))%>%
+                           Primary_Mode == "Bus" ~ "Transit",
+                           Primary_Mode == "Car" ~ "Auto",
+                           Primary_Mode == "Carpool" ~ "Auto"))%>%
   filter(!is.na(Trips_Weighted)) %>%
   group_by(Trip_Purpose, mode)%>%
   summarize(segment="All Students",
@@ -286,14 +286,35 @@ noncar_triprate_UHOUCO <- w_sumavg_trips_UHOUCO_df %>%
   select(avg_trips)%>%
   pull()
 
-w_cartrips_ratioUOOtoUHOUCO <- car_triprate_UOO/car_triprate_UHOUCO
+bike_triprate_UHOUCO <- w_avg_trips_UHOUCO_df %>%
+  filter(mode=="Bicycle")%>%
+  select(avg_trips)%>%
+  pull()
 
+walk_triprate_UHOUCO <- w_avg_trips_UHOUCO_df %>%
+  filter(mode=="Walk")%>%
+  select(avg_trips)%>%
+  pull()
+
+transit_triprate_UHOUCO <- w_avg_trips_UHOUCO_df %>%
+  filter(mode=="Transit")%>%
+  select(avg_trips)%>%
+  pull()
+
+w_cartrips_ratioUOOtoUHOUCO <- car_triprate_UOO/car_triprate_UHOUCO
 w_non_cartrips_ratioUOOtoUHOUCO <- noncar_triprate_UOO/noncar_triprate_UHOUCO
 
 
 Ratios_P_rates_ratioUOOtoUHOUCO_df <-tibble( mode = c("Car","No_Car"),
                                              rate = c(w_cartrips_ratioUOOtoUHOUCO,w_non_cartrips_ratioUOOtoUHOUCO))
 
+bike_triprate_UOO <- bike_triprate_UHOUCO * w_non_cartrips_ratioUOOtoUHOUCO
+walk_triprate_UOO <- walk_triprate_UHOUCO * w_non_cartrips_ratioUOOtoUHOUCO
+transit_triprate_UOO <- transit_triprate_UHOUCO * w_non_cartrips_ratioUOOtoUHOUCO
+
+UOO_rates_df<-tibble('Trip Purpose' = c("Other-to-other","Other-to-other","Other-to-other","Other-to-other"),
+                     Mode = c("Bicycle", "Walk", "Transit", "Auto"),
+                  'Trip Rate' = c(bike_triprate_UOO, walk_triprate_UOO,transit_triprate_UOO,car_triprate_UOO))
 
 # Selected Production Rates-----------------------------------------------------
 w_avg_trips_bypurpose_df <- 
@@ -390,4 +411,5 @@ saveRDS(Summary_Productions_df,paste0(univ_dir,"Summary_Productions.RDS"))
 saveRDS(Summary_Productions_df,paste0(univ_dir,"Apply_Productions.RDS"))
 write_csv(P_rates_df,paste0(univ_dir,"P_rates.CSV"))
 write_csv(Ratios_P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))
+write_csv(UOO_rates_df, paste0(univ_dir,"UOO_rates.CSV"))
 
