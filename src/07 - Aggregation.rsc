@@ -44,7 +44,7 @@ Macro "Aggregate HB Moto Trips" (Args)
     df.group_by({"ZoneID", "market_segment"})
     trip_types = RunMacro("Get HB Trip Types", Args)
     field_names = V2A(A2V(trip_types) + "_m")
-    df.summarize(trip_types, "sum")
+    df.summarize(field_names, "sum")
     names = df.colnames()
     for name in names do
         if Left(name, 4) = "sum_" then do
