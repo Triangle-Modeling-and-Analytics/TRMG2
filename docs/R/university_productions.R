@@ -1,7 +1,7 @@
 # Packages ---------------------------------------------------------------------
 library(tidyverse)
-library(corrr)
-library(kableExtra)
+#library(corrr)
+#library(kableExtra)
 library(broom)
 
 # Remote I/O -------------------------------------------------------------------
@@ -55,7 +55,8 @@ SurveyRespondent_Residence_Weighted_df<-Person_subset_df%>%
   summarize(count=n(), .groups = "drop")
 
 # Trip Production Histograms ---------------------------------------------------
-Triprates_histogram<-Productions_bymode_df %>% 
+Triprates_histogram1<-Productions_bymode_df %>% 
+  filter(Trip_Purpose =="UHC"| Trip_Purpose =="UHO")%>%
   group_by(Person_ID,
            Trip_Purpose, 
            On_campus)%>%
@@ -65,9 +66,15 @@ Triprates_histogram<-Productions_bymode_df %>%
   geom_histogram(bins=20) + 
   facet_grid(Trip_Purpose~On_campus)
 
-Triprates_histogram + labs(title = "Figure 1 - Trips per student by purpose", 
-                           subtitle="for off-campus students (On_campus==0) and on-campus students (On_campus==1) students", 
-                           caption = ("Source: NCSU survey (unweighted)"))
+
+Triprates_histogram2<-Productions_bymode_df %>% 
+  filter(Trip_Purpose == "UC1"| Trip_Purpose == "UCO"| Trip_Purpose == "UCC")%>%
+  group_by(Person_ID,
+           Trip_Purpose)%>%
+  summarize(Trips_per_student = sum(Trips),.groups = "drop")%>%
+  ggplot(aes(Trips_per_student, fill = Trip_Purpose)) + 
+  geom_histogram(bins = 20) + 
+  facet_grid(Trip_Purpose~.)
 
 
 # Trip Production Rates based on Cross-Classification --------------------------
@@ -98,26 +105,11 @@ Respondents_Offcampus_students<-avg_trips_byresidence_df%>%
   select(respondents)%>%
   pull()
 
-avg_trips_bypurpose_Oncampus_df<-Productions_bymode_df%>%
-  filter(On_campus==1)%>%
-  group_by(Trip_Purpose)%>%
-  summarize(segment="On-campus Students",
-            trips=sum(Trips),
-            respondents=Respondents_Oncampus_students,
-            avg_trips=trips/respondents,
-            .groups = "drop")
+Respondents_All_students<-avg_trips_df%>%
+  select(respondents)%>%
+  pull()
 
-avg_trips_bypurpose_Offcampus_df<-Productions_bymode_df%>%
-  filter(On_campus==0)%>%
-  group_by(Trip_Purpose)%>%
-  summarize(segment="Off-campus Students",
-            trips=sum(Trips),
-            respondents=Respondents_Offcampus_students,
-            avg_trips=trips/respondents,
-            .groups = "drop")
 
-avg_trips_bypurpose_df<-rbind(avg_trips_bypurpose_Oncampus_df,avg_trips_bypurpose_Offcampus_df)
-avg_trips_bypurpose_col=c("segment","Trip_Purpose","avg_trips","respondents")
 
 #Weighted data
 w_avg_trips_df<-Person_subset_df%>%
@@ -148,6 +140,8 @@ Offcampus_students<-w_avg_trips_byresidence_df%>%
   filter(On_campus==0)%>%
   select(students)%>%
   pull()
+
+Total_students = Oncampus_students + Offcampus_students
 
 # Trip Production Rates for UHC and UHO trip purposes (segmented by home location)
 w_avg_trips_bypurpose_Oncampus_df<-Productions_bymode_df%>%
@@ -180,34 +174,14 @@ w_avg_trips_bypurpose_UHC_UHO_df<-rbind(w_avg_trips_bypurpose_Oncampus_df,w_avg_
          respondents)
 
 
-# summarize weighted and raw trip rates 
-###unweighted average still includes all trips purposes
-
-headers<-c("Segment","Trip Purpose","Trip Rate", "Segment Sample Size")
-kable(avg_trips_bypurpose_df[,avg_trips_bypurpose_col],caption ="Trip Rates by Purpose",col.names=headers)
-kable(w_avg_trips_bypurpose_UHC_UHO_df[,w_avg_trips_bypurpose_col],caption ="Weighted Trip Rates by Purpose",col.names = headers)
-
 # Trip production rates for UCO, UCC, and UC1 (not segmented by home location)
 trips_bypurpose_byTAZ_df <- Trip_subset_df %>%  
   filter(Trip_Purpose=="UCO"|Trip_Purpose=="UCC" |Trip_Purpose=="UC1") %>%
   group_by(Trip_Purpose, TAZ_P)%>%
-  summarize(weighted_trips = sum(Weight, na.rm = TRUE))%>%
+  summarize(weighted_trips = sum(Weight, na.rm = TRUE),
+            .groups = "drop")%>%
   left_join(socioecon2_df, by=c("TAZ_P"="TAZ"))
 
-
-## 2 Methods 
-###M1: not used
-avgtrips_bypurpose_bybldgsf_M1_df <- trips_bypurpose_byTAZ_df %>%
-  select(TAZ_P,
-         Trip_Purpose,
-         weighted_trips, 
-         BuildingS_NCSU) %>%
-  filter(BuildingS_NCSU!=0 & !is.na(BuildingS_NCSU))%>%
-  mutate(weighted_trips = if_else(is.na(weighted_trips),0,weighted_trips))%>%
-  mutate (tripsbyblgdsf = weighted_trips/BuildingS_NCSU)%>%
-  group_by(Trip_Purpose) %>%
-  summarize(tripsper1000SF_M1=median(tripsbyblgdsf))
-###M2: used -- may change when BuildingS_NCSU field in TAZ file is fixed
 avgtrips_bypurpose_bybldgsf_M2_df <- trips_bypurpose_byTAZ_df %>%
   filter(BuildingS_NCSU!=0 & !is.na(BuildingS_NCSU))%>%
   select(Trip_Purpose,
@@ -220,152 +194,90 @@ avgtrips_bypurpose_bybldgsf_M2_df <- trips_bypurpose_byTAZ_df %>%
             tripsper1000SF_M2= total_trips/total_SF)
 
 w_avg_trips_bypurpose_UC1_UCO_UCC_df <- avgtrips_bypurpose_bybldgsf_M2_df %>%
-  mutate(segment ="All Students",
-         respondents ="TBD")%>%
+  mutate(segment ="All_Students",
+         respondents = Respondents_Oncampus_students + Respondents_Offcampus_students)%>%
   select(segment, 
          Trip_Purpose,
          avg_trips=tripsper1000SF_M2,
          respondents)
 
-# Trip Production Rates by Mode for UOO trips ----------------------------------
-## Trip Production Rates by modes by purpose -----------------------------------
-avg_trips_bypurpose_Oncampus_bymode_df<-Productions_bymode_df%>%
-  filter(On_campus==1)%>%
+#Trip Production Rates by Mode for UOO trips ----------------------------------
+
+w_avg_trips_bypurpose_bymode_df<-Productions_bymode_df%>%
   filter(!is.na(Primary_Mode))%>%
-  group_by(Trip_Purpose, Primary_Mode)%>%
-  summarize(segment="On-campus Students",
-            trips=sum(Trips),
-            respondents=Respondents_Oncampus_students,
-            avg_trips=trips/respondents,
+  mutate(mode = case_when (Primary_Mode == "Car" ~ "Auto",
+                           Primary_Mode == "Carpool" ~ "Auto",
+                           Primary_Mode == "Bus" ~ "Transit",
+                           Primary_Mode == "Walk" ~ "Walk",
+                           Primary_Mode == "Bicycle" ~ "Bicycle"))%>%
+  filter(!is.na(Trips_Weighted)) %>%
+  group_by(Trip_Purpose, mode)%>%
+  summarize(segment="All Students",
+            trips=sum(Trips_Weighted),
+            students=Total_students,
+            avg_trips=trips/students,
             count=n(),
             .groups = "drop")
 
-avg_trips_bypurpose_Offcampus_bymode_df<-Productions_bymode_df%>%
-  filter(On_campus==0)%>%
-  filter(!is.na(Primary_Mode))%>%
-  group_by(Trip_Purpose, Primary_Mode)%>%
-  summarize(segment="Off-campus Students",
-            trips=sum(Trips),
-            respondents=Respondents_Offcampus_students,
-            avg_trips=trips/respondents,
-            count=n(),
-            .groups = "drop")
-
-avg_trips_bypurpose_bymode_df<-rbind(avg_trips_bypurpose_Oncampus_bymode_df,avg_trips_bypurpose_Offcampus_bymode_df)
-avg_trips_bypurpose_bymode_col=c("segment", "Trip_Purpose", "Primary_Mode", "avg_trips", "count", "respondents")
-
-headers<-c("Segment","Trip Purpose","Mode","Trip Rate", "Respondents", "Segment Sample Size")
-kable(avg_trips_bypurpose_bymode_df [,avg_trips_bypurpose_bymode_col],caption ="Trip Rates by Purpose by Mode",col.names=headers)
-
-## Trip Rates for UHO and UCO combined, by mode (basis for UOO trip rates)-------
-avg_trips_UHOUCO_Oncampus_bymode_df<-Productions_bymode_df%>%
-  filter(On_campus==1) %>%
-  filter(UHO==1|UCO==1)%>%
-  filter(!is.na(Primary_Mode))%>%
-  group_by(Primary_Mode)%>%
-  summarize(segment="On-campus Students UHO UCO Trips",
-            trips=sum(Trips),
-            respondents=Respondents_Oncampus_students,
-            avg_trips=trips/respondents,
-            count=n(),
-            .groups = "drop")
-
-avg_trips_UHOUCO_Offcampus_bymode_df<-Productions_bymode_df%>%
-  filter(On_campus==0)%>%
-  filter(UHO==1|UCO==1)%>%
-  filter(!is.na(Primary_Mode))%>%
-  group_by(Primary_Mode)%>%
-  summarize(segment="Off-campus Students UHO UCO Trips",
-            trips=sum(Trips),
-            respondents=Respondents_Offcampus_students,
-            avg_trips=trips/respondents,
-            count=n(),
-            .groups = "drop")
-
-avg_trips_UHOUCO_df<-rbind(avg_trips_UHOUCO_Oncampus_bymode_df,avg_trips_UHOUCO_Offcampus_bymode_df)
-avg_trips_UHOUCO_col=c("segment","Primary_Mode","avg_trips","count","respondents")
-headers<-c("Segment","Mode","Trip Rate", "Respondents", "Segment Sample Size")
-#kable(avg_trips_UHOUCO_df[,avg_trips_UHOUCO_col],caption ="UHO and UCO Trip Rates by Mode",col.names=headers)
-
-
-## Trip Rates for UHO and UCO combined, car/no car --------------------------------
-sumavg_trips_UHOUCO_df <-avg_trips_UHOUCO_df %>%
-  mutate(oncampus_car = if_else(segment == "On-campus Students UHO UCO Trips" & 
-                                  (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
-         oncampus_noncar = if_else(segment == "On-campus Students UHO UCO Trips" & 
-                                     Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
-         offcampus_car = if_else(segment == "Off-campus Students UHO UCO Trips" & 
-                                   (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
-         offcampus_noncar = if_else(segment == "Off-campus Students UHO UCO Trips" & 
-                                      Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
-         car = if_else(Primary_Mode == "Car" | Primary_Mode == "Carpool", 1, 0) * trips,
-         non_car = if_else(Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips)%>%
-  summarize(oncampus_car = sum(oncampus_car),
-            oncampus_noncar= sum(oncampus_noncar),
-            offcampus_car = sum(offcampus_car),
-            offcampus_noncar = sum(offcampus_noncar),
-            car = sum(car),
-            non_car = sum(non_car),
-            ssize_oncampus = min(respondents[segment=="On-campus Students UHO UCO Trips"]),
-            ssize_offcampus = min(respondents[segment=="Off-campus Students UHO UCO Trips"]),
-            .groups = "drop")
-sumavg_trips_UHOUCO_df
-
-## Trip Rates UOO, by mode -----------------------------------------------------
-avg_trips_UOO_Oncampus_bymode_df<-avg_trips_bypurpose_Oncampus_bymode_df %>%
+w_avg_trips_UOO_df <-w_avg_trips_bypurpose_bymode_df %>%
   filter (Trip_Purpose == "UOO") %>%
-  select(-c(Trip_Purpose))
+  filter(!is.na(mode))%>%
+  select(-c(Trip_Purpose, segment))
 
-avg_trips_UOO_Offcampus_bymode_df<-avg_trips_bypurpose_Offcampus_bymode_df %>%
-  filter (Trip_Purpose == "UOO") %>%
-  select(-c(Trip_Purpose))
+w_avg_trips_UHOUCO_df <-w_avg_trips_bypurpose_bymode_df %>%
+  filter (Trip_Purpose == "UHO"| Trip_Purpose == "UCO") %>%
+  filter(!is.na(mode))%>%
+  select(-c(Trip_Purpose,segment,avg_trips))%>%
+  group_by(mode)%>%
+  summarize(trips=sum(trips),
+            students=Total_students,
+            avg_trips=trips/students,
+           count=sum(count),
+          .groups = "drop")
 
-avg_trips_UOO_df<-rbind(avg_trips_UOO_Oncampus_bymode_df,avg_trips_UOO_Offcampus_bymode_df)
-avg_trips_UHOUCOUOO_df<-rbind(avg_trips_UHOUCO_df,avg_trips_UOO_df)
+w_sumavg_trips_UOO_df <- w_avg_trips_UOO_df %>%
+  mutate(carnocar = if_else(mode == "Auto", "Car", "No-Car"))%>%
+  filter(!is.na(carnocar))%>%
+  group_by(carnocar) %>%
+    summarize(trips=sum(trips),
+              students = Total_students,
+              avg_trips = trips/students)
 
-avg_trips_UOO_col=c("segment","Primary_Mode","avg_trips","count","respondents")
-headers<-c("Segment","Mode","Trip Rate", "Respondents", "Segment Sample Size")
-#kable(avg_trips_UHOUCOUOO_df[,avg_trips_UOO_col],caption ="Trip Rates by Mode",col.names=headers)
+car_triprate_UOO <- w_sumavg_trips_UOO_df %>%
+  filter(carnocar=="Car") %>%
+  select(avg_trips)%>%
+  pull()
 
-## Trip Rates UOO, car/no car -----------------------------------------------------
+noncar_triprate_UOO <- w_sumavg_trips_UOO_df %>%
+  filter(carnocar=="No-Car")%>%
+  select(avg_trips)%>%
+  pull()
 
-sumavg_trips_UOO_df <-avg_trips_UOO_df %>%
-  mutate(oncampus_car = if_else(segment == "On-campus Students" & 
-                                  (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
-         oncampus_noncar = if_else(segment == "On-campus Students" & 
-                                     Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
-         offcampus_car = if_else(segment == "Off-campus Students" & 
-                                   (Primary_Mode == "Car" | Primary_Mode == "Carpool"), 1, 0) * trips,
-         offcampus_noncar = if_else(segment == "Off-campus Students" & 
-                                      Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips,
-         car = if_else(Primary_Mode == "Car" | Primary_Mode == "Carpool", 1, 0) * trips,
-         non_car = if_else(Primary_Mode != "Car" & Primary_Mode != "Carpool", 1, 0) * trips) %>%
-  summarize(oncampus_car = sum(oncampus_car),
-            oncampus_noncar= sum(oncampus_noncar),
-            offcampus_car = sum(offcampus_car),
-            offcampus_noncar = sum(offcampus_noncar),
-            car = sum(car),
-            non_car = sum(non_car),
-            ssize_oncampus = min(respondents[segment=="On-campus Students"]),
-            ssize_offcampus = min(respondents[segment=="Off-campus Students"]),
-            .groups = "drop")
+w_sumavg_trips_UHOUCO_df <- w_avg_trips_UHOUCO_df %>%
+  mutate(carnocar = if_else(mode == "Auto", "Car", "No-Car")) %>%
+  filter(!is.na(carnocar))%>%
+  group_by(carnocar) %>%
+  summarize(trips=sum(trips),
+            students = Total_students,
+            avg_trips = trips/students)
 
-sumavg_trips_UOO_df
+car_triprate_UHOUCO <- w_sumavg_trips_UHOUCO_df %>%
+  filter(carnocar=="Car")%>%
+  select(avg_trips)%>%
+  pull()
 
-## ratio UOO/UHOUCO
+noncar_triprate_UHOUCO <- w_sumavg_trips_UHOUCO_df %>%
+  filter(carnocar=="No-Car")%>%
+  select(avg_trips)%>%
+  pull()
 
-trip_purpose<-c("UHOUCO","UOO")
+w_cartrips_ratioUOOtoUHOUCO <- car_triprate_UOO/car_triprate_UHOUCO
 
-sumavg_trips_UHOUCOUOO_df <- cbind(rbind(sumavg_trips_UHOUCO_df,sumavg_trips_UOO_df),trip_purpose)
+w_non_cartrips_ratioUOOtoUHOUCO <- noncar_triprate_UOO/noncar_triprate_UHOUCO
 
-cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$car[trip_purpose == "UOO"]/
-  sumavg_trips_UHOUCOUOO_df$car[trip_purpose == "UHOUCO"]
 
-non_cartrips_ratioUOOtoUHOUCO <- sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UOO"]/
-  sumavg_trips_UHOUCOUOO_df$non_car[trip_purpose == "UHOUCO"]
-
-P_rates_ratioUOOtoUHOUCO_df <-tibble(cartrips_ratioUOOtoUHOUCO,non_cartrips_ratioUOOtoUHOUCO)
-
+Ratios_P_rates_ratioUOOtoUHOUCO_df <-tibble( mode = c("Car","No_Car"),
+                                             rate = c(w_cartrips_ratioUOOtoUHOUCO,w_non_cartrips_ratioUOOtoUHOUCO))
 
 
 # Selected Production Rates-----------------------------------------------------
@@ -382,7 +294,7 @@ P_rates_df<-w_avg_trips_bypurpose_df %>%
 
 # Apply Selected Production Rates-----------------------------------------------
 # Apply productions for UHC, UHO, UCO, UC1  
-selected_columns<-c(1,24:63)
+selected_columns<-c(1,25:52)
 
 Apply_Productions_df<-socioecon2_df %>%
   select(TAZ,
@@ -397,81 +309,70 @@ Apply_Productions_df<-socioecon2_df %>%
          Share_Bldg_NCSU,
          Share_Bldg_UNC,
          Share_Bldg_DUKE,
-         Share_Bldg_NCCU)%>%
+         Share_Bldg_NCCU,
+         BuildingS_NCSU,
+         BuildingS_UNC,
+         BuildingS_DUKE,
+         BuildingS_NCCU)%>%
   
   mutate(P_rate_On_UHC=P_rates_df$'Production Rate'[P_rates_df$segment == "On_campus Students" & P_rates_df$Trip_Purpose =="UHC"],
          P_rate_On_UHO=P_rates_df$'Production Rate'[P_rates_df$segment == "On_campus Students" & P_rates_df$Trip_Purpose =="UHO"],
-         P_rate_On_UCO=P_rates_df$'Production Rate'[P_rates_df$segment == "On_campus Students" & P_rates_df$Trip_Purpose =="UCO"],
-         P_rate_On_UC1=P_rates_df$'Production Rate'[P_rates_df$segment == "On_campus Students" & P_rates_df$Trip_Purpose =="UC1"],
-         P_rate_On_UCC=P_rates_df$'Production Rate'[P_rates_df$segment == "On_campus Students" & P_rates_df$Trip_Purpose =="UCC"],
+         P_rate_All_UCO=P_rates_df$'Production Rate'[P_rates_df$segment == "All_Students" & P_rates_df$Trip_Purpose =="UCO"],
+         P_rate_All_UC1=P_rates_df$'Production Rate'[P_rates_df$segment == "All_Students" & P_rates_df$Trip_Purpose =="UC1"],
+         P_rate_All_UCC=P_rates_df$'Production Rate'[P_rates_df$segment == "All_Students" & P_rates_df$Trip_Purpose =="UCC"],
          
          P_rate_Off_UHC=P_rates_df$'Production Rate'[P_rates_df$segment == "Off_campus Students" & P_rates_df$Trip_Purpose =="UHC"],
          P_rate_Off_UHO=P_rates_df$'Production Rate'[P_rates_df$segment == "Off_campus Students" & P_rates_df$Trip_Purpose =="UHO"],
-         P_rate_Off_UCO=P_rates_df$'Production Rate'[P_rates_df$segment == "Off_campus Students" & P_rates_df$Trip_Purpose =="UCO"],
-         P_rate_Off_UC1=P_rates_df$'Production Rate'[P_rates_df$segment == "Off_campus Students" & P_rates_df$Trip_Purpose =="UC1"],
-         P_rate_Off_UCC=P_rates_df$'Production Rate'[P_rates_df$segment == "Off_campus Students" & P_rates_df$Trip_Purpose =="UCC"],
-         
+        
          Productions_UHC_On_Campus_NCSU = StudGQ_NCSU * P_rate_On_UHC,
          Productions_UHO_On_Campus_NCSU = StudGQ_NCSU * P_rate_On_UHO,
-         Productions_UCO_On_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_On_UCO,
-         Productions_UC1_On_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_On_UC1,
-         Productions_UCC_On_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_On_UCC,
+         Productions_UCO_All_Campus_NCSU = BuildingS_NCSU * P_rate_All_UCO,
+         Productions_UC1_All_Campus_NCSU = BuildingS_NCSU * P_rate_All_UC1,
+         Productions_UCC_All_Campus_NCSU = BuildingS_NCSU * P_rate_All_UCC,
          
          Productions_UHC_Off_Campus_NCSU = StudOff_NCSU * P_rate_Off_UHC,
          Productions_UHO_Off_Campus_NCSU = StudOff_NCSU * P_rate_Off_UHO,
-         Productions_UCO_Off_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_Off_UCO,
-         Productions_UC1_Off_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_Off_UC1,
-         Productions_UCC_Off_Campus_NCSU = Share_Bldg_NCSU * enrollment_NCSU * P_rate_Off_UCC,
-         
+        
          Productions_UHC_On_Campus_UNC = StudGQ_UNC * P_rate_On_UHC,
          Productions_UHO_On_Campus_UNC = StudGQ_UNC * P_rate_On_UHO,
-         Productions_UCO_On_Campus_UNC = Share_Bldg_UNC * enrollment_UNC * P_rate_On_UCO,
-         Productions_UC1_On_Campus_UNC = Share_Bldg_UNC * enrollment_UNC * P_rate_On_UC1,
-         Productions_UCC_On_Campus_UNC = Share_Bldg_UNC * enrollment_UNC * P_rate_On_UCC,
+         Productions_UCO_All_Campus_UNC = BuildingS_UNC * P_rate_All_UCO,
+         Productions_UC1_All_Campus_UNC = BuildingS_UNC * P_rate_All_UC1,
+         Productions_UCC_All_Campus_UNC = BuildingS_UNC * P_rate_All_UCC,
          
          Productions_UHC_Off_Campus_UNC = StudOff_UNC * P_rate_Off_UHC,
          Productions_UHO_Off_Campus_UNC = StudOff_UNC * P_rate_Off_UHO,
-         Productions_UCO_Off_Campus_UNC = Share_Bldg_UNC * enrollment_UNC*P_rate_Off_UCO,
-         Productions_UC1_Off_Campus_UNC = Share_Bldg_UNC * enrollment_UNC*P_rate_Off_UC1,
-         Productions_UCC_Off_Campus_UNC = Share_Bldg_UNC * enrollment_UNC*P_rate_Off_UCC,
          
          Productions_UHC_On_Campus_Duke = StudGQ_DUKE * P_rate_On_UHC,
          Productions_UHO_On_Campus_Duke = StudGQ_DUKE * P_rate_On_UHO,
-         Productions_UCO_On_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_On_UCO,
-         Productions_UC1_On_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_On_UC1,
-         Productions_UCC_On_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_On_UCC,
+         Productions_UCO_All_Campus_Duke = BuildingS_DUKE *  P_rate_All_UCO,
+         Productions_UC1_All_Campus_Duke = BuildingS_DUKE * P_rate_All_UC1,
+         Productions_UCC_All_Campus_Duke = BuildingS_DUKE * P_rate_All_UCC,
          
          Productions_UHC_Off_Campus_Duke = StudOff_DUKE * P_rate_Off_UHC,
          Productions_UHO_Off_Campus_Duke = StudOff_DUKE * P_rate_Off_UHO,
-         Productions_UCO_Off_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_Off_UCO,
-         Productions_UC1_Off_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_Off_UC1,
-         Productions_UCC_Off_Campus_Duke = Share_Bldg_DUKE * enrollment_Duke * P_rate_Off_UCC,
-         
+
          Productions_UHC_On_Campus_NCCU = StudGQ_NCCU * P_rate_On_UHC,
          Productions_UHO_On_Campus_NCCU = StudGQ_NCCU * P_rate_On_UHO,
-         Productions_UCO_On_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_On_UCO,
-         Productions_UC1_On_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_On_UC1,
-         Productions_UCC_On_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_On_UCC,
+         Productions_UCO_All_Campus_NCCU = BuildingS_NCCU * P_rate_All_UCO,
+         Productions_UC1_All_Campus_NCCU = BuildingS_NCCU * P_rate_All_UC1,
+         Productions_UCC_All_Campus_NCCU = BuildingS_NCCU * P_rate_All_UCC,
          
          Productions_UHC_Off_Campus_NCCU = StudOff_NCCU * P_rate_Off_UHC,
-         Productions_UHO_Off_Campus_NCCU = StudOff_NCCU * P_rate_Off_UHO,
-         Productions_UCO_Off_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_Off_UCO,
-         Productions_UC1_Off_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_Off_UC1, 
-         Productions_UCC_Off_Campus_NCCU = Share_Bldg_NCCU * enrollment_NCCU * P_rate_Off_UCC)%>%
+         Productions_UHO_Off_Campus_NCCU = StudOff_NCCU * P_rate_Off_UHO)%>%
            
-   select(selected_columns)
+   select(all_of(selected_columns))
 
-Summary_Productions_df<-Apply_Productions_df%>%
+Summary_Productions_df<-Apply_Productions_df %>%
   summarize_all(sum) %>% 
-  select(c(2:41)) %>%
-  pivot_longer(c(1:40),names_to ="Segments",values_to = "Productions")
+  select(c(2:29)) %>%
+  pivot_longer(c(1:28),names_to ="Segments",values_to = "Productions")
 
-Summary_Productions_df
+#Summary_Productions_df
 
 # Output------------------------------------------------------------------------
 
 saveRDS(Summary_Productions_df,paste0(univ_dir,"Summary_Productions.RDS"))
 saveRDS(Summary_Productions_df,paste0(univ_dir,"Apply_Productions.RDS"))
 write_csv(P_rates_df,paste0(univ_dir,"P_rates.CSV"))
-write_csv(P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))
+write_csv(Ratios_P_rates_ratioUOOtoUHOUCO_df, paste0(univ_dir,"P_rates_ratioUOOtoUHOUCO.CSV"))
 

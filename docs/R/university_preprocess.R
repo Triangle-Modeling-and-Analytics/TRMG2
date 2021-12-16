@@ -83,7 +83,8 @@ TotalBuildingS_NCCU_df <-socioecon_df %>%
   pull(sum)
 
 
-# Additional variables - Distribution of BuildingS by TAZ, employment, campus TAZa 
+# Additional variables - Distribution of BuildingS by TAZ, employment, campusTAZs
+### check campusTAZs_df - used on for UCC
 socioecon2_df <- socioecon_df %>%
   mutate(Share_Bldg_NCSU  = BuildingS_NCSU/TotalBuildingS_NCSU_df, 
          Share_Bldg_UNC = BuildingS_UNC/TotalBuildingS_UNC_df,
@@ -120,7 +121,7 @@ campusTAZs_df<-socioecon2_df %>%
   select(TAZ,campus,aggcampus)%>%
   filter(!is.na(aggcampus))
 
-# distance to campus ----------------------------------------------------------
+# distance to campus based on skim-----------------------------------------------
 distance_tocampus_df<- distance_skim_df %>%
   right_join(campusTAZs_df, by = c("originTAZ" = "TAZ")) %>%
   group_by(destinationTAZ,aggcampus) %>%
