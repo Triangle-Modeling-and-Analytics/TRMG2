@@ -2504,3 +2504,41 @@ Macro "Trip Conservation Snapshot" (dir, out_file)
   df.mutate("period", Right(df.tbl.matrix, 2))
   df.write_csv(out_file)
 endmacro
+
+macro "test"
+  opts.trip_mtx_file = "C:\\Users\\kyle\\Desktop\\scratch\\trips.mtx"
+  opts.trip_core = "Matrix 1"
+  opts.parking_mtx_file = "C:\\Users\\kyle\\Desktop\\scratch\\parking_prob.mtx"
+  opts.parking_core = "Matrix 1"
+  RunMacro("Parking Convolution", opts)
+endmacro
+
+Macro "Parking Convolution" (MacroOpts)
+
+  trip_mtx_file = MacroOpts.trip_mtx_file
+  trip_core = MacroOpts.trip_core
+  parking_mtx_file = MacroOpts.parking_mtx_file
+  parking_core = MacroOpts.parking_core
+
+  // For any parking matrix rows with null total probabilities,
+  // put a 1 on the diagonal.
+  prk_mtx = CreateObject("Matrix", parking_mtx_file)
+  v_row_sum = prk_mtx.GetVector({Core: parking_core, Marginal: "Row Sum"})
+  v_diag = prk_mtx.GetVector({Core: parking_core, Diagonal: "Row"})
+  v_diag = if v_row_sum = null then 1 else v_diag
+  prk_mtx.SetVector({Core: parking_core, Vector: v_diag, Diagonal: true})
+  prk_core = prk_mtx.GetCore(parking_core)
+
+  // Get the column vectors from the trip matrix
+  trip_mtx = CreateObject("Matrix", trip_mtx_file)
+  v_trips = trip_mtx.GetVector({Core: trip_core, Marginal: "Column Sum"})
+  
+  // Create a copy of the trips matrix to hold interim results
+  {drive, path, name, ext} = SplitPath(trip_mtx_file)
+  interim_mtx_file = drive + path + "interim.mtx"
+  CopyFile(trip_mtx_file, interim_mtx_file)
+  interim_mtx = CreateObject("Matrix", interim_mtx_file)
+  int_core = interim_mtx.GetCore(trip_core)
+  int_core := v_trips * prk_core
+
+endmacro
