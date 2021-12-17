@@ -96,6 +96,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
+    sl_query = Args.sl_query
 
     // If this macro is called without the pre-assignment step, then fill in
     // these variables.
@@ -123,6 +124,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         o = CreateObject("Network.Assignment")
         o.Network = net_file
         o.LayerDB = hwy_dbd
+        o.CriticalQueryFile = sl_query
         o.ResetClasses()
         o.Iterations = assign_iters
         o.Convergence = Args.AssignConvergence

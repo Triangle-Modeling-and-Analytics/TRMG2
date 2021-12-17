@@ -2,7 +2,7 @@
 
 */
 
-Macro "test"
+Macro "test merge"
     merge = CreateObject("MergeTool", {
         OldDBD: "C:\\projects\\TRM\\trm_project\\repo_trmg2\\master\\networks\\master_links.dbd",
         // NewDBD: "C:\\projects\\TRM\\trm_project\\working_files\\client_data\\2020\\campo_data\\master_links.dbd",
