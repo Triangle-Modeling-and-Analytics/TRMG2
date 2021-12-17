@@ -84,6 +84,7 @@ endmacro
 */
 Macro "Calibrate HB MC"(Args)
     trip_types = RunMacro("Get HB Trip Types", Args)
+    //trip_types = {"n_hb_omed_all"}
     //pbar1 = CreateObject("G30 Progress Bar", "Calibrating MC models for each trip type ...", true, trip_types.length)
     for trip_type in trip_types do
         if Lower(trip_type) = "w_hb_ek12_all" then
@@ -96,8 +97,13 @@ Macro "Calibrate HB MC"(Args)
 
         pbar2 = CreateObject("G30 Progress Bar", "Calibrating segment specific MC models for " + trip_type, true, segments.length)
         for segment in segments do
-            converged = RunMacro("Calibrate MC", Args, {TripType: trip_type, Segment: segment, Iterations: 20, UpdateCSVSpec: 1})
-            AppendToLogFile(0, "MC Calibration Convergence for Trip Type '" + trip_type + "' and Segment '" + segment + "': " + String(converged))
+            if Lower(trip_type) = "n_hb_omed_all" and segment <> "v0" then
+                dampingFactor = 0.1
+            else
+                dampingFactor = 0.5
+
+            converged = RunMacro("Calibrate MC", Args, {TripType: trip_type, Segment: segment, Iterations: 50, UpdateCSVSpec: 1, AdjustmentScale: dampingFactor})
+            AppendToReportFile(0, "MC Calibration Convergence for Trip Type '" + trip_type + "' and Segment '" + segment + "': " + String(converged))
 
             if pbar2.Step() then
                 Return() 
@@ -147,8 +153,11 @@ Macro "Calibrate MC"(Args, Opts)
             Throw("Error in checking convergence for mode choice calibration")
             
         // Modify Model ASCs for next loop
-        if converged = 0 then
-            RunMacro("Modify MC Models", Args, Opts, altNames, shares, targets)
+        if converged = 0 then do
+            modified = RunMacro("Modify MC Models", Args, Opts, altNames, shares, targets)
+            if modified = 0 then // Did not modify model since model share of some alternative is trending to 0.
+                Return(0)
+        end
 
         iters = iters + 1
 
@@ -394,6 +403,7 @@ Macro "Modify MC Models"(Args, Opts, altNames, shares, targets)
     periods = Args.periods
     mc_dir = out_dir + "/resident/mode"
     name = Opts.TripType + "_" + Opts.Segment
+    dampingFactor = Opts.AdjustmentScale
 
     // Update the model files for each period (same adjustment for each period)
     for period in periods do
@@ -403,11 +413,20 @@ Macro "Modify MC Models"(Args, Opts, altNames, shares, targets)
         seg = model.GetSegment("*")
         for i = 1 to altNames.length do
             alt = seg.GetAlternative(altNames[i])
-            alt.ASC.Coeff = nz(alt.ASC.Coeff) + 0.5*log(targets[i]/shares[i])
-            model.Write(outMdl)
+            if shares[i] > 0.0 then do // If shares[i] = 0 and targets[i] > 0, then the calibration has to be redone with a smaller damping factor.
+                alt.ASC.Coeff = nz(alt.ASC.Coeff) + dampingFactor*log(targets[i]/shares[i])
+                model.Write(outMdl)
+            end
+            else do
+                AppendToReportFile(0, "Purpose: " + name + ". Model share of " + altnames[i] + " trending to 0.")
+                AppendToReportFile(0, "Re-run with smaller damping (adjustment) factor")
+                model.Clear()
+                Return(0)
+            end
         end
         model.Clear()
     end
+    Return(1)
 endMacro
 
 
