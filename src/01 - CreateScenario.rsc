@@ -93,7 +93,6 @@ Macro "Create Folder Structure" (Args)
     "/resident/nhb/dc",
     "/resident/nonmotorized",
     "/resident/trip_matrices",
-    "/directionality",
     "/assignment",
     "/assignment/transit",
     "/assignment/roadway",
