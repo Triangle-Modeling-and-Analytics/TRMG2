@@ -270,7 +270,7 @@ print_model(Model_Oncampus_UHO_1)
 ```
 
 
-#####  Home-Other Trip Attractions, On-Campus students
+#####  Home-Other Trip Attractions, Off-Campus students
 Home-Other trips by off-campus students have two off-campus trip ends. The model explains UHO trips by off-campus students based on the off- campus student population and the number of retail jobs.
 ```{r, echo=FALSE}
 print_model(Model_Offcampus_UHO_2)
