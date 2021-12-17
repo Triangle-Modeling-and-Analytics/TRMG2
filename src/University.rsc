@@ -1,18 +1,30 @@
 /*
 University Model
+
+Modeled Trip Purposes -
+UHC: Home-Based-Campus
+UHO: Home-Based-Other
+UCO: Campus-Based-Other
+UC1: On-Campus
+UCC: Inter-Campus
+UOO: University student Other-Other
 */
 
 Macro "University" (Args)
-    // RunMacro("University Productions", Args)
-    // RunMacro("University Attractions", Args)
-    // RunMacro("University Balance Ps and As", Args)
-    // RunMacro("University TOD", Args)
-    // RunMacro("University Gravity", Args)
-    // RunMacro("University Combine Matrix", Args)
-    // RunMacro("University Directionality", Args)
-    // RunMacro("University MC Probabilities", Args)
-    // RunMacro("University Mode Choice", Args)
-    // ShowMessage("done")
+    RunMacro("TCB Init")
+	
+    RunMacro("University Productions", Args)
+    RunMacro("University Attractions", Args)
+    RunMacro("University Balance Ps and As", Args)
+    RunMacro("University TOD", Args)
+    RunMacro("University Gravity", Args)
+    RunMacro("University Combine Campus", Args)
+    RunMacro("University Directionality", Args)
+    RunMacro("University MC Probabilities", Args)
+    RunMacro("University Mode Choice", Args)
+    RunMacro("University Other to Other", Args)
+    RunMacro("University Combine Matrices", Args)
+    
     return(1)
 endmacro
 
@@ -23,6 +35,10 @@ Calculate university productions
 Macro "University Productions" (Args)
     se_file = Args.SE
     production_rate_file = Args.[Input Folder] + "\\university\\university_production_rates.csv"
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    production_rate_file = "D:\\Models\\TRMG2\\master\\university\\university_production_rates.csv"
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -58,13 +74,6 @@ Macro "University Productions" (Args)
 
     for c = 1 to campus_list.length do
         campus = campus_list[c]
-
-        //UHC: Home-Based-Campus
-        //UHO: Home-Based-Other
-        //UCO: Campus-Based-Other
-        //UC1: On-Campus
-        //UCC: Inter-Campus
-        //UOO: University student Other-Other
 
         production_uhc_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHC_On
         production_uhc_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHC_Off
@@ -108,6 +117,10 @@ Calculate university attractions
 Macro "University Attractions" (Args)
     se_file = Args.SE
     rate_file = Args.[Input Folder] + "\\university\\university_attraction_rates.csv"
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    rate_file = "D:\\Models\\TRMG2\\master\\university\\university_attraction_rates.csv"
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -198,6 +211,9 @@ Balance university production and attraction
 Macro "University Balance Ps and As" (Args)
     se_file = Args.SE
 
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+
     se_vw = OpenTable("se", "FFB", {se_file})
     SetView(se_vw)
 
@@ -269,6 +285,10 @@ Macro "University TOD" (Args)
     se_file = Args.SE
     tod_file = Args.[Input Folder] + "\\university\\university_tod.csv"
 
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    tod_file = "D:\\Models\\TRMG2\\master\\university\\university_tod.csv"
+
     se_vw = OpenTable("se", "FFB", {se_file})
 
     {drive, folder, name, ext} = SplitPath(tod_file)
@@ -291,6 +311,12 @@ Macro "University Gravity" (Args)
     skim_file =  Args.[Output Folder] + "\\skims\\roadway\\skim_sov_AM.mtx"
     university_matrix_file = Args.[Output Folder] + "\\university\\university_pa_trips.mtx"
 
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    param_file = "D:\\Models\\TRMG2\\master\\university\\university_gravity.csv"
+    skim_file =  "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims\\roadway\\skim_sov_AM.mtx"
+    university_matrix_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\university_pa_trips.mtx"
+
     opts = null
     opts.se_file = se_file
     opts.param_file = param_file
@@ -303,9 +329,13 @@ endmacro
 Combine university trips for all campus and create period specific matrices
 */
 
-Macro "University Combine Matrix" (Args)
+Macro "University Combine Campus" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
+    periods = {"AM", "MD", "PM", "NT"}
 
     campus_list = {"NCSU", "UNC", "DUKE", "NCCU"}
 
@@ -356,7 +386,7 @@ Macro "University Combine Matrix" (Args)
     univ_mtx = null
     out_mtx = null
 
-    DeleteFile(university_mtx_file)
+    //TODO-AK: DeleteFile(university_mtx_file)
 endmacro
 
 /*
@@ -368,7 +398,10 @@ Macro "University Directionality" (Args)
     dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
     periods = Args.periods
 
-    fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
+    dir_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_directionality.csv"
+    periods = {"AM", "MD", "PM", "NT"}
 
     dir_factors = RunMacro("Read Parameter File", {
         file: dir_factor_file,
@@ -413,8 +446,8 @@ Macro "University Directionality" (Args)
         mtx = null
         t_mtx = null
 
-        DeleteFile(pa_matrix_file)
-        DeleteFile(od_transpose_matrix_file)
+        //TODO-AK: DeleteFile(pa_matrix_file)
+        //TODO-AK: DeleteFile(od_transpose_matrix_file)
 
     end
 
@@ -430,6 +463,13 @@ Macro "University MC Probabilities" (Args)
     output_dir = Args.[Output Folder] + "\\university\\mode"
     periods = Args.periods
     parking_logsum_table = Args.[Parking Logsums Table]
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    input_dir = "D:\\Models\\TRMG2\\master\\university\\mode"
+    skims_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\skims"
+    output_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\mode"
+    periods = {"AM", "MD", "PM", "NT"}
+    parking_logsum_table = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\resident\\parking\\ParkingLogsums.bin"
 
     RunMacro("Create Directory", output_dir)
 
@@ -475,6 +515,10 @@ Macro "University Mode Choice" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
 
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
+    periods = {"AM", "MD", "PM", "NT"}
+
     mode_names = {"auto", "transit", "walk", "bike"}
 
     for period in periods do
@@ -484,24 +528,19 @@ Macro "University Mode Choice" (Args)
         mc = CreateMatrixCurrency(univ_mtx,,,,)
         trip_types = GetMatrixCoreNames(univ_mtx)
 
-        out_mtx_file = trips_dir + "university_mode_trips_" + period + ".mtx"
-        if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
-
-        matOpts = {{"File Name", out_mtx_file}, {"Label", "University " + period + " Trips By Mode"}, {"File Based", "Yes"}, {"Tables", mode_names}}
-
-        out_mtx = CopyMatrixStructure({mc}, matOpts)
-        out_mcs = CreateMatrixCurrencies(out_mtx,,,)
-
-        for mode in mode_names do
-            out_mcs.(mode) := 0
-        end
-
-        mc = null
-        univ_mtx = null
-        out_mcs = null
-        out_mtx = null
-
         for trip_type in trip_types do
+            out_mtx_file = trips_dir + "university_mode_trips_" + trip_type + "_" + period + ".mtx"
+            if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
+
+            matOpts = {{"File Name", out_mtx_file}, {"Label", "University " + trip_type + " " + period + " Trips By Mode"}, {"File Based", "Yes"}, {"Tables", mode_names}}
+
+            out_mtx = CopyMatrixStructure({mc}, matOpts)
+            out_mcs = CreateMatrixCurrencies(out_mtx,,,)
+
+            for mode in mode_names do
+                out_mcs.(mode) := 0
+            end
+
             mc_mtx_file = trips_dir + "\\mode\\probabilities\\probability_" + Lower(trip_type) + "_" + Lower(period) + ".mtx"
 
             mc_mtx = CreateObject("Matrix")
@@ -517,16 +556,237 @@ Macro "University Mode Choice" (Args)
             univ_cores = univ_mtx.data.cores
 
             for mode in mode_names do
-                out_cores.(mode) := Nz(out_cores.(mode)) + Nz(univ_cores.(trip_type)) * Nz(mc_cores.(mode))
+                out_cores.(mode) := Nz(univ_cores.(trip_type)) * Nz(mc_cores.(mode))
+            end
+        end
+
+        univ_cores = null
+        univ_mtx = null
+        mc = null
+        //TODO-AK: DeleteFile(univ_mtx_file)
+    end
+endmacro
+
+
+/*
+Generate University Other to Other Trips by mode based on UHO and UCO.
+1. combines home to other and campus to other trip matrices (by mode). These are OD matrices.
+2. combined "other" matrix is converted back to PA format.
+3. get the total trip attractions (by mode) for other trips.
+4. multiply the attractions by trip rate (by mode) to get the marginals for other to other trips.
+5. apply IPF to get the other to other trips by mode.
+*/
+
+Macro "University Other to Other" (Args)
+    trips_dir = Args.[Output Folder] + "\\university\\"
+    dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
+    trip_rate_factor_file = Args.[Input Folder] + "\\university\\university_trip_rates_others.csv"
+    se_file = Args.SE
+    periods = Args.periods
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
+    dir_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_directionality.csv"
+    trip_rate_factor_file = "D:\\Models\\TRMG2\\master\\university\\university_trip_rates_other.csv"
+    se_file = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\sedata\\scenario_se.bin"
+    periods = {"AM", "MD", "PM", "NT"}
+
+    trip_types = {"UHO_ON", "UHO_OFF", "UCO"}
+
+    mode_names = {"auto", "transit", "walk", "bike"}
+
+    dir_factors = RunMacro("Read Parameter File", {
+        file: dir_factor_file,
+        names: "period",
+        values: "pa_factor"
+    })
+
+    trip_rates = RunMacro("Read Parameter File", {
+        file: trip_rate_factor_file,
+        names: "mode",
+        values: "rate"
+    })
+
+    for period in periods do
+        other_mtx_file = trips_dir + "university_mode_trips_UHO_UCO_" + period + ".mtx"
+        if GetFileInfo(other_mtx_file) <> null then DeleteFile(other_mtx_file)
+
+        // combine UHO_ON, UHO_OFF and UCO. these are OD trips by mode
+        for t = 1 to trip_types.length do
+            trip_type = trip_types[t]
+            mtx_file = trips_dir + "university_mode_trips_" + trip_type + "_" + period + ".mtx"
+
+            if t = 1 then do
+                CopyFile(mtx_file, other_mtx_file)
+            end
+            else do
+                mc_mtx = CreateObject("Matrix")
+                mc_mtx.LoadMatrix(mtx_file)
+                mc_cores = mc_mtx.data.cores
+
+                out_mtx = CreateObject("Matrix")
+                out_mtx.LoadMatrix(other_mtx_file)
+                out_cores = out_mtx.data.cores
+
+                for mode in mode_names do
+                    out_cores.(mode) := Nz(out_cores.(mode)) + Nz(mc_cores.(mode))
+                end
+
+                out_cores = null
+                out_mtx = null
+                mc_cores = null
+                mc_mtx = null
+            end
+        end
+
+        // create total other transpose matrix
+        transpose_mtx_file = trips_dir + "university_mode_trips_UHO_UCO_transpose_" + period + ".mtx"
+        if GetFileInfo(transpose_mtx_file) <> null then DeleteFile(transpose_mtx_file)
+
+        mat = OpenMatrix(other_mtx_file, )
+        tmat = TransposeMatrix(mat, {
+            {"File Name", transpose_mtx_file},
+            {"Label", "Transposed Trips"},
+            {"Type", "Double"}}
+        )
+        mat = null
+        tmat = null
+
+        // convert total other trips from OD to PA
+        pa_factor = dir_factors.(period)
+        ap_factor = 1 - pa_factor
+
+        od_factor = pa_factor/(pa_factor - ap_factor)
+
+        mtx = CreateObject("Matrix")
+        mtx.LoadMatrix(other_mtx_file)
+        cores = mtx.data.cores
+
+        t_mtx = CreateObject("Matrix")
+        t_mtx.LoadMatrix(transpose_mtx_file)
+        t_cores = t_mtx.data.cores
+
+        for mode in mode_names do
+            cores.(mode) := Nz(cores.(mode)) * od_factor + Nz(t_cores.(mode)) * (1 - od_factor)
+        end
+
+        cores = null
+        mtx = null
+        t_mtx = null
+        t_cores = null
+        //TODO-AK: DeleteFile(transpose_mtx_file)
+
+        // get marginals for other to other trips
+        mtx = CreateObject("Matrix")
+        mtx.LoadMatrix(other_mtx_file)
+        cores = mtx.data.cores
+
+        for mode in mode_names do
+            attractions = A2V(GetMatrixMarginals(cores.(mode), "sum", "column"))
+            rate = trip_rates.(mode)
+            uoo_attr = attractions * rate
+
+            se_vw = OpenTable("se", "FFB", {se_file})
+            a_fields = {{"UOO_MARG_" + mode + "_" + period, "Real", 10, 2, , , , "uoo trip purpose marginal " + mode + " " + period}}
+            RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+
+            // add marginals to se data file (to be used in Growth Factor later)
+            SetView(se_vw)
+            SetDataVector(se_vw + "|", "UOO_MARG_" + mode + "_" + period, uoo_attr, )
+            CloseView(se_vw)
+        end
+
+        // create seed matrix (by mode) with ones.
+        seed_mtx_file = trips_dir + "university_other_seed.mtx"
+        CopyFile(other_mtx_file, seed_mtx_file)
+
+        seed_mtx = CreateObject("Matrix")
+        seed_mtx.LoadMatrix(seed_mtx_file)
+        seed_cores = seed_mtx.data.cores
+        seed_core_names = seed_mtx.data.CoreNames
+
+        for core in seed_core_names do
+            seed_cores.(core) := 1.0
+        end
+
+        seed_cores = null
+        seed_mtx = null
+
+        // IPF seed matrix to marginals to get other to other trips.
+        out_mtx_file = trips_dir + "university_mode_trips_UOO_" + period + ".mtx"
+
+        Opts = null
+        Opts.Input.[Base Matrix Currency] = {seed_mtx_file, seed_core_names[1], , }
+        Opts.Input.[PA View Set] = {se_file, "se"}
+        Opts.Global.[Constraint Type] = "Doubly"
+        Opts.Global.Iterations = 300
+        Opts.Global.Convergence = 0.001
+        Opts.Field.[Core Names Used] = seed_core_names
+        for core in seed_core_names do
+            Opts.Field.[P Core Fields] = Opts.Field.[P Core Fields] + {"se.UOO_MARG_" + core + "_" + period}
+            Opts.Field.[A Core Fields] = Opts.Field.[A Core Fields] + {"se.UOO_MARG_" + core + "_" + period}
+        end
+        Opts.Output.[Output Matrix].[File Name] = out_mtx_file
+
+        ok = RunMacro("TCB Run Procedure", "Growth Factor", Opts, &Ret)
+        if !ok then Throw("Other to Other IPF failed")
+
+        cores = null
+        mtx = null
+        //TODO-AK: DeleteFile(seed_mtx_file)
+        //TODO-AK: DeleteFile(other_mtx_file)
+    end
+
+endmacro
+
+
+/*
+Combine trips by mode for different purpose and create trips by mode period matrices.
+*/
+
+Macro "University Combine Matrices" (Args)
+    trips_dir = Args.[Output Folder] + "\\university\\"
+    periods = Args.periods
+
+    // TODO-AK: delete the hard-coded paths (used for testing)
+    trips_dir = "D:\\Models\\TRMG2\\scenarios\\base_2016\\output\\university\\"
+    periods = {"AM", "MD", "PM", "NT"}
+
+    trip_types = {"UHC_ON", "UHC_OFF", "UHO_ON", "UHO_OFF", "UCO", "UCC", "UC1", "UOO"}
+
+    for period in periods do
+        out_mtx_file = trips_dir + "university_trips_" + period + ".mtx"
+        if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
+
+        for t = 1 to trip_types.length do
+            trip_type = trip_types[t]
+            mtx_file = trips_dir + "university_mode_trips_" + trip_type + "_" + period + ".mtx"
+
+            if t = 1 then do
+                CopyFile(mtx_file, out_mtx_file)
+            end
+            else do
+                mc_mtx = CreateObject("Matrix")
+                mc_mtx.LoadMatrix(mtx_file)
+                mc_cores = mc_mtx.data.cores
+
+                out_mtx = CreateObject("Matrix")
+                out_mtx.LoadMatrix(out_mtx_file)
+                out_cores = out_mtx.data.cores
+                out_core_names = out_mtx.data.CoreNames
+
+                for core in out_core_names do
+                    out_cores.(core) := Nz(out_cores.(core)) + Nz(mc_cores.(core))
+                end
+
+                out_cores = null
+                out_mtx = null
+                mc_cores = null
+                mc_mtx = null
             end
 
-            mc_cores = null
-            mc_mtx = null
-            out_cores = null
-            out_mtx = null
-            univ_cores = null
-            univ_mtx = null
-
+            //TODO-AK: DeleteFile(mtx_file)
         end
     end
+
 endmacro
