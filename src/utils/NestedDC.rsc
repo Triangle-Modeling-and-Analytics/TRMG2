@@ -394,9 +394,9 @@ Class "NestedDC" (ClassOpts)
                 cluster_id = v_cluster_ids[i]
                 cluster_name = v_cluster_names[i]
 
-                v_cluster_prob = c_mtx.GetVector("Total", {Column: cluster_id})
+                v_cluster_prob = c_mtx.GetVector({"Core": "Total", "Column": cluster_id})
                 z_mtx.SetColIndex(cluster_name)
-                v_row_sum = z_mtx.GetVector("Total", {Marginal: "Row Sum"})
+                v_row_sum = z_mtx.GetVector({"Core": "Total", Marginal: "Row Sum"})
                 cores = z_mtx.GetCores()
                 cores.scaled_prob := cores.Total / v_row_sum
                 cores.final_prob := cores.scaled_prob * v_cluster_prob

@@ -1,32 +1,30 @@
 Alternative,Expression,Segment,Coefficient,Description
-sov,Constant,,4.878,Constant
+sov,Constant,,4.704,Constant
 sov,Constant,v0,-99,Auto Availability
-sov,se.HiIncomePct.O,,0.7322,High income
-sov,sov_skim.CongTime,,-0.065,Travel time
-sov,sov_skim.[TollCostSOV (Skim)],,-0.23776,Toll
-hov2,Constant,,4.378,Constant
+sov,se.HiIncomePct.O,,0.08253,High income
+sov,sov_skim.CongTime,,-0.1062,Travel time
+sov,sov_skim.[TollCostSOV (Skim)],,-0.388584,Toll
+hov2,Constant,,3.627,Constant
 hov2,Constant,v0,-99,Auto Availability
-hov2,se.HiIncomePct.O,,0.7322,High income
-hov2,hov_skim.CongTime,,-0.065,Travel time
-hov2,hov_skim.[TollCostHOV (Skim)],,-0.23776,Toll
-hov3,Constant,,4.225,Constant
+hov2,se.HiIncomePct.O,,0.08253,High income
+hov2,hov_skim.CongTime,,-0.1062,Travel time
+hov2,hov_skim.[TollCostHOV (Skim)],,-0.388584,Toll
+hov3,Constant,,3.297,Constant
 hov3,Constant,v0,-99,Auto Availability
-hov3,se.HiIncomePct.O,,0.7322,High income
-hov3,hov_skim.CongTime,,-0.065,Travel time
-hov3,hov_skim.[TollCostHOV (Skim)],,-0.23776,Toll
-other_auto,Constant,v0,3.03304,Zero-vehicle households
-other_auto,Constant,vi,2.50804,Vehicle insufficient households
-other_auto,sov_skim.CongTime,,-0.0247,Travel time
-auto_pay,Constant,v0,3.03304,Zero-vehicle households
-auto_pay,Constant,vi,2.50804,Vehicle insufficient households
-auto_pay,Constant,,-3.027,Constant
-auto_pay,hov_skim.CongTime,,-0.0247,Travel time
-auto_pay,se.PKTNCWait.O,,-0.0247,Auto wait time
-auto_pay,hov_skim.auto_pay_fare,,-0.00675,Auto fare
-auto_pay,se.Enplanements.O > 0 or se.Enplanements.D > 0,,0,Airport related (3.93 constant removed for trips on work tour)
-w_lb,Constant,v0,3.3822,Vehicle insufficient households
-w_lb,Constant,vi,3.058,Vehicle insufficient households
-w_lb,Constant,,1.415,Constant
+hov3,se.HiIncomePct.O,,0.08253,High income
+hov3,hov_skim.CongTime,,-0.1062,Travel time
+hov3,hov_skim.[TollCostHOV (Skim)],,-0.388584,Toll
+other_auto,Constant,v0,1.993,Zero-vehicle households
+other_auto,Constant,vi,1.993,Vehicle insufficient households
+other_auto,sov_skim.CongTime,,-0.0833,Travel time
+other_auto,sov_skim.[TollCostSOV (Skim)],,-0.304793,Toll
+auto_pay,Constant,,-1.032,Constant
+auto_pay,hov_skim.CongTime,,-0.0425,Travel time
+auto_pay,se.PKTNCWait.O,,-0.0425,Auto wait time
+auto_pay,hov_skim.auto_pay_fare,,-0.155507,Auto fare
+w_lb,Constant,,-0.1718,Constant
+w_lb,Constant,v0,4.4532,Vehicle insufficient households
+w_lb,Constant,vi,4.104,Vehicle insufficient households
 w_lb,w_lb_skim.[In-Vehicle Time],,-0.022449,IVTT
 w_lb,w_lb_skim.Fare,,-0.1132,Transit fare
 w_lb,w_lb_skim.[Access Walk Time],,-0.1138,Access walk time
@@ -34,9 +32,9 @@ w_lb,w_lb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 w_lb,w_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 w_lb,w_lb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
-w_eb,Constant,v0,3.3822,Zero-vehicle households
-w_eb,Constant,vi,3.058,Zero-vehicle households
-w_eb,Constant,,2.21,Constant
+w_eb,Constant,,0.6469,Constant
+w_eb,Constant,v0,4.4532,Zero-vehicle households
+w_eb,Constant,vi,4.104,Zero-vehicle households
 w_eb,w_eb_skim.[In-Vehicle Time],,-0.022449,IVTT
 w_eb,w_eb_skim.Fare,,-0.1132,Transit fare
 w_eb,w_eb_skim.[Access Walk Time],,-0.1138,Access walk time

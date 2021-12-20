@@ -5,7 +5,7 @@
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
         Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\se_data\\se_2016.bin", "Description":"Master SE data bin file" }
+        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2016.bin", "Description":"Master SE data bin file" }
     
     Section = "Files|Scenario|Input"
     
@@ -37,7 +37,8 @@
                                                     {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
-        Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }
+        Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }        
+        Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
         Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }

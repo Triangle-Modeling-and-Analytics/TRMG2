@@ -766,6 +766,7 @@ Creates the various link-based (non-transit) networks. Driving, walking, etc.
 Macro "Create Link Networks" (Args)
 
     link_dbd = Args.Links
+    turn_prohibtions = Args.TurnProhibitions
     output_dir = Args.[Output Folder] + "/networks"
     periods = RunMacro("Get Unconverged Periods", Args)
 
@@ -795,6 +796,7 @@ Macro "Create Link Networks" (Args)
             o.AddLinkField({Name: "TollCostHOV", Field: "TollCostHOV", IsTimeField: false})
             o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
             o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
+            if GetFileInfo(turn_prohibtions) <> null then o.TurnProhibitionTable = turn_prohibtions
             o.NetworkName = net_file
             o.Run()
             netSetObj = null

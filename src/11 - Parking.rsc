@@ -99,7 +99,7 @@ Macro "Parking Destination Choice"(Args)
     mc = null
     m = null
 
-    // Add temporary field to se_data
+    // Add temporary field to se data
     se_vw = OpenTable("scenario_se", "FFB", {Args.SE})
     modify = CreateObject("CC.ModifyTableOperation", se_vw)
     modify.FindOrAddField("ParkCost", "Real", 12, 2, )

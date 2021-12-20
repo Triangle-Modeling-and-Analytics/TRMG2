@@ -1136,7 +1136,7 @@ R-squared: `r r_sq`
 
 Calibrating the production rates is done to ensure that the final model is
 producing the same number of trips per person on average as the survey. One
-compicating factor in this comparison is that the survey and model
+complicating factor in this comparison is that the survey and model
 socio-economic data have different total populations.
 
 - Survey: 1.71 million
