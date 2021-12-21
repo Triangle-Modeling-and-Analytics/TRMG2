@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-12-16" />
+<meta name="date" content="2021-12-21" />
 
 <title>University</title>
 
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">December 16, 2021</h4>
+<h4 class="date">December 21, 2021</h4>
 
 </div>
 
@@ -605,9 +605,8 @@ Origin
 <li>For Other-to-Other trips: Travel mode (walk, bike, transit, and auto (includes drive and carpool))</li>
 </ul>
 <p>Production rates were developed based on the weighted and unweighted data, as a check on the influence of the weighting. We found that the rates based on the weighted data are very similar to the rates based on the unweighted data.</p>
-<p>The average daily trip rate, using the weighted data, is 5.797. On-campus students make an average of 7.125 trips per day, while off-campus students make an average of 5.158 trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips.</p>
-<p>The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below.</p>
-<p>The production rates selected for the Triangle Model are somewhat higher than the production trip rates estimated by Khattak et al (2012) based on the Virginia student travel surveys. During first round of surveys at Old Dominion (ODU), Virginia Tech (VT), University of Virginia and Virginia Commonwealth, daily trip rates ranged from 4.4 to 4.9. For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT.</p>
+<p>The average daily trip rate, using the weighted data, is 5.797. On-campus students make an average of 7.125 trips per day, while off-campus students make an average of 5.158 trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips, which matched our expectations.</p>
+<p>The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below. For home-based trip purposes, separate rates are presented based on student home location. The production rates for home-based trips are trips per student. For campus-based trips, the production rates are per 1000 square feet of campus building space.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -750,6 +749,7 @@ Campus Building SF (in 000s)
 </tr>
 </tbody>
 </table>
+<p>The production rates selected for the Triangle Model are somewhat higher than the production trip rates estimated by Khattak et al (2012) based on the Virginia student travel surveys. During first round of surveys at Old Dominion (ODU), Virginia Tech (VT), University of Virginia and Virginia Commonwealth, daily trip rates ranged from 4.4 to 4.9. For the second round of surveys, the survey instruments were revised to reduce the survey response burden and a larger sample size was obtained. Based on the second round, daily trip rates were 5.3 at ODU and 5.6 at VT.</p>
 <p>The trip production rates by mode will be used to estimate productions for Other-to-other trips. More specifically, the Other-to-other productions will be a function of Home-based Other and Campus-to-Other attractions, as discussed in the model design document. This approach ensures consistency between the “Other” trip ends by mode, i.e., it is not possible to have only automobile Home-Other and Campus-Other movements and only bicycle Other-to-other movements. The table below summarizes the Home-Other and Campus-Other trips by mode: (1) Auto, which includes both drive and carpool; (2) Transit; (3) Walk; and (4) Bicycle. The NCSU survey sample did not include any Other-to-other trips by bicycle.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1044,7 +1044,7 @@ Home-Other
 </div>
 <div id="trip-attractions" class="section level3">
 <h3>Trip Attractions</h3>
-<p>As with the trip production rates, trip attraction rates for off-campus attractions (Home-based Other and Campus-based Other) were developed based on the survey of NCSU students. For Home-based Other trips by off-campus students, both trips ends are off-campus. The number of trip attractions is estimated as a function of the land use of the zone. For Campus-to-Other trips and for Home-based Other trips by on-campus students, the production end is the campus. Therefore, in addition to land use variables of the attraction zone, the attraction model for these segments also considers distance between the zone and campus, i.e., attractions very far from the NC State campus will not be visited by students.</p>
+<p>As with the trip production rates, trip attraction rates for off-campus attractions (Home- Other and Campus-Other) were developed based on the survey of NCSU students.</p>
 <p>For on-campus attractions (Home-based Campus, Campus-to-campus), the attractions are distributed among campus zones proportional to the distribution of the square footage of university buildings.</p>
 The analysis begins with correlations between the university attractions and land use characteristics at the TAZ level. For trip attractions by on-campus students, the off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.<br />
 
@@ -1313,8 +1313,8 @@ NA
 </tbody>
 </table>
 </div>
-<div id="home-other-trip-attractions-on-campus-students-1" class="section level5">
-<h5>Home-Other Trip Attractions, On-Campus students</h5>
+<div id="home-other-trip-attractions-off-campus-students" class="section level5">
+<h5>Home-Other Trip Attractions, Off-Campus students</h5>
 Home-Other trips by off-campus students have two off-campus trip ends. The model explains UHO trips by off-campus students based on the off- campus student population and the number of retail jobs.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1407,10 +1407,7 @@ NA
 <h2>Mode Choice</h2>
 <div id="mode-split-from-ncsu-survey" class="section level3">
 <h3>Mode split from NCSU survey</h3>
-<div id="sample-overview" class="section level4">
-<h4>Sample overview</h4>
-<p><img src="university_files/figure-html/oncampus_modesplit%20plot-1.png" width="672" /></p>
-</div>
+<p>A summary of the NCSU survey by mode and trip purpose shows that transit is the most common mode for Campus-to-campus trips, with 74 percent of trips being made by transit. Transit is the second most common mode for Home-Campus trips by students residing off-campus, with 29 percent of transit trips and 55 percent of auto trips. Students residing on-campus are most likely to walk (63 percent), followed by taking tran #### Sample overview <img src="university_files/figure-html/oncampus_modesplit%20plot-1.png" width="672" /></p>
 <div id="campus-based-trips-mode-split" class="section level4">
 <h4>Campus-based trips mode split</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
