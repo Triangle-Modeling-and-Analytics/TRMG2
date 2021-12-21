@@ -1164,7 +1164,7 @@ model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibra
 calibration_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
   group_by(trip_type) %>%
-  summarize(obs_trips = sum(hh_weight_combined) * pop_factor) %>%
+  summarize(obs_trips = sum(trip_weight_combined) * pop_factor) %>%
   left_join(model_trips, by = "trip_type") %>%
   mutate(
     diff = model_trips - obs_trips,

@@ -403,6 +403,9 @@ div.tocify {
       <a href="parking.html">Parking</a>
     </li>
     <li>
+      <a href="resident_dest_choice.html">Destination Choice</a>
+    </li>
+    <li>
       <a href="nhb.html">Non-homebased</a>
     </li>
   </ul>
@@ -425,6 +428,9 @@ div.tocify {
     </li>
     <li>
       <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
+    <li>
+      <a href="assignment_roadway.html">Roadway Assignment</a>
     </li>
   </ul>
 </li>
@@ -545,7 +551,7 @@ div.tocify {
 </div>
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
-<p>Calibrating the production rates is done to ensure that the final model is producing the same number of trips per person on average as the survey. One compicating factor in this comparison is that the survey and model socio-economic data have different total populations.</p>
+<p>Calibrating the production rates is done to ensure that the final model is producing the same number of trips per person on average as the survey. One complicating factor in this comparison is that the survey and model socio-economic data have different total populations.</p>
 <ul>
 <li>Survey: 1.71 million</li>
 <li>Model: 1.83 million</li>
@@ -577,16 +583,16 @@ Difference
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-615,997
+665,240
 </td>
 <td style="text-align:right;">
 568,913
 </td>
 <td style="text-align:right;">
--47,084
+-96,327
 </td>
 <td style="text-align:right;">
--8
+-14
 </td>
 </tr>
 <tr>
@@ -594,16 +600,16 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-954,533
+1,041,799
 </td>
 <td style="text-align:right;">
 921,201
 </td>
 <td style="text-align:right;">
--33,332
+-120,599
 </td>
 <td style="text-align:right;">
--4
+-12
 </td>
 </tr>
 <tr>
@@ -611,47 +617,13 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-775,841
+871,531
 </td>
 <td style="text-align:right;">
 717,464
 </td>
 <td style="text-align:right;">
--58,378
-</td>
-<td style="text-align:right;">
--8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OME_All
-</td>
-<td style="text-align:right;">
-1,091,994
-</td>
-<td style="text-align:right;">
-999,919
-</td>
-<td style="text-align:right;">
--92,076
-</td>
-<td style="text-align:right;">
--8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OMED_All
-</td>
-<td style="text-align:right;">
-121,173
-</td>
-<td style="text-align:right;">
-99,865
-</td>
-<td style="text-align:right;">
--21,307
+-154,067
 </td>
 <td style="text-align:right;">
 -18
@@ -659,19 +631,53 @@ N_HB_OMED_All
 </tr>
 <tr>
 <td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:right;">
+1,206,324
+</td>
+<td style="text-align:right;">
+999,919
+</td>
+<td style="text-align:right;">
+-206,406
+</td>
+<td style="text-align:right;">
+-17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:right;">
+128,837
+</td>
+<td style="text-align:right;">
+99,865
+</td>
+<td style="text-align:right;">
+-28,972
+</td>
+<td style="text-align:right;">
+-22
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
-61,169
+76,950
 </td>
 <td style="text-align:right;">
 58,643
 </td>
 <td style="text-align:right;">
--2,526
+-18,307
 </td>
 <td style="text-align:right;">
--4
+-24
 </td>
 </tr>
 <tr>
@@ -679,16 +685,16 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-306,656
+361,462
 </td>
 <td style="text-align:right;">
 292,151
 </td>
 <td style="text-align:right;">
--14,505
+-69,311
 </td>
 <td style="text-align:right;">
--5
+-19
 </td>
 </tr>
 <tr>
@@ -696,16 +702,16 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-818,332
+681,732
 </td>
 <td style="text-align:right;">
 789,298
 </td>
 <td style="text-align:right;">
--29,034
+107,566
 </td>
 <td style="text-align:right;">
--4
+16
 </td>
 </tr>
 <tr>
@@ -713,16 +719,16 @@ W_HB_W_All
 Total
 </td>
 <td style="text-align:right;">
-4,745,696
+5,033,875
 </td>
 <td style="text-align:right;">
 4,447,454
 </td>
 <td style="text-align:right;">
--298,243
+-586,422
 </td>
 <td style="text-align:right;">
--6
+-12
 </td>
 </tr>
 </tbody>
@@ -745,7 +751,7 @@ Factor
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-1.08
+1.17
 </td>
 </tr>
 <tr>
@@ -753,7 +759,7 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-1.04
+1.13
 </td>
 </tr>
 <tr>
@@ -761,7 +767,7 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-1.08
+1.21
 </td>
 </tr>
 <tr>
@@ -769,7 +775,7 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-1.09
+1.21
 </td>
 </tr>
 <tr>
@@ -777,7 +783,7 @@ N_HB_OME_All
 N_HB_OMED_All
 </td>
 <td style="text-align:right;">
-1.21
+1.29
 </td>
 </tr>
 <tr>
@@ -785,7 +791,7 @@ N_HB_OMED_All
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
-1.04
+1.31
 </td>
 </tr>
 <tr>
@@ -793,7 +799,7 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-1.05
+1.24
 </td>
 </tr>
 <tr>
@@ -801,7 +807,7 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-1.04
+0.86
 </td>
 </tr>
 </tbody>
