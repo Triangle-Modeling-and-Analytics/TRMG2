@@ -1407,7 +1407,12 @@ NA
 <h2>Mode Choice</h2>
 <div id="mode-split-from-ncsu-survey" class="section level3">
 <h3>Mode split from NCSU survey</h3>
-<p>A summary of the NCSU survey by mode and trip purpose shows that transit is the most common mode for Campus-to-campus trips, with 74 percent of trips being made by transit. Transit is the second most common mode for Home-Campus trips by students residing off-campus, with 29 percent of transit trips and 55 percent of auto trips. Students residing on-campus are most likely to walk (63 percent), followed by taking tran #### Sample overview <img src="university_files/figure-html/oncampus_modesplit%20plot-1.png" width="672" /></p>
+<p>The figure below shows the number of trips reported by the NCSU survey respondents for five of the model’s trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips.</p>
+<div id="sample-overview" class="section level4">
+<h4>Sample overview</h4>
+<p><img src="university_files/figure-html/oncampus_modesplit%20plot-1.png" width="672" /></p>
+<p>The tables below show the mode split for campus-based trips, home-based trips by students residing on-campus and home-based trips by students residing off-campus. The tables combine drive alone and carpool into auto. The tables show that transit is the most common mode for Campus-to-campus trips, with 74 percent of trips being made by transit. Transit is the second most common mode for Home-Campus trips by students residing off-campus, with 29 percent of transit trips and 55 percent of auto trips. Home-campus trips by students residing on-campus are most likely to be walk trips (62 percent), followed by transit trips (19 percent). On-campus trips are mostly walk trips (90 percent). There are very few trips made with modes classified as “other”.</p>
+</div>
 <div id="campus-based-trips-mode-split" class="section level4">
 <h4>Campus-based trips mode split</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -1638,6 +1643,7 @@ Home-Other
 </div>
 <div id="mode-split-calibration-targets" class="section level3">
 <h3>Mode split calibration targets</h3>
+<p>The calibration targets were developed based on the mode split from the NCSU survey and use the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.</p>
 <div id="campus-based-trips-mode-split-calibration-targets" class="section level4">
 <h4>Campus-based trips mode split calibration targets</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -1868,6 +1874,7 @@ Home-Other
 </div>
 <div id="mode-choice-coefficients" class="section level3">
 <h3>Mode choice coefficients</h3>
+The mode choice coefficient were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>

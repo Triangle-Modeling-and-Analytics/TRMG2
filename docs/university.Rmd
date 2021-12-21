@@ -153,7 +153,7 @@ Production rates were developed based on the weighted and unweighted data, as a 
 
 The average daily trip rate, using the weighted data, is `r w_avg_trips_df[,"avg_trips"]`.  On-campus students make an average of `r w_avg_trips_byresidence_df[2,"avg_trips"]` trips per day, while off-campus students make an average of `r w_avg_trips_byresidence_df[1,"avg_trips"]` trips per day. Rates by trip purpose show that on-campus students make more on-campus trips than off-campus students but make fewer off-campus trips, which matched our expectations.
 
-The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below. For home-based trip purposes, separate rates are presented based on student home location. The production rates for home-based trips represent trips per student. For campus-based trips, the production rates represent trips per 1000 square feet of campus building space.
+The selected production rates for five of the six trip purposes (all except Other-to-other) are presented in the table below. For home-based trip purposes, separate rates are presented based on student home location. The production rates for home-based trips are trips per student. For campus-based trips, the production rates are per 1000 square feet of campus building space.
 
 
 ```{r Prates,echo=FALSE}
@@ -218,9 +218,11 @@ Summary_Productions_df %>%
 
 ###  Trip Attractions
 
-As with the trip production rates, trip attraction rates for off-campus attractions (Home- Other and Campus-Other) were developed based on the survey of NCSU students. For on-campus attractions (Home-based Campus, Campus-to-campus), the attractions are distributed among campus zones proportional to the distribution of the square footage of university buildings. 
+As with the trip production rates, trip attraction rates for off-campus attractions (Home- Other and Campus-Other) were developed based on the survey of NCSU students. 
 
-To develop off-campus attraction rates, the analysis begins with correlations between the university attractions and land use characteristics at the TAZ level. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.  
+For on-campus attractions (Home-based Campus, Campus-to-campus), the attractions are distributed among campus zones proportional to the distribution of the square footage of university buildings. 
+
+The analysis begins with correlations between the university attractions and land use characteristics at the TAZ level. For trip attractions by on-campus students, the  off-campus student population and the number of retail jobs have the highest correlation coefficients. For trips by off-campus students, off-campus student population has the highest correlation coefficient.  
 ```{r correlations,echo=FALSE}
 correlations_df %>% 
   filter(str_count(term, "Students") == 0) %>%
@@ -288,15 +290,16 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution, On-ca
 
 ## Mode Choice
 ### Mode split from NCSU survey
-The NCSU survey was used to obtain mode split calibration targets. The graph below shows the mode split by trip purpose for each of the model's trip purposes based on the survey. The tables show the mode split for campus-based trips and for home-based trips, segmented based on the student home location. The modes from the survey were aggregated into 5 categories: Auto, which includes drive and carpool, transit, walk, bike and other 
+The figure below shows the number of trips reported by the NCSU survey respondents for five of the model's trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips. 
 
 #### Sample overview
 ```{r oncampus_modesplit plot, echo = FALSE}
-trips_bypurpose_plot + labs(title = "Mode Split by Purpose (except UC1)", 
+trips_bypurpose_plot + labs(title = "Mode Split by Purpose (except On-campus)", 
                                      caption = ("Source: NCSU survey (unweighted)"))
 ```
 
-The NCSU survey shows that transit is the most common mode for Campus-to-campus trips with 74 percent of these being made by transit. Off-campus students are most likely to travel between home and campus by auto (55 percent), followed by transit (29 percent). On-campus students are most likely to walk (62 percent), followed by transit (19 percent). Almost none of the trips are made by modes classified as "other".
+The tables below show the mode split for campus-based trips, home-based trips by students residing on-campus and home-based trips by students residing off-campus. The tables combine drive alone and carpool into auto. The tables show that transit is the most common mode for Campus-to-campus trips, with 74 percent of trips being made by transit. Transit is the second most common mode for Home-Campus trips by students residing off-campus, with 29 percent of transit trips and 55 percent of auto trips. Home-campus trips by students residing on-campus are most likely to be walk trips (62 percent), followed by transit trips (19 percent). On-campus trips are mostly walk trips (90 percent). There are very few trips made with modes classified as "other".
+
 #### Campus-based trips mode split
 ```{r,campusbased_modesplit table, echo = FALSE}
 modesplit_bypurpose_campusbasedtrips_df %>% 
@@ -319,7 +322,9 @@ modesplit_bypurpose_offcampus_2_df %>%
 ```
 
 ### Mode split calibration targets
-Calibration targets were developed for each trip purpose and home location combination above. The calibration targets are the split from the NCSU survey among the model's four modes: walk,bike, transit and auto. The relatively high transit calibration targets will positively affect the forecasted transit ridership.
+
+The calibration targets were developed based on the mode split from the NCSU survey and use the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.
+
 #### Campus-based trips mode split calibration targets
 ```{r,echo=FALSE}
 calibrationtargets_bypurpose_campusbasedtrips_df%>% 
@@ -341,8 +346,8 @@ calibrationtargets_bypurpose_offcampus_df %>%
 ```
 
 ### Mode choice coefficients
-The proposed mode choice coefficients are asserted because the NCSU dataset was not large enough to estimate a mode choice model. The implied value of time (VOT) for walk, bike, transit and drive time is $12 per hour, which is a reasonable average for students. The implied VOT for transit access time is $18 per hour, which is also reasonable.
-```{r}
+The mode choice coefficient were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable. 
+```{r} 
 G_IVTT_Coeff <-  -0.04
 G_OVTT_Coeff <- G_IVTT_Coeff * 1.5
 G_Cost_Coeff <-  -0.2  
