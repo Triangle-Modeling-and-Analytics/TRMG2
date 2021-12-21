@@ -10,6 +10,12 @@ UCC: Inter-Campus
 UOO: University student Other-Other
 */
 
+/*
+This macro is primarily used for testing the university
+model standalone. It is not called during a full model run. Instead, the
+individual macros are called as appropriate by the non-resident steps.
+*/
+
 Macro "University" (Args)
     RunMacro("TCB Init")
 	
