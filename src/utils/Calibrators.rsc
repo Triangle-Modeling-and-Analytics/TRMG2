@@ -8,7 +8,7 @@ Macro "Calibrate NM" (Args)
     est_share_file = summary_dir + "/nm_summary.csv"
     est_share_field = "nm_share"
 
-    max_iterations = 3
+    max_iterations = 6
     gap_target = .1
 
     trip_types = RunMacro("Get HB Trip Types", Args)

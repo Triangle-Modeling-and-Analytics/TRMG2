@@ -53,14 +53,6 @@ dBox "link_diff_tool" center, center, 40, 8 Title: "Link Diff Tool" Help: "test"
   enditem
 enddbox
 
-Macro "test"
-	RunMacro("G30 File Close All")
-    test_dir = "C:\\projects\\diff_tool\\dbds"
-    old_dbd = test_dir + "\\old_network.dbd"
-    new_dbd = test_dir + "\\new_network.dbd"
-	RunMacro("Diff Line Layers", {old_dbd: old_dbd, new_dbd: new_dbd})
-endmacro
-
 /*
 This macro diff two versions of the same network highlighting things like
 new, deleted, or modified links.
