@@ -480,3 +480,156 @@ Macro "Update Fields"(spec)
 
     SetDataVector(vwOut + "|", outFld, vOut,)
 endMacro
+
+/*
+This macro splits auto trip matrices into those who walk from their car
+and those who take a shuttle.
+*/
+
+Macro "Apply Parking Mode Probabilities" (Args)
+
+    out_dir = Args.[Output Folder]
+    parking_dir = out_dir + "/output/resident/parking"
+    trip_dir = out_dir + "/resident/trip_matrices"
+    logsum_file = parking_dir + "/ParkingLogsums.bin"
+    parking_prob_file = parking_dir + "/ParkingDCProbability.mtx"
+
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    for period in periods do
+        for trip_type in trip_types do
+            trip_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            if Lower(Left(trip_type, 1)) = "w"
+                then park_type = "work"
+                else park_type = "nonwork"
+
+            opts.parking_prob_file = parking_prob_file
+            opts.logsum_file = logsum_file
+            opts.trip_file = trip_file
+            opts.park_type = park_type
+            opts.auto_cores = {
+                "sov",
+                "hov2",
+                "hov3",
+                "auto_pay",
+                "other_auto"
+            }
+            RunMacro("Separate Parking Trips")
+        end
+    end
+endmacro
+
+/*
+
+*/
+
+Macro "Separate Parking Trips" (MacroOpts)
+    
+    parking_prob_file = MacroOpts.parking_prob_file
+    logsum_file = MacroOpts.logsum_file
+    trip_file = MacroOpts.trip_file
+    park_type = MacroOpts.park_type
+    auto_cores = MacroOpts.auto_cores
+
+    // Get walk/shuttle split from logsum file
+    logsum_vw = OpenTable("logsums", "FFB", {logsum_file})
+    if Lower(park_type) = "work"
+        then prob_field = "Prob_Shuttle_Work"
+        else prob_field = "Prob_Shuttle_NonWork"
+    v_prob_shuttle = GetDataVector(logsum_vw + "|", prob_field, )
+    v_prob_shuttle = nz(v_prob_shuttle)
+    CloseView(logsum_vw)
+
+    // // Create a temp copy of the trip matrix
+    // {drive, path, name, ext} = SplitPath(trip_file)
+    // trip_file_copy = drive + path + name + "_copy.mtx"
+    // CopyFile(trip_file, trip_file_copy)
+
+    trip_mtx = CreateObject("Matrix", trip_file)
+    prob_mtx = CreateObject("Matrix", parking_prob_file)
+    park_modes = {"Walk", "Shuttle"}
+    for auto_core in auto_cores do
+        for park_mode in park_modes do
+            // Holds trips by parking mode (walk or shuttle)
+            park_mode_core =  auto_core + "_park" + park_mode
+            // Holds trips after multiplying by parking DC %s
+            mult_core = park_core + "_multi"
+            trip_mtx.AddCores({park_mode_core})
+            cores = trip_mtx.GetCores()
+            
+            if park_mode = "Shuttle"
+                then cores.(park_mode_core) := cores.(auto_core) * v_prob_shuttle
+                else cores.(park_mode_core) := cores.(auto_core) * (1 - v_prob_shuttle)
+        end
+    end
+
+endmacro
+
+Macro "Parking Convolution" (MacroOpts)
+
+    trip_mtx_file = MacroOpts.trip_mtx_file
+    trip_core_name = MacroOpts.trip_core_name
+    parking_mtx_file = MacroOpts.parking_mtx_file
+    parking_core_name = MacroOpts.parking_core_name
+
+    // For any parking matrix rows with null total probabilities,
+    // put a 1 on the diagonal.
+    prk_mtx = CreateObject("Matrix", parking_mtx_file)
+    v_row_sum = prk_mtx.GetVector({Core: parking_core_name, Marginal: "Row Sum"})
+    v_row_sum.rowbased = true
+    v_diag = prk_mtx.GetVector({Core: parking_core_name, Diagonal: "Row"})
+    v_diag = if v_row_sum = 0 then 1 else v_diag
+    prk_mtx.SetVector({Core: parking_core_name, Vector: v_diag, Diagonal: true})
+    prk_core = prk_mtx.GetCore(parking_core_name)
+    prk_core := nz(prk_core)
+
+    // Calculate Origin-to-Parking matrix
+    // Multiply trips with parking probabilities
+    trip_mtx = CreateObject("Matrix", trip_mtx_file)
+    trip_core = trip_mtx.GetCore(trip_core_name)
+    {drive, path, name, ext} = SplitPath(trip_mtx_file)
+    topark_mtx_file = drive + path + name + "_toparking.mtx"
+    mh = MultiplyMatrix(trip_core, prk_core, {
+        "File Name": topark_mtx_file
+    })
+    temp_mtx = CreateObject("Matrix", mh)
+    result_cur = temp_mtx.GetCore(trip_core_name)
+    trip_mtx.AddCores({trip_core_name + "_topark"})
+    topark_core = trip_mtx.GetCore(trip_core_name + "_topark")
+    topark_core := result_cur
+    mh = null
+    temp_mtx = null
+    result_cur = null
+    DeleteFile(topark_mtx_file)
+
+    // Calculate Parking-to-Destination matrix
+    frompark_core_name = trip_core_name + "_frompark"
+    trip_mtx.AddCores({frompark_core_name})
+    frompark_core = trip_mtx.GetCore(frompark_core_name)
+    trip_rowsum = trip_mtx.GetVector({
+        Core: trip_core_name,
+        Marginal: "Column Sum"
+    })
+    trip_rowsum.rowbased = false
+    frompark_core := prk_core * trip_rowsum
+
+    v_zeros = Vector(trip_rowsum.length, "Float", {Constant: 0})
+    trip_mtx.SetVector({
+        Core: frompark_core_name,
+        Vector: v_zeros,
+        Diagonal: true
+    })    
+    {drive, path, name, ext} = SplitPath(trip_mtx_file)    
+    trans_mtx_file = drive + path + name + "_transposed.mtx"
+    trip_mtx.Transpose({
+        OutputFile: trans_mtx_file,
+        Cores: {frompark_core_name}
+    })
+    trans_mtx = CreateObject("Matrix", trans_mtx_file)
+    trans_core = trans_mtx.GetCore(frompark_core_name)
+    frompark_core := trans_core
+    trans_mtx = null
+    trans_core = null
+    DeleteFile(trans_mtx_file)
+endmacro
