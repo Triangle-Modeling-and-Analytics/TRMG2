@@ -545,7 +545,7 @@ Generate University Other to Other Trips by mode based on UHO and UCO.
 Macro "University Other to Other" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
-    trip_rate_factor_file = Args.[Input Folder] + "\\university\\university_trip_rates_others.csv"
+    trip_rate_factor_file = Args.[Input Folder] + "\\university\\university_trip_rates_other.csv"
     se_file = Args.SE
     periods = Args.periods
 
@@ -685,7 +685,7 @@ Macro "University Other to Other" (Args)
             Opts.Field.[A Core Fields] = Opts.Field.[A Core Fields] + {"se.UOO_MARG_" + core + "_" + period}
         end
         Opts.Output.[Output Matrix].[File Name] = out_mtx_file
-
+        RunMacro("TCB Init")
         ok = RunMacro("TCB Run Procedure", "Growth Factor", Opts, &Ret)
         if !ok then Throw("Other to Other IPF failed")
 

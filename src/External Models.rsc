@@ -165,8 +165,8 @@ Macro "IPF EE Seed Table" (Args)
 								"se.EE_CV_MUT_MARG_AM", "se.EE_CV_MUT_MARG_MD", "se.EE_CV_MUT_MARG_PM", "se.EE_CV_MUT_MARG_NT"}
   Opts.Output.[Output Matrix].Label = "EE Trips Matrix"
   Opts.Output.[Output Matrix].[File Name] = ee_mtx_file
+  RunMacro("TCB Init")
   ok = RunMacro("TCB Run Procedure", "Growth Factor", Opts, &Ret)
-  
   if !ok then Throw("EE IPF failed")
   
   // Check each core for errors not captured automatically by TC
