@@ -84,7 +84,6 @@ endmacro
 */
 Macro "Calibrate HB MC"(Args)
     trip_types = RunMacro("Get HB Trip Types", Args)
-    //trip_types = {"n_hb_omed_all"}
     //pbar1 = CreateObject("G30 Progress Bar", "Calibrating MC models for each trip type ...", true, trip_types.length)
     for trip_type in trip_types do
         if Lower(trip_type) = "w_hb_ek12_all" then
@@ -146,6 +145,7 @@ Macro "Calibrate MC"(Args, Opts)
 
         // Compute Shares
         shares = RunMacro("Get Mode Shares", Args, Opts, altNames)
+        //return(1)
 
         // Check convergence
         converged = RunMacro("ASC Adjustment Convergence", shares, targets, thresholds)
@@ -338,9 +338,9 @@ Macro "MC Eval for Calibration"(Args, Opts)
             if ArrayPosition(modelSources, {src[1]},) > 0 then
                 o.OpenMatrixSource({SourceName: src[1], FileName: src[2]})
         end
-        o.UtilityScaling = "By Theta Product"
         probMtx = mc_dir + "/probabilities/probability_" + tag + ".mtx"
         o.AddMatrixOutput( "*",  {Probability: probMtx})
+        o.UtilityScaling = "By Parent Theta"
         ok = o.Run()
         o = null
     end
