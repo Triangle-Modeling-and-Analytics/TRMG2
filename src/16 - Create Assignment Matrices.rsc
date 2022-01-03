@@ -8,8 +8,9 @@ lost during the conversion.
 Macro "Create Assignment Matrices" (Args)
 
     // TODO: enable this after the model is calibrated
-    // RunMacro("Separate Parking Trips", Args)
-    RunMacro("Directionality", Args)
+    // RunMacro("HB Separate Parking Trips", Args)
+    // RunMacro("NHB Separate Parking Trips", Args)
+    RunMacro("HB Directionality", Args)
     RunMacro("Add Airport Trips", Args)
     RunMacro("HB Collapse Auto Modes", Args)
     RunMacro("HB Occupancy", Args)
@@ -29,7 +30,7 @@ endmacro
 Convert from PA to OD format for auto modes
 */
 
-Macro "Directionality" (Args)
+Macro "HB Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     dir_factor_file = Args.DirectionFactors
