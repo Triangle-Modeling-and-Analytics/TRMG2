@@ -2504,30 +2504,3 @@ Macro "Trip Conservation Snapshot" (dir, out_file)
   df.mutate("period", Right(df.tbl.matrix, 2))
   df.write_csv(out_file)
 endmacro
-
-Macro "Parking Convolution" (MacroOpts)
-
-  trip_mtx_file = MacroOpts.trip_mtx_file
-  trip_core = MacroOpts.trip_core
-  parking_mtx_file = MacroOpts.parking_mtx_file
-  parking_core = MacroOpts.parking_core
-
-  // For any parking matrix rows with null total probabilities,
-  // put a 1 on the diagonal.
-  prk_mtx = CreateObject("Matrix", parking_mtx_file)
-  v_row_sum = prk_mtx.GetVector({Core: parking_core, Marginal: "Row Sum"})
-  v_row_sum.rowbased = true
-  v_diag = prk_mtx.GetVector({Core: parking_core, Diagonal: "Row"})
-  v_diag = if v_row_sum = 0 then 1 else v_diag
-  prk_mtx.SetVector({Core: parking_core, Vector: v_diag, Diagonal: true})
-  prk_core = prk_mtx.GetCore(parking_core)
-  prk_core := nz(prk_core)
-
-  // Multiply trips with parking probabilities
-  trip_mtx = CreateObject("Matrix", trip_mtx_file)
-  trip_core = trip_mtx.GetCore(trip_core)
-  {drive, path, name, ext} = SplitPath(trip_mtx_file)
-  MultiplyMatrix(trip_core, prk_core, {
-    "File Name": drive + path + name + "_parking.mtx"
-  })
-endmacro

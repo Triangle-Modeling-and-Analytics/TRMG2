@@ -201,8 +201,6 @@ Macro "Calculate Destination Choice" (Args, trip_types)
         opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone.csv"
         opts.cluster_data = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
         
-        if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
-
         for period in periods do
             opts.period = period
             
@@ -269,7 +267,7 @@ Macro "Update Shadow Price" (Args)
     out_dir = Args.[Output Folder]
     dc_dir = out_dir + "/resident/dc"
     sp_file = Args.ShadowPrices
-    periods = RunMacro("Get Unconverged Periods", Args)
+    periods = Args.periods
 
     se_vw = OpenTable("se", "FFB", {se_file})
     sp_vw = OpenTable("sp", "FFB", {sp_file})
@@ -306,7 +304,7 @@ Macro "Update Shadow Price" (Args)
     // Calculate constant adjustmente. avoid Log(0) = -inf
     delta = if v_attrs = 0 or v_total_trips = 0
         then 0
-        else nz(Log(v_attrs/v_total_trips)) * .75
+        else nz(Log(v_attrs/v_total_trips)) * .85
     v_sp = v_sp + delta
     SetDataVector(sp_vw + "|", "hbw", v_sp, )
 
