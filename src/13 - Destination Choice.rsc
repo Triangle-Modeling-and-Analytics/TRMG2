@@ -201,8 +201,6 @@ Macro "Calculate Destination Choice" (Args, trip_types)
         opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone.csv"
         opts.cluster_data = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
         
-        if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
-
         for period in periods do
             opts.period = period
             
