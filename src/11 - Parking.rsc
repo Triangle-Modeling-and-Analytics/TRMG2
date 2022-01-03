@@ -482,49 +482,10 @@ Macro "Update Fields"(spec)
 endMacro
 
 /*
-This macro splits auto trip matrices into those who walk from their car
-and those who take a shuttle.
+Wrapper that applies "Calculate Parking Cores" to HB trip matrices
 */
 
-Macro "Apply Parking Mode Probabilities" (Args)
-
-    out_dir = Args.[Output Folder]
-    parking_dir = out_dir + "/output/resident/parking"
-    trip_dir = out_dir + "/resident/trip_matrices"
-    logsum_file = parking_dir + "/ParkingLogsums.bin"
-    parking_prob_file = parking_dir + "/ParkingDCProbability.mtx"
-
-    trip_types = RunMacro("Get HB Trip Types", Args)
-    periods = RunMacro("Get Unconverged Periods", Args)
-
-    for period in periods do
-        for trip_type in trip_types do
-            trip_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
-            if Lower(Left(trip_type, 1)) = "w"
-                then park_type = "work"
-                else park_type = "nonwork"
-
-            opts.parking_prob_file = parking_prob_file
-            opts.logsum_file = logsum_file
-            opts.trip_file = trip_file
-            opts.park_type = park_type
-            opts.auto_cores = {
-                "sov",
-                "hov2",
-                "hov3",
-                "auto_pay",
-                "other_auto"
-            }
-            RunMacro("Separate Parking Trips")
-        end
-    end
-endmacro
-
-/*
-
-*/
-
-Macro "HB Separate Parking Trips" (Args)
+Macro "HB Apply Parking Probabilities" (Args)
     
     out_dir = Args.[Output Folder]
     park_dir = out_dir + "/resident/parking"
@@ -540,103 +501,42 @@ Macro "HB Separate Parking Trips" (Args)
         "other_auto"
     }
 
-
-//TODO remove
+// TODO: remove
 trip_types = {"W_HB_W_All"}
     for period in periods do
-    for trip_type in trip_types do
+        for trip_type in trip_types do
 
-        trip_dir = out_dir + "/resident/trip_matrices"
-        trip_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            trip_dir = out_dir + "/resident/trip_matrices"
+            trip_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
 
-        // Get walk/shuttle split from logsum file
-        logsum_vw = OpenTable("logsums", "FFB", {logsum_file})
-        if trip_type = "W_HB_W_All"
-            then prob_field = "Prob_Shuttle_Work"
-            else prob_field = "Prob_Shuttle_NonWork"
-        v_prob_shuttle = GetDataVector(logsum_vw + "|", prob_field, )
-        v_prob_shuttle = nz(v_prob_shuttle)
-        CloseView(logsum_vw)
-
-        park_modes = {"walk", "shuttle"}
-        for auto_core in auto_cores do
-            for park_mode in park_modes do
-                
-                // Holds trips by parking mode (walk or shuttle)
-                trip_mtx = CreateObject("Matrix", trip_mtx_file)
-                park_mode_core =  auto_core + "_park" + park_mode
-                trip_mtx.AddCores({park_mode_core})
-                cores = trip_mtx.GetCores()
-                if park_mode = "shuttle"
-                    then cores.(park_mode_core) := cores.(auto_core) * v_prob_shuttle
-                    else cores.(park_mode_core) := cores.(auto_core) * (1 - v_prob_shuttle)
-                trip_mtx = null
-                cores = null
-
-                // The CBD and Univ probability cores are merged since they don't
-                // overlap. This is the temp core where this will be held.
-                prob_mtx = CreateObject("Matrix", parking_prob_file)
-                prob_mtx.AddCores({"univ_cbd"})
-                prob_core = prob_mtx.GetCore("univ_cbd")
-                prefix = Proper(park_mode) + "_"
-                if trip_type = "W_HB_W_All"
-                    then suffix = "_Work"
-                    else suffix = "_NonWork"
-                cbd_core = prob_mtx.GetCore(prefix + "CBD" + suffix)
-                univ_core = prob_mtx.GetCore(prefix + "Univ" + suffix)
-                prob_core := nz(cbd_core) + nz(univ_core)
-                prob_mtx = null
-                prob_core = null
-                cbd_core = null
-                univ_core = null
-
-                // Run parking convolution
+            if trip_type = "W_HB_W_All" 
+                then work_type = "w"
+                else work_type = "n"
+            
+            for auto_core in auto_cores do
                 opts = null
                 opts.trip_mtx_file = trip_mtx_file
-                opts.trip_core_name = park_mode_core
-                opts.parking_mtx_file = parking_prob_file
-                opts.parking_core_name = "univ_cbd"
-                RunMacro("Parking Convolution", opts)
+                opts.parking_prob_file = parking_prob_file
+                opts.logsum_file = logsum_file
+                opts.work_type = tour_type
+                opts.auto_core = auto_core
+                RunMacro("Calculate Parking Cores", opts)
             end
-            
-            // Collapse matrices. Primarily due to file size concerns,
-            // these matrices are collapsed back into the original cores.
-            // This comes with a loss of ability to isolate/view parking
-            // behavior separately. If that is desired later, you can
-            // modify this section.
-            trip_mtx = CreateObject("Matrix", trip_mtx_file)
-            cores = trip_mtx.GetCores()
-            cores.(auto_core) := nz(cores.(auto_core + "_parkwalk_topark")) +
-                nz(cores.(auto_core + "_parkshuttle_topark"))
-            cores.w_lb := nz(cores.w_lb) + nz(cores.(auto_core + "_parkshuttle_frompark"))
-            trip_mtx.DropCores({
-                auto_core + "_parkwalk",
-                auto_core + "_parkwalk_topark",
-                auto_core + "_parkwalk_frompark",
-                auto_core + "_parkshuttle",
-                auto_core + "_parkshuttle_topark",
-                auto_core + "_parkshuttle_frompark"
-            })
-
-            Throw()
         end
-
-    end
     end
 endmacro
 
 /*
-
+Wrapper that applies "Calculate Parking Cores" to NHB trip matrices
 */
 
-Macro "NHB Separate Parking Trips" (Args)
+Macro "NHB Apply Parking Probabilities" (Args)
     
     out_dir = Args.[Output Folder]
     park_dir = out_dir + "/resident/parking"
     parking_prob_file = park_dir + "/ParkingDCProbability.mtx"
     logsum_file = park_dir + "/ParkingLogsums.bin"
     periods = RunMacro("Get Unconverged Periods", Args)
-    
 
     trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
     tour_types = {"w", "n"}
@@ -644,88 +544,121 @@ Macro "NHB Separate Parking Trips" (Args)
     for period in periods do
         for tour_type in tour_types do
 
-            // Get walk/shuttle split from logsum file
-            logsum_vw = OpenTable("logsums", "FFB", {logsum_file})
-            if tour_type = "w"
-                then prob_field = "Prob_Shuttle_Work"
-                else prob_field = "Prob_Shuttle_NonWork"
-            v_prob_shuttle = GetDataVector(logsum_vw + "|", prob_field, )
-            v_prob_shuttle = nz(v_prob_shuttle)
-            CloseView(logsum_vw)
-
             for mode in modes do
                 trip_mtx_file = trip_dir + "/NHB_" + tour_type + "_" + mode + "_" + period + ".mtx"
 
                 auto_cores = {"Total"}
                 park_modes = {"walk", "shuttle"}
                 for auto_core in auto_cores do
-                    for park_mode in park_modes do
-                        
-                        // Holds trips by parking mode (walk or shuttle)
-                        trip_mtx = CreateObject("Matrix", trip_mtx_file)
-                        park_mode_core =  auto_core + "_park" + park_mode
-                        trip_mtx.AddCores({park_mode_core})
-                        cores = trip_mtx.GetCores()
-                        if park_mode = "shuttle"
-                            then cores.(park_mode_core) := cores.(auto_core) * v_prob_shuttle
-                            else cores.(park_mode_core) := cores.(auto_core) * (1 - v_prob_shuttle)
-                        trip_mtx = null
-                        cores = null
-
-                        // The CBD and Univ probability cores are merged since they don't
-                        // overlap. This is the temp core where this will be held.
-                        prob_mtx = CreateObject("Matrix", parking_prob_file)
-                        prob_mtx.AddCores({"univ_cbd"})
-                        prob_core = prob_mtx.GetCore("univ_cbd")
-                        prefix = Proper(park_mode) + "_"
-                        if tour_type = "w"
-                            then suffix = "_Work"
-                            else suffix = "_NonWork"
-                        cbd_core = prob_mtx.GetCore(prefix + "CBD" + suffix)
-                        univ_core = prob_mtx.GetCore(prefix + "Univ" + suffix)
-                        prob_core := nz(cbd_core) + nz(univ_core)
-                        prob_mtx = null
-                        prob_core = null
-                        cbd_core = null
-                        univ_core = null
-
-                        // Run parking convolution
-                        opts = null
-                        opts.trip_mtx_file = trip_mtx_file
-                        opts.trip_core_name = park_mode_core
-                        opts.parking_mtx_file = parking_prob_file
-                        opts.parking_core_name = "univ_cbd"
-                        RunMacro("Parking Convolution", opts)
-                    end
-                    
-                    // Collapse matrices. Primarily due to file size concerns,
-                    // these matrices are collapsed back into the original cores.
-                    // This comes with a loss of ability to isolate/view parking
-                    // behavior separately. If that is desired later, you can
-                    // modify this section.
-                    trip_mtx = CreateObject("Matrix", trip_mtx_file)
-                    core_names = trip_mtx.GetCoreNames()
-                    if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
-                    cores = trip_mtx.GetCores()
-                    cores.(auto_core) := nz(cores.(auto_core + "_parkwalk_topark")) +
-                        nz(cores.(auto_core + "_parkshuttle_topark"))
-                    cores.w_lb := nz(cores.w_lb) + nz(cores.(auto_core + "_parkshuttle_frompark"))
-                    trip_mtx.DropCores({
-                        auto_core + "_parkwalk",
-                        auto_core + "_parkwalk_topark",
-                        auto_core + "_parkwalk_frompark",
-                        auto_core + "_parkshuttle",
-                        auto_core + "_parkshuttle_topark",
-                        auto_core + "_parkshuttle_frompark"
-                    })
-
-                    Throw()
+                    opts = null
+                    opts.trip_mtx_file = trip_mtx_file
+                    opts.parking_prob_file = parking_prob_file
+                    opts.logsum_file = logsum_file
+                    opts.work_type = tour_type
+                    opts.auto_core = auto_core
+                    RunMacro("Calculate Parking Cores", opts)
                 end
 
             end
         end
     end
 endmacro
+
+/*
+Used by both "HB Apply Parking Probabilities" and "NHB Apply Parking Probabilities"
+
+This macro is still specific to the TRM model. For a given trip matrix and
+probability matrix, it will perform parking convolution and summarize up to
+the matrices needed. 
+*/
+
+Macro "Calculate Parking Cores" (MacroOpts)
+    
+    trip_mtx_file = MacroOpts.trip_mtx_file
+    parking_prob_file = MacroOpts.parking_prob_file
+    logsum_file = MacroOpts.logsum_file
+    work_type = MacroOpts.work_type
+    auto_core = MacroOpts.auto_core
+
+    park_modes = {"walk", "shuttle"}
+    for park_mode in park_modes do
+                            
+        // Get walk/shuttle split from logsum file
+        logsum_vw = OpenTable("logsums", "FFB", {logsum_file})
+        if work_type = "w"
+            then prob_field = "Prob_Shuttle_Work"
+            else prob_field = "Prob_Shuttle_NonWork"
+        v_prob_shuttle = GetDataVector(logsum_vw + "|", prob_field, )
+        v_prob_shuttle = nz(v_prob_shuttle)
+        CloseView(logsum_vw)
+        
+        // Holds trips by parking mode (walk or shuttle)
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+        park_mode_core =  auto_core + "_park" + park_mode
+        trip_mtx.AddCores({park_mode_core})
+        cores = trip_mtx.GetCores()
+        if park_mode = "shuttle"
+            then cores.(park_mode_core) := cores.(auto_core) * v_prob_shuttle
+            else cores.(park_mode_core) := cores.(auto_core) * (1 - v_prob_shuttle)
+        trip_mtx = null
+        cores = null
+
+        // The CBD and Univ probability cores are merged since they don't
+        // overlap. This is the temp core where this will be held.
+        prob_mtx = CreateObject("Matrix", parking_prob_file)
+        prob_mtx.AddCores({"univ_cbd"})
+        prob_core = prob_mtx.GetCore("univ_cbd")
+        prefix = Proper(park_mode) + "_"
+        if work_type = "w"
+            then suffix = "_Work"
+            else suffix = "_NonWork"
+        cbd_core = prob_mtx.GetCore(prefix + "CBD" + suffix)
+        univ_core = prob_mtx.GetCore(prefix + "Univ" + suffix)
+        prob_core := nz(cbd_core) + nz(univ_core)
+        prob_mtx = null
+        prob_core = null
+        cbd_core = null
+        univ_core = null
+
+        // Run parking convolution
+        opts = null
+        opts.trip_mtx_file = trip_mtx_file
+        opts.trip_core_name = park_mode_core
+        opts.parking_mtx_file = parking_prob_file
+        opts.parking_core_name = "univ_cbd"
+        RunMacro("Parking Convolution", opts)
+    end
+
+    // Collapse matrices. Primarily due to file size concerns,
+    // these matrices are collapsed back into the original cores.
+    // This comes with a loss of ability to isolate/view parking
+    // behavior separately. If that is desired later, you can
+    // modify this section.
+    trip_mtx = CreateObject("Matrix", trip_mtx_file)
+    core_names = trip_mtx.GetCoreNames()
+    if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
+    cores = trip_mtx.GetCores()
+    cores.(auto_core) := nz(cores.(auto_core + "_parkwalk_topark")) +
+        nz(cores.(auto_core + "_parkshuttle_topark"))
+    cores.w_lb := nz(cores.w_lb) + nz(cores.(auto_core + "_parkshuttle_frompark"))
+    trip_mtx.DropCores({
+        auto_core + "_parkwalk",
+        auto_core + "_parkwalk_topark",
+        auto_core + "_parkwalk_frompark",
+        auto_core + "_parkshuttle",
+        auto_core + "_parkshuttle_topark",
+        auto_core + "_parkshuttle_frompark"
+    })
+
+    Throw()
+endmacro
+
+/*
+This is a truly generic macro that takes any trip core and parking
+probability core and performs parking convolution. Trip ends will be
+diverted to parking zones and a matrix core will be created for
+the required secondary trips from parking spot to final destination.
+*/
 
 Macro "Parking Convolution" (MacroOpts)
 

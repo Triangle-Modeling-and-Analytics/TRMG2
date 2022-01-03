@@ -8,8 +8,8 @@ lost during the conversion.
 Macro "Create Assignment Matrices" (Args)
 
     // TODO: enable this after the model is calibrated
-    // RunMacro("HB Separate Parking Trips", Args)
-    // RunMacro("NHB Separate Parking Trips", Args)
+    // RunMacro("HB Apply Parking Probabilities", Args)
+    // RunMacro("NHB Apply Parking Probabilities", Args)
     RunMacro("HB Directionality", Args)
     RunMacro("Add Airport Trips", Args)
     RunMacro("HB Collapse Auto Modes", Args)
