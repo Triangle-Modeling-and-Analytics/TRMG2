@@ -49,21 +49,21 @@ w_eb,w_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
 w_eb,w_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
 w_eb,w_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
 w_eb,se.HiIncomePct.O,,-0.3106,High income household percentage
-w_lb,Constant,v0,0.527279,Additional Calibration Constant
-w_eb,Constant,v0,0.527279,Additional Calibration Constant
-auto_pay,Constant,v0,2.406923,Additional Calibration Constant
-other_auto,Constant,v0,-0.469476,Additional Calibration Constant
-sov,Constant,vi,-0.015326,Additional Calibration Constant
-hov2,Constant,vi,0.251074,Additional Calibration Constant
-hov3,Constant,vi,0.209335,Additional Calibration Constant
-w_lb,Constant,vi,1.498305,Additional Calibration Constant
-w_eb,Constant,vi,1.498305,Additional Calibration Constant
-auto_pay,Constant,vi,2.186659,Additional Calibration Constant
-other_auto,Constant,vi,-0.581074,Additional Calibration Constant
-sov,Constant,vs,-0.02736,Additional Calibration Constant
-hov2,Constant,vs,0.129715,Additional Calibration Constant
-hov3,Constant,vs,0.133171,Additional Calibration Constant
-w_lb,Constant,vs,-0.223821,Additional Calibration Constant
-w_eb,Constant,vs,-0.223821,Additional Calibration Constant
-auto_pay,Constant,vs,1.536396,Additional Calibration Constant
-other_auto,Constant,vs,0.007199,Additional Calibration Constant
+w_lb,Constant,v0,0.46582,Additional Calibration Constant
+w_eb,Constant,v0,0.46582,Additional Calibration Constant
+auto_pay,Constant,v0,2.368476,Additional Calibration Constant
+other_auto,Constant,v0,-0.52861,Additional Calibration Constant
+sov,Constant,vi,-0.026599,Additional Calibration Constant
+hov2,Constant,vi,0.259366,Additional Calibration Constant
+hov3,Constant,vi,0.21373,Additional Calibration Constant
+w_lb,Constant,vi,1.167684,Additional Calibration Constant
+w_eb,Constant,vi,1.167684,Additional Calibration Constant
+auto_pay,Constant,vi,2.094186,Additional Calibration Constant
+other_auto,Constant,vi,-0.582324,Additional Calibration Constant
+sov,Constant,vs,-0.024626,Additional Calibration Constant
+hov2,Constant,vs,0.116869,Additional Calibration Constant
+hov3,Constant,vs,0.120102,Additional Calibration Constant
+w_lb,Constant,vs,-0.227351,Additional Calibration Constant
+w_eb,Constant,vs,-0.227351,Additional Calibration Constant
+auto_pay,Constant,vs,1.529611,Additional Calibration Constant
+other_auto,Constant,vs,0.005806,Additional Calibration Constant
