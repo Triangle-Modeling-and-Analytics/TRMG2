@@ -124,7 +124,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         o = CreateObject("Network.Assignment")
         o.Network = net_file
         o.LayerDB = hwy_dbd
-        o.CriticalQueryFile = sl_query
+        if sl_query <> null then o.CriticalQueryFile = sl_query
         o.ResetClasses()
         o.Iterations = assign_iters
         o.Convergence = Args.AssignConvergence

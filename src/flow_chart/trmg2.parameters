@@ -159,3 +159,4 @@
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
+        Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }
