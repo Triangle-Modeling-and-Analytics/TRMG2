@@ -50,7 +50,7 @@ enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollm
 
 On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
 
-The model design calls for the following trip purposes: 
+The model design document calls for the following trip purposes: 
 
 * Home-Based-Campus (Home-Campus or UHC)  
 *	Home-Based-Other (Home-Other or UHO)  
@@ -61,7 +61,9 @@ The model design calls for the following trip purposes:
 
 
 ## Trip Generation  
-The first step in the model development process is to create trip production and attraction models for the above trip purposes. This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students.  Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.
+The first step in the model development process is to create trip production and attraction models for the above trip purposes. More information about trip generation can be found at https://tfresource.org/topics/Trip_Generation.html
+
+This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students.  Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.
 
 ```{r survey_overview, echo = FALSE}
 Respondents_On_campus <- surveyRespondents_ResidenceClass_df %>%
@@ -276,6 +278,13 @@ Home-Other trips by off-campus students have two off-campus trip ends. The model
 print_model(Model_Offcampus_UHO_2)
 ```
 ## Trip Distribution  
+The second step of the university model development process is to develop a trip distribution model.  In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the impedance (travel time, distance and cost) between each of the TAZ pairs. More information about trip distribution and gravity models can be found in https://tfresource.org/topics/Trip_distribution.html.
+
+[describe gravity model developed for this]
+
+The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. These observed trip lengths were used to validate the trip length produced with the gravity model. [more]
+
+
 ### Trip length distribution from the NCSU survey
 ```{r,echo=FALSE}
 zonetozonedistance_bypurposeHB_histogram + labs(title = "Trip Length Distribution, Home-based Trips", 
@@ -289,8 +298,14 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution, On-ca
 ```
 
 ## Mode Choice
+The third step in the university model development process is the mode choice model.  During the mode choice step, trips by zonal pair are distributed across available modes. More information about mode choice modeling can be found in https://tfresource.org/topics/Mode_choice.html.
+
+The NCSU survey provides insight into the existing mode choice of NCSU students. Because the dataset was too limited to be used to estimate a mode choice model, time and cost coefficients were asserted. The asserted coefficients reflect typical sensitivities to time and cost for travelers with average incomes. 
+
+The multinomial mode choice model explains the split between the university model's four modes - walk, bike, transit and car based on time, cost and modal preferences.  The NCSU survey data was used to develop the calibration target for the mode choice model for all four universities. 
+
 ### Mode split from NCSU survey
-The figure below shows the number of trips reported by the NCSU survey respondents for five of the model's trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips. 
+ The figure below shows the number of trips reported by the NCSU survey respondents for five of the model's trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips. 
 
 #### Sample overview
 ```{r oncampus_modesplit plot, echo = FALSE}
@@ -323,7 +338,7 @@ modesplit_bypurpose_offcampus_2_df %>%
 
 ### Mode split calibration targets
 
-The calibration targets were developed based on the mode split from the NCSU survey and use the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.
+The calibration targets were developed based on the mode split from the NCSU survey summarized by the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.
 
 #### Campus-based trips mode split calibration targets
 ```{r,echo=FALSE}
@@ -346,7 +361,7 @@ calibrationtargets_bypurpose_offcampus_df %>%
 ```
 
 ### Mode choice coefficients
-The mode choice coefficient were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable. 
+The mode choice coefficients were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable. 
 ```{r} 
 G_IVTT_Coeff <-  -0.04
 G_OVTT_Coeff <- G_IVTT_Coeff * 1.5

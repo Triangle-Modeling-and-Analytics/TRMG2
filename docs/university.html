@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2021-12-21" />
+<meta name="date" content="2022-01-04" />
 
 <title>University</title>
 
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">December 21, 2021</h4>
+<h4 class="date">January 04, 2022</h4>
 
 </div>
 
@@ -423,7 +423,7 @@ div.tocify {
 <h2>Introduction</h2>
 <p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84481, with 31025 students at NCSU, 29437 at UNC, 15904 at Duke and 8115 at NCCU.</p>
 <p>On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
-<p>The model design calls for the following trip purposes:</p>
+<p>The model design document calls for the following trip purposes:</p>
 <ul>
 <li>Home-Based-Campus (Home-Campus or UHC)<br />
 </li>
@@ -440,7 +440,8 @@ div.tocify {
 </div>
 <div id="trip-generation" class="section level2">
 <h2>Trip Generation</h2>
-<p>The first step in the model development process is to create trip production and attraction models for the above trip purposes. This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students. Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.</p>
+<p>The first step in the model development process is to create trip production and attraction models for the above trip purposes. More information about trip generation can be found at <a href="https://tfresource.org/topics/Trip_Generation.html" class="uri">https://tfresource.org/topics/Trip_Generation.html</a></p>
+<p>This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students. Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.</p>
 <div id="sources" class="section level3">
 <h3>Sources</h3>
 <div id="ncsu-student-travel-survey" class="section level4">
@@ -1398,6 +1399,9 @@ NA
 </div>
 <div id="trip-distribution" class="section level2">
 <h2>Trip Distribution</h2>
+<p>The second step of the university model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the impedance (travel time, distance and cost) between each of the TAZ pairs. More information about trip distribution and gravity models can be found in <a href="https://tfresource.org/topics/Trip_distribution.html" class="uri">https://tfresource.org/topics/Trip_distribution.html</a>.</p>
+<p>[describe gravity model developed for this]</p>
+<p>The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. These observed trip lengths were used to validate the trip length produced with the gravity model. [more]</p>
 <div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">
 <h3>Trip length distribution from the NCSU survey</h3>
 <p><img src="university_files/figure-html/unnamed-chunk-5-1.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-2.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
@@ -1405,6 +1409,9 @@ NA
 </div>
 <div id="mode-choice" class="section level2">
 <h2>Mode Choice</h2>
+<p>The third step in the university model development process is the mode choice model. During the mode choice step, trips by zonal pair are distributed across available modes. More information about mode choice modeling can be found in <a href="https://tfresource.org/topics/Mode_choice.html" class="uri">https://tfresource.org/topics/Mode_choice.html</a>.</p>
+<p>The NCSU survey provides insight into the existing mode choice of NCSU students. Because the dataset was too limited to be used to estimate a mode choice model, time and cost coefficients were asserted. The asserted coefficients reflect typical sensitivities to time and cost for travelers with average incomes.</p>
+<p>The multinomial mode choice model explains the split between the university model’s four modes - walk, bike, transit and car based on time, cost and modal preferences. The NCSU survey data was used to develop the calibration target for the mode choice model for all four universities.</p>
 <div id="mode-split-from-ncsu-survey" class="section level3">
 <h3>Mode split from NCSU survey</h3>
 <p>The figure below shows the number of trips reported by the NCSU survey respondents for five of the model’s trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips.</p>
@@ -1643,7 +1650,7 @@ Home-Other
 </div>
 <div id="mode-split-calibration-targets" class="section level3">
 <h3>Mode split calibration targets</h3>
-<p>The calibration targets were developed based on the mode split from the NCSU survey and use the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.</p>
+<p>The calibration targets were developed based on the mode split from the NCSU survey summarized by the four modes of the model: walk, bicycle, transit and auto. The relatively large targets for transit for Campus-to-campus and Home-Campus trips contribute positively to the transit ridership forecast.</p>
 <div id="campus-based-trips-mode-split-calibration-targets" class="section level4">
 <h4>Campus-based trips mode split calibration targets</h4>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -1874,7 +1881,7 @@ Home-Other
 </div>
 <div id="mode-choice-coefficients" class="section level3">
 <h3>Mode choice coefficients</h3>
-The mode choice coefficient were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable.
+The mode choice coefficients were asserted because the NCSU survey dataset was not sufficient to estimate a mode choice model. The implied value of time (VOT) for walk time, bike time, transit time and drive time is $12 per hour, which is a reasonable average for students. For transit access time, the implied VOT is $18 per hour, which is also reasonable.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
