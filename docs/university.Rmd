@@ -48,9 +48,7 @@ enrollment_NCCU <- socioecon2_df %>%
 enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollment_NCCU
 ```
 
-On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
-
-The model design document calls for the following trip purposes: 
+The model structure segments trips into the following purposes:
 
 * Home-Based-Campus (Home-Campus or UHC)  
 *	Home-Based-Other (Home-Other or UHO)  
@@ -59,9 +57,17 @@ The model design document calls for the following trip purposes:
 *	Inter-Campus (Campus-to-Campus or UCC)  
 *	University student Other-Other (Other-to-Other or UOO)  
 
+The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
+
+The first model step is [trip generation](https://tfresource.org/topics/Trip_Generation.html), which estimates the number of trips by market segment and purpose as a function of observed land use characteristics. The second model step is trip distribution, which uses a common [gravity formulation](https://tfresource.org/topics/Trip_distribution.html) with distance as the measure of impedance. A [multinomial logit mode choice model](https://tfresource.org/topics/Mode_choice.html) is then used to segment trips by travel mode. Time of day or "diurnal" factors are used to segment trips by time and day and convert the outcomes from production-attraction to origin-destination format. The university trips are then combined with trips from other model components prior to carrying out roadway and transit assignment. 
+
+An innovative feature of the model design is the generation step for the Other-to-Other trip purpose. To maintain consistency across travel model, these trips are generated directly from the Home-based Other and Campus-based Other trip ends. The generation step is mode specific. For example, if all the Home-based Other and Campus-based Other trips select automobile, then only automobile Other-to-Other trips will be generated. 
+
+The balance of this document first specifies each model component, presenting empirical evidence for each specification. In cases where insufficient data is available for the statistical estimation of model coefficients, coefficients are asserted, based on evidence for other travel purposes. For these asserted models, calibration targets are developed to guide the adjustment of constants to match observed outcomes. 
+
 
 ## Trip Generation  
-The first step in the model development process is to create trip production and attraction models for the above trip purposes. More information about trip generation can be found at https://tfresource.org/topics/Trip_Generation.html
+The first step in the model development process is to create trip production and attraction models for the above trip purposes.
 
 This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students.  Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.
 
