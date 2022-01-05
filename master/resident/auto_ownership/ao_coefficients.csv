@@ -26,3 +26,7 @@ v4,"min(hh.HHNWAdults,4)",,3.59778,Non-working adults
 v4,se.access_walk.O,,-1.0608,Walk access
 v4,"min(hh.HHWorkers,4)",,5.21541,Workers
 v4,Constant,,-12.6101,Constant
+v1,Constant,,-0.0706,Added by calibrator routine. gap = 0.005025
+v2,Constant,,0.1128,Added by calibrator routine. gap = 0.01247
+v3,Constant,,0.1454,Added by calibrator routine. gap = 0.003869
+v4,Constant,,-0.4734,Added by calibrator routine. gap = 0.007213
