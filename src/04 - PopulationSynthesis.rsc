@@ -4,10 +4,10 @@
 
 Macro "Population Synthesis" (Args)
 
-    RunMacro("DisaggregateSED", Args)
-    RunMacro("Synthesize Population", Args)
-    RunMacro("PopSynth Post Process", Args)
-    RunMacro("Auto Ownership", Args)
+    // RunMacro("DisaggregateSED", Args)
+    // RunMacro("Synthesize Population", Args)
+    // RunMacro("PopSynth Post Process", Args)
+    RunMacro("Auto Ownership2", Args)
 
     return(1)
 endmacro
@@ -300,6 +300,7 @@ Macro "Generate Tabulations"(Args)
     modify.FindOrAddField("HHKids", "Long", 12,,)
     modify.FindOrAddField("HHSeniors", "Long", 12,,)
     modify.FindOrAddField("HHWorkers", "Long", 12,,)
+    modify.FindOrAddField("HHNWAdults", "Long", 12,,)
     modify.Apply()
     {hhFlds, hhSpecs} = GetFields(vw_hh,)
 
@@ -317,19 +318,21 @@ Macro "Generate Tabulations"(Args)
     expr2 = CreateExpression(vw_perM, "AdultUnder65", "if Age >= 18 and Age < 65 then 1 else 0",)
     expr3 = CreateExpression(vw_perM, "Senior", "if Age >= 65 then 1 else 0",)
     expr4 = CreateExpression(vw_perM, "Worker", "if EmploymentStatus = 1 or EmploymentStatus = 2 or EmploymentStatus = 4 or EmploymentStatus = 5 then 1 else 0",)
-    
+    expr5 = CreateExpression(vw_perM, "NWAdults", "if Age >= 18 and Worker = 0 then 1 else 0",)
+
     // Aggregate person table by 'HouseholdID' and sum the above expression fields
-    aggrSpec = {{"Kid", "sum",}, {"AdultUnder65", "sum",}, {"Senior", "sum",}, {"Worker", "sum",}}
+    aggrSpec = {{"Kid", "sum",}, {"AdultUnder65", "sum",}, {"Senior", "sum",}, {"Worker", "sum",}, {"NWAdults", "sum",}}
     vwA =  AggregateTable("MemAggr", vw_perM + "|", "MEM",, "HouseholdID", aggrSpec,)
     {flds, specs} = GetFields(vwA,)
     
     // Join aggregation file to HH table and copy over values
     vwJ = JoinViews("Aggr_HH", specs[1], GetFieldFullSpec(vw_hhM, "HouseholdID"),)
-    vecs = GetDataVectors(vwJ + "|", {"Kid", "AdultUnder65", "Senior", "Worker"}, {OptArray: 1})
+    vecs = GetDataVectors(vwJ + "|", {"Kid", "AdultUnder65", "Senior", "Worker", "NWAdults"}, {OptArray: 1})
     vecsSet.HHKids = vecs.Kid
     vecsSet.HHAdultsUnder65 = vecs.AdultUnder65
     vecsSet.HHSeniors = vecs.Senior
     vecsSet.HHWorkers = vecs.Worker
+    vecsSet.HHNWAdults = vecs.NWAdults
     SetDataVectors(vwJ +"|", vecsSet,)
     CloseView(vwJ)
     CloseView(vwA)
@@ -355,7 +358,8 @@ Macro "Generate Tabulations"(Args)
                          {"HHAdultsUnder65", "sum",},
                          {"HHKids", "sum",},
                          {"HHSeniors", "sum",},
-                         {"HHWorkers", "sum",}} // For HH_Pop and number of adults, kids, seniors and workers
+                         {"HHWorkers", "sum",},
+                         {"HHNWAdults", "sum",}} // For HH_Pop and number of adults, kids, seniors and workers
 
     // Aggregate HH Data
     vw_agg1 = AggregateTable("HHTotals", vw_hhM + "|", "MEM", "Agg1", "ZoneID", aggflds, null)
@@ -371,6 +375,7 @@ Macro "Generate Tabulations"(Args)
     modify.ChangeField("HHKids", {Name: "Kids"})
     modify.ChangeField("HHSeniors", {Name: "Seniors"})
     modify.ChangeField("HHWorkers", {Name: "Workers"})
+    modify.ChangeField("HHNWAdults", {Name: "NWAdults"})
     modify.Apply()
     obj = null
 
@@ -432,4 +437,39 @@ Macro "Auto Ownership" (Args)
     
     CloseView(hh_vw)
     CloseView(se_vw)
+endmacro
+
+Macro "Auto Ownership2" (Args, trip_types)
+
+    scen_dir = Args.[Scenario Folder]
+    input_dir = Args.[Input Folder] + "/resident/auto_ownership"
+    output_dir = Args.[Output Folder] + "/resident/population_synthesis"
+    hh_file = Args.Households
+
+    // hh_vw = OpenTable("hh", "FFB", {hh_file})
+    // a_fields =  {
+    //     {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
+    // }
+    // RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+    // CloseView(hh_vw)
+    
+    primary_spec = {Name: "hh", OField: "ZoneID"}
+    obj = CreateObject("PMEChoiceModel", {ModelName: "ao"})
+    obj.OutputModelFile = output_dir + "\\auto_ownership.mdl"
+    obj.AddTableSource({
+        SourceName: "hh",
+        File: output_dir + "\\Synthesized_HHs.bin",
+        IDField: "ZoneID"
+    })
+    obj.AddTableSource({
+        SourceName: "se",
+        File: scen_dir + "\\output\\sedata\\scenario_se.bin",
+        IDField: "TAZ"
+    })
+    util = RunMacro("Import MC Spec", input_dir + "/ao_coefficients.csv")
+    obj.AddUtility({UtilityFunction: util})
+    obj.AddPrimarySpec(primary_spec)
+    // obj.AddOutputSpec({ChoicesField: "Autos"})
+    obj.AddOutputSpec({ProbabilityTable: output_dir + "\\probability_table.bin"})
+    obj.Evaluate()
 endmacro
