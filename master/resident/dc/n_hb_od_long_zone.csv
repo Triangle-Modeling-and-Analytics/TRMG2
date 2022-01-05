@@ -1,10 +1,8 @@
 Expression,Segment,Coefficient,Description
-se.n_hbodl_size.D,,0.4812,Size term
-nz(mc_logsums.auto),vi,0.9602,
-nz(mc_logsums.auto),vs,0.9602,
-nz(mc_logsums.transit),,0.054,
-sov_skim.IZ,,1.505,
-sov_skim.CongTime,,-0.1647,
-"max(0, sov_skim.CongTime - 30)",,0.1257,
-se.access_hospital_sov.D,,0.0529,
-se.access_walk.D,v0,0.3475,
+se.n_hbodl_size.D,,0.539,Size term
+nz(mc_logsums.nonhh_auto),,0.709,
+nz(mc_logsums.transit),,0.504,
+sov_skim.IZ,,1.49,
+sov_skim.CongTime,,-0.171,
+"max(0, sov_skim.CongTime - 30)",,0.106,
+se.access_walk.D,v0,0.306,
