@@ -105,3 +105,19 @@ utility of owning 1 auto, but a large impact on owning 2 or more. High income
 households are more likely to own more vehicles. Children make it less likely to
 own 3 or more cars, because there are fewer drivers. Finally, the model's Rho^2
 shows strong predictive power.
+
+## Calibration
+
+```{r, include=FALSE}
+# These should come from an application of the model before any calibration
+# has been done.
+model <- read_csv("data/input/auto_ownership/uncalibrated_auto_results.csv")
+```
+
+```{r}
+survey <- est_tbl %>%
+  group_by(num_vehicles) %>%
+  summarize(weight = sum(hh_weight_combined)) %>%
+  mutate(pct = weight / sum(weight))
+```
+
