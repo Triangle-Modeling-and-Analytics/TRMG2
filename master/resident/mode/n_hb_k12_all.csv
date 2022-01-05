@@ -22,3 +22,15 @@ w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
 school_bus,Constant,,0.4661,Constant
 school_bus,Constant,v0,0.1219,Zero-vehicle households
 school_bus,sov_skim.CongTime,,-0.2014,Travel time
+other_auto,Constant,v0,-1.696705,Additional Calibration Constant
+school_bus,Constant,v0,-1.232452,Additional Calibration Constant
+sov,Constant,vi,-1.028005,Additional Calibration Constant
+hov2,Constant,vi,-0.709808,Additional Calibration Constant
+hov3,Constant,vi,-0.521243,Additional Calibration Constant
+other_auto,Constant,vi,-0.614971,Additional Calibration Constant
+school_bus,Constant,vi,-0.528657,Additional Calibration Constant
+sov,Constant,vs,-0.115655,Additional Calibration Constant
+hov2,Constant,vs,0.125499,Additional Calibration Constant
+hov3,Constant,vs,0.114804,Additional Calibration Constant
+other_auto,Constant,vs,-0.131933,Additional Calibration Constant
+school_bus,Constant,vs,-0.159854,Additional Calibration Constant

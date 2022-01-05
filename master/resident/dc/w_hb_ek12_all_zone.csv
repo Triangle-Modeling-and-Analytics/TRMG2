@@ -1,3 +1,4 @@
 Expression,Segment,Coefficient,Description
-se.w_hbek12_size.D,,0.2255,Size term
-sov_skim.CongTime,,-0.2974,
+se.w_hbek12_size.D,,0.237,Size term
+sov_skim.CongTime,,-0.284,
+"max(0, sov_skim.CongTime - 30)",,0.212,
