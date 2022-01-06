@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2022-01-04" />
+<meta name="date" content="2022-01-06" />
 
 <title>University</title>
 
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">January 04, 2022</h4>
+<h4 class="date">January 06, 2022</h4>
 
 </div>
 
@@ -422,8 +422,7 @@ div.tocify {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84481, with 31025 students at NCSU, 29437 at UNC, 15904 at Duke and 8115 at NCCU.</p>
-<p>On- and off-campus students are expected to have different travel behavior. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
-<p>The model design document calls for the following trip purposes:</p>
+<p>The model structure segments trips into the following purposes:</p>
 <ul>
 <li>Home-Based-Campus (Home-Campus or UHC)<br />
 </li>
@@ -437,10 +436,14 @@ div.tocify {
 </li>
 <li>University student Other-Other (Other-to-Other or UOO)</li>
 </ul>
+<p>The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
+<p>The first model step is <a href="https://tfresource.org/topics/Trip_Generation.html">trip generation</a>, which estimates the number of trips by market segment and purpose as a function of observed land use characteristics. The second model step is trip distribution, which uses a common <a href="https://tfresource.org/topics/Trip_distribution.html">gravity formulation</a> with distance as the measure of impedance. A <a href="https://tfresource.org/topics/Mode_choice.html">multinomial logit mode choice model</a> is then used to segment trips by travel mode. Time of day or “diurnal” factors are used to segment trips by time and day and convert the outcomes from production-attraction to origin-destination format. The university trips are then combined with trips from other model components prior to carrying out roadway and transit assignment.</p>
+<p>An innovative feature of the model design is the generation step for the Other-to-Other trip purpose. To maintain consistency across travel model, these trips are generated directly from the Home-based Other and Campus-based Other trip ends. The generation step is mode specific. For example, if all the Home-based Other and Campus-based Other trips select automobile, then only automobile Other-to-Other trips will be generated.</p>
+<p>The balance of this document first specifies each model component, presenting empirical evidence for each specification. In cases where insufficient data is available for the statistical estimation of model coefficients, coefficients are asserted, based on evidence for other travel purposes. For these asserted models, calibration targets are developed to guide the adjustment of constants to match observed outcomes.</p>
 </div>
 <div id="trip-generation" class="section level2">
 <h2>Trip Generation</h2>
-<p>The first step in the model development process is to create trip production and attraction models for the above trip purposes. More information about trip generation can be found at <a href="https://tfresource.org/topics/Trip_Generation.html" class="uri">https://tfresource.org/topics/Trip_Generation.html</a></p>
+<p>The first step in the model development process is to create trip production and attraction models for the above trip purposes.</p>
 <p>This analysis is presented below and relies on a 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Because we only have survey data for NCSU students, we are assuming that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students. Trip production rates developed based on the NCSU survey were verified using a survey of students attending universities in Virginia.</p>
 <div id="sources" class="section level3">
 <h3>Sources</h3>
@@ -1399,7 +1402,7 @@ NA
 </div>
 <div id="trip-distribution" class="section level2">
 <h2>Trip Distribution</h2>
-<p>The second step of the university model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the impedance (travel time, distance and cost) between each of the TAZ pairs. More information about trip distribution and gravity models can be found in <a href="https://tfresource.org/topics/Trip_distribution.html" class="uri">https://tfresource.org/topics/Trip_distribution.html</a>.</p>
+<p>The second step of the university model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs.</p>
 <p>[describe gravity model developed for this]</p>
 <p>The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. These observed trip lengths were used to validate the trip length produced with the gravity model. [more]</p>
 <div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">

@@ -284,7 +284,7 @@ Home-Other trips by off-campus students have two off-campus trip ends. The model
 print_model(Model_Offcampus_UHO_2)
 ```
 ## Trip Distribution  
-The second step of the university model development process is to develop a trip distribution model.  In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the impedance (travel time, distance and cost) between each of the TAZ pairs. More information about trip distribution and gravity models can be found in https://tfresource.org/topics/Trip_distribution.html.
+The second step of the university model development process is to develop a trip distribution model.  In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs. 
 
 [describe gravity model developed for this]
 
@@ -304,7 +304,7 @@ zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution, On-ca
 ```
 
 ## Mode Choice
-The third step in the university model development process is the mode choice model.  During the mode choice step, trips by zonal pair are distributed across available modes. More information about mode choice modeling can be found in https://tfresource.org/topics/Mode_choice.html.
+The third step in the university model development process is the mode choice model.  During the mode choice step, trips by zonal pair are distributed across available modes. 
 
 The NCSU survey provides insight into the existing mode choice of NCSU students. Because the dataset was too limited to be used to estimate a mode choice model, time and cost coefficients were asserted. The asserted coefficients reflect typical sensitivities to time and cost for travelers with average incomes. 
 
