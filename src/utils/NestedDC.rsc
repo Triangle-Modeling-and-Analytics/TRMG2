@@ -241,12 +241,14 @@ Class "NestedDC" (ClassOpts)
 
         // Collect vectors of cluster names, IDs, and theta values
         theta_vw = OpenTable("thetas", "CSV", {cluster_data})
+        vecOpts.[Sort Order] = {{"Cluster", "Ascending"}}
         {
             v_cluster_ids, v_cluster_names, v_cluster_theta, v_cluster_asc,
             v_cluster_ic
         } = GetDataVectors(
             theta_vw + "|",
             {"Cluster", "ClusterName", "Theta", "ASC", "IC"},
+            vecOpts
         )
         CloseView(theta_vw)
 
