@@ -105,6 +105,7 @@ Macro "Parking Destination Choice"(Args)
     modify.FindOrAddField("ParkCost", "Real", 12, 2, )
     modify.FindOrAddField("ParkSize", "Real", 12, 2, )
     modify.Apply()
+    CloseView(se_vw)
 
     // Loop over, run DC model and write to utility matrix
     pbar = CreateObject("G30 Progress Bar", "Running Parking DC Model for combination of (Walk, Shuttle), (CBD, Univ), (Work, NonWork)", true, 8)
@@ -112,7 +113,7 @@ Macro "Parking Destination Choice"(Args)
         for destType in destTypes do
             for tourType in tourTypes do
                 // Fill appropriate parking cost field in 'ParkCost' field
-                RunMacro("Parking: Fill Fields", {View: se_vw, DestType: destType, TourType: tourType})
+                RunMacro("Parking: Fill Fields", {File: Args.SE, DestType: destType, TourType: tourType})
 
                 // Modify template model and run DC model (Note SE View is assumed to be open here)
                 retDC = RunMacro("Parking: Evaluate DC", Args, {Mode: mode, DestType: destType, TourType: tourType})
@@ -129,11 +130,13 @@ Macro "Parking Destination Choice"(Args)
     pbar.Destroy()
 
     // Remove temp field from se_table
+    se_vw = OpenTable("scenario_se", "FFB", {Args.SE})
+    modify = CreateObject("CC.ModifyTableOperation", se_vw)
     modify.DropField("ParkCost")
     modify.DropField("ParkSize")
     modify.Apply()
-
     CloseView(se_vw)
+
     mProb = null
     mUtil = null
 endMacro
@@ -158,23 +161,23 @@ Macro "Parking: Fill Fields"(spec)
     end
 
     // Copy case specific parking cost values into temporary 'ParkCost' field in SE Data
-    se_vw = spec.View
+    se_vw = OpenTable("scenario_se", "FFB", {spec.File})
     vecs = GetDataVectors(se_vw + "|", {parkCost, spacesFld},)
 
     vecsSet = null
     vecsSet.ParkCost = i2r(vecs[1])/100
     vecsSet.ParkSize = if vecs[2] > 0 then log(vecs[2]) else -99
     SetDataVectors(se_vw + "|", vecsSet,)
+    CloseView(se_vw)
 endMacro
 
 
 /*
-    Macro that updates the template model and runs destination choice for parking
-    Macro called for a particular segment (e.g. Park-Walk for CBD Work Tour)
+    Macro that evaluates the destination choice model for given combination of:
     
-    Updates to template model include:
-    A. Changing the base index of the matrix ('CBD' or 'Univ')
-    B. Updating walk time and parking cost coefficients from the specified parameters
+    - DestType: 'CBD' or 'Univ'
+    - Mode: 'Walk' or 'Shuttle'
+    - TourType: 'Work' or 'NonWork'
 
     The DC model is run and the resulting probability and utility matrix are returned
 */
@@ -184,90 +187,57 @@ Macro "Parking: Evaluate DC"(Args, spec)
     tourType = spec.TourType
     modelTag = mode + "_" + destType + "_" + tourType
     output_dir = Args.[Output Folder]
-
-    // Create DC Model file from template
-    dcmFile = RunMacro("Parking: Create DCM File", Args, spec)
-    
-    // Matrices (input and output)
     parkAvailMtx = output_dir + "/resident/parking/ParkAvailability.mtx"
-    walkSkimMtx = output_dir + "/skims/nonmotorized/walk_skim.mtx"
+
+    // Util File
+    util_csv = Args.[Input Folder] + "/resident/parking/Parkand" + mode + "_" + destType + ".csv"
+    
+    // Import util CSV file into an options array
+    util = RunMacro("Import MC Spec", util_csv)
+
+    // Create choice model
+    obj = CreateObject("PMEChoiceModel", {ModelName: "Parking " + modelTag})
+    obj.OutputModelFile = output_dir + "/resident/parking/ParkAnd" + modelTag + ".dcm" // Temporary output model file
+    obj.AddTableSource({SourceName: "se", File: Args.SE, IDField: "TAZ"})
+    obj.AddMatrixSource({SourceName: "ParkingZones", File: parkAvailMtx, RowIndex: destType, ColIndex: destType})
+    
+    // Add appropriate skim source
+    if mode = "Walk" then do
+        walkSkimMtx = output_dir + "/skims/nonmotorized/walk_skim.mtx"
+        obj.AddMatrixSource({SourceName: "walk_skim", File: walkSkimMtx})
+    end
+    else do // mode = "Shuttle"
+        if tourType = "Work" then
+            trSkimMtx = output_dir + "/skims/transit/skim_AM_w_lb.mtx"
+        else
+            trSkimMtx = output_dir + "/skims/transit/skim_MD_w_lb.mtx"
+        obj.AddMatrixSource({SourceName: "t_skim", File: trSkimMtx})    
+    end 
+    
+    // Add primary spec
+    obj.AddPrimarySpec({Name: "ParkingZones"})
+    
+    // Add destinations
+    obj.AddDestinations({DestinationsSource: "ParkingZones", DestinationsIndex: destType})
+
+    // Set Utility and Availability Spec
+    availSpec = null
+    availSpec.Alternative = {"Destinations"}
+    availSpec.Expression = {"ParkingZones.Availability"}
+    obj.AddUtility({UtilityFunction: util, AvailabilityExpressions: availSpec})
+
+    // Set outputs
     probMtx = GetRandFileName("Prob*.mtx")
     utilMtx = GetRandFileName("Util*.mtx")
-    
+    obj.AddOutputSpec({Probability: probMtx, Utility: utilMtx})
+
     // Run DC
-    o = CreateObject("Choice.Destination")
-    o.ModelFile = dcmFile
-    o.OpenMatrixSource({SourceName: "ParkingZones", FileName: parkAvailMtx})
-    o.OpenMatrixSource({SourceName: "WalkSkim", FileName: walkSkimMtx})
-    o.ProbabilityMatrix({MatrixFile: probMtx, MatrixLabel: "Parking Prob: " + modelTag})
-    o.UtilityMatrix({MatrixFile: utilMtx, MatrixLabel: "Parking Utility: " + modelTag})
-    res = o.Run()
-
+    ret = obj.Evaluate()
+    if !ret then
+        Throw("Running destination choice model failed for: Parking " + modelTag)
+    obj = null
+    
     Return({ProbabilityMatrix: probMtx, UtilityMatrix: utilMtx})
-endMacro
-
-
-/*
-    Macro that takes the appropriate template mode; and create an output model
-    Updates to template model include:
-        A. Changing the base index of the matrix ('CBD' or 'Univ')
-        B. Updating walk time and parking cost coefficients from the specified parameters
-    Returns output dcm model file name
-*/
-Macro "Parking: Create DCM File"(Args, spec)
-    mode = spec.Mode
-    destType = spec.DestType
-    tourType = spec.TourType
-    modelTag = mode + "_" + destType + "_" + tourType
-    
-    // Make a copy of the template file for modification
-    templateFile = Args.[Input Folder] + "/resident/parking/ParkAnd" + mode + ".dcm"
-    dcmFile = Args.[Output Folder] + "/resident/parking/ParkAnd" + modelTag + ".dcm"
-    CopyFile(templateFile, dcmFile)
-
-    // Open DCM file and change certain paramters
-    model = CreateObject("NLM.Model")
-    model.Read(dcmFile, true)
-
-    // Change row and col index of primary source
-    primarySrc = model.GetDataSource("ParkingZones")
-    primarySrc.RowIdx = destType // "CBD" or "Univ"
-    primarySrc.ColIdx = destType
-
-    // Change label of transit Skim Source (only for park and shuttle)
-    if tourType = "Work" then
-        tSkim = Args.[Output Folder] + "\\skims\\transit\\skim_AM_w_lb.mtx"
-    else
-        tSkim = Args.[Output Folder] + "\\skims\\transit\\skim_MD_w_lb.mtx"
-    
-    m = OpenMatrix(tSkim,)
-    label = GetMatrixName(m)
-    m = null
-
-    tSkimSrc = model.GetDataSource("TransitSkim")
-    if tSkimSrc <> null then do     // Note tSkimSrc = null for the Park and Walk model
-        tSkimSrc.FileName = tSkim
-        tSkimSrc.FileLabel = label
-    end
-
-    // Change destination index of the composite alternative
-    seg = model.GetSegment("*")
-    alt = seg.GetAlternative("ParkingZones")
-    alt.DestIdx = destType
-    
-    // Update walk time and parking cost coefficients
-    parkingCoeffs = Args.("Park" + mode + "Coeffs")
-    coeffNames = parkingCoeffs.[Coefficient Name]
-    coeffCol = destType + " " + tourType
-    coeffs = parkingCoeffs.(coeffCol)
-    for i = 1 to coeffNames.length do
-        coeffName = coeffNames[i]
-        term = seg.GetTerm(coeffName)
-        term.Coeff = coeffs[i]
-    end
-    model.Write(dcmFile)
-    model.Clear()
-    Return(dcmFile)
 endMacro
 
 
