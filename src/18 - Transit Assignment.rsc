@@ -3,7 +3,7 @@
 */
 
 Macro "Transit Assignment" (Args)
-
+    RunMacro("Peak Hour Assignment", Args)
     RunMacro("Create Transit Matrices", Args)
     RunMacro("Run Transit Assignment", Args)
     // TODO: update this macro
