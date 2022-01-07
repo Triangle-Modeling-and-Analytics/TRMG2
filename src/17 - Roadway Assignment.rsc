@@ -69,10 +69,12 @@ Inputs
     * OtherOpts
         * Optional named array
         * Can be used to override defaults
+        * `test`
+            * true/false
+            * If this is just a test assignment call used by "Check Highway Networks" macro 
         * `od_mtx`
             * String
             * File path of OD matrix to use
-            * used by "Check Highway Networks" macro
         * `assign_iters`
             * Integer
             * Number of max assignment iterations
@@ -83,8 +85,11 @@ Inputs
             * used by the TOD assignment macros
         * 'net_file'
             * String
-            * File path fo the .net file to use
+            * File path of the .net file to use
             * Used by the PM PK hour assignment macro
+        * 'flow_table'
+            * String
+            * File path of the output assignment bin file
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
@@ -146,10 +151,11 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             Iteration: feedback_iter
         })
         o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"
+        if OtherOpts.flow_table <> null then o.FlowTable = OtherOpts.flow_table
         // Add classes for each combination of vehicle type and VOT
         // If doing a test assignment, just create a single class from the
         // dummy matrix
-        if OtherOpts.od_mtx <> null then do
+        if OtherOpts.test <> null then do
             o.AddClass({
                 Demand: "TAZ",
                 PCE: 1,
@@ -160,9 +166,6 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             if period = "AM" or period = "PM"
                 then pkop = "pk"
                 else pkop = "op"
-
-            // // The 5 auto value of time bins are collapsed to 1->2<-3, 4, 5
-            // auto_vot_ints = {2, 4, 5}
 
             // Auto VOT 1 and 2 are collapsed into 2
             auto_vot_ints = {2, 3, 4, 5}
@@ -320,15 +323,16 @@ Macro "Peak Hour Assignment" (Args)
     pm_net_file = net_dir + "/net_PM_sov.net"
     pmpk_net_file = net_dir + "/net_PMPK_sov.net"
     CopyFile(pm_net_file, pmpk_net_file)
-    nh = ReadNetwork(string pmpk_net_file)
-    link_names = NetworkLinkVarNames(nh)
-    pos = link_names.position("Capacity")
-    UpdateNetworkCost(nh, "ABPMCapE", "BAPMCapE", pos)
+    o = CreateObject("Network.Update", {Network: pmpk_net_file})
+    o.LayerDB = links
+    o.Network = pmpk_net_file
+    o.UpdateLinkField({Name: "Capacity", Field: {"ABPMCapE_h", "BAPMCapE_h"}})
 
     // Run assignment
     RunMacro("Run Roadway Assignment", Args, {
         od_mtx: pm_pk_mtx_file,
         period: "PM",
-        net_file: pmpk_net_file
+        net_file: pmpk_net_file,
+        flow_table: assn_dir + "/pmpk_hr_assn.bin"
     })
 endmacro
