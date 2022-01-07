@@ -81,6 +81,10 @@ Inputs
             * String
             * Used to run a single period instead of all
             * used by the TOD assignment macros
+        * 'net_file'
+            * String
+            * File path fo the .net file to use
+            * Used by the PM PK hour assignment macro
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
@@ -120,6 +124,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         if OtherOpts.od_mtx <> null then od_mtx = OtherOpts.od_mtx
         net_file = net_dir + "net_" + period + "_hov.net"
+        if OtherOpts.net_file <> null then net_file = OtherOpts.net_file
 
         o = CreateObject("Network.Assignment")
         o.Network = net_file
@@ -285,4 +290,45 @@ Macro "Update Link Congested Times" (Args)
 
     CloseMap(map)
     return(1)
+endmacro
+
+/*
+This macro runs after feedback is complete. It assigns the peak hour
+of the PM period against one hour of capacity.
+*/
+
+Macro "Peak Hour Assignment" (Args)
+    pkhr_factor = .39
+    links = Args.Links
+    net_dir = Args.[Output Folder] + "/networks"
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    pm_mtx = assn_dir + "/od_veh_trips_PM.mtx"
+
+    // Create peak hour demand matrix
+    pm_pk_mtx_file = assn_dir + "/od_veh_trips_PM_PKHR.mtx"
+    CopyFile(pm_mtx, pm_pk_mtx_file)
+    mtx = CreateObject("Matrix", pm_pk_mtx_file)
+    core_names = mtx.GetCoreNames()
+    cores = mtx.GetCores()
+    for core_name in core_names do
+        cores.(core_name) := cores.(core_name) * pkhr_factor
+    end
+    cores = null
+    mtx = null
+
+    // Create peak hour network
+    pm_net_file = net_dir + "/net_PM_sov.net"
+    pmpk_net_file = net_dir + "/net_PMPK_sov.net"
+    CopyFile(pm_net_file, pmpk_net_file)
+    nh = ReadNetwork(string pmpk_net_file)
+    link_names = NetworkLinkVarNames(nh)
+    pos = link_names.position("Capacity")
+    UpdateNetworkCost(nh, "ABPMCapE", "BAPMCapE", pos)
+
+    // Run assignment
+    RunMacro("Run Roadway Assignment", Args, {
+        od_mtx: pm_pk_mtx_file,
+        period: "PM",
+        net_file: pmpk_net_file
+    })
 endmacro

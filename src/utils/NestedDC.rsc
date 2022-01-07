@@ -241,12 +241,14 @@ Class "NestedDC" (ClassOpts)
 
         // Collect vectors of cluster names, IDs, and theta values
         theta_vw = OpenTable("thetas", "CSV", {cluster_data})
+        vecOpts.[Sort Order] = {{"Cluster", "Ascending"}}
         {
             v_cluster_ids, v_cluster_names, v_cluster_theta, v_cluster_asc,
-            v_cluster_ic
+            v_cluster_ic, v_additional_asc
         } = GetDataVectors(
             theta_vw + "|",
-            {"Cluster", "ClusterName", "Theta", "ASC", "IC"},
+            {"Cluster", "ClusterName", "Theta", "ASC", "IC", "AdditionalASC"},
+            vecOpts
         )
         CloseView(theta_vw)
 
@@ -304,7 +306,7 @@ Class "NestedDC" (ClassOpts)
             cores.final := cores.LnSumExpScaledTotal * v_cluster_theta
             cores.ic := if nz(cores.[Sum of IntraCluster]) > 0 then 1 else 0
             cores.ic := cores.ic * v_cluster_ic
-            cores.asc := v_cluster_asc
+            cores.asc := v_cluster_asc + v_additional_asc
         end
 
         // Write the simple cluster_utils csv file needed to run cluster dc

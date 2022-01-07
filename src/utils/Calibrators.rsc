@@ -44,7 +44,6 @@ Macro "Calibrate NM" (Args)
             RunMacro("Append Line", {file: param_file, line: line})
 
             if gap <= gap_target then break
-            
             iter = iter + 1
         end
     end
@@ -76,6 +75,61 @@ Macro "Append Line" (MacroOpts)
     CloseFile(f)
 endmacro
 
+/*
+
+*/
+
+Macro "Calibrate AO" (Args)
+    
+    base_dir = Args.[Base Folder]
+    param_dir = Args.[Input Folder] + "/resident/auto_ownership"
+    param_file = param_dir + "/ao_coefficients.csv"
+    obs_share_file = base_dir + "/docs/data/output/auto_ownership/ao_calib_targets.csv"
+    hh_file = Args.Households
+
+    // Get observed percentages
+    obs_vw = OpenTable("obs", "CSV", {obs_share_file})
+    v_obs = GetDataVector(obs_vw + "|", "pct", )
+    CloseView(obs_vw)
+
+    max_iterations = 6
+    iter = 1
+    gap_target = .02
+
+    while iter <= max_iterations do
+        
+        // Run model
+        RunMacro("Auto Ownership", Args)
+
+        // Calculate deltas and gaps
+        hh_vw = OpenTable("hh", "FFB", {hh_file})
+        agg_vw = SelfAggregate(hh_vw, hh_vw + ".Autos", )
+        v_count = GetDataVector(agg_vw + "|", "Count(hh)", )
+        CloseView(agg_vw)
+        CloseView(hh_vw)
+        if v_count.length <> v_obs.length then Throw("Observed and model vector are different lenghts")
+        total = VectorStatistic(v_count, "Sum", )
+        v_est = v_count / total
+        v_delta = round(log(v_obs / v_est) * .9, 4)
+        v_gap = abs(v_obs - v_est)
+
+        // Write out calibration constants
+        for i = 2 to v_obs.length do
+            delta = v_delta[i]
+            gap = v_gap[i]
+            line = "v" + String(i - 1) + ",Constant,," + String(delta) + ",Added by calibrator routine. gap = " + String(gap)
+            RunMacro("Append Line", {file: param_file, line: line})
+        end
+        
+        // Check convergence
+        max_gap = VectorStatistic(v_gap, "Max", )
+        if max_gap <= gap_target then break
+        iter = iter + 1
+    end
+    
+
+    ShowMessage("Auto ownership calibration complete")
+endmacro
 
 /* 
     Generic MC Calibrator
