@@ -4,10 +4,10 @@
 
 Macro "Population Synthesis" (Args)
 
-    // RunMacro("DisaggregateSED", Args)
-    // RunMacro("Synthesize Population", Args)
-    // RunMacro("PopSynth Post Process", Args)
-    RunMacro("Auto Ownership2", Args)
+    RunMacro("DisaggregateSED", Args)
+    RunMacro("Synthesize Population", Args)
+    RunMacro("PopSynth Post Process", Args)
+    RunMacro("Auto Ownership", Args)
 
     return(1)
 endmacro
@@ -404,54 +404,19 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
     Return(aggflds)
 endMacro
 
-/*
-Determines how many autos each household owns
-*/
-
-Macro "Auto Ownership" (Args)
-
-    hh_file = Args.Households
-    se_file = Args.SE
-    model_file = Args.[Input Folder] + "/resident/auto_ownership/auto_ownership.mdl"
-
-    se_vw = OpenTable("scenario_se", "FFB", {se_file})
-    hh_vw = OpenTable("hh_processed", "FFB", {hh_file})
-    a_fields =  {
-        {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
-    }
-    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
-
-    o = CreateObject("Choice.Mode")
-    o.ModelFile = model_file
-    o.DropModeIfMissing = true
-    o.SkipValuesBelow = 0.001
-    o.OutputChoiceField = "Autos"
-    o.AggregateModel = false
-    ok = o.Run()
-
-    // Convert coded field/string pairs to simple integers
-    DetachTableTranslation(hh_vw)
-    v1 = GetDataVector(hh_vw + "|", "Autos", )
-    v2 = v1 - 1
-    SetDataVector(hh_vw + "|", "Autos", v2, )
-    
-    CloseView(hh_vw)
-    CloseView(se_vw)
-endmacro
-
-Macro "Auto Ownership2" (Args, trip_types)
+Macro "Auto Ownership" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
     input_dir = Args.[Input Folder] + "/resident/auto_ownership"
     output_dir = Args.[Output Folder] + "/resident/population_synthesis"
     hh_file = Args.Households
 
-    // hh_vw = OpenTable("hh", "FFB", {hh_file})
-    // a_fields =  {
-    //     {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
-    // }
-    // RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
-    // CloseView(hh_vw)
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    a_fields =  {
+        {"Autos", "Integer", 10, ,,,, "HH Autos. Result of AO model."}
+    }
+    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+    CloseView(hh_vw)
     
     primary_spec = {Name: "hh", OField: "ZoneID"}
     obj = CreateObject("PMEChoiceModel", {ModelName: "ao"})
@@ -459,7 +424,7 @@ Macro "Auto Ownership2" (Args, trip_types)
     obj.AddTableSource({
         SourceName: "hh",
         File: output_dir + "\\Synthesized_HHs.bin",
-        IDField: "ZoneID"
+        IDField: "HouseholdID"
     })
     obj.AddTableSource({
         SourceName: "se",
@@ -469,7 +434,14 @@ Macro "Auto Ownership2" (Args, trip_types)
     util = RunMacro("Import MC Spec", input_dir + "/ao_coefficients.csv")
     obj.AddUtility({UtilityFunction: util})
     obj.AddPrimarySpec(primary_spec)
-    // obj.AddOutputSpec({ChoicesField: "Autos"})
-    obj.AddOutputSpec({ProbabilityTable: output_dir + "\\probability_table.bin"})
+    obj.AddOutputSpec({ChoicesField: "Autos"})
     obj.Evaluate()
+
+    // Convert coded field/string pairs to simple integers
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    DetachTableTranslation(hh_vw)
+    v1 = GetDataVector(hh_vw + "|", "Autos", )
+    v2 = v1 - 1
+    SetDataVector(hh_vw + "|", "Autos", v2, )
+    CloseView(hh_vw)
 endmacro

@@ -4,11 +4,11 @@
 
 Macro "Destination Choice" (Args)
 
-    if Args.FeedbackIteration = 1 then do
-        RunMacro("Split Employment by Earnings", Args)
-        RunMacro("DC Attractions", Args)
-        RunMacro("DC Size Terms", Args)
-    end
+    // if Args.FeedbackIteration = 1 then do
+    //     RunMacro("Split Employment by Earnings", Args)
+    //     RunMacro("DC Attractions", Args)
+    //     RunMacro("DC Size Terms", Args)
+    // end
     RunMacro("HBW DC", Args)
     RunMacro("Other HB DC", Args)
     RunMacro("Apportion Resident HB Trips", Args)
@@ -159,9 +159,14 @@ Applies double constraint to work trips. Iterates 3 times.
 Macro "HBW DC" (Args)
 
     trip_types = {"W_HB_W_All"}
-    for i = 1 to 3 do
+    max_iters = 3
+    for i = 1 to max_iters do
         RunMacro("Calculate Destination Choice", Args, trip_types)
-        if i < 3 then RunMacro("Update Shadow Price", Args, trip_types)
+        if i < max_iters then prmse = RunMacro("Update Shadow Price", Args, trip_types)
+
+        // If the %RMSE is <2, then stop early. For the base year, the starting shadow
+        // prices will be close enough to not need repeated runs.
+        if abs(prmse) < 2 then break
     end
 endmacro
 
@@ -305,11 +310,17 @@ Macro "Update Shadow Price" (Args)
     delta = if v_attrs = 0 or v_total_trips = 0
         then 0
         else nz(Log(v_attrs/v_total_trips)) * .85
-    v_sp = v_sp + delta
-    SetDataVector(sp_vw + "|", "hbw", v_sp, )
+    v_sp_new = v_sp + delta
+    SetDataVector(sp_vw + "|", "hbw", v_sp_new, )
 
     CloseView(se_vw)
     CloseView(sp_vw)
+
+    // return the %RMSE
+    o = CreateObject("Model.Statistics")
+    stats = o.rmse({Method: "vectors", Predicted: v_sp_new, Observed: v_sp})
+    prmse = stats.RelRMSE
+    return(prmse)
 endmacro
 
 /*

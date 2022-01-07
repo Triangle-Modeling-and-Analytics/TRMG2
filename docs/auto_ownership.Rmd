@@ -108,6 +108,9 @@ shows strong predictive power.
 
 ## Calibration
 
+Even before calibration, the estimated coefficients produced results that
+closely  matched the survey as shown in the table below.
+
 ```{r, include=FALSE}
 # These should come from an application of the model before any calibration
 # has been done.
@@ -116,8 +119,43 @@ model <- read_csv("data/input/auto_ownership/uncalibrated_auto_results.csv")
 
 ```{r}
 survey <- est_tbl %>%
-  group_by(num_vehicles) %>%
+  group_by(autos = num_vehicles) %>%
   summarize(weight = sum(hh_weight_combined)) %>%
   mutate(pct = weight / sum(weight))
+
+survey %>%
+  select(autos, survey = pct) %>%
+  left_join(model, by = "autos") %>%
+  select(-hh) %>%
+  rename(model = pct) %>%
+  mutate(
+    survey = round(survey * 100, 1),
+    model = round(model * 100, 1)
+  ) %>%
+  rename(Autos = autos, `Survey %` = survey, `Model %` = model) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+Caliper created an auto-calibration tool for the auto ownership model and used
+it to ensure the model matched the observed shares more closely. Importantly,
+the calibration constants required to do this were small as shown below.
+
+```{r, include=FALSE}
+calib_coeffs_df <- read_csv("../master/resident/auto_ownership/ao_coefficients.csv")
+```
+
+```{r}
+calib_coeffs_df %>%
+  filter(grepl("Added by", Description)) %>%
+  select(Alternative, `Calibration Constant` = Coefficient) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+
+```{r, eval=FALSE}
+write_csv(survey, "data/output/auto_ownership/ao_calib_targets.csv")
 ```
 

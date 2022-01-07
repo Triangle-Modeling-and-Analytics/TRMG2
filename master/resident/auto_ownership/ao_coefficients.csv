@@ -26,3 +26,7 @@ v4,"min(hh.HHNWAdults,4)",,3.59778,Non-working adults
 v4,se.access_walk.O,,-1.0608,Walk access
 v4,"min(hh.HHWorkers,4)",,5.21541,Workers
 v4,Constant,,-12.6101,Constant
+v1,Constant,,-0.0706,Calibration constant
+v2,Constant,,0.1128,Calibration constant
+v3,Constant,,0.1454,Calibration constant
+v4,Constant,,-0.4734,Calibration constant
