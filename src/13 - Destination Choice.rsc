@@ -159,10 +159,14 @@ Applies double constraint to work trips. Iterates 3 times.
 Macro "HBW DC" (Args)
 
     trip_types = {"W_HB_W_All"}
-    for i = 1 to 3 do
+    max_iters = 3
+    for i = 1 to max_iters do
         RunMacro("Calculate Destination Choice", Args, trip_types)
-        if i < 3 then prmse = RunMacro("Update Shadow Price", Args, trip_types)
-        Throw()
+        if i < max_iters then prmse = RunMacro("Update Shadow Price", Args, trip_types)
+
+        // If the %RMSE is <2, then stop early. For the base year, the starting shadow
+        // prices will be close enough to not need repeated runs.
+        if abs(prmse) < 2 then break
     end
 endmacro
 
@@ -313,7 +317,9 @@ Macro "Update Shadow Price" (Args)
     CloseView(sp_vw)
 
     // return the %RMSE
-    {, prmse} = RunMacro("Calculate Vector RMSE", v_sp_new, v_sp)
+    o = CreateObject("Model.Statistics")
+    stats = o.rmse({Method: "vectors", Predicted: v_sp_new, Observed: v_sp})
+    prmse = stats.RelRMSE
     return(prmse)
 endmacro
 
