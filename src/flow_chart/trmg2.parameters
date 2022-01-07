@@ -135,11 +135,6 @@
 
     Section = "Parking Model|Coefficients"
     
-        Args.ParkWalkCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.03,-0.03,-0.0367,-0.0367},
-                                                          {"BetaCost",-0.21,-0.21,-0.1833,-0.1833}}, "Caption":"Destination Choice coefficients for 'Park and Walk' mode", "Style":"ParkingCoeffs" }
-        Args.ParkShuttleCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.02635,-0.02635,-0.0275,-0.0275},
-                                                             {"BetaCost",-0.125,-0.125,-0.11,-0.11},
-                                                             {"BetaHeadway",-0.0075,-0.0075,-0.009167,-0.009167}}, "Caption":"Destination Choice coefficients for 'Park and Shuttle' mode", "Style":"ParkingCoeffs" }
         Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-0.4050,-0.4050,-0.2200,-0.2200}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
 
     Section = "Parking Model|Output"
