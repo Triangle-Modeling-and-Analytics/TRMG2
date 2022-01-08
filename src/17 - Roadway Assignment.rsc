@@ -69,10 +69,12 @@ Inputs
     * OtherOpts
         * Optional named array
         * Can be used to override defaults
+        * `test`
+            * true/false
+            * If this is just a test assignment call used by "Check Highway Networks" macro 
         * `od_mtx`
             * String
             * File path of OD matrix to use
-            * used by "Check Highway Networks" macro
         * `assign_iters`
             * Integer
             * Number of max assignment iterations
@@ -81,6 +83,13 @@ Inputs
             * String
             * Used to run a single period instead of all
             * used by the TOD assignment macros
+        * 'net_file'
+            * String
+            * File path of the .net file to use
+            * Used by the PM PK hour assignment macro
+        * 'flow_table'
+            * String
+            * File path of the output assignment bin file
 */
 
 Macro "Run Roadway Assignment" (Args, OtherOpts)
@@ -120,11 +129,12 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         od_mtx = assn_dir + "/od_veh_trips_" + period + ".mtx"
         if OtherOpts.od_mtx <> null then od_mtx = OtherOpts.od_mtx
         net_file = net_dir + "net_" + period + "_hov.net"
+        if OtherOpts.net_file <> null then net_file = OtherOpts.net_file
 
         o = CreateObject("Network.Assignment")
         o.Network = net_file
         o.LayerDB = hwy_dbd
-        o.CriticalQueryFile = sl_query
+        if sl_query <> null then o.CriticalQueryFile = sl_query
         o.ResetClasses()
         o.Iterations = assign_iters
         o.Convergence = Args.AssignConvergence
@@ -141,10 +151,11 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             Iteration: feedback_iter
         })
         o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"
+        if OtherOpts.flow_table <> null then o.FlowTable = OtherOpts.flow_table
         // Add classes for each combination of vehicle type and VOT
         // If doing a test assignment, just create a single class from the
         // dummy matrix
-        if OtherOpts.od_mtx <> null then do
+        if OtherOpts.test <> null then do
             o.AddClass({
                 Demand: "TAZ",
                 PCE: 1,
@@ -155,9 +166,6 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             if period = "AM" or period = "PM"
                 then pkop = "pk"
                 else pkop = "op"
-
-            // // The 5 auto value of time bins are collapsed to 1->2<-3, 4, 5
-            // auto_vot_ints = {2, 4, 5}
 
             // Auto VOT 1 and 2 are collapsed into 2
             auto_vot_ints = {2, 3, 4, 5}
@@ -285,4 +293,46 @@ Macro "Update Link Congested Times" (Args)
 
     CloseMap(map)
     return(1)
+endmacro
+
+/*
+This macro runs after feedback is complete. It assigns the peak hour
+of the PM period against one hour of capacity.
+*/
+
+Macro "Peak Hour Assignment" (Args)
+    pkhr_factor = .39
+    links = Args.Links
+    net_dir = Args.[Output Folder] + "/networks"
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    pm_mtx = assn_dir + "/od_veh_trips_PM.mtx"
+
+    // Create peak hour demand matrix
+    pm_pk_mtx_file = assn_dir + "/od_veh_trips_PM_PKHR.mtx"
+    CopyFile(pm_mtx, pm_pk_mtx_file)
+    mtx = CreateObject("Matrix", pm_pk_mtx_file)
+    core_names = mtx.GetCoreNames()
+    cores = mtx.GetCores()
+    for core_name in core_names do
+        cores.(core_name) := cores.(core_name) * pkhr_factor
+    end
+    cores = null
+    mtx = null
+
+    // Create peak hour network
+    pm_net_file = net_dir + "/net_PM_sov.net"
+    pmpk_net_file = net_dir + "/net_PMPK_sov.net"
+    CopyFile(pm_net_file, pmpk_net_file)
+    o = CreateObject("Network.Update", {Network: pmpk_net_file})
+    o.LayerDB = links
+    o.Network = pmpk_net_file
+    o.UpdateLinkField({Name: "Capacity", Field: {"ABPMCapE_h", "BAPMCapE_h"}})
+
+    // Run assignment
+    RunMacro("Run Roadway Assignment", Args, {
+        od_mtx: pm_pk_mtx_file,
+        period: "PM",
+        net_file: pmpk_net_file,
+        flow_table: assn_dir + "/pmpk_hr_assn.bin"
+    })
 endmacro

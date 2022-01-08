@@ -424,6 +424,35 @@ avg_tim %>%
   kable_styling(full_width = FALSE)
 ```
 
+```{r}
+# Extra calculations to support peak period assignment.
+# Calculate the percentage of T.I.M. in the PM peak hour
+# as a percentage of the total peak period.
+pm_peakhr_from <- chron(times. = c("16:45:00"))
+pm_peakhr_to <- chron(times. = c("17:45:00"))
+pmpkhr_from_min <- as.numeric(pm_peakhr_from) * 1440
+pmpkhr_to_min <- as.numeric(pm_peakhr_to) * 1440
+
+pkhr_df <- timTbl %>%
+  mutate(
+    tod = case_when(
+      time <= am_from_min ~ "NT",
+      time <= am_to_min ~ "AM",
+      time <= pm_from_min ~ "MD",
+      time <= pm_to_min ~ "PM",
+      TRUE ~ "NT"
+    ),
+    pmpkhr = ifelse(time > pmpkhr_from_min & time <= pmpkhr_to_min, 1, 0)
+  ) %>%
+  group_by(tod, pmpkhr) %>%
+  summarize(total = sum(AllTrips)) %>%
+  filter(tod == "PM") %>%
+  mutate(pct = total / sum(total))
+
+# This tells us 39% of trips in the PM peak period are in the peak hour
+```
+
+
 # Time of day factors
 With the periods defined, the percent of trips produced by purpose and time of
 day must be determined. These factors are calculated based on the departure

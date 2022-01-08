@@ -95,3 +95,40 @@ pnr_eb,pnr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_eb,pnr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_eb,pnr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 pnr_eb,pnr_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+walk,Constant,v0,1.137735,Additional Calibration Constant
+pnr,Constant,v0,1.137735,Additional Calibration Constant
+knr,Constant,v0,1.137735,Additional Calibration Constant
+auto_pay,Constant,v0,0.818448,Additional Calibration Constant
+other_auto,Constant,v0,-2.099503,Additional Calibration Constant
+sov,Constant,ilvi,0.037353,Additional Calibration Constant
+hov2,Constant,ilvi,-0.157499,Additional Calibration Constant
+hov3,Constant,ilvi,0.232993,Additional Calibration Constant
+walk,Constant,ilvi,-0.719989,Additional Calibration Constant
+pnr,Constant,ilvi,-0.719989,Additional Calibration Constant
+knr,Constant,ilvi,-0.719989,Additional Calibration Constant
+auto_pay,Constant,ilvi,1.21766,Additional Calibration Constant
+other_auto,Constant,ilvi,-0.14968,Additional Calibration Constant
+sov,Constant,ilvs,-0.008664,Additional Calibration Constant
+hov2,Constant,ilvs,0.16546,Additional Calibration Constant
+hov3,Constant,ilvs,-0.101166,Additional Calibration Constant
+walk,Constant,ilvs,0.559236,Additional Calibration Constant
+pnr,Constant,ilvs,0.559236,Additional Calibration Constant
+knr,Constant,ilvs,0.559236,Additional Calibration Constant
+auto_pay,Constant,ilvs,0.408055,Additional Calibration Constant
+other_auto,Constant,ilvs,-0.576365,Additional Calibration Constant
+sov,Constant,ihvi,0.053711,Additional Calibration Constant
+hov2,Constant,ihvi,-0.455113,Additional Calibration Constant
+hov3,Constant,ihvi,0.063327,Additional Calibration Constant
+walk,Constant,ihvi,0.272934,Additional Calibration Constant
+pnr,Constant,ihvi,0.272934,Additional Calibration Constant
+knr,Constant,ihvi,0.272934,Additional Calibration Constant
+auto_pay,Constant,ihvi,1.196862,Additional Calibration Constant
+other_auto,Constant,ihvi,-0.234385,Additional Calibration Constant
+sov,Constant,ihvs,0.007722,Additional Calibration Constant
+hov2,Constant,ihvs,-0.15406,Additional Calibration Constant
+hov3,Constant,ihvs,-0.313817,Additional Calibration Constant
+walk,Constant,ihvs,-0.213206,Additional Calibration Constant
+pnr,Constant,ihvs,-0.213206,Additional Calibration Constant
+knr,Constant,ihvs,-0.213206,Additional Calibration Constant
+auto_pay,Constant,ihvs,1.735815,Additional Calibration Constant
+other_auto,Constant,ihvs,0.249609,Additional Calibration Constant

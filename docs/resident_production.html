@@ -403,6 +403,9 @@ div.tocify {
       <a href="parking.html">Parking</a>
     </li>
     <li>
+      <a href="resident_dest_choice.html">Destination Choice</a>
+    </li>
+    <li>
       <a href="nhb.html">Non-homebased</a>
     </li>
   </ul>
@@ -425,6 +428,9 @@ div.tocify {
     </li>
     <li>
       <a href="commercial_vehicles.html">Commercial Vehicles</a>
+    </li>
+    <li>
+      <a href="assignment_roadway.html">Roadway Assignment</a>
     </li>
   </ul>
 </li>
@@ -490,19 +496,19 @@ div.tocify {
 <h3>W_HB_W_All</h3>
 <p>These are the traditional home-based work (HBW) trips. Unsurprisingly, the most important factor is whether or not the individual is a worker. After that, the person’s age and living arrangements (e.g. other workers) best predict the trip rate.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>R-squared: 0.364</p>
+<p>R-squared: 0.366</p>
 </div>
 <div id="w_hb_o_all" class="section level3">
 <h3>W_HB_O_All</h3>
 <p>When someone makes a stop on their way to or from work, they are making a home-based other trip on a work tour. Work status is the most important predictor followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays a role in determining the frequency of these extra stops. In the bottom right of the tree, workers that live in areas with lower accessibility make more of these intermediate stops on work tours. This is the expected behavior. People living in rural areas are more likely to make these extra stops while out on work tours.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
-<p>R-squared: 0.156</p>
+<p>R-squared: 0.157</p>
 </div>
 <div id="w_hb_ek12_all" class="section level3">
 <h3>W_HB_EK12_All</h3>
 <p>This trip type describes adults who drop off children on the way to work or pick them up on the way home (school escort trips). Having children and being a worker are both required to qualify to make this trip, and they show up as the most important questions in the decision tree. Finally, the age of the adult plays a small role in determining final trip rates.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<p>R-squared: 0.183</p>
+<p>R-squared: 0.184</p>
 </div>
 </div>
 <div id="non-work-tours" class="section level2">
@@ -516,25 +522,25 @@ div.tocify {
 </ul>
 <p>The decision tree model recognizes this basic structure in the data and uses age to split people into these two groups. For adults (left side of the tree), having kids is required to make this trip. Their work status and age further refine their trip rate. For children (right side of the tree), age is the primary factor. Children under 5 do not attend K12, but they do make these trips if they have older siblings.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
-<p>R-squared: 0.534</p>
+<p>R-squared: 0.536</p>
 </div>
 <div id="n_hb_ome_all" class="section level3">
 <h3>N_HB_OME_All</h3>
 <p>This trip type (“Other - Maintenance/Eat” or “OME”) captures shopping, dining, and maintenance activities. These are trips where the primary purpose includes spending money. These trips are harder to predict based on the data collected in the survey, and this results in lower r-squared values. Nonetheless, factors like age, accessibility, work status, and income do help to differentiate trip rates.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<p>R-squared: 0.102</p>
+<p>R-squared: 0.114</p>
 </div>
 <div id="n_hb_od_long" class="section level3">
 <h3>N_HB_OD_Long</h3>
 <p>These are other, discretionary trips with a long duration time (over 30 minutes). A common example is visiting the home of friends or family. Work status, age, and accessibility are the primary factors used to differentiate trip rates.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<p>R-squared: 0.145</p>
+<p>R-squared: 0.143</p>
 </div>
 <div id="n_hb_od_short" class="section level3">
 <h3>N_HB_OD_Short</h3>
 <p>These are other, discretionary trips with a short activity duration. These are similar to N_HB_OD_Long, and include things like trips to a friend’s house, church, or other locations. Like other discretionary tours, the low r-squared indicates some difficulty in making predictions. However, of the variables available, accessibility, age, income, and children in the household contribute the most to differences in trip making.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
-<p>R-squared: 0.101</p>
+<p>R-squared: 0.121</p>
 </div>
 <div id="n_hb_omed_all" class="section level3">
 <h3>N_HB_OMED_All</h3>
@@ -545,7 +551,7 @@ div.tocify {
 </div>
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
-<p>Calibrating the production rates is done to ensure that the final model is producing the same number of trips per person on average as the survey. One compicating factor in this comparison is that the survey and model socio-economic data have different total populations.</p>
+<p>Calibrating the production rates is done to ensure that the final model is producing the same number of trips per person on average as the survey. One complicating factor in this comparison is that the survey and model socio-economic data have different total populations.</p>
 <ul>
 <li>Survey: 1.71 million</li>
 <li>Model: 1.83 million</li>
@@ -577,16 +583,16 @@ Difference
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-615,997
+664,033
 </td>
 <td style="text-align:right;">
 568,913
 </td>
 <td style="text-align:right;">
--47,084
+-95,120
 </td>
 <td style="text-align:right;">
--8
+-14
 </td>
 </tr>
 <tr>
@@ -594,16 +600,16 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-954,533
+1,031,920
 </td>
 <td style="text-align:right;">
 921,201
 </td>
 <td style="text-align:right;">
--33,332
+-110,720
 </td>
 <td style="text-align:right;">
--4
+-11
 </td>
 </tr>
 <tr>
@@ -611,16 +617,16 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-775,841
+652,070
 </td>
 <td style="text-align:right;">
 717,464
 </td>
 <td style="text-align:right;">
--58,378
+65,394
 </td>
 <td style="text-align:right;">
--8
+10
 </td>
 </tr>
 <tr>
@@ -628,16 +634,16 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-1,091,994
+1,203,499
 </td>
 <td style="text-align:right;">
 999,919
 </td>
 <td style="text-align:right;">
--92,076
+-203,580
 </td>
 <td style="text-align:right;">
--8
+-17
 </td>
 </tr>
 <tr>
@@ -645,16 +651,16 @@ N_HB_OME_All
 N_HB_OMED_All
 </td>
 <td style="text-align:right;">
-121,173
+128,837
 </td>
 <td style="text-align:right;">
 99,865
 </td>
 <td style="text-align:right;">
--21,307
+-28,972
 </td>
 <td style="text-align:right;">
--18
+-22
 </td>
 </tr>
 <tr>
@@ -662,16 +668,16 @@ N_HB_OMED_All
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
-61,169
+76,950
 </td>
 <td style="text-align:right;">
 58,643
 </td>
 <td style="text-align:right;">
--2,526
+-18,307
 </td>
 <td style="text-align:right;">
--4
+-24
 </td>
 </tr>
 <tr>
@@ -679,16 +685,16 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-306,656
+354,862
 </td>
 <td style="text-align:right;">
 292,151
 </td>
 <td style="text-align:right;">
--14,505
+-62,711
 </td>
 <td style="text-align:right;">
--5
+-18
 </td>
 </tr>
 <tr>
@@ -696,16 +702,16 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-818,332
+680,991
 </td>
 <td style="text-align:right;">
 789,298
 </td>
 <td style="text-align:right;">
--29,034
+108,307
 </td>
 <td style="text-align:right;">
--4
+16
 </td>
 </tr>
 <tr>
@@ -713,16 +719,16 @@ W_HB_W_All
 Total
 </td>
 <td style="text-align:right;">
-4,745,696
+4,793,162
 </td>
 <td style="text-align:right;">
 4,447,454
 </td>
 <td style="text-align:right;">
--298,243
+-345,709
 </td>
 <td style="text-align:right;">
--6
+-7
 </td>
 </tr>
 </tbody>
@@ -745,7 +751,7 @@ Factor
 N_HB_K12_All
 </td>
 <td style="text-align:right;">
-1.08
+1.17
 </td>
 </tr>
 <tr>
@@ -753,7 +759,7 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-1.04
+1.12
 </td>
 </tr>
 <tr>
@@ -761,7 +767,7 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-1.08
+0.91
 </td>
 </tr>
 <tr>
@@ -769,7 +775,7 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-1.09
+1.20
 </td>
 </tr>
 <tr>
@@ -777,7 +783,7 @@ N_HB_OME_All
 N_HB_OMED_All
 </td>
 <td style="text-align:right;">
-1.21
+1.29
 </td>
 </tr>
 <tr>
@@ -785,7 +791,7 @@ N_HB_OMED_All
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
-1.04
+1.31
 </td>
 </tr>
 <tr>
@@ -793,7 +799,7 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:right;">
-1.05
+1.21
 </td>
 </tr>
 <tr>
@@ -801,7 +807,7 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-1.04
+0.86
 </td>
 </tr>
 </tbody>

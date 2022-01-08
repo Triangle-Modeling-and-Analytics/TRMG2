@@ -63,12 +63,20 @@ trips_2018_raw <- read_excel("data/input/_PRIVATE/survey_data/SurveyData_Caliper
 
 The Institute for Transportation Research and Education (ITRE) on behalf of the
 Triangle Region stakeholders, began conducting rolling household travel surveys
-in 2016. For the TRMG2 estimation, both the 2016 and 2018 surveys are available.
-This page documents the combination of those surveys along with any general
-processing steps not specific to a particular model.
+in 2016. For the TRMG2 estimation, both the 2016 and 2018 surveys were
+available. This page documents the combination of those surveys along with any
+general processing steps not specific to a particular model.
 
-*TODO: Add more about why we process surveys. Also cover basics of the survey
-and the tables it contains.*
+This survey includes tables describing households, persons, trips, and vehicles.
+They are linked together with IDs so that the entire travel diary for each
+person can be created. Survey processing checks for potential problems in the
+survey and corrects those it finds. It also creates numerous calculated fields
+that are specific to travel demand modeling. For example, we flip origins and
+destinations into productions and attractions. This is not something we want
+to ask each person in the survey, but is needed to properly estimate resident
+trip production models. Additionally, trips are organized into tours, activity
+types are condensed, and other steps are taken to support subsequent model
+estimation.
 
 ## Survey combination
 
@@ -797,7 +805,37 @@ convert_purpose <- trip_combined %>%
   mutate(
     o_activity = ifelse(is.na(o_activity1), o_activity2, o_activity1),
     d_activity = ifelse(is.na(d_activity1), d_activity2, d_activity1),
+  )
+
+# Recreation/exercise trips have a lot of trips we don't model e.g. walking
+# the dog around the neighborhood. Remove them.
+recreation_words <- paste(
+  "walk",
+  "dog",
+  "run",
+  "bike",
+  "bicycle",
+  "greenway",
+  "neighborhood",
+  "exercise",
+  sep = "|"
+)
+remove_dog_walking <- convert_purpose %>%
+  mutate(
+    o_activity = ifelse(
+      (o_activity_2016 == 16 | o_activity_2018 == 16) & grepl(
+        recreation_words, origin_name, ignore.case = TRUE) &
+        mode %in% c("walk", "bike"),
+      "Rec", o_activity
+    ),
+    d_activity = ifelse(
+      (d_activity_2016 == 16 | d_activity_2018 == 16) & grepl(
+        recreation_words, destination_name, ignore.case = TRUE) &
+        mode %in% c("walk", "bike"),
+      "Rec", d_activity
+    )
   ) %>%
+  filter(o_activity != "Rec", d_activity != "Rec") %>%
   select(
     -c(o_activity1:d_activity2), -o_activity_2016, -o_activity_other,
     -d_activity_2016, -d_activity_other, -o_activity_2018, -d_activity_2018
@@ -827,7 +865,7 @@ convert_purpose <- trip_combined %>%
 
 # A departure time of 0 is 3:00 am. Anything before that is -60.
 # Change it to be minutes from midnight.
-change_time <- convert_purpose %>%
+change_time <- remove_dog_walking %>%
   mutate(across(
     c(departure_time, arrival_time),
     ~ifelse(.x == -60, 0, .x + 180)
@@ -904,14 +942,16 @@ det_home_place <- change_time %>%
     # o_place = ifelse(o_home_dist < 100, "H", "O"),
     o_place = case_when(
       o_home_dist == 0 ~ "H",
-      o_home_dist <= 10 & grepl(home_words, origin_name) ~ "H",
+      o_home_dist <= 10 & grepl(
+        home_words, origin_name, ignore.case = TRUE) ~ "H",
       TRUE ~ "O"
     ),
     o_place = ifelse(is.na(o_place), "O", o_place),
     o_place = ifelse(origin_name == "HOME", "H", o_place),
     d_place = case_when(
       d_home_dist == 0 ~ "H",
-      d_home_dist <= 10 & grepl(home_words, destination_name) ~ "H",
+      d_home_dist <= 10 & grepl(
+        home_words, destination_name, ignore.case = TRUE) ~ "H",
       TRUE ~ "O"
     ),
     d_place = ifelse(is.na(d_place), "O", d_place),
@@ -926,7 +966,7 @@ non_home_problems <- det_home_place %>%
   ) %>%
   nrow()  
   
-    # correct home activities that don't happen at home
+# correct home activities that don't happen at home
 fix_home_activities <- det_home_place %>%
   mutate(
     o_activity = ifelse(o_activity == "H" & o_place != "H", "OD", o_activity),
@@ -2260,7 +2300,11 @@ eda_scheme7 <- person_eda(scheme7)
 
 ## Summary
 
-*TODO: add summary*
+The 2016 and 2018 household surveys in the Triangle are strong surveys with a
+lot of valuable information. While no survey is perfect, and all need some
+cleaning, these surveys were some of the most robust in our experience. The
+high-quality of these surveys made it possible for us to reliably estimate more
+advanced models than a traditional travel demand model would contain.
 
 ```{r write tables, eval=FALSE}
 # These files will not be written during knitting, but must be done
@@ -2283,40 +2327,40 @@ write_csv(
 )
 
 # EDA tables
-write_csv(
-  eda_scheme1,
-  "data/output/survey_processing/eda_scheme1.csv",
-  na = ""
-)
-write_csv(
-  eda_scheme2,
-  "data/output/survey_processing/eda_scheme2.csv",
-  na = ""
-)
-write_csv(
-  eda_scheme3,
-  "data/output/survey_processing/eda_scheme3.csv",
-  na = ""
-)
-write_csv(
-  eda_scheme4,
-  "data/output/survey_processing/eda_scheme4.csv",
-  na = ""
-)
-write_csv(
-  eda_scheme5,
-  "data/output/survey_processing/eda_scheme5.csv",
-  na = ""
-)
+# write_csv(
+#   eda_scheme1,
+#   "data/output/survey_processing/eda_scheme1.csv",
+#   na = ""
+# )
+# write_csv(
+#   eda_scheme2,
+#   "data/output/survey_processing/eda_scheme2.csv",
+#   na = ""
+# )
+# write_csv(
+#   eda_scheme3,
+#   "data/output/survey_processing/eda_scheme3.csv",
+#   na = ""
+# )
+# write_csv(
+#   eda_scheme4,
+#   "data/output/survey_processing/eda_scheme4.csv",
+#   na = ""
+# )
+# write_csv(
+#   eda_scheme5,
+#   "data/output/survey_processing/eda_scheme5.csv",
+#   na = ""
+# )
 write_csv(
   eda_scheme6,
   "data/output/survey_processing/eda_scheme6.csv",
   na = ""
 )
-write_csv(
-  eda_scheme7,
-  "data/output/survey_processing/eda_scheme7.csv",
-  na = ""
-)
+# write_csv(
+#   eda_scheme7,
+#   "data/output/survey_processing/eda_scheme7.csv",
+#   na = ""
+# )
 ```
 

@@ -4,11 +4,11 @@
 
 Macro "Destination Choice" (Args)
 
-    if Args.FeedbackIteration = 1 then do
-        RunMacro("Split Employment by Earnings", Args)
-        RunMacro("DC Attractions", Args)
-        RunMacro("DC Size Terms", Args)
-    end
+    // if Args.FeedbackIteration = 1 then do
+    //     RunMacro("Split Employment by Earnings", Args)
+    //     RunMacro("DC Attractions", Args)
+    //     RunMacro("DC Size Terms", Args)
+    // end
     RunMacro("HBW DC", Args)
     RunMacro("Other HB DC", Args)
     RunMacro("Apportion Resident HB Trips", Args)
@@ -159,9 +159,14 @@ Applies double constraint to work trips. Iterates 3 times.
 Macro "HBW DC" (Args)
 
     trip_types = {"W_HB_W_All"}
-    for i = 1 to 3 do
+    max_iters = 3
+    for i = 1 to max_iters do
         RunMacro("Calculate Destination Choice", Args, trip_types)
-        if i < 3 then RunMacro("Update Shadow Price", Args, trip_types)
+        if i < max_iters then prmse = RunMacro("Update Shadow Price", Args, trip_types)
+
+        // If the %RMSE is <2, then stop early. For the base year, the starting shadow
+        // prices will be close enough to not need repeated runs.
+        if abs(prmse) < 2 then break
     end
 endmacro
 
@@ -201,8 +206,6 @@ Macro "Calculate Destination Choice" (Args, trip_types)
         opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone.csv"
         opts.cluster_data = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
         
-        if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
-
         for period in periods do
             opts.period = period
             
@@ -269,7 +272,7 @@ Macro "Update Shadow Price" (Args)
     out_dir = Args.[Output Folder]
     dc_dir = out_dir + "/resident/dc"
     sp_file = Args.ShadowPrices
-    periods = RunMacro("Get Unconverged Periods", Args)
+    periods = Args.periods
 
     se_vw = OpenTable("se", "FFB", {se_file})
     sp_vw = OpenTable("sp", "FFB", {sp_file})
@@ -293,8 +296,8 @@ Macro "Update Shadow Price" (Args)
             
             v_prods = nz(GetDataVector(se_vw + "|", name, ))
             v_prods.rowbased = "false"
-            cores.Total := cores.Total * v_prods
-            v_trips = out_mtx.GetVector({"Core": "Total", Marginal: "Column Sum"})
+            cores.final_prob := cores.final_prob * v_prods
+            v_trips = out_mtx.GetVector({"Core": "final_prob", Marginal: "Column Sum"})
             v_total_trips = nz(v_total_trips) + v_trips
 
             out_mtx = null
@@ -306,12 +309,18 @@ Macro "Update Shadow Price" (Args)
     // Calculate constant adjustmente. avoid Log(0) = -inf
     delta = if v_attrs = 0 or v_total_trips = 0
         then 0
-        else nz(Log(v_attrs/v_total_trips)) * .75
-    v_sp = v_sp + delta
-    SetDataVector(sp_vw + "|", "hbw", v_sp, )
+        else nz(Log(v_attrs/v_total_trips)) * .85
+    v_sp_new = v_sp + delta
+    SetDataVector(sp_vw + "|", "hbw", v_sp_new, )
 
     CloseView(se_vw)
     CloseView(sp_vw)
+
+    // return the %RMSE
+    o = CreateObject("Model.Statistics")
+    stats = o.rmse({Method: "vectors", Predicted: v_sp_new, Observed: v_sp})
+    prmse = stats.RelRMSE
+    return(prmse)
 endmacro
 
 /*

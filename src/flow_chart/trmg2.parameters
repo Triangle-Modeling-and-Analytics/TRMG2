@@ -37,7 +37,8 @@
                                                     {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
         Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
-        Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }        
+        Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }    
+        Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time.bin", "Description":"Initial travel time estimates" }    
         Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
@@ -134,11 +135,6 @@
 
     Section = "Parking Model|Coefficients"
     
-        Args.ParkWalkCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.03,-0.03,-0.0367,-0.0367},
-                                                          {"BetaCost",-0.21,-0.21,-0.1833,-0.1833}}, "Caption":"Destination Choice coefficients for 'Park and Walk' mode", "Style":"ParkingCoeffs" }
-        Args.ParkShuttleCoeffs = { "Type":"array" , "Value":{{"BetaTime",-0.02635,-0.02635,-0.0275,-0.0275},
-                                                             {"BetaCost",-0.125,-0.125,-0.11,-0.11},
-                                                             {"BetaHeadway",-0.0075,-0.0075,-0.009167,-0.009167}}, "Caption":"Destination Choice coefficients for 'Park and Shuttle' mode", "Style":"ParkingCoeffs" }
         Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-0.4050,-0.4050,-0.2200,-0.2200}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
 
     Section = "Parking Model|Output"
@@ -159,3 +155,4 @@
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
+        Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }

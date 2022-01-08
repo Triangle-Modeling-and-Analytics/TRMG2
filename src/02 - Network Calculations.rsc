@@ -423,19 +423,24 @@ Macro "Capacity" (Args)
             factor = v_factors[i]
         
             for dir in a_dir do
-                field_name = dir + period + "Cap" + los
+                hourly_field_name = dir + period + "Cap" + los + "_h"
+                period_field_name = dir + period + "Cap" + los
                 a_fields = {
-                    {field_name, "Integer", 10,,,,, "hourly los " + los + " capacity per lane"}
+                    {hourly_field_name , "Integer", 10,,,,, "Hourly LOS " + los + " Capacity"},
+                    {period_field_name, "Integer", 10,,,,, "Period LOS " + los + " Capacity"}
                 }
                 RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
 
-                v_hourly = GetDataVector(link_lyr + "|", "cap" + Lower(los) + "_phpl", )
+                v_phpl = GetDataVector(link_lyr + "|", "cap" + Lower(los) + "_phpl", )
                 v_lanes = GetDataVector(link_lyr + "|", dir + "Lanes", )
-                v_period = v_hourly * factor * v_lanes
-                SetDataVector(link_lyr + "|", field_name, v_period, )
+                v_hourly = v_phpl * v_lanes
+                v_period = v_hourly * factor
+                data.(hourly_field_name) = v_hourly
+                data.(period_field_name) = v_period
             end
         end
     end
+    SetDataVectors(link_lyr + "|", data, )
 
     CloseMap(map)
 endmacro
@@ -554,6 +559,7 @@ Macro "Other Attributes" (Args)
     rts_file = Args.Routes
     scen_dir = Args.[Scenario Folder]
     spd_file = Args.SpeedFactors
+    congtime_file = Args.InitCongTimes
     periods = RunMacro("Get Unconverged Periods", Args)
     trans_ratio_auto = Args.TransponderRatioAuto
     trans_ratio_sut = Args.TransponderRatioSUT
@@ -638,6 +644,12 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hov, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
+    
+    // Initial congested time
+    // The initial congested time table contains a field which holds converged congested times
+    // from a run done during model development. This helps to speed up the model run
+    // by reducing the number of large feedback loops required. If a link does not have
+    // a value stored in this field, the FFT is used.
     v_ab_time = if v_dir = 1 or v_dir = 0 then v_fft
     v_ba_time = if v_dir = -1 or v_dir = 0 then v_fft
     for period in periods do
@@ -645,6 +657,19 @@ Macro "Other Attributes" (Args)
         SetDataVector(jv + "|", llyr + ".BA" + period + "Time", v_ba_time, )
     end
     CloseView(jv)
+    time_vw = OpenTable("times", "FFB", {congtime_file})
+    jv = JoinViews("jv", llyr + ".ID", time_vw + ".ID", )
+    dirs = {"AB", "BA"}
+    for period in periods do
+        for dir in dirs do
+            v_time = GetDataVector(jv + "|", llyr + "." + dir + period + "Time", )
+            v_conv_time = GetDataVector(jv + "|", time_vw + "." + dir + "InitCongTime" + period, )
+            v_time = if v_conv_time <> null then v_conv_time else v_time
+            SetDataVector(jv + "|", llyr + "." + dir + period + "Time", v_time, )
+        end
+    end
+    CloseView(jv)
+    CloseView(time_vw)
 
     // DTWB fields
     v_dtwb = GetDataVector(llyr + "|", "DTWB", )
