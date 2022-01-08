@@ -156,8 +156,11 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         // If doing a test assignment, just create a single class from the
         // dummy matrix
         if OtherOpts.test <> null then do
+            mtx = CreateObject("Matrix", od_mtx)
+            core_names = mtx.GetCoreNames()
+            mtx = null
             o.AddClass({
-                Demand: "TAZ",
+                Demand: core_names[1],
                 PCE: 1,
                 VOI: 1
             })
