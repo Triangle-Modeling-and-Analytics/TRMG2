@@ -31,7 +31,47 @@ trip_subset_df <-readRDS(trip_subset_filename)
 
 # Mode Split -------------------------------------------------------------------
 
-## Mode Split campus-based trips-------------------------------
+## Mode Split all trips --------------------------------------------------------
+
+modesplit_alltrips_df<-trip_subset_df %>%
+  filter(!is.na(Walk_W)) %>%
+  summarize(Temp_Total = sum(Weight),
+            TotalBicycle = sum(Bicycle_W),
+            TotalWalk = sum(Walk_W),
+            TotalCar = sum(Car_W),
+            TotalCarpool = sum(Carpool_W),
+            TotalBus = sum(Bus_W),
+            TotalOther = sum(Other_W),
+            Temp_Pct_Bicycle = TotalBicycle/Temp_Total * 100,
+            Temp_Pct_Walk = TotalWalk/Temp_Total * 100,
+            Temp_Pct_Car = TotalCar/Temp_Total * 100,
+            Temp_Pct_Carpool = TotalCarpool/Temp_Total * 100,
+            Temp_Pct_Bus = TotalBus/Temp_Total * 100,
+            Temp_Pct_Other = TotalOther/Temp_Total * 100) 
+
+modesplit_bypurpose_campusbasedtrips_df<- modesplit_alltrips_df %>%
+  mutate(Pct_Auto = Temp_Pct_Car + Temp_Pct_Carpool) %>%
+  select('Percent Bicycle' = Temp_Pct_Bicycle,
+         'Percent Walk' = Temp_Pct_Walk,
+         'Percent Transit' = Temp_Pct_Bus,
+         'Percent Auto' = Pct_Auto,
+         'Percent Other' = Temp_Pct_Other)
+
+calibrationtargets_alltrips_df<- modesplit_alltrips_df %>%
+  summarize(Total = sum(Temp_Total) - sum(TotalOther),
+            Pct_Bicycle = sum(TotalBicycle)/Total * 100,
+            Pct_Walk = sum(TotalWalk)/Total * 100,
+            Pct_Auto = (sum(TotalCar) + sum(TotalCarpool))/Total * 100) %>%
+  rowwise() %>%
+  mutate(Pct_Bus = 100.00 - (Pct_Bicycle + Pct_Walk + Pct_Auto),
+         Pct_AllModes = Pct_Bicycle + Pct_Walk + Pct_Auto + Pct_Bus) %>%
+  ungroup() %>%
+  select('Percent Bicycle' = Pct_Bicycle, 
+         'Percent Walk'= Pct_Walk, 
+         'Percent Transit'= Pct_Bus, 
+         'Percent Auto'= Pct_Auto, 
+         'Total' = Pct_AllModes) 
+## Mode Split campus-based trips-----------------------------------------------
 
 modesplit_campusbased_df<-trip_subset_df %>%
   filter(Trip_Purpose !="99") %>%
@@ -208,4 +248,4 @@ trips_bypurpose_oncampusUC1_plot <-trip_subset_df %>%
 # write results ------------------------------------------------------
 calibrationtargets_bypurpose_oncampus<-write_csv(calibrationtargets_bypurpose_oncampus_df,paste0(univ_dir,"calibrationtargets_bypurpose_oncampus.CSV"))
 calibrationtargets_bypurpose_offcampus<-write_csv(calibrationtargets_bypurpose_offcampus_df, paste0(univ_dir,"calibrationtargets_bypurpose_offcampus.CSV"))
-
+calibrationtargets_alltrips_df <-write_csv(calibrationtargets_alltrips_df, paste0(univ_dir,"calibrationtargets_alltrips.CSV"))
