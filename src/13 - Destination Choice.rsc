@@ -4,11 +4,11 @@
 
 Macro "Destination Choice" (Args)
 
-    // if Args.FeedbackIteration = 1 then do
-    //     RunMacro("Split Employment by Earnings", Args)
-    //     RunMacro("DC Attractions", Args)
-    //     RunMacro("DC Size Terms", Args)
-    // end
+    if Args.FeedbackIteration = 1 then do
+        RunMacro("Split Employment by Earnings", Args)
+        RunMacro("DC Attractions", Args)
+        RunMacro("DC Size Terms", Args)
+    end
     RunMacro("HBW DC", Args)
     RunMacro("Other HB DC", Args)
     RunMacro("Apportion Resident HB Trips", Args)

@@ -253,8 +253,13 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         etc.
         */
 
-        Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
-        RunMacro("Write PRMSE", Args, period)
+        // If a specific OD matrix is passed into the assignment macro, then don't
+        // write out any %RMSE info. That is only relevant during the main model
+        // feedback loop (which doesn't pass in OtherOpts.od_mtx)
+        if OtherOpts.od_mtx = null then do
+            Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
+            RunMacro("Write PRMSE", Args, period)
+        end
     end
 endmacro
 
