@@ -253,11 +253,34 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         etc.
         */
 
+        // Convergence checking
         // If a specific OD matrix is passed into the assignment macro, then don't
-        // write out any %RMSE info. That is only relevant during the main model
-        // feedback loop (which doesn't pass in OtherOpts.od_mtx)
+        // calculate or write out any %RMSE info. This section is only relevant during
+        // the main model feedback loop (which doesn't pass in OtherOpts.od_mtx)
         if OtherOpts.od_mtx = null then do
-            Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
+            // create a new sov skim for the current period
+            opts = null
+            opts.period = period
+            opts.mode = "sov"
+            opts.out_file = assn_dir + "\\post_assignment_skim_" + period + ".mtx"
+            RunMacro("Roadway Skims", Args, opts)
+
+            // Calculate matrix %RMSE
+            mode = opts.mode
+            old_skim_file = Args.[Output Folder] + "/skims/roadway/skim_" + mode + "_" + period + ".mtx"
+            old_skim = CreateObject("Matrix", old_skim_file)
+            old_core = old_skim.GetCore("CongTime")
+            new_skim_file = opts.out_file
+            new_skim = CreateObject("Matrix", new_skim_file)
+            new_core = new_skim.GetCore("CongTime")
+            results = MatrixRMSE(old_core, new_core)
+            old_skim = null
+            old_core = null
+            new_skim = null
+            new_core = null
+            DeleteFile(new_skim_file)
+
+            Args.(period + "_PRMSE") = results.RelRMSE
             RunMacro("Write PRMSE", Args, period)
         end
     end
