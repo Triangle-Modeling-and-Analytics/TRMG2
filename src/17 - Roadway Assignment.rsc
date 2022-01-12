@@ -286,6 +286,7 @@ endmacro
 
 /*
 After assignment, this macro updates the link layer congested time fields.
+Called by the Post Assignment flowchart box.
 */
 
 Macro "Update Link Congested Times" (Args)
