@@ -88,7 +88,7 @@ Macro "Roadway Skims" (Args, OtherOpts)
             obj.AddSkimField({"Length", "All"})
             toll_field = "TollCost" + Upper(mode)
             obj.AddSkimField({toll_field, "All"})
-            out_file = out_dir + "/" + mode + "_" + period + ".mtx"
+            out_file = out_dir + "/skim_" + mode + "_" + period + ".mtx"
             if OtherOpts.out_file <> null then out_file = OtherOpts.out_file
             label = "Roadway skim " + period + " " + Upper(mode)
             obj.OutputMatrix({
