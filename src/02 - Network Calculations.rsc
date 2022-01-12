@@ -973,7 +973,7 @@ Macro "Create Route Networks" (Args)
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 240,
-                    MaxTransfers = 4,
+                    MaxTransfers = 2,
                     VOT = .1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({
