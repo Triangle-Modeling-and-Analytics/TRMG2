@@ -488,7 +488,7 @@ trip_types = {"W_HB_W_All"}
                 opts.trip_mtx_file = trip_mtx_file
                 opts.parking_prob_file = parking_prob_file
                 opts.logsum_file = logsum_file
-                opts.work_type = tour_type
+                opts.work_type = work_type
                 opts.auto_core = auto_core
                 RunMacro("Calculate Parking Cores", opts)
             end
@@ -619,8 +619,6 @@ Macro "Calculate Parking Cores" (MacroOpts)
         auto_core + "_parkshuttle_topark",
         auto_core + "_parkshuttle_frompark"
     })
-
-    Throw()
 endmacro
 
 /*
