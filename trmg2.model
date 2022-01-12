@@ -205,8 +205,7 @@ Body:
     mr = CreateObject("Model.Runtime")
     periods = mr.RunCode("Get Unconverged Periods", Args)
 
-    // periods = RunMacro("Get Unconverged Periods", Args)
-
+    // Add any periods that converged to the list of converged periods
     for period in periods do
         prmse = Args.(period + "_PRMSE")
         if iter = 1 then continue

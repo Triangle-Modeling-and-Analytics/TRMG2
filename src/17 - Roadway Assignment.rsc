@@ -245,7 +245,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         ret_value = o.Run()
         results = o.GetResults()
         /*
-        Use results.data to get rmse and other metrics:
+        Use results.data to get flow rmse and other metrics:
         results.data.[Relative Gap]
         results.data.[Maximum Flow Change]
         results.data.[MSA RMSE]
@@ -254,9 +254,8 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         */
 
         // Convergence checking
-        // If a specific OD matrix is passed into the assignment macro, then don't
-        // calculate or write out any %RMSE info. This section is only relevant during
-        // the main model feedback loop (which doesn't pass in OtherOpts.od_mtx)
+        // This section is only relevant during the main model feedback loop
+        // (which doesn't pass in OtherOpts.od_mtx)
         if OtherOpts.od_mtx = null then do
             // create a new sov skim for the current period
             opts = null
@@ -279,7 +278,6 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             new_skim = null
             new_core = null
             DeleteFile(new_skim_file)
-
             Args.(period + "_PRMSE") = results.RelRMSE
             RunMacro("Write PRMSE", Args, period)
         end
