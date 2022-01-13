@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processsing","Choice Models"},{"Summaries","Skimming"},)
+    model = FlowChart({"Initial Processsing","NonHomeBased","NHB Generation by Mode"},{"Summaries","Home-based Choice Models","NHB Destination Choice"},)
     //
     // Nodes
     //
@@ -20,13 +20,17 @@ Body:
     FlowChartNode(model,"Summaries",,,)
     FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"Convergence",,,)
-    FlowChartNode(model,"Choice Models",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Initial Processsing",,,)
     FlowChartNode(model,"Generation Models",,,)
     FlowChartNode(model,"NonMotorized Models",,,)
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Skimming",,,)
+    FlowChartNode(model,"NonResident DC and MC",,,)
+    FlowChartNode(model,"NonHomeBased",,,)
+    FlowChartNode(model,"Home-based Choice Models",,,)
+    FlowChartNode(model,"NHB Generation by Mode",,,)
+    FlowChartNode(model,"NHB Destination Choice",,,)
     //
     // Links
     //
@@ -34,13 +38,15 @@ Body:
     //
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Convergence","Transit Assignment",2,,)
-    FlowChartLink(model,"Convergence","Skimming",True,,)
-    FlowChartLink(model,"Choice Models","Roadway Assignment",True,,)
+    FlowChartLink(model,"NonResident DC and MC","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
     FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
     FlowChartLink(model,"NonMotorized Models","Time of Day",True,,)
     FlowChartLink(model,"Time of Day","Skimming",True,,)
+    FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
+    FlowChartLink(model,"Skimming","Home-based Choice Models",True,,)
+    FlowChartLink(model,"NHB Generation by Mode","NHB Destination Choice",True,,)
     Return(model)
 EndMacro
 
@@ -80,7 +86,7 @@ Macro "Summaries" (Args,Result)
 EndMacro
 
 
-Macro "Parking Model" (Args,Result)
+Macro "Parking Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Parking Model"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
@@ -94,7 +100,7 @@ Macro "Transit Assignment" (Args,Result)
 EndMacro
 
 
-Macro "Mode Choice" (Args,Result)
+Macro "Mode Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Mode Choice"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
@@ -108,7 +114,7 @@ Macro "NonResident DC and MC" (Args,Result)
 EndMacro
 
 
-Macro "Destination Choice" (Args,Result)
+Macro "Destination Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Destination Choice"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
@@ -215,39 +221,6 @@ EndMacro
 
 Macro "Link.Convergence.Transit Assignm" (Args,Result)
     Attributes = {{"Run_Condition","Result = 2"}}
-EndMacro
-
-
-Macro "Link.Convergence.Skimming" (Args,Result)
-    Attributes = {{"Run_Condition","Result = 1"}}
-EndMacro
-
-
-Macro "Choice Models" (Args,Result)
-    Attributes = {{"Description","Stage 4"},
-                  {"Picture","bmp\\planmodesplit_v3.bmp"}}
-Body:
-    model = FlowChart({"Parking Model"},{"NonResident DC and MC"},"Group steps")
-    //
-    // Nodes
-    //
-    // FlowChartNode(model,NodeName,MacroName,UI,Description)
-    //
-    FlowChartNode(model,"Parking Model",,,)
-    FlowChartNode(model,"Mode Choice",,,)
-    FlowChartNode(model,"NonResident DC and MC",,,)
-    FlowChartNode(model,"Destination Choice",,,)
-    FlowChartNode(model,"NonHomeBased",,,)
-    //
-    // Links
-    //
-    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
-    //
-    FlowChartLink(model,"Parking Model","Mode Choice",True,,)
-    FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
-    FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
-    Return(model)
 EndMacro
 
 
@@ -578,5 +551,55 @@ Body:
     //
     FlowChartLink(model,"Roadway Skims","Transit Skims",True,,)
     Return(model)
+EndMacro
+
+
+Macro "Application of Probabilities" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: Application of Probabilities')
+    Return(True)
+EndMacro
+
+
+Macro "Home-based Choice Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Parking Probabilities"},{"Application of Probabilities"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Parking Probabilities",,,)
+    FlowChartNode(model,"Mode Probabilities",,,)
+    FlowChartNode(model,"Destination Probabilities",,,)
+    FlowChartNode(model,"Application of Probabilities",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Parking Probabilities","Mode Probabilities",True,,)
+    FlowChartLink(model,"Mode Probabilities","Destination Probabilities",True,,)
+    FlowChartLink(model,"Destination Probabilities","Application of Probabilities",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "NHB Generation by Mode" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: NHB Generation')
+    Return(True)
+EndMacro
+
+
+Macro "NHB Destination Choice" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: NHB Destination Choice')
+    Return(True)
 EndMacro
 
