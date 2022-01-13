@@ -1,4 +1,4 @@
-    Section = "Files|Master"
+    Section = "Master Files"
     
         Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
         Args.[Master Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
@@ -7,7 +7,7 @@
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
         Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2016.bin", "Description":"Master SE data bin file" }
     
-    Section = "Files|Scenario|Input"
+    Section = "Main Scenario Inputs"
     
         Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
         Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2016", "Description":"Scenario folder" }
@@ -17,7 +17,7 @@
         Args.[Input TAZs] = { "Type":"File" , "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd", "Description":"Master TAZs" }
         Args.[Input SE] = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario input se data. Created during scenario creation." }
     
-    Section = "Files|Scenario|Output"
+    Section = "Main Scenario Outputs"
     
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
@@ -25,27 +25,35 @@
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
         Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
     
-    Section = "Network Calculations"
+    Section = "Network Calculations|Area Type"
     
         Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
+    Section = "Network Calculations|Capacities"
+
+        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
+        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
+
+    Section = "Network Calculations|Speeds & Tolls"
+
         Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
                                                     {"Suburban",35},
                                                     {"Urban",30},
                                                     {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
-        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
-        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }    
         Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time.bin", "Description":"Initial travel time estimates" }    
         Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
-        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
-        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
-        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
         Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
         Args.TransponderRatioSUT = { "Type":"double" , "Value":0.70, "Description":"Ratio of SUTs with a toll transponder (0-1)" }
         Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
+        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
+        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        
+    Section = "Network Calculations|Transit"
+        
+        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
     
     Section = "Accessibilities"
     

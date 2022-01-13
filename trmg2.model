@@ -235,6 +235,9 @@ EndMacro
 Macro "Area Type" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Area Type"}}}
+Data:
+    In({ Args.[AreaTypes] })
+    Out({ Args.[SE] })
 EndMacro
 
 
