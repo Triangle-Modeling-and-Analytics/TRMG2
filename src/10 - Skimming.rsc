@@ -2,12 +2,14 @@
 
 */
 
-Macro "Skimming" (Args)
-
-    RunMacro("Roadway Skims", Args)
+Macro "Roadway Skims" (Args)
+    RunMacro("Create Roadway Skims", Args)
     RunMacro("Create Average Roadway Skims", Args)
-    RunMacro("Transit Skims", Args)
+    return(1)
+endmacro
 
+Macro "Transit Skims" (Args)
+    RunMacro("Create Transit Skims", Args)
     return(1)
 endmacro
 
@@ -55,7 +57,7 @@ Inputs
 
 */
 
-Macro "Roadway Skims" (Args, OtherOpts)
+Macro "Create Roadway Skims" (Args, OtherOpts)
 
     link_dbd = Args.Links
     periods = RunMacro("Get Unconverged Periods", Args)
@@ -184,7 +186,7 @@ Inputs
     * If provided, only these skims will be created. Used by accessibility.
 */
 
-Macro "Transit Skims" (Args, overrides)
+Macro "Create Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
     periods = RunMacro("Get Unconverged Periods", Args)
