@@ -75,7 +75,7 @@ EndMacro
 
 Macro "Time of Day Split" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Time of Day"}},
+                  {"MacroNames",{"Time of Day Split"}},
                   {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
@@ -103,7 +103,7 @@ EndMacro
 
 Macro "Aggregation to Zones" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Aggregation"}},
+                  {"MacroNames",{"Aggregation to Zones"}},
                   {"Picture","bmp\\planskim_v3.bmp"}}
 EndMacro
 
