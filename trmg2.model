@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processsing","NonResident DC and MC"},{"Summaries","Non-Home-based Models"},)
+    model = FlowChart({"Initial Processsing","Roadway Assignment"},{"Summaries","Special Market DC & MC"},)
     //
     // Nodes
     //
@@ -26,9 +26,9 @@ Body:
     FlowChartNode(model,"NonMotorized Models",,,)
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Skimming",,,)
-    FlowChartNode(model,"NonResident DC and MC",,,)
     FlowChartNode(model,"Home-based Choice Models",,,)
     FlowChartNode(model,"Non-Home-based Models",,,)
+    FlowChartNode(model,"Special Market DC & MC",,,)
     //
     // Links
     //
@@ -36,7 +36,6 @@ Body:
     //
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Convergence","Transit Assignment",2,,)
-    FlowChartLink(model,"NonResident DC and MC","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
     FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
@@ -44,6 +43,7 @@ Body:
     FlowChartLink(model,"Time of Day","Skimming",True,,)
     FlowChartLink(model,"Skimming","Home-based Choice Models",True,,)
     FlowChartLink(model,"Home-based Choice Models","Non-Home-based Models",True,,)
+    FlowChartLink(model,"Non-Home-based Models","Special Market DC & MC",True,,)
     Return(model)
 EndMacro
 
@@ -100,13 +100,6 @@ EndMacro
 Macro "Mode Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Mode Choice"}},
-                  {"Picture","bmp\\planmodesplit_v3.bmp"}}
-EndMacro
-
-
-Macro "NonResident DC and MC" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident DC and MC"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
@@ -507,18 +500,14 @@ EndMacro
 
 
 Macro "Roadway Skims" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Roadway Skims')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Roadway Skims"}}}
 EndMacro
 
 
 Macro "Transit Skims" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Transit Skims')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Transit Skims"}}}
 EndMacro
 
 
@@ -545,10 +534,8 @@ EndMacro
 
 
 Macro "Application of Probabilities" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Application of Probabilities')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Application of Probabilities"}}}
 EndMacro
 
 
@@ -579,18 +566,14 @@ EndMacro
 
 
 Macro "NHB Generation by Mode" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: NHB Generation')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NHB Generation by Mode"}}}
 EndMacro
 
 
 Macro "NHB Destination Choice" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: NHB Destination Choice')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NHB Destination Choice"}}}
 EndMacro
 
 
@@ -612,6 +595,40 @@ Body:
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"NHB Generation by Mode","NHB Destination Choice",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Airport MC" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Airport MC"}}}
+EndMacro
+
+
+Macro "Commercial Vehicles DC" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Commercial Vehicles DC"}}}
+EndMacro
+
+
+Macro "Special Market DC & MC" (Args,Result)
+    Attributes = {{"Description","Stage 1"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Airport MC"},{"Commercial Vehicles DC"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Airport MC",,,)
+    FlowChartNode(model,"Commercial Vehicles DC",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Airport MC","Commercial Vehicles DC",True,,)
     Return(model)
 EndMacro
 
