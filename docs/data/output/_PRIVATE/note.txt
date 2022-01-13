@@ -1,0 +1,4 @@
+This folder holds survey and other sensitive information used to estimate
+TRMG2 that cannot be shared publicly on GitHub. This info is not required
+for model application, but if needed for model re-estimation or calibration,
+reach out to ITRE staff.

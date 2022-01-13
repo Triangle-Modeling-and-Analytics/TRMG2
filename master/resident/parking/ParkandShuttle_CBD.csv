@@ -1,0 +1,7 @@
+Expression,Coefficient,Description
+se.ParkSize.D,1,Size term
+se.ParkCost.D,-1,Parking Cost
+t_skim.[Initial Wait Time]*2,-0.06,Shuttle Headway
+t_skim.[In-Vehicle Time],-0.12,IVTT
+t_skim.[Access Walk Time],-0.21,Access Walk Time
+t_skim.[Egress Walk Time],-0.21,Egress Walk Time

@@ -408,7 +408,7 @@ Macro "Copy Directory" (MacroOpts)
 
   from = "\"" +  from + "\""
   to = "\"" +  to + "\""
-  cmd = "cmd /C robocopy " + from + " " + to
+  cmd = "cmd /C C:/Windows/System32/Robocopy.exe " + from + " " + to
   if !copy_files then cmd = cmd + " /t"
   if subdirectories then cmd = cmd + " /e"
   if purge then cmd = cmd + " /purge"
@@ -2200,11 +2200,10 @@ Macro "Write PRMSE" (Args, period)
   if iter = 1 then do
     f = OpenFile(file, "w")
     WriteLine(f, "Iteration,%RMSE")
-    WriteLine(f, "1,0")
-  end else do
-    f = OpenFile(file, "a")
-    WriteLine(f, String(iter) + "," + String(prmse))
+    CloseFile(f)
   end
+  f = OpenFile(file, "a")
+  WriteLine(f, String(iter) + "," + String(prmse))
   CloseFile(f)
 endmacro
 

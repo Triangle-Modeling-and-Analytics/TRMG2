@@ -8,7 +8,7 @@ Macro "Calibrate NM" (Args)
     est_share_file = summary_dir + "/nm_summary.csv"
     est_share_field = "nm_share"
 
-    max_iterations = 3
+    max_iterations = 6
     gap_target = .1
 
     trip_types = RunMacro("Get HB Trip Types", Args)
@@ -44,7 +44,6 @@ Macro "Calibrate NM" (Args)
             RunMacro("Append Line", {file: param_file, line: line})
 
             if gap <= gap_target then break
-            
             iter = iter + 1
         end
     end
@@ -76,6 +75,61 @@ Macro "Append Line" (MacroOpts)
     CloseFile(f)
 endmacro
 
+/*
+
+*/
+
+Macro "Calibrate AO" (Args)
+    
+    base_dir = Args.[Base Folder]
+    param_dir = Args.[Input Folder] + "/resident/auto_ownership"
+    param_file = param_dir + "/ao_coefficients.csv"
+    obs_share_file = base_dir + "/docs/data/output/auto_ownership/ao_calib_targets.csv"
+    hh_file = Args.Households
+
+    // Get observed percentages
+    obs_vw = OpenTable("obs", "CSV", {obs_share_file})
+    v_obs = GetDataVector(obs_vw + "|", "pct", )
+    CloseView(obs_vw)
+
+    max_iterations = 6
+    iter = 1
+    gap_target = .02
+
+    while iter <= max_iterations do
+        
+        // Run model
+        RunMacro("Auto Ownership", Args)
+
+        // Calculate deltas and gaps
+        hh_vw = OpenTable("hh", "FFB", {hh_file})
+        agg_vw = SelfAggregate(hh_vw, hh_vw + ".Autos", )
+        v_count = GetDataVector(agg_vw + "|", "Count(hh)", )
+        CloseView(agg_vw)
+        CloseView(hh_vw)
+        if v_count.length <> v_obs.length then Throw("Observed and model vector are different lenghts")
+        total = VectorStatistic(v_count, "Sum", )
+        v_est = v_count / total
+        v_delta = round(log(v_obs / v_est) * .9, 4)
+        v_gap = abs(v_obs - v_est)
+
+        // Write out calibration constants
+        for i = 2 to v_obs.length do
+            delta = v_delta[i]
+            gap = v_gap[i]
+            line = "v" + String(i - 1) + ",Constant,," + String(delta) + ",Added by calibrator routine. gap = " + String(gap)
+            RunMacro("Append Line", {file: param_file, line: line})
+        end
+        
+        // Check convergence
+        max_gap = VectorStatistic(v_gap, "Max", )
+        if max_gap <= gap_target then break
+        iter = iter + 1
+    end
+    
+
+    ShowMessage("Auto ownership calibration complete")
+endmacro
 
 /* 
     Generic MC Calibrator
@@ -96,8 +150,13 @@ Macro "Calibrate HB MC"(Args)
 
         pbar2 = CreateObject("G30 Progress Bar", "Calibrating segment specific MC models for " + trip_type, true, segments.length)
         for segment in segments do
-            converged = RunMacro("Calibrate MC", Args, {TripType: trip_type, Segment: segment, Iterations: 20, UpdateCSVSpec: 1})
-            AppendToLogFile(0, "MC Calibration Convergence for Trip Type '" + trip_type + "' and Segment '" + segment + "': " + String(converged))
+            if Lower(trip_type) = "n_hb_omed_all" and segment <> "v0" then
+                dampingFactor = 0.1
+            else
+                dampingFactor = 0.5
+
+            converged = RunMacro("Calibrate MC", Args, {TripType: trip_type, Segment: segment, Iterations: 50, UpdateCSVSpec: 1, AdjustmentScale: dampingFactor})
+            AppendToReportFile(0, "MC Calibration Convergence for Trip Type '" + trip_type + "' and Segment '" + segment + "': " + String(converged))
 
             if pbar2.Step() then
                 Return() 
@@ -140,6 +199,7 @@ Macro "Calibrate MC"(Args, Opts)
 
         // Compute Shares
         shares = RunMacro("Get Mode Shares", Args, Opts, altNames)
+        //return(1)
 
         // Check convergence
         converged = RunMacro("ASC Adjustment Convergence", shares, targets, thresholds)
@@ -147,8 +207,11 @@ Macro "Calibrate MC"(Args, Opts)
             Throw("Error in checking convergence for mode choice calibration")
             
         // Modify Model ASCs for next loop
-        if converged = 0 then
-            RunMacro("Modify MC Models", Args, Opts, altNames, shares, targets)
+        if converged = 0 then do
+            modified = RunMacro("Modify MC Models", Args, Opts, altNames, shares, targets)
+            if modified = 0 then // Did not modify model since model share of some alternative is trending to 0.
+                Return(0)
+        end
 
         iters = iters + 1
 
@@ -329,9 +392,9 @@ Macro "MC Eval for Calibration"(Args, Opts)
             if ArrayPosition(modelSources, {src[1]},) > 0 then
                 o.OpenMatrixSource({SourceName: src[1], FileName: src[2]})
         end
-        o.UtilityScaling = "By Theta Product"
         probMtx = mc_dir + "/probabilities/probability_" + tag + ".mtx"
         o.AddMatrixOutput( "*",  {Probability: probMtx})
+        o.UtilityScaling = "By Parent Theta"
         ok = o.Run()
         o = null
     end
@@ -394,6 +457,7 @@ Macro "Modify MC Models"(Args, Opts, altNames, shares, targets)
     periods = Args.periods
     mc_dir = out_dir + "/resident/mode"
     name = Opts.TripType + "_" + Opts.Segment
+    dampingFactor = Opts.AdjustmentScale
 
     // Update the model files for each period (same adjustment for each period)
     for period in periods do
@@ -403,11 +467,20 @@ Macro "Modify MC Models"(Args, Opts, altNames, shares, targets)
         seg = model.GetSegment("*")
         for i = 1 to altNames.length do
             alt = seg.GetAlternative(altNames[i])
-            alt.ASC.Coeff = nz(alt.ASC.Coeff) + 0.5*log(targets[i]/shares[i])
-            model.Write(outMdl)
+            if shares[i] > 0.0 then do // If shares[i] = 0 and targets[i] > 0, then the calibration has to be redone with a smaller damping factor.
+                alt.ASC.Coeff = nz(alt.ASC.Coeff) + dampingFactor*log(targets[i]/shares[i])
+                model.Write(outMdl)
+            end
+            else do
+                AppendToReportFile(0, "Purpose: " + name + ". Model share of " + altnames[i] + " trending to 0.")
+                AppendToReportFile(0, "Re-run with smaller damping (adjustment) factor")
+                model.Clear()
+                Return(0)
+            end
         end
         model.Clear()
     end
+    Return(1)
 endMacro
 
 

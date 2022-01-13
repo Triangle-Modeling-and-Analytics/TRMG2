@@ -26,9 +26,10 @@ Macro "Aggregate HB Moto Trips" (Args)
         {"market_segment", "Character", 10, , , , , "Aggregate market segment this household belongs to"}
     }
     RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
-    input = GetDataVectors(hh_vw + "|", {"HHSize", "IncomeCategory", "Autos"}, {OptArray: TRUE})
+    input = GetDataVectors(hh_vw + "|", {"HHSize", "IncomeCategory", "HHKids", "Autos"}, {OptArray: TRUE})
+    v_adults = input.HHSize - input.HHKids
     v_sufficient = if input.Autos = 0 then "v0"
-        else if input.Autos < input.HHSize then "vi"
+        else if input.Autos < v_adults then "vi"
         else "vs"
     v_income = if input.IncomeCategory <= 2 then "il" else "ih"
     v_market = if v_sufficient = "v0"
@@ -44,7 +45,7 @@ Macro "Aggregate HB Moto Trips" (Args)
     df.group_by({"ZoneID", "market_segment"})
     trip_types = RunMacro("Get HB Trip Types", Args)
     field_names = V2A(A2V(trip_types) + "_m")
-    df.summarize(trip_types, "sum")
+    df.summarize(field_names, "sum")
     names = df.colnames()
     for name in names do
         if Left(name, 4) = "sum_" then do

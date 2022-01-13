@@ -1,8 +1,7 @@
 Expression,Segment,Coefficient,Description
-se.n_hbomed_size.D,,0.8069,Size term
-nz(mc_logsums.auto),vi,1.866,
-nz(mc_logsums.auto),vs,1.866,
-sov_skim.IZ,,0.4718,
-sov_skim.CongTime,,-0.108,
-"max(0, sov_skim.CongTime - 30)",,0.0532,
-se.access_hospital_sov.D,,0.5609,
+se.n_hbomed_size.D,,0.804,Size term
+nz(mc_logsums.nonhh_auto),,0.909,
+sov_skim.IZ,,0.376,
+sov_skim.CongTime,,-0.0873,
+"max(0, sov_skim.CongTime - 30)",,0.0589,
+se.access_hospital_sov.D,,0.485,

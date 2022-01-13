@@ -431,12 +431,12 @@ Macro "Speed Maps" (Args)
 
     // Apply color theme based on the % speed reduction
     ab_expr_field = CreateExpression(
-      llyr, "ABSpeedRedux",
+      llyr, "AB" + period + "SpeedRedux",
       "min((AB_Speed_" + period + " - PostedSpeed) / PostedSpeed * 100, 0)",
       {Type: "Real", Decimals: 0}
     )
     ba_expr_field = CreateExpression(
-      llyr, "BASpeedRedux",
+      llyr, "BA" + period + "SpeedRedux",
       "min((BA_Speed_" + period + " - PostedSpeed) / PostedSpeed * 100, 0)",
       {Type: "Real", Decimals: 0}
     )

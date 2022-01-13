@@ -205,11 +205,19 @@ Rho-squared: 0.98
 
 ## Calibration
 
-Caliper calibrated the model constants to ensure that the final share
-of non-motorized trips matched the survey. This was done using a auto-calibration
-utility included in the model's drop down menu. Caliper then reviewed the results
-to check that the calibration constants were reasonable and did not dominate
-model sensitivity.
+```{r}
+eda_df <- read_csv("data/output/survey_processing/eda_scheme6.csv")
+target_df <- eda_df %>%
+  unite(trip_type, tour_type:duration) %>%
+  select(trip_type, nonmotorized = pct_walkbike)
+```
+
+
+Caliper calibrated the model constants to ensure that the final share of
+non-motorized trips matched the survey. This was done using an auto-calibration
+utility included in the model's drop down menu. Caliper then reviewed the
+results to check that the calibration constants were reasonable and did not
+dominate model sensitivity.
 
 The parameter file for N_HB_K12_All trips is shown below as an example. Note that
 the estimated constant is preserved separately from the calibration constant.
@@ -228,6 +236,7 @@ The non-motorized shares resulting from the model are shown below. Each matches
 the survey shares.
 
 ```{r}
+# TODO: update this with the latest summary output file
 final_shares <- read_csv("data/input/nm/model_nm_summary.csv") %>%
   select(trip_type, nm_share)
 
@@ -236,5 +245,10 @@ colnames(final_shares) <- c("Trip Type", "NM Share (%)")
 final_shares %>%
   kable() %>%
   kable_styling(full_width = FALSE)
+```
+
+
+```{r, eval=FALSE}
+write_csv(target_df, "data/output/nonmotorized/calibration_targets.csv")
 ```
 

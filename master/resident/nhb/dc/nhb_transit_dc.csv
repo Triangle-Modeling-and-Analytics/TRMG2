@@ -1,10 +1,5 @@
 Expression,Segment,Coefficient,Description
-se.nhb_transit_size.D,,0.7405,Size term
-skim.[Total Time],,-0.01897,
-skim.[Number of Transfers],,-0.8081,
-se.access_transit.D,,0.1885,Transit Accessibility
-se.Cluster.D = 2,,0.724,Raleigh Cluster ASC
-se.Cluster.D = 6,,1.936,Chapel Hill Cluster ASC
-se.Cluster.D = 5,,1.361,Durham Cluster ASC
-se.Cluster.D = 7,,0.7847,Southern Durham Cluster ASC
-se.Cluster.D = 81,,1.933,Other NW Cluster ASC
+se.nhb_transit_size.D,,0.694,Size term
+skim.[Total Time],,-0.0225,
+skim.[Number of Transfers],,-0.498,
+se.access_transit.D,,0.348,Transit Accessibility

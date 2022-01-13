@@ -108,6 +108,12 @@ menu "TRMG2 Calibrators"
     init do
     enditem
 
+    MenuItem "AO" text: "Auto Ownership" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Calibrate AO", Args)
+    enditem
+
     MenuItem "NM" text: "Nonmotorized" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()

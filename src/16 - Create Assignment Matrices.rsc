@@ -7,13 +7,15 @@ lost during the conversion.
 
 Macro "Create Assignment Matrices" (Args)
 
-    RunMacro("Directionality", Args)
-    RunMacro("Add Airport Trips", Args)
     RunMacro("HB Collapse Auto Modes", Args)
+    RunMacro("HB Apply Parking Probabilities", Args)
+    RunMacro("NHB Collapse Auto Modes", Args)
+    RunMacro("NHB Apply Parking Probabilities", Args)
+    RunMacro("HB Directionality", Args)
+    RunMacro("Add Airport Trips", Args)
     RunMacro("HB Occupancy", Args)
     RunMacro("HB Collapse Trip Types", Args)
     RunMacro("HB Remove Interim Matrices", Args)
-    RunMacro("NHB Collapse Auto Modes", Args)
     RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
     RunMacro("VOT Split", Args)
@@ -27,7 +29,7 @@ endmacro
 Convert from PA to OD format for auto modes
 */
 
-Macro "Directionality" (Args)
+Macro "HB Directionality" (Args)
 
     trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     dir_factor_file = Args.DirectionFactors
@@ -36,7 +38,7 @@ Macro "Directionality" (Args)
 
     fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
     rh = GetFirstRecord(fac_vw + "|", )
-    auto_modes = {"sov", "hov2", "hov3", "auto_pay", "other_auto"}
+    auto_modes = {"sov", "hov2", "hov3"}
     while rh <> null do
         trip_type = fac_vw.trip_type
         period = fac_vw.tod
@@ -49,13 +51,6 @@ Macro "Directionality" (Args)
         CopyFile(pa_mtx_file, od_mtx_file)
 
         mtx = CreateObject("Matrix", od_mtx_file)
-        // W_HB_EK12 only has hov2 and hov3 cores at this point. 
-        // N_HB_K12 does not have auto_pay
-        // Standardize the matrix here so that all further procedures can be simpler.
-        if trip_type = "W_HB_EK12_All" then
-            mtx.AddCores({"sov", "auto_pay", "other_auto"})
-        else if trip_type = "N_HB_K12_All" then
-            mtx.AddCores({"auto_pay"})
 
         cores = mtx.GetCores()
         t_mtx = mtx.Transpose()
@@ -92,6 +87,7 @@ Macro "Add Airport Trips" (Args)
     trip_dir = out_dir + "/resident/trip_matrices"
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
     air_dir = out_dir + "/airport"
+    shares_file = Args.HBOtherShares
 
     // Which trip type to add airport trips to
     trip_type = "N_HB_OD_Long"
@@ -102,6 +98,30 @@ Macro "Add Airport Trips" (Args)
         od_mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
         od_mtx = CreateObject("Matrix", od_mtx_file)
 
+        // First collapse auto_pay and other_auto into sov/hov2/hov3 for airport trips
+        fac_vw = OpenTable("shares", "CSV", {shares_file})
+        rh = GetFirstRecord(fac_vw + "|", )
+        while rh <> null do
+            trip_type2 = fac_vw.trip_type
+            if trip_type2 <> trip_type then continue
+            sov_fac = fac_vw.sov
+            hov2_fac = fac_vw.hov2
+            hov3_fac = fac_vw.hov3
+
+            cores_to_collapse = {"auto_pay", "other_auto"}
+
+            cores = air_mtx.GetCores()
+            for core_to_collapse in cores_to_collapse do
+                cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
+                cores.hov2 := cores.hov2 + nz(cores.(core_to_collapse)) * hov2_fac
+                cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
+            end
+            air_mtx.DropCores({"auto_pay", "other_auto"})
+            rh = GetNextRecord(fac_vw + "|", rh, )
+        end
+        CloseView(fac_vw)
+
+        // Then add airport trips
         core_names = air_mtx.GetCoreNames()
         for core_name in core_names do
             air_core = air_mtx.GetCore(core_name)
@@ -124,7 +144,8 @@ Macro "HB Collapse Auto Modes" (Args)
     
     shares_file = Args.HBOtherShares
     periods = RunMacro("Get Unconverged Periods", Args)
-    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    out_dir = Args.[Output Folder]
+    trip_dir = out_dir + "/resident/trip_matrices"
 
     // HB Trips
     fac_vw = OpenTable("shares", "CSV", {shares_file})
@@ -138,9 +159,9 @@ Macro "HB Collapse Auto Modes" (Args)
         cores_to_collapse = {"auto_pay", "other_auto"}
 
         for period in periods do
-            mtx_file = assn_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
+            trip_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
             
-            mtx = CreateObject("Matrix", mtx_file)
+            mtx = CreateObject("Matrix", trip_mtx_file)
             cores = mtx.GetCores()
             for core_to_collapse in cores_to_collapse do
                 cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
@@ -154,7 +175,7 @@ Macro "HB Collapse Auto Modes" (Args)
     CloseView(fac_vw)
 
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/3 after HB Collapse Auto Modes.csv"
-    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
+    RunMacro("Trip Conservation Snapshot", trip_dir, out_file)
 endmacro
 
 /*

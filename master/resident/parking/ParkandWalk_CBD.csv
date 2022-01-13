@@ -1,0 +1,4 @@
+Expression,Coefficient,Description
+se.ParkSize.D,1,Size term
+se.ParkCost.D,-1,Parking Cost
+walk_skim.WalkTime,-0.24,Walk Time

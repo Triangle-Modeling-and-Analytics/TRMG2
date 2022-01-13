@@ -7,4 +7,4 @@ nonmotorized,person.Autos = 0,,0.89,Person has access to 0 HH vehicles
 nonmotorized,person.inc_per_capita,,0.0000101,Income per person in the household
 nonmotorized,se.Walkability.O,,0.518,Intrazonal walkability
 nonmotorized,Constant,,-0.221,Estimated constant
-nonmotorized,Constant,,1.4607,Calibration constant
+nonmotorized,Constant,,-0.0507,Calibration Constant

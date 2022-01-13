@@ -507,7 +507,7 @@ tree <- rpart(
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-tree <- snip.rpart(tree, 6)
+# tree <- snip.rpart(tree, 6)
 rpart.plot(tree, type = 1, under = TRUE, extra = 1)
 
 rule_tbl <- create_rule_table(tree)
@@ -547,12 +547,9 @@ R-squared: `r r_sq`
 
 When someone makes a stop on their way to or from work, they are making a
 home-based other trip on a work tour. Work status is the most important predictor
-followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays
-a role in determining the frequency of these extra stops. In the bottom right
-of the tree, workers that live in areas with lower accessibility make more
-of these intermediate stops on work tours. This is the expected behavior. People
-living in rural areas are more likely to make these extra stops while out on
-work tours.
+followed by age. The make up of the house is also important. Households with other
+people present are less likely to need to make (e.g.) grocery stops on the way
+home from work. This is an intuitive result.
 
 ```{r}
 dt_tbl <- est_tbl %>%
@@ -1006,7 +1003,7 @@ These are other, discretionary trips with a short activity duration. These are
 similar to N_HB_OD_Long, and include things like trips to a friend's house,
 church, or other locations. Like other discretionary tours, the low r-squared
 indicates some difficulty in making predictions. However, of the variables
-available, accessibility, age, income, and children in the household contribute
+available, accessibility, age, and children in the household contribute
 the most to differences in trip making.
 
 ```{r}
@@ -1030,8 +1027,8 @@ tree <- rpart(
 
 # Snip to remove specific nodes from the tree
 # summary(tree) # to find node numbers
-# tree <- snip.rpart(tree, c(30))
-rpart.plot(tree, type = 1, under = TRUE, extra = 1)
+tree <- snip.rpart(tree, c(10, 31))
+rpart.plot(tree, type = 1, under = TRUE, extra = 1, cex = .5)
 
 rule_tbl <- create_rule_table(tree)
 rate_tbl <- dt_tbl %>%
@@ -1136,7 +1133,7 @@ R-squared: `r r_sq`
 
 Calibrating the production rates is done to ensure that the final model is
 producing the same number of trips per person on average as the survey. One
-compicating factor in this comparison is that the survey and model
+complicating factor in this comparison is that the survey and model
 socio-economic data have different total populations.
 
 - Survey: 1.71 million
@@ -1154,6 +1151,22 @@ the production model results compared back to the total trips in the survey
 (factored up). While close, the model consistently predicts fewer trips compared
 to the survey.
 
+Another important consideration is which type of survey weight to use. RSG
+provides two weight fields on the survey:
+
+- Household weights
+- Trip weights
+
+Importantly, trip weights have extra adjustment based on GPS traces to account
+for things like un-reported trips. As a result, the trip weight gives a higher
+number of total trips. For estimation, however, the decision trees worked best
+with household weights, which allowed each person to have an integer count of
+trips instead of 1.2 or 3.4. This allowed us to identify the features properly,
+but then calibration is required to scale up the trip totals as shown below.
+
+In the table below, the model results are compared to the total observed trips
+(based on trip weights). As expected, the decision trees under predict trips.
+
 ```{r, include=FALSE}
 # Importantly, this file must be from a model run without any calibration
 # factors applied.
@@ -1164,7 +1177,7 @@ model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibra
 calibration_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
   group_by(trip_type) %>%
-  summarize(obs_trips = sum(hh_weight_combined) * pop_factor) %>%
+  summarize(obs_trips = sum(trip_weight_combined) * pop_factor) %>%
   left_join(model_trips, by = "trip_type") %>%
   mutate(
     diff = model_trips - obs_trips,
@@ -1198,7 +1211,8 @@ total %>%
 ```
 
 The calibration factors below are the ratio of the observed to modeled trips.
-This are applied to each trip type to ensure total trip making is correct.
+These are applied to each trip type to ensure total trip making matches the
+survey (based on trip weight).
 
 ```{r}
 calib_factors <- calibration_trips %>%

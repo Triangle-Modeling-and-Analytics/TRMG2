@@ -6,4 +6,4 @@ nonmotorized,person.inc_per_capita,,0.000008,Income per person in the household
 nonmotorized,se.access_walk.O,,0.548,Interzonal walk accessiblity
 nonmotorized,se.Walkability.O,,7.3,Intrazonal walkability
 nonmotorized,Constant,,-2.584,Estimated constant
-nonmotorized,Constant,,-0.0483,Calibration constant
+nonmotorized,Constant,,-0.2565,Calibration constant

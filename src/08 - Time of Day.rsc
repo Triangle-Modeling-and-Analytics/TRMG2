@@ -45,5 +45,7 @@ Macro "Resident HB TOD" (Args)
         end
     end
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
-    SetDataVectors(se_vw + "|", data, )        
+    SetDataVectors(se_vw + "|", data, )    
+    CloseView(se_vw)
+    CloseView(fac_vw)
 endmacro

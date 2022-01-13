@@ -4,4 +4,4 @@ nonmotorized,person.veh_per_adult,,-0.767,HH vehicles per adult
 nonmotorized,person.age_16_18,,-0.359,Person is between 16 and 18 (driving age)
 nonmotorized,se.access_walk.O,,0.585,Interzonal walk accessibility
 nonmotorized,Constant,,-2.709,Estimated constant
-nonmotorized,Constant,,-0.1793,Calibration constant
+nonmotorized,Constant,,-0.5151,Calibration constant
