@@ -4,13 +4,6 @@
 
 Macro "Skimming" (Args)
 
-    feedback_iteration = Args.FeedbackIteration
-
-    if feedback_iteration > 1 then do
-        RunMacro("Calculate Bus Speeds", Args)
-        RunMacro("Update Link Networks", Args)
-        RunMacro("Create Route Networks", Args)
-    end
     RunMacro("Roadway Skims", Args)
     RunMacro("Create Average Roadway Skims", Args)
     RunMacro("Transit Skims", Args)
@@ -36,7 +29,7 @@ Macro "Update Link Networks" (Args)
         obj = CreateObject("Network.Update")
         obj.LayerDB = hwy_dbd
         obj.Network = file
-        obj.UpdateLinkField({Name: "MSATime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
+        obj.UpdateLinkField({Name: "CongTime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
         obj.Run()
     end
 endmacro
@@ -82,9 +75,7 @@ Macro "Roadway Skims" (Args, OtherOpts)
             obj.LayerDB = link_dbd
             obj.Origins = "Centroid = 1" 
             obj.Destinations = "Centroid = 1"
-            if feedback_iteration = 1
-                then obj.Minimize = "CongTime"
-                else obj.Minimize = "MSATime"
+            obj.Minimize = "CongTime"
             obj.AddSkimField({"Length", "All"})
             toll_field = "TollCost" + Upper(mode)
             obj.AddSkimField({toll_field, "All"})
@@ -96,13 +87,6 @@ Macro "Roadway Skims" (Args, OtherOpts)
                 Matrix: label
             })
             ret_value = obj.Run()
-
-            // Rename time core to always be "CongTime"
-            if feedback_iteration > 1 then do
-                m = CreateObject("Matrix", out_file)
-                m.RenameCores({CurrentNames: {"MSATime"}, NewNames: {"CongTime"}})
-                m = null
-            end
 
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")

@@ -189,7 +189,7 @@ EndMacro
 
 Macro "Post Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Update Link Congested Times"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"Post Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
@@ -208,7 +208,6 @@ Body:
     // Add any periods that converged to the list of converged periods
     for period in periods do
         prmse = Args.(period + "_PRMSE")
-        if iter = 1 then continue
         if prmse <= target_prmse or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
