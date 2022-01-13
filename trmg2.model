@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"NonMotorized Choice","Skimming","Initial Processsing"},{"Summaries","Time of Day","Generation Models"},)
+    model = FlowChart({"Skimming","Initial Processsing","Aggregation"},{"Summaries","Time of Day","NonMotorized Models"},)
     //
     // Nodes
     //
@@ -23,11 +23,11 @@ Body:
     FlowChartNode(model,"Convergence",,,)
     FlowChartNode(model,"Choice Models",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
-    FlowChartNode(model,"NonMotorized Choice",,,)
     FlowChartNode(model,"Initial Processsing",,,)
     FlowChartNode(model,"Time of Day",,,)
     FlowChartNode(model,"Aggregation",,,)
     FlowChartNode(model,"Generation Models",,,)
+    FlowChartNode(model,"NonMotorized Models",,,)
     //
     // Links
     //
@@ -37,11 +37,11 @@ Body:
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     FlowChartLink(model,"Convergence","Transit Assignment",2,,)
     FlowChartLink(model,"Convergence","Skimming",True,,1)
-    FlowChartLink(model,"NonMotorized Choice","Aggregation",True,,)
     FlowChartLink(model,"Choice Models","Roadway Assignment",True,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Aggregation","Time of Day",True,,)
     FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
+    FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
     Return(model)
 EndMacro
 
@@ -62,7 +62,7 @@ EndMacro
 
 Macro "NonMotorized Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonMotorized"}},
+                  {"MacroNames",{"NonMotorized Choice"}},
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
@@ -489,6 +489,42 @@ Body:
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"Home-based Productions","Special Markets Generation",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "NM Distribution" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NM Distribution"}}}
+EndMacro
+
+
+Macro "NM Time-of-Day" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NM Time-of-Day"}}}
+EndMacro
+
+
+Macro "NonMotorized Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"NonMotorized Choice"},{"NM Time-of-Day"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"NonMotorized Choice",,,)
+    FlowChartNode(model,"NM Distribution",,,)
+    FlowChartNode(model,"NM Time-of-Day",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"NonMotorized Choice","NM Distribution",True,,)
+    FlowChartLink(model,"NM Distribution","NM Time-of-Day",True,,)
     Return(model)
 EndMacro
 
