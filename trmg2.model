@@ -11,14 +11,12 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processsing","Roadway Assignment"},{"Summaries","Special Market DC & MC"},)
+    model = FlowChart({"Initial Processsing"},{"Summaries"},)
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
-    FlowChartNode(model,"Summaries",,,)
-    FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"Convergence",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
     FlowChartNode(model,"Initial Processsing",,,)
@@ -29,13 +27,16 @@ Body:
     FlowChartNode(model,"Home-based Choice Models",,,)
     FlowChartNode(model,"Non-Home-based Models",,,)
     FlowChartNode(model,"Special Market DC & MC",,,)
+    FlowChartNode(model,"Peak Hour Roadway Assignment",,,)
+    FlowChartNode(model,"Transit Assignment",,,)
+    FlowChartNode(model,"Summaries",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Transit Assignment","Summaries",True,,)
-    FlowChartLink(model,"Convergence","Transit Assignment",2,,)
+    FlowChartLink(model,"Convergence","Skimming",True,,1)
+    FlowChartLink(model,"Convergence","Peak Hour Roadway Assignment",2,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
     FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
@@ -44,6 +45,9 @@ Body:
     FlowChartLink(model,"Skimming","Home-based Choice Models",True,,)
     FlowChartLink(model,"Home-based Choice Models","Non-Home-based Models",True,,)
     FlowChartLink(model,"Non-Home-based Models","Special Market DC & MC",True,,)
+    FlowChartLink(model,"Special Market DC & MC","Roadway Assignment",True,,)
+    FlowChartLink(model,"Peak Hour Roadway Assignment","Transit Assignment",True,,)
+    FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     Return(model)
 EndMacro
 
@@ -76,24 +80,10 @@ Macro "Time of Day Split" (Args,Result)
 EndMacro
 
 
-Macro "Summaries" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Summaries"}},
-                  {"Picture","bmp\\planpeople_v3.bmp"}}
-EndMacro
-
-
 Macro "Parking Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Parking Model"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
-EndMacro
-
-
-Macro "Transit Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Transit Assignment"}},
-                  {"Picture","bmp\\planassignbus_v3.bmp"}}
 EndMacro
 
 
@@ -629,6 +619,104 @@ Body:
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"Airport MC","Commercial Vehicles DC",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Create Transit Matrices" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: Create Transit Matrices')
+    Return(True)
+EndMacro
+
+
+Macro "Run Transit Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: Run Transit Assignment')
+    Return(True)
+EndMacro
+
+
+Macro "Peak Hour Roadway Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}}}
+Body:
+    ShowMessage('Running: Peak Hour Roadway Assignment')
+    Return(True)
+EndMacro
+
+
+Macro "Transit Assignment" (Args,Result)
+    Attributes = {{"Description","Stage 1"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Create Transit Matrices"},{"Run Transit Assignment"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Create Transit Matrices",,,)
+    FlowChartNode(model,"Run Transit Assignment",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Create Transit Matrices","Run Transit Assignment",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Maps" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
+Body:
+    ShowMessage('Running: Maps')
+    Return(True)
+EndMacro
+
+
+Macro "Calibration Reports" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
+Body:
+    ShowMessage('Running: Calibration Reports')
+    Return(True)
+EndMacro
+
+
+Macro "Other Reports" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
+Body:
+    ShowMessage('Running: Other Reports')
+    Return(True)
+EndMacro
+
+
+Macro "Summaries" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Maps"},{"Other Reports"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Maps",,,)
+    FlowChartNode(model,"Calibration Reports",,,)
+    FlowChartNode(model,"Other Reports",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Maps","Calibration Reports",True,,)
+    FlowChartLink(model,"Calibration Reports","Other Reports",True,,)
     Return(model)
 EndMacro
 

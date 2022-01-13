@@ -351,6 +351,15 @@ Macro "Calculate Skim PRMSEs" (Args)
 endmacro
 
 /*
+Called by the flowchart to run peak hour assignment
+*/
+
+Macro "Peak Hour Roadway Assignment" (Args)
+    RunMacro("Peak Hour Assignment", Args)
+    return(1)
+endmacro
+
+/*
 This macro runs after feedback is complete. It assigns the peak hour
 of the PM period against one hour of capacity.
 */
