@@ -3,9 +3,12 @@ These models generate and distribute NHB trips based on the results of the HB
 models.
 */
 
-Macro "NonHomeBased" (Args)
-
+Macro "NHB Generation by Mode" (Args)
     RunMacro("NHB Generation", Args)
+    return(1)
+endmacro
+
+Macro "NHB Destination Choice" (Args)
     RunMacro("NHB DC", Args)
     return(1)
 endmacro
