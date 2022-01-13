@@ -135,7 +135,7 @@
 
     Section = "Parking Model|Coefficients"
     
-        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-0.4050,-0.4050,-0.2200,-0.2200}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
+        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.820,-2.820,-2.730,-2.730}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
 
     Section = "Parking Model|Output"
     
