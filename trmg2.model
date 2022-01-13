@@ -82,21 +82,21 @@ EndMacro
 
 Macro "Parking Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Parking Model"}},
+                  {"MacroNames",{"Parking Probabilities"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Mode Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Mode Choice"}},
+                  {"MacroNames",{"Mode Probabilities"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Destination Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Destination Choice"}},
+                  {"MacroNames",{"Destination Probabilities"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
@@ -618,26 +618,20 @@ EndMacro
 
 
 Macro "Create Transit Matrices" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Create Transit Matrices')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Create Transit Matrices"}}}
 EndMacro
 
 
 Macro "Run Transit Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Run Transit Assignment')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Run Transit Assignment"}}}
 EndMacro
 
 
 Macro "Peak Hour Roadway Assignment" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Peak Hour Roadway Assignment')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Peak Hour Roadway Assignment"}}}
 EndMacro
 
 
@@ -665,28 +659,22 @@ EndMacro
 
 Macro "Maps" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Maps"}},
                   {"Picture","bmp\\planpeople_v3.bmp"}}
-Body:
-    ShowMessage('Running: Maps')
-    Return(True)
 EndMacro
 
 
 Macro "Calibration Reports" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Calibration Reports"}},
                   {"Picture","bmp\\planpeople_v3.bmp"}}
-Body:
-    ShowMessage('Running: Calibration Reports')
-    Return(True)
 EndMacro
 
 
 Macro "Other Reports" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Other Reports"}},
                   {"Picture","bmp\\planpeople_v3.bmp"}}
-Body:
-    ShowMessage('Running: Other Reports')
-    Return(True)
 EndMacro
 
 

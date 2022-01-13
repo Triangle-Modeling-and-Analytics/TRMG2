@@ -7,8 +7,8 @@ Macro "Create Transit Matrices" (Args)
     return(1)
 endmacro
 
-Macro "Transit Assignment" (Args)
-    RunMacro("Run Transit Assignment", Args)
+Macro "Run Transit Assignment" (Args)
+    RunMacro("Transit Assignment", Args)
     return(1)
 endmacro
 
@@ -103,7 +103,7 @@ endmacro
 
 */
 
-Macro "Run Transit Assignment" (Args)
+Macro "Transit Assignment" (Args)
 
     rts_file = Args.Routes
     out_dir = Args.[Output Folder]
