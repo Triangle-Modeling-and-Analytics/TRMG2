@@ -3,6 +3,12 @@ CV productions
 Attractions are the same as productions
 */
 
+Macro "Commercial Vehicles" (Args)
+    RunMacro("CV Productions/Attractions", Args)
+    RunMacro("CV TOD", Args)
+    return(1)
+endmacro
+
 Macro "CV Productions/Attractions" (Args)
 
     se_file = Args.SE

@@ -362,26 +362,20 @@ EndMacro
 
 
 Macro "Airport" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Airport')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Airport"}}}
 EndMacro
 
 
 Macro "Externals" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Externals')
-    Return(True)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Externals"}}}
 EndMacro
 
 
-Macro "Commerical Vehicles" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}}}
-Body:
-    ShowMessage('Running: Commerical Vehicles')
-    Return(True)
+Macro "Commercial Vehicles" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Commercial Vehicles"}}}
 EndMacro
 
 
@@ -389,7 +383,7 @@ Macro "Special Markets Generation" (Args,Result)
     Attributes = {{"Description","Stage 1"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Airport"},{"Commerical Vehicles"},"Group steps")
+    model = FlowChart({"Airport"},{"Commercial Vehicles"},"Group steps")
     //
     // Nodes
     //
@@ -397,14 +391,14 @@ Body:
     //
     FlowChartNode(model,"Airport",,,)
     FlowChartNode(model,"Externals",,,)
-    FlowChartNode(model,"Commerical Vehicles",,,)
+    FlowChartNode(model,"Commercial Vehicles",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"Airport","Externals",True,,)
-    FlowChartLink(model,"Externals","Commerical Vehicles",True,,)
+    FlowChartLink(model,"Externals","Commercial Vehicles",True,,)
     Return(model)
 EndMacro
 
