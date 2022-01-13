@@ -113,13 +113,18 @@ EndMacro
 
 macro "Model.OnModelLoad" (Args, Results)
 Body:
+    // Compile source code
     flowchart = RunMacro("GetFlowChart")
     { drive , path , name , ext } = SplitPath(flowchart.UI)
     rootFolder = drive + path
-
     ui_DB = rootFolder + "src\\trmg2.dbd"
     srcFile = rootFolder + "src\\_TRMCompile.lst"
     RunMacro("CompileGISDKCode", {Source: srcFile, UIDB: ui_DB, Silent: 0, ErrorMessage: "Error compiling code"})
+
+    // Make sure units are miles
+    SetMapUnits("Miles")
+    shared d_map_units
+    d_map_units = "Miles"
 endmacro 
 
 Macro "Model.OnModelReady" (Args,Result)

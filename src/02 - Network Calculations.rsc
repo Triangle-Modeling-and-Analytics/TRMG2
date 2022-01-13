@@ -423,19 +423,24 @@ Macro "Capacity" (Args)
             factor = v_factors[i]
         
             for dir in a_dir do
-                field_name = dir + period + "Cap" + los
+                hourly_field_name = dir + period + "Cap" + los + "_h"
+                period_field_name = dir + period + "Cap" + los
                 a_fields = {
-                    {field_name, "Integer", 10,,,,, "hourly los " + los + " capacity per lane"}
+                    {hourly_field_name , "Integer", 10,,,,, "Hourly LOS " + los + " Capacity"},
+                    {period_field_name, "Integer", 10,,,,, "Period LOS " + los + " Capacity"}
                 }
                 RunMacro("Add Fields", {view: link_lyr, a_fields: a_fields})
 
-                v_hourly = GetDataVector(link_lyr + "|", "cap" + Lower(los) + "_phpl", )
+                v_phpl = GetDataVector(link_lyr + "|", "cap" + Lower(los) + "_phpl", )
                 v_lanes = GetDataVector(link_lyr + "|", dir + "Lanes", )
-                v_period = v_hourly * factor * v_lanes
-                SetDataVector(link_lyr + "|", field_name, v_period, )
+                v_hourly = v_phpl * v_lanes
+                v_period = v_hourly * factor
+                data.(hourly_field_name) = v_hourly
+                data.(period_field_name) = v_period
             end
         end
     end
+    SetDataVectors(link_lyr + "|", data, )
 
     CloseMap(map)
 endmacro
@@ -879,6 +884,7 @@ Macro "Check Highway Networks" (Args)
         mh = null
         CloseView(se_vw)
         OtherOpts.od_mtx = mtx_file
+        OtherOpts.test = "true"
         OtherOpts.assign_iters = 1
         RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end

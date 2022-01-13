@@ -656,7 +656,6 @@ Macro "Calculate Parking Cores" (MacroOpts)
         auto_core + "_parkshuttle_topark",
         auto_core + "_parkshuttle_frompark"
     })
-
 endmacro
 
 /*
