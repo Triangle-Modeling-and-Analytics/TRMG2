@@ -3,19 +3,25 @@ After the model is finished, these macros summarize the results into maps
 and tables.
 */
 
-Macro "Summaries" (Args)
-
+Macro "Maps" (Args)
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
-    RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
+    return(1)
+endmacro
+
+Macro "Calibration Reports" (Args)
+    RunMacro("Count PRMSEs", Args)
+    return(1)
+endmacro
+
+Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
     RunMacro("Transit Summary", Args)
-
     return(1)
 endmacro
 

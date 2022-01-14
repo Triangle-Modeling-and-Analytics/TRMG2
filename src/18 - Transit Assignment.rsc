@@ -2,10 +2,13 @@
 
 */
 
-Macro "Transit Assignment" (Args)
-    RunMacro("Peak Hour Assignment", Args)
-    RunMacro("Create Transit Matrices", Args)
-    RunMacro("Run Transit Assignment", Args)
+Macro "Create Transit Matrices" (Args)
+    RunMacro("Create Transit Matrices2", Args)
+    return(1)
+endmacro
+
+Macro "Run Transit Assignment" (Args)
+    RunMacro("Transit Assignment", Args)
     return(1)
 endmacro
 
@@ -13,7 +16,7 @@ endmacro
 
 */
 
-Macro "Create Transit Matrices" (Args)
+Macro "Create Transit Matrices2" (Args)
 
     trn_dir = Args.[Output Folder] + "/assignment/transit"
     trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
@@ -100,7 +103,7 @@ endmacro
 
 */
 
-Macro "Run Transit Assignment" (Args)
+Macro "Transit Assignment" (Args)
 
     rts_file = Args.Routes
     out_dir = Args.[Output Folder]

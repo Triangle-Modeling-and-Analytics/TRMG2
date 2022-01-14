@@ -1,11 +1,10 @@
-Macro "Parking Model"(Args)
+Macro "Parking Probabilities"(Args)
 
     RunMacro("Parking Availability", Args)
     RunMacro("Parking Destination Choice", Args)
     RunMacro("Parking Destination Logsums", Args)
     RunMacro("Parking Mode Choice", Args)
     Return(1)
-
 endMacro
 
 

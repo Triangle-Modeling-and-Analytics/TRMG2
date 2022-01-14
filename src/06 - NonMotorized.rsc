@@ -1,16 +1,21 @@
 /*
 
 */
-
-Macro "NonMotorized" (Args)
-
+Macro "NonMotorized Choice" (Args)
     RunMacro("Create NonMotorized Features", Args)
     RunMacro("Calculate NM Probabilities", Args)
     RunMacro("Separate NM Trips", Args)
     RunMacro("Aggregate HB NonMotorized Walk Trips", Args)
-    RunMacro("NM Gravity", Args)
-    RunMacro("NM TOD", Args)
+    return(1)
+endmacro
 
+Macro "NM Distribution" (Args)
+    RunMacro("NM Gravity", Args)
+    return(1)
+endmacro
+
+Macro "NM Time-of-Day" (Args)
+    RunMacro("NM TOD", Args)
     return(1)
 endmacro
 
