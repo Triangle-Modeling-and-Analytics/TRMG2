@@ -4,6 +4,7 @@
 
 Macro "Create Transit Matrices" (Args)
     RunMacro("Create Transit Matrices2", Args)
+    RunMacro("Flip Transit Matrices", Args)
     return(1)
 endmacro
 
@@ -97,6 +98,49 @@ Macro "Create Transit Matrices2" (Args)
     end
 
     //TODO: add university transit trips
+endmacro
+
+/*
+Applies rough directionality to transit by time period.
+
+AM: stays in PA format
+PM: flips to AP format
+MD/NT: (PA + AP) / 2
+*/
+
+Macro "Flip Transit Matrices" (Args)
+    
+    trn_dir = Args.[Output Folder] + "/assignment/transit"
+    periods = Args.periods
+
+    for period in periods do
+        
+        // Don't modify the AM period
+        if period = "AM" then continue
+
+        out_file = trn_dir + "/transit_" + period + ".mtx"
+        
+        if period = "PM" then do
+            RunMacro("Transpose Matrix", out_file, "PM transit trips flipped to AP")
+        end
+
+        if period = "MD" or period = "NT" then do
+            t_file = Substitute(out_file, ".mtx", "_t.mtx", )
+            CopyFile(out_file, t_file)
+            RunMacro("Transpose Matrix", t_file, "temp transposed matrix")
+            out_mtx = CreateObject("Matrix", out_file)
+            core_names = out_mtx.GetCoreNames()
+            t_mtx = CreateObject("Matrix", t_file)
+            for core_name in core_names do
+                out_core = out_mtx.GetCore(core_name)
+                t_core = t_mtx.GetCore(core_name)
+                out_core := (out_core + t_core) / 2
+            end
+            t_core = null
+            t_mtx = null
+            DeleteFile(t_file)
+        end
+    end
 endmacro
 
 /*
