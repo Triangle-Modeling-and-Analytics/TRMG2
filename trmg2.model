@@ -61,7 +61,7 @@ EndMacro
 
 Macro "Home-based Productions" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Resident Productions"}},
+                  {"MacroNames",{"Home-based Productions"}},
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
