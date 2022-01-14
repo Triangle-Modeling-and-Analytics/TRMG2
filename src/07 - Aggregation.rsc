@@ -3,7 +3,7 @@ Summarizes the results of the disaggregate models in order to transition to
 the aggregate components.
 */
 
-Macro "Aggregation" (Args)
+Macro "Aggregation to Zones" (Args)
 
     RunMacro("Aggregate HB Moto Trips", Args)
     return(1)

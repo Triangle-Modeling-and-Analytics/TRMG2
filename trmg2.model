@@ -11,43 +11,44 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Network Processing"},{"Summaries"},)
+    model = FlowChart({"Initial Processsing"},{"Summaries"},)
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
-    FlowChartNode(model,"Summaries",,,)
-    FlowChartNode(model,"Skimming",,,)
-    FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"Convergence",,,)
-    FlowChartNode(model,"Network Processing",,,)
-    FlowChartNode(model,"Disaggregate Models",,,)
-    FlowChartNode(model,"Pre Feedback",,,)
-    FlowChartNode(model,"Choice Models",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
+    FlowChartNode(model,"Initial Processsing",,,)
+    FlowChartNode(model,"Generation Models",,,)
+    FlowChartNode(model,"NonMotorized Models",,,)
+    FlowChartNode(model,"Time of Day",,,)
+    FlowChartNode(model,"Skimming",,,)
+    FlowChartNode(model,"Home-based Choice Models",,,)
+    FlowChartNode(model,"Non-Home-based Models",,,)
+    FlowChartNode(model,"Special Market DC & MC",,,)
+    FlowChartNode(model,"Hourly Roadway Assignment",,,)
+    FlowChartNode(model,"Transit Assignment",,,)
+    FlowChartNode(model,"Summaries",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Skimming","Choice Models",True,,)
-    FlowChartLink(model,"Transit Assignment","Summaries",True,,)
-    FlowChartLink(model,"Convergence","Transit Assignment",2,,)
     FlowChartLink(model,"Convergence","Skimming",True,,1)
-    FlowChartLink(model,"Network Processing","Disaggregate Models",True,,)
-    FlowChartLink(model,"Disaggregate Models","Pre Feedback",True,,)
-    FlowChartLink(model,"Pre Feedback","Skimming",True,,)
-    FlowChartLink(model,"Choice Models","Roadway Assignment",True,,)
+    FlowChartLink(model,"Convergence","Hourly Roadway Assignment",2,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
+    FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
+    FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
+    FlowChartLink(model,"NonMotorized Models","Time of Day",True,,)
+    FlowChartLink(model,"Time of Day","Skimming",True,,)
+    FlowChartLink(model,"Skimming","Home-based Choice Models",True,,)
+    FlowChartLink(model,"Home-based Choice Models","Non-Home-based Models",True,,)
+    FlowChartLink(model,"Non-Home-based Models","Special Market DC & MC",True,,)
+    FlowChartLink(model,"Special Market DC & MC","Roadway Assignment",True,,)
+    FlowChartLink(model,"Hourly Roadway Assignment","Transit Assignment",True,,)
+    FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     Return(model)
-EndMacro
-
-
-Macro "Network Calculations" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Network Calculations"}},
-                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
@@ -58,112 +59,80 @@ Macro "Accessibility" (Args,Result)
 EndMacro
 
 
-Macro "Population Synthesis" (Args,Result)
+Macro "Home-based Productions" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Population Synthesis"}},
+                  {"MacroNames",{"Home-based Productions"}},
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
-EndMacro
-
-
-Macro "Resident Productions" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Resident Productions"}}, {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "NonMotorized Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonMotorized"}}, {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"MacroNames",{"NonMotorized Choice"}},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
 EndMacro
 
 
-Macro "Time of Day" (Args,Result)
+Macro "Time of Day Split" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Time of Day"}}, {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"MacroNames",{"Time of Day Split"}},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
 EndMacro
 
 
-Macro "Summaries" (Args,Result)
+Macro "Parking Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Summaries"}}, {"Picture","bmp\\planpeople_v3.bmp"}}
+                  {"MacroNames",{"Parking Probabilities"}},
+                  {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
-Macro "Parking Model" (Args,Result)
+Macro "Mode Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Parking Model"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
+                  {"MacroNames",{"Mode Probabilities"}},
+                  {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
-Macro "Skimming" (Args,Result)
+Macro "Destination Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Skimming"}}, {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"MacroNames",{"Destination Probabilities"}},
+                  {"Picture","bmp\\planmodesplit_v3.bmp"}}
 EndMacro
 
 
-Macro "Transit Assignment" (Args,Result)
+Macro "Aggregation to Zones" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Transit Assignment"}}, {"Picture","bmp\\planassignbus_v3.bmp"}}
-EndMacro
-
-
-Macro "NonResident Generation" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident Generation"}}, {"Picture","bmp\\planskim_v3.bmp"}}
-EndMacro
-
-
-Macro "Mode Choice" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Mode Choice"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
-EndMacro
-
-
-Macro "NonResident DC and MC" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonResident DC and MC"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
-EndMacro
-
-
-Macro "Destination Choice" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Destination Choice"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
-EndMacro
-
-
-Macro "Aggregation" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Aggregation"}}, {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"MacroNames",{"Aggregation to Zones"}},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
 EndMacro
 
 
 Macro "Create Assignment Matrices" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Create Assignment Matrices"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
-EndMacro
-
-
-Macro "NonHomeBased" (Args,Result)
-    Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NonHomeBased"}}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
+                  {"MacroNames",{"Create Assignment Matrices"}},
+                    {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "Pre Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Pre Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"Pre Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "AM Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"AM Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"AM Roadway Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "MD Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"MD Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"MD Roadway Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
@@ -177,19 +146,22 @@ EndMacro
 
 Macro "PM Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"PM Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"PM Roadway Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "NT Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NT Roadway Assignment"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"NT Roadway Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "Post Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Update Link Congested Times"}}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+                  {"MacroNames",{"Post Assignment"}},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
@@ -205,11 +177,9 @@ Body:
     mr = CreateObject("Model.Runtime")
     periods = mr.RunCode("Get Unconverged Periods", Args)
 
-    // periods = RunMacro("Get Unconverged Periods", Args)
-
+    // Add any periods that converged to the list of converged periods
     for period in periods do
         prmse = Args.(period + "_PRMSE")
-        if iter = 1 then continue
         if prmse <= target_prmse or iter >= max_iters 
             then Args.converged_periods = Args.converged_periods + {period}
     end
@@ -227,107 +197,9 @@ Macro "Link.Convergence.Transit Assignm" (Args,Result)
 EndMacro
 
 
-Macro "Link.Convergence.Skimming" (Args,Result)
-    Attributes = {{"Run_Condition","Result = 1"}}
-EndMacro
-
-
-Macro "Network Processing" (Args,Result)
-    Attributes = {{"Description","Stage 1"}, {"Picture","bmp\\plan_config_v3.bmp"}}
-Body:
-    model = FlowChart({"Network Calculations"},{"Accessibility"},"Group steps")
-    //
-    // Nodes
-    //
-    // FlowChartNode(model,NodeName,MacroName,UI,Description)
-    //
-    FlowChartNode(model,"Network Calculations",,,)
-    FlowChartNode(model,"Accessibility",,,)
-    //
-    // Links
-    //
-    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
-    //
-    FlowChartLink(model,"Network Calculations","Accessibility",True,,)
-    Return(model)
-EndMacro
-
-
-Macro "Disaggregate Models" (Args,Result)
-    Attributes = {{"Description","Stage 2"}, {"Picture","bmp\\planlanduse_v3.bmp"}}
-Body:
-    model = FlowChart({"Population Synthesis"},{"NonMotorized Choice"},"Group steps")
-    //
-    // Nodes
-    //
-    // FlowChartNode(model,NodeName,MacroName,UI,Description)
-    //
-    FlowChartNode(model,"Population Synthesis",,,)
-    FlowChartNode(model,"Resident Productions",,,)
-    FlowChartNode(model,"NonMotorized Choice",,,)
-    //
-    // Links
-    //
-    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
-    //
-    FlowChartLink(model,"Population Synthesis","Resident Productions",True,,)
-    FlowChartLink(model,"Resident Productions","NonMotorized Choice",True,,)
-    Return(model)
-EndMacro
-
-
-Macro "Pre Feedback" (Args,Result)
-    Attributes = {{"Description","Stage 3"}, {"Picture","bmp\\planskim_v3.bmp"}}
-Body:
-    model = FlowChart({"Aggregation"},{"NonResident Generation"},"Group steps")
-    //
-    // Nodes
-    //
-    // FlowChartNode(model,NodeName,MacroName,UI,Description)
-    //
-    FlowChartNode(model,"Time of Day",,,)
-    FlowChartNode(model,"NonResident Generation",,,)
-    FlowChartNode(model,"Aggregation",,,)
-    //
-    // Links
-    //
-    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
-    //
-    FlowChartLink(model,"Aggregation","Time of Day",True,,)
-    FlowChartLink(model,"Time of Day","NonResident Generation",True,,)
-    Return(model)
-EndMacro
-
-
-Macro "Choice Models" (Args,Result)
-    Attributes = {{"Description","Stage 4"}, {"Picture","bmp\\planmodesplit_v3.bmp"}}
-Body:
-    model = FlowChart({"Parking Model"},{"NonResident DC and MC"},"Group steps")
-    //
-    // Nodes
-    //
-    // FlowChartNode(model,NodeName,MacroName,UI,Description)
-    //
-    FlowChartNode(model,"Parking Model",,,)
-    FlowChartNode(model,"Mode Choice",,,)
-    FlowChartNode(model,"NonResident DC and MC",,,)
-    FlowChartNode(model,"Destination Choice",,,)
-    FlowChartNode(model,"NonHomeBased",,,)
-    //
-    // Links
-    //
-    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
-    //
-    FlowChartLink(model,"Parking Model","Mode Choice",True,,)
-    FlowChartLink(model,"Mode Choice","Destination Choice",True,,)
-    FlowChartLink(model,"Destination Choice","NonHomeBased",True,,)
-    FlowChartLink(model,"NonHomeBased","NonResident DC and MC",True,,)
-    Return(model)
-EndMacro
-
-
 Macro "Roadway Assignment" (Args,Result)
-    Attributes = {{"Description","Stage 5"}, {"Picture","bmp\\planassigncar_v3.bmp"}}
+    Attributes = {{"Description","Stage 5"},
+                  {"Picture","bmp\\planassigncar_v3.bmp"}}
 Body:
     model = FlowChart({"Create Assignment Matrices"},{"Post Assignment"},"Group steps")
     //
@@ -356,6 +228,520 @@ Body:
     FlowChartLink(model,"MD Assignment","Post Assignment",True,,)
     FlowChartLink(model,"PM Assignment","Post Assignment",True,,)
     FlowChartLink(model,"NT Assignment","Post Assignment",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Area Type" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Area Type"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[AreaTypes] })
+    In({ Args.[SE] })
+    Out({ Args.[SE] })
+EndMacro
+
+
+Macro "Capacities" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Capacities"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "Speeds & Tolls" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Speeds & Tolls"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "Network Creation" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Network Creation"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "Create Initial Output Files" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Create Initial Output Files"}},
+                    {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[Input Links] })
+    In({ Args.[Input Routes] })
+    In({ Args.[Input SE] })
+    In({ Args.[Input TAZs] })
+    Out({ Args.[Links] })
+    Out({ Args.[Routes] })
+    Out({ Args.[SE] })
+    Out({ Args.[TAZs] })
+EndMacro
+
+
+Macro "Disaggregate Curves" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Disaggregate Curves"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "IPU Synthesis" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"IPU Synthesis"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "Auto Ownership" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Auto Ownership"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+EndMacro
+
+
+Macro "Population Synthesis" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Disaggregate Curves"},{"Auto Ownership"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Disaggregate Curves",,,)
+    FlowChartNode(model,"IPU Synthesis",,,)
+    FlowChartNode(model,"Auto Ownership",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Disaggregate Curves","IPU Synthesis",True,,)
+    FlowChartLink(model,"IPU Synthesis","Auto Ownership",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Network Calculators" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Area Type"},{"Network Creation"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Area Type",,,)
+    FlowChartNode(model,"Capacities",,,)
+    FlowChartNode(model,"Speeds & Tolls",,,)
+    FlowChartNode(model,"Network Creation",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Area Type","Capacities",True,,)
+    FlowChartLink(model,"Capacities","Speeds & Tolls",True,,)
+    FlowChartLink(model,"Speeds & Tolls","Network Creation",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Initial Processsing" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Create Initial Output Files"},{"Population Synthesis"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Accessibility",,,)
+    FlowChartNode(model,"Population Synthesis",,,)
+    FlowChartNode(model,"Create Initial Output Files",,,)
+    FlowChartNode(model,"Network Calculators",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Accessibility","Population Synthesis",True,,)
+    FlowChartLink(model,"Create Initial Output Files","Network Calculators",True,,)
+    FlowChartLink(model,"Network Calculators","Accessibility",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Airport" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Airport"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+EndMacro
+
+
+Macro "Externals" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Externals"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+EndMacro
+
+
+Macro "Commercial Vehicles" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Commercial Vehicles"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+EndMacro
+
+
+Macro "Special Markets Generation" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Airport"},{"Commercial Vehicles"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Airport",,,)
+    FlowChartNode(model,"Externals",,,)
+    FlowChartNode(model,"Commercial Vehicles",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Airport","Externals",True,,)
+    FlowChartLink(model,"Externals","Commercial Vehicles",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Generation Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Home-based Productions"},{"Special Markets Generation"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Home-based Productions",,,)
+    FlowChartNode(model,"Special Markets Generation",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Home-based Productions","Special Markets Generation",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "NM Distribution" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NM Distribution"}},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
+EndMacro
+
+
+Macro "NM Time-of-Day" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NM Time-of-Day"}},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
+EndMacro
+
+
+Macro "NonMotorized Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"NonMotorized Choice"},{"NM Time-of-Day"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"NonMotorized Choice",,,)
+    FlowChartNode(model,"NM Distribution",,,)
+    FlowChartNode(model,"NM Time-of-Day",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"NonMotorized Choice","NM Distribution",True,,)
+    FlowChartLink(model,"NM Distribution","NM Time-of-Day",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Time of Day" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Aggregation to Zones"},{"Time of Day Split"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Time of Day Split",,,)
+    FlowChartNode(model,"Aggregation to Zones",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Aggregation to Zones","Time of Day Split",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Roadway Skims" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Roadway Skims"}},
+                  {"Picture","bmp/planskim_v3.bmp"}}
+EndMacro
+
+
+Macro "Transit Skims" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Transit Skims"}},
+                  {"Picture","bmp/planskim_v3.bmp"}}
+EndMacro
+
+
+Macro "Skimming" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planskim_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Roadway Skims"},{"Transit Skims"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Roadway Skims",,,)
+    FlowChartNode(model,"Transit Skims",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Roadway Skims","Transit Skims",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Application of Probabilities" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Application of Probabilities"}},
+                    {"Picture","bmp/planmodesplit_v3.bmp"}}
+EndMacro
+
+
+Macro "Home-based Choice Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Parking Probabilities"},{"Application of Probabilities"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Parking Probabilities",,,)
+    FlowChartNode(model,"Mode Probabilities",,,)
+    FlowChartNode(model,"Destination Probabilities",,,)
+    FlowChartNode(model,"Application of Probabilities",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Parking Probabilities","Mode Probabilities",True,,)
+    FlowChartLink(model,"Mode Probabilities","Destination Probabilities",True,,)
+    FlowChartLink(model,"Destination Probabilities","Application of Probabilities",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "NHB Generation by Mode" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NHB Generation by Mode"}},
+                  {"Picture","bmp/plantour_v3.bmp"}}
+EndMacro
+
+
+Macro "NHB Destination Choice" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"NHB Destination Choice"}},
+                  {"Picture","bmp/plantour_v3.bmp"}}
+EndMacro
+
+
+Macro "Non-Home-based Models" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/plantour_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"NHB Generation by Mode"},{"NHB Destination Choice"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"NHB Generation by Mode",,,)
+    FlowChartNode(model,"NHB Destination Choice",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"NHB Generation by Mode","NHB Destination Choice",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Airport MC" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Airport MC"}},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
+EndMacro
+
+
+Macro "Commercial Vehicles DC" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Commercial Vehicles DC"}},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
+EndMacro
+
+
+Macro "Special Market DC & MC" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Airport MC"},{"Commercial Vehicles DC"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Airport MC",,,)
+    FlowChartNode(model,"Commercial Vehicles DC",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Airport MC","Commercial Vehicles DC",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Create Transit Matrices" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Create Transit Matrices"}},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
+EndMacro
+
+
+Macro "Run Transit Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Run Transit Assignment"}},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
+EndMacro
+
+
+Macro "Hourly Roadway Assignment" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Peak Hour Roadway Assignment"}},
+                    {"Picture","bmp\\planassigncar_v3.bmp"}}
+EndMacro
+
+
+Macro "Transit Assignment" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Create Transit Matrices"},{"Run Transit Assignment"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Create Transit Matrices",,,)
+    FlowChartNode(model,"Run Transit Assignment",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Create Transit Matrices","Run Transit Assignment",True,,)
+    Return(model)
+EndMacro
+
+
+Macro "Maps" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Maps"}},
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
+EndMacro
+
+
+Macro "Calibration Reports" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Calibration Reports"}},
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
+EndMacro
+
+
+Macro "Other Reports" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"Other Reports"}},
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
+EndMacro
+
+
+Macro "Summaries" (Args,Result)
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
+Body:
+    // model = FlowChart( { StartNodes } , { EndNodes } , Description)
+    model = FlowChart({"Maps"},{"Other Reports"},"Group steps")
+    //
+    // Nodes
+    //
+    // FlowChartNode(model,NodeName,MacroName,UI,Description)
+    //
+    FlowChartNode(model,"Maps",,,)
+    FlowChartNode(model,"Calibration Reports",,,)
+    FlowChartNode(model,"Other Reports",,,)
+    //
+    // Links
+    //
+    // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
+    //
+    FlowChartLink(model,"Maps","Calibration Reports",True,,)
+    FlowChartLink(model,"Calibration Reports","Other Reports",True,,)
     Return(model)
 EndMacro
 

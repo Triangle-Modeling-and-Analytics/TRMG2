@@ -2,8 +2,7 @@
 
 */
 
-Macro "Resident Productions" (Args)
-
+Macro "Home-based Productions" (Args)
     RunMacro("Create Production Features", Args)
     RunMacro("Apply Production Rates", Args)
     RunMacro("Apply Calibration Factors", Args)
@@ -142,12 +141,12 @@ Macro "Apply Rates with Queries" (MacroOpts)
         
         if i = v_type.length or type <> v_type[i + 1] then do
             e_field = CreateExpression(view, "expr", expression, {Type: "Real"})
-            v = GetDataVector(view + "|", e_field, )
-            SetDataVector(view + "|", type, v, )
+            data.(type) = GetDataVector(view + "|", e_field, )
             e_spec = GetFieldFullSpec(view, e_field)
             DestroyExpression(e_spec)
         end
     end
+    SetDataVectors(view + "|", data, )
 
     CloseView(view)
 endmacro

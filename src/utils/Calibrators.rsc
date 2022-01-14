@@ -99,7 +99,7 @@ Macro "Calibrate AO" (Args)
     while iter <= max_iterations do
         
         // Run model
-        RunMacro("Auto Ownership", Args)
+        RunMacro("Calculate Auto Ownership", Args)
 
         // Calculate deltas and gaps
         hh_vw = OpenTable("hh", "FFB", {hh_file})
