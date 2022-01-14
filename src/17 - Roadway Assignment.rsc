@@ -330,7 +330,7 @@ Macro "Calculate Skim PRMSEs" (Args)
         opts.period = period
         opts.mode = mode
         opts.out_file = assn_dir + "\\post_assignment_skim_" + period + ".mtx"
-        RunMacro("Roadway Skims", Args, opts)
+        RunMacro("Create Roadway Skims", Args, opts)
 
         // Calculate matrix %RMSE
         old_skim_file = Args.[Output Folder] + "/skims/roadway/skim_" + mode + "_" + period + ".mtx"
