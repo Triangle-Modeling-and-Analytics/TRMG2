@@ -27,7 +27,7 @@ Body:
     FlowChartNode(model,"Home-based Choice Models",,,)
     FlowChartNode(model,"Non-Home-based Models",,,)
     FlowChartNode(model,"Special Market DC & MC",,,)
-    FlowChartNode(model,"Peak Hour Roadway Assignment",,,)
+    FlowChartNode(model,"Hourly Roadway Assignment",,,)
     FlowChartNode(model,"Transit Assignment",,,)
     FlowChartNode(model,"Summaries",,,)
     //
@@ -36,7 +36,7 @@ Body:
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
     FlowChartLink(model,"Convergence","Skimming",True,,1)
-    FlowChartLink(model,"Convergence","Peak Hour Roadway Assignment",2,,)
+    FlowChartLink(model,"Convergence","Hourly Roadway Assignment",2,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
     FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
     FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
@@ -46,7 +46,7 @@ Body:
     FlowChartLink(model,"Home-based Choice Models","Non-Home-based Models",True,,)
     FlowChartLink(model,"Non-Home-based Models","Special Market DC & MC",True,,)
     FlowChartLink(model,"Special Market DC & MC","Roadway Assignment",True,,)
-    FlowChartLink(model,"Peak Hour Roadway Assignment","Transit Assignment",True,,)
+    FlowChartLink(model,"Hourly Roadway Assignment","Transit Assignment",True,,)
     FlowChartLink(model,"Transit Assignment","Summaries",True,,)
     Return(model)
 EndMacro
@@ -69,14 +69,14 @@ EndMacro
 Macro "NonMotorized Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NonMotorized Choice"}},
-                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"Picture","bmp\\planwork_v3.bmp"}}
 EndMacro
 
 
 Macro "Time of Day Split" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Time of Day Split"}},
-                  {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
 EndMacro
 
 
@@ -104,7 +104,7 @@ EndMacro
 Macro "Aggregation to Zones" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Aggregation to Zones"}},
-                  {"Picture","bmp\\planskim_v3.bmp"}}
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
 EndMacro
 
 
@@ -234,61 +234,76 @@ EndMacro
 
 Macro "Area Type" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Area Type"}}}
+                  {"MacroNames",{"Area Type"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 Data:
     In({ Args.[AreaTypes] })
+    In({ Args.[SE] })
     Out({ Args.[SE] })
 EndMacro
 
 
 Macro "Capacities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Capacities"}}}
+                  {"MacroNames",{"Capacities"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "Speeds & Tolls" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Speeds & Tolls"}}}
+                  {"MacroNames",{"Speeds & Tolls"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "Network Creation" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Network Creation"}}}
+                  {"MacroNames",{"Network Creation"}},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "Create Initial Output Files" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Create Initial Output Files"}}}
+                  {"MacroNames",{"Create Initial Output Files"}},
+                    {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[Input Links] })
+    In({ Args.[Input Routes] })
+    In({ Args.[Input SE] })
+    In({ Args.[Input TAZs] })
+    Out({ Args.[Links] })
+    Out({ Args.[Routes] })
+    Out({ Args.[SE] })
+    Out({ Args.[TAZs] })
 EndMacro
 
 
 Macro "Disaggregate Curves" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Disaggregate Curves"}},
-                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "IPU Synthesis" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"IPU Synthesis"}},
-                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "Auto Ownership" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Auto Ownership"}},
-                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 EndMacro
 
 
 Macro "Population Synthesis" (Args,Result)
     Attributes = {{"Description","Stage 1"},
-                  {"Picture","bmp\\planlanduse_v3.bmp"}}
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Disaggregate Curves"},{"Auto Ownership"},"Group steps")
@@ -339,7 +354,8 @@ EndMacro
 
 
 Macro "Initial Processsing" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\plan_config_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Create Initial Output Files"},{"Population Synthesis"},"Group steps")
@@ -366,24 +382,28 @@ EndMacro
 
 Macro "Airport" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Airport"}}}
+                  {"MacroNames",{"Airport"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "Externals" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Externals"}}}
+                  {"MacroNames",{"Externals"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "Commercial Vehicles" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Commercial Vehicles"}}}
+                  {"MacroNames",{"Commercial Vehicles"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
 
 Macro "Special Markets Generation" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Airport"},{"Commercial Vehicles"},"Group steps")
@@ -407,7 +427,8 @@ EndMacro
 
 
 Macro "Generation Models" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Home-based Productions"},{"Special Markets Generation"},"Group steps")
@@ -430,18 +451,21 @@ EndMacro
 
 Macro "NM Distribution" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NM Distribution"}}}
+                  {"MacroNames",{"NM Distribution"}},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
 EndMacro
 
 
 Macro "NM Time-of-Day" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NM Time-of-Day"}}}
+                  {"MacroNames",{"NM Time-of-Day"}},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
 EndMacro
 
 
 Macro "NonMotorized Models" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planwork_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"NonMotorized Choice"},{"NM Time-of-Day"},"Group steps")
@@ -465,7 +489,8 @@ EndMacro
 
 
 Macro "Time of Day" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp\\planpeople_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Aggregation to Zones"},{"Time of Day Split"},"Group steps")
@@ -488,18 +513,21 @@ EndMacro
 
 Macro "Roadway Skims" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Roadway Skims"}}}
+                  {"MacroNames",{"Roadway Skims"}},
+                  {"Picture","bmp/planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Transit Skims" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Transit Skims"}}}
+                  {"MacroNames",{"Transit Skims"}},
+                  {"Picture","bmp/planskim_v3.bmp"}}
 EndMacro
 
 
 Macro "Skimming" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planskim_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Roadway Skims"},{"Transit Skims"},"Group steps")
@@ -522,12 +550,14 @@ EndMacro
 
 Macro "Application of Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Application of Probabilities"}}}
+                  {"MacroNames",{"Application of Probabilities"}},
+                    {"Picture","bmp/planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Home-based Choice Models" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Parking Probabilities"},{"Application of Probabilities"},"Group steps")
@@ -554,18 +584,21 @@ EndMacro
 
 Macro "NHB Generation by Mode" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NHB Generation by Mode"}}}
+                  {"MacroNames",{"NHB Generation by Mode"}},
+                  {"Picture","bmp/plantour_v3.bmp"}}
 EndMacro
 
 
 Macro "NHB Destination Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"NHB Destination Choice"}}}
+                  {"MacroNames",{"NHB Destination Choice"}},
+                  {"Picture","bmp/plantour_v3.bmp"}}
 EndMacro
 
 
 Macro "Non-Home-based Models" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/plantour_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"NHB Generation by Mode"},{"NHB Destination Choice"},"Group steps")
@@ -588,18 +621,21 @@ EndMacro
 
 Macro "Airport MC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Airport MC"}}}
+                  {"MacroNames",{"Airport MC"}},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Commercial Vehicles DC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Commercial Vehicles DC"}}}
+                  {"MacroNames",{"Commercial Vehicles DC"}},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
 EndMacro
 
 
 Macro "Special Market DC & MC" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Airport MC"},{"Commercial Vehicles DC"},"Group steps")
@@ -622,24 +658,28 @@ EndMacro
 
 Macro "Create Transit Matrices" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Create Transit Matrices"}}}
+                  {"MacroNames",{"Create Transit Matrices"}},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
 EndMacro
 
 
 Macro "Run Transit Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Run Transit Assignment"}}}
+                  {"MacroNames",{"Run Transit Assignment"}},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
 EndMacro
 
 
-Macro "Peak Hour Roadway Assignment" (Args,Result)
+Macro "Hourly Roadway Assignment" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"Peak Hour Roadway Assignment"}}}
+                  {"MacroNames",{"Peak Hour Roadway Assignment"}},
+                    {"Picture","bmp\\planassigncar_v3.bmp"}}
 EndMacro
 
 
 Macro "Transit Assignment" (Args,Result)
-    Attributes = {{"Description","Stage 1"}}
+    Attributes = {{"Description","Stage 1"},
+                  {"Picture","bmp/planassignbus_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Create Transit Matrices"},{"Run Transit Assignment"},"Group steps")
@@ -663,27 +703,27 @@ EndMacro
 Macro "Maps" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Maps"}},
-                  {"Picture","bmp\\planpeople_v3.bmp"}}
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
 EndMacro
 
 
 Macro "Calibration Reports" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Calibration Reports"}},
-                  {"Picture","bmp\\planpeople_v3.bmp"}}
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
 EndMacro
 
 
 Macro "Other Reports" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Other Reports"}},
-                  {"Picture","bmp\\planpeople_v3.bmp"}}
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
 EndMacro
 
 
 Macro "Summaries" (Args,Result)
     Attributes = {{"Description","Stage 1"},
-                  {"Picture","bmp\\planpeople_v3.bmp"}}
+                  {"Picture","bmp\\planmatrix_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Maps"},{"Other Reports"},"Group steps")
