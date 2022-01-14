@@ -42,22 +42,7 @@ EndMacro
 
 Macro "Model.OnStepStart" (Args,Result)
 Body:
-    // Initialize choice model sources object
-    flowchart = RunMacro("GetFlowChart")
-    {drive, path, name, ext} = SplitPath(flowchart.UI)
 
-    // Execute this macro just before running each step. Have to do it here because the parameters (file names/locations) could have changed.
-    Opts = null
-    Opts.MatrixSources = Args.MatrixSources
-    Opts.TableSources = Args.TableSources
-    Opts.Joins = Args.Joins
-    Opts.SourceKeys = Args.SourceKeys 
-        
-    SetLibrary(drive + path + "src/trmg2.dbd")
-    srcObj = CreateObject("Choice Model Sources", Args, Opts)
-    SetLibrary()
-
-    Args.SourcesObject = srcObj
 EndMacro
 
 
