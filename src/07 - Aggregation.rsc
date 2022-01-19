@@ -21,8 +21,12 @@ Macro "Aggregate HB Moto Trips" (Args)
     se_file = Args.SE
 
     // Join with person data and aggregate trips
-    df = CreateObject("df", per_file)
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    per_vw = OpenTable("persons", "FFB", {per_file})
+    jv = JoinViews("jv", per_vw + ".HouseholdID", hh_vw + ".HouseholdID", )
+    df = CreateObject("df", jv)
     CloseView(jv)
+    df.rename("persons_market_segment", "market_segment")
     df.group_by({"ZoneID", "market_segment"})
     trip_types = RunMacro("Get HB Trip Types", Args)
     field_names = V2A(A2V(trip_types) + "_m")
@@ -35,6 +39,8 @@ Macro "Aggregate HB Moto Trips" (Args)
             df.rename(name, new_name)
         end
     end
+    CloseView(per_vw)
+    CloseView(hh_vw)
 
     // Re-org data and append to SE    
     se_df = CreateObject("df", se_file)
