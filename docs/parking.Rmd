@@ -1,7 +1,7 @@
 ---
 title: "Parking Model"
 author: "Caliper Corporation"
-date: "August 30, 2021"
+date: "January 14, 2022"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -25,18 +25,15 @@ paid for.
 
 In the TRMG2, the results of the parking model influence both mode and
 destination choices, which means travelers react realistically to changes in
-both parking availability and price. The advanced non-home-based model also
-means that a zone with severely limited parking cannot generate many auto
-non-home-based trips. This increases model accuracy in parking-constrained areas
-like Chapel Hill.
+both parking availability and price. 
 
 ## Design
 
 The parking model is applied at the end of the demand model stream, just before
-assignment. Trip matrices in origin-destination format from the preceding
-demand models are combined across purposes maintaining only segmentation between
-trips on work tours and trips on non-work tours (and maintaining SOV and HOV for
-assignment classes – but applying the same models to them).
+assignment. Trip matrices from the preceding demand models are combined across 
+purposes maintaining only segmentation between trips on work tours and trips on 
+non-work tours (and maintaining SOV and HOV forassignment classes – but applying 
+the same models to them).
 
 The model is adapted from the one estimated as part of the 2016 Triangle Region
 Parking Behavior Study but reformulated for application in the regional model.
@@ -64,10 +61,24 @@ knitr::include_graphics("img/parking/choice_tree.png")
 The applied parking model in the TRM is a two-level, nested logit combined
 parking mode and destination choice model. Various coefficient values and
 implied values of time differ from those in the 2016 report for a number of
-reasons including that the RP to SP scaling has been applied here, these numbers
-correct an error in one table in the 2016 report, and because the values of time
-reported in the 2016 report were generally scaled in comparison to willingness
-to pay transit fare.
+reasons including that the RP to SP scaling has been applied here, the model 
+has been calibrated, and because the values of time reported in the 2016 report 
+were generally scaled in comparison to willingness to pay transit fare rather 
+than parking costs.
+
+The model was calibrated to the 2016 survey in two steps. The model's AM period 
+was calibrated since the survey only asked about the first trip of the day 
+downtown / to campus and was strongly skewed towards AM trips. First, the lower 
+level, parking destination choice was calibrated by scaling the non-size terms
+to match the observed average walk time from the survey for the park and walk
+mode which was 7.8 minutes for CBD areas and 11.25 minutes for campus areas. 
+The park and shuttle coefficients were scaled consistent with park and walk 
+rather than calibrated separately both in order to biasing the mode choice and
+because the 2016 survey would have required significant additional processing 
+to obtain the time from parking to destination for the park and shuttle mode. 
+Second, the upperl level parking mode choice was calibrated by adjusting the
+alternative specific bias constant for park and shuttle to match observed
+shares for the mode which were 6.9% for CBD areas and 14.6% for campus areas.
 
 ```{r, out.width="90%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/parking/coeffs.png")
