@@ -1164,45 +1164,75 @@ with household weights, which allowed each person to have an integer count of
 trips instead of 1.2 or 3.4. This allowed us to identify the features properly,
 but then calibration is required to scale up the trip totals as shown below.
 
-In the table below, the model results are compared to the total observed trips
-(based on trip weights). As expected, the decision trees under predict trips.
+Finally, the market segmentation created by the Auto Ownership model is not
+exactly the same as what is observed in the survey. While the share of total
+households owning 1, 2, 3, and 4+ autos is calibrated to match the survey, the
+AO model cannot guarantee that market segmentation will match. This is because
+auto sufficiency is defined by autos owned and number of adults. In other words,
+the production rate calibration factors are the first opportunity to correct
+market segmentation imbalanced introduced by the auto ownership model.
+
+In the table below, the model results are compared to the survey trips. As
+expected (due to the weighting issue above), the model underpredicts trip making.
 
 ```{r, include=FALSE}
 # Importantly, this file must be from a model run without any calibration
 # factors applied.
-model_trips <- read_csv("data/input/resident_productions/modeled_trips_uncalibrated.csv")
+model_trips <- read_csv(
+  "data/input/resident_productions/modeled_trips_uncalibrated.csv") %>%
+  pivot_longer(
+    N_HB_K12_All:W_HB_W_All, names_to = "trip_type", values_to = "model")
 ```
 
 ```{r}
 calibration_trips <- trips_df %>%
   filter(tour_type != "H" & homebased == "HB") %>%
-  group_by(trip_type) %>%
-  summarize(obs_trips = sum(trip_weight_combined) * pop_factor) %>%
-  left_join(model_trips, by = "trip_type") %>%
+  group_by(trip_type, segment = choice_segment) %>%
+  summarize(survey = sum(trip_weight_combined) * pop_factor) %>%
+  left_join(model_trips, by = c("trip_type", "segment")) %>%
+  mutate(segment2 = case_when(
+    segment == "v0" ~ "v0",
+    grepl("vi", segment) ~ "vi",
+    TRUE ~ "vs"
+  )) %>%
+  group_by(trip_type, segment = segment2) %>%
+    summarize(survey = sum(survey), model = sum(model)) %>%
   mutate(
-    diff = model_trips - obs_trips,
-    `pct_diff` = round(diff / obs_trips * 100, 1)
+    diff = model - survey,
+    `pct_diff` = round(diff / survey * 100, 1)
   ) %>%
   ungroup()
 
-total <- calibration_trips %>%
+rollup <- calibration_trips %>%
+  group_by(trip_type) %>%
   summarize(
-    trip_type = "Total",
-    obs_trips = sum(obs_trips),
-    model_trips = sum(model_trips)
+    survey = sum(survey),
+    model = sum(model)
   ) %>%
   mutate(
-    diff = model_trips - obs_trips,
-    `pct_diff` = round(diff / obs_trips * 100, 1)
+    diff = model - survey,
+    `pct_diff` = round(diff / survey * 100, 1)
+  ) %>%
+  ungroup()
+
+total <- rollup %>%
+  summarize(
+    trip_type = "All",
+    survey = sum(survey),
+    model = sum(model)
+  ) %>%
+  mutate(
+    diff = model - survey,
+    `pct_diff` = round(diff / survey * 100, 1)
   )
 
-total <- bind_rows(calibration_trips, total)
+total <- bind_rows(rollup, total)
 
 total %>%
   rename(
     `Trip Type` = trip_type,
-    Observed = obs_trips,
-    Modelled = model_trips,
+    Observed = survey,
+    Modelled = model,
     Difference = diff,
     `%Difference` = pct_diff
   ) %>%
@@ -1211,13 +1241,13 @@ total %>%
 ```
 
 The calibration factors below are the ratio of the observed to modeled trips.
-These are applied to each trip type to ensure total trip making matches the
-survey (based on trip weight).
+These are applied by trip type and segment to ensure total trip making matches
+the survey (based on trip weight).
 
 ```{r}
 calib_factors <- calibration_trips %>%
-  mutate(factor = round(obs_trips / model_trips, 4)) %>%
-  select(trip_type, factor)
+  mutate(factor = round(survey / model, 4)) %>%
+  select(trip_type, segment, factor)
 
 calib_factors %>%
   rename(`Trip Type` = trip_type, Factor = factor) %>%
