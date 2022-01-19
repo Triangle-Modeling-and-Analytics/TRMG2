@@ -103,7 +103,7 @@ Macro "Add Airport Trips" (Args)
         rh = GetFirstRecord(fac_vw + "|", )
         while rh <> null do
             trip_type2 = fac_vw.trip_type
-            if trip_type2 <> trip_type then continue
+            if trip_type2 <> trip_type then goto next_record
             sov_fac = fac_vw.sov
             hov2_fac = fac_vw.hov2
             hov3_fac = fac_vw.hov3
@@ -117,6 +117,8 @@ Macro "Add Airport Trips" (Args)
                 cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
             end
             air_mtx.DropCores({"auto_pay", "other_auto"})
+        
+        next_record: 
             rh = GetNextRecord(fac_vw + "|", rh, )
         end
         CloseView(fac_vw)
@@ -164,7 +166,8 @@ Macro "HB Collapse Auto Modes" (Args)
             mtx = CreateObject("Matrix", trip_mtx_file)
             cores = mtx.GetCores()
             for core_to_collapse in cores_to_collapse do
-                cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
+                if cores.sov <> null then
+                    cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
                 cores.hov2 := cores.hov2 + nz(cores.(core_to_collapse)) * hov2_fac
                 cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
             end
