@@ -510,7 +510,6 @@ Macro "HB Apply Parking Probabilities" (Args)
                 opts.se = Args.SE
                 RunMacro("Calculate Parking Cores", opts)
             end
-            throw()
         end
     end
 endmacro
