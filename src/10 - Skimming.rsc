@@ -26,7 +26,7 @@ Macro "Update Link Networks" (Args)
     for file in files do
         {, , name, } = SplitPath(file)
         {, period, mode} = ParseString(name, "_")
-        if period = "bike" or period = "walk" then continue
+        if Lower(period) = "bike" or Lower(period) = "walk" or Lower(period) = "pmpk" then continue
 
         obj = CreateObject("Network.Update")
         obj.LayerDB = hwy_dbd
