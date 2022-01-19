@@ -20,27 +20,8 @@ Macro "Aggregate HB Moto Trips" (Args)
     per_file = Args.Persons
     se_file = Args.SE
 
-    // Classify households by market segment
-    hh_vw = OpenTable("hh", "FFB", {hh_file})
-    a_fields = {
-        {"market_segment", "Character", 10, , , , , "Aggregate market segment this household belongs to"}
-    }
-    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
-    input = GetDataVectors(hh_vw + "|", {"HHSize", "IncomeCategory", "HHKids", "Autos"}, {OptArray: TRUE})
-    v_adults = input.HHSize - input.HHKids
-    v_sufficient = if input.Autos = 0 then "v0"
-        else if input.Autos < v_adults then "vi"
-        else "vs"
-    v_income = if input.IncomeCategory <= 2 then "il" else "ih"
-    v_market = if v_sufficient = "v0"
-        then "v0"
-        else v_income + v_sufficient
-    SetDataVector(hh_vw + "|", "market_segment", v_market, )
-
     // Join with person data and aggregate trips
-    per_vw = OpenTable("persons", "FFB", {per_file})
-    jv = JoinViews("jv", per_vw + ".HouseholdID", hh_vw + ".HouseholdID", )
-    df = CreateObject("df", jv)
+    df = CreateObject("df", per_file)
     CloseView(jv)
     df.group_by({"ZoneID", "market_segment"})
     trip_types = RunMacro("Get HB Trip Types", Args)
@@ -54,8 +35,6 @@ Macro "Aggregate HB Moto Trips" (Args)
             df.rename(name, new_name)
         end
     end
-    CloseView(per_vw)
-    CloseView(hh_vw)
 
     // Re-org data and append to SE    
     se_df = CreateObject("df", se_file)

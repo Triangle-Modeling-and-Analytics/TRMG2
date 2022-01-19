@@ -5,6 +5,7 @@
 Macro "Home-based Productions" (Args)
     RunMacro("Create Production Features", Args)
     RunMacro("Apply Production Rates", Args)
+    RunMacro("Classify Households by Market Segment", Args)
     RunMacro("Apply Calibration Factors", Args)
 
     return(1)
@@ -152,27 +153,86 @@ Macro "Apply Rates with Queries" (MacroOpts)
 endmacro
 
 /*
+
+*/
+
+Macro "Classify Households by Market Segment" (Args)
+
+    hh_file = Args.Households
+    per_file = Args.Persons
+    se_file = Args.SE
+
+    // Classify households by market segment
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    a_fields = {
+        {"market_segment", "Character", 10, , , , , "Aggregate market segment this household belongs to"}
+    }
+    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+    input = GetDataVectors(hh_vw + "|", {"HHSize", "IncomeCategory", "HHKids", "Autos"}, {OptArray: TRUE})
+    v_adults = input.HHSize - input.HHKids
+    v_sufficient = if input.Autos = 0 then "v0"
+        else if input.Autos < v_adults then "vi"
+        else "vs"
+    v_income = if input.IncomeCategory <= 2 then "il" else "ih"
+    v_market = if v_sufficient = "v0"
+        then "v0"
+        else v_income + v_sufficient
+    SetDataVector(hh_vw + "|", "market_segment", v_market, )
+
+    // Copy this segment info to the person table
+    per_vw = OpenTable("persons", "FFB", {per_file})
+    a_fields = {
+        {"market_segment", "Character", 10, , , , , "Aggregate market segment of household this person lives in"}
+    }
+    RunMacro("Add Fields", {view: per_vw, a_fields: a_fields})
+    jv = JoinViews("jv", per_vw + ".HouseholdID", hh_vw + ".HouseholdID", )
+    v = GetDataVector(jv + "|", hh_vw + ".market_segment", )
+    SetDataVector(jv + "|", per_vw + ".market_segment", v, )
+    CloseView(jv)
+    CloseView(hh_vw)
+    CloseView(per_vw)
+endmacro
+
+/*
 Apply calibration factors by trip type
 */
 
 Macro "Apply Calibration Factors" (Args)
+    
     per_file = Args.Persons
     factor_file = Args.ProdCalibFactors
     
     per_vw = OpenTable("per", "FFB", {per_file})
 
     factor_vw = OpenTable("factor", "CSV", {factor_file})
-    trip_types = GetDataVector(factor_vw + "|", "trip_type", )
-    factors = GetDataVector(factor_vw + "|", "factor", )
-    CloseView(factor_vw)
-    
-    for i = 1 to trip_types.length do
-        trip_type = trip_types[i]
-        factor = factors[i]
+    segments = GetDataVector(factor_vw + "|", "segment", )
+    unique_segments = SortVector(segments, {Unique: "true"})
 
-        v = GetDataVector(per_vw + "|", trip_type, )
-        output.(trip_type) = v * factor
+    for segment in unique_segments do
+
+        SetView(factor_vw)
+        SelectByQuery("sel", "several", "Select * where segment = '" + segment + "'")
+        trip_types = GetDataVector(factor_vw + "|sel", "trip_type", )
+        factors = GetDataVector(factor_vw + "|sel", "factor", )
+
+        SetView(per_vw)
+        query = "Select * where market_segment = '"
+        if segment = "v0" then query = query + segment + "'"
+        else query = query + "ih" + segment + "' or market_segment = '" + "il" + segment + "'"
+        n = SelectByQuery("sel", "several", query)
+        if n = 0 then Throw("no records found")
+    
+        output = null
+        for i = 1 to trip_types.length do
+            trip_type = trip_types[i]
+            factor = factors[i]
+
+            v = GetDataVector(per_vw + "|sel", trip_type, )
+            output.(trip_type) = v * factor
+        end
+        SetDataVectors(per_vw + "|sel", output, )
     end
-    SetDataVectors(per_vw + "|", output, )
+
     CloseView(per_vw)
+    CloseView(factor_vw)
 endmacro
