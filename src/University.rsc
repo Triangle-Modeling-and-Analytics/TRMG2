@@ -438,7 +438,7 @@ Macro "University MC Probabilities" (Args)
     skims_dir = Args.[Output Folder] + "\\skims"
     output_dir = Args.[Output Folder] + "\\university\\mode"
     periods = Args.periods
-    parking_logsum_table = Args.[Parking Logsums Table]
+    se_file = Args.SE
 
     RunMacro("Create Directory", output_dir)
 
@@ -458,11 +458,11 @@ Macro "University MC Probabilities" (Args)
             sov_skim = skims_dir + "\\roadway\\skim_sov_" + period + ".mtx"
             transit_skim = skims_dir + "\\transit\\skim_" + period + "_w_lb.mtx"
             walk_skim = skims_dir + "\\nonmotorized\\walk_skim.mtx"
-            /*
+            
             opts.tables = {
-                parking: {File: parking_logsum_table, IDField: "TAZ"}
+                se: {File: se_file, IDField: "TAZ"}
             }
-            */
+            
             opts.matrices = {
                 sov_skim: {File: sov_skim},
                 transit_skim: {File: transit_skim},

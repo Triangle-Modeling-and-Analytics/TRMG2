@@ -1,5 +1,6 @@
 Alternative,Expression,Segment,Coefficient,Description
 auto,sov_skim.CongTime,,-0.02,Travel Time
+auto,se.UNC_Zones.D,,-1.5,UNC -ve utility for Auto Mode
 auto,Constant,on,0,Constant
 auto,Constant,off,0,Constant
 transit,transit_skim.[In-Vehicle Time],,-0.02,IVTT
@@ -8,11 +9,12 @@ transit,transit_skim.[Access Walk Time],,-0.03,Access walk time
 transit,transit_skim.[Initial Wait Time],,-0.03,Initial wait time
 transit,transit_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 transit,transit_skim.[Egress Walk Time],,-0.03,Egress walk time
-transit,Constant,on,0,Constant
-transit,Constant,off,0,Constant
+transit,se.UNC_Zones.D,,1.5,UNC +ve utility for Transit Mode
+transit,Constant,on,-0.25,Constant
+transit,Constant,off,-0.25,Constant
 walk,walk_skim.WalkTime,,-0.03,Walk Time
-walk,Constant,on,0,Constant
-walk,Constant,off,0,Constant
+walk,Constant,on,0.75,Constant
+walk,Constant,off,0.75,Constant
 bike,walk_skim.WalkTime / 4,,-0.02,Travel Time
-bike,Constant,on,0,Constant
-bike,Constant,off,0,Constant
+bike,Constant,on,-2.65,Constant
+bike,Constant,off,-2.65,Constant
