@@ -424,12 +424,16 @@ div.tocify {
 <p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84481, with 31025 students at NCSU, 29437 at UNC, 15904 at Duke and 8115 at NCCU.</p>
 <p>The model structure segments trips into the following purposes:</p>
 <ul>
-<li>Home-Based-Campus (Home-Campus or UHC)<br />
-<em>Home-Based-Other (Home-Other or UHO)<br />
-</em>Campus-Based-Other (Campus-Other or UCO)<br />
-<em>On-Campus (On-campus or UC1)<br />
-</em>Inter-Campus (Campus-to-Campus or UCC)<br />
-*University student Other-Other (Other-to-Other or UOO)</li>
+<li>Home-Based-Campus (Home-Campus or UHC)</li>
+<li>Home-Based-Other (Home-Other or UHO)<br />
+</li>
+<li>Campus-Based-Other (Campus-Other or UCO)<br />
+</li>
+<li>On-Campus (On-campus or UC1)<br />
+</li>
+<li>Inter-Campus (Campus-to-Campus or UCC)<br />
+</li>
+<li>University student Other-Other (Other-to-Other or UOO)</li>
 </ul>
 <p>The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
 <p>The first model step is <a href="https://tfresource.org/topics/Trip_Generation.html">trip generation</a>, which estimates the number of trips by market segment and purpose as a function of observed land use characteristics. The second model step is trip distribution, which uses a common <a href="https://tfresource.org/topics/Trip_distribution.html">gravity formulation</a> with distance as the measure of impedance. A <a href="https://tfresource.org/topics/Mode_choice.html">multinomial logit mode choice model</a> is then used to segment trips by travel mode. Time of day or “diurnal” factors are used to segment trips by time and day and convert the outcomes from production-attraction to origin-destination format. The university trips are then combined with trips from other model components prior to carrying out roadway and transit assignment.</p>

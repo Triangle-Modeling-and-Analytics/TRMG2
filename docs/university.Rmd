@@ -50,12 +50,12 @@ enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollm
 
 The model structure segments trips into the following purposes:
 
-* Home-Based-Campus (Home-Campus or UHC)  
-  *Home-Based-Other (Home-Other or UHO)  
-  *Campus-Based-Other (Campus-Other or UCO)  
-  *On-Campus (On-campus or UC1)  
-  *Inter-Campus (Campus-to-Campus or UCC)  
-  *University student Other-Other (Other-to-Other or UOO)  
+* Home-Based-Campus (Home-Campus or UHC) 
+* Home-Based-Other (Home-Other or UHO)  
+* Campus-Based-Other (Campus-Other or UCO)  
+* On-Campus (On-campus or UC1)  
+* Inter-Campus (Campus-to-Campus or UCC)  
+* University student Other-Other (Other-to-Other or UOO)  
 
 The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
 
