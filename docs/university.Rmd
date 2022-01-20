@@ -51,11 +51,11 @@ enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollm
 The model structure segments trips into the following purposes:
 
 * Home-Based-Campus (Home-Campus or UHC)  
-*	Home-Based-Other (Home-Other or UHO)  
-*	Campus-Based-Other (Campus-Other or UCO)  
-*	On-Campus (On-campus or UC1)  
-*	Inter-Campus (Campus-to-Campus or UCC)  
-*	University student Other-Other (Other-to-Other or UOO)  
+  *Home-Based-Other (Home-Other or UHO)  
+  *Campus-Based-Other (Campus-Other or UCO)  
+  *On-Campus (On-campus or UC1)  
+  *Inter-Campus (Campus-to-Campus or UCC)  
+  *University student Other-Other (Other-to-Other or UOO)  
 
 The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
 
@@ -378,3 +378,48 @@ tibble(Coefficient =c("IVTT","OVTT","Cost"),Value = c(G_IVTT_Coeff,G_OVTT_Coeff,
   kable_styling(full_width = FALSE)
 ```
 
+## Calibration
+
+This section compares a few different summaries for the university model outputs to the observed data from the NCSU survey.
+
+### Trips Per Enrollment. 
+This is how the trips per enrollment compare for each campus:
+
+![](university_files/university-summary-figures/university_trips_per_student.png)
+
+
+Note that the DUKE campus shows a higher rate (trips per student) in the model output. This is because for some of the university trip purposes, the trips production model is a function of campus building sqft for the TAZ. DUKE has a higher campus bldg sqft per student (see below), resulting in the higher overall trip rate. 
+
+
+![](university_files/university-summary-figures/university_bldg_sqft_per_student.png)
+
+
+### Average Trip Length
+
+Here is how the average trip length by mode compares for simulated vs observed data: 
+
+![](university_files/university-summary-figures/university_avg_trip_length.png)
+
+### Trip Distribution
+
+The figure below compares the distance distribution of NCSU university home to campus trips:
+
+![](university_files/university-summary-figures/university_home_to_campus_dist_distribution.png)
+
+### Mode Choice
+
+Here is how the final mode share for NCSU university trips compares to observed data:
+
+![](university_files/university-summary-figures/university_mode_share_ncsu.png)
+
+Comparison of mode share for university trips by campus: 
+
+![](university_files/university-summary-figures/university_mode_share_by_campus.png)
+
+Note that the share for UNC campus is adjusted to bring down the auto share and a higher transit share based on the fact that UNC doesn’t allow parking on campus for students and therefore students have to walk or take transit. UNC transit is also one of the highest in the state per capita. Observed mode share from UNC survey ([source](https://move.unc.edu/about/publications/commuter-survey/survey-results/)): 
+
+![](university_files/university-summary-figures/unc_observed_mode_share.png)
+
+The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive `BuildingS_UNC` or positive `StudGQ_UNC`. The map below shows the identified zones for UNC mode share adjustment. 
+
+![](university_files/university-summary-figures/unc_zones_map_zoomed.png)
