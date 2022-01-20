@@ -2,23 +2,37 @@
 Handle initial steps like capacity and speed calculations.
 */
 
-Macro "Network Calculations" (Args)
-    
+Macro "Create Initial Output Files" (Args)
     created = RunMacro("Is Scenario Created", Args)
     if !created then return(0)
     RunMacro("Create Output Copies", Args)
     RunMacro("Check SE Data", Args)
+    return(1)
+EndMacro
+
+Macro "Area Type" (Args)
     RunMacro("Determine Area Type", Args)
+    return(1)
+endmacro
+
+Macro "Capacities" (Args)
     RunMacro("Capacity", Args)
+    return(1)
+endmacro
+
+Macro "Speeds & Tolls" (Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
     RunMacro("Calculate Bus Speeds", Args)
+    return(1)
+endmacro
+
+Macro "Network Creation" (Args)
     RunMacro("Create Link Networks", Args)
     RunMacro("Check Highway Networks", Args)
     RunMacro("Create Route Networks", Args)
-
     return(1)
-EndMacro
+endmacro
 
 /*
 This macro checks that the current scenario is created. If output already
@@ -884,6 +898,7 @@ Macro "Check Highway Networks" (Args)
         mh = null
         CloseView(se_vw)
         OtherOpts.od_mtx = mtx_file
+        OtherOpts.test = "true"
         OtherOpts.assign_iters = 1
         RunMacro("Run Roadway Assignment", Args, OtherOpts)
     end
@@ -978,7 +993,7 @@ Macro "Create Route Networks" (Args)
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost = 240,
-                    MaxTransfers = 4,
+                    MaxTransfers = 2,
                     VOT = .1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({

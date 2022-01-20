@@ -2200,11 +2200,10 @@ Macro "Write PRMSE" (Args, period)
   if iter = 1 then do
     f = OpenFile(file, "w")
     WriteLine(f, "Iteration,%RMSE")
-    WriteLine(f, "1,0")
-  end else do
-    f = OpenFile(file, "a")
-    WriteLine(f, String(iter) + "," + String(prmse))
+    CloseFile(f)
   end
+  f = OpenFile(file, "a")
+  WriteLine(f, String(iter) + "," + String(prmse))
   CloseFile(f)
 endmacro
 

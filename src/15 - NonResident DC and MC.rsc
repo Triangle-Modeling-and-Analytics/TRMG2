@@ -2,9 +2,7 @@
 
 */
 
-Macro "NonResident DC and MC" (Args)
-
-    RunMacro("CV Gravity", Args)
+Macro "Airport MC" (Args)
     RunMacro("Airport Mode Choice", Args)
     RunMacro("Airport Separate Auto and Transit", Args)
     RunMacro("Airport Directionality", Args)
@@ -15,5 +13,10 @@ Macro "NonResident DC and MC" (Args)
     RunMacro("University Mode Choice", Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
+    return(1)
+endmacro
+
+Macro "Commercial Vehicles DC" (Args)
+    RunMacro("CV Gravity", Args)
     return(1)
 endmacro

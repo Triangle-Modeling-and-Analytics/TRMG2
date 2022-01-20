@@ -3,9 +3,12 @@ These models generate and distribute NHB trips based on the results of the HB
 models.
 */
 
-Macro "NonHomeBased" (Args)
-
+Macro "NHB Generation by Mode" (Args)
     RunMacro("NHB Generation", Args)
+    return(1)
+endmacro
+
+Macro "NHB Destination Choice" (Args)
     RunMacro("NHB DC", Args)
     return(1)
 endmacro
@@ -94,7 +97,10 @@ Macro "NHB Generation" (Args)
             // Create period-specific generation fields
             for period in periods do
                 field_name = trip_type + "_" + mode + "_" + period
-                fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, ""}}
+                if Left(field_name, 1) = "N"
+                    then desc = "NHB trips on non-work tours"
+                    else desc = "NHB trips on work tours"
+                fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
                 
                 for i = 1 to params.length do
                     param = params[i][1]
@@ -153,7 +159,10 @@ Macro "NHB Generation" (Args)
     fields_to_add = null
     for i = 1 to summary.length do
         field_name = summary[i][1]
-        fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, ""}}
+        if Left(field_name, 1) = "N"
+            then desc = "NHB trips on non-work tours"
+            else desc = "NHB trips on work tours"
+        fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
     end
     RunMacro("Add Fields", {view: summary_vw, a_fields: fields_to_add})
     SetDataVectors(summary_vw + "|", summary, )

@@ -156,8 +156,11 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         // If doing a test assignment, just create a single class from the
         // dummy matrix
         if OtherOpts.test <> null then do
+            mtx = CreateObject("Matrix", od_mtx)
+            core_names = mtx.GetCoreNames()
+            mtx = null
             o.AddClass({
-                Demand: "TAZ",
+                Demand: core_names[1],
                 PCE: 1,
                 VOI: 1
             })
@@ -242,21 +245,35 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
         ret_value = o.Run()
         results = o.GetResults()
         /*
-        Use results.data to get rmse and other metrics:
+        Use results.data to get flow rmse and other metrics:
         results.data.[Relative Gap]
         results.data.[Maximum Flow Change]
         results.data.[MSA RMSE]
         results.data.[MSA PERCENT RMSE]
         etc.
         */
-
-        Args.(period + "_PRMSE") = results.Data.[MSA PERCENT RMSE]
-        RunMacro("Write PRMSE", Args, period)
     end
 endmacro
 
 /*
+After assignment, update congested times and networks. Updating the route networks
+and bus speeds ensures that transit is assigned using the final/converged bus speeds.
+This macro also uses the updated roadway network to check convergence based on skims.
+
+*/
+
+Macro "Post Assignment" (Args)
+    RunMacro("Update Link Congested Times", Args)
+    RunMacro("Calculate Bus Speeds", Args)
+    RunMacro("Update Link Networks", Args)
+    RunMacro("Create Route Networks", Args)
+    RunMacro("Calculate Skim PRMSEs", Args)
+    return(1)
+endmacro
+
+/*
 After assignment, this macro updates the link layer congested time fields.
+Called by the Post Assignment flowchart box.
 */
 
 Macro "Update Link Congested Times" (Args)
@@ -273,6 +290,7 @@ Macro "Update Link Congested Times" (Args)
         assn_file = assn_dir + "\\roadway_assignment_" + period + ".bin"
         assn_vw = OpenTable("assn", "FFB", {assn_file})
         jv = JoinViews("jv", llyr + ".ID", assn_vw + ".ID1", )
+        data = null
 
         for dir in dirs do
             old_field = llyr + "." + dir + period + "Time"
@@ -284,14 +302,60 @@ Macro "Update Link Congested Times" (Args)
             v_new = if v_new = null
                 then v_old
                 else v_new
-            SetDataVector(jv + "|", old_field, v_new, )
+            data.(old_field) = v_new
         end
+        SetDataVectors(jv + "|", data, )
 
         CloseView(jv)
         CloseView(assn_vw)
     end
 
     CloseMap(map)
+    return(1)
+endmacro
+
+/*
+
+*/
+
+Macro "Calculate Skim PRMSEs" (Args)
+    
+    periods = RunMacro("Get Unconverged Periods", Args)
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    mode = "sov"
+
+    for period in periods do
+        // create a new sov skim for the current period
+        opts = null
+        opts.period = period
+        opts.mode = mode
+        opts.out_file = assn_dir + "\\post_assignment_skim_" + period + ".mtx"
+        RunMacro("Create Roadway Skims", Args, opts)
+
+        // Calculate matrix %RMSE
+        old_skim_file = Args.[Output Folder] + "/skims/roadway/skim_" + mode + "_" + period + ".mtx"
+        old_skim = CreateObject("Matrix", old_skim_file)
+        old_core = old_skim.GetCore("CongTime")
+        new_skim_file = opts.out_file
+        new_skim = CreateObject("Matrix", new_skim_file)
+        new_core = new_skim.GetCore("CongTime")
+        results = MatrixRMSE(old_core, new_core)
+        old_skim = null
+        old_core = null
+        new_skim = null
+        new_core = null      
+        DeleteFile(new_skim_file)
+        Args.(period + "_PRMSE") = results.RelRMSE
+        RunMacro("Write PRMSE", Args, period)
+    end
+endmacro
+
+/*
+Called by the flowchart to run peak hour assignment
+*/
+
+Macro "Peak Hour Roadway Assignment" (Args)
+    RunMacro("Peak Hour Assignment", Args)
     return(1)
 endmacro
 

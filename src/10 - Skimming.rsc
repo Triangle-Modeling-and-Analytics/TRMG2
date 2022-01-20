@@ -2,19 +2,14 @@
 
 */
 
-Macro "Skimming" (Args)
-
-    feedback_iteration = Args.FeedbackIteration
-
-    if feedback_iteration > 1 then do
-        RunMacro("Calculate Bus Speeds", Args)
-        RunMacro("Update Link Networks", Args)
-        RunMacro("Create Route Networks", Args)
-    end
-    RunMacro("Roadway Skims", Args)
+Macro "Roadway Skims" (Args)
+    RunMacro("Create Roadway Skims", Args)
     RunMacro("Create Average Roadway Skims", Args)
-    RunMacro("Transit Skims", Args)
+    return(1)
+endmacro
 
+Macro "Transit Skims" (Args)
+    RunMacro("Create Transit Skims", Args)
     return(1)
 endmacro
 
@@ -31,12 +26,12 @@ Macro "Update Link Networks" (Args)
     for file in files do
         {, , name, } = SplitPath(file)
         {, period, mode} = ParseString(name, "_")
-        if period = "bike" or period = "walk" then continue
+        if Lower(period) = "bike" or Lower(period) = "walk" or Lower(period) = "pmpk" then continue
 
         obj = CreateObject("Network.Update")
         obj.LayerDB = hwy_dbd
         obj.Network = file
-        obj.UpdateLinkField({Name: "MSATime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
+        obj.UpdateLinkField({Name: "CongTime", Field: {"AB" + period + "Time", "BA" + period + "Time"}})
         obj.Run()
     end
 endmacro
@@ -44,17 +39,36 @@ endmacro
 /*
 Creates the roadway skims for sov/hov.
 Note: walk/bike skims are created once during accessibility calculations.
+
+Inputs
+    * Args
+        * Standard Args array used throughout the model
+    * OtherOpts
+        * optional options array used to modify default looping behavior
+            * period
+                * String
+                * Single period to run (instead of running multiple)
+            * mode
+                * String
+                * either 'sov' or 'hov' (instead of running both)
+            * out_file
+                * String
+                * File path for output skim
+
 */
 
-Macro "Roadway Skims" (Args)
+Macro "Create Roadway Skims" (Args, OtherOpts)
 
     link_dbd = Args.Links
     periods = RunMacro("Get Unconverged Periods", Args)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
     feedback_iteration = Args.FeedbackIteration
-
     modes = {"sov", "hov"}
+
+    // Overwrite default arguments if these are passed
+    if OtherOpts.period <> null then periods = {OtherOpts.period}
+    if OtherOpts.mode <> null then modes = {OtherOpts.mode}
 
     for period in periods do
         for mode in modes do
@@ -63,26 +77,18 @@ Macro "Roadway Skims" (Args)
             obj.LayerDB = link_dbd
             obj.Origins = "Centroid = 1" 
             obj.Destinations = "Centroid = 1"
-            if feedback_iteration = 1
-                then obj.Minimize = "CongTime"
-                else obj.Minimize = "MSATime"
+            obj.Minimize = "CongTime"
             obj.AddSkimField({"Length", "All"})
             toll_field = "TollCost" + Upper(mode)
             obj.AddSkimField({toll_field, "All"})
             out_file = out_dir + "/skim_" + mode + "_" + period + ".mtx"
+            if OtherOpts.out_file <> null then out_file = OtherOpts.out_file
             label = "Roadway skim " + period + " " + Upper(mode)
             obj.OutputMatrix({
                 MatrixFile: out_file, 
                 Matrix: label
             })
             ret_value = obj.Run()
-
-            // Rename time core to always be "CongTime"
-            if feedback_iteration > 1 then do
-                m = CreateObject("Matrix", out_file)
-                m.RenameCores({CurrentNames: {"MSATime"}, NewNames: {"CongTime"}})
-                m = null
-            end
 
             // intrazonals
             obj = CreateObject("Distribution.Intrazonal")
@@ -180,7 +186,7 @@ Inputs
     * If provided, only these skims will be created. Used by accessibility.
 */
 
-Macro "Transit Skims" (Args, overrides)
+Macro "Create Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
     periods = RunMacro("Get Unconverged Periods", Args)

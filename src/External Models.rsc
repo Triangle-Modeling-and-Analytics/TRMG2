@@ -2,6 +2,12 @@
 EE Model
 */
 
+Macro "Externals" (Args)
+    RunMacro("External", Args)
+    RunMacro("IEEI", Args)
+    return(1)
+endmacro
+
 Macro "External" (Args)
   RunMacro("TCB Init")
   RunMacro("Convert EE CSV to MTX", Args)
