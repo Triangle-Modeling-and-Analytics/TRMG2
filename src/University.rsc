@@ -1,4 +1,31 @@
 /*
+Called by the flowchart
+*/
+
+Macro "University" (Args)
+    RunMacro("University Productions", Args)
+    RunMacro("University Attractions", Args)
+    RunMacro("University Balance Ps and As", Args)
+    RunMacro("University TOD", Args)
+    return(1)
+endmacro
+
+/*
+Called by the flowchart
+*/
+
+Macro "University DC" (Args)
+    RunMacro("University Gravity", Args)
+    RunMacro("University Combine Campus", Args)
+    RunMacro("University Directionality", Args)
+    RunMacro("University MC Probabilities", Args)
+    RunMacro("University Mode Choice", Args)
+    RunMacro("University Other to Other", Args)
+    RunMacro("University Combine Matrices", Args)
+    return(1)
+endmacro
+
+/*
 University Model
 
 Modeled Trip Purposes -
