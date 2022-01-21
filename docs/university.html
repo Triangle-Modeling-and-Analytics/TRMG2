@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2022-01-20" />
+<meta name="date" content="2022-01-21" />
 
 <title>University</title>
 
@@ -414,14 +414,14 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">January 20, 2022</h4>
+<h4 class="date">January 21, 2022</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke) and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84481, with 31025 students at NCSU, 29437 at UNC, 15904 at Duke and 8115 at NCCU.</p>
+<p>The University Model simulates the on- and off-campus travel of students of the Triangle Region’s four large universities: North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke), and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of 84,481, with 31,025 students at NCSU; 29,437 at UNC; 15,904 at Duke; and 8,115 at NCCU.</p>
 <p>The model structure segments trips into the following purposes:</p>
 <ul>
 <li>Home-Based-Campus (Home-Campus or UHC)</li>
@@ -1402,7 +1402,12 @@ NA
 <div id="trip-distribution" class="section level2">
 <h2>Trip Distribution</h2>
 <p>The second step of the university model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs.</p>
-<p>[describe gravity model developed for this]</p>
+<p>A distance based gravity model is used to distribute the university trips from production zones to attraction zones. The specification of a gravity model is shown below:</p>
+<p>T_ij = (P_i × A_j) / F_ij</p>
+<p>where T_ij denote the trips from production zone i to attraction zone j, P represents the trip productions, A represents the trip attractions, F is a measure of the separation between the production and attraction zones called a friction factor.</p>
+<p>Following standard practice it was assumed that the friction factors are a function of highway travel distance and that they follow a gamma distribution, as below:</p>
+<p>F(d) = α × d^(-β) × e^(-θd)</p>
+<p>For simplification, same gamma distribution is used for all university trip purpose, with α, β and θ as 5, 1 and 0.1 respectively.</p>
 <p>The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. These observed trip lengths were used to validate the trip length produced with the gravity model. [more]</p>
 <div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">
 <h3>Trip length distribution from the NCSU survey</h3>
@@ -1927,30 +1932,35 @@ Cost
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
 <p>This section compares a few different summaries for the university model outputs to the observed data from the NCSU survey.</p>
-<div id="trips-per-enrollment." class="section level3">
-<h3>Trips Per Enrollment.</h3>
+<div id="trip-generation-1" class="section level3">
+<h3>Trip Generation</h3>
+<p>Trip generation results compared with the survey are within acceptable parameters as shown by the results of trips per enrollment.</p>
 <p>This is how the trips per enrollment compare for each campus:</p>
 <p><img src="university_files/university-summary-figures/university_trips_per_student.png" /></p>
 <p>Note that the DUKE campus shows a higher rate (trips per student) in the model output. This is because for some of the university trip purposes, the trips production model is a function of campus building sqft for the TAZ. DUKE has a higher campus bldg sqft per student (see below), resulting in the higher overall trip rate.</p>
 <p><img src="university_files/university-summary-figures/university_bldg_sqft_per_student.png" /></p>
 </div>
-<div id="average-trip-length" class="section level3">
-<h3>Average Trip Length</h3>
-<p>Here is how the average trip length by mode compares for simulated vs observed data:</p>
-<p><img src="university_files/university-summary-figures/university_avg_trip_length.png" /></p>
-</div>
 <div id="trip-distribution-1" class="section level3">
 <h3>Trip Distribution</h3>
+<p>Simulated vs observed data shows similar patterns for the NCSU site as shown below. The other universities display similar pattern.</p>
+<div id="cummulative-distance-distribution" class="section level4">
+<h4>Cummulative Distance Distribution</h4>
 <p>The figure below compares the distance distribution of NCSU university home to campus trips:</p>
 <p><img src="university_files/university-summary-figures/university_home_to_campus_dist_distribution.png" /></p>
 </div>
+<div id="average-trip-length" class="section level4">
+<h4>Average Trip Length</h4>
+<p>Here is how the average trip length by mode compares for simulated vs observed data:</p>
+<p><img src="university_files/university-summary-figures/university_avg_trip_length.png" /></p>
+</div>
+</div>
 <div id="mode-choice-1" class="section level3">
 <h3>Mode Choice</h3>
-<p>Here is how the final mode share for NCSU university trips compares to observed data:</p>
+<p>The final mode share for NCSU university trips matched to the observed data as shown below.</p>
 <p><img src="university_files/university-summary-figures/university_mode_share_ncsu.png" /></p>
-<p>Comparison of mode share for university trips by campus:</p>
+<p>A comparison of mode share for university trips by campus follows logical patterns. Note that the share for UNC campus is adjusted to bring down the auto share and a higher transit share based on the fact that UNC doesn’t allow parking on campus for students and therefore students have to walk or take transit. UNC transit is also one of the highest in the state per capita.</p>
 <p><img src="university_files/university-summary-figures/university_mode_share_by_campus.png" /></p>
-<p>Note that the share for UNC campus is adjusted to bring down the auto share and a higher transit share based on the fact that UNC doesn’t allow parking on campus for students and therefore students have to walk or take transit. UNC transit is also one of the highest in the state per capita. Observed mode share from UNC survey (<a href="https://move.unc.edu/about/publications/commuter-survey/survey-results/">source</a>):</p>
+<p>Our model adjusted to match as close as possible the observed mode share from UNC survey (<a href="https://move.unc.edu/about/publications/commuter-survey/survey-results/">source</a>):</p>
 <p><img src="university_files/university-summary-figures/unc_observed_mode_share.PNG" /></p>
 <p>The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive <code>BuildingS_UNC</code> or positive <code>StudGQ_UNC</code>. The map below shows the identified zones for UNC mode share adjustment.</p>
 <p><img src="university_files/university-summary-figures/unc_zones_map_zoomed.png" /></p>
