@@ -15,6 +15,7 @@ Called by the flowchart
 */
 
 Macro "University DC" (Args)
+    RunMacro("Mark UNC Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
     RunMacro("University Directionality", Args)
@@ -317,6 +318,26 @@ Macro "University TOD" (Args)
     })
 
     CloseView(se_vw)
+endmacro
+
+/*
+The university MC model needs the field UNC_Zones. Rather than add this to the master
+SE data (because it is a derivative of other zones), calculate it here.
+*/
+
+Macro "Mark UNC Zones" (Args)
+
+    se_file = Args.SE
+
+    se_vw = Opentable("se", "FFB", {se_file})
+    a_fields =  {
+        {"UNC_Zones", "Integer", 10, ,,,, "UNC campus zones used for university mode choice|BuildingS_UNC + StudGQ_UNC > 0"}
+    }
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
+    v_sq = GetDataVector(se_vw + "|", "BuildingS_UNC", )
+    v_gq = GetDataVector(se_vw + "|", "StudGQ_UNC", )
+    v_unc = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
+    SetDataVector(se_vw + "|", "UNC_Zones", v_unc, )
 endmacro
 
 /*

@@ -1,5 +1,5 @@
 
-246
+238
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","Households||Census defined as occupied housing units",,"Sum",
@@ -50,4 +50,3 @@
 "PCT_CVMUT_EE",R,215,8,0,15,2,,"","Percent of EE CV MUT volume at external station",,"Sum",
 "PCT_CVSUT_IEEI",R,223,8,0,15,2,,"","Percent of IEEI CV SUT volume at external station",,"Sum",
 "PCT_CVMUT_IEEI",R,231,8,0,15,2,,"","Percent of IEEI CV MUT volume at external station",,"Sum",
-"UNC_Zones",R,239,8,0,15,2,,"","UNC campus zones used for university mode choice",,"Sum",
