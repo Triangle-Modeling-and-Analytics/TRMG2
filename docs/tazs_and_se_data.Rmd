@@ -734,8 +734,6 @@ steps:
 Area type information is used to inform capacity and free-flow speed
 calculations on roadway links.
 
-*TODO: update this section if we use it elsewhere*
-
 ### Density
 
 Density is calculated using the following formula:
