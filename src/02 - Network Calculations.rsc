@@ -992,9 +992,9 @@ Macro "Create Route Networks" (Args)
                 o.CentroidFilter = "Centroid = 1"
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
-                    MaxTripCost = 240,
-                    MaxTransfers = 2,
-                    VOT = .1984 // $/min (40% of the median wage)
+                    MaxTripCost : 240,
+                    MaxTransfers : 2,
+                    VOT : 0.1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({
                     PermitWalkOnly: false,

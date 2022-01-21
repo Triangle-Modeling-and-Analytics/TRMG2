@@ -30,8 +30,6 @@
 <script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -405,6 +403,9 @@ div.tocify {
       <a href="parking.html">Parking</a>
     </li>
     <li>
+      <a href="resident_dest_choice.html">Destination Choice</a>
+    </li>
+    <li>
       <a href="nhb.html">Non-homebased</a>
     </li>
   </ul>
@@ -428,15 +429,15 @@ div.tocify {
     <li>
       <a href="commercial_vehicles.html">Commercial Vehicles</a>
     </li>
+    <li>
+      <a href="assignment_roadway.html">Roadway Assignment</a>
+    </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/Caliper-Corporation/TRMG2">
-    <span class="fa fa-github fa-2x"></span>
-     
-  </a>
+  <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
 </li>
       </ul>
     </div><!--/.nav-collapse -->
@@ -971,6 +972,215 @@ Constant
 <p>Rho-squared: 0.98</p>
 </div>
 </div>
+</div>
+<div id="calibration" class="section level2">
+<h2>Calibration</h2>
+<p>Caliper calibrated the model constants to ensure that the final share of non-motorized trips matched the survey. This was done using an auto-calibration utility included in the model’s drop down menu. Caliper then reviewed the results to check that the calibration constants were reasonable and did not dominate model sensitivity.</p>
+<p>The parameter file for N_HB_K12_All trips is shown below as an example. Note that the estimated constant is preserved separately from the calibration constant. The additional constant from calibration is small, which means that calibration did not sacrifice model sensitivity to match base year targets.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Alternative
+</th>
+<th style="text-align:left;">
+Expression
+</th>
+<th style="text-align:left;">
+Segment
+</th>
+<th style="text-align:right;">
+Coefficient
+</th>
+<th style="text-align:left;">
+Description
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+motorized
+</td>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nonmotorized
+</td>
+<td style="text-align:left;">
+person.veh_per_adult
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+-0.7670
+</td>
+<td style="text-align:left;">
+HH vehicles per adult
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nonmotorized
+</td>
+<td style="text-align:left;">
+person.age_16_18
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+-0.3590
+</td>
+<td style="text-align:left;">
+Person is between 16 and 18 (driving age)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nonmotorized
+</td>
+<td style="text-align:left;">
+se.access_walk.O
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+0.5850
+</td>
+<td style="text-align:left;">
+Interzonal walk accessibility
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nonmotorized
+</td>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+-2.7090
+</td>
+<td style="text-align:left;">
+Estimated constant
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nonmotorized
+</td>
+<td style="text-align:left;">
+Constant
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+-0.5151
+</td>
+<td style="text-align:left;">
+Calibration constant
+</td>
+</tr>
+</tbody>
+</table>
+<p>The non-motorized shares resulting from the model are shown below. Each matches the survey shares.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Type
+</th>
+<th style="text-align:right;">
+NM Share (%)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N_HB_K12_All
+</td>
+<td style="text-align:right;">
+2.67
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long
+</td>
+<td style="text-align:right;">
+6.71
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short
+</td>
+<td style="text-align:right;">
+25.59
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:right;">
+0.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:right;">
+4.73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:right;">
+2.38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All
+</td>
+<td style="text-align:right;">
+2.82
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 <br>

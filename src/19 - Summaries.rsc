@@ -22,6 +22,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
     RunMacro("Transit Summary", Args)
+    RunMacro("Create MOVES Inputs", Args)
     return(1)
 endmacro
 
@@ -736,3 +737,68 @@ Macro "Transit Summary" (Args)
     loaded_network: Args.Links
   })
 EndMacro
+
+/*
+Generates CSV tables needed generate MOVES air quality inputs
+*/
+
+Macro "Create MOVES Inputs" (Args)
+
+  hwy_dbd = Args.Links
+  summary_dir = Args.[Output Folder] + "/_summaries/MOVES"
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  periods = Args.periods
+
+  objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
+  {nlayer, llyr} = objLyrs.Layers
+  SetLayer(llyr)
+  SelectByQuery("sel", "several", "Select * where D = 1")
+
+  // Link table
+  df = CreateObject("df")
+  df.read_view({
+    view: llyr,
+    set: "sel",
+    fields: {"ID", "Length", "HCMType", "AreaType"}
+  })
+  v_roadtype = df.tbl.HCMType
+  v_roadtype = if v_roadtype = "CC" then "Off-network" 
+    else if v_roadtype = "Freeway" then "Restricted Access" 
+    else "Unrestricted Access"
+  v_at = if df.tbl.AreaType = "Rural" then "Rural" else "Urban"
+  v_roadtype = if v_roadtype = "CC" then "CC"
+    else v_at + " " + v_roadtype
+  df.mutate("MOVESType", v_roadtype)
+  df.write_csv(summary_dir + "/link_table.csv")
+
+  // Assignment tables
+  for period in periods do
+    assn_file = assn_dir + "/roadway_assignment_" + period + ".bin"
+    assn_vw = OpenTable("asn", "FFB", {assn_file})
+    df2 = CreateObject("df")
+    df2.read_view({
+      view: assn_vw,
+      fields: {"ID1", "AB_Flow_PCE", "BA_Flow_PCE", "AB_Speed", "BA_Speed"}
+    })
+    df3 = df.copy()
+    df3.left_join(df2, "ID", "ID1")
+    df3.write_csv(summary_dir + "/" + period + "_assignment_table.csv")
+    CloseView(assn_vw)
+  end
+
+  // Vehicle population
+  veh_total = 0
+  for period in periods do
+    mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    stats = MatrixStatistics(mtx.GetMatrixHandle(), {Tables: core_names})
+    for core_name in core_names do
+      veh_total = veh_total + stats.(core_name).Sum
+    end
+  end
+  out_file = summary_dir + "/total_vehicles.csv"
+  f = OpenFile(out_file, "w")
+  WriteLine(f, String(veh_total))
+  CloseFile(f)
+endmacro
