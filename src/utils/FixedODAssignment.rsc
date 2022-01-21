@@ -72,8 +72,10 @@ Macro "Fixed OD Assignment" (MacroOpts)
     // This flag is used to modify certain steps of the model.
     // For example, 
     Args.fixed_od = "true" // lets us skip transit net creation
-    ret = mr.RunStep("Network Calculations", {Silent: "true"})
-    if !ret then return()
+    ret = mr.RunStep("Create Initial Output Files", {Silent: "true"})
+    if !ret then Throw("Fixed OD: 'Create Initial Output Files' failed")
+    ret = mr.RunStep("Network Calculators", {Silent: "true"})
+    if !ret then Throw("Fixed OD: 'Network Calculators' failed")
     RunMacro("Copy Files for Fixed OD", Args, full_scen_dir)
 
     // Run assignments
