@@ -298,19 +298,25 @@ F(d) = α × d^(-β) × e^(-θd)
 
 For simplification, same gamma distribution is used for all university trip purpose, with α, β and θ as 5, 1 and 0.1 respectively. 
 
-The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. These observed trip lengths were used to validate the trip length produced with the gravity model. [more]
+The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. The trip start and end location information from the survey was mapped to the model's TAZs. The trip lengths presented in Figures 3 through 5 represent the distance between the centroids of the origin TAZ and the destination TAZ based on the highway skims.  Figure 3 shows that most Home-Campus trips are relatively short distance but that there are some off-campus students who live further away from campus. Home-based trips by off-campus students are longer than home-based trips by on-campus students. Figure 4 shows that campus-based trips tend to be relatively short distance as well.  Figure 5 shows that on-campus trips have both ends are within the same TAZ or within TAZs that are very near to each other. 
+These observed trip lengths were used to validate the trip length produced with the gravity model as discussed below in the calibration section.
+
 
 
 ### Trip length distribution from the NCSU survey
 ```{r,echo=FALSE}
-zonetozonedistance_bypurposeHB_histogram + labs(title = "Trip Length Distribution, Home-based Trips", 
+zonetozonedistance_bypurposeHB_histogram + labs(title = "Figure 3 - Trip Length Distribution, Home-based Trips", 
                                               caption = ("Source: NCSU survey (unweighted)"))
 
-zonetozonedistance_bypurposeCB_histogram + labs(title = "Trip Length Distribution, Campus-based Trips", 
+zonetozonedistance_bypurposeCB_histogram + labs(title = "Figure 4 - Trip Length Distribution, Campus-based Trips", 
                                               caption = ("Source: NCSU survey (unweighted)"))
 
-zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution, On-campus Trips", 
+zonetozonedistance_UC1_histogram + labs(title = "Figure 5 - Trip Length Distribution, On-campus Trips", 
                                         caption = ("Source: NCSU survey (unweighted)"))
+
+zonetozonedistance_bypurpose_df %>% 
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
 ```
 
 ## Mode Choice
@@ -325,7 +331,7 @@ The multinomial mode choice model explains the split between the university mode
 
 #### Sample overview
 ```{r oncampus_modesplit plot, echo = FALSE}
-trips_bypurpose_plot + labs(title = "Mode Split by Purpose (except On-campus)", 
+trips_bypurpose_plot + labs(title = "Figure 6 - Mode Split by Purpose (except On-campus)", 
                                      caption = ("Source: NCSU survey (unweighted)"))
 ```
 
