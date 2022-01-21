@@ -321,6 +321,15 @@ ei_distance_df <- working_df %>%
   mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
   mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category)) 
 
+ei_distance_means_df <- bind_rows(
+  mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = observed_trips), source = "Observed"),
+  mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = estimated), source = "Estimated")) %>%
+  mutate(trips = replace_na(trips, 0.0)) %>%
+  group_by(purpose, category, source) %>%
+  summarise(mean_distance = weighted.mean(distance, trips), .groups = "drop") %>%
+  arrange(category, purpose)
+  
+
 write_csv(ei_attractions_df, file = output_ei_attractions_filename)
 write_csv(ei_distance_df, file = output_ei_distance_filename)
 

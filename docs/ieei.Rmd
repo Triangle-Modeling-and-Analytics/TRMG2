@@ -154,4 +154,17 @@ knitr::include_graphics("img/ieei/obs_est_freeway_tlf.png")
 knitr::include_graphics("img/ieei/obs_est_non_freeway_tlf.png")
 ```
 
+A table summarizing the mean trip lengths is presented below.
+
+### IE/EI Average Trip Lengths
+```{r}
+ei_distance_means_df %>%
+  select(Purpose = purpose,
+         Category = category,
+         Source = source,
+         `Mean Distance (miles)` = mean_distance) %>%
+  kableExtra::kable(digits = 1) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+  
+```
 
