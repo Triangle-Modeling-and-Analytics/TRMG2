@@ -313,7 +313,10 @@ zonetozonedistance_bypurposeCB_histogram + labs(title = "Figure 4 - Trip Length 
 
 zonetozonedistance_UC1_histogram + labs(title = "Figure 5 - Trip Length Distribution, On-campus Trips", 
                                         caption = ("Source: NCSU survey (unweighted)"))
+```
 
+#### Overview trip length distribution from the NCSU survey by trip purpose 
+```{r,echo=FALSE}
 zonetozonedistance_bypurpose_df %>% 
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
