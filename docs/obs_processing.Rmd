@@ -615,8 +615,6 @@ from stakeholders need to be adjusted. One positive result of this early test
 was that all routes received ridership, which indicates no critical
 accessibility flaws in the network.
 
-*TODO: Revise this section after validation*
-
 ```{r, eval=FALSE}
 write_csv(add_mode, "data/output/_PRIVATE/obs_processing/obs_processed.csv", na = "")
 write_csv(comparison, "data/output/obs_processing/ridership_comparison.csv")

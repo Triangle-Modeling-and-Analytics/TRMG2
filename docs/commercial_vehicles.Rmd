@@ -216,8 +216,29 @@ Instead, they are assumed to be evenly split by direction.
 Once generated, the commercial vehicle and truck trips are distributed among
 zones using a gravity model. Unfortunately, the CV survey did not contain
 information on both ends of the trip, which meant it could not be used to
-estimate model parameters. Initial model parameters were borrowed from the
-travel model in Blacksburg, VA.
+estimate model parameters. Model parameters were borrowed from the
+travel model in Blacksburg, VA and are shown below.
 
-**TODO: Update this section after we calibrate the initial rates/parameters**
+```{r, include=FALSE}
+grav_params <- read_csv("../master/cv/cv_gravity_am.csv")
+```
+
+```{r}
+grav_params %>%
+  select(Class = purpose, Constraint = constraint, a:c) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+The table below shows the resulting average trip lengths in the model.
+
+```{r}
+tibble(
+  Class = c("CV", "SUT", "MUT"),
+  `Average Time (min)` = c(10, 12, 13.3),
+  `Averge Distance (mi)` = c(7.3, 9, 10.1)
+) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
 
