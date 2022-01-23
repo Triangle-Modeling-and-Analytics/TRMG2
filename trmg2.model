@@ -56,6 +56,11 @@ Macro "Accessibility" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Accessibility"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    InSections({"Accessibilities"})
+    In({ Args.[SE] })
+    In({ Args.[TAZs] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -63,6 +68,11 @@ Macro "Home-based Productions" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Home-based Productions"}},
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
+Data:
+    In({ Args.[Persons] })
+    In({ Args.[ProdCalibFactors] })
+    In({ Args.[ProdRates] })
+    Out({ Args.[Persons] })
 EndMacro
 
 
@@ -70,6 +80,10 @@ Macro "NonMotorized Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NonMotorized Choice"}},
                   {"Picture","bmp\\planwork_v3.bmp"}}
+Data:
+    In({ Args.[NMInputFolder] })
+    Out({ Args.[Persons] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -247,6 +261,11 @@ Macro "Capacities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Capacities"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[Capacity] })
+    In({ Args.[CapacityFactors] })
+    In({ Args.[Links] })
+    Out({ Args.[Links] })
 EndMacro
 
 
@@ -254,6 +273,12 @@ Macro "Speeds & Tolls" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Speeds & Tolls"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[CCSpeeds] })
+    In({ Args.[SpeedFactors] })
+    In({ Args.[TransponderRatioAuto] })
+    In({ Args.[TransponderRatioMUT] })
+    In({ Args.[TransponderRatioSUT] })
 EndMacro
 
 
@@ -261,6 +286,8 @@ Macro "Network Creation" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Network Creation"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    Out({ Args.[Network Folder] })
 EndMacro
 
 
@@ -284,6 +311,12 @@ Macro "Disaggregate Curves" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Disaggregate Curves"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[IncomeCurves] })
+    In({ Args.[RegionalMedianIncome] })
+    In({ Args.[SizeCurves] })
+    In({ Args.[WorkerCurves] })
+    Out({ Args.[SEDMarginals] })
 EndMacro
 
 
@@ -291,6 +324,11 @@ Macro "IPU Synthesis" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"IPU Synthesis"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[PUMS HH Seed] })
+    In({ Args.[PUMS Person Seed] })
+    Out({ Args.[Households] })
+    Out({ Args.[Persons] })
 EndMacro
 
 
@@ -298,6 +336,9 @@ Macro "Auto Ownership" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Auto Ownership"}},
                   {"Picture","bmp\\plan_config_v3.bmp"}}
+Data:
+    In({ Args.[AOCoeffs] })
+    Out({ Args.[Persons] })
 EndMacro
 
 
@@ -398,6 +439,10 @@ Macro "Commercial Vehicles" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Commercial Vehicles"}},
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
+Data:
+    In({ Args.[CV TOD Rates] })
+    In({ Args.[CV Trip Rates] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -453,6 +498,8 @@ Macro "NM Distribution" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NM Distribution"}},
                   {"Picture","bmp\\planwork_v3.bmp"}}
+Data:
+    In({ Args.[NMInputFolder] })
 EndMacro
 
 

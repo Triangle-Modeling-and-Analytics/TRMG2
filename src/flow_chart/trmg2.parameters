@@ -20,6 +20,7 @@
     Section = "Main Scenario Outputs"
     
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
+        Args.[Network Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\networks", "Description":"Folder containing networks" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
         Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
@@ -75,11 +76,19 @@
         Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Output synthetic person table." }
         Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Summary tabulations of the synthetic population." }
     
+    Section = "Auto Ownership"
+
+        Args.AOCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\auto_ownership\\ao_coefficients.csv", "Description":"Auto ownership choice coefficients." }
+
     Section = "Resident Productions"
     
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
         Args.ProdCalibFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv", "Description":"Resident production calibration factors." }
     
+    Section = "NonMotorized"
+
+        Args.NMInputFolder = { "Type":"Folder" , "Value":"%Input Folder%\\resident\\nonmotorized", "Description":"Folder containing NM input parameters" }
+
     Section = "Time of Day"
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
