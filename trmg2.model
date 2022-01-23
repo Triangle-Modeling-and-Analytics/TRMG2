@@ -695,14 +695,14 @@ Body:
     //
     FlowChartNode(stage,"Airport MC",,,)
     FlowChartNode(stage,"Commercial Vehicles DC",,,)
-    FlowChartNode(stage,"University DC",,,)
+    FlowChartNode(stage,"University DC & MC",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(stage,"Airport MC","University DC",True,,)
-    FlowChartLink(stage,"University DC","Commercial Vehicles DC",True,,)
+    FlowChartLink(stage,"Airport MC","University DC & MC",True,,)
+    FlowChartLink(stage,"University DC & MC","Commercial Vehicles DC",True,,)
     Return(stage)
 EndMacro
 
@@ -797,9 +797,9 @@ Body:
 EndMacro
 
 
-Macro "University DC" (Args,Result)
+Macro "University DC & MC" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
-                  {"MacroNames",{"University DC"}},
+                  {"MacroNames",{"University DC & MC"}},
                   {"Picture","bmp/planmodesplit_v3.bmp"}}
 EndMacro
 

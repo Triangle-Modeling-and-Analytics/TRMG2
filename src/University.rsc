@@ -14,7 +14,7 @@ endmacro
 Called by the flowchart
 */
 
-Macro "University DC" (Args)
+Macro "University DC & MC" (Args)
     RunMacro("Mark UNC Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
