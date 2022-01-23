@@ -21,6 +21,7 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("VOT Split", Args)
     RunMacro("VOT Aggregation", Args)
     RunMacro("Add Externals", Args)
+    RunMacro("Add University", Args)
 
     return(1)
 endmacro
@@ -696,5 +697,35 @@ Macro "Add Externals" (Args)
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 external trips.csv"
     RunMacro("Trip Conservation Snapshot", ext_dir, out_file)
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/12 after Add Externals.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
+endmacro
+
+/*
+
+*/
+
+Macro "Add University" (Args)
+
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    univ_dir = Args.[Output Folder] + "/university"
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    for period in periods do
+        univ_mtx_file = univ_dir + "/university_trips_" + period + ".mtx"
+        univ_mtx = CreateObject("Matrix", univ_mtx_file)
+
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+
+        // "auto" core from university model trips is put into "sov_VOT2" in od trips
+        univ_core = univ_mtx.GetCore("auto")
+        trip_core = trip_mtx.GetCore("sov_VOT2")
+
+        trip_core := nz(trip_core) + nz(univ_core)
+    end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 university trips.csv"
+    RunMacro("Trip Conservation Snapshot", univ_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/13 after Add University.csv"
     RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro

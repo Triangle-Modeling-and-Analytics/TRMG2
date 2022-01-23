@@ -1,0 +1,4 @@
+variable,uho_on,uho_off,uco
+intercept,5.5856,100.1907,73.7073
+retail_employment,0.0247,0.0394,0.0563
+student_off_campus,0.0292,0.224,0.4086

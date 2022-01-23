@@ -97,7 +97,23 @@ Macro "Create Transit Matrices2" (Args)
         trn_core := nz(trn_core) + nz(nhb_core)
     end
 
-    //TODO: add university transit trips
+    //Add in university trips
+    univ_dir = Args.[Output Folder] + "/university"
+    for period in periods do
+        out_mtx = mtxs.(period)
+
+        univ_mtx_file = univ_dir + "/university_trips_" + period + ".mtx"
+        univ_mtx = CreateObject("Matrix", univ_mtx_file)
+
+        // "transit" core from university model trips is put into "w_lb" in transit trips
+        univ_core = univ_mtx.GetCore("transit")
+        out_core = out_mtx.GetCore("w_lb")
+
+        out_core := nz(out_core) + nz(univ_core)
+
+        mtxs.(period) = out_mtx
+    end
+
 endmacro
 
 /*

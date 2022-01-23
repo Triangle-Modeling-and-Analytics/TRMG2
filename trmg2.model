@@ -451,23 +451,25 @@ Macro "Special Markets Generation" (Args,Result)
                   {"Picture","bmp\\planlanduse_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Airport"},{"Commercial Vehicles"},"Group steps")
+    stage = FlowChart({"Airport"},{"Commercial Vehicles"},"Group steps")
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
-    FlowChartNode(model,"Airport",,,)
-    FlowChartNode(model,"Externals",,,)
-    FlowChartNode(model,"Commercial Vehicles",,,)
+    FlowChartNode(stage,"Airport",,,)
+    FlowChartNode(stage,"Externals",,,)
+    FlowChartNode(stage,"Commercial Vehicles",,,)
+    FlowChartNode(stage,"University",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Airport","Externals",True,,)
-    FlowChartLink(model,"Externals","Commercial Vehicles",True,,)
-    Return(model)
+    FlowChartLink(stage,"Externals","Commercial Vehicles",True,,)
+    FlowChartLink(stage,"Airport","University",True,,)
+    FlowChartLink(stage,"University","Externals",True,,)
+    Return(stage)
 EndMacro
 
 
@@ -685,21 +687,23 @@ Macro "Special Market DC & MC" (Args,Result)
                   {"Picture","bmp/planmodesplit_v3.bmp"}}
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Airport MC"},{"Commercial Vehicles DC"},"Group steps")
+    stage = FlowChart({"Airport MC"},{"Commercial Vehicles DC"},"Group steps")
     //
     // Nodes
     //
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
-    FlowChartNode(model,"Airport MC",,,)
-    FlowChartNode(model,"Commercial Vehicles DC",,,)
+    FlowChartNode(stage,"Airport MC",,,)
+    FlowChartNode(stage,"Commercial Vehicles DC",,,)
+    FlowChartNode(stage,"University DC",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Airport MC","Commercial Vehicles DC",True,,)
-    Return(model)
+    FlowChartLink(stage,"Airport MC","University DC",True,,)
+    FlowChartLink(stage,"University DC","Commercial Vehicles DC",True,,)
+    Return(stage)
 EndMacro
 
 
@@ -790,5 +794,19 @@ Body:
     FlowChartLink(model,"Maps","Calibration Reports",True,,)
     FlowChartLink(model,"Calibration Reports","Other Reports",True,,)
     Return(model)
+EndMacro
+
+
+Macro "University DC" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"University DC"}},
+                  {"Picture","bmp/planmodesplit_v3.bmp"}}
+EndMacro
+
+
+Macro "University" (Args,Result)
+    Attributes = {{"Class",{"GISDK"}},
+                  {"MacroNames",{"University"}},
+                  {"Picture","bmp\\planlanduse_v3.bmp"}}
 EndMacro
 
