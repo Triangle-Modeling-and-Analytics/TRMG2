@@ -634,11 +634,7 @@ Macro "Calculate Parking Cores" (MacroOpts)
         
     end
 
-    // Collapse matrices. Primarily due to file size concerns,
-    // these matrices are collapsed back into the original cores.
-    // This comes with a loss of ability to isolate/view parking
-    // behavior separately. If that is desired later, you can
-    // modify this section.
+    // Update auto and transit cores based on parking info.
     core_names = trip_mtx.GetCoreNames()
     if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
     cores = trip_mtx.GetCores()
@@ -646,14 +642,14 @@ Macro "Calculate Parking Cores" (MacroOpts)
         nz(cores.(auto_core + "_parkshuttle_topark"))
     cores.w_lb := nz(cores.w_lb) + nz(cores.(auto_core + "_parkshuttle_frompark"))
     // TODO: add walk from park trips to non-motorized matrix?
-    trip_mtx.DropCores({
-        auto_core + "_parkwalk",
-        auto_core + "_parkwalk_topark",
-        auto_core + "_parkwalk_frompark",
-        auto_core + "_parkshuttle",
-        auto_core + "_parkshuttle_topark",
-        auto_core + "_parkshuttle_frompark"
-    })
+    // trip_mtx.DropCores({
+    //     auto_core + "_parkwalk",
+    //     auto_core + "_parkwalk_topark",
+    //     auto_core + "_parkwalk_frompark",
+    //     auto_core + "_parkshuttle",
+    //     auto_core + "_parkshuttle_topark",
+    //     auto_core + "_parkshuttle_frompark"
+    // })
 endmacro
 
 /*
