@@ -420,7 +420,7 @@ Macro "Update Scenario Attributes" (MacroOpts)
         // Locate the route with this project ID. If not found, throw an error.
         opts = null
         opts.Exact = "true"
-        rh = LocateRecord(rlyr + "|", "ProjID", {pid}, opts)
+        rh = LocateRecord(rlyr + "|", "ProjID", {String(pid)}, opts)
         if rh = null then do
           pid_string = if TypeOf(pid) = "string" then pid else String(pid)
           Throw("ProjID '" + pid_string + "' not found in route layer")
