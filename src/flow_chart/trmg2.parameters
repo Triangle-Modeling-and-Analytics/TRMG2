@@ -21,6 +21,7 @@
     
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
         Args.[Network Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\networks", "Description":"Folder containing networks" }
+        Args.[Summary Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\_summaries", "Description":"Folder containing summary info" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
         Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
