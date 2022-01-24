@@ -71,7 +71,7 @@ Macro "Calculate NM Probabilities" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
     input_dir = Args.[Input Folder]
-    input_nm_dir = input_dir + "/resident/nonmotorized"
+    input_nm_dir = Args.NMInputFolder
     output_dir = Args.[Output Folder] + "/resident/nonmotorized"
     households = Args.Households
     persons = Args.Persons
