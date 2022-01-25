@@ -46,11 +46,12 @@ individual macros are called as appropriate by the non-resident steps.
 
 Macro "University" (Args)
     RunMacro("TCB Init")
-	
+
     RunMacro("University Productions", Args)
     RunMacro("University Attractions", Args)
     RunMacro("University Balance Ps and As", Args)
     RunMacro("University TOD", Args)
+    RunMacro("Mark UNC Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
     RunMacro("University Directionality", Args)
@@ -58,7 +59,7 @@ Macro "University" (Args)
     RunMacro("University Mode Choice", Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
-    
+
     return(1)
 endmacro
 
@@ -506,15 +507,17 @@ Macro "University MC Probabilities" (Args)
             sov_skim = skims_dir + "\\roadway\\skim_sov_" + period + ".mtx"
             transit_skim = skims_dir + "\\transit\\skim_" + period + "_w_lb.mtx"
             walk_skim = skims_dir + "\\nonmotorized\\walk_skim.mtx"
-            
+            bike_skim = skims_dir + "\\nonmotorized\\bike_skim.mtx"
+
             opts.tables = {
                 se: {File: se_file, IDField: "TAZ"}
             }
-            
+
             opts.matrices = {
                 sov_skim: {File: sov_skim},
                 transit_skim: {File: transit_skim},
-                walk_skim: {File: walk_skim}
+                walk_skim: {File: walk_skim},
+                bike_skim: {File: bike_skim}
             }
 
             opts.output_dir = output_dir
