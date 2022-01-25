@@ -496,7 +496,7 @@ Macro "University MC Probabilities" (Args)
     for trip_type in trip_types do
         trip_type = Lower(trip_type)
         opts = null
-        opts.primary_spec = {Name: "transit_skim"}
+        opts.primary_spec = {Name: "w_lb_skim"}
         opts.trip_type = trip_type
         opts.util_file = input_dir + "\\" + "univ_mc_" + trip_type + ".csv"
 
@@ -505,7 +505,8 @@ Macro "University MC Probabilities" (Args)
         for period in periods do
             opts.period = Lower(period)
             sov_skim = skims_dir + "\\roadway\\skim_sov_" + period + ".mtx"
-            transit_skim = skims_dir + "\\transit\\skim_" + period + "_w_lb.mtx"
+            w_lb_skim = skims_dir + "\\transit\\skim_" + period + "_w_lb.mtx"
+            pnr_lb_skim = skims_dir + "\\transit\\skim_" + period + "_pnr_lb.mtx"
             walk_skim = skims_dir + "\\nonmotorized\\walk_skim.mtx"
             bike_skim = skims_dir + "\\nonmotorized\\bike_skim.mtx"
 
@@ -515,7 +516,8 @@ Macro "University MC Probabilities" (Args)
 
             opts.matrices = {
                 sov_skim: {File: sov_skim},
-                transit_skim: {File: transit_skim},
+                w_lb_skim: {File: w_lb_skim},
+                pnr_lb_skim: {File: pnr_lb_skim},
                 walk_skim: {File: walk_skim},
                 bike_skim: {File: bike_skim}
             }
