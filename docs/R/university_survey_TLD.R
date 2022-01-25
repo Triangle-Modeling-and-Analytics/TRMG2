@@ -42,8 +42,6 @@ trip_subset2_df <-trip_subset_df %>%
 
 # histograms
 zonetozonedistance_bypurposeHB_histogram<-trip_subset2_df %>%
-#  filter(Trip_Purpose !="99")%>%
-#  filter(Trip_Purpose !="UC1")%>%
   filter(Trip_Purpose =="UHO"| Trip_Purpose =="UHC") %>%
   filter(distance_zonetozone < 30)%>%
   left_join(., purpose_map_df, by = c("Trip_Purpose" = "code"))%>%
@@ -56,8 +54,6 @@ mutate(On_campus = if_else(On_campus == 0, "Off-campus", "On-campus")) %>%
   facet_grid(`On-campus` ~ `Trip Purpose`)
 
 zonetozonedistance_bypurposeCB_histogram<-trip_subset2_df %>%
-#  filter(Trip_Purpose !="99")%>%
-#  filter(Trip_Purpose !="UC1")%>%
   filter(Trip_Purpose =="UCO" | Trip_Purpose =="UCC") %>%
   filter(distance_zonetozone < 30)%>%
   left_join(., purpose_map_df, by = c("Trip_Purpose" = "code"))%>%
@@ -69,38 +65,10 @@ facet_grid(`Trip Purpose`~ .)
 
 zonetozonedistance_UC1_histogram<-trip_subset2_df %>%
   filter(Trip_Purpose =="UC1")%>%
-#  filter(Trip_Purpose !="99")%>%
   ggplot(aes(distance_zonetozone)) +
   geom_histogram(binwidth = 1) 
 
-# old tables
-
-trip_length_df <- trip_subset2_df %>%
-  filter(Trip_Purpose !="99")%>%
-  left_join(., purpose_map_df, by = c("Trip_Purpose" = "code"))%>%
-  mutate(Distance = case_when(distance_zonetozone <= 2 ~ "1. up to 2 miles",
-                              distance_zonetozone > 2 & distance_zonetozone <=5 ~ "2. up to 5 miles",
-                              distance_zonetozone > 5 & distance_zonetozone <= 10 ~ "3. up to 10 miles",
-                              distance_zonetozone > 10 ~ "4. more than 10 miles",
-                              TRUE ~ "5. n/a")) %>%
-  select(Trip_Purpose, distance_zonetozone, Distance, On_campus)
-
-totals_df <- trip_length_df %>%
-  filter(Distance !="5. n/a")%>%
-  group_by(Trip_Purpose) %>%
-  summarize(total = n())
-
-zonetozonedistance_bypurpose_df <- trip_length_df %>%
-  filter(Trip_Purpose !="99")%>%
-  left_join(totals_df, by = "Trip_Purpose") %>%
-  group_by(Distance,Trip_Purpose,total) %>%
-  summarize(count = n(),
-            .groups = "drop") %>%
-  mutate(Share = count/total * 100) %>%
-  select(-c(count, total))%>%
-  pivot_wider(names_from = "Trip_Purpose", values_from = "Share")
-
-#new table
+# tables
 
 avgdistance_HB_df <- trip_subset2_df %>%
   filter(!is.na(distance_zonetozone))%>%
