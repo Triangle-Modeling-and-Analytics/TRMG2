@@ -11,7 +11,7 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2022-01-21" />
+<meta name="date" content="2022-01-25" />
 
 <title>University</title>
 
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">January 21, 2022</h4>
+<h4 class="date">January 25, 2022</h4>
 
 </div>
 
@@ -435,7 +435,7 @@ div.tocify {
 </li>
 <li>University student Other-Other (Other-to-Other or UOO)</li>
 </ul>
-<p>The structure fully segments these trip purposes by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
+<p>The structure segments the home-based trip purposes, Home-Campus and Home-Other, by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.</p>
 <p>The first model step is <a href="https://tfresource.org/topics/Trip_Generation.html">trip generation</a>, which estimates the number of trips by market segment and purpose as a function of observed land use characteristics. The second model step is trip distribution, which uses a common <a href="https://tfresource.org/topics/Trip_distribution.html">gravity formulation</a> with distance as the measure of impedance. A <a href="https://tfresource.org/topics/Mode_choice.html">multinomial logit mode choice model</a> is then used to segment trips by travel mode. Time of day or “diurnal” factors are used to segment trips by time and day and convert the outcomes from production-attraction to origin-destination format. The university trips are then combined with trips from other model components prior to carrying out roadway and transit assignment.</p>
 <p>An innovative feature of the model design is the generation step for the Other-to-Other trip purpose. To maintain consistency across travel model, these trips are generated directly from the Home-based Other and Campus-based Other trip ends. The generation step is mode specific. For example, if all the Home-based Other and Campus-based Other trips select automobile, then only automobile Other-to-Other trips will be generated.</p>
 <p>The balance of this document first specifies each model component, presenting empirical evidence for each specification. In cases where insufficient data is available for the statistical estimation of model coefficients, coefficients are asserted, based on evidence for other travel purposes. For these asserted models, calibration targets are developed to guide the adjustment of constants to match observed outcomes.</p>
@@ -598,7 +598,7 @@ Origin
 </tr>
 </tbody>
 </table>
-<p>Figure 1 shows the average number of trips per student per day for the two home-based trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data. Figure 2 shows the average number of trips per student for the three campus-based trip purposes. For most trip purpose, the distribution is skewed to the right, with most students making few trips and a few students making many trips.</p>
+<p>Figure 1 shows the average number of trips per student per day for the two home-based trip purposes for students residing on-campus and off-campus, based on the raw NCSU survey data. Figure 2 shows the average number of trips per student for the three campus-based trip purposes. For most trip purposes, the distribution is skewed to the right, with most students making few trips and a few students making many trips. Trip rates tend to be higher for on-campus trips than for other trip purposes. On-campus trips also tend to be shorter than trip made for other purposes as shown below in the trip distribution section.</p>
 <p><img src="university_files/figure-html/histogram-1.png" width="672" /><img src="university_files/figure-html/histogram-2.png" width="672" /></p>
 <p>To develop production rates, two methods were explored/discussed: cross-classification and regression. Explanatory variables in regression models could include student characteristics such as class status (undergraduate and graduate), on and/or off-campus employment, credit hours (full-time or part-time), and car availability. These variables were expected, and/or shown by other research, to affect university trip production rates. However, using these variables would require that forecast year socio-economic datasets and/or upstream model steps included these variables, which is not currently expected. We therefore used cross-classification techniques, as discussed below.</p>
 <p>As part of the cross-classification approach, daily trips per student reported in the NCSU survey were classified based on the following criteria:</p>
@@ -1156,7 +1156,7 @@ Service Employment (Low)
 <div id="regression-models" class="section level4">
 <h4>Regression Models</h4>
 <p>The regression models were estimated for each purpose using a dataset that includes all TAZs for which the survey included trip attractions, of any purpose. The TAZs that do not have any trip attractions in the survey were excluded from the dataset used for model estimation.</p>
-<p>The Campus-other attraction model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The coefficients have the expected signs.</p>
+<p>The Campus-other attraction model explains the number of trip attractions at the TAZ level based on the number of the students residing in the TAZ and the number of retail jobs in the TAZ. The coefficients have the correct expected signs.</p>
 <div id="campus-other-trip-attractions" class="section level5">
 <h5>Campus-Other Trip Attractions</h5>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -1401,159 +1401,157 @@ NA
 </div>
 <div id="trip-distribution" class="section level2">
 <h2>Trip Distribution</h2>
-<p>The second step of the university model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs.</p>
-<p>A distance based gravity model is used to distribute the university trips from production zones to attraction zones. The specification of a gravity model is shown below:</p>
+<p>The second step of the University Model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs.</p>
+<p>A distance-based gravity model is used to distribute the university trips from production zones to attraction zones. The specification of a gravity model is shown below:</p>
 <p>T_ij = (P_i × A_j) / F_ij</p>
 <p>where T_ij denote the trips from production zone i to attraction zone j, P represents the trip productions, A represents the trip attractions, F is a measure of the separation between the production and attraction zones called a friction factor.</p>
-<p>Following standard practice it was assumed that the friction factors are a function of highway travel distance and that they follow a gamma distribution, as below:</p>
+<p>Following standard practice, it was assumed that the friction factors are a function of highway travel distance and that they follow a gamma distribution, as below:</p>
 <p>F(d) = α × d^(-β) × e^(-θd)</p>
-<p>For simplification, same gamma distribution is used for all university trip purpose, with α, β and θ as 5, 1 and 0.1 respectively.</p>
-<p>The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. The trip start and end location information from the survey was mapped to the model’s TAZs. The trip lengths presented in Figures 3 through 5 represent the distance between the centroids of the origin TAZ and the destination TAZ based on the highway skims. Figure 3 shows that most Home-Campus trips are relatively short distance but that there are some off-campus students who live further away from campus. Home-based trips by off-campus students are longer than home-based trips by on-campus students. Figure 4 shows that campus-based trips tend to be relatively short distance as well. Figure 5 shows that on-campus trips have both ends are within the same TAZ or within TAZs that are very near to each other. These observed trip lengths were used to validate the trip length produced with the gravity model as discussed below in the calibration section.</p>
+<p>For simplification and due to limited data, the same gamma distribution is used for all university trip purpose, with α, β and θ as 5, 1 and 0.1 respectively.</p>
+<p>The NCSU survey provides information about the length of existing home-based and campus-based trips by NCSU students. The trip start and end location information from the survey was mapped to the model’s TAZs. The trip lengths presented in Figures 3 through 5 represent the distance between the centroids of the origin TAZ and the destination TAZ based on the highway skims.</p>
 <div id="trip-length-distribution-from-the-ncsu-survey" class="section level3">
 <h3>Trip length distribution from the NCSU survey</h3>
-<p><img src="university_files/figure-html/unnamed-chunk-5-1.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-2.png" width="672" /><img src="university_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
-<div id="overview-trip-length-distribution-from-the-ncsu-survey-by-trip-purpose" class="section level4">
-<h4>Overview trip length distribution from the NCSU survey by trip purpose</h4>
+<p>Figure 3 shows that most Home-Campus trips have relatively short distance. The figure also highlights that there are a small number of off-campus students who live further away from campus. Figure 3 also displays for on-campus students making a home to campus trip that some trip lengths are over 10 miles, which could be an issue in geo-coding or a few students traveling to remote campuses/farms for coursework. Because of the relatively small sample, these anomalies were left in the analysis. <img src="university_files/figure-html/unnamed-chunk-5-1.png" width="672" /> Figure 4 shows that campus-based trips tend to be relatively short distance as well. Figure 4 also displays that, as expected, Campus-Other trips are longer than Campus-to-campus trips. <img src="university_files/figure-html/unnamed-chunk-6-1.png" width="672" /> Figure 5 shows that many On-campus trips have both ends within the same TAZ or within TAZs that are very near to each other. As expected, the .5 to 1 mile range dominates the on-campus trip lengths.</p>
+<p><img src="university_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<div id="average-trip-length-from-the-ncsu-survey-by-trip-purpose" class="section level4">
+<h4>Average trip length from the NCSU survey by trip purpose</h4>
+An overview of the trip length distribution from the NCSU survey by trip purpose is displayed in tabular format. The trip length patterns for on- and off-campus students follow logical and anticipated patterns. On average, home-based trips by off-campus students are longer than home-based trip by on-campus students, which is expected. These observed trip lengths were used to validate the trip length produced with the gravity model as discussed below in the calibration section.
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
-Distance
+Trip Purpose
+</th>
+<th style="text-align:left;">
+Home Location
 </th>
 <th style="text-align:right;">
-UC1
+Count
 </th>
 <th style="text-align:right;">
-UCC
-</th>
-<th style="text-align:right;">
-UCO
-</th>
-<th style="text-align:right;">
-UHC
-</th>
-<th style="text-align:right;">
-UHO
-</th>
-<th style="text-align:right;">
-UOO
+Average Distance
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-<ol style="list-style-type: decimal">
-<li>up to 2 miles
+Home-Campus
+</td>
+<td style="text-align:left;">
+Off-campus
 </td>
 <td style="text-align:right;">
-98.55
+306
 </td>
 <td style="text-align:right;">
-41.9
-</td>
-<td style="text-align:right;">
-56.09
-</td>
-<td style="text-align:right;">
-55.94
-</td>
-<td style="text-align:right;">
-28.2
-</td>
-<td style="text-align:right;">
-46.30
+5.41
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-<ol start="2" style="list-style-type: decimal">
-<li>up to 5 miles
+Home-Campus
+</td>
+<td style="text-align:left;">
+On-campus
 </td>
 <td style="text-align:right;">
-1.45
+182
 </td>
 <td style="text-align:right;">
-58.1
-</td>
-<td style="text-align:right;">
-21.74
-</td>
-<td style="text-align:right;">
-26.84
-</td>
-<td style="text-align:right;">
-36.1
-</td>
-<td style="text-align:right;">
-35.19
+1.34
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-<ol start="3" style="list-style-type: decimal">
-<li>up to 10 miles
+Home-Other
+</td>
+<td style="text-align:left;">
+Off-campus
 </td>
 <td style="text-align:right;">
-NA
+210
 </td>
 <td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-14.35
-</td>
-<td style="text-align:right;">
-6.76
-</td>
-<td style="text-align:right;">
-18.0
-</td>
-<td style="text-align:right;">
-8.33
+5.82
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-<ol start="4" style="list-style-type: decimal">
-<li>more than 10 miles
+Home-Other
+</td>
+<td style="text-align:left;">
+On-campus
 </td>
 <td style="text-align:right;">
-NA
+45
 </td>
 <td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-7.83
-</td>
-<td style="text-align:right;">
-10.45
-</td>
-<td style="text-align:right;">
-17.6
-</td>
-<td style="text-align:right;">
-10.19
+3.35
 </td>
 </tr>
 </tbody>
-</table></li>
-</ol></li>
-</ol></li>
-</ol></li>
-</ol>
+</table>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Purpose
+</th>
+<th style="text-align:right;">
+Count
+</th>
+<th style="text-align:right;">
+Average Distance
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Campus-Other
+</td>
+<td style="text-align:right;">
+230
+</td>
+<td style="text-align:right;">
+3.407
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Campus-to-campus
+</td>
+<td style="text-align:right;">
+93
+</td>
+<td style="text-align:right;">
+2.039
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+On-campus
+</td>
+<td style="text-align:right;">
+758
+</td>
+<td style="text-align:right;">
+0.572
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
 <div id="mode-choice" class="section level2">
 <h2>Mode Choice</h2>
-<p>The third step in the university model development process is the mode choice model. During the mode choice step, trips by zonal pair are distributed across available modes.</p>
-<p>The NCSU survey provides insight into the existing mode choice of NCSU students. Because the dataset was too limited to be used to estimate a mode choice model, time and cost coefficients were asserted. The asserted coefficients reflect typical sensitivities to time and cost for travelers with average incomes.</p>
-<p>The multinomial mode choice model explains the split between the university model’s four modes - walk, bike, transit and car based on time, cost and modal preferences. The NCSU survey data was used to develop the calibration target for the mode choice model for all four universities.</p>
+<p>The third step in the University Model development process is the mode choice model. During the mode choice step, trips by zonal pair are distributed across available modes. A multinomial mode choice model was used to split trips between the University Model’s four modes - walk, bike, transit and car based on time, cost and modal preferences.</p>
+<p>The NCSU survey provides insight into the existing mode choice of NCSU students. Because the dataset was too limited to be used to estimate a mode choice model, time and cost coefficients were asserted. The asserted coefficients reflect typical sensitivities to time and cost for travelers with average incomes. The NCSU survey data was used to develop the calibration target for the mode choice model for all four universities.</p>
 <div id="mode-split-from-ncsu-survey" class="section level3">
 <h3>Mode split from NCSU survey</h3>
-<p>The figure below shows the number of trips reported by the NCSU survey respondents for five of the model’s trip purposes. The modes are grouped into car, which is drive alone; carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips.</p>
+<p>Figure 6 below shows the number of trips reported by the NCSU survey respondents for five of the model’s trip purposes. The modes are grouped into car, which is drive alone and carpool; bus; walk; bicycle and other. While drive alone is the most common mode, the graph shows relatively large numbers of bus trips (for Home-Campus and Campus-to-campus) and of walk trips (for Home-Campus and Campus-Other). The graph does not include On-campus trips, which are mostly walk trips.</p>
 <div id="sample-overview" class="section level4">
 <h4>Sample overview</h4>
 <p><img src="university_files/figure-html/oncampus_modesplit%20plot-1.png" width="672" /></p>
@@ -2063,36 +2061,36 @@ Cost
 </div>
 <div id="calibration" class="section level2">
 <h2>Calibration</h2>
-<p>This section compares a few different summaries for the university model outputs to the observed data from the NCSU survey.</p>
+<p>Calibration of the University Model is solely dependent upon the small sample size from the NCSU survey, as well as logic check reviews from local knowledge. This calibration section compares different summaries of the University Model outputs to the observed data from the NCSU survey.</p>
 <div id="trip-generation-1" class="section level3">
 <h3>Trip Generation</h3>
-<p>Trip generation results compared with the survey are within acceptable parameters as shown by the results of trips per enrollment.</p>
-<p>This is how the trips per enrollment compare for each campus:</p>
+<p>Trip generation results compared with the survey are within acceptable parameters as shown by the model’s trips per enrollment results. As expected, the NCSU results match the survey data and UNC’s trip rate is similar to NCSU’s. Given the similarities of campus structure for UNC and NCSU, this is logical. Duke and NCCU display differences in trips per enrollment from the NCSU survey.</p>
+<p>The trips per enrollment for each university are displayed in the figure below.</p>
 <p><img src="university_files/university-summary-figures/university_trips_per_student.png" /></p>
-<p>Note that the DUKE campus shows a higher rate (trips per student) in the model output. This is because for some of the university trip purposes, the trips production model is a function of campus building sqft for the TAZ. DUKE has a higher campus bldg sqft per student (see below), resulting in the higher overall trip rate.</p>
+<p>As noted, the model shows a higher rate (trips per student) for Duke than for NCSU. This is because for some of the university trip purposes, the trip production model is a function of campus building square feet in the TAZ. The average campus building square feet per student at Duke is higher than at NCSU (see below), resulting in the higher overall trip rate per student. Conversely, NCCU has a lower average campus building square feet per student than NCSU, resulting in a lower overall trip rate per student.</p>
 <p><img src="university_files/university-summary-figures/university_bldg_sqft_per_student.png" /></p>
 </div>
 <div id="trip-distribution-1" class="section level3">
 <h3>Trip Distribution</h3>
-<p>Simulated vs observed data shows similar patterns for the NCSU site as shown below. The other universities display similar pattern.</p>
-<div id="cummulative-distance-distribution" class="section level4">
-<h4>Cummulative Distance Distribution</h4>
-<p>The figure below compares the distance distribution of NCSU university home to campus trips:</p>
+<p>Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.</p>
+<div id="cumulative-distance-distribution" class="section level4">
+<h4>Cumulative Distance Distribution</h4>
+<p>The figure below compares the distance distribution of NCSU Home-Campus trips. The simulated cumulative average trip length is slightly off when compared with the observed data. The trip length disparity is almost certainly due to how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles. (see: <a href="https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)" class="uri">https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)</a>)</p>
 <p><img src="university_files/university-summary-figures/university_home_to_campus_dist_distribution.png" /></p>
 </div>
 <div id="average-trip-length" class="section level4">
 <h4>Average Trip Length</h4>
-<p>Here is how the average trip length by mode compares for simulated vs observed data:</p>
+<p>When looked at by mode, the average trip length compares extremely well for simulated versus observed data for NCSU.</p>
 <p><img src="university_files/university-summary-figures/university_avg_trip_length.png" /></p>
 </div>
 </div>
 <div id="mode-choice-1" class="section level3">
 <h3>Mode Choice</h3>
-<p>The final mode share for NCSU university trips matched to the observed data as shown below.</p>
+<p>The final simulated mode split for NCSU trips closely matches the observed mode split as shown below.</p>
 <p><img src="university_files/university-summary-figures/university_mode_share_ncsu.png" /></p>
-<p>A comparison of mode share for university trips by campus follows logical patterns. Note that the share for UNC campus is adjusted to bring down the auto share and a higher transit share based on the fact that UNC doesn’t allow parking on campus for students and therefore students have to walk or take transit. UNC transit is also one of the highest in the state per capita.</p>
+<p>A comparison of mode share for trips by university follows logical patterns. Note that the share for UNC is adjusted to bring down the auto share and a higher transit share based on the fact that UNC doesn’t allow parking on campus for students and therefore students have to walk or take transit. UNC transit is also one of the highest in the state per capita.</p>
 <p><img src="university_files/university-summary-figures/university_mode_share_by_campus.png" /></p>
-<p>Our model adjusted to match as close as possible the observed mode share from UNC survey (<a href="https://move.unc.edu/about/publications/commuter-survey/survey-results/">source</a>):</p>
+<p>Our model was adjusted to match as close as possible the observed mode share from UNC survey (<a href="https://move.unc.edu/about/publications/commuter-survey/survey-results/">source</a>):</p>
 <p><img src="university_files/university-summary-figures/unc_observed_mode_share.PNG" /></p>
 <p>The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive <code>BuildingS_UNC</code> or positive <code>StudGQ_UNC</code>. The map below shows the identified zones for UNC mode share adjustment.</p>
 <p><img src="university_files/university-summary-figures/unc_zones_map_zoomed.png" /></p>
