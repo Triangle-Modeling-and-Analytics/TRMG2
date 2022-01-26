@@ -18,11 +18,11 @@ Macro "University DC & MC" (Args)
     RunMacro("Mark UNC Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
-    RunMacro("University Directionality", Args)
     RunMacro("University MC Probabilities", Args)
     RunMacro("University Mode Choice", Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
+    RunMacro("University Directionality", Args)
     return(1)
 endmacro
 
@@ -54,11 +54,11 @@ Macro "University" (Args)
     RunMacro("Mark UNC Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
-    RunMacro("University Directionality", Args)
     RunMacro("University MC Probabilities", Args)
     RunMacro("University Mode Choice", Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
+    RunMacro("University Directionality", Args)
 
     return(1)
 endmacro
@@ -420,65 +420,6 @@ Macro "University Combine Campus" (Args)
 endmacro
 
 /*
-Convert from PA to OD format
-*/
-
-Macro "University Directionality" (Args)
-    trips_dir = Args.[Output Folder] + "\\university\\"
-    dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
-    periods = Args.periods
-
-    dir_factors = RunMacro("Read Parameter File", {
-        file: dir_factor_file,
-        names: "period",
-        values: "pa_factor"
-    })
-
-    for period in periods do
-        pa_matrix_file = trips_dir + "university_pa_trips_" + period + ".mtx"
-        od_matrix_file = trips_dir + "university_trips_" + period + ".mtx"
-        od_transpose_matrix_file = trips_dir + "university_transpose_trips_" + period + ".mtx"
-
-        CopyFile(pa_matrix_file, od_matrix_file)
-
-        mat = OpenMatrix(od_matrix_file, )
-        tmat = TransposeMatrix(mat, {
-            {"File Name", od_transpose_matrix_file},
-            {"Label", "Transposed Trips"},
-            {"Type", "Double"}}
-        )
-
-        mat = null
-        tmat = null
-
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(od_matrix_file)
-        mtx_core_names = mtx.data.CoreNames
-        cores = mtx.data.cores
-
-        t_mtx = CreateObject("Matrix")
-        t_mtx.LoadMatrix(od_transpose_matrix_file)
-        t_cores = t_mtx.data.cores
-
-        pa_factor = dir_factors.(period)
-
-        for core_name in mtx_core_names do
-            cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
-        end
-
-        cores = null
-        t_cores = null
-        mtx = null
-        t_mtx = null
-
-        DeleteFile(pa_matrix_file)
-        DeleteFile(od_transpose_matrix_file)
-
-    end
-
-endmacro
-
-/*
 Calculates mode choice probabilities for university trips
 */
 
@@ -538,7 +479,7 @@ Macro "University Mode Choice" (Args)
     periods = Args.periods
 
     for period in periods do
-        univ_mtx_file = trips_dir + "university_trips_" + period + ".mtx"
+        univ_mtx_file = trips_dir + "university_pa_trips_" + period + ".mtx"
 
         univ_mtx = CreateObject("Matrix", univ_mtx_file)
         trip_types = univ_mtx.GetCoreNames()
@@ -572,11 +513,9 @@ Macro "University Mode Choice" (Args)
     end
 endmacro
 
-
 /*
 Generate University Other to Other Trips by mode based on UHO and UCO.
-1. combines home to other and campus to other trip matrices (by mode). These are OD matrices.
-2. combined "other" matrix is converted back to PA format.
+1. combines home to other and campus to other trip matrices (by mode). These are PA matrices.
 3. get the total trip attractions (by mode) for other trips.
 4. multiply the attractions by trip rate (by mode) to get the marginals for other to other trips.
 5. apply IPF to get the other to other trips by mode.
@@ -609,7 +548,7 @@ Macro "University Other to Other" (Args)
         other_mtx_file = trips_dir + "university_mode_trips_UHO_UCO_" + period + ".mtx"
         if GetFileInfo(other_mtx_file) <> null then DeleteFile(other_mtx_file)
 
-        // combine UHO_ON, UHO_OFF and UCO. these are OD trips by mode
+        // combine UHO_ON, UHO_OFF and UCO. these are PA trips by mode
         for t = 1 to trip_types.length do
             trip_type = trip_types[t]
             mtx_file = trips_dir + "university_mode_trips_" + trip_type + "_" + period + ".mtx"
@@ -636,43 +575,6 @@ Macro "University Other to Other" (Args)
                 mc_mtx = null
             end
         end
-
-        // create total other transpose matrix
-        transpose_mtx_file = trips_dir + "university_mode_trips_UHO_UCO_transpose_" + period + ".mtx"
-        if GetFileInfo(transpose_mtx_file) <> null then DeleteFile(transpose_mtx_file)
-
-        mat = OpenMatrix(other_mtx_file, )
-        tmat = TransposeMatrix(mat, {
-            {"File Name", transpose_mtx_file},
-            {"Label", "Transposed Trips"},
-            {"Type", "Double"}}
-        )
-        mat = null
-        tmat = null
-
-        // convert total other trips from OD to PA
-        pa_factor = dir_factors.(period)
-        ap_factor = 1 - pa_factor
-
-        od_factor = pa_factor/(pa_factor - ap_factor)
-
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(other_mtx_file)
-        cores = mtx.data.cores
-
-        t_mtx = CreateObject("Matrix")
-        t_mtx.LoadMatrix(transpose_mtx_file)
-        t_cores = t_mtx.data.cores
-
-        for mode in mode_names do
-            cores.(mode) := Nz(cores.(mode)) * od_factor + Nz(t_cores.(mode)) * (1 - od_factor)
-        end
-
-        cores = null
-        mtx = null
-        t_mtx = null
-        t_cores = null
-        DeleteFile(transpose_mtx_file)
 
         // get marginals for other to other trips
         mtx = CreateObject("Matrix")
@@ -749,7 +651,7 @@ Macro "University Combine Matrices" (Args)
     trip_types = {"UHC_ON", "UHC_OFF", "UHO_ON", "UHO_OFF", "UCO", "UCC", "UC1", "UOO"}
 
     for period in periods do
-        out_mtx_file = trips_dir + "university_trips_" + period + ".mtx"
+        out_mtx_file = trips_dir + "university_pa_modal_trips_" + period + ".mtx"
         if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
 
         for t = 1 to trip_types.length do
@@ -792,4 +694,63 @@ Macro "University Combine Matrices" (Args)
         end
     end
 
+endmacro
+
+/*
+Convert from PA to OD format. Does not convert the transit cores.
+*/
+
+Macro "University Directionality" (Args)
+    trips_dir = Args.[Output Folder] + "\\university\\"
+    dir_factor_file = Args.[Input Folder] + "\\university\\university_directionality.csv"
+    periods = Args.periods
+
+    dir_factors = RunMacro("Read Parameter File", {
+        file: dir_factor_file,
+        names: "period",
+        values: "pa_factor"
+    })
+
+    for period in periods do
+        pa_matrix_file = trips_dir + "university_pa_modal_trips_" + period + ".mtx"
+        od_matrix_file = trips_dir + "university_trips_" + period + ".mtx"
+        od_transpose_matrix_file = trips_dir + "university_transpose_trips_" + period + ".mtx"
+
+        CopyFile(pa_matrix_file, od_matrix_file)
+
+        mat = OpenMatrix(od_matrix_file, )
+        tmat = TransposeMatrix(mat, {
+            {"File Name", od_transpose_matrix_file},
+            {"Label", "Transposed Trips"},
+            {"Type", "Double"}}
+        )
+
+        mat = null
+        tmat = null
+
+        mtx = CreateObject("Matrix")
+        mtx.LoadMatrix(od_matrix_file)
+        mtx_core_names = mtx.data.CoreNames
+        cores = mtx.data.cores
+
+        t_mtx = CreateObject("Matrix")
+        t_mtx.LoadMatrix(od_transpose_matrix_file)
+        t_cores = t_mtx.data.cores
+
+        pa_factor = dir_factors.(period)
+
+        for core_name in mtx_core_names do
+            // Do not convert transit cores to OD
+            if core_name = "w_lb" then continue
+            if core_name = "pnr_lb" then continue
+            cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+        end
+
+        cores = null
+        t_cores = null
+        mtx = null
+        t_mtx = null
+        DeleteFile(pa_matrix_file)
+        DeleteFile(od_transpose_matrix_file)
+    end
 endmacro

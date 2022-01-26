@@ -106,6 +106,8 @@ Macro "Create Transit Matrices2" (Args)
         univ_mtx = CreateObject("Matrix", univ_mtx_file)
 
         // Add w_lb and pnr_lb cores to the assignment matrix
+        // Note: while the other cores in the university matrix are OD, the transit
+        // cores are still PA, so they can be added here correctly.
         univ_core = univ_mtx.GetCore("w_lb")
         out_core = out_mtx.GetCore("w_lb")
         out_core := nz(out_core) + nz(univ_core)
