@@ -537,41 +537,28 @@ Macro "University Mode Choice" (Args)
     trips_dir = Args.[Output Folder] + "\\university\\"
     periods = Args.periods
 
-    mode_names = {"auto", "transit", "walk", "bike"}
-
     for period in periods do
         univ_mtx_file = trips_dir + "university_trips_" + period + ".mtx"
 
-        univ_mtx = OpenMatrix(univ_mtx_file, )
-        mc = CreateMatrixCurrency(univ_mtx,,,,)
-        trip_types = GetMatrixCoreNames(univ_mtx)
+        univ_mtx = CreateObject("Matrix", univ_mtx_file)
+        trip_types = univ_mtx.GetCoreNames()
+        univ_cores = univ_mtx.GetCores()
 
         for trip_type in trip_types do
             out_mtx_file = trips_dir + "university_mode_trips_" + trip_type + "_" + period + ".mtx"
-            if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
-
-            matOpts = {{"File Name", out_mtx_file}, {"Label", "University " + trip_type + " " + period + " Trips By Mode"}, {"File Based", "Yes"}, {"Tables", mode_names}}
-
-            out_mtx = CopyMatrixStructure({mc}, matOpts)
-            out_mcs = CreateMatrixCurrencies(out_mtx,,,)
-
-            for mode in mode_names do
-                out_mcs.(mode) := 0
-            end
+            CopyFile(univ_mtx_file, out_mtx_file)
 
             mc_mtx_file = trips_dir + "\\mode\\probabilities\\probability_" + Lower(trip_type) + "_" + Lower(period) + ".mtx"
 
-            mc_mtx = CreateObject("Matrix")
-            mc_mtx.LoadMatrix(mc_mtx_file)
-            mc_cores = mc_mtx.data.cores
+            mc_mtx = CreateObject("Matrix", mc_mtx_file)
+            mc_cores = mc_mtx.GetCores()
+            mode_names = mc_mtx.GetCoreNames()
 
-            out_mtx = CreateObject("Matrix")
-            out_mtx.LoadMatrix(out_mtx_file)
-            out_cores = out_mtx.data.cores
-
-            univ_mtx = CreateObject("Matrix")
-            univ_mtx.LoadMatrix(univ_mtx_file)
-            univ_cores = univ_mtx.data.cores
+            out_mtx = CreateObject("Matrix", out_mtx_file)
+            cores_to_drop = out_mtx.GetCoreNames()
+            out_mtx.AddCores(mode_names)
+            out_mtx.DropCores(cores_to_drop)
+            out_cores = out_mtx.GetCores()
 
             for mode in mode_names do
                 out_cores.(mode) := Nz(univ_cores.(trip_type)) * Nz(mc_cores.(mode))
@@ -604,7 +591,7 @@ Macro "University Other to Other" (Args)
 
     trip_types = {"UHO_ON", "UHO_OFF", "UCO"}
 
-    mode_names = {"auto", "transit", "walk", "bike"}
+    mode_names = {"auto", "w_lb", "walk", "bike"}
 
     dir_factors = RunMacro("Read Parameter File", {
         file: dir_factor_file,
@@ -771,6 +758,15 @@ Macro "University Combine Matrices" (Args)
 
             if t = 1 then do
                 CopyFile(mtx_file, out_mtx_file)
+                mtx = CreateObject("Matrix", out_mtx_file)
+                core_names = mtx.GetCoreNames()
+                if core_names.position("pnr_lb") = 0 then do
+                    mtx.AddCores({"pnr_lb"})
+                    core = mtx.GetCore("pnr_lb")
+                    core := 0
+                end
+                mtx = null
+                core = null
             end
             else do
                 mc_mtx = CreateObject("Matrix")
