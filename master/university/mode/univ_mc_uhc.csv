@@ -25,7 +25,7 @@ pnr_lb,walk_skim.WalkTime < 8,,-99,Constant
 pnr_lb,se.UNC_Zones.D,off,0.625,Transit positive utility to UNC Zones for off-campus student
 pnr_lb,Constant,on,-0.25,Constant
 pnr_lb,Constant,off,-0.25,Constant
-pnr_lb,Constant,off,-99,No PNR for on-campus students
+pnr_lb,Constant,on,-99,No PNR for on-campus students
 walk,walk_skim.WalkTime,,-0.03,Walk Time
 walk,se.UNC_Zones.D,off,-1.1,Walk penalty to UNC Zones for off-campus student
 walk,Constant,on,0.75,Constant
