@@ -21,6 +21,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
     return(1)
@@ -801,4 +802,54 @@ Macro "Create MOVES Inputs" (Args)
   f = OpenFile(out_file, "w")
   WriteLine(f, String(veh_total))
   CloseFile(f)
+endmacro
+
+/*
+
+*/
+
+Macro "Summarize Parking"  (Args)
+
+  mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  summary_dir = Args.[Output Folder] + "/_summaries/parking"
+  periods = Args.periods
+
+  RunMacro("Create Directory", summary_dir)
+  
+  mtx_files = RunMacro("Catalog Files", mtx_dir, "mtx")
+
+  // Create a starting matrix
+  out_file = summary_dir + "/parking_daily.mtx"
+  CopyFile(mtx_files[1], out_file)
+  mtx = CreateObject("Matrix", out_file)
+  core_names = mtx.GetCoreNames()
+  mtx.AddCores({"parkwalk", "parkshuttle"})
+  mtx.DropCores(core_names)
+  cores = mtx.GetCores()
+  cores.parkwalk := 0
+  cores.parkshuttle := 0
+
+  // Collapse the "from park" trips into the daily matrix
+  for mtx_file in mtx_files do
+    {drive, path, name, ext} = SplitPath(mtx_file)
+    parts = ParseString(name, "_")
+    period = parts[parts.length]
+
+    in_mtx = CreateObject("Matrix", mtx_file)
+    in_cores = in_mtx.GetCores()
+    cores.parkwalk := cores.parkwalk + 
+      nz(in_cores.sov_parkwalk_frompark) + 
+      nz(in_cores.hov2_parkwalk_frompark) + 
+      nz(in_cores.hov3_parkwalk_frompark)
+    cores.parkshuttle := cores.parkshuttle + 
+      nz(in_cores.sov_parkshuttle_frompark) + 
+      nz(in_cores.hov2_parkshuttle_frompark) + 
+      nz(in_cores.hov3_parkshuttle_frompark)
+  end
+
+  // Replace 0 with null to reduce size
+  cores.parkwalk := if cores.parkwalk = 0 then null else cores.parkwalk
+  cores.parkshuttle := if cores.parkshuttle = 0 then null else cores.parkshuttle
+  cores = null
+  mtx.Pack()
 endmacro
