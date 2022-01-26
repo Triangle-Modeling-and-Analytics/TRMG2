@@ -105,10 +105,12 @@ Macro "Create Transit Matrices2" (Args)
         univ_mtx_file = univ_dir + "/university_trips_" + period + ".mtx"
         univ_mtx = CreateObject("Matrix", univ_mtx_file)
 
-        // "transit" core from university model trips is put into "w_lb" in transit trips
-        univ_core = univ_mtx.GetCore("transit")
+        // Add w_lb and pnr_lb cores to the assignment matrix
+        univ_core = univ_mtx.GetCore("w_lb")
         out_core = out_mtx.GetCore("w_lb")
-
+        out_core := nz(out_core) + nz(univ_core)
+        univ_core = univ_mtx.GetCore("pnr_lb")
+        out_core = out_mtx.GetCore("pnr_lb")
         out_core := nz(out_core) + nz(univ_core)
 
         mtxs.(period) = out_mtx
