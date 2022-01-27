@@ -993,7 +993,7 @@ Macro "Create Route Networks" (Args)
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost : 240,
-                    MaxTransfers : 2,
+                    MaxTransfers : 1,
                     VOT : 0.1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({
@@ -1003,18 +1003,18 @@ Macro "Create Route Networks" (Args)
                 o.Combination({CombinationFactor: .1})
                 o.StopTimeFields({
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen",
+                    //TransferPenalty: "xfer_pen",
                     DwellOn: "dwell_on",
                     DwellOff: "dwell_off"
                 })
                 o.TimeGlobals({
                     // Headway: 14,
                     InitialPenalty: 0,
-                    TransferPenalty: 3,
+                    TransferPenalty: 5,
                     MaxInitialWait: 20,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
-                    MinTransferWait: 2,
+                    MinTransferWait: 5,
                     Layover: 5, 
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
@@ -1044,9 +1044,9 @@ Macro "Create Route Networks" (Args)
                     Fare: 1,
                     Time: 1,
                     InitialPenalty: 1,
-                    TransferPenalty: 1,
+                    TransferPenalty: 3,
                     InitialWait: 2,
-                    TransferWeight: 2,
+                    TransferWait: 3,
                     Dwelling: 2,
                     WalkTimeFactor: 3,
                     DriveTimeFactor: 0

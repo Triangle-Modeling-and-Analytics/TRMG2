@@ -95,25 +95,25 @@ pnr_eb,pnr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_eb,pnr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_eb,pnr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 pnr_eb,pnr_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
-auto_pay,Constant,v0,0.498845,Additional Calibration Constant
-other_auto,Constant,v0,-2.066048,Additional Calibration Constant
-sov,Constant,ilvi,1.23976,Additional Calibration Constant
-hov2,Constant,ilvi,1.044654,Additional Calibration Constant
-hov3,Constant,ilvi,1.435656,Additional Calibration Constant
-auto_pay,Constant,ilvi,2.137728,Additional Calibration Constant
-other_auto,Constant,ilvi,1.113463,Additional Calibration Constant
-sov,Constant,ilvs,0.066761,Additional Calibration Constant
-hov2,Constant,ilvs,0.241113,Additional Calibration Constant
-hov3,Constant,ilvs,-0.025861,Additional Calibration Constant
-auto_pay,Constant,ilvs,0.117105,Additional Calibration Constant
-other_auto,Constant,ilvs,-0.444753,Additional Calibration Constant
-sov,Constant,ihvi,0.191538,Additional Calibration Constant
-hov2,Constant,ihvi,-0.319303,Additional Calibration Constant
-hov3,Constant,ihvi,0.201191,Additional Calibration Constant
-auto_pay,Constant,ihvi,1.181703,Additional Calibration Constant
-other_auto,Constant,ihvi,-0.058121,Additional Calibration Constant
-sov,Constant,ihvs,0.891578,Additional Calibration Constant
-hov2,Constant,ihvs,0.729155,Additional Calibration Constant
-hov3,Constant,ihvs,0.568766,Additional Calibration Constant
-auto_pay,Constant,ihvs,2.379175,Additional Calibration Constant
-other_auto,Constant,ihvs,1.190797,Additional Calibration Constant
+auto_pay,Constant,v0,1.472365,Additional Calibration Constant
+other_auto,Constant,v0,-0.802001,Additional Calibration Constant
+sov,Constant,ilvi,4.49943,Additional Calibration Constant
+hov2,Constant,ilvi,4.304349,Additional Calibration Constant
+hov3,Constant,ilvi,4.693279,Additional Calibration Constant
+auto_pay,Constant,ilvi,2.460095,Additional Calibration Constant
+other_auto,Constant,ilvi,4.404367,Additional Calibration Constant
+sov,Constant,ilvs,3.371954,Additional Calibration Constant
+hov2,Constant,ilvs,3.54434,Additional Calibration Constant
+hov3,Constant,ilvs,3.290287,Additional Calibration Constant
+auto_pay,Constant,ilvs,-0.242769,Additional Calibration Constant
+other_auto,Constant,ilvs,2.881444,Additional Calibration Constant
+sov,Constant,ihvi,3.149024,Additional Calibration Constant
+hov2,Constant,ihvi,2.634746,Additional Calibration Constant
+hov3,Constant,ihvi,3.161258,Additional Calibration Constant
+auto_pay,Constant,ihvi,1.677627,Additional Calibration Constant
+other_auto,Constant,ihvi,2.896813,Additional Calibration Constant
+sov,Constant,ihvs,4.145594,Additional Calibration Constant
+hov2,Constant,ihvs,3.977126,Additional Calibration Constant
+hov3,Constant,ihvs,3.788481,Additional Calibration Constant
+auto_pay,Constant,ihvs,3.188168,Additional Calibration Constant
+other_auto,Constant,ihvs,4.498197,Additional Calibration Constant
