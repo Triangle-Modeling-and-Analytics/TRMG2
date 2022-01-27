@@ -2,18 +2,34 @@ Alternative,Expression,Segment,Coefficient,Description
 auto,sov_skim.CongTime,,-0.02,Travel Time
 auto,Constant,on,0,Constant
 auto,Constant,off,0,Constant
-transit,transit_skim.[In-Vehicle Time],,-0.02,IVTT
-transit,transit_skim.Fare,,-0.2,Transit fare
-transit,transit_skim.[Access Walk Time],,-0.03,Access walk time
-transit,transit_skim.[Initial Wait Time],,-0.03,Initial wait time
-transit,transit_skim.[Transfer Wait Time],,-0.03,Transfer wait time
-transit,transit_skim.[Egress Walk Time],,-0.03,Egress walk time
-transit,walk_skim.WalkTime < 10,,-99,
-transit,Constant,on,-0.25,Constant
-transit,Constant,off,-0.25,Constant
+auto,se.UNC_Zones.D,off,-2.25,Auto penalty to UNC zones for off-campus student
+auto,walk_skim.WalkTime < 8,,-99,Constant
+w_lb,w_lb_skim.[In-Vehicle Time],,-0.02,IVTT
+w_lb,w_lb_skim.Fare,,-0.2,Transit fare
+w_lb,w_lb_skim.[Access Walk Time],,-0.03,Access walk time
+w_lb,w_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
+w_lb,w_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+w_lb,w_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
+w_lb,walk_skim.WalkTime < 8,,-99,Constant
+w_lb,se.UNC_Zones.D,off,0.625,Transit positive utility to UNC Zones for off-campus student
+w_lb,Constant,on,-0.25,Constant
+w_lb,Constant,off,-0.25,Constant
+pnr_lb,pnr_lb_skim.[In-Vehicle Time],,-0.02,IVTT
+pnr_lb,pnr_lb_skim.Fare,,-0.2,Transit fare
+pnr_lb,pnr_lb_skim.[Access Drive Time],,-0.02,Access drive time
+pnr_lb,pnr_lb_skim.[Access Walk Time],,-0.03,Access walk time
+pnr_lb,pnr_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
+pnr_lb,pnr_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+pnr_lb,pnr_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
+pnr_lb,walk_skim.WalkTime < 8,,-99,Constant
+pnr_lb,se.UNC_Zones.D,off,0.625,Transit positive utility to UNC Zones for off-campus student
+pnr_lb,Constant,on,-0.25,Constant
+pnr_lb,Constant,off,-0.25,Constant
+pnr_lb,Constant,on,-99,No PNR for on-campus students
 walk,walk_skim.WalkTime,,-0.03,Walk Time
+walk,se.UNC_Zones.D,off,-1.1,Walk penalty to UNC Zones for off-campus student
 walk,Constant,on,0.75,Constant
 walk,Constant,off,0.75,Constant
-bike,walk_skim.WalkTime / 4,,-0.02,Travel Time
+bike,bike_skim.BikeTime,,-0.02,Travel Time
 bike,Constant,on,-2.65,Constant
 bike,Constant,off,-2.65,Constant

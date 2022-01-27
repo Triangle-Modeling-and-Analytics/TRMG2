@@ -1,0 +1,18 @@
+"","campus","value","source","measure","mode"
+"1","NCSU",5.43,"Simulated","trips per enrollment",NA
+"2","UNC",5.55,"Simulated","trips per enrollment",NA
+"3","DUKE",8.2,"Simulated","trips per enrollment",NA
+"4","NCCU",4.17,"Simulated","trips per enrollment",NA
+"5","NCSU",5.4,"Observed","trips per enrollment",NA
+"6","NCSU",0.19,"Simulated","building sqft per student",NA
+"7","UNC",0.19,"Simulated","building sqft per student",NA
+"8","DUKE",0.35,"Simulated","building sqft per student",NA
+"9","NCCU",0.11,"Simulated","building sqft per student",NA
+"10",NA,5.09,"Simulated","average trip length","AUTO"
+"11",NA,2.58,"Simulated","average trip length","TRANSIT"
+"12",NA,0.95,"Simulated","average trip length","WALK"
+"13",NA,3.18,"Simulated","average trip length","BIKE"
+"14",NA,5.85,"Observed","average trip length","AUTO"
+"15",NA,1.27,"Observed","average trip length","BIKE"
+"16",NA,2.88,"Observed","average trip length","TRANSIT"
+"17",NA,0.56,"Observed","average trip length","WALK"
