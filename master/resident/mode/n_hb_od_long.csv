@@ -49,15 +49,15 @@ w_eb,w_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
 w_eb,w_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
 w_eb,w_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
 w_eb,se.HiIncomePct.O,,-0.3106,High income household percentage
-auto_pay,Constant,v0,2.146282,Additional Calibration Constant
-other_auto,Constant,v0,-0.925356,Additional Calibration Constant
-sov,Constant,vi,-1.232707,Additional Calibration Constant
-hov2,Constant,vi,-0.960414,Additional Calibration Constant
-hov3,Constant,vi,-1.003766,Additional Calibration Constant
-auto_pay,Constant,vi,1.051198,Additional Calibration Constant
-other_auto,Constant,vi,-1.819681,Additional Calibration Constant
-sov,Constant,vs,0.408056,Additional Calibration Constant
-hov2,Constant,vs,0.558539,Additional Calibration Constant
-hov3,Constant,vs,0.562061,Additional Calibration Constant
-auto_pay,Constant,vs,2.125158,Additional Calibration Constant
-other_auto,Constant,vs,0.413053,Additional Calibration Constant
+auto_pay,Constant,v0,2.75535,Additional Calibration Constant
+other_auto,Constant,v0,-0.15816,Additional Calibration Constant
+sov,Constant,vi,-0.434745,Additional Calibration Constant
+hov2,Constant,vi,-0.165223,Additional Calibration Constant
+hov3,Constant,vi,-0.207795,Additional Calibration Constant
+auto_pay,Constant,vi,1.533678,Additional Calibration Constant
+other_auto,Constant,vi,-1.034076,Additional Calibration Constant
+sov,Constant,vs,1.544293,Additional Calibration Constant
+hov2,Constant,vs,1.698316,Additional Calibration Constant
+hov3,Constant,vs,1.702341,Additional Calibration Constant
+auto_pay,Constant,vs,2.976845,Additional Calibration Constant
+other_auto,Constant,vs,1.546926,Additional Calibration Constant
