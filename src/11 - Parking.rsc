@@ -604,7 +604,7 @@ Macro "Calculate Parking Cores" (MacroOpts)
         if work_type = "w"
             then prob_field = "Prob_Shuttle_Work"
             else prob_field = "Prob_Shuttle_NonWork"
-        v_prob_shuttle = GetDataVector(logsum_vw + "|Parking", prob_field, )
+        v_prob_shuttle = GetDataVector(logsum_vw + "|Parking", prob_field, {"Sort Order": {{"TAZ", "Ascending"}}})
         v_prob_shuttle = nz(v_prob_shuttle)
         CloseView(logsum_vw)
         
