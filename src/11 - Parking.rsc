@@ -572,15 +572,26 @@ Macro "Calculate Parking Cores" (MacroOpts)
 
     // Add index for parking districts to speed convolution calculations
     trip_mtx = CreateObject("Matrix", trip_mtx_file)
-    trip_mtx.AddIndex({
-        Matrix: trip_mtx.GetMatrixHandle(),
-        IndexName: "ParkingDistricts",
-        Filter: "ParkDistrict > 0",
-        Dimension: "Both",
-        TableName: se,
-        OriginalID: "TAZ",
-        NewID: "TAZ"
-        })
+    names = {"ParkingDistricts", "CBD", "Univ"}
+    queries = {
+        "ParkDistrict > 0",
+        "ParkDistrict > 0 and ParkCostU = 0",
+        "ParkDistrict > 0 and ParkCostU > 0"
+    }
+    for i = 1 to names.length do
+        name = names[i]
+        query = queries[i]
+
+        trip_mtx.AddIndex({
+            Matrix: trip_mtx.GetMatrixHandle(),
+            IndexName: name,
+            Filter: query,
+            Dimension: "Both",
+            TableName: se,
+            OriginalID: "TAZ",
+            NewID: "TAZ"
+            })
+    end
     trip_mtx.SetColIndex("ParkingDistricts")
 
     park_modes = {"walk", "shuttle"}
