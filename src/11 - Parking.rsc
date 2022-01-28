@@ -631,10 +631,12 @@ Macro "Calculate Parking Cores" (MacroOpts)
         opts.parking_core_name = "univ_cbd"
         opts.parking_district_index = "ParkingDistricts"
         RunMacro("Parking Convolution", opts)
-        
     end
 
     // Update auto and transit cores based on parking info.
+    // Must re-open trip_mtx to update object cores.
+    trip_mtx = null
+    trip_mtx = CreateObject("Matrix", trip_mtx_file)
     core_names = trip_mtx.GetCoreNames()
     if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
     cores = trip_mtx.GetCores()
