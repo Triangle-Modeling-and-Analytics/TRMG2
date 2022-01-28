@@ -424,17 +424,20 @@ As noted, the model shows a higher rate (trips per student) for Duke than for NC
 ### Trip Distribution
 Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.  
 
-#### Cumulative Distance Distribution
-The figure below compares the distance distribution of NCSU Home-Campus trips. The simulated cumulative average trip length is slightly off when compared with the observed data. The trip length disparity is almost certainly due to how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles. (see: https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)) 
-
-![](university_files/university-summary-figures/university_home_to_campus_dist_distribution.png)
-
-
 #### Average Trip Length
-When looked at by mode, the average trip length compares extremely well for simulated versus observed data for NCSU.
+The average trip length compares extremely well for simulated versus observed data for NCSU except for the home-campus trips for off-campus students. The home to campus for off-campus simulated average trip length is off when compared with the observed data because of how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles ([source](https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus))).
 
-![](university_files/university-summary-figures/university_avg_trip_length.png)
+![](university_files/university-summary-figures/trip_length_uhc_off.png)
 
+![](university_files/university-summary-figures/trip_length_uho_off.png)
+
+![](university_files/university-summary-figures/trip_length_on.png)
+
+![](university_files/university-summary-figures/avg_trip_length.png)
+
+The figure below compares the distance distribution for different types of university trips:
+
+![](university_files/university-summary-figures/univ_distance_distribution.png)
 
 ### Mode Choice
 
