@@ -637,6 +637,7 @@ Macro "Calculate Parking Cores" (MacroOpts)
     // Must re-open trip_mtx to update object cores.
     trip_mtx = null
     trip_mtx = CreateObject("Matrix", trip_mtx_file)
+    trip_mtx.SetColIndex("ParkingDistricts")
     core_names = trip_mtx.GetCoreNames()
     if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
     cores = trip_mtx.GetCores()
