@@ -5,4 +5,4 @@ t_skim.[Initial Wait Time]*2,-0.034167443,Shuttle Headway
 t_skim.[In-Vehicle Time],-0.067594595,IVTT
 t_skim.[Access Walk Time],-0.1025,Access Walk Time
 t_skim.[Egress Walk Time],-0.1025,Egress Walk Time
-se.SParking.D,0,Special Satellite Parking
+se.SParking.D,2.5,Special Satellite Parking
