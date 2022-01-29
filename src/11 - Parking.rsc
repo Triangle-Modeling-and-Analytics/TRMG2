@@ -572,15 +572,26 @@ Macro "Calculate Parking Cores" (MacroOpts)
 
     // Add index for parking districts to speed convolution calculations
     trip_mtx = CreateObject("Matrix", trip_mtx_file)
-    trip_mtx.AddIndex({
-        Matrix: trip_mtx.GetMatrixHandle(),
-        IndexName: "ParkingDistricts",
-        Filter: "ParkDistrict > 0",
-        Dimension: "Both",
-        TableName: se,
-        OriginalID: "TAZ",
-        NewID: "TAZ"
-        })
+    names = {"ParkingDistricts", "CBD", "Univ"}
+    queries = {
+        "ParkDistrict > 0",
+        "ParkDistrict > 0 and ParkCostU = 0",
+        "ParkDistrict > 0 and ParkCostU > 0"
+    }
+    for i = 1 to names.length do
+        name = names[i]
+        query = queries[i]
+
+        trip_mtx.AddIndex({
+            Matrix: trip_mtx.GetMatrixHandle(),
+            IndexName: name,
+            Filter: query,
+            Dimension: "Both",
+            TableName: se,
+            OriginalID: "TAZ",
+            NewID: "TAZ"
+            })
+    end
     trip_mtx.SetColIndex("ParkingDistricts")
 
     park_modes = {"walk", "shuttle"}
@@ -593,7 +604,7 @@ Macro "Calculate Parking Cores" (MacroOpts)
         if work_type = "w"
             then prob_field = "Prob_Shuttle_Work"
             else prob_field = "Prob_Shuttle_NonWork"
-        v_prob_shuttle = GetDataVector(logsum_vw + "|Parking", prob_field, )
+        v_prob_shuttle = GetDataVector(logsum_vw + "|Parking", prob_field, {"Sort Order": {{"TAZ", "Ascending"}}})
         v_prob_shuttle = nz(v_prob_shuttle)
         CloseView(logsum_vw)
         
@@ -631,10 +642,13 @@ Macro "Calculate Parking Cores" (MacroOpts)
         opts.parking_core_name = "univ_cbd"
         opts.parking_district_index = "ParkingDistricts"
         RunMacro("Parking Convolution", opts)
-        
     end
 
     // Update auto and transit cores based on parking info.
+    // Must re-open trip_mtx to update object cores.
+    trip_mtx = null
+    trip_mtx = CreateObject("Matrix", trip_mtx_file)
+    trip_mtx.SetColIndex("ParkingDistricts")
     core_names = trip_mtx.GetCoreNames()
     if core_names.position("w_lb") = 0 then trip_mtx.AddCores({"w_lb"})
     cores = trip_mtx.GetCores()
