@@ -135,11 +135,36 @@ knitr::include_graphics("img/ieei/estimated_attractions.png")
 ### Distance Assessment
 In the chart below, we plot the trip length frequency, with the trip length measured from the external station to the internal zone, for the NCSTM trips, segmenting trips that enter the region through external stations at Freeways from those at other locations. The plot shows a logical and expected outcome: trips entering the region at Freeway external stations travel longer than those entering at non-freeway locations. 
 
-### IE/EI Trip Length Frequency
+#### IE/EI Trip Length Frequency
 ```{r, out.width="100%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/ieei/ncstm_tlf.png")
 ```
 
 The above chart suggests the IE/EI distribution model should be segmented by station type, freeway or non-freeway. The external stations identified as freeways are as follows: `r freeway_station_vector`.
 
+Using the friction factors from the existing IE/EI model, the model estimated distances for freeways and non-freeways are plotted against the observed data in the two following figures.
+
+#### IE/EI Observed and Estimated Trip Length Frequency for Freeway Stations
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/obs_est_freeway_tlf.png")
+```
+
+#### IE/EI Observed and Estimated Trip Length Frequency for Non-Freeway Stations
+```{r, out.width="100%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/ieei/obs_est_non_freeway_tlf.png")
+```
+
+A table summarizing the mean trip lengths is presented below.
+
+### IE/EI Average Trip Lengths
+```{r}
+ei_distance_means_df %>%
+  select(Purpose = purpose,
+         Category = category,
+         Source = source,
+         `Mean Distance (miles)` = mean_distance) %>%
+  kableExtra::kable(digits = 1) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+  
+```
 
