@@ -2083,6 +2083,130 @@ Macro "Gravity" (MacroOpts)
 endmacro
 
 /*
+A more advanced gravity macro developed for IEEI trips (but works for any).
+Adds an extra field "filter" to the param table and applying gravity params to
+sets of zones/records. For IEEI, this makes it easy to have freeway nodes with
+longer distances and local streets with shorter.
+*/
+
+Macro "Gravity2" (MacroOpts)
+
+  se_file = MacroOpts.se_file
+  skim_file = MacroOpts.skim_file
+  param_file = MacroOpts.param_file
+  output_matrix = MacroOpts.output_matrix
+  set_data = MacroOpts.set_data
+
+  param_vw = OpenTable("params", "CSV", {param_file})
+  {names, specs} = GetFields(param_vw, "All")
+  if names.position("filter") = 0 then queries = {null}
+  else do
+    queries = GetDataVector(param_vw + "|", "filter", )
+    queries = SortVector(queries, {Unique: "true"})
+  end
+
+  for i = 1 to queries.length do
+    query = queries[i]
+
+    // Filter the parameter table to all rows with the same query
+    SetView(param_vw)
+    long_query1 = "Select * where filter = \"" + query + "\""
+    n = SelectByQuery("sel", "several", long_query1)
+    if n = 0 then Throw("Gravity: no records found for current filter")
+
+    // Add temp P and A fields to the SE Data table. These will only have values
+    // for stations that match the current query.
+    se_vw = OpenTable("se", "FFB", {se_file})
+    SetView(se_vw)
+    n = SelectByQuery("sel", "several", "Select * where " + query)
+    if n = 0 then Throw("Gravity: no records found in the se_file for current query")
+    p_fields = GetDataVector(param_vw + "|sel", "p_field", )
+    p_fields = SortVector(p_fields, {Unique: "true"})
+    fields_to_add = null
+    fields_to_drop = null
+    for p_field in p_fields do
+      field_name = p_field + "_temp"
+      fields_to_add = fields_to_add + {{field_name, "Real", 10, 2, , , , ""}}
+      fields_to_drop = fields_to_drop + {field_name}
+      data.(field_name) = GetDataVector(se_vw + "|sel", p_field, )
+    end
+    RunMacro("Add Fields", {view: se_vw, a_fields: fields_to_add})
+    SetDataVectors(se_vw + "|sel", data, )
+
+    // Create the gravity object
+    temp_mtx = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
+    temp_mtxs = temp_mtxs + {temp_mtx}
+    obj = CreateObject("Distribution.Gravity")
+    obj.DataSource = {TableName: se_file}
+    obj.OutputMatrix({
+      MatrixFile: temp_mtx,
+      MatrixLabel: "Gravity Matrix",
+      Compression: "true",
+      ColumnMajor: "false"
+    })
+    obj.ResetPurposes()
+
+    rh = GetFirstRecord(param_vw + "|sel", )
+    while rh <> null do
+
+      obj.AddPurpose({
+        Name: param_vw.purpose,
+        Iterations: 50,
+        Convergence: 0.001,
+        Production: param_vw.p_field + "_temp",
+        Attraction: param_vw.a_field,
+        ImpedanceMatrix: {
+          MatrixFile: skim_file,
+          Matrix: param_vw.imp_core
+          // RowIndex: ri,
+          // ColIndex: ci
+        },
+        Gamma: {param_vw.a, param_vw.b, param_vw.c},
+        ConstraintType: param_vw.constraint
+      })
+
+      rh = GetNextRecord(param_vw + "|sel", , )
+    end
+    obj.Run()
+    // r = obj.GetResult()
+
+    // remove temp fields on se data and close view
+    fields_to_drop = SortVector(A2V(fields_to_drop), {Unique: "true"})
+    for field in fields_to_drop do
+      RunMacro("Remove Field", se_vw, field)
+    end
+    CloseView(se_vw)
+  end
+
+  // Combine matrices together
+  for i = 1 to temp_mtxs.length do
+    temp_mtx_file = temp_mtxs[i]
+
+    if i = 1 then do
+      CopyFile(temp_mtx_file, output_matrix) 
+      DeleteFile(temp_mtx_file)
+      out_mtx = CreateObject("Matrix", output_matrix)
+    end else do
+      temp_mtx = CreateObject("Matrix", temp_mtx_file)
+      out_corenames = out_mtx.GetCoreNames()
+      temp_corenames = temp_mtx.GetCoreNames()
+      for corename in temp_corenames do
+        if out_corenames.position(corename) = 0 then out_mtx.AddCores({corename})
+        out_core = out_mtx.GetCore(corename)
+        temp_core = temp_mtx.GetCore(corename)
+        out_core := nz(out_core) + nz(temp_core)
+      end
+
+      temp_mtx = null
+      temp_core = null
+      DeleteFile(temp_mtx_file)
+    end
+  end
+
+  CloseView(param_vw)
+endmacro
+
+/*
 Simple macro specific to TRMG2. Uses the resident production table to
 get and return the list of trip types.
 */

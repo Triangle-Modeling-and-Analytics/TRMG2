@@ -223,17 +223,15 @@ Macro "EE Symmetry" (Args)
 EndMacro
 
 /*
-Internal External Model
+IEEI Models
 */
 
 Macro "IEEI" (Args)
   RunMacro("TCB Init")
   RunMacro("IEEI Productions", Args)
   RunMacro("IEEI Attractions", Args)
-  RunMacro("IEEI Balance Ps and As", Args)
-  RunMacro("IEEI TOD", Args)
   RunMacro("IEEI Gravity", Args)
-  RunMacro("IEEI Combine Matrix", Args)
+  RunMacro("IEEI TOD", Args)
   RunMacro("IEEI Directionality", Args)
 endmacro
 
@@ -260,38 +258,26 @@ Macro "IEEI Productions" (Args)
     {OptArray: TRUE}
   )
   
-  ieei_auto_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100) else 0
-  ieei_cvsut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100) else 0
-  ieei_cvmut_prod_freeway = if data.Freeway_Stations = 1 then Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100) else 0
+  ieei_auto_prod = Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100)
+  ieei_cvsut_prod = Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100)
+  ieei_cvmut_prod = Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100)
   
-  ieei_auto_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_AUTO_IEEI)/100)
-  ieei_cvsut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVSUT_IEEI)/100)
-  ieei_cvmut_prod_nonfreeway = if data.Freeway_Stations = 1 then 0 else Nz(data.AWDT) * (Nz(data.PCT_CVMUT_IEEI)/100)
-
   a_fields = {
-    {"IEEI_AUTO_PROD_FREEWAY", "Real", 10, 2, , , , "ieei auto productions for freeway stations"},
-    {"IEEI_CVSUT_PROD_FREEWAY", "Real", 10, 2, , , , "ieei cv sut productions for freeway stations"},
-    {"IEEI_CVMUT_PROD_FREEWAY", "Real", 10, 2, , , , "ieei cv mut productions for freeway stations"},
-    {"IEEI_AUTO_PROD_NONFREEWAY", "Real", 10, 2, , , , "ieei auto productions for non-freeway stations"},
-    {"IEEI_CVSUT_PROD_NONFREEWAY", "Real", 10, 2, , , , "ieei cv sut productions for non-freeway stations"},
-    {"IEEI_CVMUT_PROD_NONFREEWAY", "Real", 10, 2, , , , "ieei cv mut productions for non-freeway stations"}	
+    {"IEEI_AUTO_PROD", "Real", 10, 2, , , , "ieei auto productions"},
+    {"IEEI_CVSUT_PROD", "Real", 10, 2, , , , "ieei cv sut productions"},
+    {"IEEI_CVMUT_PROD", "Real", 10, 2, , , , "ieei cv mut productions"}
   }
-  
   RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
   
   SetView(se_vw)
-  SetDataVector(se_vw + "|", "IEEI_AUTO_PROD_FREEWAY", ieei_auto_prod_freeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_PROD_FREEWAY", ieei_cvsut_prod_freeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_PROD_FREEWAY", ieei_cvmut_prod_freeway, )
-  SetDataVector(se_vw + "|", "IEEI_AUTO_PROD_NONFREEWAY", ieei_auto_prod_nonfreeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_PROD_NONFREEWAY", ieei_cvsut_prod_nonfreeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_PROD_NONFREEWAY", ieei_cvmut_prod_nonfreeway, )
-  
+  SetDataVector(se_vw + "|", "IEEI_AUTO_PROD", ieei_auto_prod, )
+  SetDataVector(se_vw + "|", "IEEI_CVSUT_PROD", ieei_cvsut_prod, )
+  SetDataVector(se_vw + "|", "IEEI_CVMUT_PROD", ieei_cvmut_prod, )
   CloseView(se_vw)
 endmacro
 
 /*
-Calculate IEEI Attractions
+Calculate IEEI attractions
 */
 
 Macro "IEEI Attractions" (Args)
@@ -321,176 +307,66 @@ Macro "IEEI Attractions" (Args)
   ieei_attractions = coeffs.employment * Nz(data.TotalEmp) + coeffs.population * Nz(data.HH_POP)
 
   a_fields = {
-    {"IEEI_AUTO_ATTR_FREEWAY", "Real", 10, 2, , , , "ieei auto attractions for freeway stations"},
-    {"IEEI_CVSUT_ATTR_FREEWAY", "Real", 10, 2, , , , "ieei cv sut attractions for freeway stations"},
-    {"IEEI_CVMUT_ATTR_FREEWAY", "Real", 10, 2, , , , "ieei cv mut attractions for freeway stations"},
-    {"IEEI_AUTO_ATTR_NONFREEWAY", "Real", 10, 2, , , , "ieei auto attractions for non-freeway stations"},
-    {"IEEI_CVSUT_ATTR_NONFREEWAY", "Real", 10, 2, , , , "ieei cv sut attractions for non-freeway stations"},
-    {"IEEI_CVMUT_ATTR_NONFREEWAY", "Real", 10, 2, , , , "ieei cv mut attractions for non-freeway stations"}	
+    {"IEEI_ATTR", "Real", 10, 2, , , , "ieei attractions"}
   }
-  
   RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
   
   SetView(se_vw)
-  SetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_FREEWAY", ieei_attractions, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_FREEWAY", ieei_attractions, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_FREEWAY", ieei_attractions, )
-  SetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_NONFREEWAY", ieei_attractions, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_NONFREEWAY", ieei_attractions, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_NONFREEWAY", ieei_attractions, )
+  SetDataVector(se_vw + "|", "IEEI_ATTR", ieei_attractions, )
 
   CloseView(se_vw)
 endmacro
 
 /*
-Balance IEEI production and attraction
-*/
-
-Macro "IEEI Balance Ps and As" (Args)
-  se_file = Args.SE
-  
-  se_vw = OpenTable("se", "FFB", {se_file})
-
-  ieei_auto_prod_freeway = GetDataVector(se_vw + "|", "IEEI_AUTO_PROD_FREEWAY", )
-  ieei_cvsut_prod_freeway = GetDataVector(se_vw + "|", "IEEI_CVSUT_PROD_FREEWAY", )
-  ieei_cvmut_prod_freeway = GetDataVector(se_vw + "|", "IEEI_CVMUT_PROD_FREEWAY", )
-  
-  ieei_auto_prod_nonfreeway = GetDataVector(se_vw + "|", "IEEI_AUTO_PROD_NONFREEWAY", )
-  ieei_cvsut_prod_nonfreeway = GetDataVector(se_vw + "|", "IEEI_CVSUT_PROD_NONFREEWAY", )
-  ieei_cvmut_prod_nonfreeway = GetDataVector(se_vw + "|", "IEEI_CVMUT_PROD_NONFREEWAY", )
-  
-  ieei_auto_attr_freeway = GetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_FREEWAY", )
-  ieei_cvsut_attr_freeway = GetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_FREEWAY", )
-  ieei_cvmut_attr_freeway = GetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_FREEWAY", )
-  
-  ieei_auto_attr_nonfreeway = GetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_NONFREEWAY", )
-  ieei_cvsut_attr_nonfreeway = GetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_NONFREEWAY", )
-  ieei_cvmut_attr_nonfreeway = GetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_NONFREEWAY", )
-  
-  auto_prod_freeway_total = VectorStatistic(ieei_auto_prod_freeway, "sum", )
-  cvsut_prod_freeway_total = VectorStatistic(ieei_cvsut_prod_freeway, "sum", )
-  cvmut_prod_freeway_total = VectorStatistic(ieei_cvmut_prod_freeway, "sum", )
-  
-  auto_prod_nonfreeway_total = VectorStatistic(ieei_auto_prod_nonfreeway, "sum", )
-  cvsut_prod_nonfreeway_total = VectorStatistic(ieei_cvsut_prod_nonfreeway, "sum", )
-  cvmut_prod_nonfreeway_total = VectorStatistic(ieei_cvmut_prod_nonfreeway, "sum", )
-
-  auto_attr_freeway_total = VectorStatistic(ieei_auto_attr_freeway, "sum", )
-  cvsut_attr_freeway_total = VectorStatistic(ieei_cvsut_attr_freeway, "sum", )
-  cvmut_attr_freeway_total = VectorStatistic(ieei_cvmut_attr_freeway, "sum", )
-  
-  auto_attr_nonfreeway_total = VectorStatistic(ieei_auto_attr_nonfreeway, "sum", )
-  cvsut_attr_nonfreeway_total = VectorStatistic(ieei_cvsut_attr_nonfreeway, "sum", )
-  cvmut_attr_nonfreeway_total = VectorStatistic(ieei_cvmut_attr_nonfreeway, "sum", )
-  
-  // balancing to productions (external stations)
-  ieei_auto_attr_freeway = ieei_auto_attr_freeway * auto_prod_freeway_total /auto_attr_freeway_total
-  ieei_cvsut_attr_freeway = ieei_cvsut_attr_freeway * cvsut_prod_freeway_total /cvsut_attr_freeway_total
-  ieei_cvmut_attr_freeway = ieei_cvmut_attr_freeway * cvmut_prod_freeway_total /cvmut_attr_freeway_total
-  
-  ieei_auto_attr_nonfreeway = ieei_auto_attr_nonfreeway * auto_prod_nonfreeway_total /auto_attr_nonfreeway_total
-  ieei_cvsut_attr_nonfreeway = ieei_cvsut_attr_nonfreeway * cvsut_prod_nonfreeway_total /cvsut_attr_nonfreeway_total
-  ieei_cvmut_attr_nonfreeway = ieei_cvmut_attr_nonfreeway * cvmut_prod_nonfreeway_total /cvmut_attr_nonfreeway_total
-  
-  SetView(se_vw)
-  SetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_FREEWAY", ieei_auto_attr_freeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_FREEWAY", ieei_cvsut_attr_freeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_FREEWAY", ieei_cvmut_attr_freeway, )
-  
-  SetDataVector(se_vw + "|", "IEEI_AUTO_ATTR_NONFREEWAY", ieei_auto_attr_nonfreeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVSUT_ATTR_NONFREEWAY", ieei_cvsut_attr_nonfreeway, )
-  SetDataVector(se_vw + "|", "IEEI_CVMUT_ATTR_NONFREEWAY", ieei_cvmut_attr_nonfreeway, )
-  
-  CloseView(se_vw)
-  
-endmacro
-
-/*
-Split IEEI balanced productions and attractions by time periods
-*/
-
-Macro "IEEI TOD" (Args)
-  se_file = Args.SE
-  tod_file = Args.[Input Folder] + "\\external\\ieei_tod.csv"
-
-  se_vw = OpenTable("se", "FFB", {se_file})
-  
-  {drive, folder, name, ext} = SplitPath(tod_file)
-  
-  RunMacro("Create Sum Product Fields", {
-      view: se_vw, factor_file: tod_file,
-      field_desc: "IEEI Productions and Attractions by Time of Day|See " + name + ext + " for details."
-  })
-
-  CloseView(se_vw)
-endmacro
-
-/*
-IEEI Gravity Distribution
+Distribute trips
 */
 
 Macro "IEEI Gravity" (Args)
+  
   se_file = Args.SE
   param_file = Args.[Input Folder] + "\\external\\ieei_gravity.csv"
   skim_file =  Args.[Output Folder] + "\\skims\\roadway\\accessibility_sov_AM.mtx"
   ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
-  
+
   opts = null
   opts.se_file = se_file
   opts.param_file = param_file
   opts.skim_file = skim_file
   opts.output_matrix = ieei_matrix_file
-  RunMacro("Gravity", opts)
-  
+  RunMacro("Gravity2", opts)
 endmacro
 
 /*
-Combine IEEI Freeway and Non-Freeway stations matrix cores
+Split PA matrix by TOD
 */
 
-Macro "IEEI Combine Matrix" (Args)
-  ieei_matrix_file = Args.[Output Folder] + "\\external\\ie_pa_trips.mtx"
+Macro "IEEI TOD" (Args)
+
+  param_file = Args.[Input Folder] + "/external/ieei_tod.csv"
+  ext_dir = Args.[Output Folder] + "/external"
   periods = Args.periods
-  
-  ieei_mtx = OpenMatrix(ieei_matrix_file, )
-  mc = CreateMatrixCurrency(ieei_mtx,,,,)
-  
-  new_cores = null
-  for period in periods do 
-    new_cores = new_cores + {"IEEI_AUTO_" + period, "IEEI_CVSUT_" + period, "IEEI_CVMUT_" + period}
+
+  params = RunMacro("Read Parameter File", {
+    file: param_file,
+    names: "period",
+    values: "factor"
+  })
+
+  mtx_file = ext_dir + "/ie_pa_trips.mtx"
+  mtx = CreateObject("Matrix", mtx_file)
+  corenames = mtx.GetCoreNames()
+  for corename in corenames do
+    for period in periods do
+      factor = params.(period)
+      mtx.AddCores({corename + "_" + period})
+      cores = mtx.GetCores()
+      cores.(corename + "_" + period) := cores.(corename) * factor
+    end
+
+    // Drop the original/daily cores
+    mtx.DropCores({corename})
   end
-  
-  ieei_combined_matrix_file = Substitute(ieei_matrix_file, ".mtx", "_temp.mtx", )
-  matOpts = {{"File Name", ieei_combined_matrix_file}, {"Label", "IEEI Trips Matrix"}, {"File Based", "Yes"}, {"Tables", new_cores}}
-  ieei_combined_mtx = CopyMatrixStructure({mc}, matOpts)
-  
-  mc = null
-  ieei_mtx = null
-  
-  ieei_mtx = CreateObject("Matrix")
-  ieei_mtx.LoadMatrix(ieei_matrix_file)
-
-  ieei_combined_mtx = CreateObject("Matrix")
-  ieei_combined_mtx.LoadMatrix(ieei_combined_matrix_file)
-  
-  for period in periods do
-    cores = ieei_mtx.data.cores
-	combined_cores = ieei_combined_mtx.data.cores
-    
-	combined_cores.("IEEI_AUTO_" + period)  := Nz(cores.("IEEI_AUTO_FREEWAY_" + period))  + Nz(cores.("IEEI_AUTO_NONFREEWAY_" + period)) 
-    combined_cores.("IEEI_CVSUT_" + period) := Nz(cores.("IEEI_CVSUT_FREEWAY_" + period)) + Nz(cores.("IEEI_CVSUT_NONFREEWAY_" + period))
-    combined_cores.("IEEI_CVMUT_" + period) := Nz(cores.("IEEI_CVMUT_FREEWAY_" + period)) + Nz(cores.("IEEI_CVMUT_NONFREEWAY_" + period))
-  end 
-  
-  cores = null
-  combined_cores = null
-  ieei_mtx = null
-  ieei_combined_mtx = null
-  
-  DeleteFile(ieei_matrix_file)
-  RenameFile(ieei_combined_matrix_file, ieei_matrix_file)
 endmacro
-
 
 /*
 Convert from PA to OD format
@@ -544,5 +420,4 @@ Macro "IEEI Directionality" (Args)
   t_mtx = null
   CloseView(fac_vw)
   DeleteFile(ieei_od_transpose_matrix_file)
-  
 endmacro
