@@ -34,7 +34,7 @@ Collector,Rural,-2,1.75,3,
 Local,Downtown,-3,2,3,
 Local,Urban,-3,2,3,
 Local,Suburban,-2,2,3,
-Local,Rural,-3,3,3,
+Local,Rural,-4,4,3,
 CC,Downtown,0,0.15,4,"CC speed set separately. See the ""CCSpeeds"" parameter in the flow chart."
 CC,Urban,0,0.15,4,
 CC,Suburban,0,0.15,4,
