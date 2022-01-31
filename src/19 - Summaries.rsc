@@ -541,7 +541,7 @@ Macro "Summarize HB DC and MC" (Args)
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
-  mtx_files = RunMacro("Catalog Files", trip_dir, "mtx")
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
   df = RunMacro("Matrix Stats", mtx_files)
@@ -816,7 +816,7 @@ Macro "Summarize Parking"  (Args)
 
   RunMacro("Create Directory", summary_dir)
   
-  mtx_files = RunMacro("Catalog Files", mtx_dir, "mtx")
+  mtx_files = RunMacro("Catalog Files", {dir: mtx_dir, ext: "mtx"})
 
   // Create a starting matrix
   out_file = summary_dir + "/parking_daily.mtx"

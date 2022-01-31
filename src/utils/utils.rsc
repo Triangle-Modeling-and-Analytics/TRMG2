@@ -494,22 +494,30 @@ EndMacro
 Recursively searches the directory and any subdirectories for files.
 This can be useful for cataloging all the files created by the model.
 
-Inputs:
-dir
-  String
-  The directory to search
+Inputs (named array):
+  dir
+    String
+    The directory to search
 
-ext
-  Optional string or array of strings
-  extensions to limit the search to.
-  e.g. "rsc" or {"rsc", "lst", "bin"}
-  If null, finds files of all types.
+  ext
+    Optional string or array of strings
+    extensions to limit the search to.
+    e.g. "rsc" or {"rsc", "lst", "bin"}
+    If null, finds files of all types.
+  subfolders
+    optional true/false
+    default false
+    if the macro should also catalog files in any/all subfolders
 
 Output:
 An array of complete paths for each file found
 */
 
-Macro "Catalog Files" (dir, ext)
+Macro "Catalog Files" (MacroOpts)
+
+  dir = MacroOpts.dir
+  ext = MacroOpts.ext
+  subfolders = MacroOpts.subfolders
 
   if TypeOf(ext) = "string" then ext = {ext}
 
@@ -517,11 +525,15 @@ Macro "Catalog Files" (dir, ext)
 
   // If there are folders in the current directory,
   // call the macro again for each one.
-  if a_dirInfo <> null then do
+  if subfolders and a_dirInfo <> null then do
     for d = 1 to a_dirInfo.length do
       path = dir + "/" + a_dirInfo[d][1]
 
-      a_files = a_files + RunMacro("Catalog Files", path, ext)
+      a_files = a_files + RunMacro("Catalog Files", {
+        dir: path, 
+        ext: ext, 
+        subfolders: subfolders
+      })
     end
   end
 
@@ -1993,7 +2005,7 @@ Macro "Get Transit Output Tables" (transit_asn_dir)
     then Throw("Get Transit Output tables:\n`transit_asn_dir` not provided.")
   transit_asn_dir = RunMacro("Normalize Path", transit_asn_dir)
   
-  files = RunMacro("Catalog Files", transit_asn_dir, "bin")
+  files = RunMacro("Catalog Files", {dir: transit_asn_dir, ext: "bin"})
   for file in files do
     df = CreateObject("df", file)
 
@@ -2222,7 +2234,7 @@ endmacro
 
 Macro "Get NHB Trip Types" (Args)
   dir = Args.[Input Folder] + "/resident/nhb/generation"
-  files = RunMacro("Catalog Files", dir)
+  files = RunMacro("Catalog Files", {dir: dir})
   for file in files do
     {, , name, } = SplitPath(file)
     if name = "nhb_calibration_factors" then continue
@@ -2619,7 +2631,7 @@ conservation issues.
 Macro "Trip Conservation Snapshot" (dir, out_file)
   
   // Write stats to check trip conservation
-  matrices = RunMacro("Catalog Files", dir, "mtx")
+  matrices = RunMacro("Catalog Files", {dir: dir, ext: "mtx"})
   df = RunMacro("Matrix Stats", matrices)
   v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
   v_type = Substitute(v_type, "od_per_trips_", "", )

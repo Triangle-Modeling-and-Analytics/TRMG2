@@ -22,7 +22,7 @@ Macro "Update Link Networks" (Args)
     net_dir = Args.[Output Folder] + "/networks"
     hwy_dbd = Args.Links
 
-    files = RunMacro("Catalog Files", net_dir, "net")
+    files = RunMacro("Catalog Files", {dir: net_dir, ext: "net"})
     for file in files do
         {, , name, } = SplitPath(file)
         {, period, mode} = ParseString(name, "_")
@@ -157,7 +157,7 @@ Macro "Create Average Roadway Skims" (Args)
     CloseView(factor_vw)
 
     // Add a dummy intrazonal core that will be used by DC later
-    a_mtx_files = RunMacro("Catalog Files", skim_dir, "mtx")
+    a_mtx_files = RunMacro("Catalog Files", {dir: skim_dir, ext: "mtx"})
     for file in a_mtx_files do
         {drive, folder, name, ext} = SplitPath(file)
         if Left(name, 3) <> "avg" then continue

@@ -272,7 +272,7 @@ Macro "HB Remove Interim Matrices" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
-    files = RunMacro("Catalog Files", assn_dir, "mtx")
+    files = RunMacro("Catalog Files", {dir: assn_dir, ext: "mtx"})
 
     files_to_keep = {
         "od_veh_trips_AM",
@@ -311,7 +311,7 @@ Macro "NHB Collapse Auto Modes" (Args)
         {OptArray: true}
     )
     CloseView(share_vw)
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip everything but auto_pay matrices. Also skip converged periods.
@@ -358,7 +358,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
 
     // Add NHB trips to OD assignment matrices (and convert to veh trips)
     hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip transit and walkbike matrices and any converged periods
