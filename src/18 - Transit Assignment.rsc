@@ -123,23 +123,45 @@ Macro "Create Transit Matrices2" (Args)
     access_modes = {"pnr", "knr"}
     modes = {"lb", "eb"}
     vw = OpenTable("ieei", "CSV", {ieei_file})
+    in_file = trn_dir + "/transit_" + periods[1] + ".mtx"
+    temp_mtx_file = trn_dir + "/temp.mtx"
+    CopyFile(in_file, temp_mtx_file)
+    temp_mtx = CreateObject("Matrix", temp_mtx_file)
+    cores_to_drop = temp_mtx.GetCoreNames()
     for period in periods do
-        out_mtx = mtxs.(period)
-        mh = out_mtx.GetMatrixHandle()
         for mode in modes do
-        for access_mode in access_modes do
-            core_name = access_mode + "_" + mode
-            field_name = access_mode + "_" + mode + "_" + period
-            UpdateMatrixFromView(
-                mh, vw + "|", "From", "To", core_name, 
-                {vw + "." + field_name}, "Add", 
-                {"Missing is zero": "Yes"}
-            )
-Throw()
-        end
+            for access_mode in access_modes do
+                field_name = access_mode + "_" + mode + "_" + period
+                fields = fields + {field_name}
+                temp_mtx.AddCores(field_name)
+            end
         end
     end
+    temp_mtx.DropCores(cores_to_drop)
+    mh = temp_mtx.GetMatrixHandle()
+    UpdateMatrixFromView(
+        mh, vw + "|", "From", "To", null, 
+        fields,
+        "Add", 
+        {"Missing is zero": "Yes"}
+    )
     CloseView(vw)
+    for period in periods do
+        out_mtx = mtxs.(period)
+
+        for mode in modes do
+            for access_mode in access_modes do
+                out_core = out_mtx.GetCore(access_mode + "_" + mode)
+                temp_core = temp_mtx.GetCore(access_mode + "_" + mode + "_" + period)
+                out_core := nz(out_core) + nz(temp_core)
+            end
+        end
+    end
+
+    temp_mtx = null
+    mh = null
+    temp_core = null
+    DeleteFile(temp_mtx_file)
 endmacro
 
 /*
