@@ -25,7 +25,7 @@ Macro "Create Transit Matrices2" (Args)
     periods = Args.periods
 
     access_modes = {"w", "pnr", "knr"}
-    files = RunMacro("Catalog Files", trip_dir, "mtx")
+    files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
     // Create a starting transit matrix for each time period
     for period in periods do
