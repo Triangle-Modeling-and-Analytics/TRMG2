@@ -2410,6 +2410,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   count_field = MacroOpts.count_field
   class_field = MacroOpts.class_field
   area_field = MacroOpts.area_field
+  screenline_field = MacroOpts.screenline_field
   volume_breaks = MacroOpts.volume_breaks
   out_dir = MacroOpts.out_dir
 
@@ -2433,10 +2434,13 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   df.read_view({
     view: hwy_vw,
     set: count_set,
-    fields: {count_id_field, count_field, volume_field, class_field, area_field}
+    fields: {
+      count_id_field, count_field, volume_field, class_field,
+      area_field, screenline_field
+    }
   })
   df.group_by(count_id_field)
-  df.summarize({count_field, volume_field, class_field, area_field}, "first")
+  df.summarize({count_field, volume_field, class_field, area_field, screenline_field}, "first")
   field_names = df.colnames()
   for field_name in field_names do
     if Left(field_name, 6) = "first_"
@@ -2551,7 +2555,32 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   lines = {"VolumeGroup,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
   lines = lines + total_line
   RunMacro("Write CSV by Line", file, lines)
-  
+
+  // Screenline table
+  lines = null
+  v_screenline = GetDataVector(agg_vw + "|", screenline_field, )
+  v_screenline = SortVector(v_screenline, {Unique: "true"})
+  for screenline in v_screenline do
+    if screenline = null then continue
+    sl_set = "screenline"
+    query = "Select * where " + screenline_field + " = " + String(screenline)
+    n = SelectByQuery(sl_set, "several", query, )
+    if n = 0 then continue
+    {v_count, v_volume} = GetDataVectors(agg_vw + "|" + sl_set, {count_field, volume_field}, )
+    total_count = VectorStatistic(v_count, "Sum", )
+    total_volume = VectorStatistic(v_volume, "Sum", )
+    pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+    {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+    prmse = round(prmse, 2)
+    lines = lines + {
+      String(screenline) + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
+      "," + String(pct_diff) + "," + String(prmse)
+    }
+  end
+  file = out_dir + "/count_comparison_by_screenline.csv"
+  lines = {"Screenline,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+  RunMacro("Write CSV by Line", file, lines)
+
   CloseView(hwy_vw)
   CloseView(agg_vw)
 endmacro
