@@ -11,11 +11,11 @@
 
 <meta name="author" content="Caliper Corporation" />
 
-<meta name="date" content="2022-01-25" />
+<meta name="date" content="2022-01-28" />
 
 <title>University</title>
 
-<script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -414,7 +414,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">University</h1>
 <h4 class="author">Caliper Corporation</h4>
-<h4 class="date">January 25, 2022</h4>
+<h4 class="date">January 28, 2022</h4>
 
 </div>
 
@@ -2073,15 +2073,15 @@ Cost
 <div id="trip-distribution-1" class="section level3">
 <h3>Trip Distribution</h3>
 <p>Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.</p>
-<div id="cumulative-distance-distribution" class="section level4">
-<h4>Cumulative Distance Distribution</h4>
-<p>The figure below compares the distance distribution of NCSU Home-Campus trips. The simulated cumulative average trip length is slightly off when compared with the observed data. The trip length disparity is almost certainly due to how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles. (see: <a href="https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)" class="uri">https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)</a>)</p>
-<p><img src="university_files/university-summary-figures/university_home_to_campus_dist_distribution.png" /></p>
-</div>
 <div id="average-trip-length" class="section level4">
 <h4>Average Trip Length</h4>
-<p>When looked at by mode, the average trip length compares extremely well for simulated versus observed data for NCSU.</p>
-<p><img src="university_files/university-summary-figures/university_avg_trip_length.png" /></p>
+<p>The average trip length compares extremely well for simulated versus observed data for NCSU except for the home-campus trips for off-campus students. The home to campus for off-campus simulated average trip length is off when compared with the observed data because of how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles (<a href="https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)">source</a>).</p>
+<p><img src="university_files/university-summary-figures/trip_length_uhc_off.png" /></p>
+<p><img src="university_files/university-summary-figures/trip_length_uho_off.png" /></p>
+<p><img src="university_files/university-summary-figures/trip_length_on.png" /></p>
+<p><img src="university_files/university-summary-figures/avg_trip_length.png" /></p>
+<p>The figure below compares the distance distribution for different types of university trips:</p>
+<p><img src="university_files/university-summary-figures/univ_distance_distribution.png" /></p>
 </div>
 </div>
 <div id="mode-choice-1" class="section level3">
@@ -2140,6 +2140,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')

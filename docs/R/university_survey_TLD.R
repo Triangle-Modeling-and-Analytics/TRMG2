@@ -2,7 +2,8 @@
 # Packages ---------------------------------------------------------------------
 packages_vector <- c("tidyverse",
                      "ggplot2",
-                     "kableExtra"
+                     "kableExtra",
+                     "readr")
                      
 )
 
@@ -22,11 +23,11 @@ input_dir <-"data/input/university/"
 univ_dir<-"data/output/university/"
 
 trip_subset_filename <- paste0(private_dir,"Trip_subset_df.RDS")
-apply_productions_filename <- paste0(univ_dir,"Apply_Productions.RDS")
+
 
 # Read data -------------------------------------------------------------------
 trip_subset_df <-readRDS(trip_subset_filename)
-Apply_Productions_df <-readRDS(apply_productions_filename)    
+   
 
 # Histogram trip distance zone to zone ----------------------------------------
 purpose_map_df <- tibble(code = c("UHC", "UHO", "UCO", "UC1", "UCC", "UOO"),
@@ -93,8 +94,27 @@ avgdistance_NHB_df <- trip_subset2_df %>%
   summarize(total = n(),
             totaldistance = sum(distance_zonetozone),
             avg= totaldistance/total) %>%
-  select('Trip Purpose'= name, 
+  select('Trip Purpose'= name,
          Count = total,
          "Average Distance" = avg)
-         
 
+# targets for calibration
+
+avgdistance_CB_HBoncampus_df <-trip_subset2_df %>%
+  filter(Trip_Purpose =="UCO" | Trip_Purpose =="UCC" | Trip_Purpose == "UC1" | 
+           (Trip_Purpose =="UHO" & On_campus == 1) |(Trip_Purpose =="UHC" & On_campus == 1)) %>%
+  filter(!is.na(distance_zonetozone))%>%
+  summarize(total = n(),
+            totaldistance = sum(distance_zonetozone),
+            avg = totaldistance/total) %>%
+  mutate('Trip Purpose' = "Campus-based and Home-based by on-campus students") %>%
+  select('Trip Purpose', 
+         Count = total,
+         "Average Distance" = avg)
+
+# write
+
+write_csv(avgdistance_HB_df,paste0(univ_dir,"avgdistance_HB_df.csv"))
+write_csv(avgdistance_CB_HBoncampus_df,paste0(univ_dir,"avgdistance_CB_HBoncampus_df.csv"))
+
+  
