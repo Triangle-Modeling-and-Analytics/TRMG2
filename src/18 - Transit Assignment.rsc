@@ -118,6 +118,28 @@ Macro "Create Transit Matrices2" (Args)
         mtxs.(period) = out_mtx
     end
 
+    // Add external transit trips
+    ieei_file = Args.[Input Folder] + "/external/ieei_transit.csv"
+    access_modes = {"pnr", "knr"}
+    modes = {"lb", "eb"}
+    vw = OpenTable("ieei", "CSV", {ieei_file})
+    for period in periods do
+        out_mtx = mtxs.(period)
+        mh = out_mtx.GetMatrixHandle()
+        for mode in modes do
+        for access_mode in access_modes do
+            core_name = access_mode + "_" + mode
+            field_name = access_mode + "_" + mode + "_" + period
+            UpdateMatrixFromView(
+                mh, vw + "|", "From", "To", core_name, 
+                {vw + "." + field_name}, "Add", 
+                {"Missing is zero": "Yes"}
+            )
+Throw()
+        end
+        end
+    end
+    CloseView(vw)
 endmacro
 
 /*
