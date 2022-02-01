@@ -99,7 +99,7 @@ Macro "Calibrate AO" (Args)
     while iter <= max_iterations do
         
         // Run model
-        RunMacro("Auto Ownership", Args)
+        RunMacro("Calculate Auto Ownership", Args)
 
         // Calculate deltas and gaps
         hh_vw = OpenTable("hh", "FFB", {hh_file})
@@ -152,6 +152,8 @@ Macro "Calibrate HB MC"(Args)
         for segment in segments do
             if Lower(trip_type) = "n_hb_omed_all" and segment <> "v0" then
                 dampingFactor = 0.1
+            else if Lower(trip_type) = "n_hb_od_short" and segment <> "v0" then
+                dampingFactor = 0.25
             else
                 dampingFactor = 0.5
 

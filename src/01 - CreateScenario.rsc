@@ -97,7 +97,8 @@ Macro "Create Folder Structure" (Args)
     "/assignment/transit",
     "/assignment/roadway",
     "/_summaries",
-    "/_summaries/trip_conservation"
+    "/_summaries/trip_conservation",
+    "/_summaries/MOVES"
   }
 
   for d = 1 to a_dir.length do
@@ -116,7 +117,7 @@ Macro "Copy TAZ" (Args)
 
   // Remove any dbd files in the taz directory
   dir = Args.[Input Folder] + "/tazs"
-  a_dbds = RunMacro("Catalog Files", dir, "dbd")
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: "dbd"})
   for i = 1 to a_dbds.length do
     DeleteDatabase(a_dbds[i])
   end
@@ -135,7 +136,7 @@ Macro "Create Scenario SE" (Args)
 
   // Remove any bin or dcb files in the directory
   dir = Args.[Input Folder] + "/sedata"
-  a_dbds = RunMacro("Catalog Files", dir, {"bin", "dcb"})
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: {"bin", "dcb"}})
   for i = 1 to a_dbds.length do
     DeleteFile(a_dbds[i])
   end
@@ -168,7 +169,7 @@ Macro "Create Scenario Roadway" (Args)
 
   // Remove any dbd files in the directory
   dir = Args.[Input Folder] + "/networks"
-  a_dbds = RunMacro("Catalog Files", dir, "dbd")
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: "dbd"})
   for i = 1 to a_dbds.length do
     DeleteDatabase(a_dbds[i])
   end

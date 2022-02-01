@@ -12,3 +12,8 @@ docs/site_libs/*
 docs/data/input/ieei/AMSOVDistanceSkim.csv
 docs/data/input/university/AMSOVDistanceSkim.csv
 trmg2.scenarios
+*.DCC
+docs/data/output/university/university_model_summaries/data/interim/*
+!docs/data/output/university/university_model_summaries/data/interim/home_to_campus_trip_length.csv
+!docs/data/output/university/university_model_summaries/data/interim/university_mode_shares.csv
+!docs/data/output/university/university_model_summaries/data/interim/university_summary.csv

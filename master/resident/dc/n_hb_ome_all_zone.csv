@@ -6,3 +6,4 @@ nz(mc_logsums.nonhh_auto),,1.18,
 sov_skim.IZ,,0.394,
 sov_skim.CongTime,,-0.156,
 "max(0, sov_skim.CongTime - 30)",,0.082,
+sov_skim.IZ,,-0.394,Adjustment

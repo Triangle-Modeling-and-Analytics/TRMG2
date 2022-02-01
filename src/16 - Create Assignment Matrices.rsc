@@ -21,6 +21,7 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("VOT Split", Args)
     RunMacro("VOT Aggregation", Args)
     RunMacro("Add Externals", Args)
+    RunMacro("Add University", Args)
 
     return(1)
 endmacro
@@ -103,7 +104,7 @@ Macro "Add Airport Trips" (Args)
         rh = GetFirstRecord(fac_vw + "|", )
         while rh <> null do
             trip_type2 = fac_vw.trip_type
-            if trip_type2 <> trip_type then continue
+            if trip_type2 <> trip_type then goto next_record
             sov_fac = fac_vw.sov
             hov2_fac = fac_vw.hov2
             hov3_fac = fac_vw.hov3
@@ -117,6 +118,8 @@ Macro "Add Airport Trips" (Args)
                 cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
             end
             air_mtx.DropCores({"auto_pay", "other_auto"})
+        
+        next_record: 
             rh = GetNextRecord(fac_vw + "|", rh, )
         end
         CloseView(fac_vw)
@@ -164,7 +167,8 @@ Macro "HB Collapse Auto Modes" (Args)
             mtx = CreateObject("Matrix", trip_mtx_file)
             cores = mtx.GetCores()
             for core_to_collapse in cores_to_collapse do
-                cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
+                if cores.sov <> null then
+                    cores.sov := cores.sov + nz(cores.(core_to_collapse)) * sov_fac
                 cores.hov2 := cores.hov2 + nz(cores.(core_to_collapse)) * hov2_fac
                 cores.hov3 := cores.hov3 + nz(cores.(core_to_collapse)) * hov3_fac
             end
@@ -268,7 +272,7 @@ Macro "HB Remove Interim Matrices" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
-    files = RunMacro("Catalog Files", assn_dir, "mtx")
+    files = RunMacro("Catalog Files", {dir: assn_dir, ext: "mtx"})
 
     files_to_keep = {
         "od_veh_trips_AM",
@@ -307,7 +311,7 @@ Macro "NHB Collapse Auto Modes" (Args)
         {OptArray: true}
     )
     CloseView(share_vw)
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip everything but auto_pay matrices. Also skip converged periods.
@@ -354,7 +358,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
 
     // Add NHB trips to OD assignment matrices (and convert to veh trips)
     hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip transit and walkbike matrices and any converged periods
@@ -693,5 +697,35 @@ Macro "Add Externals" (Args)
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 external trips.csv"
     RunMacro("Trip Conservation Snapshot", ext_dir, out_file)
     out_file = Args.[Output Folder] + "/_summaries/trip_conservation/12 after Add Externals.csv"
+    RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
+endmacro
+
+/*
+
+*/
+
+Macro "Add University" (Args)
+
+    assn_dir = Args.[Output Folder] + "/assignment/roadway"
+    univ_dir = Args.[Output Folder] + "/university"
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    for period in periods do
+        univ_mtx_file = univ_dir + "/university_trips_" + period + ".mtx"
+        univ_mtx = CreateObject("Matrix", univ_mtx_file)
+
+        trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_mtx_file)
+
+        // "auto" core from university model trips is put into "sov_VOT2" in od trips
+        univ_core = univ_mtx.GetCore("auto")
+        trip_core = trip_mtx.GetCore("sov_VOT2")
+
+        trip_core := nz(trip_core) + nz(univ_core)
+    end
+
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/0 university trips.csv"
+    RunMacro("Trip Conservation Snapshot", univ_dir, out_file)
+    out_file = Args.[Output Folder] + "/_summaries/trip_conservation/13 after Add University.csv"
     RunMacro("Trip Conservation Snapshot", assn_dir, out_file)
 endmacro

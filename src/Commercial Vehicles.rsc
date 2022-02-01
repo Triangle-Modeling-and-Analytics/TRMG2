@@ -1,4 +1,23 @@
 /*
+Called by flowchart
+*/
+
+Macro "Commercial Vehicles" (Args)
+    RunMacro("CV Productions/Attractions", Args)
+    RunMacro("CV TOD", Args)
+    return(1)
+endmacro
+
+/*
+Called by flowchart
+*/
+
+Macro "Commercial Vehicles DC" (Args)
+    RunMacro("CV Gravity", Args)
+    return(1)
+endmacro
+
+/*
 CV productions
 Attractions are the same as productions
 */

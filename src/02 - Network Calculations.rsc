@@ -2,23 +2,37 @@
 Handle initial steps like capacity and speed calculations.
 */
 
-Macro "Network Calculations" (Args)
-    
+Macro "Create Initial Output Files" (Args)
     created = RunMacro("Is Scenario Created", Args)
     if !created then return(0)
     RunMacro("Create Output Copies", Args)
     RunMacro("Check SE Data", Args)
+    return(1)
+EndMacro
+
+Macro "Area Type" (Args)
     RunMacro("Determine Area Type", Args)
+    return(1)
+endmacro
+
+Macro "Capacities" (Args)
     RunMacro("Capacity", Args)
+    return(1)
+endmacro
+
+Macro "Speeds & Tolls" (Args)
     RunMacro("Set CC Speeds", Args)
     RunMacro("Other Attributes", Args)
     RunMacro("Calculate Bus Speeds", Args)
+    return(1)
+endmacro
+
+Macro "Network Creation" (Args)
     RunMacro("Create Link Networks", Args)
     RunMacro("Check Highway Networks", Args)
     RunMacro("Create Route Networks", Args)
-
     return(1)
-EndMacro
+endmacro
 
 /*
 This macro checks that the current scenario is created. If output already
@@ -978,9 +992,9 @@ Macro "Create Route Networks" (Args)
                 o.CentroidFilter = "Centroid = 1"
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
-                    MaxTripCost = 240,
-                    MaxTransfers = 4,
-                    VOT = .1984 // $/min (40% of the median wage)
+                    MaxTripCost : 240,
+                    MaxTransfers : 1,
+                    VOT : 0.1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({
                     PermitWalkOnly: false,
@@ -989,18 +1003,18 @@ Macro "Create Route Networks" (Args)
                 o.Combination({CombinationFactor: .1})
                 o.StopTimeFields({
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen",
+                    //TransferPenalty: "xfer_pen",
                     DwellOn: "dwell_on",
                     DwellOff: "dwell_off"
                 })
                 o.TimeGlobals({
                     // Headway: 14,
                     InitialPenalty: 0,
-                    TransferPenalty: 3,
+                    TransferPenalty: 5,
                     MaxInitialWait: 20,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
-                    MinTransferWait: 2,
+                    MinTransferWait: 5,
                     Layover: 5, 
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
@@ -1030,9 +1044,9 @@ Macro "Create Route Networks" (Args)
                     Fare: 1,
                     Time: 1,
                     InitialPenalty: 1,
-                    TransferPenalty: 1,
+                    TransferPenalty: 3,
                     InitialWait: 2,
-                    TransferWeight: 2,
+                    TransferWait: 3,
                     Dwelling: 2,
                     WalkTimeFactor: 3,
                     DriveTimeFactor: 0
