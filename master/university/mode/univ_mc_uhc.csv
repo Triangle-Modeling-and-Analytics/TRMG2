@@ -33,3 +33,13 @@ walk,Constant,off,0.75,Constant
 bike,bike_skim.BikeTime,,-0.02,Travel Time
 bike,Constant,on,-2.65,Constant
 bike,Constant,off,-2.65,Constant
+w_lb,Constant,,-1.25,Calibration Adjustment
+pnr_lb,Constant,,-1.25,Calibration Adjustment
+auto,se.UNC_Zones.D,off,0.75,Auto penalty to UNC zones for off-campus student
+w_lb,se.UNC_Zones.D,off,-0.3,Transit positive utility to UNC Zones for off-campus student
+pnr_lb,se.UNC_Zones.D,off,-0.3,Transit positive utility to UNC Zones for off-campus student
+walk,se.UNC_Zones.D,off,0.25,Walk penalty to UNC Zones for off-campus student
+w_lb,se.Duke_Zones.D,on,1.9,Transit positive utility to DUKE Zones for on-campus student
+pnr_lb,se.Duke_Zones.D,on,1.9,Transit positive utility to DUKE Zones for on-campus student
+w_lb,se.Duke_Zones.D,off,1.5,Transit positive utility to DUKE Zones for off-campus student
+pnr_lb,se.Duke_Zones.D,off,1.5,Transit positive utility to DUKE Zones for off-campus student

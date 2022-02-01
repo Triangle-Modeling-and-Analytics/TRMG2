@@ -18,3 +18,4 @@ walk,Constant,off,0.75,Constant
 bike,bike_skim.BikeTime,,-0.02,Travel Time
 bike,Constant,on,-2.65,Constant
 bike,Constant,off,-2.65,Constant
+w_lb,Constant,,-1.25,Calibration Adjustment

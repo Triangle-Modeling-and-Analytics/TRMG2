@@ -14,3 +14,6 @@ walk,walk_skim.WalkTime,,-0.03,Walk Time
 walk,Constant,,0.75,Constant
 bike,bike_skim.BikeTime,,-0.02,Travel Time
 bike,Constant,,-2.65,Constant
+w_lb,Constant,,-1.25,Calibration Adjustment
+w_lb,se.Duke_Zones.O > 0 or se.Duke_Zones.D > 0,on,1.9,Transit positive utility to DUKE Zones for on-campus student
+w_lb,se.Duke_Zones.O > 0 or se.Duke_Zones.D > 0,off,1.5,Transit positive utility to DUKE Zones for off-campus student
