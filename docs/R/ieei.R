@@ -325,9 +325,9 @@ ei_distance_means_df <- bind_rows(
   mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = observed_trips), source = "Observed"),
   mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = estimated), source = "Estimated")) %>%
   mutate(trips = replace_na(trips, 0.0)) %>%
-  group_by(purpose, category, source) %>%
+  group_by(category, source) %>%
   summarise(mean_distance = weighted.mean(distance, trips), .groups = "drop") %>%
-  arrange(category, purpose)
+  arrange(category)
   
 
 write_csv(ei_attractions_df, file = output_ei_attractions_filename)
