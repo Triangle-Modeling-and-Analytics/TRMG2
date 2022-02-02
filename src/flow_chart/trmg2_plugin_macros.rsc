@@ -17,7 +17,7 @@ Macro "Model.Attributes" (Args,Result)
                     {"ReportAfterStep",1},
                     {"Requires",{{"Program","TransCAD"},
                   {"Version",9},
-                  {"Build",32650}}},
+                  {"Build",32755}}},
                     {"RunParallel",0},
                     {"Shape","Rectangle"},
                     {"ShowTaskMonitor",1},
