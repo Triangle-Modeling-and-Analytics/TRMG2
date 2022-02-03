@@ -1011,7 +1011,7 @@ Macro "Create Route Networks" (Args)
                     // Headway: 14,
                     InitialPenalty: 0,
                     TransferPenalty: 5,
-                    MaxInitialWait: 20,
+                    MaxInitialWait: 30,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
                     MinTransferWait: 5,
@@ -1045,11 +1045,11 @@ Macro "Create Route Networks" (Args)
                     Time: 1,
                     InitialPenalty: 1,
                     TransferPenalty: 3,
-                    InitialWait: 2,
+                    InitialWait: 3,
                     TransferWait: 3,
                     Dwelling: 2,
                     WalkTimeFactor: 3,
-                    DriveTimeFactor: 0
+                    DriveTimeFactor: 1
                 })
                 o.Fare({
                     Type: "Flat",
