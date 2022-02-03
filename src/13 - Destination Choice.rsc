@@ -2,7 +2,7 @@
 
 */
 
-Macro "Destination Choice" (Args)
+Macro "Destination Probabilities" (Args)
 
     if Args.FeedbackIteration = 1 then do
         RunMacro("Split Employment by Earnings", Args)
@@ -11,8 +11,11 @@ Macro "Destination Choice" (Args)
     end
     RunMacro("HBW DC", Args)
     RunMacro("Other HB DC", Args)
-    RunMacro("Apportion Resident HB Trips", Args)
+    return(1)
+endmacro
 
+Macro "Application of Probabilities" (Args)
+    RunMacro("Apportion Resident HB Trips", Args)
     return(1)
 endmacro
 

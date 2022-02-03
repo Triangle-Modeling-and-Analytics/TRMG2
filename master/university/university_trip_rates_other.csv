@@ -1,0 +1,5 @@
+mode,rate
+auto,0.2832
+w_lb,0.0032
+walk,0.0127
+bike,0.0241

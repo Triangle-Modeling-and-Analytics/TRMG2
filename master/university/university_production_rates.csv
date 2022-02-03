@@ -1,0 +1,8 @@
+variable,rate
+Prod_Rate_UHC_On,1.195
+Prod_Rate_UHC_Off,1.714
+Prod_Rate_UHO_On,0.256
+Prod_Rate_UHO_Off,1.24
+Prod_Rate_UCO,3.998
+Prod_Rate_UCC,1.3
+Prod_Rate_UC1,11.17

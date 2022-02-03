@@ -2,10 +2,9 @@
 
 */
 
-Macro "Time of Day" (Args)
+Macro "Time of Day Split" (Args)
 
     RunMacro("Resident HB TOD", Args)
-
     return(1)
 endmacro
 

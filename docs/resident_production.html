@@ -500,7 +500,7 @@ div.tocify {
 </div>
 <div id="w_hb_o_all" class="section level3">
 <h3>W_HB_O_All</h3>
-<p>When someone makes a stop on their way to or from work, they are making a home-based other trip on a work tour. Work status is the most important predictor followed by age. Unlike W_HB_W trips, accessibility of the home zone also plays a role in determining the frequency of these extra stops. In the bottom right of the tree, workers that live in areas with lower accessibility make more of these intermediate stops on work tours. This is the expected behavior. People living in rural areas are more likely to make these extra stops while out on work tours.</p>
+<p>When someone makes a stop on their way to or from work, they are making a home-based other trip on a work tour. Work status is the most important predictor followed by age. The make up of the house is also important. Households with other people present are less likely to need to make (e.g.) grocery stops on the way home from work. This is an intuitive result.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>R-squared: 0.157</p>
 </div>
@@ -538,9 +538,9 @@ div.tocify {
 </div>
 <div id="n_hb_od_short" class="section level3">
 <h3>N_HB_OD_Short</h3>
-<p>These are other, discretionary trips with a short activity duration. These are similar to N_HB_OD_Long, and include things like trips to a friend’s house, church, or other locations. Like other discretionary tours, the low r-squared indicates some difficulty in making predictions. However, of the variables available, accessibility, age, income, and children in the household contribute the most to differences in trip making.</p>
+<p>These are other, discretionary trips with a short activity duration. These are similar to N_HB_OD_Long, and include things like trips to a friend’s house, church, or other locations. Like other discretionary tours, the low r-squared indicates some difficulty in making predictions. However, of the variables available, accessibility, age, and children in the household contribute the most to differences in trip making.</p>
 <p><img src="resident_production_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
-<p>R-squared: 0.121</p>
+<p>R-squared: 0.097</p>
 </div>
 <div id="n_hb_omed_all" class="section level3">
 <h3>N_HB_OMED_All</h3>
@@ -557,6 +557,14 @@ div.tocify {
 <li>Model: 1.83 million</li>
 </ul>
 <p>As a consequence, the survey trip totals will be increased by 1.07 and then compared to model results. The table below shows the production model results compared back to the total trips in the survey (factored up). While close, the model consistently predicts fewer trips compared to the survey.</p>
+<p>Another important consideration is which type of survey weight to use. RSG provides two weight fields on the survey:</p>
+<ul>
+<li>Household weights</li>
+<li>Trip weights</li>
+</ul>
+<p>Importantly, trip weights have extra adjustment based on GPS traces to account for things like un-reported trips. As a result, the trip weight gives a higher number of total trips. For estimation, however, the decision trees worked best with household weights, which allowed each person to have an integer count of trips instead of 1.2 or 3.4. This allowed us to identify the features properly, but then calibration is required to scale up the trip totals as shown below.</p>
+<p>Finally, the market segmentation created by the Auto Ownership model is not exactly the same as what is observed in the survey. While the share of total households owning 1, 2, 3, and 4+ autos is calibrated to match the survey, the AO model cannot guarantee that market segmentation will match. This is because auto sufficiency is defined by autos owned and number of adults. In other words, the production rate calibration factors are the first opportunity to correct market segmentation imbalanced introduced by the auto ownership model.</p>
+<p>In the table below, the model results are compared to the survey trips. As expected (due to the weighting issue above), the model underpredicts trip making.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -586,13 +594,13 @@ N_HB_K12_All
 664,033
 </td>
 <td style="text-align:right;">
-568,913
+567,063
 </td>
 <td style="text-align:right;">
--95,120
+-96,970
 </td>
 <td style="text-align:right;">
--14
+-15
 </td>
 </tr>
 <tr>
@@ -603,10 +611,10 @@ N_HB_OD_Long
 1,031,920
 </td>
 <td style="text-align:right;">
-921,201
+916,289
 </td>
 <td style="text-align:right;">
--110,720
+-115,631
 </td>
 <td style="text-align:right;">
 -11
@@ -620,13 +628,13 @@ N_HB_OD_Short
 652,070
 </td>
 <td style="text-align:right;">
-717,464
+558,955
 </td>
 <td style="text-align:right;">
-65,394
+-93,114
 </td>
 <td style="text-align:right;">
-10
+-14
 </td>
 </tr>
 <tr>
@@ -637,10 +645,10 @@ N_HB_OME_All
 1,203,499
 </td>
 <td style="text-align:right;">
-999,919
+997,883
 </td>
 <td style="text-align:right;">
--203,580
+-205,616
 </td>
 <td style="text-align:right;">
 -17
@@ -654,13 +662,13 @@ N_HB_OMED_All
 128,837
 </td>
 <td style="text-align:right;">
-99,865
+102,744
 </td>
 <td style="text-align:right;">
--28,972
+-26,093
 </td>
 <td style="text-align:right;">
--22
+-20
 </td>
 </tr>
 <tr>
@@ -671,13 +679,13 @@ W_HB_EK12_All
 76,950
 </td>
 <td style="text-align:right;">
-58,643
+57,859
 </td>
 <td style="text-align:right;">
--18,307
+-19,091
 </td>
 <td style="text-align:right;">
--24
+-25
 </td>
 </tr>
 <tr>
@@ -688,13 +696,13 @@ W_HB_O_All
 354,862
 </td>
 <td style="text-align:right;">
-292,151
+288,692
 </td>
 <td style="text-align:right;">
--62,711
+-66,170
 </td>
 <td style="text-align:right;">
--18
+-19
 </td>
 </tr>
 <tr>
@@ -705,10 +713,10 @@ W_HB_W_All
 680,991
 </td>
 <td style="text-align:right;">
-789,298
+789,296
 </td>
 <td style="text-align:right;">
-108,307
+108,306
 </td>
 <td style="text-align:right;">
 16
@@ -716,29 +724,32 @@ W_HB_W_All
 </tr>
 <tr>
 <td style="text-align:left;">
-Total
+All
 </td>
 <td style="text-align:right;">
 4,793,162
 </td>
 <td style="text-align:right;">
-4,447,454
+4,278,782
 </td>
 <td style="text-align:right;">
--345,709
+-514,380
 </td>
 <td style="text-align:right;">
--7
+-11
 </td>
 </tr>
 </tbody>
 </table>
-<p>The calibration factors below are the ratio of the observed to modeled trips. This are applied to each trip type to ensure total trip making is correct.</p>
+<p>The calibration factors below are the ratio of the observed to modeled trips. These are applied by trip type and segment to ensure total trip making matches the survey (based on trip weight).</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
 Trip Type
+</th>
+<th style="text-align:left;">
+segment
 </th>
 <th style="text-align:right;">
 Factor
@@ -750,45 +761,217 @@ Factor
 <td style="text-align:left;">
 N_HB_K12_All
 </td>
+<td style="text-align:left;">
+v0
+</td>
 <td style="text-align:right;">
-1.17
+0.42
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_K12_All
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_K12_All
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.36
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 N_HB_OD_Long
 </td>
+<td style="text-align:left;">
+v0
+</td>
 <td style="text-align:right;">
-1.12
+0.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.68
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Long
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.30
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 N_HB_OD_Short
 </td>
+<td style="text-align:left;">
+v0
+</td>
 <td style="text-align:right;">
-0.91
+0.58
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.30
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 N_HB_OME_All
 </td>
+<td style="text-align:left;">
+v0
+</td>
 <td style="text-align:right;">
-1.20
+0.83
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OME_All
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.37
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 N_HB_OMED_All
 </td>
+<td style="text-align:left;">
+v0
+</td>
 <td style="text-align:right;">
-1.29
+2.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OMED_All
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.36
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 W_HB_EK12_All
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_EK12_All
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+1.43
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:left;">
+v0
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:left;">
+vi
+</td>
+<td style="text-align:right;">
+0.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_O_All
+</td>
+<td style="text-align:left;">
+vs
 </td>
 <td style="text-align:right;">
 1.31
@@ -796,18 +979,35 @@ W_HB_EK12_All
 </tr>
 <tr>
 <td style="text-align:left;">
-W_HB_O_All
+W_HB_W_All
+</td>
+<td style="text-align:left;">
+v0
 </td>
 <td style="text-align:right;">
-1.21
+0.92
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 W_HB_W_All
 </td>
+<td style="text-align:left;">
+vi
+</td>
 <td style="text-align:right;">
-0.86
+0.69
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_HB_W_All
+</td>
+<td style="text-align:left;">
+vs
+</td>
+<td style="text-align:right;">
+0.90
 </td>
 </tr>
 </tbody>

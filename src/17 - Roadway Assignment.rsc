@@ -330,7 +330,7 @@ Macro "Calculate Skim PRMSEs" (Args)
         opts.period = period
         opts.mode = mode
         opts.out_file = assn_dir + "\\post_assignment_skim_" + period + ".mtx"
-        RunMacro("Roadway Skims", Args, opts)
+        RunMacro("Create Roadway Skims", Args, opts)
 
         // Calculate matrix %RMSE
         old_skim_file = Args.[Output Folder] + "/skims/roadway/skim_" + mode + "_" + period + ".mtx"
@@ -348,6 +348,15 @@ Macro "Calculate Skim PRMSEs" (Args)
         Args.(period + "_PRMSE") = results.RelRMSE
         RunMacro("Write PRMSE", Args, period)
     end
+endmacro
+
+/*
+Called by the flowchart to run peak hour assignment
+*/
+
+Macro "Peak Hour Roadway Assignment" (Args)
+    RunMacro("Peak Hour Assignment", Args)
+    return(1)
 endmacro
 
 /*

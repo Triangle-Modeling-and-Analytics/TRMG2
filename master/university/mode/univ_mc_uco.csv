@@ -1,0 +1,18 @@
+Alternative,Expression,Segment,Coefficient,Description
+auto,sov_skim.CongTime,,-0.02,Travel Time
+auto,walk_skim.WalkTime < 8,,-99,Constant
+w_lb,w_lb_skim.[In-Vehicle Time],,-0.02,IVTT
+w_lb,w_lb_skim.Fare,,-0.2,Transit fare
+w_lb,w_lb_skim.[Access Walk Time],,-0.03,Access walk time
+w_lb,w_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
+w_lb,w_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+w_lb,w_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
+w_lb,walk_skim.WalkTime < 8,,-99,Constant
+w_lb,Constant,,-2.65,Constant
+walk,walk_skim.WalkTime,,-0.03,Walk Time
+walk,Constant,,1.15,Constant
+bike,bike_skim.BikeTime,,-0.02,Travel Time
+bike,Constant,,-2.5,Constant
+w_lb,se.Duke_Zones.O > 0 or se.Duke_Zones.D > 0,,1.1,Transit positive utility from/to DUKE Zones
+w_lb,se.NCSU_Zones.O > 0 or se.NCSU_Zones.D > 0,,0.6,Transit positive utility from/to NCSU Zones
+w_lb,se.UNC_Zones.O > 0 or se.UNC_Zones.D > 0,,1.1,Transit positive utility from/to UNC Zones

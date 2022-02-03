@@ -1,4 +1,6 @@
 /*
+Called by flowchart
+
 Generates and distributes airport trips. Because the models are simple and
 do not depend on congested times, it can be done outside the feedback loop.
 Mode choice for airport trips happens within the feedback loop and uses the
@@ -9,9 +11,17 @@ Macro "Airport" (Args)
     RunMacro("Airport Productions", Args)
     RunMacro("Airport Distribution", Args)
     RunMacro("Airport TOD", Args)
-    // The remaining airport macros in this script are called during feedback.
-    // MC, for example, borrows from the resident MC model.
+    return(1)
+endmacro
 
+/*
+Called by flowchart
+*/
+
+Macro "Airport MC" (Args)
+    RunMacro("Airport Mode Choice", Args)
+    RunMacro("Airport Separate Auto and Transit", Args)
+    RunMacro("Airport Directionality", Args)
     return(1)
 endmacro
 

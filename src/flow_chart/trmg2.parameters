@@ -1,4 +1,4 @@
-    Section = "Files|Master"
+    Section = "Master Files"
     
         Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
         Args.[Master Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
@@ -7,7 +7,7 @@
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
         Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2016.bin", "Description":"Master SE data bin file" }
     
-    Section = "Files|Scenario|Input"
+    Section = "Main Scenario Inputs"
     
         Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
         Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2016", "Description":"Scenario folder" }
@@ -17,35 +17,45 @@
         Args.[Input TAZs] = { "Type":"File" , "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd", "Description":"Master TAZs" }
         Args.[Input SE] = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario input se data. Created during scenario creation." }
     
-    Section = "Files|Scenario|Output"
+    Section = "Main Scenario Outputs"
     
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
+        Args.[Network Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\networks", "Description":"Folder containing networks" }
+        Args.[Summary Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\_summaries", "Description":"Folder containing summary info" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
         Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
         Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
     
-    Section = "Network Calculations"
+    Section = "Network Calculations|Area Type"
     
         Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
                                                      {"Suburban",1000,0.5},
                                                      {"Urban",10000,0.5},
                                                      {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
+    Section = "Network Calculations|Capacities"
+
+        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
+        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
+
+    Section = "Network Calculations|Speeds & Tolls"
+
         Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
                                                     {"Suburban",35},
                                                     {"Urban",30},
                                                     {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
-        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
-        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }    
         Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time.bin", "Description":"Initial travel time estimates" }    
         Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
-        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
-        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
-        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
         Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
         Args.TransponderRatioSUT = { "Type":"double" , "Value":0.70, "Description":"Ratio of SUTs with a toll transponder (0-1)" }
         Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
+        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
+        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        
+    Section = "Network Calculations|Transit"
+        
+        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
     
     Section = "Accessibilities"
     
@@ -53,25 +63,33 @@
     
     Section = "Population Synthesis|Input"
     
-        Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"%RMSE value" }
+        Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"PUMS household seed table." }
+        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"PUMS person seed table." }
+        Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Disaggregate income curves." }
+        Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Disaggregate household size curves." }
+        Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Disaggregate worker curves." }
+        Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"Median income of the TRM region" }
     
     Section = "Population Synthesis|Output"
     
-        Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.Households = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Scenario input roadway links. Created during scenario creation." }
+        Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Table of output marginals from the disagg model." }
+        Args.Households = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Output synthetic household table." }
+        Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Output synthetic person table." }
+        Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Summary tabulations of the synthetic population." }
     
+    Section = "Auto Ownership"
+
+        Args.AOCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\auto_ownership\\ao_coefficients.csv", "Description":"Auto ownership choice coefficients." }
+
     Section = "Resident Productions"
     
         Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
         Args.ProdCalibFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv", "Description":"Resident production calibration factors." }
     
+    Section = "NonMotorized"
+
+        Args.NMInputFolder = { "Type":"Folder" , "Value":"%Input Folder%\\resident\\nonmotorized", "Description":"Folder containing NM input parameters" }
+
     Section = "Time of Day"
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
@@ -87,46 +105,6 @@
         Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
         Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
 
-    Section = "Choice Model Sources|Tables"
-
-        Args.TableSources = { "Type":"array" , "Value":{{"PersonHH","PersonID"},
-                                                        {"Households","HouseholdID"},
-                                                        {"SE", "TAZ"}}, "Style":"TableSources" }
-
-        Args.Joins = { "Type":"array" , "Value":{{"PersonHH","Persons","HouseholdID","Households","HouseholdID"}}, "Style":"JoinInfo" }
-
-    Section = "Choice Model Sources|Matrices"
-        Args.MatrixSources = { "Type":"array" , "Value":{{"{P}{M}Skim","UniversalTAZ","UniversalTAZ"},
-                                                        {"WalkSkim","UniversalTAZ","UniversalTAZ"},
-                                                        {"BikeSkim","UniversalTAZ","UniversalTAZ"}}, "Caption":"Matrix Sources: {P} represents time period, {M} represents mode; See 'SourceKeys' table below", "Style":"MatrixSources" }
-
-        Args.SourceKeys = { "Type":"array" , "Value":{{"{P}","AM, PM, OP"},
-                                                    {"{M}","Auto, PT"}}, "Style":"Keys" }
-
-    Section = "Choice Models|examples"
-
-        Args.WorkModes = { "Type":"array" , "Value":{{"Root","Drive, NonMotorized, NonDriveNM",null},
-                                                        {"Drive","DriveAlone, Carpool",0.5},
-                                                        {"NonMotorized","Walk, Bike",0.7},
-                                                        {"NonDriveNM","Bus, Other, TwoWheeler",0.66}}, "Caption":"Work Modes", "Style":"Nesting Structure" }
-        
-        Args.WorkModeUtility = { "Type":"array" , "Value":{{"ASC","Constant",4.5974,4.3309,2.7027,-0.169,-2.5627,-3.4031,-2.1121},
-                                                            {"Highway Time","{P}AutoSkim.{P}Time",-0.002052,-0.002052,null,null,null,-0.002052,-0.002052},
-                                                            {"Transit IVTT","AMPTSkim.[Total Time]",null,null,null,null,-0.002052,null,null},
-                                                            {"Distance Walk","WalkSkim.[Length (Skim)]",null,null,-0.172192,null,null,null,null},
-                                                            {"Distance Bike","BikeSkim.[Length (Skim)]",null,null,null,-0.180012,null,null,null},
-                                                            {"Bus Fare","{P}PTSkim.Fare",null,null,null,null,-0.498423,null,null},
-                                                            {"Kid","PersonHH.Age < 18",null,0.644639,null,null,null,null,null},
-                                                            {"Transit Init Wait plus Access","{P}PTSkim.[Initial Wait Time] + {P}PTSkim.[Access Walk Time]",null,null,null,null,-0.015498,null,null}}, "Caption":"Habitual Work Mode Utility", "Style":"WorkMode" }
-        
-        Args.WorkModeAvailability = { "Type":"array" , "Value":{{"Walk","WalkSkim.[Length (Skim)] <= 2"},
-                                                                {"Bike","BikeSkim.[Length (Skim)] <= 10"},
-                                                                {"Bus","AMPTSkim.[In-Vehicle Time] <= 60 and AMPTSkim.[Total Time] <= 90"},
-                                                                {"DriveAlone","PersonHH.VehicleAvail = 1"},
-                                                                {"Carpool","PersonHH.CarpoolEligibility > 0 and PersonHH.AttendSchool <> 1"},
-                                                                {"TwoWheeler","AMAutoSkim.[Length (Skim)] <= 15 and PersonHH.Age <= 30"},
-                                                                {"Other","PersonHH.VehicleAvail = 0 and PersonHH.CarpoolEligibility = 0"}}, "Caption":"Work Mode Availability", "Style":"Availability" }
-
     Section = "Destination Choice"
 
         Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
@@ -135,7 +113,7 @@
 
     Section = "Parking Model|Coefficients"
     
-        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.820,-2.820,-2.730,-2.730}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
+        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.600,-2.600,-3.000,-3.000}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
 
     Section = "Parking Model|Output"
     
@@ -150,7 +128,7 @@
 
     Section = "Numeric Parameters"
     
-        Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE value" }
+        Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE between skims. 1 = 1%" }
         Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }

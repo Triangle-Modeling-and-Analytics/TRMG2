@@ -148,7 +148,7 @@ calib_coeffs_df <- read_csv("../master/resident/auto_ownership/ao_coefficients.c
 
 ```{r}
 calib_coeffs_df %>%
-  filter(grepl("Added by", Description)) %>%
+  filter(grepl("Calibration constant", Description)) %>%
   select(Alternative, `Calibration Constant` = Coefficient) %>%
   kable() %>%
   kable_styling(full_width = FALSE)

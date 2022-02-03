@@ -2,12 +2,11 @@
 Calculates aggregate mode choice probabilities between zonal ij pairs
 */
 
-Macro "Mode Choice" (Args)
+Macro "Mode Probabilities" (Args)
 
     if Args.FeedbackIteration = 1 then RunMacro("Create MC Features", Args)
     RunMacro("Calculate MC", Args)
     RunMacro("Post Process Logsum", Args)
-
     return(1)
 endmacro
 

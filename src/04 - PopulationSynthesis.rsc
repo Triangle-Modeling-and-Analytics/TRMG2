@@ -2,13 +2,19 @@
 
 */
 
-Macro "Population Synthesis" (Args)
-
+Macro "Disaggregate Curves" (Args)
     RunMacro("DisaggregateSED", Args)
+    return(1)
+endmacro
+
+Macro "IPU Synthesis" (Args)
     RunMacro("Synthesize Population", Args)
     RunMacro("PopSynth Post Process", Args)
-    RunMacro("Auto Ownership", Args)
+    return(1)
+endmacro
 
+Macro "Auto Ownership" (Args)
+    RunMacro("Calculate Auto Ownership", Args)
     return(1)
 endmacro
 
@@ -404,10 +410,10 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
     Return(aggflds)
 endMacro
 
-Macro "Auto Ownership" (Args, trip_types)
+Macro "Calculate Auto Ownership" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
-    input_dir = Args.[Input Folder] + "/resident/auto_ownership"
+    ao_coeffs = Args.AOCoeffs
     output_dir = Args.[Output Folder] + "/resident/population_synthesis"
     hh_file = Args.Households
 
@@ -431,7 +437,7 @@ Macro "Auto Ownership" (Args, trip_types)
         File: scen_dir + "\\output\\sedata\\scenario_se.bin",
         IDField: "TAZ"
     })
-    util = RunMacro("Import MC Spec", input_dir + "/ao_coefficients.csv")
+    util = RunMacro("Import MC Spec", ao_coeffs)
     obj.AddUtility({UtilityFunction: util})
     obj.AddPrimarySpec(primary_spec)
     obj.AddOutputSpec({ChoicesField: "Autos"})

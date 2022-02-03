@@ -2,12 +2,14 @@
 
 */
 
-Macro "Skimming" (Args)
-
-    RunMacro("Roadway Skims", Args)
+Macro "Roadway Skims" (Args)
+    RunMacro("Create Roadway Skims", Args)
     RunMacro("Create Average Roadway Skims", Args)
-    RunMacro("Transit Skims", Args)
+    return(1)
+endmacro
 
+Macro "Transit Skims" (Args)
+    RunMacro("Create Transit Skims", Args)
     return(1)
 endmacro
 
@@ -20,11 +22,11 @@ Macro "Update Link Networks" (Args)
     net_dir = Args.[Output Folder] + "/networks"
     hwy_dbd = Args.Links
 
-    files = RunMacro("Catalog Files", net_dir, "net")
+    files = RunMacro("Catalog Files", {dir: net_dir, ext: "net"})
     for file in files do
         {, , name, } = SplitPath(file)
         {, period, mode} = ParseString(name, "_")
-        if period = "bike" or period = "walk" then continue
+        if Lower(period) = "bike" or Lower(period) = "walk" or Lower(period) = "pmpk" then continue
 
         obj = CreateObject("Network.Update")
         obj.LayerDB = hwy_dbd
@@ -55,7 +57,7 @@ Inputs
 
 */
 
-Macro "Roadway Skims" (Args, OtherOpts)
+Macro "Create Roadway Skims" (Args, OtherOpts)
 
     link_dbd = Args.Links
     periods = RunMacro("Get Unconverged Periods", Args)
@@ -155,7 +157,7 @@ Macro "Create Average Roadway Skims" (Args)
     CloseView(factor_vw)
 
     // Add a dummy intrazonal core that will be used by DC later
-    a_mtx_files = RunMacro("Catalog Files", skim_dir, "mtx")
+    a_mtx_files = RunMacro("Catalog Files", {dir: skim_dir, ext: "mtx"})
     for file in a_mtx_files do
         {drive, folder, name, ext} = SplitPath(file)
         if Left(name, 3) <> "avg" then continue
@@ -184,7 +186,7 @@ Inputs
     * If provided, only these skims will be created. Used by accessibility.
 */
 
-Macro "Transit Skims" (Args, overrides)
+Macro "Create Transit Skims" (Args, overrides)
 
     rts_file = Args.Routes
     periods = RunMacro("Get Unconverged Periods", Args)

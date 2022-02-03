@@ -4,12 +4,12 @@ data_dir <- "data/input/ieei/"
 output_dir <- "data/output/ieei/"
 master_dir <- "../master/"
 
-
 taz_shape_filename <- paste0(master_dir, "tazs/master_tazs.shp")
 socec_filename <- paste0(data_dir, "se_2016.csv")
 consolidated_streetlight_filename <- paste0(private_dir, "streetlight-ieei-flows.RDS")
 ncstm_filename <- paste0(data_dir, "ncstm-demand.rds")
 distance_filename <- paste0(data_dir, "distance-skim.RDS")
+demand_filename <- paste0(output_dir, "ieei_demand.RDS")
 
 output_ee_seed_filename <- paste0(output_dir, "ee-seed.csv")
 output_ei_attractions_filename <- paste0(output_dir, "ei-attractions.csv")
@@ -33,6 +33,8 @@ taz_sf <- st_read(taz_shape_filename) %>%
   st_transform(LAT_LNG_EPSG)
 
 distance_df <- readRDS(distance_filename)
+
+estimated_df <- readRDS(demand_filename)
 
 # StreetLight: External station shares -----------------------------------------
 working_df <- sl_df %>%
@@ -314,9 +316,19 @@ ei_attractions_df <- working_df %>%
 ei_distance_df <- working_df %>%
   filter(observed_trips > 0.0) %>%
   left_join(., distance_df, by = c("orig_taz" = "orig", "dest_taz" = "dest")) %>%
+  left_join(., estimated_df, by = c("orig_taz", "dest_taz")) %>%
   mutate(category = "Non-freeway") %>%
   mutate(category = if_else(purpose == "IX" & (dest_taz %in% freeway_station_vector), "Freeway", category)) %>%
-  mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category))
+  mutate(category = if_else(purpose == "XI" & (orig_taz %in% freeway_station_vector), "Freeway", category)) 
+
+ei_distance_means_df <- bind_rows(
+  mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = observed_trips), source = "Observed"),
+  mutate(select(ei_distance_df, orig_taz, dest_taz, purpose, category, distance, trips = estimated), source = "Estimated")) %>%
+  mutate(trips = replace_na(trips, 0.0)) %>%
+  group_by(category, source) %>%
+  summarise(mean_distance = weighted.mean(distance, trips), .groups = "drop") %>%
+  arrange(category)
+  
 
 write_csv(ei_attractions_df, file = output_ei_attractions_filename)
 write_csv(ei_distance_df, file = output_ei_distance_filename)

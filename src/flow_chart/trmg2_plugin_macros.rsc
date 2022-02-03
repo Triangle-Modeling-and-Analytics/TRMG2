@@ -1,37 +1,36 @@
-Macro "Model.Attributes"
 
-Attributes = {{"BannerHeight",80},
-                  {"BannerWidth",2000},
-                  {"BannerPicture","src\\flow_chart\\bmp\\banner.bmp"},
-                  {"HideBanner",0},
-                  {"Base Scenario Name","Model"},
-                  {"ClearLogFiles",0},
-                  {"CodeUI","src\\trmg2.dbd"},
-                  {"ExpandStages","Side by Side"},
-                  {"MaxProgressBars",4},
-                  {"MinItemSpacing",20},
-                  {"Output Folder Format","Output Folder\\Scenario Name"},
-                  {"Output Folder Parameter","Output Folder"},
-                  {"Output Folder Per Run","No"},
-                  {"Picture","bmp\\TransCAD_Model.bmp"},
-                  {"ReportAfterStep",1},
-                  {"Requires",{{"Program","TransCAD"},
+Macro "Model.Attributes" (Args,Result)
+    Attributes = {{"BannerHeight",90},
+                  {"BannerPicture","src\\flow_chart\\bmp\\banner.jpg"},
+                    {"BannerWidth",1000},
+                    {"Base Scenario Name","Model"},
+                    {"ClearLogFiles",0},
+                    {"CodeUI","src\\trmg2.dbd"},
+                    {"ExpandStages","Side by Side"},
+                    {"HideBanner",0},
+                    {"MaxProgressBars",4},
+                    {"MinItemSpacing",20},
+                    {"Output Folder Format","Output Folder\\Scenario Name"},
+                    {"Output Folder Parameter","Output Folder"},
+                    {"Output Folder Per Run","No"},
+                    {"Picture","bmp\\TransCAD_Model.bmp"},
+                    {"ReportAfterStep",1},
+                    {"Requires",{{"Program","TransCAD"},
                   {"Version",9},
-                  {"Build",32650}}},
-                  {"RunParallel", 0},
-                  {"ShowTaskMonitor", 1},
-                  {"Shape","Rectangle"},
-                  {"Time Stamp Format","yyyyMMdd_HHmm"}}
+                  {"Build",32755}}},
+                    {"RunParallel",0},
+                    {"Shape","Rectangle"},
+                    {"ShowTaskMonitor",1},
+                    {"Time Stamp Format","yyyyMMdd_HHmm"}}
+EndMacro
 
-
-endMacro 
 
 Macro "Model.Step" (Args,Result)
     Attributes = {{"FrameColor",{255,255,255}},
-                  {"Height",45},
+                  {"Height",30},
                   {"PicturePosition","CenterRight"},
-                  {"TextFont","Calibri|12|400|000000|0"},
-                  {"Width",225}}
+                    {"TextFont","Calibri|12|400|000000|0"},
+                    {"Width",260}}
 EndMacro
 
 
@@ -40,24 +39,10 @@ Macro "Model.Arrow" (Args,Result)
                   {"ArrowHeadSize",8}}
 EndMacro
 
+
 Macro "Model.OnStepStart" (Args,Result)
 Body:
-    // Initialize choice model sources object
-    flowchart = RunMacro("GetFlowChart")
-    {drive, path, name, ext} = SplitPath(flowchart.UI)
 
-    // Execute this macro just before running each step. Have to do it here because the parameters (file names/locations) could have changed.
-    Opts = null
-    Opts.MatrixSources = Args.MatrixSources
-    Opts.TableSources = Args.TableSources
-    Opts.Joins = Args.Joins
-    Opts.SourceKeys = Args.SourceKeys 
-        
-    SetLibrary(drive + path + "src/trmg2.dbd")
-    srcObj = CreateObject("Choice Model Sources", Args, Opts)
-    SetLibrary()
-
-    Args.SourcesObject = srcObj
 EndMacro
 
 
@@ -111,7 +96,8 @@ Body:
     Return(Runtime_Args)
 EndMacro
 
-macro "Model.OnModelLoad" (Args, Results)
+
+Macro "Model.OnModelLoad" (Args, Results)
 Body:
     // Compile source code
     flowchart = RunMacro("GetFlowChart")
@@ -121,11 +107,10 @@ Body:
     srcFile = rootFolder + "src\\_TRMCompile.lst"
     RunMacro("CompileGISDKCode", {Source: srcFile, UIDB: ui_DB, Silent: 0, ErrorMessage: "Error compiling code"})
 
-    // Make sure units are miles
-    SetMapUnits("Miles")
-    shared d_map_units
-    d_map_units = "Miles"
-endmacro 
+    if lower(GetMapUnits()) <> "miles" then
+        MessageBox("Set the system to miles before running the model", {Caption: "Warning", Icon: "Warning", Buttons: "yes"})
+EndMacro
+
 
 Macro "Model.OnModelReady" (Args,Result)
 Body:
@@ -140,3 +125,4 @@ Body:
 
     Return()
 EndMacro
+

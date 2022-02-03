@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+author: "name"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+source("R/university_surveysummary.R")
+
+
+knitr::opts_chunk$set(echo = FALSE)
+options(dplyr.summarise.inform = FALSE)
+options(scipen = 999)
+
+```
+
+## Trip Length Distribution
+
+Trip length distribution by purpose from NCSU survey. Distance is zone to zone distance from auto skim.
+
+```{r}
+zonetozonedistance_allpurposes_histogram + labs(title = "Trip Length Distribution (All purposes,except UC1)", 
+                                              subtitle="for off-campus students (On_campus== 0) and on-campus students (On_campus == 1) students", 
+                                              caption = ("Source: NCSU survey (unweighted)"))
+                                              
+zonetozonedistance_UC1_histogram + labs(title = "Trip Length Distribution (UC1 Trips)", 
+                                        subtitle="for off-campus students (On_campus== 0) and on-campus students (On_campus == 1) students", 
+                                        caption = ("Source: NCSU survey (unweighted)"))
+```
+
+## Mode Split
+
+Mode split by Trip Purpose from NCSU survey
+### On-Campus Students
+```{r}
+trips_bypurpose_oncampus_pct_df %>%
+  kable(digits = 1) %>%
+kable_styling(full_width = FALSE)
+
+trips_bypurpose_oncampus_plot + labs(title = "Mode Split by Purpose", 
+                                     subtitle="On-campus students", 
+                                     caption = ("Source: NCSU survey (unweighted)"))
+
+```
+
+### Off-Campus Students
+```{r}
+trips_bypurpose_offcampus_pct %>%
+  kable(digits = 1) %>%
+kable_styling(full_width = FALSE)
+
+trips_bypurpose_offcampus_plot + labs(title = "Mode Split by Purpose", 
+                                     subtitle="Off-campus students", 
+                                     caption = ("Source: NCSU survey (unweighted)"))
+
+```
+
+
+Although it is possible that students without a car drove, trips where students who did not have a car drove have been removed. 
+
+###On-Campus Students with and without car
+```{r, echo=FALSE}
+trips_bypurpose_oncampus_caravail_pct2 %>%
+kable(digits = 1) %>%
+kable_styling(full_width = FALSE)
+```
+
+###Off-Campus Students with and without car
+```{r}
+trips_bypurpose_offcampus_caravail_pct2 %>%
+kable(digits = 1) %>%
+kable_styling(full_width = FALSE)
+```
+

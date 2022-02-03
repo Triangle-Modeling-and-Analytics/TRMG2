@@ -6,13 +6,11 @@
 06 - NonMotorized.rsc
 07 - Aggregation.rsc
 08 - Time of Day.rsc
-09 - NonResident Generation.rsc
 10 - Skimming.rsc
 11 - Parking.rsc
 12 - Mode Choice.rsc
 13 - Destination Choice.rsc
 14 - NHB Models.rsc
-15 - NonResident DC and MC.rsc
 16 - Create Assignment Matrices.rsc
 17 - Roadway Assignment.rsc
 18 - Transit Assignment.rsc
@@ -20,6 +18,7 @@
 Airport.rsc
 Commercial Vehicles.rsc
 Airport.rsc
+University.rsc
 External Models.rsc
 utils/NestedDC.rsc
 utils/DesireLines.rsc

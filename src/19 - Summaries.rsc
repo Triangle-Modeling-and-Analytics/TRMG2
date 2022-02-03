@@ -3,19 +3,27 @@ After the model is finished, these macros summarize the results into maps
 and tables.
 */
 
-Macro "Summaries" (Args)
-
+Macro "Maps" (Args)
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
-    RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
+    return(1)
+endmacro
+
+Macro "Calibration Reports" (Args)
+    RunMacro("Count PRMSEs", Args)
+    return(1)
+endmacro
+
+Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
-
+    RunMacro("Create MOVES Inputs", Args)
     return(1)
 endmacro
 
@@ -270,6 +278,7 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
+  opts.screenline_field = "Screenline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
   RunMacro("Roadway Count Comparison Tables", opts)
@@ -533,7 +542,7 @@ Macro "Summarize HB DC and MC" (Args)
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
-  mtx_files = RunMacro("Catalog Files", trip_dir, "mtx")
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
   df = RunMacro("Matrix Stats", mtx_files)
@@ -730,3 +739,125 @@ Macro "Transit Summary" (Args)
     loaded_network: Args.Links
   })
 EndMacro
+
+/*
+Generates CSV tables needed generate MOVES air quality inputs
+*/
+
+Macro "Create MOVES Inputs" (Args)
+
+  hwy_dbd = Args.Links
+  summary_dir = Args.[Output Folder] + "/_summaries/MOVES"
+  assn_dir = Args.[Output Folder] + "/assignment/roadway"
+  periods = Args.periods
+
+  objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
+  {nlayer, llyr} = objLyrs.Layers
+  SetLayer(llyr)
+  SelectByQuery("sel", "several", "Select * where D = 1")
+
+  // Link table
+  df = CreateObject("df")
+  df.read_view({
+    view: llyr,
+    set: "sel",
+    fields: {"ID", "Length", "HCMType", "AreaType"}
+  })
+  v_roadtype = df.tbl.HCMType
+  v_roadtype = if v_roadtype = "CC" then "Off-network" 
+    else if v_roadtype = "Freeway" then "Restricted Access" 
+    else "Unrestricted Access"
+  v_at = if df.tbl.AreaType = "Rural" then "Rural" else "Urban"
+  v_roadtype = if v_roadtype = "CC" then "CC"
+    else v_at + " " + v_roadtype
+  df.mutate("MOVESType", v_roadtype)
+  df.write_csv(summary_dir + "/link_table.csv")
+
+  // Assignment tables
+  for period in periods do
+    assn_file = assn_dir + "/roadway_assignment_" + period + ".bin"
+    assn_vw = OpenTable("asn", "FFB", {assn_file})
+    df2 = CreateObject("df")
+    df2.read_view({
+      view: assn_vw,
+      fields: {"ID1", "AB_Flow_PCE", "BA_Flow_PCE", "AB_Speed", "BA_Speed"}
+    })
+    df3 = df.copy()
+    df3.left_join(df2, "ID", "ID1")
+    df3.write_csv(summary_dir + "/" + period + "_assignment_table.csv")
+    CloseView(assn_vw)
+  end
+
+  // Vehicle population
+  veh_total = 0
+  for period in periods do
+    mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    stats = MatrixStatistics(mtx.GetMatrixHandle(), {Tables: core_names})
+    for core_name in core_names do
+      veh_total = veh_total + stats.(core_name).Sum
+    end
+  end
+  out_file = summary_dir + "/total_vehicles.csv"
+  f = OpenFile(out_file, "w")
+  WriteLine(f, String(veh_total))
+  CloseFile(f)
+endmacro
+
+/*
+
+*/
+
+Macro "Summarize Parking"  (Args)
+
+  hbmtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  nhbmtx_dir = Args.[Output Folder] + "/resident/nhb/dc/trip_matrices"
+  summary_dir = Args.[Output Folder] + "/_summaries/parking"
+  periods = Args.periods
+
+  RunMacro("Create Directory", summary_dir)
+  
+  mtx_files = RunMacro("Catalog Files", {dir: hbmtx_dir, ext: "mtx"})
+
+  // Create a starting matrix
+  out_file = summary_dir + "/parking_daily.mtx"
+  CopyFile(mtx_files[1], out_file)
+  mtx = CreateObject("Matrix", out_file)
+  core_names = mtx.GetCoreNames()
+  mtx.AddCores({"parkwalk", "parkshuttle"})
+  mtx.DropCores(core_names)
+  cores = mtx.GetCores()
+  cores.parkwalk := 0
+  cores.parkshuttle := 0
+
+  // Collapse the "from park" trips into the daily matrix
+  for i = 1 to 2 do
+      if i = 2 then mtx_files = RunMacro("Catalog Files", {dir: nhbmtx_dir, ext: "mtx"})
+    for mtx_file in mtx_files do
+      {drive, path, name, ext} = SplitPath(mtx_file)
+      parts = ParseString(name, "_")
+      //period = parts[parts.length]
+      if parts[2] = "transit" or parts[2] = "walkbike" or parts[3] = "auto" then continue
+
+      in_mtx = CreateObject("Matrix", mtx_file)
+      in_cores = in_mtx.GetCores()
+      cores.parkwalk := cores.parkwalk + 
+        nz(in_cores.sov_parkwalk_frompark) + 
+        nz(in_cores.hov2_parkwalk_frompark) + 
+        nz(in_cores.hov3_parkwalk_frompark) +
+        nz(in_cores.Total_parkwalk_frompark)
+      cores.parkshuttle := cores.parkshuttle + 
+        nz(in_cores.sov_parkshuttle_frompark) + 
+        nz(in_cores.hov2_parkshuttle_frompark) + 
+        nz(in_cores.hov3_parkshuttle_frompark) +
+        nz(in_cores.Total_parkshuttle_frompark)
+    end
+  end
+
+  // Replace 0 with null to reduce size
+  cores.parkwalk := if cores.parkwalk = 0 then null else cores.parkwalk
+  cores.parkshuttle := if cores.parkshuttle = 0 then null else cores.parkshuttle
+  cores = null
+  mtx.Pack()
+endmacro
