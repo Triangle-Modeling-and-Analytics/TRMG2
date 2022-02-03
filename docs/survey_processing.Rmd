@@ -720,19 +720,48 @@ categorizing trips by trip purpose. Instead, trips are categorized by
 - Duration: How long the person spends at their destination.
 
 These new classifications provide more insight into travel behavior compared to
-traditional trip purposes. A simple example would be to compare non-home-based
-(NHB) trips made on a work tour or a non-work tour. On a work tour, NHB trips
-are likely to be dropping off kids, picking up groceries, or getting gas. On
-non-work tours, NHB stops are more likely to be for things like shopping,
-dining, etc. This is why NHB trips are typically stratified into NHBW (where one
-end is work) and NHBO (where neither end is work). However, if a person drops
-off a child at school and then gets gas on their way to work, the traditional
-treatment would classify the trip from school to the gas station as NHBO and
-lose the understanding that it was actually part of a work tour.
+traditional trip purposes. 
 
-The following sections provide more detail.
+Segmenting trips by tour type is helpful and justified for multiple reasons. 
+Both non-home-based (NHB) and home-based other (HBO) trips on work tours have 
+distinct mode shares, temporal and spatial distributions from NHB and HBO trips
+on non-work tours. Trips on work tours generally tend to have mode shares more
+akin to home-base work (HBW) trips with more drive alone and transit trips. 
+HBO trips on work tours are concentrated in the AM and PM peaks like HBW, while
+HBO trips on nonwork tours gradually increase through the day to a peak during
+the mid-day period and slowly taper off. NHB trips on work tours also have a 
+distinct triple peak pattern with concentrations around the lunch hour as well 
+as the AM and PM peaks; whereas, NHB trips on nonwork tours are distributed 
+through the day similarly to HBO trips on nonwork tours with a unimodal 
+distribution. Spatially, trips on work tours are more tied to general employment
+(and enrollment in the AM) compared to trips on nonwork tours which are more 
+concentrated around retail. Traditional trip purposes capture some of the 
+differences between trips on work tours and nonwork tours by segmenting HBW and
+NHBW separately from HBO and NHBO, but actually segmenting by tour type can 
+better preserve these differences.  For example, if a person drops off a child 
+at school and then gets gas on their way to work, the traditional treatment 
+would classify the trip from school to the gas station as NHBO and lose the 
+understanding that it was actually part of a work tour and therefore more likely
+to be drive alone in the AM period. 
 
-*TODO: add more intro/why*
+Segmentation by home-based and non-home-based is a fundamental and necessary 
+aspect of trip-based travel demand modeling. It is similar to the segmentation 
+between tour level (tour mode, tour destination) and trip level (trip mode, 
+intermediate stop location) choices in activity-based models. 
+
+Segmentation by activity type is also traditional and standard in both trip-
+based and activity-based models since mode, temporal and spatial distributions
+do vary by activity type.  
+
+Segmentation by duration is less common, but a growing practice (in part because
+it is more easily supported by big data than segmentation by activity type). In 
+some cases activity duration can provide meaningful information and distinct 
+distributions by mode, time-of-day, and location even after accounting for tour
+and activity type. This was the case for discretionary trips on nonwork tours in 
+the Triangle. Long activity discrectionary trips were twice as long as their 
+short counterparts, which were five times as likely to be by walk. 
+
+The following sections provide more detail on the segmentation for the TRM.
 
 ### Activity types
 
