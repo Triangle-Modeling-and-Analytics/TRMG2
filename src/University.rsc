@@ -332,13 +332,19 @@ Macro "Mark UNC Zones" (Args)
 
     se_vw = Opentable("se", "FFB", {se_file})
     a_fields =  {
-        {"UNC_Zones", "Integer", 10, ,,,, "UNC campus zones used for university mode choice|BuildingS_UNC + StudGQ_UNC > 0"}
+        {"UNC_Zones", "Integer", 10, ,,,, "UNC campus zones used for university mode choice|BuildingS_UNC + StudGQ_UNC > 0"},
+        {"Duke_Zones", "Integer", 10, ,,,, "Duke campus zones used for university mode choice|BuildingS_Duke + StudGQ_Duke > 0"}
     }
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
     v_sq = GetDataVector(se_vw + "|", "BuildingS_UNC", )
     v_gq = GetDataVector(se_vw + "|", "StudGQ_UNC", )
     v_unc = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
     SetDataVector(se_vw + "|", "UNC_Zones", v_unc, )
+
+    v_sq = GetDataVector(se_vw + "|", "BuildingS_Duke", )
+    v_gq = GetDataVector(se_vw + "|", "StudGQ_duke", )
+    v_duke = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
+    SetDataVector(se_vw + "|", "Duke_Zones", v_duke, )
 endmacro
 
 /*
