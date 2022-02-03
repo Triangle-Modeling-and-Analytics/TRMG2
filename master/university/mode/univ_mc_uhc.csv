@@ -1,8 +1,5 @@
 Alternative,Expression,Segment,Coefficient,Description
 auto,sov_skim.CongTime,,-0.02,Travel Time
-auto,Constant,on,0,Constant
-auto,Constant,off,0,Constant
-auto,se.UNC_Zones.D,off,-2.25,Auto penalty to UNC zones for off-campus student
 auto,walk_skim.WalkTime < 8,,-99,Constant
 w_lb,w_lb_skim.[In-Vehicle Time],,-0.02,IVTT
 w_lb,w_lb_skim.Fare,,-0.2,Transit fare
@@ -11,9 +8,7 @@ w_lb,w_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
 w_lb,w_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 w_lb,w_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
 w_lb,walk_skim.WalkTime < 8,,-99,Constant
-w_lb,se.UNC_Zones.D,off,0.625,Transit positive utility to UNC Zones for off-campus student
-w_lb,Constant,on,-0.25,Constant
-w_lb,Constant,off,-0.25,Constant
+w_lb,Constant,,-3,Constant
 pnr_lb,pnr_lb_skim.[In-Vehicle Time],,-0.02,IVTT
 pnr_lb,pnr_lb_skim.Fare,,-0.2,Transit fare
 pnr_lb,pnr_lb_skim.[Access Drive Time],,-0.02,Access drive time
@@ -21,25 +16,24 @@ pnr_lb,pnr_lb_skim.[Access Walk Time],,-0.03,Access walk time
 pnr_lb,pnr_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
 pnr_lb,pnr_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_lb,pnr_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
-pnr_lb,walk_skim.WalkTime < 8,,-99,Constant
-pnr_lb,se.UNC_Zones.D,off,0.625,Transit positive utility to UNC Zones for off-campus student
-pnr_lb,Constant,on,-0.25,Constant
-pnr_lb,Constant,off,-0.25,Constant
+pnr_lb,walk_skim.WalkTime < 15,,-99,Constant
+pnr_lb,Constant,,-3,Constant
 pnr_lb,Constant,on,-99,No PNR for on-campus students
 walk,walk_skim.WalkTime,,-0.03,Walk Time
-walk,se.UNC_Zones.D,off,-1.1,Walk penalty to UNC Zones for off-campus student
-walk,Constant,on,0.75,Constant
-walk,Constant,off,0.75,Constant
+walk,Constant,,0.75,Constant
 bike,bike_skim.BikeTime,,-0.02,Travel Time
-bike,Constant,on,-2.65,Constant
-bike,Constant,off,-2.65,Constant
-w_lb,Constant,,-1.25,Calibration Adjustment
-pnr_lb,Constant,,-1.25,Calibration Adjustment
-auto,se.UNC_Zones.D,off,0.75,Auto penalty to UNC zones for off-campus student
-w_lb,se.UNC_Zones.D,off,-0.3,Transit positive utility to UNC Zones for off-campus student
-pnr_lb,se.UNC_Zones.D,off,-0.3,Transit positive utility to UNC Zones for off-campus student
-walk,se.UNC_Zones.D,off,0.25,Walk penalty to UNC Zones for off-campus student
-w_lb,se.Duke_Zones.D,on,1.9,Transit positive utility to DUKE Zones for on-campus student
-pnr_lb,se.Duke_Zones.D,on,1.9,Transit positive utility to DUKE Zones for on-campus student
-w_lb,se.Duke_Zones.D,off,1.5,Transit positive utility to DUKE Zones for off-campus student
-pnr_lb,se.Duke_Zones.D,off,1.5,Transit positive utility to DUKE Zones for off-campus student
+bike,Constant,,-2.65,Constant
+w_lb,se.UNC_Zones.D,on,2.6,Transit (w_lb) positive utility to UNC Zones for on-campus student
+pnr_lb,se.UNC_Zones.D,on,1.85,Transit (pnr_lb) positive utility to UNC Zones for on-campus student
+w_lb,se.UNC_Zones.D,off,3.1,Transit (w_lb) positive utility to UNC Zones for off-campus student
+pnr_lb,se.UNC_Zones.D,off,3.1,Transit (pnr_lb) positive utility to UNC Zones for off-campus student
+bike,se.UNC_Zones.D,off,1.5,Bike positive utility to UNC Zones for off-campus student
+walk,se.UNC_Zones.D,off,0.65,Walk positive utility to UNC Zones for off-campus student
+w_lb,se.Duke_Zones.D,on,2.1,Transit  (w_lb) positive utility to DUKE Zones for on-campus student
+pnr_lb,se.Duke_Zones.D,on,1.85,Transit (pnr_lb) positive utility to DUKE Zones for on-campus student
+w_lb,se.Duke_Zones.D,off,1.35,Transit  (w_lb) positive utility to DUKE Zones for off-campus student
+pnr_lb,se.Duke_Zones.D,off,1.1,Transit (pnr_lb) positive utility to DUKE Zones for off-campus student
+w_lb,se.NCSU_Zones.D,on,1.85,Transit  (w_lb) positive utility to NCSU Zones for on-campus student
+pnr_lb,se.NCSU_Zones.D,on,1.6,Transit (pnr_lb) positive utility to NCSU Zones for on-campus student
+w_lb,se.NCSU_Zones.D,off,1.1,Transit  (w_lb) positive utility to NCSU Zones for off-campus student
+pnr_lb,se.NCSU_Zones.D,off,0.85,Transit (pnr_lb) positive utility to NCSU Zones for off-campus student
