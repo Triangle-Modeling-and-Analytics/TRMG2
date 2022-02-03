@@ -132,7 +132,6 @@ Relevant assignment details are listed below:
 
 The table below shows the alpha and beta values used for the BPR VDF.
 
-**TODO: Add info on scaling process**
 
 ```{r, include=FALSE}
 df <- read_csv("../master/networks/ff_speed_alpha_beta.csv") %>%

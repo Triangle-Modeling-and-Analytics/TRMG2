@@ -811,13 +811,14 @@ endmacro
 
 Macro "Summarize Parking"  (Args)
 
-  mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  hbmtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  nhbmtx_dir = Args.[Output Folder] + "/resident/nhb/dc/trip_matrices"
   summary_dir = Args.[Output Folder] + "/_summaries/parking"
   periods = Args.periods
 
   RunMacro("Create Directory", summary_dir)
   
-  mtx_files = RunMacro("Catalog Files", {dir: mtx_dir, ext: "mtx"})
+  mtx_files = RunMacro("Catalog Files", {dir: hbmtx_dir, ext: "mtx"})
 
   // Create a starting matrix
   out_file = summary_dir + "/parking_daily.mtx"
@@ -831,21 +832,27 @@ Macro "Summarize Parking"  (Args)
   cores.parkshuttle := 0
 
   // Collapse the "from park" trips into the daily matrix
-  for mtx_file in mtx_files do
-    {drive, path, name, ext} = SplitPath(mtx_file)
-    parts = ParseString(name, "_")
-    period = parts[parts.length]
+  for i = 1 to 2 do
+      if i = 2 then mtx_files = RunMacro("Catalog Files", {dir: nhbmtx_dir, ext: "mtx"})
+    for mtx_file in mtx_files do
+      {drive, path, name, ext} = SplitPath(mtx_file)
+      parts = ParseString(name, "_")
+      //period = parts[parts.length]
+      if parts[2] = "transit" or parts[2] = "walkbike" or parts[3] = "auto" then continue
 
-    in_mtx = CreateObject("Matrix", mtx_file)
-    in_cores = in_mtx.GetCores()
-    cores.parkwalk := cores.parkwalk + 
-      nz(in_cores.sov_parkwalk_frompark) + 
-      nz(in_cores.hov2_parkwalk_frompark) + 
-      nz(in_cores.hov3_parkwalk_frompark)
-    cores.parkshuttle := cores.parkshuttle + 
-      nz(in_cores.sov_parkshuttle_frompark) + 
-      nz(in_cores.hov2_parkshuttle_frompark) + 
-      nz(in_cores.hov3_parkshuttle_frompark)
+      in_mtx = CreateObject("Matrix", mtx_file)
+      in_cores = in_mtx.GetCores()
+      cores.parkwalk := cores.parkwalk + 
+        nz(in_cores.sov_parkwalk_frompark) + 
+        nz(in_cores.hov2_parkwalk_frompark) + 
+        nz(in_cores.hov3_parkwalk_frompark) +
+        nz(in_cores.Total_parkwalk_frompark)
+      cores.parkshuttle := cores.parkshuttle + 
+        nz(in_cores.sov_parkshuttle_frompark) + 
+        nz(in_cores.hov2_parkshuttle_frompark) + 
+        nz(in_cores.hov3_parkshuttle_frompark) +
+        nz(in_cores.Total_parkshuttle_frompark)
+    end
   end
 
   // Replace 0 with null to reduce size
