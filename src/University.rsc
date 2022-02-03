@@ -1,4 +1,16 @@
 /*
+University Model
+
+Modeled Trip Purposes -
+UHC: Home-Based-Campus
+UHO: Home-Based-Other
+UCO: Campus-Based-Other
+UC1: On-Campus
+UCC: Inter-Campus
+UOO: University student Other-Other
+*/
+
+/*
 Called by the flowchart
 */
 
@@ -15,7 +27,7 @@ Called by the flowchart
 */
 
 Macro "University DC & MC" (Args)
-    RunMacro("Mark UNC Zones", Args)
+    RunMacro("Mark Univ Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
     RunMacro("University MC Probabilities", Args)
@@ -23,43 +35,6 @@ Macro "University DC & MC" (Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
     RunMacro("University Directionality", Args)
-    return(1)
-endmacro
-
-/*
-University Model
-
-Modeled Trip Purposes -
-UHC: Home-Based-Campus
-UHO: Home-Based-Other
-UCO: Campus-Based-Other
-UC1: On-Campus
-UCC: Inter-Campus
-UOO: University student Other-Other
-*/
-
-/*
-This macro is primarily used for testing the university
-model standalone. It is not called during a full model run. Instead, the
-individual macros are called as appropriate by the non-resident steps.
-*/
-
-Macro "University" (Args)
-    RunMacro("TCB Init")
-
-    RunMacro("University Productions", Args)
-    RunMacro("University Attractions", Args)
-    RunMacro("University Balance Ps and As", Args)
-    RunMacro("University TOD", Args)
-    RunMacro("Mark UNC Zones", Args)
-    RunMacro("University Gravity", Args)
-    RunMacro("University Combine Campus", Args)
-    RunMacro("University MC Probabilities", Args)
-    RunMacro("University Mode Choice", Args)
-    RunMacro("University Other to Other", Args)
-    RunMacro("University Combine Matrices", Args)
-    RunMacro("University Directionality", Args)
-
     return(1)
 endmacro
 
@@ -322,29 +297,28 @@ Macro "University TOD" (Args)
 endmacro
 
 /*
-The university MC model needs the field UNC_Zones. Rather than add this to the master
+The university MC model needs the field UNC_Zones, Duke_Zones and NCSU_Zones. Rather than add this to the master
 SE data (because it is a derivative of other zones), calculate it here.
 */
 
-Macro "Mark UNC Zones" (Args)
+Macro "Mark Univ Zones" (Args)
 
+    univs = {"UNC", "Duke", "NCSU", "NCCU"}
     se_file = Args.SE
 
     se_vw = Opentable("se", "FFB", {se_file})
-    a_fields =  {
-        {"UNC_Zones", "Integer", 10, ,,,, "UNC campus zones used for university mode choice|BuildingS_UNC + StudGQ_UNC > 0"},
-        {"Duke_Zones", "Integer", 10, ,,,, "Duke campus zones used for university mode choice|BuildingS_Duke + StudGQ_Duke > 0"}
-    }
+    a_fields = null
+    for univ in univs do
+        a_fields = a_fields + {{univ + "_Zones", "Integer", 10, ,,,, univ + " campus zones used for university mode choice|BuildingS_" + univ + " + StudGQ_" + univ + " > 0"}}
+    end
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-    v_sq = GetDataVector(se_vw + "|", "BuildingS_UNC", )
-    v_gq = GetDataVector(se_vw + "|", "StudGQ_UNC", )
-    v_unc = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
-    SetDataVector(se_vw + "|", "UNC_Zones", v_unc, )
-
-    v_sq = GetDataVector(se_vw + "|", "BuildingS_Duke", )
-    v_gq = GetDataVector(se_vw + "|", "StudGQ_duke", )
-    v_duke = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
-    SetDataVector(se_vw + "|", "Duke_Zones", v_duke, )
+    
+    vecsSet = null
+    for univ in univs do
+        {v_sq, v_gq} = GetDataVectors(se_vw + "|", {"BuildingS_" + univ, "StudGQ_" + univ},)
+        vecsSet.(univ + "_Zones") = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
+    end
+    SetDataVectors(se_vw + "|", vecsSet, )
 endmacro
 
 /*
