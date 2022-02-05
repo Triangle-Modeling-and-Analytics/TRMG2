@@ -339,26 +339,11 @@ Macro "Calculate Skim PRMSEs" (Args)
         new_skim_file = opts.out_file
         new_skim = CreateObject("Matrix", new_skim_file)
         new_core = new_skim.GetCore("CongTime")
-        new_skim.AddCores({"prev_time"})
-        prev_core = new_skim.GetCore("prev_time")
-        prev_core := old_core
-
-        // Weight the skim matrix travel times by flow
-        flow_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
-        flow_mtx = CreateObject("Matrix", flow_mtx_file)
-        flow_core = flow_mtx.GetCore("sov_VOT2")
-        new_core := new_core * flow_core
-        new_core := if new_core = 0 then null else new_core
-        prev_core := prev_core * flow_core
-        prev_core := if prev_core = 0 then null else prev_core
-
-        results = MatrixRMSE(prev_core, new_core)
-
+        results = MatrixRMSE(old_core, new_core)
         old_skim = null
         old_core = null
         new_skim = null
-        new_core = null
-        prev_core = null
+        new_core = null      
         DeleteFile(new_skim_file)
         Args.(period + "_PRMSE") = results.RelRMSE
         RunMacro("Write PRMSE", Args, period)

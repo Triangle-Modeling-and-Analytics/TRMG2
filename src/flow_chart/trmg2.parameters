@@ -129,7 +129,7 @@
     Section = "Numeric Parameters"
     
         Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE between skims. 1 = 1%" }
-        Args.FeedbackIterations = { "Type":"int" , "Value":10, "Description":"Max number of feedback iterations" }
+        Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
