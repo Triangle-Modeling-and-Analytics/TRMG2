@@ -1,7 +1,5 @@
 Alternative,Expression,Segment,Coefficient,Description
 auto,sov_skim.CongTime,,-0.02,Travel Time
-auto,Constant,on,0,Constant
-auto,Constant,off,0,Constant
 auto,walk_skim.WalkTime < 8,,-99,Constant
 w_lb,w_lb_skim.[In-Vehicle Time],,-0.02,IVTT
 w_lb,w_lb_skim.Fare,,-0.2,Transit fare
@@ -10,11 +8,10 @@ w_lb,w_lb_skim.[Initial Wait Time],,-0.03,Initial wait time
 w_lb,w_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 w_lb,w_lb_skim.[Egress Walk Time],,-0.03,Egress walk time
 w_lb,walk_skim.WalkTime < 8,,-99,Constant
-w_lb,Constant,on,-0.25,Constant
-w_lb,Constant,off,-0.25,Constant
+w_lb,Constant,,-0.25,Constant
 walk,walk_skim.WalkTime,,-0.03,Walk Time
-walk,Constant,on,0.75,Constant
-walk,Constant,off,0.75,Constant
+walk,Constant,,0.75,Constant
 bike,bike_skim.BikeTime,,-0.02,Travel Time
-bike,Constant,on,-2.65,Constant
-bike,Constant,off,-2.65,Constant
+bike,Constant,,-2.65,Constant
+w_lb,Constant,on,-2.25,Calibration Adjustment
+w_lb,Constant,off,-3.25,Calibration Adjustment
