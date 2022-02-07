@@ -37,7 +37,7 @@
 "EmpSpaces",I,151,4,0,11,0,,"","Number of parking spaces for employees",,"Sum",
 "StudSpaces",I,155,4,0,11,0,,"","Number of parking spaces for students",,"Sum",
 "OtherSpaces",I,159,4,0,11,0,,"","Number of parking spaces for visitors/other",,"Sum",
-"SParking",S,163,1,0,4,0,,"","",,"Sum",
+"SParking",S,163,1,0,4,0,,"","Special parking zone||A 1 in this field gives an extra boost to parking. It was|originally created to capture the UNC policy effect on|the Friday Center, but it can be used for other satellite|lots during scenario analysis.",,"Sum",
 "Enplanements",I,164,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
 "AWDT",I,168,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
 "IEEI_Distance",C,172,16,0,16,0,,"","Length of travel for IEEI trips at this node||Long, Medium, etc.|See external/ieei_gravity.csv for more details.",,"Copy",
