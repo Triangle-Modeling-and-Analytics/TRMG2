@@ -913,11 +913,6 @@ endmacro
 
 Macro "Create Route Networks" (Args)
 
-    // Initial processing is called by the main model, but also by the Fixed
-    // OD assignment tool. When doing fixed highway assignment, skip this step
-    // to save time.
-    if Args.fixed_od then return()
-
     link_dbd = Args.Links
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
