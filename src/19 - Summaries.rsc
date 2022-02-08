@@ -747,6 +747,7 @@ Generates CSV tables needed generate MOVES air quality inputs
 Macro "Create MOVES Inputs" (Args)
 
   hwy_dbd = Args.Links
+  popsyn_dir = Args.[Output Folder] + "/resident/population_synthesis"
   summary_dir = Args.[Output Folder] + "/_summaries/MOVES"
   assn_dir = Args.[Output Folder] + "/assignment/roadway"
   periods = Args.periods
@@ -789,16 +790,10 @@ Macro "Create MOVES Inputs" (Args)
   end
 
   // Vehicle population
-  veh_total = 0
-  for period in periods do
-    mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
-    mtx = CreateObject("Matrix", mtx_file)
-    core_names = mtx.GetCoreNames()
-    stats = MatrixStatistics(mtx.GetMatrixHandle(), {Tables: core_names})
-    for core_name in core_names do
-      veh_total = veh_total + stats.(core_name).Sum
-    end
-  end
+  hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
+  v = GetDataVector(hh_vw + "|", "Autos", )
+  veh_total = VectorStatistic(v, "Sum", )
+  CloseView(hh_vw)
   out_file = summary_dir + "/total_vehicles.csv"
   f = OpenFile(out_file, "w")
   WriteLine(f, String(veh_total))
