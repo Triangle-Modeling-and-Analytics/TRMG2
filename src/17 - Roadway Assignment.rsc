@@ -340,6 +340,13 @@ Macro "Calculate Skim PRMSEs" (Args)
         new_skim = CreateObject("Matrix", new_skim_file)
         new_core = new_skim.GetCore("CongTime")
         results = MatrixRMSE(old_core, new_core)
+
+        // This is testing/research code for alternative convergence approaches.
+        // flow_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        // flow_mtx = CreateObject("Matrix", flow_mtx_file)
+        // weight_core = flow_mtx.GetCore("sov_VOT2")
+        // results2 = RunMacro("Matrix RMSE", {mc1: old_core, mc2: new_core, mc_weight: weight_core})
+
         old_skim = null
         old_core = null
         new_skim = null
@@ -348,6 +355,49 @@ Macro "Calculate Skim PRMSEs" (Args)
         Args.(period + "_PRMSE") = results.RelRMSE
         RunMacro("Write PRMSE", Args, period)
     end
+endmacro
+
+/*
+Similar to the GISDK function MatrixRMSE(), but allows for
+a weight matrix (usually a flow matrix). This means differnces
+in ij pair travel times with little to no flow do not influence
+the %RMSE calculation.
+*/
+
+Macro "Matrix RMSE" (MacroOpts)
+
+    mc1 = MacroOpts.mc1
+    mc2 = MacroOpts.mc2
+    mc_weight = MacroOpts.mc_weight
+
+    mtx1 = CreateObject("Matrix", mc1)
+    mtx2 = CreateObject("Matrix", mc2)
+
+    // Calculate squared errors
+    mtx2.AddCores({"temp"})
+    temp_core = mtx2.GetCore("temp")
+    temp_core := pow(mc2 - mc1, 2)
+    
+    if mc_weight <> null then do
+        // Calculate total weight
+        mtx_weight = CreateObject("Matrix", mc_weight)
+        weight_mh = mtx_weight.GetMatrixHandle()
+        stats = MatrixStatistics(weight_mh, {Tables: {mc_weight.core}})
+        tot_weight = stats.(mc_weight.core).Sum
+
+        // Weight the squared errors
+        temp_core := temp_core * mc_weight / tot_weight
+    end
+
+    // Finish rmse calc
+    temp_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {temp_core.core}})
+    mc1_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {mc1.core}})
+    rmse = Pow(temp_stats.(temp_core.core).Mean, .5)
+    prmse = rmse / mc1_stats.(mc1.core).Mean * 100
+
+    temp_core = null
+    mtx2.DropCores({"temp"})
+    return({rmse: rmse, prmse: prmse})
 endmacro
 
 /*
