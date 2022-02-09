@@ -341,7 +341,7 @@ Macro "Calculate Skim PRMSEs" (Args)
         new_core = new_skim.GetCore("CongTime")
         results = MatrixRMSE(old_core, new_core)
 
-        // This is testing/research code for alternative convergence approaches.
+        // // This is testing/research code for alternative convergence approaches.
         // flow_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         // flow_mtx = CreateObject("Matrix", flow_mtx_file)
         // weight_core = flow_mtx.GetCore("sov_VOT2")
@@ -374,29 +374,33 @@ Macro "Matrix RMSE" (MacroOpts)
     mtx2 = CreateObject("Matrix", mc2)
 
     // Calculate squared errors
-    mtx2.AddCores({"temp"})
-    temp_core = mtx2.GetCore("temp")
-    temp_core := pow(mc2 - mc1, 2)
+    mtx2.AddCores({"sqerr"})
+    sqerr_core = mtx2.GetCore("sqerr")
+    sqerr_core := pow(mc2 - mc1, 2)
     
-    if mc_weight <> null then do
-        // Calculate total weight
-        mtx_weight = CreateObject("Matrix", mc_weight)
-        weight_mh = mtx_weight.GetMatrixHandle()
-        stats = MatrixStatistics(weight_mh, {Tables: {mc_weight.core}})
-        tot_weight = stats.(mc_weight.core).Sum
+    // Calculate total weight
+    mtx_weight = CreateObject("Matrix", mc_weight)
+    weight_mh = mtx_weight.GetMatrixHandle()
+    stats = MatrixStatistics(weight_mh, {Tables: {mc_weight.core}})
+    tot_weight = stats.(mc_weight.core).Sum
 
-        // Weight the squared errors
-        temp_core := temp_core * mc_weight / tot_weight
-    end
+    // Weight the squared errors
+    sqerr_core := sqerr_core * mc_weight / tot_weight
 
-    // Finish rmse calc
-    temp_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {temp_core.core}})
-    mc1_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {mc1.core}})
-    rmse = Pow(temp_stats.(temp_core.core).Mean, .5)
-    prmse = rmse / mc1_stats.(mc1.core).Mean * 100
+    // Finish rmse calc (prmse numerator)
+    temp_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {sqerr_core.core}})
+    rmse = Pow(temp_stats.(sqerr_core.core).Sum, .5)
 
-    temp_core = null
-    mtx2.DropCores({"temp"})
+    // Calculate the average weighted skim (prmse denominator)
+    mtx2.AddCores({"weighted_skim"})
+    wskim_core = mtx2.GetCore("weighted_skim")
+    wskim_core := mc1 * mc_weight / tot_weight
+    wskim_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {wskim_core.core}})
+    prmse = rmse / wskim_stats.(wskim_core.core).Sum * 100
+
+    sqerr_core = null
+    wskim_core = null
+    mtx2.DropCores({"temp", "weighted_skim"})
     return({rmse: rmse, prmse: prmse})
 endmacro
 
