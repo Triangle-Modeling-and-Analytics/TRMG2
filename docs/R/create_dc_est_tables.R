@@ -6,7 +6,7 @@ cluster <- read_csv("data/input/dc/cluster_def.csv")
 
 # W_HB_W
 df_w_hbw <- trips_raw %>%
-  filter(trip_type == "W_HB_W_All") %>%
+  filter(trip_type == "W_HB_W_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -29,16 +29,16 @@ df_w_hbw <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_w_hbw, "w_hbw_est_tbl.csv")
+write_csv(df_w_hbw, "data/output/resident_dc/w_hbw_est_tbl.csv")
 
 # W_HB_O
 df_w_hbo <- trips_raw %>%
-  filter(trip_type == "W_HB_O_All") %>%
+  filter(trip_type == "W_HB_O_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -61,16 +61,16 @@ df_w_hbo <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_w_hbo, "w_hbo_est_tbl.csv")
+write_csv(df_w_hbo, "data/output/resident_dc/w_hbo_est_tbl.csv")
 
 # W_HB_EK12
 df_w_ek12 <- trips_raw %>%
-  filter(trip_type == "W_HB_EK12_All") %>%
+  filter(trip_type == "W_HB_EK12_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -93,16 +93,16 @@ df_w_ek12 <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerWorker,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_w_ek12, "w_hb_ek12_est_tbl.csv")
+write_csv(df_w_ek12, "data/output/resident_dc/w_hb_ek12_est_tbl.csv")
 
 # OME
 df_ome <- trips_raw %>%
-  filter(trip_type == "N_HB_OME_All") %>%
+  filter(trip_type == "N_HB_OME_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -125,16 +125,16 @@ df_ome <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_ome, "ome_est_tbl.csv")
+write_csv(df_ome, "data/output/resident_dc/ome_est_tbl.csv")
 
 # OD Short
 df_ods <- trips_raw %>%
-  filter(trip_type == "N_HB_OD_Short") %>%
+  filter(trip_type == "N_HB_OD_Short", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -157,16 +157,16 @@ df_ods <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_ods, "ods_est_tbl.csv")
+write_csv(df_ods, "data/output/resident_dc/ods_est_tbl.csv")
 
 # OD Long
-df_ods <- trips_raw %>%
-  filter(trip_type == "N_HB_OD_Long") %>%
+df_odl <- trips_raw %>%
+  filter(trip_type == "N_HB_OD_Long", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -189,16 +189,16 @@ df_ods <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_ods, "odl_est_tbl.csv")
+write_csv(df_ods, "data/output/resident_dc/odl_est_tbl.csv")
 
 # OMED
 df_omed <- trips_raw %>%
-  filter(trip_type == "N_HB_OMED_All") %>%
+  filter(trip_type == "N_HB_OMED_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -221,16 +221,16 @@ df_omed <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_omed, "omed_est_tbl.csv")
+write_csv(df_omed, "data/output/resident_dc/omed_est_tbl.csv")
 
 # N_HB_K12
 df_hb_k12 <- trips_raw %>%
-  filter(trip_type == "N_HB_K12_All") %>%
+  filter(trip_type == "N_HB_K12_All", mode_simple != "walkbike") %>%
   left_join(
     hh_raw %>%
       select(hhid, hh_income_midpt, num_adults),
@@ -253,13 +253,28 @@ df_hb_k12 <- trips_raw %>%
   ungroup() %>%
   select(
     EstDataID = seqtripid, personid, hhid, HomeTAZ, o_taz, d_taz, a_taz,
-    HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
+    mode_final, HHIncomeMP = hh_income_midpt, AvgIncPerAdult,
     LowIncome, Home_Cluster, O_Cluster, D_Cluster, Segment = choice_segment,
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_hb_k12, "n_hb_k12_est_tbl.csv")
+write_csv(df_hb_k12, "data/output/resident_dc/n_hb_k12_est_tbl.csv")
 
+## IZ %s
+iz_df <- trips_raw %>%
+  filter(mode_simple != "walkbike", tour_type != "H") %>%
+  group_by(personid, tour_num, a_taz) %>%
+  slice(1) %>%
+  mutate(iz = ifelse(p_taz == a_taz, "IZ", "NotIZ")) %>%
+  group_by(trip_type, iz) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  filter(!is.na(iz)) %>%
+  mutate(
+    pct = round(trips / sum(trips) * 100, 1),
+    trips = round(trips, 0)
+  ) %>%
+  pivot_wider(id_cols = trip_type, names_from = iz, values_from = c(trips, pct))
+write_csv(iz_df, "data/output/resident_dc/intrazonals.csv")
 
 # NHB trips
 df_nhb <- trips_raw %>%
@@ -300,4 +315,4 @@ df_nhb <- trips_raw %>%
     tod,
     ZeroAutoHH, trip_weight = trip_weight_combined, hh_weight = hh_weight_combined
   )
-write_csv(df_nhb, "nhb_est_tbl.csv")
+write_csv(df_nhb, "data/output/resident_dc/nhb_est_tbl.csv")
