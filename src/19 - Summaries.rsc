@@ -571,7 +571,7 @@ Macro "Summarize HB DC and MC" (Args)
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
   df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
 
-  // Create a totals matrix for each trip type
+  // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
     total_file = output_dir + "/" + trip_type + ".mtx"
@@ -685,8 +685,9 @@ Macro "Summarize NHB DC and MC" (Args)
   // Create table of statistics
   df = RunMacro("Matrix Stats", mtx_files)
   df.mutate("period", Right(df.tbl.matrix, 2))
-  v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
-  v_mode = CopyVector(v_type)
+  v_type_orig = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  v_mode = CopyVector(v_type_orig)
+  v_type = CopyVector(v_type_orig)
   for i = 1 to v_type.length do
     type = v_type[i]
     parts = ParseString(type, "_")
@@ -706,6 +707,72 @@ Macro "Summarize NHB DC and MC" (Args)
   modal_file = output_dir + "/nhb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
+  // Create a daily matrix for each trip type
+  v_type = SortVector(v_type_orig, {Unique: "true"})
+  for type in v_type do
+    daily_file = output_dir + "/" + type + "_daily.mtx"
+    daily_files = daily_files + {daily_file}
+
+    for period in periods do
+      period_file = trip_dir + "/" + type + "_" + period + ".mtx"
+
+      if period = periods[1] then do
+        CopyFile(period_file, daily_file)
+        daily_mtx = CreateObject("Matrix", daily_file)
+        to_drop = daily_mtx.GetCoreNames()
+        daily_mtx.AddCores({"daily"})
+        daily_mtx.DropCores(to_drop)
+        daily_core = daily_mtx.GetCore("daily")
+        daily_core := 0
+      end
+
+      period_mtx = CreateObject("Matrix", period_file)
+      period_core = period_mtx.GetCore("Total")
+      daily_core := daily_core + nz(period_core)
+    end
+  end
+  daily_mtx = null
+  daily_core = null
+
+  // Summarize daily matrices
+  df = RunMacro("Matrix Stats", daily_files)
+  df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
+  stats_file = output_dir + "/nhb_trip_stats_by_type.csv"
+  df.write_csv(stats_file)
+
+  // Calculate TLFDs
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_core = skim_mtx.GetCore("Length (Skim)")
+  for mtx_file in daily_files do
+    {drive, folder, name, ext} = SplitPath(mtx_file)
+    // out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
+    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("daily")
+
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_core
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+  end
+  mtx = null
+  trip_core = null
+
+  df = CreateObject("df", stats_file)
+  df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.write_csv(stats_file)
+
+  // Remove the daily matrices to save space
+  for file in daily_files do
+    DeleteFile(file)
+  end
 endmacro
 
 /*
