@@ -1,8 +1,8 @@
 Parent,Alternatives,ParentNestCoeff
-Root,"auto, nonhh_auto, transit",1.000
+Root,"auto, nonhh_auto, transit",1
 auto,"sov, hov2, hov3",0.747
 nonhh_auto,"auto_pay, other_auto",0.736
-transit,"walk, pnr, knr",1.000
-walk,"w_lb, w_eb",0.520
-knr,"knr_lb, knr_eb",0.637
-pnr,"pnr_lb, pnr_eb",1.000
+transit,"walk, pnr, knr",1
+walk,"w_lb, w_eb, w_brt, w_lr, w_cr",0.52
+knr,"knr_lb, knr_eb, knr_brt, knr_lr, knr_cr",0.637
+pnr,"pnr_lb, pnr_eb, pnr_brt, pnr_lr, knr_cr",1
