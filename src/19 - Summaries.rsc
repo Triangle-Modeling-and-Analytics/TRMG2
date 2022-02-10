@@ -19,6 +19,7 @@ endmacro
 
 Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize by FT and AT", Args)
     RunMacro("Summarize Parking", Args)
@@ -538,7 +539,7 @@ Macro "Summarize HB DC and MC" (Args)
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   trip_dir = scen_dir + "/output/resident/trip_matrices"
-  output_dir = scen_dir + "/output/_summaries/dc"
+  output_dir = scen_dir + "/output/_summaries/resident_hb"
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
@@ -664,6 +665,48 @@ Macro "Summarize HB DC and MC" (Args)
     DeleteFile(file)
   end
 EndMacro
+
+/*
+Summarizes resident non-homebased trips
+*/
+
+Macro "Summarize NHB DC and MC" (Args)
+
+  periods = Args.periods
+  taz_file = Args.TAZs
+  scen_dir = Args.[Scenario Folder]
+  trip_dir = scen_dir + "/output/resident/nhb/dc/trip_matrices"
+  output_dir = scen_dir + "/output/_summaries/resident_nhb"
+  skim_dir = scen_dir + "/output/skims/roadway"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+
+  // Create table of statistics
+  df = RunMacro("Matrix Stats", mtx_files)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  v_mode = CopyVector(v_type)
+  for i = 1 to v_type.length do
+    type = v_type[i]
+    parts = ParseString(type, "_")
+    mode = parts[parts.length]
+    if mode = "pay" then do
+      v_mode[i] = "auto_pay"
+      v_type[i] = Substitute(type, "_auto_pay", "", )
+    end else do
+      v_mode[i] = mode
+      v_type[i] = Substitute(type, "_" + mode, "", )
+    end
+  end
+  df.mutate("trip_type", v_type)
+  df.mutate("mode", v_mode)
+  df.filter("core = 'Total'")
+  df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
+  modal_file = output_dir + "/nhb_trip_stats_by_modeperiod.csv"
+  df.write_csv(modal_file)
+
+endmacro
 
 /*
 
