@@ -70,7 +70,15 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     if OtherOpts.mode <> null then modes = {OtherOpts.mode}
 
+    // Open the initial IZ time file
+    iz_time_file = Args.[Input Folder] + "/networks/init_iz_time.bin"
+    iz_vw = OpenTable("iz", "FFB", {iz_time_file})
+    iz_data = GetDataVectors(iz_vw + "|", periods, {{"Sort Order",{{"TAZ","Ascending"}}}, {"OptArray", "true"}})
+    CloseView(iz_vw)
+
     for period in periods do
+        v_iz = iz_data.(period)
+
         for mode in modes do
             obj = CreateObject("Network.Skims")
             obj.Network = net_dir + "/net_" + period + "_" + mode + ".net"
@@ -97,10 +105,12 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
             obj.Neighbours = 3
             obj.Factor = .75
             m = CreateObject("Matrix", out_file)
-            for core in m.CoreNames do
+            corenames = m.GetCoreNames()
+            for core in corenames do
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
             end
+            m.SetVector({Core: corenames[1], Vector: v_iz, Diagonal: "true"})
 
             // Auto pay fare
             m.AddCores({"auto_pay_fare"})
