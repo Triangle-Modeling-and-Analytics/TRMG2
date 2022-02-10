@@ -64,21 +64,30 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
     net_dir = Args.[Output Folder] + "/networks"
     out_dir = Args.[Output Folder] + "/skims/roadway"
     feedback_iteration = Args.FeedbackIteration
+    taz_dbd = Args.TAZs
+    se_file = Args.SE
     modes = {"sov", "hov"}
 
     // Overwrite default arguments if these are passed
     if OtherOpts.period <> null then periods = {OtherOpts.period}
     if OtherOpts.mode <> null then modes = {OtherOpts.mode}
 
-    // Open the initial IZ time file
-    iz_time_file = Args.[Input Folder] + "/networks/init_iz_time.bin"
-    iz_vw = OpenTable("iz", "FFB", {iz_time_file})
-    iz_data = GetDataVectors(iz_vw + "|", periods, {{"Sort Order",{{"TAZ","Ascending"}}}, {"OptArray", "true"}})
-    CloseView(iz_vw)
+    // Calculate intrazonal travel times
+    objLyrs = CreateObject("AddDBLayers", {FileName: taz_dbd})
+    {tlyr} = objLyrs.Layers
+    v_area = GetDataVector(tlyr + "|", "Area", {{"Sort Order",{{"ID","Ascending"}}}})
+    //       {diagonal of a square } / 3  * {30 mph = 2 minutes per mile}
+    v_time = (sqrt(v_area) * sqrt(2) / 3) * (60 / 30) 
+    // Create a vector of the correct length
+    se_vw = OpenTable("se", "FFB", {se_file})
+    n = GetRecordCount(se_vw, )
+    CloseView(se_vw)
+    v_iz = Vector(n, "Float", )
+    for i = 1 to v_time.length do
+        v_iz[i] = v_time[i]
+    end
 
     for period in periods do
-        v_iz = iz_data.(period)
-
         for mode in modes do
             obj = CreateObject("Network.Skims")
             obj.Network = net_dir + "/net_" + period + "_" + mode + ".net"
