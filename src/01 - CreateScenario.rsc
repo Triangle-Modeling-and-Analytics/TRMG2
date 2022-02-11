@@ -136,7 +136,7 @@ Macro "Create Scenario SE" (Args)
 
   // Remove any bin or dcb files in the directory
   dir = Args.[Input Folder] + "/sedata"
-  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: {"bin", "dcb"}})
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: {"bin", "dcb", "bxl"}})
   for i = 1 to a_dbds.length do
     DeleteFile(a_dbds[i])
   end
