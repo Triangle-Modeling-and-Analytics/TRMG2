@@ -80,6 +80,11 @@ Second, the upperl level parking mode choice was calibrated by adjusting the
 alternative specific bias constant for park and shuttle to match observed
 shares for the mode which were 6.9% for CBD areas and 14.6% for campus areas.
 
+A parameter was also added to allow the model to better reflect satellite 
+parking lots like the Friday Center at UNC.  In the absence of actual counts
+of parking at the Friday Center, the parameter was simply asserted to produce
+a roughly reasonable amount of parking of about 250.  
+
 ```{r, out.width="90%", fig.show='hold',fig.align='center'}
 knitr::include_graphics("img/parking/coeffs.png")
 ```
