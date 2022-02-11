@@ -1,5 +1,5 @@
 
-222
+238
 "TAZ",I,1,4,0,11,0,,"","",,"Sum",
 "Type",C,5,10,0,10,0,,"","",,"Copy",
 "HH",I,15,4,0,11,0,,"","Households||Census defined as occupied housing units",,"Sum",
@@ -37,12 +37,13 @@
 "EmpSpaces",I,151,4,0,11,0,,"","Number of parking spaces for employees",,"Sum",
 "StudSpaces",I,155,4,0,11,0,,"","Number of parking spaces for students",,"Sum",
 "OtherSpaces",I,159,4,0,11,0,,"","Number of parking spaces for visitors/other",,"Sum",
-"Enplanements",I,163,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
-"Freeway_Stations",I,167,4,0,11,0,,"","",,"Sum",
+"SParking",I,163,4,0,11,0,,"","Special parking zone||A 1 in this field gives an extra boost to parking. It was|originally created to capture the UNC policy effect on|the Friday Center, but it can be used for other satellite|lots during scenario analysis.",,"Sum",
+"Enplanements",I,167,4,0,8,0,,"","The number of daily enplanments a zone||In the base year, this only applies to the RDU airport|zone. This determines the number of trips distributed|by the airport model.",,"Sum",
 "AWDT",I,171,4,0,11,0,,"","Average weekday daily traffic|(external centroids only)",,"Sum",
-"PCT_AUTO_EE",R,175,8,0,15,2,,"","Percent of EE AUTO volume at external station",,"Sum",
-"PCT_AUTO_IEEI",R,183,8,0,10,2,,"","Percent of IEEI AUTO volume at external station",,"Sum",
-"PCT_CVSUT_EE",R,191,8,0,15,2,,"","Percent of EE CV SUT volume at external station",,"Sum",
-"PCT_CVMUT_EE",R,199,8,0,15,2,,"","Percent of EE CV MUT volume at external station",,"Sum",
-"PCT_CVSUT_IEEI",R,207,8,0,15,2,,"","Percent of IEEI CV SUT volume at external station",,"Sum",
-"PCT_CVMUT_IEEI",R,215,8,0,15,2,,"","Percent of IEEI CV MUT volume at external station",,"Sum",
+"IEEI_Distance",C,175,16,0,16,0,,"","",,"Copy",
+"PCT_AUTO_EE",R,191,8,0,15,2,,"","Percent of EE AUTO volume at external station",,"Sum",
+"PCT_AUTO_IEEI",R,199,8,0,10,2,,"","Percent of IEEI AUTO volume at external station",,"Sum",
+"PCT_CVSUT_EE",R,207,8,0,15,2,,"","Percent of EE CV SUT volume at external station",,"Sum",
+"PCT_CVMUT_EE",R,215,8,0,15,2,,"","Percent of EE CV MUT volume at external station",,"Sum",
+"PCT_CVSUT_IEEI",R,223,8,0,15,2,,"","Percent of IEEI CV SUT volume at external station",,"Sum",
+"PCT_CVMUT_IEEI",R,231,8,0,15,2,,"","Percent of IEEI CV MUT volume at external station",,"Sum",
