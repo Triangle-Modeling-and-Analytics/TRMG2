@@ -43,3 +43,29 @@ th, td {
 .W_NH_WR_All .tab-content {
   height: 29em;
 }
+
+h1, h2, h3, h4, h5, h6, legend {
+  color: #CC0000;
+}
+
+#sidebar a {
+  color: #FFFFFF;
+}
+
+#sidebar {
+  background-color: #000000;
+}
+
+#sidebar h2 {
+  background-color: #CC0000;
+}
+
+#postamble {
+  color: #FFFFFF;
+  background-color: #000000;
+  border-top: solid 4px #FFFFFF;
+}
+
+#postamble .date {
+  color: #FFFFFF;
+}
