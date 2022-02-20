@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
+
+        <meta name="author" content="Caliper Corporation" />
+    
+        <meta name="date" content="2021-05-27" />
+    
+    <title>Resident Mode Choice</title>
+
+        <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="site_libs/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="site_libs/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+    <script src="site_libs/navigation-1.1/tabsets.js"></script>
+    <link href="site_libs/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+    <script src="site_libs/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+    <link href="site_libs/readthedown-0.1/readthedown.css" rel="stylesheet" />
+    <link href="site_libs/readthedown-0.1/readthedown_fonts_embed.css" rel="stylesheet" />
+    <script src="site_libs/readthedown-0.1/readthedown.js"></script>
+    <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+    
+    
+    
+        <link rel="stylesheet" href="styles.css" type="text/css" />
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
+
+    <!-- code folding -->
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
+
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
+
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
+    </style>
+    
+</head>
+
+<body class="preload">
+
+            <!-- readthedown start -->   
+   <div id="content" data-toggle="wy-nav-shift">
+     <nav id="nav-top" role="navigation" aria-label="top navigation">
+       <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+     </nav>
+         
+   
+      
+   <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+     <div class="container">
+       <div class="navbar-header">
+         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+         </button>
+         <a class="navbar-brand" href="index.html">TRMG2</a>
+       </div>
+       <div id="navbar" class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+           <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Databases
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+       </li>
+       <li>
+         <a href="networks.html">Networks</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Surveys
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="survey_processing.html">Household Survey</a>
+       </li>
+       <li>
+         <a href="obs_processing.html">On-Board Survey</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Resident Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="population_synthesis.html">Synthesis</a>
+       </li>
+       <li>
+         <a href="auto_ownership.html">Auto Ownership</a>
+       </li>
+       <li>
+         <a href="resident_production.html">Production</a>
+       </li>
+       <li>
+         <a href="time_of_day.html">Time of Day</a>
+       </li>
+       <li>
+         <a href="resident_nonmotorized.html">Non-motorized</a>
+       </li>
+       <li>
+         <a href="parking.html">Parking</a>
+       </li>
+       <li>
+         <a href="resident_dest_choice.html">Destination Choice</a>
+       </li>
+       <li>
+         <a href="nhb.html">Non-homebased</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Other Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="airport.html">Airport</a>
+       </li>
+       <li>
+         <a href="ieei.html">Internal/External</a>
+       </li>
+       <li>
+         <a href="commercial_vehicles.html">Commercial Vehicles</a>
+       </li>
+       <li>
+         <a href="assignment_roadway.html">Roadway Assignment</a>
+       </li>
+     </ul>
+   </li>
+         </ul>
+         <ul class="nav navbar-nav navbar-right">
+           <li>
+     <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+   </li>
+         </ul>
+       </div><!--/.nav-collapse -->
+     </div><!--/.container -->
+   </div><!--/.navbar -->
+        
+      <h1 class="title">Resident Mode Choice</h1>
+      
+         <!-- readthedown authors -->
+   <div id="sidebar">
+    <h2><a href="#content">Resident Mode Choice</a></h2>
+    <div id="toc">
+      
+    </div>
+    <div id="postamble" data-toggle="wy-nav-shift" class="status">
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> May 27, 2021</p>
+          </div>
+   </div>
+   
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div id="main">
+
+</div>
+
+   
+      <br>
+   <br>
+   <br>
+   <hr>
+   <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2022</p>
+   
+            
+      
+
+  <script>
+    $(document).ready(function () {
+
+			
+ 		
+	    });
+  </script>
+
+
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
+</body>
+</html>
