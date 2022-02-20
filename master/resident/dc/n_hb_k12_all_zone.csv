@@ -1,6 +1,4 @@
 Expression,Segment,Coefficient,Description
-se.n_hbk12_size.D,,0.607,Size term
-sov_skim.IZ,,0.311,
-sov_skim.CongTime,,-0.273,
-"max(0, sov_skim.CongTime - 30)",,0.215,Excess time over 30 min
-se.access_transit.D,,0.0226,
+se.n_hbk12_size.D,,0.614,Size term
+sov_skim.CongTime,,-0.262,
+"max(0, sov_skim.CongTime - 30)",,0.2,Excess time over 30 min
