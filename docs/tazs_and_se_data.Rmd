@@ -99,11 +99,11 @@ connectors were added to the roadway network.
   
 ### Allocating existing SE data
 
-*Placeholder*
+After splitting the zones, the SE data is allocated into the new zones using the
+percent area. This was adequate for the creation of 2016 data. The 2020 data
+was provided by the stakeholders in the TRMG2 zone system.
 
-For now, the SE data is allocated into the new zones using the percent area.
-
-```{r}
+```{r, include=FALSE}
 se_data <- read_csv(
   "data/input/se_data/se_2016.csv",
   col_types = cols(
@@ -112,28 +112,36 @@ se_data <- read_csv(
     TRM_6.2_Fill = col_logical()
   )
 )
+```
 
+
+```{r}
 calc_percents <- se_data %>%
-  left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
-  group_by(TAZ_NG) %>%
+  # left_join(taz_new %>% st_drop_geometry(), by = c("TAZ_NG" = "ORIG_ID")) %>%
+  left_join(taz_new %>% st_drop_geometry(), by = c("TAZ" = "ORIG_ID")) %>%
+  group_by(TAZ) %>%
   mutate(pct = AREA / sum(AREA)) %>%
   mutate(across(
-    c(HH, HH_POP, Stud_GQ:Retail),
+    c(HH, HH_POP, Stud_GQ_rem:Retail, StudGQ_NCSU:BuildingS_NCCU),
     ~round(.x * pct, 0)
   )) %>%
   mutate(
-    TAZ_NG = ifelse(is.na(ID), TAZ_NG, ID),
-    County = ifelse(County == "External", "External", "Internal")
+    TAZ = ifelse(is.na(ID), TAZ, ID)#,
+    # County = ifelse(County == "External", "External", "Internal")
   ) %>%
   select(
-    TAZ = TAZ_NG, Type = County, HH:Retail, K12 = ENROLLMENT,
-    ParkCostW = PrkCosW1, ParkCostO = PrkCosO1, ParkCostU = PrkCosU1, 
-    ADT:PCTCVEE
+    TAZ = TAZ, 
+    # Type = County,
+    HH:Retail,
+    K12,
+    StudGQ_NCSU:BuildingS_NCCU
+    # ParkCostW = PrkCosW1, ParkCostO = PrkCosO1, ParkCostU = PrkCosU1, 
+    # ADT:PCTCVEE
   ) %>%
   arrange(TAZ)
 
 # Throw error if total households are off by more than rounding error
-hh_ratio = sum(calc_percents$HH, na.rm = TRUE) / 
+hh_ratio = sum(calc_percents$HH, na.rm = TRUE) /
   sum(se_data$HH, na.rm = TRUE)
 if (abs(hh_ratio - 1) > .01) stop(
   "Disaggregation caused significant change in total households"
@@ -174,7 +182,7 @@ acs_tract <- shapes$acs_tract
 taz <- st_transform(taz_new, st_crs(acs_bg)) %>% st_make_valid()
 ```
 
-```{r, include=FALSE}
+```{r income, include=FALSE}
 # regional median income
 # source: https://data.census.gov/cedsci/table?q=median%20income&g=0500000US37063,37135,37183&tid=ACSST1Y2019.S1901&hidePreview=true
 reg_med_inc <- 65317
@@ -210,15 +218,15 @@ add_income_taz <- taz %>%
     TRUE ~ county_med_inc
   ))
 
-add_income_se <- calc_percents %>%
-  left_join(
-    add_income_taz %>%
-      select(ID, Median_Inc) %>%
-      st_drop_geometry(),
-    by = c("TAZ" = "ID")
-  ) %>%
-  relocate(Median_Inc, .before = MEANINC) %>%
-  select(-MEANINC)
+add_income_se <- calc_percents #%>%
+  # left_join(
+  #   add_income_taz %>%
+  #     select(ID, Median_Inc) %>%
+  #     st_drop_geometry(),
+  #   by = c("TAZ" = "ID")
+  # ) %>%
+  # relocate(Median_Inc, .before = MEANINC) %>%
+  # select(-MEANINC)
 ```
 
 Due to the skewed nature of income distributions, median income is a better
@@ -271,14 +279,14 @@ wrk_centroids <- taz %>%
 add_workers_taz <- add_income_taz %>%
   left_join(wrk_centroids, by = "ID")
 
-add_workers_se <- add_income_se %>%
-  left_join(
-    add_workers_taz %>%
-      select(ID, Pct_Worker) %>%
-      st_drop_geometry(),
-    by = c("TAZ" = "ID")    
-  ) %>%
-  relocate(Pct_Worker, .after = Median_Inc)
+add_workers_se <- add_income_se #%>%
+  # left_join(
+  #   add_workers_taz %>%
+  #     select(ID, Pct_Worker) %>%
+  #     st_drop_geometry(),
+  #   by = c("TAZ" = "ID")    
+  # ) %>%
+  # relocate(Pct_Worker, .after = Median_Inc)
 ```
 
 Estimates of workers are only available from the ACS at the tract level. It is
@@ -433,7 +441,7 @@ age_centroids <- taz %>%
   select(TAZ = ID, Pct_Child, Pct_Senior)
   
 add_age <- add_workers_se %>%
-  left_join(age_centroids, by = "TAZ") %>%
+  # left_join(age_centroids, by = "TAZ") %>%
   relocate(Pct_Child:Pct_Senior, .after = Pct_Worker)
 ```
 
@@ -492,8 +500,8 @@ add_earn_pct <- add_age %>%
       select(TAZ, PctHighEarn = high),
     by = "TAZ"
   ) %>%
-  relocate(PctHighEarn, .after = Retail) %>%
-  relocate(Industry:PctHighEarn, .after = Total_POP)
+  relocate(PctHighEarn, .after = Retail) #%>%
+  # relocate(Industry:PctHighEarn, .after = Total_POP)
 ```
 
 The LEHD Origin-Destination Employment Statistics
@@ -718,8 +726,8 @@ add_studoff <- add_earn_pct %>%
   left_join(ncsu_agg, by = "TAZ") %>%
   left_join(unc_agg, by = "TAZ") %>%
   left_join(duke_agg, by = "TAZ") %>%
-  left_join(nccu_agg, by = "TAZ") %>%
-  relocate(StudOff_NCSU:StudOff_NCCU, .after = StudGQ_NCCU)
+  left_join(nccu_agg, by = "TAZ") #%>%
+  # relocate(StudOff_Duke:StudOff_NCSU, .after = StudGQ_NCCU)
 ```
 
 ## Area Type

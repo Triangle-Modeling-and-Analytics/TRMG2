@@ -1,5 +1,5 @@
 ---
-title: "Time of Day, Directionality, and Occupancy"
+title: "Time of Day"
 author: "Caliper Corporation"
 date: "February 8, 2021"
 output: html_document
@@ -23,8 +23,10 @@ library(scales)
 
 # Introduction
 This page details the steps taken to determine the most appropriate time period
-definitions for the Triangle Regional Model (TRMG2). Caliper used the processed
-household survey to perform the analysis.
+definitions for the Triangle Regional Model (TRMG2). Once determined, this page
+also determines the directionality, occupancy, and capacity factors for each
+time period. Caliper used the processed household survey to perform the
+analysis.
 
 ```{r read survey, include = FALSE}
 # This file is created by the Generation-Resident.Rmd

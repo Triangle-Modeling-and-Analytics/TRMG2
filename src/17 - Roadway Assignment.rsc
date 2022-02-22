@@ -150,8 +150,12 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             Time: "MSATime",
             Iteration: feedback_iter
         })
-        o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"
-        if OtherOpts.flow_table <> null then o.FlowTable = OtherOpts.flow_table
+
+        if OtherOpts.flow_table <> null then 
+            o.FlowTable = OtherOpts.flow_table
+        else
+            o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"   
+        
         // Add classes for each combination of vehicle type and VOT
         // If doing a test assignment, just create a single class from the
         // dummy matrix
