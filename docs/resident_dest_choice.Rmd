@@ -170,7 +170,7 @@ survey data.
 
 ```{r, include=FALSE}
 trips_raw <- read_csv("data/output/_PRIVATE/survey_processing/trips_processed.csv")
-se_raw <- read_bin("../master/se_data/se_2016.bin")
+se_raw <- read_csv("data/input/dc/se_2016.csv")
 se_raw$TAZ <- unclass(se_raw$TAZ)
 taz_raw <- st_read("data/input/tazs/master_tazs.shp")
 ```

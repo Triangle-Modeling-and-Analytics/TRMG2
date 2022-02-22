@@ -1,8 +1,7 @@
 ---
 title: "Triangle Regional Model G2"
-output:
-  html_document:
-    toc: true
+author: "Caliper Corporation"
+date: "`r Sys.Date()`"
 editor_options: 
   chunk_output_type: console
 ---
