@@ -1711,13 +1711,9 @@ Inputs (all in a named array)
   * `output_csv`
     * String
     * Full path where the output csv will be written
-  * `grouping_field`
-    * Optional string
-    * Field name used to aggregate links. e.g. AreaType or County
-  * `ft_field`
-    * String
-    * Field name containing facility type information
-    * Defaults to "HCMType"
+  * `grouping_fields`
+    * String or array of strings
+    * Field names used to aggregate links. e.g. {"HCMType", "AreaType"}
   * `summary_fields`
     * Array of strings
     * Describes the names of the fields to sum up for each metric
@@ -1729,14 +1725,15 @@ Macro "Link Summary" (MacroOpts)
   // Extract arguments from named array
   hwy_dbd = MacroOpts.hwy_dbd
   output_csv = MacroOpts.output_csv
-  grouping_field = MacroOpts.grouping_field
+  grouping_fields = MacroOpts.grouping_fields
+  if TypeOf(grouping_fields) = "string" then grouping_fields = {grouping_fields}
   ft_field = MacroOpts.ft_field
   summary_fields = MacroOpts.summary_fields
 
   // Argument checking
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
   if output_csv = null then Throw("'output_csv' not provided")
-  if ft_field = null then ft_field = "HCMType"
+  if grouping_fields = null then Throw("'grouping_fields' not provided")
   if summary_fields = null then do
     summary_fields = {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
   end
@@ -1747,15 +1744,13 @@ Macro "Link Summary" (MacroOpts)
   hwy_df = CreateObject("df")
   opts = null
   opts.view = llyr
-  if grouping_field <> null
-    then opts.fields = {ft_field, grouping_field} + summary_fields
-    else opts.fields = {ft_field} + summary_fields
+  if grouping_fields <> null
+    then opts.fields = grouping_fields + summary_fields
+    else opts.fields = summary_fields
   hwy_df.read_view(opts)
 
   // Summarize
-  if grouping_field <> null
-    then hwy_df.group_by({ft_field, grouping_field})
-    else hwy_df.group_by({ft_field})
+  if grouping_fields <> null then hwy_df.group_by(grouping_fields)
   hwy_df.summarize(summary_fields, "sum")
   hwy_df.write_csv(output_csv)
 EndMacro

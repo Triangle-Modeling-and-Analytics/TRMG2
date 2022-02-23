@@ -838,7 +838,6 @@ Macro "Summarize Links" (Args)
   periods = Args.periods
   periods = periods + {"Daily"}
 
-
   // Tag links with various geographies
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
   {tlyr} = GetDBLayers(taz_dbd)
@@ -865,7 +864,7 @@ Macro "Summarize Links" (Args)
     grouping_fields = {"AreaType", "MPO", "County"}
     for grouping_field in grouping_fields do
       opts.output_csv = out_dir + "/_summaries/roadway_tables/Link_Summary_by_FT_and_" + grouping_field + "_" + period + ".csv"
-      opts.grouping_field = grouping_field
+      opts.grouping_fields = {"HCMType", grouping_field}
       RunMacro("Link Summary", opts)
       // Calculate space-mean-speed
       df = CreateObject("df")
