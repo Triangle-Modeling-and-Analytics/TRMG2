@@ -21,7 +21,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
-    RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Links", Args)
     RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
@@ -135,6 +135,7 @@ Macro "Calculate Daily Fields" (Args)
     {"BA_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"}
   }
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  fields_to_add = null
 
   for d = 1 to a_dir.length do
     dir = a_dir[d]
@@ -216,6 +217,15 @@ Macro "Calculate Daily Fields" (Args)
     end
 
     fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,,"Daily " + field + " in both directions"}}
+  end
+
+  // The assignment files don't have total delay by period. Create those.
+  for period in a_periods do
+    out_field = "Tot_Delay_" + period
+    fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,, period + " Total Delay"}}
+    {v_ab, v_ba} = GetDataVectors(llyr + "|", {"AB_Delay_" + period, "BA_Delay_" + period}, )
+    v_output = nz(v_ab) + nz(v_ba)
+    output.(out_field) = v_output
   end
 
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
@@ -821,15 +831,51 @@ endmacro
 Summarize highway stats like VMT and VHT
 */
 
-Macro "Summarize by FT and AT" (Args)
+Macro "Summarize Links" (Args)
 
-  opts.hwy_dbd = Args.Links
+  hwy_dbd = Args.Links
+  taz_dbd = Args.TAZs
+  periods = Args.periods
+  periods = periods + {"Daily"}
+
+
+  // Tag links with various geographies
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+  {tlyr} = GetDBLayers(taz_dbd)
+  tlyr = AddLayer(map, tlyr, taz_dbd, tlyr)
+  a_fields =  {
+      {"MPO", "Character", 10, ,,,, "The MPO this link is located in"},
+      {"County", "Character", 10, ,,,, "The county this link is located in"}
+  }
+  RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+  TagLayer("Value", llyr + "|", llyr + ".MPO", tlyr + "|", tlyr + ".MPO")
+  TagLayer("Value", llyr + "|", llyr + ".County", tlyr + "|", tlyr + ".County")
+  CloseMap(map)
+
+  opts.hwy_dbd = hwy_dbd
   out_dir = Args.[Output Folder]
-  opts.output_dir = out_dir + "/_summaries/roadway_tables"
-  opts.summary_fields = {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
-  RunMacro("Link Summary by FT and AT", opts)
-
-  RunMacro("Close All")
+  for period in periods do
+    
+    if period = "Daily"
+      then total = "Total"
+      else total = "Tot"
+    
+    // opts.summary_fields = {total + "_Flow_" + period, "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
+    opts.summary_fields = {total + "_Flow_" + period, total + "_VMT_" + period, total + "_VHT_" + period, total + "_Delay_" + period}
+    grouping_fields = {"AreaType", "MPO", "County"}
+    for grouping_field in grouping_fields do
+      opts.output_csv = out_dir + "/_summaries/roadway_tables/Link_Summary_by_FT_and_" + grouping_field + "_" + period + ".csv"
+      opts.grouping_field = grouping_field
+      RunMacro("Link Summary", opts)
+      // Calculate space-mean-speed
+      df = CreateObject("df")
+      df.read_csv(opts.output_csv)
+      v_vmt = df.tbl.("sum_" + total + "_VMT_" + period)
+      v_vht = df.tbl.("sum_" + total + "_VHT_" + period)
+      df.mutate("SpaceMeanSpeed", v_vmt / v_vht)
+      df.write_csv(opts.output_csv)
+    end
+  end
 EndMacro
 
 /*
