@@ -22,6 +22,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
     RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
     RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
@@ -876,6 +877,70 @@ Macro "Summarize Links" (Args)
     end
   end
 EndMacro
+
+/*
+Calculates the percent of VMT that is congested
+*/
+
+Macro "Congested VMT" (Args)
+  
+  hwy_dbd = Args.Links
+  periods = Args.periods
+  out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+
+  // Calculate congested VMT on each link
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+  for period in Args.periods do
+    fields_to_add = fields_to_add + {{"CongestedVMT_" + period, "Real", 10, ,,,, "The VMT in the " + period + " period that is congested"}}
+    
+    v_ab_vc = GetDataVector(llyr + "|", "AB_VOCE_" + period, )
+    v_ba_vc = GetDataVector(llyr + "|", "BA_VOCE_" + period, )
+    v_ab_vmt = GetDataVector(llyr + "|", "AB_VMT_" + period, )
+    v_ba_vmt = GetDataVector(llyr + "|", "BA_VMT_" + period, )
+    v_ab_cong_vmt = if v_ab_vc > .9 then v_ab_vmt else 0
+    v_ba_cong_vmt = if v_ba_vc > .9 then v_ba_vmt else 0
+    output.("CongestedVMT_" + period) = v_ab_cong_vmt + v_ba_cong_vmt
+  end
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  SetDataVectors(llyr + "|", output, )
+  CloseMap(map)
+
+  // Summarize links
+  for period in periods do
+    opts.summary_fields = opts.summary_fields + {"CongestedVMT_" + period, "Tot_VMT_" + period}
+  end
+  opts.hwy_dbd = hwy_dbd
+  grouping_fields = {"MPO", "County"}
+  for grouping_field in grouping_fields do
+    opts.output_csv = out_dir + "/Congested_VMT_by_" + grouping_field + ".csv"
+    opts.grouping_fields = {grouping_field}
+    RunMacro("Link Summary", opts)
+
+    df = CreateObject("df")
+    df.read_csv(opts.output_csv)
+    for field in df.colnames() do
+      if Left(field, 4) = "sum_" then do
+        new_field = Substitute(field, "sum_", "", )
+        df.rename(field, new_field)
+      end
+    end
+    
+    v_cong_daily = null
+    v_tot_daily = null
+    for period in periods do
+      v_cong = df.tbl.("CongestedVMT_" + period)
+      v_tot = df.tbl.("Tot_VMT_" + period)
+      v_pct = Round(v_cong / v_tot * 100, 2)
+      df.mutate("PctCongestedVMT_" + period, v_pct)
+
+      v_cong_daily = v_cong_daily + v_cong
+      v_tot_daily = v_tot_daily + v_tot
+    end
+    v_pct_daily = Round(v_cong_daily / v_tot_daily * 100, 2)
+    df.mutate("PctCongestedVMT_Daily", v_pct_daily)
+    df.write_csv(opts.output_csv)
+  end
+endmacro
 
 /*
 Summarizes transit assignment.
