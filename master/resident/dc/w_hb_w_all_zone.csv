@@ -1,16 +1,16 @@
 Expression,Segment,Coefficient,Description
-se.w_hbw_size_H.D,ihvi,0.677,Size term for high income workers
-se.w_hbw_size_H.D,ihvs,0.677,Size term for high income workers
-se.w_hbw_size_L.D,ilvi,0.677,Size term for low income workers
-se.w_hbw_size_L.D,ilvs,0.677,Size term for low income workers
-se.w_hbw_size_L.D,v0,0.677,Size term for low income workers
-nz(mc_logsums.nonhh_auto),vi,0.148,
-nz(mc_logsums.transit),,0.106,
-sov_skim.IZ,,1.26,
-sov_skim.CongTime,,-0.0974,
-"max(0, sov_skim.CongTime - 30)",,0.00793,Excess time over 30 min
-se.EmpDensity.D / 1000,,0.000774,
-se.access_hospital_sov.D,,0.186,
-se.access_transit.D,,0.0357,
-se.access_walk.D,v0,0.378,
+se.w_hbw_size_H.D,ihvi,0.674,Size term for high income workers
+se.w_hbw_size_H.D,ihvs,0.674,Size term for high income workers
+se.w_hbw_size_L.D,ilvi,0.674,Size term for low income workers
+se.w_hbw_size_L.D,ilvs,0.674,Size term for low income workers
+se.w_hbw_size_L.D,v0,0.674,Size term for low income workers
+nz(mc_logsums.NonHHAutoComposite),vi,0.0284,
+nz(mc_logsums.TransitComposite),,0.057,
+sov_skim.IZ,,0.822,
+sov_skim.CongTime,,-0.0903,
+se.EmpDensity.D / 1000,,0.000702,
+se.access_hospital_sov.D,,0.2,
+se.access_transit.D,,0.0339,
+se.access_walk.D,v0,0.346,
 sp.hbw.D,,1,Shadow price
+sov_skim.IZ,,0.4,Adjustment
