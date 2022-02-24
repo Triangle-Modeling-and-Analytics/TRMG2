@@ -1708,37 +1708,32 @@ Inputs (all in a named array)
     * String
     * Full path of the line geographic file of highway links. This should be the
     * "loaded" network, such that the assignment results are included.
-  * `output_dir`
+  * `output_csv`
     * String
-    * Full path of output directory where the final csv will be written
-  * `at_field`
-    * Optional string
-    * Field name containing area type information
-    * Defaults to "AreaType"
-  * `ft_field`
-    * Optional string
-    * Field name containing facility type information
-    * Defaults to "HCMType"
+    * Full path where the output csv will be written
+  * `grouping_fields`
+    * String or array of strings
+    * Field names used to aggregate links. e.g. {"HCMType", "AreaType"}
   * `summary_fields`
-    * Optional array of strings
+    * Array of strings
     * Describes the names of the fields to sum up for each metric
     * Defaults to {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
 */
 
-Macro "Link Summary by FT and AT" (MacroOpts)
+Macro "Link Summary" (MacroOpts)
 
   // Extract arguments from named array
   hwy_dbd = MacroOpts.hwy_dbd
-  output_dir = MacroOpts.output_dir
-  at_field = MacroOpts.at_field
+  output_csv = MacroOpts.output_csv
+  grouping_fields = MacroOpts.grouping_fields
+  if TypeOf(grouping_fields) = "string" then grouping_fields = {grouping_fields}
   ft_field = MacroOpts.ft_field
   summary_fields = MacroOpts.summary_fields
 
   // Argument checking
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
-  if output_dir = null then Throw("'output_dir' not provided")
-  if at_field = null then at_field = "AreaType"
-  if ft_field = null then ft_field = "HCMType"
+  if output_csv = null then Throw("'output_csv' not provided")
+  if grouping_fields = null then Throw("'grouping_fields' not provided")
   if summary_fields = null then do
     summary_fields = {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
   end
@@ -1749,13 +1744,15 @@ Macro "Link Summary by FT and AT" (MacroOpts)
   hwy_df = CreateObject("df")
   opts = null
   opts.view = llyr
-  opts.fields = {ft_field, at_field} + summary_fields
+  if grouping_fields <> null
+    then opts.fields = grouping_fields + summary_fields
+    else opts.fields = summary_fields
   hwy_df.read_view(opts)
 
-  // Summarize by ft and at
-  hwy_df.group_by({ft_field, at_field})
+  // Summarize
+  if grouping_fields <> null then hwy_df.group_by(grouping_fields)
   hwy_df.summarize(summary_fields, "sum")
-  hwy_df.write_csv(output_dir + "/link_summary_by_FT_and_AT.csv")
+  hwy_df.write_csv(output_csv)
 EndMacro
 
 /*
