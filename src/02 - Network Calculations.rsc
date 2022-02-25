@@ -798,6 +798,7 @@ Macro "Calculate Bus Speeds" (Args)
     SetDataVectors(jv + "|", data, )
 
     CloseView(jv)
+    CloseView(eq_vw)
     CloseMap(map)
 endmacro
 
