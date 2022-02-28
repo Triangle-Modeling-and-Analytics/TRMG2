@@ -473,6 +473,8 @@ period_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
+## Homebased
+
 ```{r calc_tod_trip_factors}
 tod_factors <- tripTbl %>%
   filter(tour_type != "H", homebased == "HB") %>%
@@ -494,7 +496,6 @@ tod_factors %>%
     factor = percent(factor, accuracy = .1),
     tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
   ) %>%
-  # filter(trip_type %in% c("W_HB_W_All", "N_HB_K12_All")) %>%
   spread(key = tod, value = factor) %>%
   rename(`Trip Type` = trip_type) %>%
   kable() %>%
@@ -506,6 +507,36 @@ desc[1] = "Used to split daily resident productions"
 desc[2] = "into period-specific values"
 tod_factors$Description <- desc
 ```
+
+## NonHomebased
+
+```{r}
+nhb_tod_factors <- tripTbl %>%
+  filter(tour_type != "H", homebased == "NH") %>%
+  group_by(tod, trip_type) %>%
+  summarise(Trips = sum(trip_weight_combined)) %>%
+  group_by(trip_type) %>%
+  mutate(
+    factor = round(Trips / sum(Trips), 3),
+    # ensure unity
+    temp = ifelse(tod == "NT", 0, factor),
+    factor = ifelse(tod == "NT", 1 - sum(temp), factor)
+  ) %>%
+  select(trip_type, tod, factor) %>%
+  arrange(trip_type, tod)
+
+nhb_tod_factors %>%
+  ungroup() %>%
+  mutate(
+    factor = percent(factor, accuracy = .1),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
+  ) %>%
+  spread(key = tod, value = factor) %>%
+  rename(`Trip Type` = trip_type) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
 
 # Directionality factors
 For most steps in a trip-based model, the trips are said to be in
@@ -935,11 +966,14 @@ pcf_tbl <- timTbl %>%
       ordered = TRUE
       )
     ) %>%
+  filter(time >= 45) %>%
   group_by(tod) %>%
   mutate(
-    # all_trips_in_hour = rollapplyr(AllTrips, 60 / bin_size, sum, partial = TRUE)
     all_trips_in_hour = frollsum(AllTrips, an(60 / bin_size, n()), na.rm = TRUE, adaptive = TRUE)
+    # phf = (AllTrips / sum(AllTrips)) ^ 2
   ) %>%
+  # summarize(phf = sum(phf)) %>%
+  # mutate(pcf = 1 / phf / 4)
   summarise(
     PHF = max(all_trips_in_hour) / sum(AllTrips),
     PCF = 1 / PHF
