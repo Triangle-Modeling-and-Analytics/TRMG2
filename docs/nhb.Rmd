@@ -1618,50 +1618,47 @@ knitr::include_graphics("img/nhb/hb_attractions.png")
 knitr::include_graphics("img/nhb/nhb_trip_ends.png")
 ```
 
-## Calibration
+## Time of Day Adjustment
 
-After applying the estimated model, Caliper calculated calibration factors such
-that total NHB trips matched the expanded survey. Factors were calculated by
-tour type and mode. A coarser approach, such as calibrating a single factor for
-all NHB trips, would leave rarer modes like transit with either too few or
-to many trips.
+The independent feedback by time of day in TRMMG2 presents a unique challenge
+for NHB. NHB and HB trips have very different time of day patterns (see Time of
+Day documentation), but NHB generation is simply rates multiplied by HB trip
+ends. Without correction, this would mean that the NHB trips would have the same
+distribution as HB trips. To correct this, Caliper calculated adjustment factors
+by tour type, mode, and time of day. This was done by comparing raw model
+outputs back to the observed NHB trips from the survey.
 
-Some of the calibration factors are larger than those seen in other models (e.g.
-homebased generation). This is the result of two features of this modeling
-approach. Firstly, recall that the estimated models do not predict chained NHB
-trips (see previous section). While the spatial distribution of predicted trips
-is representative, the totals must be scaled up to account for these additional
-trips.
-
-Secondly, the scaling of trip productions by zonal accessibility also impacts
-trip totals. There is no guarantee, for example, that the number of trips
-scaled up and down will match or that the original total will be preserved. The
-impact is especially large for transit. No boosting coefficients could be
-estimated from the survey, but the model enforces logical consistency by
-removing transit NHB trip predicted where no transit access exists. This
-requires that the remaining NHB transit trips be scaled up to compensate.
-
-For these reasons, these calibration factors are acceptable as long as
-assignment results and distribution patterns look reasonable.
+The easiest way to understand the table below is by highlighting one row as an
+example. For SOV trips on work tours, these factors move NHB trips out of the AM
+and NT periods and into the MD and PM. Another way of saying it is that,
+compared to HB trips, NHB trips are less likely in the AM/NT and more likely in
+the MD/PM. The large mid day factor reflects lunch trips and other mid-day
+activities. The relative size of the AM and PM periods confirms what we know:
+that stops are more likely to be made on the way home compared to the way to
+work (e.g. picking up groceries).
 
 ```{r, include=FALSE}
 # This file is produced by the model. Importantly, it must be generated
 # by a model run with calibration factors set to 1.
-results <- read_csv("data/input/nhb/generation_summary.csv") %>%
+results <- read_csv("data/input/nhb/nhb_generation.csv") %>%
   select(-c(TAZ:access_walk))
 ```
 
 
 ```{r}
-totals <- results %>%
-  summarize(across(.fns = sum)) %>%
-  pivot_longer(everything(), names_to = "type", values_to = "trips")
+model <- results %>%
+  pivot_longer(names_to = "type", cols = everything()) %>%
+  mutate(type = gsub("auto_pay", "autopay", type)) %>%
+  separate(type, into = c("tour_type", "hb", "activity", "length", "mode", "tod"), remove = FALSE) %>%
+  group_by(tour_type, mode, tod) %>%
+  summarize(est_trips = sum(value))
 
 comparison <- trips %>%
   mutate(
     # mode_nhb = mode_final
     mode_nhb = case_when(
       homebased == "HB" ~ mode_final,
+      mode_final == "auto_pay" ~ "autopay",
       mode_final != "other_auto" ~ mode_final,
       party_size == 1 ~ "sov",
       party_size == 2 ~ "hov2",
@@ -1676,25 +1673,27 @@ comparison <- trips %>%
   mutate(
     mode_nhb = ifelse(mode_nhb %in% c("lb", "eb"), "t", mode_nhb)
   ) %>%
-  group_by(tour_type, mode_nhb) %>%
+  group_by(tour_type, tod, mode_nhb) %>%
   summarize(obs_trips = sum(trip_weight_combined)) %>%
-  unite(type, c(tour_type, mode_nhb), sep = "_") %>%
-  left_join(totals, by = "type") %>%
+  rename(mode = mode_nhb) %>%
+  left_join(
+    model, 
+    by = c("tour_type" = "tour_type", "tod" = "tod", "mode" = "mode")
+  ) %>%
   mutate(
-    diff = trips - obs_trips,
+    diff = est_trips - obs_trips,
     pct_diff = (diff / obs_trips) * 100,
-    factor = round(obs_trips / trips, 4)
-  )
+    factor = round(obs_trips / est_trips, 4)
+  ) %>%
+  ungroup()
 
 comparison %>%
   select(-diff, -pct_diff) %>%
   mutate(
     obs_trips = round(obs_trips, 0),
-    trips = round(trips, 0),
-    tour_type = substring(type, 1, 1),
-    mode = substring(type, 3, length(type)),
+    est_trips = round(est_trips, 0),
     mode = case_when(
-      mode == "auto_pay" ~ "Auto Pay",
+      mode == "autopay" ~ "Auto Pay",
       mode == "sov" ~ "SOV",
       mode == "hov2" ~ "HOV2",
       mode == "hov3" ~ "HOV3",
@@ -1707,18 +1706,21 @@ comparison %>%
       ordered = TRUE
     )
   ) %>%
-  select(tour_type, mode, factor) %>%
-  pivot_wider(names_from = tour_type, values_from = factor) %>%
-  arrange(mode) %>%
+  select(tour_type, tod, mode, factor) %>%
+  pivot_wider(names_from = tod, values_from = factor) %>%
+  mutate(tour_type = ifelse(tour_type == "N", "NonWork", "Work")) %>%
   rename(
     Mode = mode,
-    `NonWork Tour` = N,
-    `Work Tour` = W
+    `Tour Type` = tour_type
   ) %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
 
 calib_out_tbl <- comparison %>%
+  mutate(
+    mode = ifelse(mode == "autopay", "auto_pay", mode),
+    type = paste(tour_type, mode, tod, sep = "_")
+  ) %>%
   select(type, factor)
 ```
 
