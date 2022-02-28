@@ -656,7 +656,7 @@ Macro "NHB Generation by Mode" (Args,Result)
                   {"MacroNames",{"NHB Generation by Mode"}},
                   {"Picture","bmp/plantour_v3.bmp"}}
 Data:
-    In({ Args.[NHBGenCalibFacs] })
+    In({ Args.[NHBTODFacs] })
     Out({ Args.[SE] })
 EndMacro
 
