@@ -138,7 +138,8 @@ Macro "NHB Generation" (Args)
                 end
 
                 // Apply TOD factors
-                tod_fac = tod_facs.(field_name)
+                tod_fac = tod_facs.(tour_type + "_" + mode + "_" + period)
+                if tod_fac = null then Throw("NHB TOD factor not found")
                 data.(field_name) = data.(field_name) * tod_fac
 
                 // Sum up data by tour type and mode
