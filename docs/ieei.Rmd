@@ -52,6 +52,13 @@ ext_shares_ncstm_df %>%
   kableExtra::kable_styling(full_width = FALSE)
 ```
 
+### EE Time of Day
+
+The data available was not adequate to calculate time of day shares for the EE
+trips. Instead, the commercial vehicle factors were used. Through trips do not
+follow the same dual-peak pattern as commuters and occur more often during the
+midday in general.
+
 ## IE/EI
 The second step in the development process is to see if we can find sufficient patterns in the NCSTM IE and EI data to estimate a regression model that can be generalized across geographies for use in regional model forecasting. We  start with correlations between the "I" end of the IE/EI movements, which we are calling the production end, and the population and employment in the zone, which are shown in the table below. The correlations are positive for both population and employment.
 
@@ -167,3 +174,11 @@ ei_distance_means_df %>%
   
 ```
 
+### IE/EI Time of Day
+
+The data available was not adequate to calculate time of day shares for the
+IE/EI trips. Instead, the factors were borrowed from N_HB_OD_Long (similar to
+HBO in other models). Compared to using work trips, this shifts demand from the
+AM and PM periods into the off peak. These travelers (e.g. with long commutes to
+work) need to leave earlier in the day. They cross the model boundary earlier
+(and later) than the peaks for internal residents.
