@@ -25,7 +25,7 @@ Macro "NHB Generation" (Args)
     nhb_dir = out_dir + "/resident/nhb/generation"
     periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
-    calib_fac_file = Args.NHBGenCalibFacs
+    tod_fac_file = Args.NHBTODFacs
     trip_types = RunMacro("Get NHB Trip Types", Args)
     modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
 
@@ -60,8 +60,8 @@ Macro "NHB Generation" (Args)
     CloseView(out_vw)
 
     // Get calibration factors
-    calib_facs = RunMacro("Read Parameter File", {
-        file: calib_fac_file,
+    tod_facs = RunMacro("Read Parameter File", {
+        file: tod_fac_file,
         names: "type",
         values: "factor"
     })
@@ -137,9 +137,10 @@ Macro "NHB Generation" (Args)
                         else data.(field_name)
                 end
 
-                // Apply calibration factor
-                calib_fac = calib_facs.(tour_type + "_" + mode)
-                data.(field_name) = data.(field_name) * calib_fac
+                // Apply TOD factors
+                tod_fac = tod_facs.(tour_type + "_" + mode + "_" + period)
+                if tod_fac = null then Throw("NHB TOD factor not found")
+                data.(field_name) = data.(field_name) * tod_fac
 
                 // Sum up data by tour type and mode
                 summary.(tour_type + "_" + mode) = nz(summary.(tour_type + "_" + mode)) +
