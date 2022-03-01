@@ -998,12 +998,21 @@ pcf_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-A [general
-guideline](https://www.fhwa.dot.gov/planning/tmip/publications/other_reports/validation_and_reasonableness_2010/ch08.cfm)
-to follow suggests the model should provide 8-12 hours of capacity per day. The
-PCFs calculated directly from the survey data provide `r total`. This is slightly
-higher but acceptable.
+The approach above is most appropriate in the peak periods to accurately capture
+peak congestion. It is also fine in the midday, when traffic flow is relatively
+even. However, due to the unique nature of the NT period, it generally
+overstates congestion. For this reason, additional capacity is added. The final
+period factors are shown below.
 
+```{r}
+extra_nt_cap <- pcf_tbl %>%
+  mutate(PCF = ifelse(Period == "NT", 4, PCF))
+
+extra_nt_cap %>%
+  rename(`Length (hrs)` = Length, `Model Capacity (hrs)` = PCF) %>%
+  kable(digits = 2) %>%
+  kable_styling(full_width = FALSE)
+```
 
 ```{r write param tables, eval=FALSE}
 # All writing of parameters files should be in this chunk, and will not
@@ -1025,7 +1034,7 @@ write_csv(nhb_oth_shares , "data/output/tod/other_shares_nhb.csv")
 
 # Period capacity table
 write_csv(
-  pcf_tbl %>%
+  extra_nt_cap %>%
     select(TOD = Period, Value = PCF) %>%
     mutate(
       Description = paste("Hours of capacity in", TOD, "period", sep = " "),
