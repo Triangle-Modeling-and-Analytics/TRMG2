@@ -603,7 +603,7 @@ Macro "Summarize HB DC and MC" (Args)
       in_mtx = CreateObject("Matrix", in_file)
       core_names = in_mtx.GetCoreNames()
       for core_name in core_names do
-        if core_name = "all_transit" then continue
+        if core_name = "all_transit" or core_name contains "park" then continue // Remove 'Park-Walk' and 'Park-Shuttle' trips from stats and trip length calculations
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
       end

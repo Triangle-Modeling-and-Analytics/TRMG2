@@ -104,6 +104,7 @@ Macro "Calculate NM Probabilities" (Args, trip_types)
         obj.AddPrimarySpec(primary_spec)
         nm_table = output_dir + "\\" + trip_type + ".bin"
         obj.AddOutputSpec({ProbabilityTable: nm_table})
+        obj.RandomSeed = 199999
         obj.Evaluate()
     end
 endmacro
