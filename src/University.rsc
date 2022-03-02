@@ -290,13 +290,16 @@ Macro "University TOD" (Args)
     v_tod = GetDataVector(fac_vw + "|", "tod", )
     v_fac = GetDataVector(fac_vw + "|", "factor", )
 
-    prefixes = {"ProdOn", "ProdOff", "Prod"}
     univs = {"NCSU", "UNC", "DUKE", "NCCU"}
 
     for i = 1 to v_type.length do
         type = v_type[i]
         tod = v_tod[i]
         fac = v_fac[i]
+        
+        if Position(type, "H") > 0
+            then prefixes = {"ProdOn", "ProdOff", "AttrOn", "AttrOff"}
+            else prefixes = {"Prod", "Attr"}
 
         for univ in univs do
             for prefix in prefixes do
