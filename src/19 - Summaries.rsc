@@ -294,6 +294,10 @@ Macro "Count PRMSEs" (Args)
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
   RunMacro("Roadway Count Comparison Tables", opts)
+
+  // Run it again to generate the cutline table
+  opts.screenline_field = "Cutline"
+  RunMacro("Roadway Count Comparison Tables", opts)
 endmacro
 
 /*
