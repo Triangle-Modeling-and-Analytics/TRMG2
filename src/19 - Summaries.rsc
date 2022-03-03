@@ -897,8 +897,8 @@ Macro "Congested VMT" (Args)
     v_ba_vc = GetDataVector(llyr + "|", "BA_VOCE_" + period, )
     v_ab_vmt = GetDataVector(llyr + "|", "AB_VMT_" + period, )
     v_ba_vmt = GetDataVector(llyr + "|", "BA_VMT_" + period, )
-    v_ab_cong_vmt = if v_ab_vc > .9 then v_ab_vmt else 0
-    v_ba_cong_vmt = if v_ba_vc > .9 then v_ba_vmt else 0
+    v_ab_cong_vmt = if v_ab_vc > .75 then v_ab_vmt else 0
+    v_ba_cong_vmt = if v_ba_vc > .75 then v_ba_vmt else 0
     output.("CongestedVMT_" + period) = v_ab_cong_vmt + v_ba_cong_vmt
   end
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
