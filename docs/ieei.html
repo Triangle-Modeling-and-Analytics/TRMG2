@@ -7,7 +7,7 @@
 
         <meta name="author" content="Caliper Corporation" />
     
-        <meta name="date" content="2022-02-20" />
+        <meta name="date" content="2022-03-01" />
     
     <title>Internal/External</title>
 
@@ -206,6 +206,9 @@
          <a href="accessibility.html">Accessibility</a>
        </li>
        <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
          <a href="airport.html">Airport</a>
        </li>
        <li>
@@ -242,6 +245,7 @@
       </ul></li>
       <li><a href="#ee">EE</a><ul>
       <li><a href="#ee-traffic-shares">EE Traffic Shares</a></li>
+      <li><a href="#ee-time-of-day">EE Time of Day</a></li>
       </ul></li>
       <li><a href="#ieei">IE/EI</a><ul>
       <li><a href="#ieei-attraction-correlations">IE/EI Attraction Correlations</a></li>
@@ -258,12 +262,13 @@
       <li><a href="#ieei-observed-and-estimated-trip-length-frequency-for-non-freeway-stations">IE/EI Observed and Estimated Trip Length Frequency for Non-Freeway Stations</a></li>
       </ul></li>
       <li><a href="#ieei-average-trip-lengths">IE/EI Average Trip Lengths</a></li>
+      <li><a href="#ieei-time-of-day">IE/EI Time of Day</a></li>
       </ul></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> February 20, 2022</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 01, 2022</p>
           </div>
    </div>
    
@@ -1336,6 +1341,10 @@ Pct EE Multi-unit Trucks
 </tbody>
 </table>
 </div>
+<div id="ee-time-of-day" class="section level3">
+<h3>EE Time of Day</h3>
+<p>The data available was not adequate to calculate time of day shares for the EE trips. Instead, the commercial vehicle factors were used. Through trips do not follow the same dual-peak pattern as commuters and occur more often during the midday in general.</p>
+</div>
 </div>
 <div id="ieei" class="section level2">
 <h2>IE/EI</h2>
@@ -1775,6 +1784,10 @@ Observed
 </tr>
 </tbody>
 </table>
+</div>
+<div id="ieei-time-of-day" class="section level3">
+<h3>IE/EI Time of Day</h3>
+<p>The data available was not adequate to calculate time of day shares for the IE/EI trips. Instead, the factors were borrowed from N_HB_OD_Long (similar to HBO in other models). Compared to using work trips, this shifts demand from the AM and PM periods into the off peak. These travelers (e.g. with long commutes to work) need to leave earlier in the day. They cross the model boundary earlier (and later) than the peaks for internal residents.</p>
 </div>
 </div>
 </div>

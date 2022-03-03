@@ -441,7 +441,7 @@ Macro "Calculate Auto Ownership" (Args, trip_types)
     obj.AddUtility({UtilityFunction: util})
     obj.AddPrimarySpec(primary_spec)
     obj.AddOutputSpec({ChoicesField: "Autos"})
-    ojb.RandomSeed = 314159
+    obj.RandomSeed = 314159
     obj.Evaluate()
 
     // Convert coded field/string pairs to simple integers

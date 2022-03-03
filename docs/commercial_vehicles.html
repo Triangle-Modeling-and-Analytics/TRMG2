@@ -206,6 +206,9 @@
          <a href="accessibility.html">Accessibility</a>
        </li>
        <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
          <a href="airport.html">Airport</a>
        </li>
        <li>
@@ -372,7 +375,7 @@ HH
 </div>
 <div id="time-of-day" class="section level2">
 <h2>Time of Day</h2>
-<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model. These looked reasonable when compared to resident travel patterns and are used in the model.</p>
+<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -440,6 +443,81 @@ MUT
 </td>
 <td style="text-align:right;">
 0.037
+</td>
+<td style="text-align:right;">
+0.378
+</td>
+</tr>
+</tbody>
+</table>
+<p>The relative distribution between peak and off-peak periods look reasonable, but the distribution between AM and PM peaks are not. There is almost no traffic in the PM period and far too much in the AM. This skew is made worse considering that the PM period is longer than the AM. Based on experience in other regions, Caliper spread peak demand evenly over the AM and PM periods according to the hours in each period. The final table is shown below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Vehicle Type
+</th>
+<th style="text-align:right;">
+AM
+</th>
+<th style="text-align:right;">
+MD
+</th>
+<th style="text-align:right;">
+PM
+</th>
+<th style="text-align:right;">
+NT
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+CV
+</td>
+<td style="text-align:right;">
+0.091
+</td>
+<td style="text-align:right;">
+0.452
+</td>
+<td style="text-align:right;">
+0.125
+</td>
+<td style="text-align:right;">
+0.331
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUT
+</td>
+<td style="text-align:right;">
+0.105
+</td>
+<td style="text-align:right;">
+0.444
+</td>
+<td style="text-align:right;">
+0.145
+</td>
+<td style="text-align:right;">
+0.306
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUT
+</td>
+<td style="text-align:right;">
+0.097
+</td>
+<td style="text-align:right;">
+0.393
+</td>
+<td style="text-align:right;">
+0.133
 </td>
 <td style="text-align:right;">
 0.378

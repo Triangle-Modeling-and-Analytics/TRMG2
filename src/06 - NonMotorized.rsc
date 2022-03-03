@@ -202,7 +202,7 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args, trip_types)
     for trip_type in trip_types do
         file = nm_dir + "/" + trip_type + ".bin"
         vw = OpenTable("temp", "FFB", {file})
-        v = GetDataVector(vw + "|", trip_type, )
+        v = GetDataVector(vw + "|", trip_type, {{"Sort Order",{{"ID","Ascending"}}}})
         CloseView(vw)
         per_df.tbl.(trip_type) = v
     end

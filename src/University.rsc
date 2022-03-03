@@ -282,18 +282,43 @@ Split university balanced productions and attractions by time periods
 
 Macro "University TOD" (Args)
     se_file = Args.SE
-    tod_file = Args.[Input Folder] + "\\university\\university_tod.csv"
+    tod_file = Args.[Input Folder] + "/university/university_tod.csv"
 
     se_vw = OpenTable("se", "FFB", {se_file})
+    fac_vw = OpenTable("tod_fac", "CSV", {tod_file})
+    v_type = GetDataVector(fac_vw + "|", "trip_type", )
+    v_tod = GetDataVector(fac_vw + "|", "tod", )
+    v_fac = GetDataVector(fac_vw + "|", "factor", )
 
-    {drive, folder, name, ext} = SplitPath(tod_file)
+    univs = {"NCSU", "UNC", "DUKE", "NCCU"}
 
-    RunMacro("Create Sum Product Fields", {
-        view: se_vw, factor_file: tod_file,
-        field_desc: "University Productions and Attractions by Time of Day|See " + name + ext + " for details."
-    })
+    for i = 1 to v_type.length do
+        type = v_type[i]
+        tod = v_tod[i]
+        fac = v_fac[i]
+        
+        if Position(type, "H") > 0
+            then prefixes = {"ProdOn", "ProdOff", "AttrOn", "AttrOff"}
+            else prefixes = {"Prod", "Attr"}
 
+        for univ in univs do
+            for prefix in prefixes do
+                daily_name = prefix + "_" + type + "_" + univ
+                
+                v_daily = GetDataVector(se_vw + "|", daily_name, )
+                v_result = v_daily * fac
+                field_name = daily_name + "_" + tod
+                a_fields_to_add = a_fields_to_add + {
+                    {field_name, "Real", 10, 2,,,, "University Ps and As by TOD"}
+                }
+                data.(field_name) = v_result
+            end
+        end
+    end
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
+    SetDataVectors(se_vw + "|", data, )    
     CloseView(se_vw)
+    CloseView(fac_vw)
 endmacro
 
 /*
