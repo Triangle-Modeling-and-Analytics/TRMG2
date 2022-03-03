@@ -998,17 +998,20 @@ pcf_tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-The approach above is most appropriate in the peak periods to accurately capture
-peak congestion. It is also fine in the midday, when traffic flow is relatively
-even. However, due to the unique nature of the NT period, it generally
-overstates congestion. For this reason, additional capacity is added. The final
-period factors are shown below.
+The approach above is most appropriate in the short peak periods to accurately
+capture peak congestion. However, the long duration of the MD and NT periods and
+overall light congestion lead the approach to overstate congestion.  For this
+reason, additional capacity is added. The final period factors are shown below.
 
 ```{r}
 extra_nt_cap <- pcf_tbl %>%
-  mutate(PCF = ifelse(Period == "NT", 4, PCF))
+  mutate(
+    PCF = ifelse(Period == "MD", 5.5, PCF),
+    PCF = ifelse(Period == "NT", 4, PCF)
+  )
 
 extra_nt_cap %>%
+  select(-PHF) %>%
   rename(`Length (hrs)` = Length, `Model Capacity (hrs)` = PCF) %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
