@@ -195,10 +195,16 @@ Macro "Calculate Daily Fields" (Args)
       output.Total_Flow_Daily = nz(output.Total_Flow_Daily) + v_output
     end
   end
+  output.Total_CV_Flow_Daily = output.AB_CV_Flow_Daily + output.BA_CV_Flow_Daily
+  output.Total_SUT_Flow_Daily = output.AB_SUT_Flow_Daily + output.BA_SUT_Flow_Daily
+  output.Total_MUT_Flow_Daily = output.AB_MUT_Flow_Daily + output.BA_MUT_Flow_Daily
   fields_to_add = fields_to_add + {
     {"AB_Flow_Daily", "Real", 10, 2,,,,"AB Daily Flow"},
     {"BA_Flow_Daily", "Real", 10, 2,,,,"BA Daily Flow"},
-    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"}
+    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"},
+    {"Total_CV_Flow_Daily", "Real", 10, 2,,,,"Daily CV Flow in both direction"},
+    {"Total_SUT_Flow_Daily", "Real", 10, 2,,,,"Daily SUT Flow in both direction"},
+    {"Total_MUT_Flow_Daily", "Real", 10, 2,,,,"Daily MUT Flow in both direction"}
   }
 
   // Other fields to sum
@@ -254,27 +260,27 @@ Macro "Create Count Difference Map" (Args)
   opts.field_suffix = "All"
   RunMacro("Count Difference Map", opts)
 
-//   // Create SUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - SUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "SUTCount"
-//   opts.vol_field = "SUT_Flow_Daily"
-//   opts.field_suffix = "SUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create SUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - SUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountSUT"
+  opts.vol_field = "Total_SUT_Flow_Daily"
+  opts.field_suffix = "SUT"
+  RunMacro("Count Difference Map", opts)
 
-//   // Create MUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - MUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "MUTCount"
-//   opts.vol_field = "MUT_Flow_Daily"
-//   opts.field_suffix = "MUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create MUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - MUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountMUT"
+  opts.vol_field = "Total_MUT_Flow_Daily"
+  opts.field_suffix = "MUT"
+  RunMacro("Count Difference Map", opts)
 EndMacro
 
 /*
