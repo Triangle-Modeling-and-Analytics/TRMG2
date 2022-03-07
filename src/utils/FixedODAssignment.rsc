@@ -89,7 +89,7 @@ Macro "Fixed OD Assignment" (MacroOpts)
     RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Links", Args)
 endmacro
 
 /*
