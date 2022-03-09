@@ -631,28 +631,42 @@ Macro "Summarize HB DC and MC" (Args)
   // Calculate TLFDs
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
   skim_mtx = CreateObject("Matrix", skim_mtx_file)
-  skim_core = skim_mtx.GetCore("Length (Skim)")
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
   for mtx_file in total_files do
-    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     mtx = CreateObject("Matrix", mtx_file)
     trip_core = mtx.GetCore("total")
 
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     tld = CreateObject("Distribution.TLD")
     tld.StartValue = 0
     tld.BinSize = 1
     tld.TripMatrix = trip_core
-    tld.ImpedanceMatrix = skim_core
+    tld.ImpedanceMatrix = skim_coreD
     tld.OutputMatrix(out_mtx_file)
     tld.Run()
     res = tld.GetResults()
     avg_length = res.Data.AvTripLength
     trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlft.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
   end
   mtx = null
   trip_core = null
 
   df = CreateObject("df", stats_file)
   df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
   df.write_csv(stats_file)
 
   // Cluster-2-Cluster flows
@@ -764,30 +778,43 @@ Macro "Summarize NHB DC and MC" (Args)
   // Calculate TLFDs
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
   skim_mtx = CreateObject("Matrix", skim_mtx_file)
-  skim_core = skim_mtx.GetCore("Length (Skim)")
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
   for mtx_file in daily_files do
     {drive, folder, name, ext} = SplitPath(mtx_file)
-    // out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
-    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
     mtx = CreateObject("Matrix", mtx_file)
     trip_core = mtx.GetCore("daily")
 
+    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
     tld = CreateObject("Distribution.TLD")
     tld.StartValue = 0
     tld.BinSize = 1
     tld.TripMatrix = trip_core
-    tld.ImpedanceMatrix = skim_core
+    tld.ImpedanceMatrix = skim_coreD
     tld.OutputMatrix(out_mtx_file)
     tld.Run()
     res = tld.GetResults()
     avg_length = res.Data.AvTripLength
     trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = output_dir + "/" + name + "_tlft.mtx"
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
   end
   mtx = null
   trip_core = null
 
   df = CreateObject("df", stats_file)
   df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
   df.write_csv(stats_file)
 
   // Remove the daily matrices to save space
