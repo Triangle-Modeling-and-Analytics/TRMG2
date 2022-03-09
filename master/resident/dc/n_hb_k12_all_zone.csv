@@ -2,3 +2,5 @@ Expression,Segment,Coefficient,Description
 se.n_hbk12_size.D,,0.614,Size term
 sov_skim.CongTime,,-0.262,
 "max(0, sov_skim.CongTime - 30)",,0.2,Excess time over 30 min
+intra_cluster.IZ,,0.1,Adjustment
+sov_skim.CongTime > 35,,-99,Cutoff

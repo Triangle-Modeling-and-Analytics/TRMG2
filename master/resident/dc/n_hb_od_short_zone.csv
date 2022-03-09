@@ -3,7 +3,8 @@ se.n_hbods_size.D,,0.586,Size term
 nz(mc_logsums.auto),,0.0438,
 nz(mc_logsums.nonhh_auto),,0.392,
 nz(mc_logsums.transit),,0.202,
-sov_skim.IZ,,0.965,
+intra_cluster.IZ,,0.965,
 sov_skim.CongTime,,-0.169,
 "max(0, sov_skim.CongTime - 20)",,0.0525,
-sov_skim.IZ,,0,Adjustment
+intra_cluster.IZ,,0.05,Adjustment
+sov_skim.CongTime > 55,,-99,Cutoff

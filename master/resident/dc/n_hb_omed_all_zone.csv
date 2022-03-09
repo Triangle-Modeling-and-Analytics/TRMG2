@@ -4,3 +4,4 @@ nz(mc_logsums.NonHHAutoComposite),,0.508,
 sov_skim.CongTime,,-0.141,
 "max(0, sov_skim.CongTime - 30)",,0.103,
 se.access_hospital_sov.D,,0.524,
+sov_skim.CongTime > 55,,-99,Cutoff
