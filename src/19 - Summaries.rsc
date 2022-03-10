@@ -962,8 +962,8 @@ Macro "Congested VMT" (Args)
       end
     end
     
-    v_cong_daily = null
-    v_tot_daily = null
+    v_cong_daily = 0
+    v_tot_daily = 0
     for period in periods do
       v_cong = df.tbl.("CongestedVMT_" + period)
       v_tot = df.tbl.("Tot_VMT_" + period)
