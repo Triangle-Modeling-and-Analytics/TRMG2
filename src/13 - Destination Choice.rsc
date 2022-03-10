@@ -234,6 +234,7 @@ Macro "Calculate Destination Choice" (Args, trip_types)
             for segment in segments do
                 opts.segments = {segment}
                 opts.matrices = {
+                    intra_cluster: {File: skims_dir + "/IntraCluster.mtx"},
                     sov_skim: {File: sov_skim},
                     mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }

@@ -14,3 +14,4 @@ se.Cluster.D = 81,,0.235,Other NW Cluster ASC
 se.Cluster.D = 82,,0.341,Other NE Cluster ASC
 se.Cluster.D = 83,,0.232,Other SE Cluster ASC
 se.Cluster.D = 85,,1.05,Other SW Cluster ASC
+IntraCluster.IZ,,0.325,Additional IZ Adjustment

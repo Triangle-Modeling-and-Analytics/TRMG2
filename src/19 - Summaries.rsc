@@ -195,10 +195,16 @@ Macro "Calculate Daily Fields" (Args)
       output.Total_Flow_Daily = nz(output.Total_Flow_Daily) + v_output
     end
   end
+  output.Total_CV_Flow_Daily = output.AB_CV_Flow_Daily + output.BA_CV_Flow_Daily
+  output.Total_SUT_Flow_Daily = output.AB_SUT_Flow_Daily + output.BA_SUT_Flow_Daily
+  output.Total_MUT_Flow_Daily = output.AB_MUT_Flow_Daily + output.BA_MUT_Flow_Daily
   fields_to_add = fields_to_add + {
     {"AB_Flow_Daily", "Real", 10, 2,,,,"AB Daily Flow"},
     {"BA_Flow_Daily", "Real", 10, 2,,,,"BA Daily Flow"},
-    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"}
+    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"},
+    {"Total_CV_Flow_Daily", "Real", 10, 2,,,,"Daily CV Flow in both direction"},
+    {"Total_SUT_Flow_Daily", "Real", 10, 2,,,,"Daily SUT Flow in both direction"},
+    {"Total_MUT_Flow_Daily", "Real", 10, 2,,,,"Daily MUT Flow in both direction"}
   }
 
   // Other fields to sum
@@ -254,27 +260,27 @@ Macro "Create Count Difference Map" (Args)
   opts.field_suffix = "All"
   RunMacro("Count Difference Map", opts)
 
-//   // Create SUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - SUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "SUTCount"
-//   opts.vol_field = "SUT_Flow_Daily"
-//   opts.field_suffix = "SUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create SUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - SUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountSUT"
+  opts.vol_field = "Total_SUT_Flow_Daily"
+  opts.field_suffix = "SUT"
+  RunMacro("Count Difference Map", opts)
 
-//   // Create MUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - MUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "MUTCount"
-//   opts.vol_field = "MUT_Flow_Daily"
-//   opts.field_suffix = "MUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create MUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - MUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountMUT"
+  opts.vol_field = "Total_MUT_Flow_Daily"
+  opts.field_suffix = "MUT"
+  RunMacro("Count Difference Map", opts)
 EndMacro
 
 /*
@@ -293,6 +299,10 @@ Macro "Count PRMSEs" (Args)
   opts.screenline_field = "Screenline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  RunMacro("Roadway Count Comparison Tables", opts)
+
+  // Run it again to generate the cutline table
+  opts.screenline_field = "Cutline"
   RunMacro("Roadway Count Comparison Tables", opts)
 endmacro
 
@@ -603,7 +613,7 @@ Macro "Summarize HB DC and MC" (Args)
       in_mtx = CreateObject("Matrix", in_file)
       core_names = in_mtx.GetCoreNames()
       for core_name in core_names do
-        if core_name = "all_transit" then continue
+        if core_name = "all_transit" or core_name contains "park" then continue // Remove 'Park-Walk' and 'Park-Shuttle' trips from stats and trip length calculations
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
       end
@@ -621,28 +631,42 @@ Macro "Summarize HB DC and MC" (Args)
   // Calculate TLFDs
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
   skim_mtx = CreateObject("Matrix", skim_mtx_file)
-  skim_core = skim_mtx.GetCore("Length (Skim)")
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
   for mtx_file in total_files do
-    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     mtx = CreateObject("Matrix", mtx_file)
     trip_core = mtx.GetCore("total")
 
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     tld = CreateObject("Distribution.TLD")
     tld.StartValue = 0
     tld.BinSize = 1
     tld.TripMatrix = trip_core
-    tld.ImpedanceMatrix = skim_core
+    tld.ImpedanceMatrix = skim_coreD
     tld.OutputMatrix(out_mtx_file)
     tld.Run()
     res = tld.GetResults()
     avg_length = res.Data.AvTripLength
     trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlft.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
   end
   mtx = null
   trip_core = null
 
   df = CreateObject("df", stats_file)
   df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
   df.write_csv(stats_file)
 
   // Cluster-2-Cluster flows
@@ -754,30 +778,43 @@ Macro "Summarize NHB DC and MC" (Args)
   // Calculate TLFDs
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
   skim_mtx = CreateObject("Matrix", skim_mtx_file)
-  skim_core = skim_mtx.GetCore("Length (Skim)")
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
   for mtx_file in daily_files do
     {drive, folder, name, ext} = SplitPath(mtx_file)
-    // out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
-    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
     mtx = CreateObject("Matrix", mtx_file)
     trip_core = mtx.GetCore("daily")
 
+    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
     tld = CreateObject("Distribution.TLD")
     tld.StartValue = 0
     tld.BinSize = 1
     tld.TripMatrix = trip_core
-    tld.ImpedanceMatrix = skim_core
+    tld.ImpedanceMatrix = skim_coreD
     tld.OutputMatrix(out_mtx_file)
     tld.Run()
     res = tld.GetResults()
     avg_length = res.Data.AvTripLength
     trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = output_dir + "/" + name + "_tlft.mtx"
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
   end
   mtx = null
   trip_core = null
 
   df = CreateObject("df", stats_file)
   df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
   df.write_csv(stats_file)
 
   // Remove the daily matrices to save space
@@ -897,8 +934,8 @@ Macro "Congested VMT" (Args)
     v_ba_vc = GetDataVector(llyr + "|", "BA_VOCE_" + period, )
     v_ab_vmt = GetDataVector(llyr + "|", "AB_VMT_" + period, )
     v_ba_vmt = GetDataVector(llyr + "|", "BA_VMT_" + period, )
-    v_ab_cong_vmt = if v_ab_vc > .9 then v_ab_vmt else 0
-    v_ba_cong_vmt = if v_ba_vc > .9 then v_ba_vmt else 0
+    v_ab_cong_vmt = if v_ab_vc > .75 then v_ab_vmt else 0
+    v_ba_cong_vmt = if v_ba_vc > .75 then v_ba_vmt else 0
     output.("CongestedVMT_" + period) = v_ab_cong_vmt + v_ba_cong_vmt
   end
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})

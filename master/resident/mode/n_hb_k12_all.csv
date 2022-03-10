@@ -22,15 +22,15 @@ w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
 school_bus,Constant,,0.4661,Constant
 school_bus,Constant,v0,0.1219,Zero-vehicle households
 school_bus,sov_skim.CongTime,,-0.2014,Travel time
-other_auto,Constant,v0,-1.417087,Additional Calibration Constant
-school_bus,Constant,v0,-0.931657,Additional Calibration Constant
-sov,Constant,vi,-2.025868,Additional Calibration Constant
-hov2,Constant,vi,-1.706848,Additional Calibration Constant
-hov3,Constant,vi,-1.5167,Additional Calibration Constant
-other_auto,Constant,vi,-1.596878,Additional Calibration Constant
-school_bus,Constant,vi,-1.494862,Additional Calibration Constant
-sov,Constant,vs,-0.181377,Additional Calibration Constant
-hov2,Constant,vs,0.076334,Additional Calibration Constant
-hov3,Constant,vs,0.064455,Additional Calibration Constant
-other_auto,Constant,vs,-0.194155,Additional Calibration Constant
-school_bus,Constant,vs,-0.201606,Additional Calibration Constant
+other_auto,Constant,v0,-1.487627,Additional Calibration Constant
+school_bus,Constant,v0,-1.001922,Additional Calibration Constant
+sov,Constant,vi,-2.015309,Additional Calibration Constant
+hov2,Constant,vi,-1.695911,Additional Calibration Constant
+hov3,Constant,vi,-1.505762,Additional Calibration Constant
+other_auto,Constant,vi,-1.587573,Additional Calibration Constant
+school_bus,Constant,vi,-1.485081,Additional Calibration Constant
+sov,Constant,vs,-0.191632,Additional Calibration Constant
+hov2,Constant,vs,0.06579,Additional Calibration Constant
+hov3,Constant,vs,0.053911,Additional Calibration Constant
+other_auto,Constant,vs,-0.204953,Additional Calibration Constant
+school_bus,Constant,vs,-0.211202,Additional Calibration Constant

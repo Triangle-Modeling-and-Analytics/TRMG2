@@ -14,7 +14,7 @@ Macro "NHB Destination Choice" (Args)
 endmacro
 
 /*
-
+Generate NHB trips based on HB trip attraction ends
 */
 
 Macro "NHB Generation" (Args)
@@ -25,27 +25,36 @@ Macro "NHB Generation" (Args)
     nhb_dir = out_dir + "/resident/nhb/generation"
     periods = RunMacro("Get Unconverged Periods", Args)
     se_file = Args.SE
-    calib_fac_file = Args.NHBGenCalibFacs
+    tod_fac_file = Args.NHBTODFacs
     trip_types = RunMacro("Get NHB Trip Types", Args)
     modes = {"sov", "hov2", "hov3", "auto_pay", "walkbike", "t"}
+    iteration = Args.FeedbackIteration
 
-    // Create the output table with initial fields
+    // Create the output table (first iteration only)
     out_file = nhb_dir + "/generation.bin"
-    if GetFileInfo(out_file) <> null then do
-        DeleteFile(out_file)
-        DeleteFile(Substitute(out_file, ".bin", ".dcb", ))
+    if iteration = 1 then do
+        if GetFileInfo(out_file) <> null then do
+            DeleteFile(out_file)
+            DeleteFile(Substitute(out_file, ".bin", ".dcb", ))
+        end
+        out_vw = CreateTable("out", out_file, "FFB", {
+            {"TAZ", "Integer", 10, , , "Zone ID"},
+            {"access_nearby_sov", "Real", 10, 2, , "sov accessibility"},
+            {"access_transit", "Real", 10, 2, , "transit accessibility"},
+            {"access_walk", "Real", 10, 2, , "walk accessibility"}
+        })
+        se_vw = OpenTable("se", "FFB", {se_file})
+        taz = GetDataVector(se_vw + "|", "TAZ", )
+        n = GetRecordCount(se_vw, )
+        AddRecords(out_vw, , , {"empty records": n})
+        SetDataVector(out_vw + "|", "TAZ", taz, )
+        CloseView(se_vw)
+        CloseView(out_vw)
     end
-    out_vw = CreateTable("out", out_file, "FFB", {
-        {"TAZ", "Integer", 10, , , "Zone ID"},
-        {"access_nearby_sov", "Real", 10, 2, , "sov accessibility"},
-        {"access_transit", "Real", 10, 2, , "transit accessibility"},
-        {"access_walk", "Real", 10, 2, , "walk accessibility"}
-    })
+
+    // Add initial fields
+    out_vw = OpenTable("out", "FFB", {out_file})
     se_vw = OpenTable("se", "FFB", {se_file})
-    taz = GetDataVector(se_vw + "|", "TAZ", )
-    n = GetRecordCount(se_vw, )
-    AddRecords(out_vw, , , {"empty records": n})
-    SetDataVector(out_vw + "|", "TAZ", taz, )
     jv = JoinViews("jv", out_vw + ".TAZ", se_vw + ".TAZ", )
     // store accessibilities for use later in this macro but also include
     // them in the table
@@ -59,21 +68,12 @@ Macro "NHB Generation" (Args)
     CloseView(se_vw)
     CloseView(out_vw)
 
-    // Get calibration factors
-    calib_facs = RunMacro("Read Parameter File", {
-        file: calib_fac_file,
+    // Get tod factors
+    tod_facs = RunMacro("Read Parameter File", {
+        file: tod_fac_file,
         names: "type",
         values: "factor"
     })
-
-    // Create a summary table by tour type and mode. This is used in calibration,
-    // but may also be helpful for future debugging.
-    summary_file = Substitute(out_file, ".bin", "_summary.bin", )
-    CopyFile(out_file, summary_file)
-    CopyFile(
-        Substitute(out_file, ".bin", ".dcb", ),
-        Substitute(summary_file, ".bin", ".dcb", )
-    )
 
     for trip_type in trip_types do
         tour_type = Left(trip_type, 1)
@@ -137,13 +137,10 @@ Macro "NHB Generation" (Args)
                         else data.(field_name)
                 end
 
-                // Apply calibration factor
-                calib_fac = calib_facs.(tour_type + "_" + mode)
-                data.(field_name) = data.(field_name) * calib_fac
-
-                // Sum up data by tour type and mode
-                summary.(tour_type + "_" + mode) = nz(summary.(tour_type + "_" + mode)) +
-                    nz(data.(field_name))
+                // Apply TOD factors
+                tod_fac = tod_facs.(tour_type + "_" + mode + "_" + period)
+                if tod_fac = null then Throw("NHB TOD factor not found")
+                data.(field_name) = data.(field_name) * tod_fac
             end
         end
     end
@@ -153,20 +150,6 @@ Macro "NHB Generation" (Args)
     RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
     SetDataVectors(out_vw + "|", data, )
     CloseView(out_vw)
-
-    // Fill in summary info
-    summary_vw = OpenTable("summary", "FFB", {summary_file})
-    fields_to_add = null
-    for i = 1 to summary.length do
-        field_name = summary[i][1]
-        if Left(field_name, 1) = "N"
-            then desc = "NHB trips on non-work tours"
-            else desc = "NHB trips on work tours"
-        fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
-    end
-    RunMacro("Add Fields", {view: summary_vw, a_fields: fields_to_add})
-    SetDataVectors(summary_vw + "|", summary, )
-    CloseView(summary_vw)
 endmacro
 
 

@@ -62,15 +62,15 @@ w_lr,w_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 w_lr,w_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 w_lr,w_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
 w_lr,w_lr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
-w_lb,Constant,v0,-0.560076,Additional Calibration Constant
-w_eb,Constant,v0,-0.560076,Additional Calibration Constant
-other_auto,Constant,v0,0.337149,Additional Calibration Constant
-sov,Constant,vi,0.713489,Additional Calibration Constant
-hov2,Constant,vi,0.901873,Additional Calibration Constant
-hov3,Constant,vi,1.328772,Additional Calibration Constant
-other_auto,Constant,vi,0.655444,Additional Calibration Constant
-sov,Constant,vs,-0.703297,Additional Calibration Constant
-hov2,Constant,vs,-0.734006,Additional Calibration Constant
-hov3,Constant,vs,-0.822487,Additional Calibration Constant
-auto_pay,Constant,vs,0.580292,Additional Calibration Constant
-other_auto,Constant,vs,-0.418231,Additional Calibration Constant
+auto_pay,Constant,v0,0.292885,Additional Calibration Constant
+other_auto,Constant,v0,0.50935,Additional Calibration Constant
+sov,Constant,vi,0.525986,Additional Calibration Constant
+hov2,Constant,vi,0.714367,Additional Calibration Constant
+hov3,Constant,vi,1.141276,Additional Calibration Constant
+auto_pay,Constant,vi,-0.189182,Additional Calibration Constant
+other_auto,Constant,vi,0.37338,Additional Calibration Constant
+sov,Constant,vs,-0.892876,Additional Calibration Constant
+hov2,Constant,vs,-0.92358,Additional Calibration Constant
+hov3,Constant,vs,-1.012162,Additional Calibration Constant
+auto_pay,Constant,vs,0.62,Additional Calibration Constant
+other_auto,Constant,vs,-0.7715,Additional Calibration Constant
