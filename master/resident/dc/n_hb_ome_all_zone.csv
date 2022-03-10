@@ -3,4 +3,5 @@ se.n_hbome_size.D,,0.881,Size term
 nz(mc_logsums.NonHHAutoComposite),,0.416,
 sov_skim.CongTime,,-0.208,
 "max(0, sov_skim.CongTime - 30)",,0.136,
-sov_skim.IZ,,0,Adjustment
+intra_cluster.IZ,,0.225,Adjustment
+sov_skim.CongTime > 55,,-99,Cutoff
