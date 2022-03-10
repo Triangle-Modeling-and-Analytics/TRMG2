@@ -159,7 +159,7 @@ Macro "Calc Intersection Approach Density" (Args)
 
     CloseView(se_vw)
     CloseView(jv)
-    CloseMap()
+    CloseMap(map)
 endmacro
 
 /*
