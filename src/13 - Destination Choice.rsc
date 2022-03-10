@@ -161,6 +161,8 @@ Applies double constraint to work trips. Iterates 3 times.
 
 Macro "HBW DC" (Args)
 
+    if Args.FeedbackIteration = 1 then RunMacro("Create Intra Cluster Matrix", Args)
+
     trip_types = {"W_HB_W_All"}
     max_iters = 3
     for i = 1 to max_iters do

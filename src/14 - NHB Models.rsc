@@ -254,8 +254,6 @@ Macro "Evaluate NHB DC"(Args, Spec)
     sizeSpec = {DataFile: se_file, CoeffFile: Args.NHBDCSizeCoeffs}
     RunMacro("Compute Size Terms", sizeSpec)
 
-    // Create IntraCluster matrix
-    RunMacro("Create Intra Cluster Matrix", Args)
     intraClusterMtx = skims_folder + "IntraCluster.mtx"
 
     // Run DC Loop over categories and time periods
