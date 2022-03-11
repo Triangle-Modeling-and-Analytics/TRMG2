@@ -694,6 +694,7 @@ Macro "Summarize HB DC and MC" (Args)
     mtx = null
     core = null
   end
+  CloseMap(map)
 
   // Remove the totals matrices to save space
   for file in total_files do
