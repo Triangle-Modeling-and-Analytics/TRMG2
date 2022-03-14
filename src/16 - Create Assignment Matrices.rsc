@@ -522,6 +522,7 @@ Macro "VOT Split" (Args)
                 costcoef = p.(pkop + "_costcoef")
                 meantime = p.(pkop + "_meantime")
                 sdtime = p.(pkop + "_sdtime")
+                calibfactor = p.("calib_factor")
                 for i = 1 to 5 do
                     votcut = p.("votcut" + i2s(i))
                     out_core = veh_class + "_VOT" + i2s(i)
@@ -531,7 +532,7 @@ Macro "VOT Split" (Args)
                     cores = output.data.cores
 
                     // Calculate cumulative probability
-                    cores.lognorm := (votcut * costcoef) / (log(cores.wgtinc) * log(10 * length_skim + 5) * 60 * (targetvot/meanvot))
+                    cores.lognorm := (votcut * costcoef) / (log(cores.wgtinc) * log(10 * length_skim + 5) * 60 * calibfactor * (targetvot/meanvot))
                     cores.zscore := (log(-1 * cores.lognorm) - meantime) / sdtime
                     RunMacro("erf_normdist", output, cumu_prob)
 
@@ -681,7 +682,7 @@ Macro "Add Externals" (Args)
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
         if periods.position(period) = 0 then continue
-        if parts[2] = "AUTO" then core_name = "sov_VOT2"
+        if parts[2] = "AUTO" then core_name = "sov_VOT5"
         if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
         if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
 
