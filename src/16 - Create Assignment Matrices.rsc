@@ -678,6 +678,7 @@ Macro "Add Externals" (Args)
         ee_core_name = ee_core_names[i]
         ie_core_name = ie_core_names[i]
 
+        // Currently treating all external auto as sov, but could split into occupancy classes in future given data
         // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
