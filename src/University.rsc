@@ -81,15 +81,15 @@ Macro "University Productions" (Args)
     for c = 1 to campus_list.length do
         campus = campus_list[c]
 
-        production_uhc_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHC_On
-        production_uhc_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHC_Off
+        production_uhc_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHC_On * rate.calib_factor
+        production_uhc_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHC_Off * rate.calib_factor
 
-        production_uho_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHO_On
-        production_uho_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHO_Off
+        production_uho_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHO_On * rate.calib_factor
+        production_uho_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHO_Off * rate.calib_factor
 
-        production_uco = data.("BuildingS_" + campus) * rate.Prod_Rate_UCO
-        production_ucc = data.("BuildingS_" + campus) * rate.Prod_Rate_UCC
-        production_uc1 = data.("BuildingS_" + campus) * rate.Prod_Rate_UC1
+        production_uco = data.("BuildingS_" + campus) * rate.Prod_Rate_UCO * rate.calib_factor
+        production_ucc = data.("BuildingS_" + campus) * rate.Prod_Rate_UCC * rate.calib_factor
+        production_uc1 = data.("BuildingS_" + campus) * rate.Prod_Rate_UC1 * rate.calib_factor
 
         a_fields = {
             {"ProdOn_UHC_" + campus, "Real", 10, 2, , , , campus + " UHC OnCampus Students Production"},
