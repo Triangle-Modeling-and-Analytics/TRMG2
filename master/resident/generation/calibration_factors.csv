@@ -11,9 +11,9 @@ N_HB_OD_Short,vs,1.301
 N_HB_OME_All,v0,0.833
 N_HB_OME_All,vi,0.805
 N_HB_OME_All,vs,1.371
-N_HB_OMED_All,v0,1.998
-N_HB_OMED_All,vi,0.813
-N_HB_OMED_All,vs,1.357
+N_HB_OMED_All,v0,1.698
+N_HB_OMED_All,vi,0.691
+N_HB_OMED_All,vs,1.153
 W_HB_EK12_All,vi,0.893
 W_HB_EK12_All,vs,1.428
 W_HB_O_All,v0,0.801
