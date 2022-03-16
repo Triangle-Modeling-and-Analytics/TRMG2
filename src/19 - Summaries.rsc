@@ -296,13 +296,18 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
-  opts.screenline_field = "Screenline"
+  opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
   RunMacro("Roadway Count Comparison Tables", opts)
 
-  // Run it again to generate the cutline table
-  opts.screenline_field = "Cutline"
+  // Rename screenline to cutline
+  in_file = opts.out_dir + "/count_comparison_by_screenline.csv"
+  out_file = opts.out_dir + "/count_comparison_by_cutline.csv"
+  RenameFile(in_file, out_file)
+
+  // Run it again to generate the screenline table
+  opts.screenline_field = "Screenline"
   RunMacro("Roadway Count Comparison Tables", opts)
 endmacro
 
