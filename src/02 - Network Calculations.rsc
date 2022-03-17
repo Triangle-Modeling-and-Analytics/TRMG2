@@ -921,6 +921,13 @@ Macro "Create Route Networks" (Args)
     access_modes = Args.access_modes
     TransModeTable = Args.TransModeTable
 
+    // Retag stops to nodes. While this step is done by the route manager
+    // during scenario creation, a user might create a new route to test after
+    // creating the scenario. This makes sure it 'just works'.
+    {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
+    TagRouteStopsWithNode(rlyr,,"Node_ID",.2)
+    CloseMap(map)
+
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     transit_modes = {"all"} + transit_modes
 
