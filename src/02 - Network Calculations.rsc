@@ -840,7 +840,7 @@ Macro "Create Link Networks" (Args)
             o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
             o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
             if GetFileInfo(turn_prohibtions) <> null then o.TurnProhibitionTable = turn_prohibtions
-            o.NetworkName = net_file
+            o.OutNetworkName = net_file
             o.Run()
             netSetObj = null
             netSetObj = CreateObject("Network.Settings")
@@ -937,7 +937,7 @@ Macro "Create Route Networks" (Args)
                 file_name = output_dir + "\\tnet_" + period + "_" + access_mode + "_" + transit_mode + ".tnw"
                 o = CreateObject("Network.CreateTransit")
                 o.LayerRS = rts_file
-                o.NetworkName = file_name
+                o.OutNetworkName = file_name
                 o.StopToNodeTagField = "Node_ID"
                 o.RouteFilter = period + "Headway > 0"
                 o.IncludeWalkLinks = true
