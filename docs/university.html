@@ -7,7 +7,7 @@
 
         <meta name="author" content="Caliper Corporation" />
     
-        <meta name="date" content="2022-03-02" />
+        <meta name="date" content="2022-03-21" />
     
     <title>University</title>
 
@@ -271,17 +271,17 @@
       </ul></li>
       <li><a href="#time-of-day">Time of Day</a></li>
       <li><a href="#calibration">Calibration</a><ul>
-      <li><a href="#trip-generation-1">Trip Generation</a></li>
-      <li><a href="#trip-distribution-1">Trip Distribution</a><ul>
+      <li><a href="#trip-generation-1">Trip Generation</a><ul>
       <li><a href="#average-trip-length">Average Trip Length</a></li>
       </ul></li>
       <li><a href="#mode-choice-1">Mode Choice</a></li>
       </ul></li>
+      <li><a href="#validation">Validation</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 02, 2022</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 21, 2022</p>
           </div>
    </div>
    
@@ -2051,11 +2051,7 @@ UHO
 <p>The trips per enrollment for each university are displayed in the figure below.</p>
 <p><img src="university_files/university-summary-figures/university_trips_per_student.png" /></p>
 <p>As noted, the model shows a higher rate (trips per student) for Duke than for NCSU. This is because for some of the university trip purposes, the trip production model is a function of campus building square feet in the TAZ. The average campus building square feet per student at Duke is higher than at NCSU (see below), resulting in the higher overall trip rate per student. Conversely, NCCU has a lower average campus building square feet per student than NCSU, resulting in a lower overall trip rate per student.</p>
-<p><img src="university_files/university-summary-figures/university_bldg_sqft_per_student.png" /></p>
-</div>
-<div id="trip-distribution-1" class="section level3">
-<h3>Trip Distribution</h3>
-<p>Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.</p>
+<p><img src="university_files/university-summary-figures/university_bldg_sqft_per_student.png" /> ### Trip Distribution Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.</p>
 <div id="average-trip-length" class="section level4">
 <h4>Average Trip Length</h4>
 <p>The average trip length compares extremely well for simulated versus observed data for NCSU except for the home-campus trips for off-campus students. The home to campus for off-campus simulated average trip length is off when compared with the observed data because of how we were forced to come up with off-campus housing: by restricting it to address points within 10 miles (<a href="https://caliper-corporation.github.io/TRMG2/tazs_and_se_data.html#Student_housing_(off-campus)">source</a>).</p>
@@ -2078,6 +2074,10 @@ UHO
 <p>The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive <code>BuildingS_UNC</code> or positive <code>StudGQ_UNC</code>. The map below shows the identified zones for UNC mode share adjustment.</p>
 <p><img src="university_files/university-summary-figures/unc_zones_map_zoomed.png" /></p>
 </div>
+</div>
+<div id="validation" class="section level2">
+<h2>Validation</h2>
+<p>Comparing the model volumes to traffic counts revealed over-assignments around all university campuses. As a result, the trip production rates were reduced by 10%.</p>
 </div>
 </div>
 
