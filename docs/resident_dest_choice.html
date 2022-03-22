@@ -206,6 +206,9 @@
          <a href="accessibility.html">Accessibility</a>
        </li>
        <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
          <a href="airport.html">Airport</a>
        </li>
        <li>
@@ -241,60 +244,62 @@
       <li><a href="#distance-terms">Distance terms</a></li>
       </ul></li>
       <li><a href="#home-based-trips">Home-Based Trips</a><ul>
+      <li><a href="#utility-specification">Utility Specification</a></li>
+      <li><a href="#general-estimation-observations">General Estimation Observations</a></li>
       <li><a href="#w_hb_w">W_HB_W</a><ul>
-      <li><a href="#survey-data">Survey data</a></li>
-      <li><a href="#utility-specification">Utility specification</a></li>
       <li><a href="#estimated-coefficients-and-t-statistics">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes">Notes</a></li>
       <li><a href="#double-constraint-and-attraction-model">Double constraint and attraction model</a></li>
       </ul></li>
       <li><a href="#w_hb_o">W_HB_O</a><ul>
-      <li><a href="#survey-data-1">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-1">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-1">Notes</a></li>
       </ul></li>
       <li><a href="#w_hb_ek12">W_HB_EK12</a><ul>
-      <li><a href="#survey-data-2">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-2">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-2">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_ome">N_HB_OME</a><ul>
-      <li><a href="#survey-data-3">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-3">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-3">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_omed">N_HB_OMED</a><ul>
-      <li><a href="#survey-data-4">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-4">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-4">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_k12">N_HB_K12</a><ul>
-      <li><a href="#survey-data-5">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-5">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-5">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_od_long">N_HB_OD_Long</a><ul>
-      <li><a href="#survey-data-6">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-6">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-6">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_od_short">N_HB_OD_Short</a><ul>
-      <li><a href="#survey-data-7">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-7">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-7">Notes</a></li>
       </ul></li>
       </ul></li>
       <li><a href="#non-home-based-trips">Non-Home-Based trips</a><ul>
       <li><a href="#nhb-work-auto">NHB Work Auto</a><ul>
-      <li><a href="#survey-data-8">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-8">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-8">Notes</a></li>
       </ul></li>
       <li><a href="#nhb-nonwork-auto">NHB NonWork Auto</a><ul>
-      <li><a href="#survey-data-9">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-9">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-9">Notes</a></li>
       </ul></li>
       <li><a href="#nhb-transit">NHB Transit</a><ul>
-      <li><a href="#survey-data-10">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-10">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-10">Notes</a></li>
       </ul></li>
       <li><a href="#nhb-nonmotorized">NHB NonMotorized</a><ul>
-      <li><a href="#survey-data-11">Survey data</a></li>
+      <li><a href="#estimated-coefficients-and-t-statistics-11">Estimated coefficients and t statistics</a></li>
       <li><a href="#notes-11">Notes</a></li>
       </ul></li>
       </ul></li>
+      <li><a href="#dc-model-adjustments">DC Model Adjustments</a></li>
+      <li><a href="#dc-application">DC Application</a></li>
       <li><a href="#references">References</a></li>
       </ul>
     </div>
@@ -351,24 +356,37 @@
 <li>NESTED (simultaneous choice of cluster and zone)</li>
 </ul>
 <p>The nested specification outperformed all other approaches.</p>
+<div id="utility-specification" class="section level3">
+<h3>Utility Specification</h3>
+<p>The utility specification for the DC models consisted of the following set of variables. Not all these variables are present in every specification since variables are retained depending on the significance of their estimated coefficients or owing to strong apriori assumptions.</p>
+<ul>
+<li>Size term: This is the natural logarithm of the attractions at a destination zone, which itself is a linear combination of employment variables and their coefficients. These coefficients are simultaneously estimated with other parameters. Since it is required that these coefficients be positive, the utility formulation specifies coefficients that are then exponentiated. Successful estimation requires that one of these attraction variable coefficients is fixed. The estimation also provides a coefficient for the size variable, which theoretically should be between 0 and 1.</li>
+<li>Mode Choice Logsums: Using mode choice root logsums typically presents a problem in destination choice. The root logsum value is dominated by the auto nest which washes out any effects from the non-dominant modes. For example, drastically improving the transit accessibility to a particular zone will not affect the probability of choosing that zone, if the transit logsums are dwarfed by the auto logsums. To circumvent this issue, separate auto, transit, and non-household auto logsums from the respective nests are used in the TRM specifications. The logsums are segmented by vehicle sufficiency market segments for added explanatory power. The work logsums are further distinguished by high- and low-income segments. Finally, note that there is no auto logsum component for the zero-vehicle households market segment.</li>
+<li>4D measures: Several 4D measures such as transit accessibility, hospital accessibility, walk accessibility, employment densities are considered.</li>
+<li>Time Coefficient(s): The auto times corresponding to the latest model skims are attached depending upon the time of day the respondent made the trip. A time coefficient is estimated in each specification.</li>
+<li>Intra-Cluster effects: Intra-Cluster coefficients are estimated if the home and the chosen zone are within the same cluster (nest).</li>
+<li>Intra-Zonal effect: A coefficient is estimated to boost the utility of choosing the same zone as the origin.</li>
+<li>Cluster Nest coefficients: A nest coefficient for each of the 12 clusters is estimated.</li>
+<li>Cluster ASCs: Likewise, ASCs are estimated for each cluster.</li>
+</ul>
+<p>The rich utility specification allows the model to capture the decision-making process of choosing destination zones and capturing cluster-to-cluster flows.</p>
+</div>
+<div id="general-estimation-observations" class="section level3">
+<h3>General Estimation Observations</h3>
+<ul>
+<li>ASCs were estimated for all but one of the clusters. Only the significant ASCs were kept for each model purpose. The ASCs with poor significance generally had values close to zero. Further, these ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.</li>
+<li>Intrazonal effects are strong for a few of the purposes</li>
+<li>Intra-Cluster effects are strong implying that there is a tendency to choose locations that belong in the same cluster as the home zone.</li>
+<li>Using mode choice logsums for the auto model (and for vehicle sufficient segments) caused unrealistic signs as well as much poorer model fit. This can be explained by the fact that these logsums are primarily driven by auto skims, which are already a part of the utility equation. Hence most specifications do not have an auto logsum.</li>
+</ul>
+</div>
 <div id="w_hb_w" class="section level3">
 <h3>W_HB_W</h3>
 <p>W_HB_W corresponds to trips that are part of a work tour, have one end at home, and the other end at work. This segment captures trips that directly connect the home and work locations and translates to the HBW trip purpose in traditional models. Destination choice in this context relates to the long-term decision of work location, to which work trips are made with regularity.</p>
-<div id="survey-data" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “W_HB_W_All”</li>
-<li>Sample size: 3,662</li>
-</ul>
-</div>
-<div id="utility-specification" class="section level4">
-<h4>Utility specification</h4>
-<p><em>TODO add final</em></p>
-<p>Note that the exponentiated values of the attraction coefficients from the above specification will be directly reported in the results sections of each model below.</p>
-</div>
 <div id="estimated-coefficients-and-t-statistics" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
-<p><em>TODO add this and the other model result sections</em></p>
+<p><img src="img/dc/w_hb_w_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/w_hb_w_all2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/w_hb_w_all3.png" width="60%" style="display: block; margin: auto;" /><img src="img/dc/w_hb_w_all4.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes" class="section level4">
 <h4>Notes</h4>
@@ -520,13 +538,10 @@ Retail
 <div id="w_hb_o" class="section level3">
 <h3>W_HB_O</h3>
 <p>W_HB_O corresponds to trips that are part of a work tour, have one end at home, and the other end at a non-work location. This segment captures trips that directly connect the home to an intermediate stop on the way to or from work and translates to the HBO trip purpose in traditional models. Destination choice in this context relates to a short-term decision of intermediate stop location.</p>
-<div id="survey-data-1" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “W_HB_O_All”</li>
-<li>Sample size: 2,129</li>
-</ul>
-<p><em>TODO add model results when final</em></p>
+<div id="estimated-coefficients-and-t-statistics-1" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/w_hb_o_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/w_hb_o_all2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/w_hb_o_all3.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-1" class="section level4">
 <h4>Notes</h4>
@@ -544,13 +559,10 @@ Retail
 <div id="w_hb_ek12" class="section level3">
 <h3>W_HB_EK12</h3>
 <p>W_HB_EK12 corresponds to trips that are part of a work tour, have one end at home, and the other end at a school. This segment captures trips that directly connect the home to school on the way to or from work and translates to the HB School trip purpose in traditional models. It includes worker dropping off/picking up children on the way to/from work, and workers who attend school.</p>
-<div id="survey-data-2" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “W_HB_EK12_All”</li>
-<li>Sample size: 228</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-2" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/w_hb_ek12_all1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/w_hb_ek12_all2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-2" class="section level4">
 <h4>Notes</h4>
@@ -564,13 +576,10 @@ Retail
 <div id="n_hb_ome" class="section level3">
 <h3>N_HB_OME</h3>
 <p>N_HB_OME corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that involved the spending of money. This segment is close to the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-3" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_HB_OME_All”</li>
-<li>Sample size: 5,822</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-3" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_hb_ome_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_ome_all2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_hb_ome_all3.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-3" class="section level4">
 <h4>Notes</h4>
@@ -588,13 +597,10 @@ Retail
 <div id="n_hb_omed" class="section level3">
 <h3>N_HB_OMED</h3>
 <p>N_HB_OMed corresponds to trips that are not part of a work tour, have one end at home, and the other end at a medical-related activity. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-4" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_HB_OMED_All”</li>
-<li>Sample size: 557</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-4" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_hb_omed_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_omed_all2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_hb_omed_all3.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-4" class="section level4">
 <h4>Notes</h4>
@@ -613,13 +619,10 @@ Retail
 <div id="n_hb_k12" class="section level3">
 <h3>N_HB_K12</h3>
 <p>N_HB_K12 corresponds to trips that are not part of a work tour, have one end at home, and the other end at a school. This segment would have been part of the HB School trip purpose in traditional models.</p>
-<div id="survey-data-5" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_HB_K12_All”</li>
-<li>Sample size: 1,708</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-5" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_hb_k12_all1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_hb_k12_all2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-5" class="section level4">
 <h4>Notes</h4>
@@ -633,13 +636,10 @@ Retail
 <div id="n_hb_od_long" class="section level3">
 <h3>N_HB_OD_Long</h3>
 <p>N_HB_ODLong corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that is at least 30 minutes long. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-6" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_HB_ODLong_All”</li>
-<li>Sample size: 4,540</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-6" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_hb_od_long1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_od_long2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_hb_od_long3.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-6" class="section level4">
 <h4>Notes</h4>
@@ -656,13 +656,10 @@ Retail
 <div id="n_hb_od_short" class="section level3">
 <h3>N_HB_OD_Short</h3>
 <p>N_HB_ODShort corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity shorter than 30 minutes in duration. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-7" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_HB_ODShort_All”</li>
-<li>Sample size: 3,400</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-7" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_hb_od_short1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_od_short2.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_hb_od_short3.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-7" class="section level4">
 <h4>Notes</h4>
@@ -705,13 +702,10 @@ Retail
 <div id="nhb-work-auto" class="section level3">
 <h3>NHB Work Auto</h3>
 <p>This segment corresponds to trips that are part of a work tour, do not have either end at home, have at least one end at school, work, work-related or “other” activities, and are associated with a drive mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-8" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “W_NH_EK12” or “W_NH_O” or “W_NH_WR”, with a drive tour mode</li>
-<li>Sample size: 4,371</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-8" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/w_nhb_auto1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/w_nhb_auto2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-8" class="section level4">
 <h4>Notes</h4>
@@ -725,13 +719,10 @@ Retail
 <div id="nhb-nonwork-auto" class="section level3">
 <h3>NHB NonWork Auto</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and have at least one end at school or “other” activities. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-9" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = “N_NH_K12” or “N_NH_OME” or “N_NH_O”, with a drive tour mode</li>
-<li>Sample size: 7,099</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-9" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/n_nhb_auto1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/n_nhb_auto2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-9" class="section level4">
 <h4>Notes</h4>
@@ -746,12 +737,10 @@ Retail
 <div id="nhb-transit" class="section level3">
 <h3>NHB Transit</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, and do not have either end at home. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-10" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = all six non-home-based trip types, with a public transit travel mode</li>
-<li>Sample size: 244</li>
-</ul>
+<div id="estimated-coefficients-and-t-statistics-10" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/nhb_transit1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/nhb_transit2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-10" class="section level4">
 <h4>Notes</h4>
@@ -765,13 +754,10 @@ Retail
 <div id="nhb-nonmotorized" class="section level3">
 <h3>NHB NonMotorized</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and are associated with a non-motorized (e.g. bike, walk) mode. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
-<div id="survey-data-11" class="section level4">
-<h4>Survey data</h4>
-<ul>
-<li>Records: trip_type = all six non-home-based trip types, with a non-motorized travel mode</li>
-<li>Sample size: 1,438</li>
-</ul>
-<p><em>TODO add results</em></p>
+<div id="estimated-coefficients-and-t-statistics-11" class="section level4">
+<h4>Estimated coefficients and t statistics</h4>
+<p><img src="img/dc/nhb_nonmoto1.png" width="90%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/nhb_nonmoto2.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-11" class="section level4">
 <h4>Notes</h4>
@@ -783,6 +769,25 @@ Retail
 </ul>
 </div>
 </div>
+</div>
+<div id="dc-model-adjustments" class="section level2">
+<h2>DC Model Adjustments</h2>
+<p>During the model calibration stage, further updates to the DC models were performed to match the model cluster to cluster patterns to the weighted patterns from the survey. These adjustments can be thought of as the adjustment to the ASCs of a mode choice model to match aggregated shares.</p>
+<p>Given the nested destination choice approach and the assumption behind the structure, the model lends itself very well to such post process adjustments. The following parameters were adjusted to try and match the survey patterns. It is worth mentioning that these post process adjustments turned out to be rather small, thereby inspiring additional confidence in the estimation results:</p>
+<ul>
+<li>Cluster ASC values: For a given purpose, the percent of trips attracted to each cluster can be determined (both from the model and the survey). The cluster ASC values can be adjusted to match the aggregated survey percentages. This additional adjustment for each cluster is the natural logarithm of the ratio of the target percentage to the model percentage.</li>
+<li>Intra-Cluster Constants: The model has provisions for intra cluster dummies. These dummies can likewise be adjusted to match the normalized intra-cluster totals from the survey.</li>
+<li>Intra-Zonal Dummy: Finally, the specific intra zonal dummy was adjusted for a few purposes to match the intra-zonal percentages.</li>
+</ul>
+</div>
+<div id="dc-application" class="section level2">
+<h2>DC Application</h2>
+<p>This section has a short note on the application of the destination choice models in the TRM model framework. In the TRM model, the destination choice is the higher-level choice which is then followed by the mode choice for a given purpose, market segment and period. However, the utility equation for the DC models contains mode choice logsums. Therefore, a three-step process is followed for each combination of purpose, segment and time period:</p>
+<ul>
+<li>The mode choice model is run for the given purpose, segment and time period, taking care to use the appropriate time period skim matrices. The output logsum matrix (by mode, segment and period) and the output mode choice probability matrix are stored.</li>
+<li>The DC nested choice is run, which produces a zone-zone probability matrix, such that for each row (zone), the destination probabilities sum to 1. The determination of this probability matrix itself is the result of the nested DC, implemented as a two-stage destination choice model with a zone level model and cluster level model informed by zone-zone DC logsums.</li>
+<li>The trip productions are applied to each row to produce a PA matrix, which are then further multiplied by the stored mode choice probabilities to produce PA matrices by mode, purpose, segment and period. The matrices are then combined as required.</li>
+</ul>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>

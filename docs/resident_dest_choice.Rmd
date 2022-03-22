@@ -112,6 +112,29 @@ Various model structures and specifications were tried:
 
 The nested specification outperformed all other approaches.
 
+### Utility Specification
+
+The utility specification for the DC models consisted of the following set of variables. Not all these variables are present in every specification since variables are retained depending on the significance of their estimated coefficients or owing to strong apriori assumptions.
+
+- Size term: This is the natural logarithm of the attractions at a destination zone, which itself is a linear combination of employment variables and their coefficients. These coefficients are simultaneously estimated with other parameters. Since it is required that these coefficients be positive, the utility formulation specifies coefficients that are then exponentiated. Successful estimation requires that one of these attraction variable coefficients is fixed. The estimation also provides a coefficient for the size variable, which theoretically should be between 0 and 1.
+- Mode Choice Logsums: Using mode choice root logsums typically presents a problem in destination choice. The root logsum value is dominated by the auto nest which washes out any effects from the non-dominant modes. For example, drastically improving the transit accessibility to a particular zone will not affect the probability of choosing that zone, if the transit logsums are dwarfed by the auto logsums. To circumvent this issue, separate auto, transit, and non-household auto logsums from the respective nests are used in the TRM specifications. The logsums are segmented by vehicle sufficiency market segments for added explanatory power. The work logsums are further distinguished by high- and low-income segments. Finally, note that there is no auto logsum component for the zero-vehicle households market segment.
+- 4D measures: Several 4D measures such as transit accessibility, hospital accessibility, walk accessibility, employment densities are considered.
+- Time Coefficient(s): The auto times corresponding to the latest model skims are attached depending upon the time of day the respondent made the trip. A time coefficient is estimated in each specification. 
+- Intra-Cluster effects: Intra-Cluster coefficients are estimated if the home and the chosen zone are within the same cluster (nest).
+- Intra-Zonal effect: A coefficient is estimated to boost the utility of choosing the same zone as the origin.
+- Cluster Nest coefficients: A nest coefficient for each of the 12 clusters is estimated.
+- Cluster ASCs: Likewise, ASCs are estimated for each cluster.
+
+The rich utility specification allows the model to capture the decision-making process of choosing destination zones and capturing cluster-to-cluster flows. 
+
+### General Estimation Observations
+
+- ASCs were estimated for all but one of the clusters. Only the significant ASCs were kept for each model purpose. The ASCs with poor significance generally had values close to zero. Further, these ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables with the ability to capture location choice behavior.
+- Intrazonal effects are strong for a few of the purposes
+- Intra-Cluster effects are strong implying that there is a tendency to choose locations that belong in the same cluster as the home zone.
+- Using mode choice logsums for the auto model (and for vehicle sufficient segments) caused unrealistic signs as well as much poorer model fit. This can be explained by the fact that these logsums are primarily driven by auto skims, which are already a part of the utility equation. Hence most specifications do not have an auto logsum.
+
+
 ### W_HB_W
 
 W_HB_W corresponds to trips that are part of a work tour, have one end at home,
@@ -120,22 +143,17 @@ home and work locations and translates to the HBW trip purpose in traditional
 models. Destination choice in this context relates to the long-term decision of
 work location, to which work trips are made with regularity.
 
-#### Survey data
-
-- Records: trip_type = “W_HB_W_All”
-- Sample size: 3,662
-
-#### Utility specification
-
-*TODO add final*
-
-Note that the exponentiated values of the attraction coefficients from the above
-specification will be directly reported in the results sections of each model
-below.
-
 #### Estimated coefficients and t statistics
 
-*TODO add this and the other model result sections*
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/w_hb_w_all1.png")
+knitr::include_graphics("img/dc/w_hb_w_all2.png")
+```
+
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/w_hb_w_all3.png")
+knitr::include_graphics("img/dc/w_hb_w_all4.png")
+```
 
 #### Notes
 
@@ -308,12 +326,16 @@ directly connect the home to an intermediate stop on the way to or from work and
 translates to the HBO trip purpose in traditional models. Destination choice in
 this context relates to a short-term decision of intermediate stop location.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “W_HB_O_All”
-- Sample size: 2,129
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/w_hb_o_all1.png")
+knitr::include_graphics("img/dc/w_hb_o_all2.png")
+```
 
-*TODO add model results when final*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/w_hb_o_all3.png")
+```
 
 #### Notes
 
@@ -333,12 +355,15 @@ connect the home to school on the way to or from work and translates to the HB
 School trip purpose in traditional models. It includes worker dropping
 off/picking up children on the way to/from work, and workers who attend school.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “W_HB_EK12_All”
-- Sample size: 228
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/w_hb_ek12_all1.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/w_hb_ek12_all2.png")
+```
 
 #### Notes
 
@@ -353,12 +378,16 @@ home, and the other end at an “other” activity that involved the spending of
 money. This segment is close to the HBO (Home-Based Other) trip purpose in
 traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_HB_OME_All”
-- Sample size: 5,822
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_hb_ome_all1.png")
+knitr::include_graphics("img/dc/n_hb_ome_all2.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_hb_ome_all3.png")
+```
 
 #### Notes
 
@@ -377,12 +406,16 @@ N_HB_OMed corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at a medical-related activity. This segment would have
 been rolled into the HBO (Home-Based Other) trip purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_HB_OMED_All”
-- Sample size: 557
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_hb_omed_all1.png")
+knitr::include_graphics("img/dc/n_hb_omed_all2.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_hb_omed_all3.png")
+```
 
 #### Notes
 
@@ -402,12 +435,15 @@ N_HB_K12 corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at a school. This segment would have been part of the HB
 School trip purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_HB_K12_All”
-- Sample size: 1,708
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_hb_k12_all1.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_hb_k12_all2.png")
+```
 
 #### Notes
 
@@ -423,12 +459,16 @@ at home, and the other end at an “other” activity that is at least 30 minute
 long. This segment would have been rolled into the HBO (Home-Based Other) trip
 purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_HB_ODLong_All”
-- Sample size: 4,540
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_hb_od_long1.png")
+knitr::include_graphics("img/dc/n_hb_od_long2.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_hb_od_long3.png")
+```
 
 #### Notes
 
@@ -447,12 +487,16 @@ at home, and the other end at an “other” activity shorter than 30 minutes in
 duration. This segment would have been rolled into the HBO (Home-Based Other)
 trip purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_HB_ODShort_All”
-- Sample size: 3,400
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_hb_od_short1.png")
+knitr::include_graphics("img/dc/n_hb_od_short2.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_hb_od_short3.png")
+```
 
 #### Notes
 
@@ -501,12 +545,15 @@ either end at home, have at least one end at school, work, work-related or
 have been rolled into the HBO (Home-Based Other) trip purpose in traditional
 models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “W_NH_EK12” or “W_NH_O” or “W_NH_WR”, with a drive tour mode
-- Sample size: 4,371
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/w_nhb_auto1.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/w_nhb_auto2.png")
+```
 
 #### Notes
 
@@ -521,12 +568,15 @@ either end at home, and have at least one end at school or “other” activitie
 This segment would have been rolled into the HBO (Home-Based Other) trip purpose
 in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = “N_NH_K12” or “N_NH_OME” or “N_NH_O”, with a drive tour mode
-- Sample size: 7,099
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/n_nhb_auto1.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/n_nhb_auto2.png")
+```
 
 #### Notes
 
@@ -541,10 +591,15 @@ This segment corresponds to trips that are part of a non-work tour, and do not
 have either end at home. This segment would have been rolled into the HBO
 (Home-Based Other) trip purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = all six non-home-based trip types, with a public transit travel mode
-- Sample size: 244
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/nhb_transit1.png")
+```
+
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/nhb_transit2.png")
+```
 
 #### Notes
 
@@ -559,12 +614,15 @@ either end at home, and are associated with a non-motorized (e.g. bike, walk)
 mode. This segment would have been rolled into the HBO (Home-Based Other) trip
 purpose in traditional models.
 
-#### Survey data
+#### Estimated coefficients and t statistics
 
-- Records: trip_type = all six non-home-based trip types, with a non-motorized travel mode
-- Sample size: 1,438
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/dc/nhb_nonmoto1.png")
+```
 
-*TODO add results*
+```{r, fig.align='center', out.width="60%"}
+knitr::include_graphics("img/dc/nhb_nonmoto2.png")
+```
 
 #### Notes
 
@@ -572,6 +630,26 @@ purpose in traditional models.
 - Intra-zonal and intra-cluster effects are also strong, favoring short-range trips by non-motorized modes.
 - Walk accessibility is key to choosing destinations.
 - Attractions are driven by office, retail and service employment totals.
+
+## DC Model Adjustments
+
+During the model calibration stage, further updates to the DC models were performed to match the model cluster to cluster patterns to the weighted patterns from the survey. These adjustments can be thought of as the adjustment to the ASCs of a mode choice model to match aggregated shares.
+
+Given the nested destination choice approach and the assumption behind the structure, the model lends itself very well to such post process adjustments. The following parameters were adjusted to try and match the survey patterns. It is worth mentioning that these post process adjustments turned out to be rather small, thereby inspiring additional confidence in the estimation results:
+
+- Cluster ASC values: For a given purpose, the percent of trips attracted to each cluster can be determined (both from the model and the survey). The cluster ASC values can be adjusted to match the aggregated survey percentages. This additional adjustment for each cluster is the natural logarithm of the ratio of the target percentage to the model percentage.
+- Intra-Cluster Constants: The model has provisions for intra cluster dummies. These dummies can likewise be adjusted to match the normalized intra-cluster totals from the survey.
+- Intra-Zonal Dummy: Finally, the specific intra zonal dummy was adjusted for a few purposes to match the intra-zonal percentages.
+
+## DC Application
+
+This section has a short note on the application of the destination choice models in the TRM model framework. In the TRM model, the destination choice is the higher-level choice which is then followed by the mode choice for a given purpose, market segment and period. However, the utility equation for the DC models contains mode choice logsums. Therefore, a three-step process is followed for each combination of purpose, segment and time period:
+
+- The mode choice model is run for the given purpose, segment and time period, taking care to use the appropriate time period skim matrices. The output logsum matrix (by mode, segment and period) and the output mode choice probability matrix are stored.
+- The DC nested choice is run, which produces a zone-zone probability matrix, such that for each row (zone), the destination probabilities sum to 1. The determination of this probability matrix itself is the result of the nested DC, implemented as a two-stage destination choice model with a zone level model and cluster level model informed by zone-zone DC logsums.
+- The trip productions are applied to each row to produce a PA matrix, which are then further multiplied by the stored mode choice probabilities to produce PA matrices by mode, purpose, segment and period.
+The matrices are then combined as required.
+
 
 ## References
 
