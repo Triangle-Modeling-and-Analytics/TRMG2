@@ -468,7 +468,6 @@ As noted, the model shows a higher rate (trips per student) for Duke than for NC
 
 
 ![](university_files/university-summary-figures/university_bldg_sqft_per_student.png)
-
 ### Trip Distribution
 Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.  
 
@@ -504,6 +503,12 @@ Our model was adjusted to match as close as possible the observed mode share fro
 The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive `BuildingS_UNC` or positive `StudGQ_UNC`. The map below shows the identified zones for UNC mode share adjustment. 
 
 ![](university_files/university-summary-figures/unc_zones_map_zoomed.png)
+
+## Validation
+
+Comparing the model volumes to traffic counts revealed over-assignments around
+all university campuses. As a result, the trip production rates were reduced by
+10%.
 
 ```{r, eval=FALSE}
 write_csv(tod_factors, "../master/university/university_tod.csv")
