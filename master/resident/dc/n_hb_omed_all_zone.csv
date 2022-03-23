@@ -1,7 +1,8 @@
 Expression,Segment,Coefficient,Description
-se.n_hbomed_size.D,,0.804,Size term
-nz(mc_logsums.nonhh_auto),,0.909,
-sov_skim.IZ,,0.376,
-sov_skim.CongTime,,-0.0873,
-"max(0, sov_skim.CongTime - 30)",,0.0589,
-se.access_hospital_sov.D,,0.485,
+se.n_hbomed_size.D,,0.803,Size term
+nz(mc_logsums.NonHHAutoComposite),,0.508,
+sov_skim.CongTime,,-0.141,
+"max(0, sov_skim.CongTime - 30)",,0.103,
+se.access_hospital_sov.D,,0.524,
+sov_skim.CongTime > 55,,-99,Cutoff
+se.access_hospital_sov.D,,-0.25,calibration adjustment

@@ -405,6 +405,54 @@ tibble(Coefficient =c("IVTT","OVTT","Cost"),Value = c(G_IVTT_Coeff,G_OVTT_Coeff,
   kable_styling(full_width = FALSE)
 ```
 
+## Time of Day
+
+The time of day factors were calculated from the NCSU student survey and are
+shown below. As expected, fewer university trips occur in the AM period and more
+in the MD compared to resident commuters.
+
+```{r, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(readxl)
+
+NCSU_Trip_df <- read_csv("data/input/_PRIVATE/nc-state-survey/2013_NCSU_Data_Raw_All_2020-05-14_ITRE_trips.csv")
+trip_df <- read_csv("data/input/_PRIVATE/Trip_subset_df.csv")
+```
+
+```{r}
+add_time <- trip_df %>%
+  left_join(
+    NCSU_Trip_df %>% select(Person_ID, time = Time_leave_StartPlace),
+    by = "Person_ID"
+  ) %>%
+  filter(!is.na(time)) %>%
+  mutate(tod = case_when(
+    time < hm("07:00") ~ "NT",
+    time < hm("9:00") ~ "AM",
+    time < hm("15:30") ~ "MD",
+    time < hm("18:15") ~ "PM",
+    TRUE ~ "NT"
+  ))
+
+tod_factors <- add_time %>%
+  filter(Trip_Purpose != 99, Trip_Purpose != "UOO") %>%
+  group_by(trip_type = Trip_Purpose, tod) %>%
+  summarize(trips = sum(Weight)) %>%
+  mutate(
+    trips = ifelse(is.na(trips), 0, trips),
+    factor = round(trips / sum(trips), 4)
+  ) %>%
+  select(-trips)
+
+tod_factors %>%
+  pivot_wider(id_cols = trip_type, names_from = tod, values_from = factor) %>%
+  rename(`Trip Type` = trip_type) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+
 ## Calibration
 Calibration of the University Model is solely dependent upon the small sample size from the NCSU survey, as well as logic check reviews from local knowledge. This calibration section compares different summaries of the University Model outputs to the observed data from the NCSU survey.
 
@@ -420,7 +468,6 @@ As noted, the model shows a higher rate (trips per student) for Duke than for NC
 
 
 ![](university_files/university-summary-figures/university_bldg_sqft_per_student.png)
-
 ### Trip Distribution
 Simulated vs observed data shows similar patterns for NCSU as shown below. The other universities display a similar pattern.  
 
@@ -456,3 +503,14 @@ Our model was adjusted to match as close as possible the observed mode share fro
 The UNC specific adjustment was done by adding a negative utility for auto mode and positive utility for transit mode for university trips that are destined to UNC zones. UNC zones are identified as either positive `BuildingS_UNC` or positive `StudGQ_UNC`. The map below shows the identified zones for UNC mode share adjustment. 
 
 ![](university_files/university-summary-figures/unc_zones_map_zoomed.png)
+
+## Validation
+
+Comparing the model volumes to traffic counts revealed over-assignments around
+all university campuses. As a result, the trip production rates were reduced by
+10%.
+
+```{r, eval=FALSE}
+write_csv(tod_factors, "../master/university/university_tod.csv")
+```
+

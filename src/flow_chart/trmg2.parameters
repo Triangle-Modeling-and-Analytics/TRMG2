@@ -123,12 +123,12 @@
 
     Section = "NonHomeBased"
 
-        Args.NHBGenCalibFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
+        Args.NHBTODFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
         Args.NHBDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\dc\\nhb_dc_size_terms.csv", "Caption":"Resident NHB DC Size Coefficients" }
 
     Section = "Numeric Parameters"
     
-        Args.FeedbackConvergence = { "Type":"int" , "Value":.1, "Description":"%RMSE between skims. .1 = 0.1%" }
+        Args.FeedbackConvergence = { "Type":"double" , "Value":.1, "Description":"%RMSE between skims. .1 = 0.1%" }
         Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }

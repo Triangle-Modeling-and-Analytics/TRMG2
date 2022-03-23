@@ -104,6 +104,7 @@ Macro "Calculate NM Probabilities" (Args, trip_types)
         obj.AddPrimarySpec(primary_spec)
         nm_table = output_dir + "\\" + trip_type + ".bin"
         obj.AddOutputSpec({ProbabilityTable: nm_table})
+        obj.RandomSeed = 199999
         obj.Evaluate()
     end
 endmacro
@@ -201,7 +202,7 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args, trip_types)
     for trip_type in trip_types do
         file = nm_dir + "/" + trip_type + ".bin"
         vw = OpenTable("temp", "FFB", {file})
-        v = GetDataVector(vw + "|", trip_type, )
+        v = GetDataVector(vw + "|", trip_type, {{"Sort Order",{{"ID","Ascending"}}}})
         CloseView(vw)
         per_df.tbl.(trip_type) = v
     end

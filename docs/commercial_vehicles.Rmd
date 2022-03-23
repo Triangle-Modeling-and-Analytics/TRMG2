@@ -163,7 +163,7 @@ mut_rsq <- round(summary(mut_model)$r.squared, 2)
 ```
 
 ```{r, include=FALSE}
-rates <- read_csv("../master/cv/cv_generation.csv")
+rates <- read_csv("data/input/cv/cv_generation_qrfm.csv")
 ```
 
 ```{r}
@@ -173,12 +173,30 @@ rates %>%
   kable_styling(full_width = FALSE)
 ```
 
+The initial rates were adjusted by comparing link flows to counts where they
+were available by SUT and MUT. Commercial vehicles used the same adjustment
+factor as SUT. The final rates are shown below.
+
+```{r}
+sut_factor <- .87
+cv_factor <- .87 # assume same as sut. can't calculate directly.
+mut_factor <- .74
+final_rates <- rates %>%
+  mutate(across(c(CV, SUT, CVa, SUTa), .fns = ~ round(. * sut_factor, 3))) %>%
+  mutate(across(c(MUT, MUTa), .fns = ~ round(. * mut_factor, 3)))
+  
+final_rates %>%
+  select(Variable = Field, CV:MUT) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+
 ## Time of Day
 
 The survey included trip departure time, which was used to categorize trips
 by time period. The table below shows the estimated time of day factors used
-by the model. These looked reasonable when compared to resident travel patterns
-and are used in the model.
+by the model.
 
 ```{r}
 add_tod <- add_tazs %>%
@@ -207,6 +225,39 @@ tod_tbl %>%
   kable(digits = 3) %>%
   kable_styling(full_width = FALSE)
 ```
+
+The relative distribution between peak and off-peak periods look reasonable, but
+the distribution between AM and PM peaks are not. There is almost no traffic in
+the PM period and far too much in the AM. This skew looks worse considering
+that the PM period is longer than the AM. Based on experience in other regions,
+Caliper spread peak demand evenly over the AM and PM periods according to the
+hours in each period. The final table is shown below.
+
+```{r}
+fix_peak <- tod_tbl %>%
+  group_by(veh_type) %>%
+  mutate(
+    tot_peak = ifelse(tod %in% c("AM", "PM"), factor, 0),
+    tot_peak = sum(tot_peak),
+    new_fac = case_when(
+      tod == "AM" ~ tot_peak * (2/(2 + 2.75)),
+      tod == "PM" ~ tot_peak * (2.75/(2 + 2.75)),
+      TRUE ~ factor
+    ),
+    factor = new_fac
+  ) %>%
+  select(-tot_peak, -new_fac)
+
+fix_peak %>%
+  pivot_wider(names_from = tod, values_from = factor) %>%
+  mutate(veh_type = factor(veh_type, levels = c("CV", "SUT", "MUT"), ordered = TRUE)) %>%
+  arrange(veh_type) %>%
+  rename(`Vehicle Type` = veh_type) %>%
+  relocate(PM, .before = NT) %>%
+  kable(digits = 3) %>%
+  kable_styling(full_width = FALSE)
+```
+
 
 Directionality factors are not calculated for commercial vehicles and trucks.
 Instead, they are assumed to be evenly split by direction.
@@ -240,5 +291,9 @@ tibble(
 ) %>%
   kable() %>%
   kable_styling(full_width = FALSE)
+```
+
+```{r, eval=FALSE}
+write_csv(final_rates, "../master/cv/cv_generation.csv")
 ```
 

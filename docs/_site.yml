@@ -37,6 +37,8 @@ navbar:
       menu:
         - text: "Accessibility"
           href: accessibility.html
+        - text: "University"
+          href: university.html
         - text: "Airport"
           href: airport.html
         - text: "Internal/External"
