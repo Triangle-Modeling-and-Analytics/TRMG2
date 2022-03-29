@@ -112,9 +112,9 @@ Macro "Calc Intersection Approach Density" (Args)
     
     
     // Determine intersection approach densities. Only consider approaches
-    // from arterials/collectors.
+    // from arterials/collectors/locals.
     v_type = GetDataVector(link_lyr + "|", "HCMType", )
-    v_count = if v_type = "Arterial" or v_type = "Collector" then 1 else 0
+    v_count = if v_type = "MajorArterial" or v_type = "Arterial" or v_type = "MajorCollector" or v_type = "Collector" or v_type = "Local" then 1 else 0
     SetDataVector(link_lyr + "|", "to_count", v_count, )
     from_node = CreateNodeField(link_lyr, "from_node", node_lyr + ".ID", "From", )
     to_node = CreateNodeField(link_lyr, "to_node", node_lyr + ".ID", "To", )
