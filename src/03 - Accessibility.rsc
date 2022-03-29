@@ -360,10 +360,9 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     {map, {route_lyr, stop_lyr, , node_lyr, link_lyr}} = RunMacro("Create Map", {file: route_file})
     {taz_lyr} = GetDBLayers(taz_file)
     taz_lyr = AddLayer(map, taz_lyr, taz_file, taz_lyr, )
-    taz_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
-    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
+    a_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
     se_vw = OpenTable("se", "FFB", {se_file})
-    RunMacro("Add Fields", {view: se_vw, a_fields: taz_fields})
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 
     // Buffer and intersect
     SetLayer(stop_lyr)
