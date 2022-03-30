@@ -304,6 +304,7 @@ Macro "Count PRMSEs" (Args)
   // Rename screenline to cutline
   in_file = opts.out_dir + "/count_comparison_by_screenline.csv"
   out_file = opts.out_dir + "/count_comparison_by_cutline.csv"
+  if GetFileInfo(out_file) <> null then DeleteFile(out_file)
   RenameFile(in_file, out_file)
 
   // Run it again to generate the screenline table
