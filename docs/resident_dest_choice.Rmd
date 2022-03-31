@@ -33,7 +33,7 @@ General modeling aspects:
 - Destinations are predicted at the zone (TAZ) level. 
 - Based on an analysis of the region, the zones were logically grouped into the following clusters:
 
-```{r, out.width= "100%", out.height="100%"}
+```{r, out.width= "100%", out.height="80%"}
 knitr::include_graphics("img/dc/clusters.png")
 ```
 

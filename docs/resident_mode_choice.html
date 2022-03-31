@@ -280,7 +280,17 @@
       <li><a href="#utility-specification-7">Utility specification</a></li>
       <li><a href="#notes-7">Notes</a></li>
       </ul></li>
+      <li><a href="#n_hb_omed">N_HB_OMED</a><ul>
+      <li><a href="#utility-specification-8">Utility specification</a></li>
+      <li><a href="#notes-8">Notes</a></li>
       </ul></li>
+      <li><a href="#n_hb_k12">N_HB_K12</a><ul>
+      <li><a href="#utility-specification-9">Utility specification</a></li>
+      <li><a href="#notes-9">Notes</a></li>
+      </ul></li>
+      </ul></li>
+      <li><a href="#calibration">Calibration</a></li>
+      <li><a href="#application">Application</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -505,6 +515,62 @@
 </ul>
 </div>
 </div>
+<div id="n_hb_omed" class="section level2">
+<h2>N_HB_OMED</h2>
+<p>These are home based medical related trips (including pharmacies) that are part of a non-work tour. The walk access branch (with the walk-local and walk-express alternatives) from the ‘Other’ transit nest model is used.</p>
+<div id="utility-specification-8" class="section level3">
+<h3>Utility specification</h3>
+<p><img src="img/mc/n_hb_omed1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/mc/n_hb_omed2.png" width="50%" style="display: block; margin: auto;" /></p>
+<p><img src="img/mc/n_hb_omed3.png" width="50%" style="display: block; margin: auto;" /></p>
+<p><img src="img/mc/n_hb_omed4.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="notes-8" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>During the initial estimation, the time coefficient (along with an asserted toll coefficient derived from the time coefficient) for the auto modes had a positive sign. A model without the toll coefficient however yielded a feasible value for the time coefficient. This value was fixed in the final estimation along with the asserted toll coefficient using the value of time of $11.9/hr.</li>
+<li>The time coefficients for the NonHHAuto modes are highly significant.</li>
+<li>Parking logsums had a positive effect on all the auto modes mode</li>
+<li>High income has a positive effect on choosing the auto modes</li>
+<li>Households with size 1 do not tend to generate HOV trips</li>
+<li>Vehicle insufficiency increases probability of choosing Transit, AutoPay and OtherAuto</li>
+<li>During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.</li>
+</ul>
+</div>
+</div>
+<div id="n_hb_k12" class="section level2">
+<h2>N_HB_K12</h2>
+<p>These are home based school related trips that are part of a non-work tour and include school trips made by kids and drop off trips. The survey indicated that the AutoPay and all transit modes except the walk local were not used. Therefore, a simple MNL model with the modes SOV, HOV2, HOV3, OtherAuto, Walk-Local transit and SchoolBus was estimated. The utility equation for the walk local transit was borrowed from the ‘Other’ transit sub-mode model.</p>
+<div id="utility-specification-9" class="section level3">
+<h3>Utility specification</h3>
+<p><img src="img/mc/n_hb_k12_1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/mc/n_hb_k12_2.png" width="50%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="notes-9" class="section level3">
+<h3>Notes</h3>
+<ul>
+<li>There is no Walk access to express bus mode.</li>
+<li>The time coefficients are significant as expected with the school bus time being onerous compares to driving kids to school.</li>
+<li>Large HHs prefer school pickup/drop-offs</li>
+<li>Choice of mode for this purpose is probably determined by several other factors specific to individual households are thus not adequately captured by a choice model. Nevertheless, a choice model helps fix the shares of the primary modes for this purpose, namely SchoolBus and HOV</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="calibration" class="section level1">
+<h1>Calibration</h1>
+<p>Mode choice ASCS were calibrated to match the adjusted targets shown below. The mode choice targets are generated from the survey for each combination of trip purpose and HH market segment. Note that target shares are not split by transit sub-mode due to paucity of transit trips in the survey. The shares vary significantly by market segment, especially for the zero-auto segment as expected. Further, during the transit ridership validation, the survey transit targets were scaled down to match transit boardings.</p>
+<p>The additional ASC adjustments were not large, reassuring faith in the model estimates. All these targets were met with a sufficiently small reasonable threshold.</p>
+<p><img src="img/mc/asc_calibration.png" width="85%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="application" class="section level1">
+<h1>Application</h1>
+<p>As mentioned earlier, the mode choice output shares can only be applied after the destination choice model has been run. However, the destination choice model requires mode choice logsums by mode, period, purpose and segment. To facilitate this, the mode choice models are run first and the probability matrices and logsums are calculated and stored. After the destination choice model is complete, the stored probability matrices are used to split the appropriate PA matrices by mode. The following rules are used during the mode choice application for a specific purpose, segment and time period.</p>
+<ul>
+<li>For the zero-vehicle segment, SOV, HOV2 and HOV3 are deemed unavailable.</li>
+<li>The appropriate period skims are used, depending on the time period.</li>
+<li>Transit modes are automatically dropped for matrix cells with missing transit skim values.</li>
+</ul>
 </div>
 </div>
 
