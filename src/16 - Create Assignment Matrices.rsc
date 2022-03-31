@@ -18,8 +18,8 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("HB Remove Interim Matrices", Args)
     RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
-    RunMacro("VOT Split", Args)
-    RunMacro("VOT Aggregation", Args)
+    // RunMacro("VOT Split", Args)
+    // RunMacro("VOT Aggregation", Args)
     RunMacro("Add Externals", Args)
     RunMacro("Add University", Args)
 
@@ -683,9 +683,9 @@ Macro "Add Externals" (Args)
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
         if periods.position(period) = 0 then continue
-        if parts[2] = "AUTO" then core_name = "sov_VOT5"
-        if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
-        if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
+        if parts[2] = "AUTO" then core_name = "sov"
+        if parts[2] = "CVSUT" then core_name = "SUT"
+        if parts[2] = "CVMUT" then core_name = "MUT"
 
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
@@ -719,9 +719,9 @@ Macro "Add University" (Args)
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
 
-        // "auto" core from university model trips is put into "sov_VOT2" in od trips
+        // "auto" core from university model trips is put into "sov" in od trips
         univ_core = univ_mtx.GetCore("auto")
-        trip_core = trip_mtx.GetCore("sov_VOT2")
+        trip_core = trip_mtx.GetCore("sov")
 
         trip_core := nz(trip_core) + nz(univ_core)
     end

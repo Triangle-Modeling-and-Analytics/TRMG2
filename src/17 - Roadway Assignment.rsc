@@ -174,77 +174,59 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 then pkop = "pk"
                 else pkop = "op"
 
-            // Auto VOT 1 and 2 are collapsed into 2
-            auto_vot_ints = {2, 3, 4, 5}
-
             // sov
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                sov_opts = {
-                    Demand: "sov_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostSOV"
-                }
-                if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(sov_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.(pkop + "_auto") / 60 // ($/min)
+            sov_opts = {
+                Demand: "sov",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostSOV"
+            }
+            if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(sov_opts)
             // hov2
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                o.AddClass({
-                    Demand: "hov2_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostHOV"
-                })
-            end
+            o.AddClass({
+                Demand: "hov2",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostHOV"
+            })
             // hov3
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                o.AddClass({
-                    Demand: "hov3_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostHOV"
-                })
-            end
+            o.AddClass({
+                Demand: "hov3",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostHOV"
+            })
             // CV
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                cv_opts = {
-                    Demand: "CV_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostSOV"
-                }
-                if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(cv_opts)
-            end
+            cv_opts = {
+                Demand: "CV",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostSOV"
+            }
+            if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(cv_opts)
             // SUT
-            for i = 1 to 3 do
-                voi = vot_params.calib_factor * vot_params.("sut_vot" + String(i)) / 60 // ($/min)
-                sut_opts = {
-                    Demand: "SUT_VOT" + String(i),
-                    PCE: 1.5,
-                    VOI: voi,
-                    LinkTollField: "TollCostSUT"
-                }
-                if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(sut_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.("sut") / 60 // ($/min)
+            sut_opts = {
+                Demand: "SUT",
+                PCE: 1.5,
+                VOI: voi,
+                LinkTollField: "TollCostSUT"
+            }
+            if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(sut_opts)
             // MUT
-            for i = 1 to 5 do
-                voi = vot_params.calib_factor * vot_params.("mut_vot" + String(i)) / 60 // ($/min)
-                mut_opts = {
-                    Demand: "MUT_VOT" + String(i),
-                    PCE: 2.5,
-                    VOI: voi,
-                    LinkTollField: "TollCostMUT"
-                }
-                if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(mut_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.("mut") / 60 // ($/min)
+            mut_opts = {
+                Demand: "MUT",
+                PCE: 2.5,
+                VOI: voi,
+                LinkTollField: "TollCostMUT"
+            }
+            if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(mut_opts)
         end
         ret_value = o.Run()
         results = o.GetResults()
