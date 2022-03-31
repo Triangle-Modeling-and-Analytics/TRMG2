@@ -172,22 +172,17 @@ Macro "Calculate Daily Fields" (Args)
 
   // Sum up the flow fields
   for mode in modes do
-    if mode = "SUT" then vots = {1, 2, 3}
-    else if mode = "MUT" then vots = {1, 2, 3, 4, 5}
-    else vots = {2, 3, 4, 5}
 
     for dir in a_dir do
       out_field = dir + "_" + mode + "_Flow_Daily"
       fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + mode + " Flow"}}
       v_output = null
 
-      // For this direction and mode, sum every combination of VOT and period
-      for vot in vots do
-        for period in a_periods do
-          input_field = dir + "_Flow_" + mode + "_VOT" + String(vot) + "_" + period
-          v_add = GetDataVector(llyr + "|", input_field, )
-          v_output = nz(v_output) + nz(v_add)
-        end
+      // For this direction and mode, sum every period
+      for period in a_periods do
+        input_field = dir + "_Flow_" + mode + "_" + period
+        v_add = GetDataVector(llyr + "|", input_field, )
+        v_output = nz(v_output) + nz(v_add)
       end
 
       output.(out_field) = v_output
@@ -304,6 +299,7 @@ Macro "Count PRMSEs" (Args)
   // Rename screenline to cutline
   in_file = opts.out_dir + "/count_comparison_by_screenline.csv"
   out_file = opts.out_dir + "/count_comparison_by_cutline.csv"
+  if GetFileInfo(out_file) <> null then DeleteFile(out_file)
   RenameFile(in_file, out_file)
 
   // Run it again to generate the screenline table

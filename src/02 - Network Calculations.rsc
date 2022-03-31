@@ -973,6 +973,7 @@ Macro "Create Link Networks" (Args)
             netSetObj.LoadNetwork(net_file)
             netSetObj.CentroidFilter = "Centroid = 1"
             netSetObj.LinkTollFilter = "TollType = 'Toll'"
+            netSetObj.SetPenalties({UTurn: -1})
             netSetObj.Run()
         end
     end
