@@ -429,10 +429,10 @@ Macro "Create AO Features" (Args)
     RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
 
     v_inccat = GetDataVector(hh_vw + "|", "IncomeCategory", )
-    data.(Income1) = if v_inccat = 1 then 1 else 0
-    data.(Income2) = if v_inccat = 2 then 1 else 0
-    data.(Income3) = if v_inccat = 3 then 1 else 0
-    data.(Income4) = if v_inccat = 4 then 1 else 0
+    data.[Income1] = if v_inccat = 1 then 1 else 0
+    data.[Income2] = if v_inccat = 2 then 1 else 0
+    data.[Income3] = if v_inccat = 3 then 1 else 0
+    data.[Income4] = if v_inccat = 4 then 1 else 0
     SetDataVectors(hh_vw + "|", data, )
     CloseView(hh_vw)
 endmacro
