@@ -1,32 +1,52 @@
 Alternative,Expression,Segment,Coefficient,Description
 v0,Constant,,0,Constant
-v1,hh.IncomeCategory,,1.68663,Income
+v1,"min(hh.HHWorkers,4)",,0.717755,Workers
 v1,"min(hh.HHNWAdults,4)",,0,Non-working adults
-v1,"min(hh.HHSeniors,2)",,0.143987,Seniors
-v1,se.access_transit.O,,-0.369765,Transit access
-v1,"min(hh.HHWorkers,4)",,0.66498,Workers
-v1,Constant,,-0.441283,Constant
-v2,hh.IncomeCategory,,2.53124,Income
-v2,"min(hh.HHNWAdults,4)",,2.05954,Non-working adults
-v2,"min(hh.HHSeniors,2)",,0.143987,Seniors
-v2,se.access_transit.O,,-0.42533,Transit access
-v2,se.access_walk.O,,-0.395344,Walk access
-v2,"min(hh.HHWorkers,4)",,3.23971,Workers
-v2,Constant,,-5.7512,Constant
-v3,hh.IncomeCategory,,2.72387,Income
-v3,"min(hh.HHKids,2)",,-0.153111,Kids
-v3,"min(hh.HHNWAdults,4)",,2.8056,Non-working adults
-v3,se.access_transit.O,,-0.535768,Transit access
-v3,se.access_walk.O,,-0.60468,Walk access
-v3,"min(hh.HHWorkers,4)",,4.24853,Workers
-v3,Constant,,-8.93905,Constant
-v4,hh.IncomeCategory,,2.95781,Income
-v4,"min(hh.HHKids,2)",,-0.153111,Kids
-v4,"min(hh.HHNWAdults,4)",,3.59778,Non-working adults
-v4,se.access_walk.O,,-1.0608,Walk access
-v4,"min(hh.HHWorkers,4)",,5.21541,Workers
-v4,Constant,,-12.6101,Constant
-v1,Constant,,-0.0706,Calibration constant
-v2,Constant,,0.1128,Calibration constant
-v3,Constant,,0.1454,Calibration constant
-v4,Constant,,-0.4734,Calibration constant
+v1,"min(hh.HHSeniors,2)",,0.079572,Seniors
+v1,se.access_walk.O,,-0.371179,Walk access
+v1,se.access_transit.O,,-0.092178,Transit access
+v1,se.access_nearby.O,,-0.375888,Nearby access
+v1,se.Walkability.O,,-0.53087,Walkability (intrazonal)
+v1,hh.Income1,,-0.56097,Income Category 1 HHs
+v1,hh.Income2,,1.59792,Income Category 2 HHs
+v1,hh.Income3,,1.81833,Income Category 3 HHs
+v1,hh.Income4,,2.23304,Income Category 4 HHs
+v1,Constant,,4.87839,Constant
+v2,"min(hh.HHWorkers,4)",,3.32521,Workers
+v2,"min(hh.HHNWAdults,4)",,2.08026,Non-working adults
+v2,"min(hh.HHSeniors,2)",,0.079572,Seniors
+v2,se.access_walk.O,,-0.617354,Walk access
+v2,se.access_transit.O,,-0.147279,Transit access
+v2,se.access_nearby.O,,-0.52935,Nearby access
+v2,se.Walkability.O,,-0.53087,Walkability (intrazonal)
+v2,hh.Income1,,-1.79798,Income Category 1 HHs
+v2,hh.Income2,,1.59792,Income Category 2 HHs
+v2,hh.Income3,,2.61018,Income Category 3 HHs
+v2,hh.Income4,,3.701,Income Category 4 HHs
+v2,Constant,,2.44303,Constant
+v3,"min(hh.HHWorkers,4)",,4.34046,Workers
+v3,"min(hh.HHNWAdults,4)",,2.8301,Non-working adults
+v3,se.access_walk.O,,-0.617354,Walk access
+v3,se.access_transit.O,,-0.198845,Transit access
+v3,se.access_nearby.O,,-0.832878,Nearby access
+v3,se.Walkability.O,,-0.53087,Walkability (intrazonal)
+v3,hh.Income1,,-1.83537,Income Category 1 HHs
+v3,hh.Income2,,1.59792,Income Category 2 HHs
+v3,hh.Income3,,2.74581,Income Category 3 HHs
+v3,hh.Income4,,4.14676,Income Category 4 HHs
+v3,Constant,,1.69713,Constant
+v4,"min(hh.HHWorkers,4)",,5.33731,Workers
+v4,"min(hh.HHNWAdults,4)",,3.64983,Non-working adults
+v4,se.access_walk.O,,-0.717741,Walk access
+v4,se.access_transit.O,,-0.198845,Transit access
+v4,se.access_nearby.O,,-1.13757,Nearby access
+v4,se.Walkability.O,,-0.53087,Walkability (intrazonal)
+v4,hh.Income1,,-3.19575,Income Category 1 HHs
+v4,hh.Income2,,1.59792,Income Category 2 HHs
+v4,hh.Income3,,2.74581,Income Category 3 HHs
+v4,hh.Income4,,4.50561,Income Category 4 HHs
+v4,Constant,,0.721447,Constant
+v1,Constant,,0,Calibration constant
+v2,Constant,,0,Calibration constant
+v3,Constant,,0,Calibration constant
+v4,Constant,,0,Calibration constant
