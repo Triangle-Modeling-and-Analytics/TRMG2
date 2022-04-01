@@ -375,3 +375,94 @@ knitr::include_graphics("img/mc/n_hb_od_long4.png")
 - Single person HHs do not generate as many HOV trips
 - Vehicle insufficiency increases probability of choosing Transit, AutoPay and OtherAuto
 - During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.
+
+## N_HB_OMED
+
+These are home based medical related trips (including pharmacies) that are part of a non-work tour. The walk access branch (with the walk-local and walk-express alternatives) from the ‘Other’ transit nest model is used.
+
+### Utility specification
+
+```{r, fig.align='center', out.width="100%"}
+knitr::include_graphics("img/mc/n_hb_omed1.png")
+```
+
+```{r, fig.align='center', out.width="50%"}
+knitr::include_graphics("img/mc/n_hb_omed2.png")
+```
+
+```{r, fig.align='center', out.width="50%"}
+knitr::include_graphics("img/mc/n_hb_omed3.png")
+```
+
+```{r, fig.align='center', out.width="50%"}
+knitr::include_graphics("img/mc/n_hb_omed4.png")
+```
+
+### Notes
+
+- During the initial estimation, the time coefficient (along with an asserted toll coefficient derived from the time coefficient) for the auto modes had a positive sign. A model without the toll coefficient however yielded a feasible value for the time coefficient. This value was fixed in the final estimation along with the asserted toll coefficient using the value of time of $11.9/hr.
+- The time coefficients for the NonHHAuto modes are highly significant.
+- Parking logsums had a positive effect on all the auto modes mode
+- High income has a positive effect on choosing the auto modes
+- Households with size 1 do not tend to generate HOV trips
+- Vehicle insufficiency increases probability of choosing Transit, AutoPay and OtherAuto
+- During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.
+
+## N_HB_K12
+
+These are home based school related trips that are part of a non-work tour and include school trips made by kids and drop off trips. The survey indicated that the AutoPay and all transit modes except the walk local were not used. Therefore, a simple MNL model with the modes SOV, HOV2, HOV3, OtherAuto, Walk-Local transit and SchoolBus was estimated. The utility equation for the walk local transit was borrowed from the ‘Other’ transit sub-mode model.
+
+### Utility specification
+
+```{r, fig.align='center', out.width="100%"}
+knitr::include_graphics("img/mc/n_hb_k12_1.png")
+```
+
+```{r, fig.align='center', out.width="50%"}
+knitr::include_graphics("img/mc/n_hb_k12_2.png")
+```
+
+### Notes
+
+- There is no Walk access to express bus mode.
+- The time coefficients are significant as expected with the school bus time
+being onerous compares to driving kids to school.
+- Large HHs prefer school pickup/drop-offs
+- Choice of mode for this purpose is probably determined by several other
+factors specific to individual households are thus not adequately captured by a
+choice model. Nevertheless, a choice model helps fix the shares of the primary
+modes for this purpose, namely SchoolBus and HOV
+
+# Calibration
+
+Mode choice ASCS were calibrated to match the adjusted targets shown below. The
+mode choice targets are generated from the survey for each combination of trip
+purpose and HH market segment. Note that target shares are not split by transit
+sub-mode due to paucity of transit trips in the survey. The shares vary
+significantly by market segment, especially for the zero-auto segment as
+expected. Further, during the transit ridership validation, the survey transit
+targets were scaled down to match transit boardings.
+
+The additional ASC adjustments were not large, reassuring faith in the model
+estimates. All these targets were met with a sufficiently small reasonable
+threshold.
+
+```{r, fig.align='center', out.width="85%"}
+knitr::include_graphics("img/mc/asc_calibration.png")
+```
+
+# Application
+
+As mentioned earlier, the mode choice output shares can only be applied after
+the destination choice model has been run. However, the destination choice model
+requires mode choice logsums by mode, period, purpose and segment. To facilitate
+this, the mode choice models are run first and the probability matrices and
+logsums are calculated and stored. After the destination choice model is
+complete, the stored probability matrices are used to split the appropriate PA
+matrices by mode. The following rules are used during the mode choice
+application for a specific purpose, segment and time period.
+
+- For the zero-vehicle segment, SOV, HOV2 and HOV3 are deemed unavailable.
+- The appropriate period skims are used, depending on the time period.
+- Transit modes are automatically dropped for matrix cells with missing transit
+skim values.

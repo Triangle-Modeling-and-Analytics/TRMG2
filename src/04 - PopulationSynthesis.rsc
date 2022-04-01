@@ -14,6 +14,7 @@ Macro "IPU Synthesis" (Args)
 endmacro
 
 Macro "Auto Ownership" (Args)
+    RunMacro("Create AO Features", Args)
     RunMacro("Calculate Auto Ownership", Args)
     return(1)
 endmacro
@@ -409,6 +410,32 @@ Macro "Create Output HH Expressions"(vw_hhM, specs)
     end
     Return(aggflds)
 endMacro
+
+/*
+Creates any additional fields needed by the AO choice model
+*/
+
+Macro "Create AO Features" (Args)
+
+    hh_file = Args.Households
+
+    hh_vw = OpenTable("hh", "FFB", {hh_file})
+    a_fields =  {
+        {"Income1", "Integer", 10, ,,,, "HH is IncomeCategory 1"},
+        {"Income2", "Integer", 10, ,,,, "HH is IncomeCategory 2"},
+        {"Income3", "Integer", 10, ,,,, "HH is IncomeCategory 3"},
+        {"Income4", "Integer", 10, ,,,, "HH is IncomeCategory 4"}
+    }
+    RunMacro("Add Fields", {view: hh_vw, a_fields: a_fields})
+
+    v_inccat = GetDataVector(hh_vw + "|", "IncomeCategory", )
+    data.[Income1] = if v_inccat = 1 then 1 else 0
+    data.[Income2] = if v_inccat = 2 then 1 else 0
+    data.[Income3] = if v_inccat = 3 then 1 else 0
+    data.[Income4] = if v_inccat = 4 then 1 else 0
+    SetDataVectors(hh_vw + "|", data, )
+    CloseView(hh_vw)
+endmacro
 
 Macro "Calculate Auto Ownership" (Args, trip_types)
 
