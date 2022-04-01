@@ -466,3 +466,73 @@ application for a specific purpose, segment and time period.
 - The appropriate period skims are used, depending on the time period.
 - Transit modes are automatically dropped for matrix cells with missing transit
 skim values.
+
+# Rail and BRT
+
+Rail and Bus Rapid Transit (BRT) do not exist in the Triangle in 2020; however,
+the region is actively studying these modes for the future. As a result, Caliper
+asserted mode choice nests for Light Rail (LR), Commuter Rail (LR), and BRT.
+This assertion combined revealed modal data from the on-board survey (just as
+value of time coefficients) and guidelines provided by FTA and used in the STOPS
+model
+([link1](https://www.transit.dot.gov/funding/grant-programs/capital-investments/stops-workshop-atlantic-city-may-17-2015)
+[link2](https://www.fsutmsonline.net/images/uploads/Task_1_Guidebook_for_Florida_STOPS_Application.pdf)).
+
+The first FTA factor to consider is what they call "Visibility". In short, as
+more of the service operates on fixed guideway, the higher this factor goes
+(bounded between 0 and 1).
+
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/mc/fta_visibility.png")
+```
+
+For TRMG2, the following visibility factors were assumed:
+
+- BRT: 0.25
+- LRT: 0.50
+- CRT: 1.00
+
+Additionally, the graphic below shows the FTA guidance on path-based constants.
+These are presented as penalties added to bus, but Caliper applied them as
+bonuses for rail and BRT.
+
+```{r, fig.align='center', out.width="90%"}
+knitr::include_graphics("img/mc/fta_path_constants.png")
+```
+
+TRMG2 market segmentation does not match the above chart exactly. Caliper made
+the following assumptions about equivalency:
+
+- zero-vehicle segment (v0): 0 vehicle households
+- vehicle insufficient segment (vi): 1 vehicle households
+- vehicle sufficient segment (vs): 2+ vehicle households
+
+Additionally, the cost coefficients from estimation (generally around .022) were
+within the FTA guidance of .02 - .03. Caliper applied the following discounts
+to in-vehicle time (adjusted based on our assumed visibility scores):
+
+- BRT: 5%
+- LRT: 10%
+- CRT: 20%
+
+The table below is a concrete example of how LRT was modified for the
+N_HB_OD_Short purpose. In the gray cells, the numbers in blue show the
+modifications. The IVTT time is discounted and the mode is given bonus path type
+constants based on visibility, market segment, and scaled by G2s cost
+coefficient.
+
+```{r, fig.align='center', out.width="100%"}
+knitr::include_graphics("img/mc/lr_adjustment.png")
+```
+
+Additionally, Caliper compared these adjustments to the existing TRMV6.2 model.
+In that model, a single premium mode exists with the following adjustments:
+
+- IVTT discount of 15%
+- 30 bonus minutes added to the constant
+
+All else equal, TRMG2s smaller discounts and bonuses should lead to more
+conservative ridership estimates. However, during planning analysis, the region
+can adjust the visibility factors to reflect the actual service being planned.
+For example, if planned BRT service operates fully inside reserved right of
+way, the visibility factor should be increased.
