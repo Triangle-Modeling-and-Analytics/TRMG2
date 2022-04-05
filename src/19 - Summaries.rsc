@@ -575,7 +575,8 @@ Macro "Summarize HB DC and MC" (Args)
   df.mutate("matrix", v)
   df.rename({"matrix", "core"}, {"trip_type", "mode"})
   df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
-  df.filter("mode <> 'all_transit'")
+  df.filter("mode contains 'mc_'")
+  df.mutate("mode", Substitute(df.tbl.mode, "mc_", "", ))
   modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
@@ -614,7 +615,7 @@ Macro "Summarize HB DC and MC" (Args)
       in_mtx = CreateObject("Matrix", in_file)
       core_names = in_mtx.GetCoreNames()
       for core_name in core_names do
-        if core_name = "all_transit" or core_name contains "park" then continue // Remove 'Park-Walk' and 'Park-Shuttle' trips from stats and trip length calculations
+        if Left(core_name, 3) <> "dc_" then continue // only summarize the dc matrices
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
       end
@@ -698,9 +699,9 @@ Macro "Summarize HB DC and MC" (Args)
   CloseMap(map)
 
   // Remove the totals matrices to save space
-  for file in total_files do
-    DeleteFile(file)
-  end
+  // for file in total_files do
+  //   DeleteFile(file)
+  // end
 EndMacro
 
 /*
