@@ -1249,7 +1249,7 @@ calib_factors <- calibration_trips %>%
   mutate(factor = survey / model) %>%
   select(trip_type, segment, factor) %>%
   mutate(
-    factor = factor * 0.92625, # final validation factor based on counts
+    factor = factor * 0.963, # final validation factor based on counts
     factor = round(factor, 3)
   ) 
 
