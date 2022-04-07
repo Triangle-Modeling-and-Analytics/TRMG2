@@ -371,8 +371,11 @@ Macro "Apportion Resident HB Trips" (Args)
                 if segment = segments[1] then do
                     CopyFile(mc_mtx_file, out_mtx_file)
                     out_mtx = CreateObject("Matrix", out_mtx_file)
-                    cores = out_mtx.GetCores()
                     core_names = out_mtx.GetCoreNames()
+                    // create extra mc cores that can be used for summaries (not modified by parking)
+                    mc_cores = V2A("mc_" + A2V(core_names))
+                    out_mtx.AddCores(mc_cores)
+                    cores = out_mtx.GetCores()
                     for core_name in core_names do
                         cores.(core_name) := nz(cores.(core_name)) * 0
                     end
@@ -387,6 +390,18 @@ Macro "Apportion Resident HB Trips" (Args)
                 out_cores = out_mtx.GetCores()
                 for mode in mode_names do
                     out_cores.(mode) := nz(out_cores.(mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
+                    
+                    // Create extra cores that just hold dc/mc results that are not
+                    // modified by subsequent model steps. These are created primarily
+                    // for summary/auditing. The model does not use them during feedback.
+                    out_cores.("mc_" + mode) := nz(out_cores.("mc_" + mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
+                    if mode = mode_names[1] then do
+                        // Add extra cores to hold dc-only results
+                        dc_core = "dc_" + segment
+                        out_mtx.AddCores({dc_core})
+                        dc_core = out_mtx.GetCore(dc_core)
+                        dc_core := nz(dc_core) + v_prods * nz(dc_cores.final_prob)
+                    end
                 end
             end
 

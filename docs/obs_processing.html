@@ -191,6 +191,9 @@
          <a href="resident_dest_choice.html">Destination Choice</a>
        </li>
        <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
          <a href="nhb.html">Non-homebased</a>
        </li>
      </ul>
@@ -204,6 +207,9 @@
      <ul class="dropdown-menu" role="menu">
        <li>
          <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="university.html">University</a>
        </li>
        <li>
          <a href="airport.html">Airport</a>
@@ -261,16 +267,16 @@
 <div id="main">
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>On-board surveys ask transit riders a series of question while they are on the bus in order to obtain detailed information about demographics, trip purpose, modes used, and other variables. These targeted surveys are critical for understanding transit users in the region. Due to the small size of the transit market in the Triangle and the small household survey sample size, the household survey does not contain enough transit trips to estimate the behavior of these travelers.</p>
-<p>In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014 (excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with new GoTriangle routes. These are used to gain insight into the transit market.</p>
+<p>Due to the small size of the transit market in the Triangle and the small household survey sample size, the household survey does not contain enough transit observations to estimate behavioral models for transit users. On-board surveys are critical to fill this gap. They are intercept surveys, which means they are conducted on the bus itself. They ask transit riders a series of questions in order to obtain detailed information about demographics, trip purpose, modes used, and other variables.</p>
+<p>In the Triangle, a survey of 9,231 GoTriangle and DCHC area transit riders was conducted in 2014 (excluding Duke Transit). 5,390 CAMPO area transit riders were surveyed in 2015 along with new GoTriangle routes. These are used to gain insight into the transit market.</p>
 </div>
 <div id="combining-surveys" class="section level2">
 <h2>Combining surveys</h2>
-<p>Unlike the household surveys, the transit surveys were collected by different companies. Combining the surveys required translating the different field codes from each into a combined set of values. The surveys collected the same basic information, which made this process easier. Additionally, because different routes were collected in each survey, no routes were double counted and no adjustments to the sample weights were needed.</p>
+<p>Unlike the household surveys, the transit surveys were collected by different companies. Combining the surveys required translating different field codes into a combined set of values. The surveys collected the same basic information, which made this process easier. Additionally, because different routes were collected in each survey, no routes were double counted and no adjustments to the sample weights were needed.</p>
 </div>
 <div id="geocoding" class="section level2">
 <h2>Geocoding</h2>
-<p>As with the household survey, the transit trip latitude/longitude values were translated into TRMG2 TAZs. For a transit trip, this includes the home, origin, destination, boarding, and alighting locations. A sample of this is shown in the table below:</p>
+<p>As with the household survey, the transit trip latitude/longitude values were translated into TRMG2 TAZs. For a transit trip, this includes the home, origin (which could be somewhere other than home), destination, boarding, and alighting locations. A sample of this is shown in the table below:</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -441,27 +447,32 @@ C-Tran: Route 5: INBOUND toward Train Station
 </div>
 <div id="reasonableness-checks" class="section level2 tabset">
 <h2>Reasonableness checks</h2>
-<p>A high level review of the combined survey was performed to make sure processing had not introduced errors. Some of those checks are shown in the charts below. All dimensions checked looked reasonable.</p>
+<p>A high level review of the combined survey was performed to make sure field translations and survey combination had not introduced errors. Some of those checks are shown in the charts below. All dimensions checked looked reasonable.</p>
 <div id="agency" class="section level3">
 <h3>Agency</h3>
+<p>The distribution by agency lines up fairly well with the size of the agencies themselves.</p>
 <p><img src="obs_processing_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
 </div>
 <div id="time-of-day" class="section level3">
 <h3>Time of Day</h3>
+<p>The time period definitions are the same as those defined in the <a href="time_of_day.html">time of day</a> documentation. The AM period, for example, is only 2 hours. This explains the large number of transit observations categorized as midday.</p>
 <p><img src="obs_processing_files/figure-html/unnamed-chunk-13-1.png" width="768" /></p>
 </div>
 <div id="access-mode" class="section level3">
 <h3>Access Mode</h3>
+<p>Walk access is the dominant mode in the survey, which matches transit behavior in the region.</p>
 <p><img src="obs_processing_files/figure-html/unnamed-chunk-14-1.png" width="768" /></p>
 </div>
 <div id="fare-type" class="section level3">
 <h3>Fare Type</h3>
+<p>Free routes are the most common, which is a reflection of the CHT system which offers many routes with no fare.</p>
 <p><img src="obs_processing_files/figure-html/unnamed-chunk-15-1.png" width="768" /></p>
 </div>
 </div>
 <div id="survey-assignment" class="section level2">
 <h2>Survey Assignment</h2>
-<p>For an additional check on both the on-board survey processing and the model’s route network, the on-board survey was assigned. This involved processing the survey into the appropriate matrices by time of day, transit mode, and accesss mode. The model assignment macros in TransCAD were used to assign these to the route system, and the results were compared to reported ridership by route.</p>
+<p>Caliper assigned the combined transit survey to the 2016 transit route networks used by the model. Neither survey was collected in 2016, so route offerings are likely different. However, assigning the survey can help identify errors in the networks. These can include missing access links or route mis-coding, but also gives insights into things transfers. If the model is not penalizing transfers enough, this early assignment will show more transfers than in the survey.</p>
+<p>The assignment process involved processing the survey into the appropriate matrices by time of day, transit mode, and accesss mode. The model’s assignment macros in TransCAD were used to assign the matrices to the route system, and the results were compared to reported ridership by route. One of the conclusions was in fact that transfers needed to be penalized heavier in the transit network settings. In the survey, no one transferred more than once.</p>
 <p>The percent root mean square error (%RMSE) for route-level boardings was 96.8%. The agency-level %RMSE was 52.63%. The table below shows the agency-level comparison.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -609,8 +620,8 @@ TT
 </tr>
 </tbody>
 </table>
-<p>These differences are large, but manual path checking did not uncover any errors. This test assignment was performed on a network with a rough initial guess of travel times, which likely contributed to these differences. Further differences may be because the surveys were from 2014 and 2015 while the transit network is 2016. Any changes in route alignments or offerings would lead to higher discrepancies.</p>
-<p>More attention will be paid to agency- and route-level ridership comparisons during model validation. It may be that fares or other route attributes received from stakeholders need to be adjusted. One positive result of this early test was that all routes received ridership, which indicates no critical accessibility flaws in the network.</p>
+<p>These differences are large, but manual path checking did not uncover any errors. This test assignment was performed on a network with a rough initial guess of travel times, which contributed to these differences. Further differences may be because the surveys were from 2014 and 2015 while the transit network is 2016. Any changes in route alignments or offerings would lead to higher discrepancies.</p>
+<p>During model development, much more accurate roadway times were calculated from actual model assignments. Further, the transit network settings were also dialed in to achieve final results that look much more reasonable.</p>
 </div>
 </div>
 

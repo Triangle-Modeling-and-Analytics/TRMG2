@@ -52,7 +52,9 @@ w_eb,se.HiIncomePct.O,,-0.3106,High income household percentage
 w_brt,Constant,,0.8611,Constant
 w_brt,Constant,v0,1.0904,Zero-vehicle households
 w_brt,Constant,vi,0.5104,Vehicle Insufficient households
-w_brt,w_brt_skim.[In-Vehicle Time],,-0.02129,IVTT
+w_brt,Constant,vi,0.08,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+w_brt,Constant,vs,0.12,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+w_brt,w_brt_skim.[In-Vehicle Time] * .95,,-0.02129,IVTT (discounted)
 w_brt,w_brt_skim.Fare,,-0.107363,Fare
 w_brt,w_brt_skim.[Access Walk Time],,-0.09,Access walk time
 w_brt,w_brt_skim.[Initial Wait Time],,-0.0826,Initial wait time
@@ -63,7 +65,9 @@ w_brt,se.HiIncomePct.O,,-0.3106,High income household percentage
 w_lr,Constant,,0.8611,Constant
 w_lr,Constant,v0,1.0904,Zero-vehicle households
 w_lr,Constant,vi,0.5104,Vehicle Insufficient households
-w_lr,w_lr_skim.[In-Vehicle Time],,-0.02129,IVTT
+w_lr,Constant,vi,0.16,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+w_lr,Constant,vs,0.24,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+w_lr,w_lr_skim.[In-Vehicle Time] * .9,,-0.02129,IVTT (discounted)
 w_lr,w_lr_skim.Fare,,-0.107363,Fare
 w_lr,w_lr_skim.[Access Walk Time],,-0.09,Access walk time
 w_lr,w_lr_skim.[Initial Wait Time],,-0.0826,Initial wait time
