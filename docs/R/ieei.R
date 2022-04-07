@@ -4,7 +4,7 @@ data_dir <- "data/input/ieei/"
 output_dir <- "data/output/ieei/"
 master_dir <- "../master/"
 
-taz_shape_filename <- paste0(master_dir, "tazs/master_tazs.shp")
+taz_shape_filename <- "data/input/tazs/master_tazs.shp"
 socec_filename <- paste0(data_dir, "se_2016.csv")
 consolidated_streetlight_filename <- paste0(private_dir, "streetlight-ieei-flows.RDS")
 ncstm_filename <- paste0(data_dir, "ncstm-demand.rds")

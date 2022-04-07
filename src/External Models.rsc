@@ -295,7 +295,7 @@ Macro "IEEI Attractions" (Args)
     {OptArray: TRUE}
   )  
 
-  // read airport model file for coefficients
+  // read ieei model file for coefficients
   coeffs = RunMacro("Read Parameter File", {
     file: ieei_model_file,
     names: "variable",
