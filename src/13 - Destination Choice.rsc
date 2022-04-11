@@ -342,6 +342,7 @@ Macro "Apportion Resident HB Trips" (Args)
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_matrices"
     periods = RunMacro("Get Unconverged Periods", Args)
+    access_modes = Args.access_modes
 
     se_vw = OpenTable("se", "FFB", {se_file})
 
@@ -408,14 +409,16 @@ Macro "Apportion Resident HB Trips" (Args)
             // Create an extra core the combines all transit modes together
             // This is not assigned, but is used in the NHB trip generation
             // model.
-            mode_names = out_mtx.GetCoreNames()
+            core_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
             cores.all_transit := 0
-            modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
-            for mode in mode_names do
-                if modes_to_skip.position(mode) > 0 then continue
-                cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
+            for core_name in core_names do
+                parts = ParseString(core_name, "_")
+                access_mode = parts[1]
+                // skip non-transit cores
+                if access_modes.position(access_mode) = 0 then continue
+                cores.all_transit := nz(cores.all_transit) + nz(cores.(core_name))
             end
             cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
         end
