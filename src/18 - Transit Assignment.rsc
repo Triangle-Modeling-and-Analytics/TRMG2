@@ -23,8 +23,8 @@ Macro "Create Transit Matrices2" (Args)
     trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
     nhb_dir = Args.[Output Folder] + "/resident/nhb//dc/trip_matrices"
     periods = Args.periods
+    access_modes = Args.access_modes
 
-    access_modes = {"w", "pnr", "knr"}
     files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
     // Create a starting transit matrix for each time period
