@@ -31,6 +31,8 @@ navbar:
           href: parking.html
         - text: "Destination Choice"
           href: resident_dest_choice.html
+        - text: "Mode Choice"
+          href: resident_mode_choice.html
         - text: "Non-homebased"
           href: nhb.html
     - text: Other Models

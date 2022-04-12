@@ -22,7 +22,7 @@ options(scipen = 999, digits = 3)
 
 ## Introduction  
 
-The University Model simulates the on- and off-campus travel of students of the Triangle Region's four large universities:  North Carolina State University (NCSU), The University of North Carolina at Chapel Hill (UNC), Duke University (Duke), and North Carolina Central University (NCCU). In 2016, the four universities had a combined enrollment of `r prettyNum(enrollment_total, big.mark = ",")`, with `r prettyNum(enrollment_NCSU, big.mark = ",")` students at NCSU; `r prettyNum(enrollment_UNC, big.mark = ",")` at UNC; `r prettyNum(enrollment_Duke, big.mark = ",")` at Duke; and `r prettyNum(enrollment_NCCU, big.mark = ",")` at NCCU.  
+The University Model simulates travel of on- and off-campus students of these Triangle:  North Carolina State University (NCSU), University of North Carolina at Chapel Hill (UNC), Duke University (Duke), and North Carolina Central University (NCCU). In 2016, they had a combined enrollment of `r prettyNum(enrollment_total, big.mark = ",")`, with `r prettyNum(enrollment_NCSU, big.mark = ",")` students at NCSU; `r prettyNum(enrollment_UNC, big.mark = ",")` at UNC; `r prettyNum(enrollment_Duke, big.mark = ",")` at Duke; and `r prettyNum(enrollment_NCCU, big.mark = ",")` at NCCU.  
 
 ```{r enrollment,echo=FALSE}
 enrollment_NCSU <- socioecon2_df %>% 
@@ -50,12 +50,14 @@ enrollment_total <- enrollment_NCSU + enrollment_UNC + enrollment_Duke + enrollm
 
 The model structure segments trips into the following purposes:
 
-* Home-Based-Campus (Home-Campus or UHC) 
-* Home-Based-Other (Home-Other or UHO)  
-* Campus-Based-Other (Campus-Other or UCO)  
-* On-Campus (On-campus or UC1)  
-* Inter-Campus (Campus-to-Campus or UCC)  
-* University student Other-Other (Other-to-Other or UOO)  
+* Off campus students:
+  * Home-Based-Campus (Home-Campus or UHC) 
+  * Home-Based-Other (Home-Other or UHO)  
+* All students:
+  * Campus-Based-Other (Campus-Other or UCO)  
+  * On-Campus (On-campus or UC1)  
+  * Inter-Campus (Campus-to-Campus or UCC)  
+  * University Student Other-Other (Other-to-Other or UOO)  
 
 The structure segments the home-based trip purposes, Home-Campus and Home-Other, by on- and off-campus students. On-campus students are expected to make more trips, with many of those trips expected to start and end on campus. On-campus students are more likely to be undergraduate students who are enrolled at the university full-time. Graduate students are more likely to reside off-campus.
 
