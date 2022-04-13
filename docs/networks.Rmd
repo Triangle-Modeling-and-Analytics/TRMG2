@@ -54,21 +54,22 @@ like "Free", "Toll", and "HOT" (for high-occupancy toll lane). It is easier to
 understand a query like "TollType = 'Toll'" compared to "Special = 43". For a
 full enumeration of field names and meanings, see the user guide.
 
-The Caliper team also updated the master layer to reflect a 2016 base year,
-the target year for model estimation (the final layer is a 2020 base year and
-will be accompanied by a 2020 year model validation process). In other words, if
-you export a scenario layer without any projects it will reflect the 2016 road
-system. This was done by permanently modifying the base attributes of the master
-layer with any projects scheduled to be complete by the base year date. This
-did include some road closures, and those links dropped out of the layer
-permanently.
+The Caliper team also updated the master layer to reflect a 2020 base year, the
+target year for final model delivery. In other words, if you export a scenario
+layer without any projects, it will reflect the 2020 road system. This was done
+by permanently modifying the base attributes of the master layer with any
+projects scheduled to be complete by the base year date. This did include some
+road closures, and those links dropped out of the layer permanently.
 
 ### Update of count data
 
 The count data was provided to Caliper by the Stakeholders. The original source
 of this info was NCDOTs 2017 traffic count program along with a special count
 collection effort undertaken specifically for model validation. All counts were
-factored to an Average Weekday Daily Traffic (AWDT) for April 2017.
+factored to an Average Weekday Daily Traffic (AWDT) for April 2017. This was
+used during model calibration while the base year remained 2016. Towards the
+end of the project, the model was updated to a base year of 2020, and the 2019
+count data was used instead.
 
 The previous model used a separate table to hold count data which then had to be
 joined to the layer to make comparisons. For TRMG2, the basic count data
@@ -100,16 +101,22 @@ take, and are shown in orange below.
 knitr::include_graphics("img/networks/all_streets.png")
 ``` 
 
-Caliper added a `PrimaryLink` field to the line layer. It can be used to easily
-select the gray or orange links depending on what the user wants to do.
+While these added streets improve walk network accuracy, they are not used by
+autos. Caliper added a `DTWB` field to clarify which basic modes can be used on
+any link:
 
-- `PrimaryLink = 1`: Gray links
-- `PrimaryLink = 0`: Orange links
+- D: Drive
+- T: Transit
+- W: Walk
+- B: Bike
 
-These queries will also be used to make roadway and transit layer creation
-easier. The minor streets do not have attribute information and should not be
-included for use by vehicle travel. They will only be used by non-motorized and
-transit travelers.
+A freeway link would have a value of "DT", which means only drive and transit
+are allowed. Most links have a value of "DTWB" meaning all modes are allowed.
+
+The minor streets do not have attribute information and should not be included
+for use by vehicle travel. They will only be used by non-motorized and transit
+travelers. This means the added streets do not burden model users with
+additional attribute maintenance.
 
 ### Review of All Streets
 

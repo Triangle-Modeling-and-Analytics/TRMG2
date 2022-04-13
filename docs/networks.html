@@ -191,6 +191,9 @@
          <a href="resident_dest_choice.html">Destination Choice</a>
        </li>
        <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
          <a href="nhb.html">Non-homebased</a>
        </li>
      </ul>
@@ -204,6 +207,9 @@
      <ul class="dropdown-menu" role="menu">
        <li>
          <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="university.html">University</a>
        </li>
        <li>
          <a href="airport.html">Airport</a>
@@ -278,11 +284,11 @@
 <p>Like TRMv6, the TRMG2 model uses a master layer that contains all projects stakeholders might consider during transportation plan development (including competing ideas). This allows each scenario layer to be exported from the master with little or no manual editing. Information on using the project management tool is covered in the user guide.</p>
 <p>The previous highway layer made heavy use of numeric codes that translated into values (e.g. a facility type of 1 might signify interstate). For TRMG2, these fields now contain the string values directly, which improves understanding, usability, and maintenance of the layer. It also makes the model’s GISDK code easier to read.</p>
 <p>For these same reasons, the previous “Special” field was broken up into new HOV and Toll-related fields. For example, the “TollType” field includes values like “Free”, “Toll”, and “HOT” (for high-occupancy toll lane). It is easier to understand a query like “TollType = ‘Toll’” compared to “Special = 43”. For a full enumeration of field names and meanings, see the user guide.</p>
-<p>The Caliper team also updated the master layer to reflect a 2016 base year, the target year for model estimation (the final layer is a 2020 base year and will be accompanied by a 2020 year model validation process). In other words, if you export a scenario layer without any projects it will reflect the 2016 road system. This was done by permanently modifying the base attributes of the master layer with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the layer permanently.</p>
+<p>The Caliper team also updated the master layer to reflect a 2020 base year, the target year for final model delivery. In other words, if you export a scenario layer without any projects, it will reflect the 2020 road system. This was done by permanently modifying the base attributes of the master layer with any projects scheduled to be complete by the base year date. This did include some road closures, and those links dropped out of the layer permanently.</p>
 </div>
 <div id="update-of-count-data" class="section level3">
 <h3>Update of count data</h3>
-<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection effort undertaken specifically for model validation. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017.</p>
+<p>The count data was provided to Caliper by the Stakeholders. The original source of this info was NCDOTs 2017 traffic count program along with a special count collection effort undertaken specifically for model validation. All counts were factored to an Average Weekday Daily Traffic (AWDT) for April 2017. This was used during model calibration while the base year remained 2016. Towards the end of the project, the model was updated to a base year of 2020, and the 2019 count data was used instead.</p>
 <p>The previous model used a separate table to hold count data which then had to be joined to the layer to make comparisons. For TRMG2, the basic count data including station ID and daily AWDT were added to the master layer directly. This makes it easier to compare (either manually or in code) between model volumes and count data. Additional information (such as hourly counts) can still be maintained in a separate table and joined to the layer only as needed.</p>
 </div>
 <div id="link-layer-conflation" class="section level3">
@@ -304,12 +310,15 @@ Capital before and after
 All-Streets Network
 </p>
 </div>
-<p>Caliper added a <code>PrimaryLink</code> field to the line layer. It can be used to easily select the gray or orange links depending on what the user wants to do.</p>
+<p>While these added streets improve walk network accuracy, they are not used by autos. Caliper added a <code>DTWB</code> field to clarify which basic modes can be used on any link:</p>
 <ul>
-<li><code>PrimaryLink = 1</code>: Gray links</li>
-<li><code>PrimaryLink = 0</code>: Orange links</li>
+<li>D: Drive</li>
+<li>T: Transit</li>
+<li>W: Walk</li>
+<li>B: Bike</li>
 </ul>
-<p>These queries will also be used to make roadway and transit layer creation easier. The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers.</p>
+<p>A freeway link would have a value of “DT”, which means only drive and transit are allowed. Most links have a value of “DTWB” meaning all modes are allowed.</p>
+<p>The minor streets do not have attribute information and should not be included for use by vehicle travel. They will only be used by non-motorized and transit travelers. This means the added streets do not burden model users with additional attribute maintenance.</p>
 </div>
 <div id="review-of-all-streets" class="section level3">
 <h3>Review of All Streets</h3>
