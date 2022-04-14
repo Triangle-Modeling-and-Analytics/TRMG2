@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
+
+        <meta name="author" content="Caliper Corporation" />
+    
+        <meta name="date" content="2022-04-13" />
+    
+    <title>Model Validation</title>
+
+        <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="site_libs/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="site_libs/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+    <script src="site_libs/navigation-1.1/tabsets.js"></script>
+    <link href="site_libs/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+    <script src="site_libs/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+    <link href="site_libs/readthedown-0.1/readthedown.css" rel="stylesheet" />
+    <link href="site_libs/readthedown-0.1/readthedown_fonts_embed.css" rel="stylesheet" />
+    <script src="site_libs/readthedown-0.1/readthedown.js"></script>
+    <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+    <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    
+    
+    
+        <link rel="stylesheet" href="styles.css" type="text/css" />
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
+
+    <!-- code folding -->
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
+
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
+
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
+    </style>
+    
+</head>
+
+<body class="preload">
+
+            <!-- readthedown start -->   
+   <div id="content" data-toggle="wy-nav-shift">
+     <nav id="nav-top" role="navigation" aria-label="top navigation">
+       <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+     </nav>
+         
+   
+      
+   <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+     <div class="container">
+       <div class="navbar-header">
+         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+         </button>
+         <a class="navbar-brand" href="index.html">TRMG2</a>
+       </div>
+       <div id="navbar" class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+           <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Databases
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+       </li>
+       <li>
+         <a href="networks.html">Networks</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Surveys
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="survey_processing.html">Household Survey</a>
+       </li>
+       <li>
+         <a href="obs_processing.html">On-Board Survey</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Resident Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="population_synthesis.html">Synthesis</a>
+       </li>
+       <li>
+         <a href="auto_ownership.html">Auto Ownership</a>
+       </li>
+       <li>
+         <a href="resident_production.html">Production</a>
+       </li>
+       <li>
+         <a href="time_of_day.html">Time of Day</a>
+       </li>
+       <li>
+         <a href="resident_nonmotorized.html">Non-motorized</a>
+       </li>
+       <li>
+         <a href="parking.html">Parking</a>
+       </li>
+       <li>
+         <a href="resident_dest_choice.html">Destination Choice</a>
+       </li>
+       <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
+         <a href="nhb.html">Non-homebased</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Other Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
+         <a href="airport.html">Airport</a>
+       </li>
+       <li>
+         <a href="ieei.html">Internal/External</a>
+       </li>
+       <li>
+         <a href="commercial_vehicles.html">Commercial Vehicles</a>
+       </li>
+       <li>
+         <a href="assignment_roadway.html">Roadway Assignment</a>
+       </li>
+       <li>
+         <a href="validation.html">Validation</a>
+       </li>
+     </ul>
+   </li>
+         </ul>
+         <ul class="nav navbar-nav navbar-right">
+           <li>
+     <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+   </li>
+         </ul>
+       </div><!--/.nav-collapse -->
+     </div><!--/.container -->
+   </div><!--/.navbar -->
+        
+      <h1 class="title">Model Validation</h1>
+      
+         <!-- readthedown authors -->
+   <div id="sidebar">
+    <h2><a href="#content">Model Validation</a></h2>
+    <div id="toc">
+      <ul>
+      <li><a href="#intro">Intro</a></li>
+      <li><a href="#roadway">Roadway</a></li>
+      <li><a href="#transit">Transit</a></li>
+      </ul>
+    </div>
+    <div id="postamble" data-toggle="wy-nav-shift" class="status">
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> April 13, 2022</p>
+          </div>
+   </div>
+   
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div id="main">
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>This document presents various model validation statistics. These compare model results with observed data not used in estimation including counts of both roadway volumes and transit ridership. While sensitivity testing focuses on the model’s response to changes in inputs, validation measures the ability of an appropriately-sensitive model to accurately predict known conditions in the base year.</p>
+</div>
+<div id="roadway" class="section level2">
+<h2>Roadway</h2>
+<p>The primary outputs of a travel demand model are roadway volume predictions. To help establish model validity, a prediction is made on a base year scenario for which traffic count data are collected. Tube counts and other methods for collecting roadway volumes have well-established error rates, so matching counts exactly is not the goal. Instead, target error thresholds have evolved over time for metrics like percentage difference and percentage root-mean-square-error (RMSE) between counts and volumes.</p>
+<p>Importantly, target error rates fall as roadway volumes increase. Count error rates are lower for larger facilities, but additionally, regional travel models are best suited to measure flows on large facilities. Consequently, they are expected to perform best on large freeways and worst on local streets. As a point of fact, regional travel models should not be used to predict local street volumes).</p>
+<p>The table below contains two measures of error:</p>
+<ol style="list-style-type: decimal">
+<li>Percent Difference</li>
+<li>Percent Root-Mean-Square-Error</li>
+</ol>
+<p>Percent difference is a straight-forward measure:</p>
+<p><span class="math inline">\(PctDiff = \frac{(\sum \hat{Y}_i - \sum Y_i)}{\sum Y_i} * 100\)</span></p>
+<p>where:</p>
+<p><span class="math inline">\(\hat{Y_i}\)</span> Estimated volume on link i (model)<br />
+<span class="math inline">\(Y_i\)</span> Observed volume on link i (traffic count)</p>
+<p>%RMSE is calculated as follows:</p>
+<p><span class="math inline">\(PRMSE = \frac{\sqrt{\frac{1}{N}\sum_{i=1}^N(\hat{Y_i}-Y_i)^2}}{\frac{1}{N}\sum_{i=1}^NY_i} * 100\)</span></p>
+<p>The errors on each link between the model and traffic count are</p>
+<ul>
+<li>Squared</li>
+<li>Then averaged (mean)</li>
+<li>Then the root is taken</li>
+</ul>
+<p>This provides the RMSE, which is then divided by the average (mean) of all counts. The table below shows these two metrics by volume group and for the model overall. Different models have a different mix of counts by volume group. For example, model regions with limited counts will have a higher percentage of counts on high-volume roads like freeways. The Triangle boasts excellent count coverage, which means many more observations on smaller streets are collected. These differences are one of many reasons why overall model %RMSE can’t be used as a single measure of model quality. %RMSE by volume group is better, but still contains no information about model sensitivity.</p>
+<p>With these caveats in place, the table below shows that the TRMG2 model is matching observed counts well. The overall % RMSE of 34.6 is particularly impressive given the large percentage of counts are less than or equal to 10,000 in volume.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Volume Group
+</th>
+<th style="text-align:right;">
+N
+</th>
+<th style="text-align:right;">
+Total Count
+</th>
+<th style="text-align:right;">
+Total Volume
+</th>
+<th style="text-align:right;">
+% Difference
+</th>
+<th style="text-align:right;">
+% RMSE
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+10000
+</td>
+<td style="text-align:right;">
+2,546
+</td>
+<td style="text-align:right;">
+10,230,705
+</td>
+<td style="text-align:right;">
+9,619,155
+</td>
+<td style="text-align:right;">
+-6.0
+</td>
+<td style="text-align:right;">
+56.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+25000
+</td>
+<td style="text-align:right;">
+1,065
+</td>
+<td style="text-align:right;">
+16,944,684
+</td>
+<td style="text-align:right;">
+16,158,240
+</td>
+<td style="text-align:right;">
+-4.6
+</td>
+<td style="text-align:right;">
+34.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+50000
+</td>
+<td style="text-align:right;">
+406
+</td>
+<td style="text-align:right;">
+13,741,466
+</td>
+<td style="text-align:right;">
+13,935,428
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+24.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+100000
+</td>
+<td style="text-align:right;">
+116
+</td>
+<td style="text-align:right;">
+7,980,100
+</td>
+<td style="text-align:right;">
+8,272,277
+</td>
+<td style="text-align:right;">
+3.7
+</td>
+<td style="text-align:right;">
+14.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+100000+
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+7,986,500
+</td>
+<td style="text-align:right;">
+8,023,426
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+4,193
+</td>
+<td style="text-align:right;">
+56,883,455
+</td>
+<td style="text-align:right;">
+56,008,526
+</td>
+<td style="text-align:right;">
+-1.5
+</td>
+<td style="text-align:right;">
+34.6
+</td>
+</tr>
+</tbody>
+</table>
+<p>In addition to evaluation by volume group, the model is also evaluated by facility type. All links with the same facility type share important characteristics like volume-delay function (VDF) parameters, free-flow speed adjustments, and other attributes. Problems in this table would indicate the model’s facility type parameters (like VDF coefficients) may be biased.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+HCMType
+</th>
+<th style="text-align:right;">
+N
+</th>
+<th style="text-align:right;">
+Total Count
+</th>
+<th style="text-align:right;">
+Total Volume
+</th>
+<th style="text-align:right;">
+% Difference
+</th>
+<th style="text-align:right;">
+% RMSE
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:right;">
+183
+</td>
+<td style="text-align:right;">
+14,669,248
+</td>
+<td style="text-align:right;">
+14,794,872
+</td>
+<td style="text-align:right;">
+0.9
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:right;">
+81
+</td>
+<td style="text-align:right;">
+2,402,062
+</td>
+<td style="text-align:right;">
+2,367,057
+</td>
+<td style="text-align:right;">
+-1.5
+</td>
+<td style="text-align:right;">
+17.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:right;">
+81
+</td>
+<td style="text-align:right;">
+752,820
+</td>
+<td style="text-align:right;">
+746,628
+</td>
+<td style="text-align:right;">
+-0.8
+</td>
+<td style="text-align:right;">
+23.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:right;">
+768
+</td>
+<td style="text-align:right;">
+19,552,270
+</td>
+<td style="text-align:right;">
+19,113,638
+</td>
+<td style="text-align:right;">
+-2.2
+</td>
+<td style="text-align:right;">
+30.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:right;">
+1,556
+</td>
+<td style="text-align:right;">
+13,999,227
+</td>
+<td style="text-align:right;">
+13,659,930
+</td>
+<td style="text-align:right;">
+-2.4
+</td>
+<td style="text-align:right;">
+44.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:right;">
+272
+</td>
+<td style="text-align:right;">
+1,460,400
+</td>
+<td style="text-align:right;">
+1,398,020
+</td>
+<td style="text-align:right;">
+-4.3
+</td>
+<td style="text-align:right;">
+48.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:right;">
+796
+</td>
+<td style="text-align:right;">
+2,919,228
+</td>
+<td style="text-align:right;">
+2,851,581
+</td>
+<td style="text-align:right;">
+-2.3
+</td>
+<td style="text-align:right;">
+60.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:right;">
+456
+</td>
+<td style="text-align:right;">
+1,128,200
+</td>
+<td style="text-align:right;">
+1,076,800
+</td>
+<td style="text-align:right;">
+-4.6
+</td>
+<td style="text-align:right;">
+75.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:right;">
+4,193
+</td>
+<td style="text-align:right;">
+56,883,455
+</td>
+<td style="text-align:right;">
+56,008,526
+</td>
+<td style="text-align:right;">
+-1.5
+</td>
+<td style="text-align:right;">
+34.6
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following table shows the same statistics by facility type and area type. It is shown for completeness, but many of the combinations have few observations.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+HCMType
+</th>
+<th style="text-align:left;">
+AreaType
+</th>
+<th style="text-align:right;">
+N
+</th>
+<th style="text-align:right;">
+Total Count
+</th>
+<th style="text-align:right;">
+Total Volume
+</th>
+<th style="text-align:right;">
+% Difference
+</th>
+<th style="text-align:right;">
+% RMSE
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+986,800
+</td>
+<td style="text-align:right;">
+1,025,165
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+9.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+42
+</td>
+<td style="text-align:right;">
+4,274,500
+</td>
+<td style="text-align:right;">
+4,160,486
+</td>
+<td style="text-align:right;">
+-2.7
+</td>
+<td style="text-align:right;">
+7.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+85
+</td>
+<td style="text-align:right;">
+7,254,334
+</td>
+<td style="text-align:right;">
+7,412,256
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+11.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+46
+</td>
+<td style="text-align:right;">
+2,153,614
+</td>
+<td style="text-align:right;">
+2,196,965
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+11.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+80,200
+</td>
+<td style="text-align:right;">
+79,319
+</td>
+<td style="text-align:right;">
+-1.1
+</td>
+<td style="text-align:right;">
+16.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+1,373,100
+</td>
+<td style="text-align:right;">
+1,391,764
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+16.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+44
+</td>
+<td style="text-align:right;">
+948,762
+</td>
+<td style="text-align:right;">
+895,973
+</td>
+<td style="text-align:right;">
+-5.6
+</td>
+<td style="text-align:right;">
+16.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+164,800
+</td>
+<td style="text-align:right;">
+159,425
+</td>
+<td style="text-align:right;">
+-3.3
+</td>
+<td style="text-align:right;">
+17.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TLHighway
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+68
+</td>
+<td style="text-align:right;">
+588,020
+</td>
+<td style="text-align:right;">
+587,203
+</td>
+<td style="text-align:right;">
+-0.1
+</td>
+<td style="text-align:right;">
+24.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+142
+</td>
+<td style="text-align:right;">
+3,048,600
+</td>
+<td style="text-align:right;">
+2,888,822
+</td>
+<td style="text-align:right;">
+-5.2
+</td>
+<td style="text-align:right;">
+37.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+263
+</td>
+<td style="text-align:right;">
+6,777,316
+</td>
+<td style="text-align:right;">
+6,726,061
+</td>
+<td style="text-align:right;">
+-0.8
+</td>
+<td style="text-align:right;">
+31.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+340
+</td>
+<td style="text-align:right;">
+9,350,500
+</td>
+<td style="text-align:right;">
+9,149,683
+</td>
+<td style="text-align:right;">
+-2.1
+</td>
+<td style="text-align:right;">
+26.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorArterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+375,854
+</td>
+<td style="text-align:right;">
+349,072
+</td>
+<td style="text-align:right;">
+-7.1
+</td>
+<td style="text-align:right;">
+31.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+749,498
+</td>
+<td style="text-align:right;">
+764,466
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+43.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+222
+</td>
+<td style="text-align:right;">
+2,805,220
+</td>
+<td style="text-align:right;">
+2,856,839
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+46.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+732
+</td>
+<td style="text-align:right;">
+7,824,400
+</td>
+<td style="text-align:right;">
+7,486,585
+</td>
+<td style="text-align:right;">
+-4.3
+</td>
+<td style="text-align:right;">
+39.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arterial
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+541
+</td>
+<td style="text-align:right;">
+2,620,109
+</td>
+<td style="text-align:right;">
+2,552,039
+</td>
+<td style="text-align:right;">
+-2.6
+</td>
+<td style="text-align:right;">
+42.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+28,900
+</td>
+<td style="text-align:right;">
+10,310
+</td>
+<td style="text-align:right;">
+-64.3
+</td>
+<td style="text-align:right;">
+74.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+218,700
+</td>
+<td style="text-align:right;">
+231,010
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+43.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+110
+</td>
+<td style="text-align:right;">
+783,600
+</td>
+<td style="text-align:right;">
+721,332
+</td>
+<td style="text-align:right;">
+-8.0
+</td>
+<td style="text-align:right;">
+45.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MajorCollector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+129
+</td>
+<td style="text-align:right;">
+429,200
+</td>
+<td style="text-align:right;">
+435,368
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+47.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+35
+</td>
+<td style="text-align:right;">
+293,900
+</td>
+<td style="text-align:right;">
+272,695
+</td>
+<td style="text-align:right;">
+-7.2
+</td>
+<td style="text-align:right;">
+54.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+66
+</td>
+<td style="text-align:right;">
+457,100
+</td>
+<td style="text-align:right;">
+461,338
+</td>
+<td style="text-align:right;">
+0.9
+</td>
+<td style="text-align:right;">
+43.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+270
+</td>
+<td style="text-align:right;">
+1,401,910
+</td>
+<td style="text-align:right;">
+1,326,291
+</td>
+<td style="text-align:right;">
+-5.4
+</td>
+<td style="text-align:right;">
+52.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+425
+</td>
+<td style="text-align:right;">
+766,318
+</td>
+<td style="text-align:right;">
+791,256
+</td>
+<td style="text-align:right;">
+3.2
+</td>
+<td style="text-align:right;">
+62.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Downtown
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+279,200
+</td>
+<td style="text-align:right;">
+257,784
+</td>
+<td style="text-align:right;">
+-7.7
+</td>
+<td style="text-align:right;">
+64.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Urban
+</td>
+<td style="text-align:right;">
+52
+</td>
+<td style="text-align:right;">
+251,500
+</td>
+<td style="text-align:right;">
+244,263
+</td>
+<td style="text-align:right;">
+-2.9
+</td>
+<td style="text-align:right;">
+56.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Suburban
+</td>
+<td style="text-align:right;">
+96
+</td>
+<td style="text-align:right;">
+313,200
+</td>
+<td style="text-align:right;">
+286,461
+</td>
+<td style="text-align:right;">
+-8.5
+</td>
+<td style="text-align:right;">
+65.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Local
+</td>
+<td style="text-align:left;">
+Rural
+</td>
+<td style="text-align:right;">
+247
+</td>
+<td style="text-align:right;">
+284,300
+</td>
+<td style="text-align:right;">
+288,292
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+89.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+All
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+4,193
+</td>
+<td style="text-align:right;">
+56,883,455
+</td>
+<td style="text-align:right;">
+56,008,526
+</td>
+<td style="text-align:right;">
+-1.5
+</td>
+<td style="text-align:right;">
+34.6
+</td>
+</tr>
+</tbody>
+</table>
+<p>Another important check for the model is that aggregate regional flows are correct. These are checked using screen and cut lines, which aggregate counts based on geography. The map below shows the geographic locations of the screen lines used for TRMG2 validation. The odd shape of the lines is to ensure that, to the extent possible, the lines only cross links with counts on them. In this way, we can capture all flow across the line and compare it with matching count info.</p>
+<p><img src="img/validation/screenlines.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The table below shows the comparison between model volumes and counts.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+Screenline
+</th>
+<th style="text-align:right;">
+N
+</th>
+<th style="text-align:right;">
+Total Count
+</th>
+<th style="text-align:right;">
+Total Volume
+</th>
+<th style="text-align:right;">
+% Difference
+</th>
+<th style="text-align:right;">
+% RMSE
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+443,550
+</td>
+<td style="text-align:right;">
+375,174
+</td>
+<td style="text-align:right;">
+-15.4
+</td>
+<td style="text-align:right;">
+40.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+69
+</td>
+<td style="text-align:right;">
+1,419,300
+</td>
+<td style="text-align:right;">
+1,451,974
+</td>
+<td style="text-align:right;">
+2.3
+</td>
+<td style="text-align:right;">
+31.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+694,100
+</td>
+<td style="text-align:right;">
+689,186
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+<td style="text-align:right;">
+32.0
+</td>
+</tr>
+</tbody>
+</table>
+<p>Screen line 3 is lower than desired, but given the relatively low total volume (for a screen line), it is still acceptable.</p>
+<p>The map below shows the cut lines used to validate TRMG2.</p>
+<p><img src="img/validation/cutlines.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The table shows count validation aggregated by cut line. Only cut line 18 shows any cause for concern. This is the cutline between Orange and Alamance counties. The model only contains a small piece of Alamance county and instead relies heavily on the external models for flow in this region. It is possible that improved external flow data could improve model performance in this area, but to truly get it right, the model would need to be expanded westward. (Caliper is not recommending this action.)</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+Screenline
+</th>
+<th style="text-align:right;">
+N
+</th>
+<th style="text-align:right;">
+Total Count
+</th>
+<th style="text-align:right;">
+Total Volume
+</th>
+<th style="text-align:right;">
+% Difference
+</th>
+<th style="text-align:right;">
+% RMSE
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+219,400
+</td>
+<td style="text-align:right;">
+222,078
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+568,300
+</td>
+<td style="text-align:right;">
+518,321
+</td>
+<td style="text-align:right;">
+-8.8
+</td>
+<td style="text-align:right;">
+31.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+317,700
+</td>
+<td style="text-align:right;">
+324,423
+</td>
+<td style="text-align:right;">
+2.1
+</td>
+<td style="text-align:right;">
+23.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+44,300
+</td>
+<td style="text-align:right;">
+52,779
+</td>
+<td style="text-align:right;">
+19.1
+</td>
+<td style="text-align:right;">
+24.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+646,800
+</td>
+<td style="text-align:right;">
+664,273
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+<td style="text-align:right;">
+36.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+500,100
+</td>
+<td style="text-align:right;">
+433,006
+</td>
+<td style="text-align:right;">
+-13.4
+</td>
+<td style="text-align:right;">
+27.0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+231,400
+</td>
+<td style="text-align:right;">
+250,544
+</td>
+<td style="text-align:right;">
+8.3
+</td>
+<td style="text-align:right;">
+21.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+236,500
+</td>
+<td style="text-align:right;">
+253,801
+</td>
+<td style="text-align:right;">
+7.3
+</td>
+<td style="text-align:right;">
+31.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+242,000
+</td>
+<td style="text-align:right;">
+238,071
+</td>
+<td style="text-align:right;">
+-1.6
+</td>
+<td style="text-align:right;">
+17.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+429,800
+</td>
+<td style="text-align:right;">
+399,494
+</td>
+<td style="text-align:right;">
+-7.0
+</td>
+<td style="text-align:right;">
+13.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+63,300
+</td>
+<td style="text-align:right;">
+62,501
+</td>
+<td style="text-align:right;">
+-1.3
+</td>
+<td style="text-align:right;">
+21.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+55,800
+</td>
+<td style="text-align:right;">
+60,433
+</td>
+<td style="text-align:right;">
+8.3
+</td>
+<td style="text-align:right;">
+18.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+36,300
+</td>
+<td style="text-align:right;">
+40,841
+</td>
+<td style="text-align:right;">
+12.5
+</td>
+<td style="text-align:right;">
+37.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+336,400
+</td>
+<td style="text-align:right;">
+374,368
+</td>
+<td style="text-align:right;">
+11.3
+</td>
+<td style="text-align:right;">
+36.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+129,400
+</td>
+<td style="text-align:right;">
+161,185
+</td>
+<td style="text-align:right;">
+24.6
+</td>
+<td style="text-align:right;">
+62.1
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="transit" class="section level2">
+<h2>Transit</h2>
+<p>Observed transit boarding data was incomplete for 2020. Instead, Caliper validated the transit ridership using the 2016 scenario and observed data. This is shown in the table below by agency. (DATA)</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Agency
+</th>
+<th style="text-align:right;">
+Observed Boardings
+</th>
+<th style="text-align:right;">
+Model Boardings
+</th>
+<th style="text-align:right;">
+Difference
+</th>
+<th style="text-align:left;">
+% Difference
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Chapel Hill Transit
+</td>
+<td style="text-align:right;">
+26,444
+</td>
+<td style="text-align:right;">
+24,425
+</td>
+<td style="text-align:right;">
+-2,019
+</td>
+<td style="text-align:left;">
+-8%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GoRaleigh
+</td>
+<td style="text-align:right;">
+23,489
+</td>
+<td style="text-align:right;">
+26,826
+</td>
+<td style="text-align:right;">
+3,337
+</td>
+<td style="text-align:left;">
+14%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GoDurham
+</td>
+<td style="text-align:right;">
+21,602
+</td>
+<td style="text-align:right;">
+23,383
+</td>
+<td style="text-align:right;">
+1,781
+</td>
+<td style="text-align:left;">
+8%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NCSU Wolfline
+</td>
+<td style="text-align:right;">
+16,699
+</td>
+<td style="text-align:right;">
+13,084
+</td>
+<td style="text-align:right;">
+-3,615
+</td>
+<td style="text-align:left;">
+-22%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Duke
+</td>
+<td style="text-align:right;">
+13,602
+</td>
+<td style="text-align:right;">
+7,729
+</td>
+<td style="text-align:right;">
+-5,873
+</td>
+<td style="text-align:left;">
+-43%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GoTriangle
+</td>
+<td style="text-align:right;">
+9,691
+</td>
+<td style="text-align:right;">
+13,680
+</td>
+<td style="text-align:right;">
+3,989
+</td>
+<td style="text-align:left;">
+41%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GoCary
+</td>
+<td style="text-align:right;">
+1,003
+</td>
+<td style="text-align:right;">
+2,137
+</td>
+<td style="text-align:right;">
+1,134
+</td>
+<td style="text-align:left;">
+113%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Total
+</td>
+<td style="text-align:right;">
+112,530
+</td>
+<td style="text-align:right;">
+111,264
+</td>
+<td style="text-align:right;">
+-1,266
+</td>
+<td style="text-align:left;">
+-1%
+</td>
+</tr>
+</tbody>
+</table>
+<p>Overall, ridership is close to observed and the model performs well by agency.</p>
+<p>For reference, the model predicts 119,000 riders in the 2020 base year scenario. Compared to 2016, the 2020 scenario has a higher population and increased slightly better transit service, which makes the 119,000 estimate reasonable.</p>
+</div>
+</div>
+
+   
+      <br>
+   <br>
+   <br>
+   <hr>
+   <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2022</p>
+   
+            
+      
+
+  <script>
+    $(document).ready(function () {
+
+			
+ 		
+	    });
+  </script>
+
+
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
+</body>
+</html>
