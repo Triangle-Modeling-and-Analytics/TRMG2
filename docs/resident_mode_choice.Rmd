@@ -21,14 +21,11 @@ This document summarizes the mode choice (MC) models estimated using travel
 survey and other data from the Triangle region. These are nested logit models
 that predict which modes of travel will be used based on things like travel
 time, transit fare, and transit headway. Mode choice models play a crucial role
-in model estimation, not only directly but also through logsums that are then
-used to inform destination choices. For more information on mode choice models,
-click [here](https://tfresource.org/topics/Mode_choice.html).
+in the system of travel demand models, not only directly but also through
+logsums that are then used to inform destination choices. For more information
+on mode choice models, click [here](https://tfresource.org/topics/Mode_choice.html).
 
-## Key considerations
-
-In addition to the usual key drivers of mode choices such as level-of-service
-variables, there were key modeling requirements for the Triangle region.
+## Key Considerations
 
 One of the key modeling requirements for the Triangle region is the focus on
 transit usage and ability to analyze the congestion mitigation potential of
@@ -39,12 +36,14 @@ survey is in accordance with regional shares, this data alone was not sufficient
 to estimate parameters for transit sub-modes. Rather than combine the onboard
 survey with the household survey (for various reasons including inconsistency
 between trip type), Caliper estimated detailed transit sub-mode models
-conditional on the main transit choice using the onboard survey. This is
-illustrated in later sections.
+conditional on the main transit choice using the onboard survey, while the main
+mode choice was estimated from the household survey. This is illustrated in
+later sections.
 
 A second consideration was the need to measure future transit modes such as bus
 rapid transit, light rail, and commuter rail. These modes do not exist today, so
-Caliper leaned on FTA/STOPS guidance.
+Caliper leaned on FTA/STOPS guidance to develop parameters for these modes as
+discussed below.
 
 A key mode identified during exploratory analysis was the Non-HH Auto mode, that
 is comprised of ride sharing and rental cars (classified together as AutoPay)
@@ -52,11 +51,13 @@ and borrowed cars (e.g. a friend's car and classified as OtherAuto).
 
 Parking was a major consideration for the auto modes, especially in designated
 parking districts in the CBD/downtown/university areas of cities in the Triangle
-region, where parking space is limited.
+region, where parking space is limited.  The parking submodel is documented on
+its own [page](parking.html). 
 
 For Non-Home Based (NHB) trips, the trip mode is conditional based on the mode
 of the home-based leg of the tour. Hence mode choice models were not estimated
-for these trips.
+for these trips. For more information, see the documenation for [Non-Home-Based
+Trips](nhb.html).
 
 ## Approach
 
@@ -78,8 +79,8 @@ transit sub-mode was rich, the information regarding the tour type was not
 available. Whether trips are work, other or shop related could be ascertained
 from the onboard survey but there was no information regarding tour types or the
 overall travel pattern of the individual respondent. Given that the trip
-purposes in TRMG2 are designed based on the tour type and trip type, records
-from the onboard survey could not be matched directly to the TRM trip purpose
+purposes in TRMG2 are designed based on tour type and trip type, records from
+the onboard survey could not be matched directly to the TRM trip purpose
 definitions. Therefore, the alternate approach of estimating transit sub-models
 from the onboard survey was chosen.
 
@@ -90,10 +91,10 @@ two-stage process:
 
 Estimate Transit sub-mode models (nest) for three main types (Work, Shop and
 Other) from the onboard survey. The transit nest is organized by access mode and
-transit mode, which was revealed by the estimation process. The three access
-modes are Walk, Park & Ride (PNR) and Kiss & Ride (KNR). The modes in the base
-year include local bus (LB) and express bus (EB), and these are the only modes
-with estimated coefficients.
+transit mode, which was revealed by the estimation process and is consistent
+with the nesting in STOPS. The three access modes are Walk, Park & Ride (PNR)
+and Kiss & Ride (KNR). The modes in the base year include local bus (LB) and
+express bus (EB), and these are the only modes with estimated coefficients.
 
 ### Stage 2
 
@@ -114,7 +115,7 @@ final weights.
 The conceptual figure of a typical nested model is presented in the figure. Note
 that the utility coefficients and structure for the Transit come from the
 estimations in Stage 1 described above. For instance, for the w_hb_w purpose,
-where the tour mode is work and the trip mode is work, the transit nest for the
+where the tour type is work and the trip type is work, the transit nest for the
 work transit purpose is used in the final mode choice specification.
 
 ```{r, fig.align='center', out.width="90%"}
@@ -126,7 +127,7 @@ followed by the completed models for each of the TRM trip purposes.
 
 # Transit Submodels
 
-## Work
+## Work (W_HB_W & W_HB_O)
 
 This model is estimated from the onboard survey for work trips. All six
 combinations of transit and access mode are considered, and the estimated model
@@ -148,8 +149,8 @@ variables and auto sufficiency market segmentation terms. The utility equations
 are shown in the first table below where the letter ‘X’ indicates that the
 variable is included in the utility equation for the appropriate alternative
 (column). The alternative-specific constant (ASC) row shows the estimated
-constant values with the corresponding tStat within the brackets. The three nest
-coefficients are also shown with their tStats.
+constant values with the corresponding t-statistics within the brackets. The
+three nest coefficients are also shown with their t-statistics.
 
 ```{r, fig.align='center', out.width="100%"}
 knitr::include_graphics("img/mc/transit_sub_work.png")
@@ -168,27 +169,28 @@ knitr::include_graphics("img/mc/transit_sub_work4.png")
 ```
 
 As expected, transit LOS variables are significant. A fare coefficient could not
-be directly estimated. Instead, a VOT of 11.9 $/hr was used to convert the fare
-to equivalent time and a time coefficient was estimated. This ensures that the
-model is sensitive to changes in fare policy.
+be directly estimated. Instead, a value of time of $11.90 per hour was used to
+convert the fare to equivalent time and a time coefficient was estimated. This
+ensures that the model is sensitive to changes in fare policy.
 
-Nested Logit estimation is known to be non-unique and is influenced by the
-starting values of the nest coefficients. This implies that potentially several
-estimations must be run with a different set of starting nest coefficients.
-After a wide range of experiments on the TRM data, it was necessary to fix the
-PNR nest coefficient to 1 (implying that PNR_LB and PNR_EB are treated as
-top-level modes).
+The solution to nested logit estimation is known to be non-unique and is
+influenced by the starting values of the nest coefficients. This implies that
+potentially several estimations must be run with a different set of starting
+nest coefficients. After a wide range of experiments on the TRM data, it was
+necessary to fix the PNR nest coefficient to 1 (implying that PNR_LB and PNR_EB
+are treated as top-level modes).
 
 As expected, households with zero vehicles tend to prefer walk access to transit
 options. Similarly, vehicle insufficient households prefer not to use PNR since
 that would presumably make the vehicle unusable while in the parking lot.
 
-## Other
+## Other (N_HB_OD_Long, N_HB_OD_Short, N_HB_OMED, N_HB_K12)
 
-The transit sub-model estimated for the other purpose has a similar structure to
-the work purpose.
+The transit sub-model estimated for the other purpose has the same nesting
+structure as the work purpose transit submodel.
 
 ### Utility specification
+The utiliy functions were likewise similar to the work purpose model. 
 
 ```{r, fig.align='center', out.width="100%"}
 knitr::include_graphics("img/mc/transit_sub_other1.png")
@@ -202,9 +204,12 @@ knitr::include_graphics("img/mc/transit_sub_other2.png")
 knitr::include_graphics("img/mc/transit_sub_other3.png")
 ```
 
-Again, a VOT of 11.9 $/hr was used to obtain the fare coefficient.
+As in the Work model, a value of time of $11.90 per hour was used to obtain the
+fare coefficient. Again, the PNR nest coefficient had to be constrained to 1,
+and similar, intuitively plausible effects were observed for level-of-service
+variables and with regard to vehicle ownership.
 
-## Shop
+## Shop (N_HB_OME)
 
 The onboard survey revealed that it is very unlikely that shop trips use PNR and
 KNR, which is intuitive. If a household has access to a car with which to make a
@@ -224,10 +229,10 @@ knitr::include_graphics("img/mc/transit_sub_shop2.png")
 
 ### Notes
 
-As with the other submodels, a VOT of 11.9 $/hr was used to obtain the Fare
-coefficient.
+As with the other submodels, a value of time of $11.90 per hour was used to
+obtain the fare coefficient. 
 
-# Homebased work trips
+# Home-based Trips on Work Tours
 
 ## W_HB_W
 
@@ -265,15 +270,17 @@ As expected, the time coefficients are highly significant. The TNC time
 coefficient is deemed less onerous than other auto modes, which is an intuitive
 result given that you don’t have to drive and can (e.g.) read a book.
 
-Toll coefficients for the auto modes were computed using a VOT of 16.4 $/hr.
+Toll coefficients for the auto modes could not be estimated and were therefore
+computed using the time coefficient and a value of time of $16.40 per hour.
 
 The nest structure for the NonHHAuto is justified, given the tStat of the nest
-coefficient of -11.8. The Auto nest is also retained despite the nest
-coefficient having a low tStat.
+coefficient of -11.8. The (household) Auto nest coefficient is similar and
+reasonable and therefore also retained despite the nest coefficient having a low
+t-statistic.
 
 Parking logsums have a significant effect on the SOV and HOV modes as well as
-the OtherAuto mode. As parking conditions deteriorate, trips shift into modes
-like Transit, AutoPay, and OtherAuto.
+the OtherAuto mode. As parking conditions deteriorate, trips shift to the
+Transit and AutoPay modes.
 
 High Income has a positive effect on the SOV and HOV modes. Similarly, vehicle
 insufficient households have a higher tendency to prefer AutoPay and OtherAuto
@@ -286,7 +293,7 @@ sufficient HHs (ilvs and ihvs). The coefficients of the high income and vehicle
 insufficient utility terms are enforced depending on the segment.
 
 TNC wait times and fares are used as utility variables for the AutoPay mode and
-the computation of these variables is described in the Accessibility page.
+the computation of these variables is described in section below.
 
 ## W_HB_O
 
@@ -321,8 +328,9 @@ knitr::include_graphics("img/mc/w_hb_o5.png")
 ```
 
 As with W_HB_W, the time coefficients are highly significant in this model. The
-VOT for the Auto modes computed from the time and cost estimates is close to the
-desired value of time of $16.4/hr.
+Auto toll coefficent was able to be estimated in this case and the implied value
+of time computed from the time and cost estimates is $16.44/hr, very close to
+the desired value of time of $16.40/hr.
 
 Although a nest coefficient for the Auto mode could not be estimated, this
 coefficient was set to 0.75 to match the estimated value from the w_hb_w model.
@@ -330,8 +338,8 @@ Since this purpose consists of short errands on the work tour, parking logsums
 for work were not found to be significant.
 
 Other similarities to W_HB_W included the positive effect of high income on auto
-modes persisted and the preference of vehicle insufficient households to use
-OtherAuto and Transit modes
+modes persisted and the relative preference of vehicle insufficient households
+to use OtherAuto and Transit modes
 
 ## W_HB_EK12
 
@@ -339,7 +347,7 @@ These are school pick up and drop off trips and the survey indicates that the
 two predominant modes were HOV2 and HOV3. Rather than estimate a mode choice
 model, a simple probability split of 50.4% for HOV2 and 49.6% for HOV3 was used.
 
-# Homebased non-work trips
+# Home-based Trips on Non-work Tours
 
 The purposes N_HB_OME, N_HB_ODShort, N_HB_ODLong, N_HB_OMED and N_HB_K12 fall
 under this category. Typically, Caliper observed that transit PNR and KNR modes
@@ -383,7 +391,7 @@ knitr::include_graphics("img/mc/n_hb_ome4.png")
 
 
 Parking logsums have an important effect on choice of auto modes, which makes
-sense. For work trips, travelers have to work near their job and parking is less
+sense. For work trips, travelers have to park near their job and parking is less
 of a consideration. For non-mandatory trips like shopping, people are more
 sensitive to parking cost and availability.
 
@@ -394,8 +402,8 @@ choice of SOV and other modes (with varying effects).
 
 Because estimation is done on dissaggregate survey records, the high-income
 housing variable was either 1 or 0. During model application, which is
-aggregate, the percent of the zone that is high income is used. This can take
-values between 0 and 1.
+aggregate, the percent of the home zone that is high income is used. This can
+take values between 0 and 1.
 
 ## N_HB_OD_Short
 
@@ -422,12 +430,15 @@ knitr::include_graphics("img/mc/n_hb_od_short4.png")
 ```
 
 The coefficients for the Non-HHAuto modes during the estimation had incorrect
-signs and were generally not significant. Therefore, a binary choice model with
-the alternatives AutoPay and OtherAuto was estimated from the survey using all
-the home-based trips on non-work tours. Only trips that chose these two
-alternatives were used in the estimation. The binary choice model coefficients
-and utility equations were fixed in the final mode choice model. This increased
-sample size allowed Caliper to achieve appropriate coefficients.
+signs and were generally not significant. Therefore, a sequential approach to
+estimation was used, similar to that in which the transit submodel was estimated
+first and then used in the main model estimation. In this case, a binary choice
+model was estimated for the Non-HHAuto submodel. Only trips that chose these two
+alternatives were used in the estimation, but all home-based trips on non-work
+tours were used to estimate the model. This increased sample size allowed
+Caliper to estimate a reasonable submodel, and then holding this submodel fixed
+in the main model estimation, achieve appropriate alternative specific
+constants.
 
 Coefficients match similar patterns shown by other purposes and are logical.
 
@@ -484,11 +495,16 @@ knitr::include_graphics("img/mc/n_hb_omed3.png")
 knitr::include_graphics("img/mc/n_hb_omed4.png")
 ```
 
-During the initial estimation, the time coefficient (along with an asserted toll
-coefficient derived from the time coefficient) for the auto modes had a positive
-sign. A model without the toll coefficient however yielded a feasible value for
-the time coefficient. This value was fixed in the final estimation along with
-the asserted toll coefficient using the value of time of $11.9/hr.
+Likely due to small sample size, during the initial estimation, the time
+coefficient (along with an asserted toll coefficient derived from the time
+coefficient) for the auto modes had a positive sign. A model without the toll
+coefficient however yielded a feasible value for the time coefficient. This
+value was fixed in the final estimation along with the asserted toll coefficient
+using the value of time of $11.90 per hour.
+
+The model is sensitive to parking cost and availability, but less so than most
+other non-work trips.  This stands to reason since, like for work, the
+destination is fixed.
 
 Other coefficients follow the same logical patterns as other purposes.
 
@@ -517,12 +533,12 @@ The time coefficients are significant as expected, and the school bus time is
 actually more onerous compared to driving kids to school. This is an amusing
 result that is nevertheless intuitive for anyone who rode the bus as a child.
 
-Large HHs prefer school pickup/drop-offs compared to riding the bus.
+Larger HHs prefer school pickup/drop-offs compared to riding the bus.
 
 Choice of mode for this purpose is probably determined by several other factors
 specific to individual households and are thus not adequately captured by a
 choice model. Nevertheless, a choice model helps fix the shares of the primary
-modes for this purpose, namely SchoolBus and HOV
+modes for this purpose, namely SchoolBus and HOV.
 
 # Calibration
 
@@ -626,3 +642,41 @@ conservative ridership estimates. However, during planning analysis, the region
 can adjust the visibility factors to reflect the actual service being planned.
 For example, if planned BRT service operates fully inside reserved right of
 way, the visibility factor should be increased.
+
+# TNC Variables
+
+For mode choice it was necessary to estimate fair and wait time for AutoPay mode
+(e.g., Uber, Lyft, taxis). Given the small number of these trips in the
+household survey, it was necessary to partially assert these models based on the
+literature.
+
+Fare is generally modeled as composed of a flat fee and per mile and per minute
+components. The flat fee and per minute parameters were constrained based on the
+literature, but doing so allowed the per mile component to be estimated from the
+survey.
+
+$$Fare = 4.00 + 0.70 * length + 0.25 * time$$
+
+Where:
+
+$Fare$: Fare ($)  
+$length$: Trip distance (mi)  
+$time$: Trip time (min)
+
+```{r, out.width="75%", fig.show='hold',fig.align='center'}
+knitr::include_graphics("img/accessibility/tnc_fare_regression.png")
+```
+
+The wait time (shown in a map above), was adapted from a published model for
+Austin, TX, and recast using the TRM's general accessibility variable.  
+
+$$Wait_{OP} = 45.10 - 1534.4 / A_g + 13030.36 / A_g^2$$
+
+Where:
+
+$Wait_{op}$: Off-peak period wait time (min)  
+$A_g$: General accessibility
+
+In the peak period, 3.5 minutes are added to the wait time.  The model produces
+reasonable wait times ranging from 2.5 minutes in downtown Raleigh (off-peak) up
+to 30 minutes in the model's rural fringe areas.
