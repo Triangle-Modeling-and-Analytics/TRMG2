@@ -22,23 +22,24 @@ library(sf)
 
 ## Introduction
 
-On-board surveys ask transit riders a series of question while they are on the
-bus in order to obtain detailed information about demographics, trip purpose,
-modes used, and other variables. These targeted surveys are critical for
-understanding transit users in the region. Due to the small size of the transit
-market in the Triangle and the small household survey sample size, the household
-survey does not contain enough transit trips to estimate the behavior of these
-travelers.
+Due to the small size of the transit market in the Triangle and the small
+household survey sample size, the household survey does not contain enough
+transit observations to estimate behavioral models for transit users. On-board
+surveys are critical to fill this gap. They are intercept surveys, which means
+they are conducted on the bus itself. They ask transit riders a series of
+questions in order to obtain detailed information about demographics, trip
+purpose, modes used, and other variables.
 
-In the Triangle, a survey of GoTriangle and DCHC transit was conducted in 2014
-(excluding Duke Transit). CAMPO agencies were surveyed in 2015 along with
-new GoTriangle routes. These are used to gain insight into the transit market.
+In the Triangle, a survey of 9,231 GoTriangle and DCHC area transit riders was
+conducted in 2014 (excluding Duke Transit). 5,390 CAMPO area transit riders were
+surveyed in 2015 along with new GoTriangle routes. These are used to gain
+insight into the transit market.
 
 ## Combining surveys
 
 Unlike the household surveys, the transit surveys were collected by different
-companies. Combining the surveys required translating the different field codes
-from each into a combined set of values. The surveys collected the same basic
+companies. Combining the surveys required translating different field codes
+into a combined set of values. The surveys collected the same basic
 information, which made this process easier. Additionally, because different
 routes were collected in each survey, no routes were double counted and no
 adjustments to the sample weights were needed.
@@ -265,9 +266,9 @@ combined <- bind_rows(goraleigh_2015, gotriangle_2014) %>%
 ## Geocoding
 
 As with the household survey, the transit trip latitude/longitude values were
-translated into TRMG2 TAZs. For a transit trip, this includes the home, origin,
-destination, boarding, and alighting locations. A sample of this is shown in
-the table below:
+translated into TRMG2 TAZs. For a transit trip, this includes the home, origin
+(which could be somewhere other than home), destination, boarding, and alighting
+locations. A sample of this is shown in the table below:
 
 ```{r, include=FALSE}
 tazs <- st_read("data/input/tazs/master_tazs.shp") %>%
@@ -410,11 +411,14 @@ add_mode <- add_trip_purp %>%
 
 ## Reasonableness checks {.tabset}
 
-A high level review of the combined survey was performed to make sure processing
-had not introduced errors. Some of those checks are shown in the charts below.
-All dimensions checked looked reasonable.
+A high level review of the combined survey was performed to make sure field
+translations and survey combination had not introduced errors. Some of those
+checks are shown in the charts below. All dimensions checked looked reasonable.
 
 ### Agency
+
+The distribution by agency lines up fairly well with the size of the agencies
+themselves.
 
 ```{r}
 temp <- add_mode %>%
@@ -439,6 +443,11 @@ ggplot(temp, aes(x = reorder(agency, -pct), y = pct)) +
 
 ### Time of Day
 
+The time period definitions are the same as those
+defined in the [time of day](time_of_day.html) documentation. The AM period, for
+example, is only 2 hours. This explains the large number of transit observations
+categorized as midday.
+
 ```{r}
 temp <- add_mode %>%
   group_by(tod) %>%
@@ -462,6 +471,9 @@ ggplot(temp, aes(x = tod, y = pct)) +
 
 ### Access Mode
 
+Walk access is the dominant mode in the survey, which matches transit behavior
+in the region.
+
 ```{r}
 temp <- add_mode %>%
   group_by(access_mode) %>%
@@ -481,6 +493,9 @@ ggplot(temp, aes(x = reorder(access_mode, -pct), y = pct)) +
 ```
 
 ### Fare Type
+
+Free routes are the most common, which is a reflection of the CHT system which
+offers many routes with no fare.
 
 ```{r}
 temp <- add_mode %>%
@@ -504,11 +519,19 @@ ggplot(temp, aes(x = reorder(fare_type, -pct), y = pct)) +
 
 ## Survey Assignment
 
-For an additional check on both the on-board survey processing and the model's
-route network, the on-board survey was assigned. This involved processing the
-survey into the appropriate matrices by time of day, transit mode, and accesss
-mode. The model assignment macros in TransCAD were used to assign these to the
-route system, and the results were compared to reported ridership by route.
+Caliper assigned the combined transit survey to the 2016 transit route networks
+used by the model. Neither survey was collected in 2016, so route offerings are
+likely different. However, assigning the survey can help identify errors in the
+networks. These can include missing access links or route mis-coding, but also
+gives insights into things transfers. If the model is not penalizing transfers
+enough, this early assignment will show more transfers than in the survey.
+
+The assignment process involved processing the survey into the appropriate
+matrices by time of day, transit mode, and accesss mode. The model's assignment
+macros in TransCAD were used to assign the matrices to the route system, and the
+results were compared to reported ridership by route. One of the conclusions
+was in fact that transfers needed to be penalized heavier in the transit network
+settings. In the survey, no one transferred more than once.
 
 ```{r, eval=FALSE}
 # This code chunk was used to create transit matrices for a test assignment.
@@ -604,16 +627,14 @@ agency_comp %>%
 
 These differences are large, but manual path checking did not uncover any
 errors. This test assignment was performed on a network with a rough initial
-guess of travel times, which likely contributed to these differences. Further
+guess of travel times, which contributed to these differences. Further
 differences may be because the surveys were from 2014 and 2015 while the transit
 network is 2016. Any changes in route alignments or offerings would lead to
 higher discrepancies.
 
-More attention will be paid to agency- and route-level ridership comparisons
-during model validation. It may be that fares or other route attributes received
-from stakeholders need to be adjusted. One positive result of this early test
-was that all routes received ridership, which indicates no critical
-accessibility flaws in the network.
+During model development, much more accurate roadway times were calculated from
+actual model assignments. Further, the transit network settings were also dialed
+in to achieve final results that look much more reasonable.
 
 ```{r, eval=FALSE}
 write_csv(add_mode, "data/output/_PRIVATE/obs_processing/obs_processed.csv", na = "")

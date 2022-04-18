@@ -7,7 +7,7 @@
 
         <meta name="author" content="Caliper Corporation" />
     
-        <meta name="date" content="2022-03-01" />
+        <meta name="date" content="2022-04-07" />
     
     <title>Internal/External</title>
 
@@ -191,6 +191,9 @@
          <a href="resident_dest_choice.html">Destination Choice</a>
        </li>
        <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
          <a href="nhb.html">Non-homebased</a>
        </li>
      </ul>
@@ -248,13 +251,7 @@
       <li><a href="#ee-time-of-day">EE Time of Day</a></li>
       </ul></li>
       <li><a href="#ieei">IE/EI</a><ul>
-      <li><a href="#ieei-attraction-correlations">IE/EI Attraction Correlations</a></li>
-      <li><a href="#ieei-attraction-model-estimation">IE/EI Attraction Model Estimation</a><ul>
-      <li><a href="#preferred">Preferred</a></li>
-      <li><a href="#freeway-model">Freeway Model</a></li>
-      <li><a href="#non-freeway-model">Non-Freeway Model</a></li>
-      <li><a href="#combined-with-intercept">Combined with Intercept</a></li>
-      </ul></li>
+      <li><a href="#ieei-attraction-model-estimation">IE/EI Attraction Model Estimation</a></li>
       <li><a href="#ncstm-and-estimated-ieei-attractions">NCSTM and Estimated IE/EI Attractions</a></li>
       <li><a href="#distance-assessment">Distance Assessment</a><ul>
       <li><a href="#ieei-trip-length-frequency">IE/EI Trip Length Frequency</a></li>
@@ -262,13 +259,14 @@
       <li><a href="#ieei-observed-and-estimated-trip-length-frequency-for-non-freeway-stations">IE/EI Observed and Estimated Trip Length Frequency for Non-Freeway Stations</a></li>
       </ul></li>
       <li><a href="#ieei-average-trip-lengths">IE/EI Average Trip Lengths</a></li>
+      <li><a href="#final-adjustments">Final adjustments</a></li>
       <li><a href="#ieei-time-of-day">IE/EI Time of Day</a></li>
       </ul></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 01, 2022</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> April 07, 2022</p>
           </div>
    </div>
    
@@ -279,11 +277,11 @@
 <div id="main">
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Travel from outside the Triangle model’s geographic boundaries to locations inside the model’s boundaries are referred to as “external-internal” or “EI” trips; movements from inside the boundary to outside are “internal-external” or “EI” trips; and movements through the region are referred to as “external-external” or “EE” trips. Together, these movements are referred to here as “IEEI” travel. This document discusses the development of an IEEI component of the regional model.</p>
+<p>Travel from outside the Triangle model’s geographic boundary to locations inside the boundary are referred to as “external-internal” or “EI” trips. Movements from inside the boundary to outside are “internal-external” or “EI” trips. Movements through but not stopping within the region are referred to as “external-external” or “EE” trips. Together, these travel patterns are referred to here as “EE” and “IE/EI” travel. This document discusses the development of these components of the regional model.</p>
 </div>
 <div id="available-data-sources" class="section level2">
 <h2>Available Data Sources</h2>
-<p>The two best available data sources for movements through the modeling region are (i) StreetLight Data extracted by ITRE and (ii) a sub-area extraction from the North Carolina Statewide Travel Model (NCSTM). Our analysis suggests that, for our purposes, the NCSTM data is superior. The reason for this is that there <em>appears</em> to be an error with either the StreetLight Data or its extraction. The map below shows the “attractions” for the IE/EI trips from the StreetLight data, assuming the “E” end of the trip is the production end and the I end of the trip is the attraction end, and aggregated to a 21-district geographies defined by ITRE. The red dots show data extracted using the CAMPO zone system and the blue dots show data extracted using the Durham MPO zone system. The map shows an illogical outcomes of attractions clustured in select locations near the external stations. Given these odd results, we move forward with the NCSTM data, which, as demonstrated in the balance of the document, revealed logical results.</p>
+<p>The two best available data sources for external-related travel are (i) StreetLight Data provided by the client, and (ii) a sub-area extraction from the North Carolina Statewide Travel Model (NCSTM v.4.3a). The analysis suggests that the NCSTM data is superior because there <em>appears</em> to be an error with either the StreetLight Data or its extraction. The map below shows “attractions” for the IE/EI trips from StreetLight. The “E” end of the trip is asserted to be the production end and the “I” end of the trip is the attraction end. Finally, the data was aggregated to a 21-district geographies defined by ITRE. The red dots show data extracted using the CAMPO zone system and the blue dots show data extracted using the DCHC MPO zone system. The map shows an illogical outcome of attractions clustered in select locations near the external stations. Nearly all the DCHC trip ends were in Chatham County while CAMPO trip ends were predominantly in Franklin County.</p>
 <div id="streetlight-attractions" class="section level3">
 <h3>StreetLight Attractions</h3>
 <p><img src="img/ieei/sl_attractions.png" width="100%" style="display: block; margin: auto;" /></p>
@@ -291,7 +289,7 @@
 </div>
 <div id="ee" class="section level2">
 <h2>EE</h2>
-<p>The first step in the analysis is to determine the share of traffic at each external station that can be attributed to EE movements. This will allow us to attribute the balance of the travel to internal-external (IE) and external-internal (EI) movements. The NCSTM data contains flow estimates for each of the model’s 97 EE station pairs. We use these flows to estimate the share of travel at each of the external stations using the ADT estimates for the external stations derived from the NCSTM. In addition, the share of commercial vehicles are segmented by single-unit trucks and multi-unit trucks. The table below summarizes these outcomes.</p>
+<p>The first step is to determine the share of traffic at each external station that can be attributed to EE travel. This allows the balance of trips to be attributed to IE and EI travel. The NCSTM data contains flow estimates for each of the model’s 97 external stations. These flows are used to estimate the share of travel using the AWDT estimates derived from the NCSTM. In addition, the share of commercial vehicles are segmented by single-unit trucks and multi-unit trucks. The table below summarizes these outcomes.</p>
 <div id="ee-traffic-shares" class="section level3">
 <h3>EE Traffic Shares</h3>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -300,8 +298,8 @@
 <th style="text-align:right;">
 Station
 </th>
-<th style="text-align:right;">
-Avg Daily Traffic
+<th style="text-align:left;">
+Avg Weekday Traffic
 </th>
 <th style="text-align:right;">
 Pct EE Automobile
@@ -322,1020 +320,1020 @@ Pct EE Multi-unit Trucks
 <td style="text-align:right;">
 3235
 </td>
-<td style="text-align:right;">
-3523.9
+<td style="text-align:left;">
+3,524
 </td>
 <td style="text-align:right;">
-30.1
+30
 </td>
 <td style="text-align:right;">
-20.8
+21
 </td>
 <td style="text-align:right;">
-3.5
+3
 </td>
 <td style="text-align:right;">
-17.3
+17
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3236
 </td>
-<td style="text-align:right;">
-927.2
+<td style="text-align:left;">
+927
 </td>
 <td style="text-align:right;">
-24.2
+24
 </td>
 <td style="text-align:right;">
-12.8
+13
 </td>
 <td style="text-align:right;">
-4.9
+5
 </td>
 <td style="text-align:right;">
-7.8
+8
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3237
 </td>
-<td style="text-align:right;">
-2176.4
+<td style="text-align:left;">
+2,176
 </td>
 <td style="text-align:right;">
-22.4
+22
 </td>
 <td style="text-align:right;">
-8.6
+9
 </td>
 <td style="text-align:right;">
-2.7
+3
 </td>
 <td style="text-align:right;">
-5.8
+6
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3242
 </td>
-<td style="text-align:right;">
-1701.1
+<td style="text-align:left;">
+1,701
 </td>
 <td style="text-align:right;">
-24.0
+24
 </td>
 <td style="text-align:right;">
-13.0
+13
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 <td style="text-align:right;">
-9.1
+9
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3243
 </td>
-<td style="text-align:right;">
-1567.7
+<td style="text-align:left;">
+1,568
 </td>
 <td style="text-align:right;">
-38.4
+38
 </td>
 <td style="text-align:right;">
-8.7
+9
 </td>
 <td style="text-align:right;">
-3.5
+3
 </td>
 <td style="text-align:right;">
-5.2
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3245
 </td>
-<td style="text-align:right;">
-3931.1
+<td style="text-align:left;">
+3,931
 </td>
 <td style="text-align:right;">
-15.3
+15
 </td>
 <td style="text-align:right;">
-2.0
+2
 </td>
 <td style="text-align:right;">
-1.8
+2
 </td>
 <td style="text-align:right;">
-0.2
+0
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3248
 </td>
-<td style="text-align:right;">
-1902.2
+<td style="text-align:left;">
+1,902
 </td>
 <td style="text-align:right;">
-26.8
+27
 </td>
 <td style="text-align:right;">
-27.6
+28
 </td>
 <td style="text-align:right;">
-3.8
+4
 </td>
 <td style="text-align:right;">
-23.7
+24
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3252
 </td>
-<td style="text-align:right;">
-25645.1
+<td style="text-align:left;">
+25,645
 </td>
 <td style="text-align:right;">
-53.5
+54
 </td>
 <td style="text-align:right;">
-13.8
+14
 </td>
 <td style="text-align:right;">
-3.0
+3
 </td>
 <td style="text-align:right;">
-10.8
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3253
 </td>
-<td style="text-align:right;">
-2559.5
+<td style="text-align:left;">
+2,560
 </td>
 <td style="text-align:right;">
-9.0
+9
 </td>
 <td style="text-align:right;">
-16.1
+16
 </td>
 <td style="text-align:right;">
-4.9
+5
 </td>
 <td style="text-align:right;">
-11.2
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3254
 </td>
-<td style="text-align:right;">
-3656.1
+<td style="text-align:left;">
+3,656
 </td>
 <td style="text-align:right;">
-7.9
+8
 </td>
 <td style="text-align:right;">
-9.4
+9
 </td>
 <td style="text-align:right;">
-2.5
+3
 </td>
 <td style="text-align:right;">
-6.9
+7
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3257
 </td>
-<td style="text-align:right;">
-7315.2
+<td style="text-align:left;">
+7,315
 </td>
 <td style="text-align:right;">
-8.7
+9
 </td>
 <td style="text-align:right;">
-14.9
+15
 </td>
 <td style="text-align:right;">
-1.8
+2
 </td>
 <td style="text-align:right;">
-13.1
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3260
 </td>
-<td style="text-align:right;">
-4087.5
+<td style="text-align:left;">
+4,087
 </td>
 <td style="text-align:right;">
-44.8
+45
 </td>
 <td style="text-align:right;">
-8.1
+8
 </td>
 <td style="text-align:right;">
-3.4
+3
 </td>
 <td style="text-align:right;">
-4.7
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3261
 </td>
-<td style="text-align:right;">
-1775.7
+<td style="text-align:left;">
+1,776
 </td>
 <td style="text-align:right;">
-51.7
+52
 </td>
 <td style="text-align:right;">
-9.9
+10
 </td>
 <td style="text-align:right;">
-3.7
+4
 </td>
 <td style="text-align:right;">
-6.2
+6
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3263
 </td>
-<td style="text-align:right;">
-2057.6
+<td style="text-align:left;">
+2,058
 </td>
 <td style="text-align:right;">
-9.0
+9
 </td>
 <td style="text-align:right;">
-10.4
+10
 </td>
 <td style="text-align:right;">
-3.9
+4
 </td>
 <td style="text-align:right;">
-6.4
+6
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3265
 </td>
-<td style="text-align:right;">
-1198.9
+<td style="text-align:left;">
+1,199
 </td>
 <td style="text-align:right;">
-56.5
+56
 </td>
 <td style="text-align:right;">
-11.5
+11
 </td>
 <td style="text-align:right;">
-1.9
+2
 </td>
 <td style="text-align:right;">
-9.5
+10
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3267
 </td>
-<td style="text-align:right;">
-1682.4
+<td style="text-align:left;">
+1,682
 </td>
 <td style="text-align:right;">
-18.5
+18
 </td>
 <td style="text-align:right;">
-12.5
+12
 </td>
 <td style="text-align:right;">
-5.5
+5
 </td>
 <td style="text-align:right;">
-7.0
+7
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3272
 </td>
-<td style="text-align:right;">
-1171.9
+<td style="text-align:left;">
+1,172
 </td>
 <td style="text-align:right;">
-4.1
+4
 </td>
 <td style="text-align:right;">
-11.5
+12
 </td>
 <td style="text-align:right;">
-6.8
+7
 </td>
 <td style="text-align:right;">
-4.7
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3273
 </td>
-<td style="text-align:right;">
-15209.7
+<td style="text-align:left;">
+15,210
 </td>
 <td style="text-align:right;">
-31.0
+31
 </td>
 <td style="text-align:right;">
-14.9
+15
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-12.5
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3274
 </td>
-<td style="text-align:right;">
-1027.1
+<td style="text-align:left;">
+1,027
 </td>
 <td style="text-align:right;">
-2.6
+3
 </td>
 <td style="text-align:right;">
-7.9
+8
 </td>
 <td style="text-align:right;">
-4.6
+5
 </td>
 <td style="text-align:right;">
-3.3
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3275
 </td>
-<td style="text-align:right;">
-2141.6
+<td style="text-align:left;">
+2,142
 </td>
 <td style="text-align:right;">
-69.8
+70
 </td>
 <td style="text-align:right;">
-5.0
+5
 </td>
 <td style="text-align:right;">
-2.9
+3
 </td>
 <td style="text-align:right;">
-2.1
+2
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3276
 </td>
-<td style="text-align:right;">
-106.6
+<td style="text-align:left;">
+107
 </td>
 <td style="text-align:right;">
-76.3
+76
 </td>
 <td style="text-align:right;">
-3.0
+3
 </td>
 <td style="text-align:right;">
-3.0
+3
 </td>
 <td style="text-align:right;">
-0.0
+0
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3277
 </td>
-<td style="text-align:right;">
-20162.0
+<td style="text-align:left;">
+20,162
 </td>
 <td style="text-align:right;">
-38.0
+38
 </td>
 <td style="text-align:right;">
-15.0
+15
 </td>
 <td style="text-align:right;">
-2.1
+2
 </td>
 <td style="text-align:right;">
-12.9
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3280
 </td>
-<td style="text-align:right;">
-2328.7
+<td style="text-align:left;">
+2,329
 </td>
 <td style="text-align:right;">
-0.0
+0
 </td>
 <td style="text-align:right;">
-4.5
+4
 </td>
 <td style="text-align:right;">
-2.3
+2
 </td>
 <td style="text-align:right;">
-2.2
+2
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3281
 </td>
-<td style="text-align:right;">
-26150.0
+<td style="text-align:left;">
+26,150
 </td>
 <td style="text-align:right;">
-83.0
+83
 </td>
 <td style="text-align:right;">
-16.3
+16
 </td>
 <td style="text-align:right;">
-3.9
+4
 </td>
 <td style="text-align:right;">
-12.4
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3282
 </td>
-<td style="text-align:right;">
-3483.4
+<td style="text-align:left;">
+3,483
 </td>
 <td style="text-align:right;">
-34.2
+34
 </td>
 <td style="text-align:right;">
-9.7
+10
 </td>
 <td style="text-align:right;">
-3.0
+3
 </td>
 <td style="text-align:right;">
-6.6
+7
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3283
 </td>
-<td style="text-align:right;">
-4173.8
+<td style="text-align:left;">
+4,174
 </td>
 <td style="text-align:right;">
-37.3
+37
 </td>
 <td style="text-align:right;">
-7.3
+7
 </td>
 <td style="text-align:right;">
-3.9
+4
 </td>
 <td style="text-align:right;">
-3.3
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3289
 </td>
-<td style="text-align:right;">
-15915.0
+<td style="text-align:left;">
+15,915
 </td>
 <td style="text-align:right;">
-21.9
+22
 </td>
 <td style="text-align:right;">
-6.5
+6
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3291
 </td>
-<td style="text-align:right;">
-2201.1
+<td style="text-align:left;">
+2,201
 </td>
 <td style="text-align:right;">
-14.0
+14
 </td>
 <td style="text-align:right;">
-7.8
+8
 </td>
 <td style="text-align:right;">
-3.2
+3
 </td>
 <td style="text-align:right;">
-4.6
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3295
 </td>
-<td style="text-align:right;">
-12093.1
+<td style="text-align:left;">
+12,093
 </td>
 <td style="text-align:right;">
-39.1
+39
 </td>
 <td style="text-align:right;">
-9.1
+9
 </td>
 <td style="text-align:right;">
-2.1
+2
 </td>
 <td style="text-align:right;">
-7.0
+7
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3296
 </td>
-<td style="text-align:right;">
-1917.4
+<td style="text-align:left;">
+1,917
 </td>
 <td style="text-align:right;">
-46.8
+47
 </td>
 <td style="text-align:right;">
-8.3
+8
 </td>
 <td style="text-align:right;">
-3.8
+4
 </td>
 <td style="text-align:right;">
-4.5
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3297
 </td>
-<td style="text-align:right;">
-964.8
+<td style="text-align:left;">
+965
 </td>
 <td style="text-align:right;">
-10.1
+10
 </td>
 <td style="text-align:right;">
-7.4
+7
 </td>
 <td style="text-align:right;">
-2.0
+2
 </td>
 <td style="text-align:right;">
-5.4
+5
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3298
 </td>
-<td style="text-align:right;">
-37430.7
+<td style="text-align:left;">
+37,431
 </td>
 <td style="text-align:right;">
-66.3
+66
 </td>
 <td style="text-align:right;">
-16.4
+16
 </td>
 <td style="text-align:right;">
-3.4
+3
 </td>
 <td style="text-align:right;">
-13.1
+13
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3299
 </td>
-<td style="text-align:right;">
-3600.0
+<td style="text-align:left;">
+3,600
 </td>
 <td style="text-align:right;">
-16.1
+16
 </td>
 <td style="text-align:right;">
-6.3
+6
 </td>
 <td style="text-align:right;">
-5.7
+6
 </td>
 <td style="text-align:right;">
-0.6
+1
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3301
 </td>
-<td style="text-align:right;">
-2107.3
+<td style="text-align:left;">
+2,107
 </td>
 <td style="text-align:right;">
-0.0
+0
 </td>
 <td style="text-align:right;">
-1.5
+1
 </td>
 <td style="text-align:right;">
-1.1
+1
 </td>
 <td style="text-align:right;">
-0.3
+0
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3302
 </td>
-<td style="text-align:right;">
-2683.5
+<td style="text-align:left;">
+2,684
 </td>
 <td style="text-align:right;">
-0.0
+0
 </td>
 <td style="text-align:right;">
-3.4
+3
 </td>
 <td style="text-align:right;">
-2.2
+2
 </td>
 <td style="text-align:right;">
-1.2
+1
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3303
 </td>
-<td style="text-align:right;">
-6359.3
+<td style="text-align:left;">
+6,359
 </td>
 <td style="text-align:right;">
-36.6
+37
 </td>
 <td style="text-align:right;">
-7.4
+7
 </td>
 <td style="text-align:right;">
-3.8
+4
 </td>
 <td style="text-align:right;">
-3.6
+4
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3305
 </td>
-<td style="text-align:right;">
-14573.4
+<td style="text-align:left;">
+14,573
 </td>
 <td style="text-align:right;">
-19.5
+19
 </td>
 <td style="text-align:right;">
-6.7
+7
 </td>
 <td style="text-align:right;">
-2.6
+3
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3306
 </td>
-<td style="text-align:right;">
-2101.5
+<td style="text-align:left;">
+2,102
 </td>
 <td style="text-align:right;">
-1.4
+1
 </td>
 <td style="text-align:right;">
-9.7
+10
 </td>
 <td style="text-align:right;">
-4.1
+4
 </td>
 <td style="text-align:right;">
-5.6
+6
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3308
 </td>
-<td style="text-align:right;">
-17249.9
+<td style="text-align:left;">
+17,250
 </td>
 <td style="text-align:right;">
-12.0
+12
 </td>
 <td style="text-align:right;">
-11.0
+11
 </td>
 <td style="text-align:right;">
-2.0
+2
 </td>
 <td style="text-align:right;">
-9.1
+9
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3309
 </td>
-<td style="text-align:right;">
-3699.7
+<td style="text-align:left;">
+3,700
 </td>
 <td style="text-align:right;">
-24.7
+25
 </td>
 <td style="text-align:right;">
-10.0
+10
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-7.6
+8
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3311
 </td>
-<td style="text-align:right;">
-1567.9
+<td style="text-align:left;">
+1,568
 </td>
 <td style="text-align:right;">
-2.6
+3
 </td>
 <td style="text-align:right;">
-6.4
+6
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3313
 </td>
-<td style="text-align:right;">
-10491.2
+<td style="text-align:left;">
+10,491
 </td>
 <td style="text-align:right;">
-15.1
+15
 </td>
 <td style="text-align:right;">
-12.9
+13
 </td>
 <td style="text-align:right;">
-1.8
+2
 </td>
 <td style="text-align:right;">
-11.1
+11
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3317
 </td>
-<td style="text-align:right;">
-1716.9
+<td style="text-align:left;">
+1,717
 </td>
 <td style="text-align:right;">
-65.3
+65
 </td>
 <td style="text-align:right;">
-20.5
+21
 </td>
 <td style="text-align:right;">
-4.6
+5
 </td>
 <td style="text-align:right;">
-15.9
+16
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3318
 </td>
-<td style="text-align:right;">
-1950.3
+<td style="text-align:left;">
+1,950
 </td>
 <td style="text-align:right;">
-1.6
+2
 </td>
 <td style="text-align:right;">
-5.9
+6
 </td>
 <td style="text-align:right;">
-4.3
+4
 </td>
 <td style="text-align:right;">
-1.6
+2
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3319
 </td>
-<td style="text-align:right;">
-545.3
+<td style="text-align:left;">
+545
 </td>
 <td style="text-align:right;">
-2.2
+2
 </td>
 <td style="text-align:right;">
-18.4
+18
 </td>
 <td style="text-align:right;">
-9.1
+9
 </td>
 <td style="text-align:right;">
-9.2
+9
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3321
 </td>
-<td style="text-align:right;">
-10281.3
+<td style="text-align:left;">
+10,281
 </td>
 <td style="text-align:right;">
-27.4
+27
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-1.4
+1
 </td>
 <td style="text-align:right;">
-1.0
+1
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3322
 </td>
-<td style="text-align:right;">
-7153.6
+<td style="text-align:left;">
+7,154
 </td>
 <td style="text-align:right;">
-42.6
+43
 </td>
 <td style="text-align:right;">
-2.5
+2
 </td>
 <td style="text-align:right;">
-2.2
+2
 </td>
 <td style="text-align:right;">
-0.3
+0
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3323
 </td>
-<td style="text-align:right;">
-68297.2
+<td style="text-align:left;">
+68,297
 </td>
 <td style="text-align:right;">
-37.8
+38
 </td>
 <td style="text-align:right;">
-12.4
+12
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-10.0
+10
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3326
 </td>
-<td style="text-align:right;">
-2710.5
+<td style="text-align:left;">
+2,711
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 <td style="text-align:right;">
-6.9
+7
 </td>
 <td style="text-align:right;">
-4.0
+4
 </td>
 <td style="text-align:right;">
-2.9
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3328
 </td>
-<td style="text-align:right;">
-2870.9
+<td style="text-align:left;">
+2,871
 </td>
 <td style="text-align:right;">
-42.8
+43
 </td>
 <td style="text-align:right;">
-11.3
+11
 </td>
 <td style="text-align:right;">
-3.4
+3
 </td>
 <td style="text-align:right;">
-7.9
+8
 </td>
 </tr>
 <tr>
 <td style="text-align:right;">
 3329
 </td>
-<td style="text-align:right;">
-1352.2
+<td style="text-align:left;">
+1,352
 </td>
 <td style="text-align:right;">
-37.5
+38
 </td>
 <td style="text-align:right;">
-12.5
+13
 </td>
 <td style="text-align:right;">
-2.4
+2
 </td>
 <td style="text-align:right;">
-10.2
+10
 </td>
 </tr>
 </tbody>
@@ -1348,54 +1346,10 @@ Pct EE Multi-unit Trucks
 </div>
 <div id="ieei" class="section level2">
 <h2>IE/EI</h2>
-<p>The second step in the development process is to see if we can find sufficient patterns in the NCSTM IE and EI data to estimate a regression model that can be generalized across geographies for use in regional model forecasting. We start with correlations between the “I” end of the IE/EI movements, which we are calling the production end, and the population and employment in the zone, which are shown in the table below. The correlations are positive for both population and employment.</p>
-<div id="ieei-attraction-correlations" class="section level3">
-<h3>IE/EI Attraction Correlations</h3>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Term
-</th>
-<th style="text-align:right;">
-Productions
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-Productions
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Population
-</td>
-<td style="text-align:right;">
-0.676
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Employment
-</td>
-<td style="text-align:right;">
-0.187
-</td>
-</tr>
-</tbody>
-</table>
-<p>The positive correletions move us to the next step of estimating attraction models for the internal end of the IE/EI movements, assigning the external station the production end.</p>
-</div>
-<div id="ieei-attraction-model-estimation" class="section level3 tabset MODEL">
+<p>The number of IE/EI trips are controlled by the volumes at the external station after external travel has been subtracted. These trips are distributed using a <a href="https://tfresource.org/topics/Trip_distribution.html">gravity model</a>. For this model form, attractions and gamma parameters must be estimated.</p>
+<div id="ieei-attraction-model-estimation" class="section level3">
 <h3>IE/EI Attraction Model Estimation</h3>
-<p>The NCSTM data was aggregated to the 43 district system to support model estimation. A handful of specifications were tested to determine a useful attraction model, including segmenting the attraction models for Freeway and non-Freeway external stations. The preferred model generated positive coefficients on the population and employment variables. It does not segment the stations by roadway type and asserts a Y-intercept of zero.</p>
-<div id="preferred" class="section level4">
-<h4>Preferred</h4>
+<p>The NCSTM data was aggregated to the 43-district system to support model estimation. A handful of specifications were tested to determine a useful attraction model, including segmenting the attraction models for freeway and non-freeway external stations. These more complicated models generated coefficients with wrong signs. The final, simple model generated positive coefficients on the population and employment variables. It does not segment the stations by roadway type and asserts a Y-intercept of zero.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1419,13 +1373,13 @@ p value
 Employment
 </td>
 <td style="text-align:right;">
-0.0059
+0.0045
 </td>
 <td style="text-align:right;">
-0.0648
+0.0492
 </td>
 <td style="text-align:right;">
-0.9487
+0.9610
 </td>
 </tr>
 <tr>
@@ -1433,13 +1387,13 @@ Employment
 Population
 </td>
 <td style="text-align:right;">
-0.1551
+0.1559
 </td>
 <td style="text-align:right;">
-2.8129
+2.8185
 </td>
 <td style="text-align:right;">
-0.0076
+0.0075
 </td>
 </tr>
 <tr>
@@ -1447,244 +1401,7 @@ Population
 Adjusted R-squared
 </td>
 <td style="text-align:right;">
-0.5013
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="freeway-model" class="section level4">
-<h4>Freeway Model</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Variable
-</th>
-<th style="text-align:right;">
-Estimate
-</th>
-<th style="text-align:right;">
-t-statistic
-</th>
-<th style="text-align:right;">
-p value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<em>intercept</em>
-</td>
-<td style="text-align:right;">
-1950.0099
-</td>
-<td style="text-align:right;">
-2.1975
-</td>
-<td style="text-align:right;">
-0.0342
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Employment
-</td>
-<td style="text-align:right;">
-0.0657
-</td>
-<td style="text-align:right;">
-1.8059
-</td>
-<td style="text-align:right;">
-0.0789
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Population
-</td>
-<td style="text-align:right;">
-0.0438
-</td>
-<td style="text-align:right;">
-1.7447
-</td>
-<td style="text-align:right;">
-0.0891
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
-0.4699
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="non-freeway-model" class="section level4">
-<h4>Non-Freeway Model</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Variable
-</th>
-<th style="text-align:right;">
-Estimate
-</th>
-<th style="text-align:right;">
-t-statistic
-</th>
-<th style="text-align:right;">
-p value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<em>intercept</em>
-</td>
-<td style="text-align:right;">
-4411.9350
-</td>
-<td style="text-align:right;">
-3.1756
-</td>
-<td style="text-align:right;">
-0.0030
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Employment
-</td>
-<td style="text-align:right;">
--0.0321
-</td>
-<td style="text-align:right;">
--0.5641
-</td>
-<td style="text-align:right;">
-0.5760
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Population
-</td>
-<td style="text-align:right;">
-0.0231
-</td>
-<td style="text-align:right;">
-0.5867
-</td>
-<td style="text-align:right;">
-0.5609
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
--0.0427
-</td>
-<td style="text-align:right;">
-NA
-</td>
-<td style="text-align:right;">
-NA
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="combined-with-intercept" class="section level4">
-<h4>Combined with Intercept</h4>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Variable
-</th>
-<th style="text-align:right;">
-Estimate
-</th>
-<th style="text-align:right;">
-t-statistic
-</th>
-<th style="text-align:right;">
-p value
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<em>intercept</em>
-</td>
-<td style="text-align:right;">
-6361.9449
-</td>
-<td style="text-align:right;">
-3.1567
-</td>
-<td style="text-align:right;">
-0.0031
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Employment
-</td>
-<td style="text-align:right;">
-0.0335
-</td>
-<td style="text-align:right;">
-0.4063
-</td>
-<td style="text-align:right;">
-0.6868
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Population
-</td>
-<td style="text-align:right;">
-0.0669
-</td>
-<td style="text-align:right;">
-1.1727
-</td>
-<td style="text-align:right;">
-0.2482
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Adjusted R-squared
-</td>
-<td style="text-align:right;">
-0.1222
+0.5008
 </td>
 <td style="text-align:right;">
 NA
@@ -1697,19 +1414,57 @@ NA
 </table>
 <p>A scatter plot of the NCSTM and estimated attractions by the 43-district system is shown in the plot below.</p>
 </div>
-</div>
 <div id="ncstm-and-estimated-ieei-attractions" class="section level3">
 <h3>NCSTM and Estimated IE/EI Attractions</h3>
 <p><img src="img/ieei/estimated_attractions.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="distance-assessment" class="section level3">
 <h3>Distance Assessment</h3>
-<p>In the chart below, we plot the trip length frequency, with the trip length measured from the external station to the internal zone, for the NCSTM trips, segmenting trips that enter the region through external stations at Freeways from those at other locations. The plot shows a logical and expected outcome: trips entering the region at Freeway external stations travel longer than those entering at non-freeway locations.</p>
+<p>The chart below plots the trip length frequency, with the trip length measured from the external station to the internal zone segmenting trips that enter the region at freeways from those at other locations. The plot shows a logical and expected outcome: trips entering the region at freeway external stations travel longer distances than those entering at non-freeway locations.</p>
 <div id="ieei-trip-length-frequency" class="section level4">
 <h4>IE/EI Trip Length Frequency</h4>
 <p><img src="img/ieei/ncstm_tlf.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>The above chart suggests the IE/EI distribution model should be segmented by station type, freeway or non-freeway. The external stations identified as freeways are as follows: 3298, 3252, 3305, 3277, 3308, 3281, 3273, 3313, 3323.</p>
-<p>Using the friction factors from the existing IE/EI model, the model estimated distances for freeways and non-freeways are plotted against the observed data in the two following figures.</p>
+<p>The above chart suggests the IE/EI distribution model should be segmented by freeway and non-freeway stations. The estimated gravity parameters are shown below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Type
+</th>
+<th style="text-align:right;">
+a
+</th>
+<th style="text-align:right;">
+b
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Freeway
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonFreeway
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.60
+</td>
+</tr>
+</tbody>
+</table>
+<p>The model estimated distances for freeways and non-freeways are plotted against the observed data in the two following figures.</p>
 </div>
 <div id="ieei-observed-and-estimated-trip-length-frequency-for-freeway-stations" class="section level4">
 <h4>IE/EI Observed and Estimated Trip Length Frequency for Freeway Stations</h4>
@@ -1784,6 +1539,72 @@ Observed
 </tr>
 </tbody>
 </table>
+</div>
+<div id="final-adjustments" class="section level3">
+<h3>Final adjustments</h3>
+<p>During validation, The IE/EI model was enhanced to allow additional control of trip lengths. This is due to the existence of some town along the border. Stations near those towns need even shorter trip lengths. Two additional sets of gravity parameters were created and the terminology was changed as shown below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Type
+</th>
+<th style="text-align:right;">
+a
+</th>
+<th style="text-align:right;">
+b
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Long
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Medium
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sort
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Very Short
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1.60
+</td>
+</tr>
+</tbody>
+</table>
+<p>The first two options (“Long” and “Medium”) are the same coefficients as estimated. The final two coefficients were arrived at through iterative trials during highway validation.</p>
 </div>
 <div id="ieei-time-of-day" class="section level3">
 <h3>IE/EI Time of Day</h3>

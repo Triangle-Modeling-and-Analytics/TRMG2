@@ -49,6 +49,8 @@ navbar:
           href: commercial_vehicles.html
         - text: "Roadway Assignment"
           href: assignment_roadway.html
+        - text: "Validation"
+          href: validation.html
   right:
     - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2

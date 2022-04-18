@@ -241,56 +241,52 @@
     <div id="toc">
       <ul>
       <li><a href="#key-considerations">Key considerations</a></li>
-      <li><a href="#approach">Approach</a></li>
+      <li><a href="#approach">Approach</a><ul>
+      <li><a href="#stage-1">Stage 1</a></li>
+      <li><a href="#stage-2">Stage 2</a></li>
+      </ul></li>
       <li><a href="#transit-submodels">Transit Submodels</a><ul>
       <li><a href="#work">Work</a><ul>
       <li><a href="#utility-specification">Utility specification</a></li>
-      <li><a href="#notes">Notes</a></li>
       </ul></li>
       <li><a href="#other">Other</a><ul>
       <li><a href="#utility-specification-1">Utility specification</a></li>
-      <li><a href="#notes-1">Notes</a></li>
       </ul></li>
       <li><a href="#shop">Shop</a><ul>
       <li><a href="#utility-specification-2">Utility specification</a></li>
-      <li><a href="#notes-2">Notes</a></li>
+      <li><a href="#notes">Notes</a></li>
       </ul></li>
       </ul></li>
       <li><a href="#homebased-work-trips">Homebased work trips</a><ul>
       <li><a href="#w_hb_w">W_HB_W</a><ul>
       <li><a href="#utility-specification-3">Utility specification</a></li>
-      <li><a href="#notes-3">Notes</a></li>
       </ul></li>
       <li><a href="#w_hb_o">W_HB_O</a><ul>
       <li><a href="#utility-specification-4">Utility specification</a></li>
-      <li><a href="#notes-4">Notes</a></li>
       </ul></li>
       <li><a href="#w_hb_ek12">W_HB_EK12</a></li>
       </ul></li>
       <li><a href="#homebased-non-work-trips">Homebased non-work trips</a><ul>
       <li><a href="#n_hb_ome">N_HB_OME</a><ul>
       <li><a href="#utility-specification-5">Utility specification</a></li>
-      <li><a href="#notes-5">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_od_short">N_HB_OD_Short</a><ul>
       <li><a href="#utility-specification-6">Utility specification</a></li>
-      <li><a href="#notes-6">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_od_long">N_HB_OD_Long</a><ul>
       <li><a href="#utility-specification-7">Utility specification</a></li>
-      <li><a href="#notes-7">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_omed">N_HB_OMED</a><ul>
       <li><a href="#utility-specification-8">Utility specification</a></li>
-      <li><a href="#notes-8">Notes</a></li>
       </ul></li>
       <li><a href="#n_hb_k12">N_HB_K12</a><ul>
       <li><a href="#utility-specification-9">Utility specification</a></li>
-      <li><a href="#notes-9">Notes</a></li>
+      <li><a href="#notes-1">Notes</a></li>
       </ul></li>
       </ul></li>
       <li><a href="#calibration">Calibration</a></li>
       <li><a href="#application">Application</a></li>
+      <li><a href="#rail-and-brt">Rail and BRT</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -304,57 +300,50 @@
    
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
-<p>This document summarizes the mode choice (MC) models estimated using travel survey and other data from the Triangle region. These are nested logit models that predict which modes of travel will be used based on things like travel time, transit fare, and transit headway. Mode choice models play a crucial role in model estimation, not only directly but also through logsums that are then used to inform destination choices.</p>
+<p>This document summarizes the mode choice (MC) models estimated using travel survey and other data from the Triangle region. These are nested logit models that predict which modes of travel will be used based on things like travel time, transit fare, and transit headway. Mode choice models play a crucial role in model estimation, not only directly but also through logsums that are then used to inform destination choices. For more information on mode choice models, click <a href="https://tfresource.org/topics/Mode_choice.html">here</a>.</p>
 <div id="key-considerations" class="section level2">
 <h2>Key considerations</h2>
-<p>In addition to the usual key drivers of mode choices such as LOS variables, there were key modeling requirements for the Triangle region:</p>
-<ul>
-<li>One of the key modeling requirements for the Triangle region is the focus on transit usage and ability to analyze the congestion mitigation potential of future new transit modes/projects. To that end, a detailed transit mode choice component is warranted. In addition to the household travel survey, Caliper had access to a transit onboard survey. While the proportion of transit trips in the household survey is in accordance with regional shares, this data alone was not sufficient to estimate parameters for transit sub-modes. Rather than combine the onboard survey with the household survey (for various reasons including inconsistency between trip type), Caliper estimated detailed transit sub-mode models conditional on the main transit choice using the onboard survey. This is illustrated in later sections.</li>
-<li>The mode choice model structure must be amenable to incorporate future transit modes such as BRT, LRT etc.</li>
-<li>A key mode identified during exploratory analysis was the Non-HH Auto mode, that is comprised of ride sharing and rental cars (classified together as AutoPay) and borrowed cars (classified as OtherAuto).</li>
-<li>Parking was a major consideration for the auto modes, especially in designated parking districts in the CBD/downtown/university areas of cities in the Triangle region, where parking space is limited.</li>
-<li>For Non-Home Based (NHB) trips, the trip mode is conditional based on the mode of the home-based leg of the tour. Hence mode choice models were not estimated for these trips.</li>
-</ul>
+<p>In addition to the usual key drivers of mode choices such as level-of-service variables, there were key modeling requirements for the Triangle region.</p>
+<p>One of the key modeling requirements for the Triangle region is the focus on transit usage and ability to analyze the congestion mitigation potential of future transit projects. To that end, a detailed transit mode choice component is warranted. In addition to the household travel survey, Caliper had access to a transit onboard survey. While the proportion of transit trips in the household survey is in accordance with regional shares, this data alone was not sufficient to estimate parameters for transit sub-modes. Rather than combine the onboard survey with the household survey (for various reasons including inconsistency between trip type), Caliper estimated detailed transit sub-mode models conditional on the main transit choice using the onboard survey. This is illustrated in later sections.</p>
+<p>A second consideration was the need to measure future transit modes such as bus rapid transit, light rail, and commuter rail. These modes do not exist today, so Caliper leaned on FTA/STOPS guidance.</p>
+<p>A key mode identified during exploratory analysis was the Non-HH Auto mode, that is comprised of ride sharing and rental cars (classified together as AutoPay) and borrowed cars (e.g. a friend’s car and classified as OtherAuto).</p>
+<p>Parking was a major consideration for the auto modes, especially in designated parking districts in the CBD/downtown/university areas of cities in the Triangle region, where parking space is limited.</p>
+<p>For Non-Home Based (NHB) trips, the trip mode is conditional based on the mode of the home-based leg of the tour. Hence mode choice models were not estimated for these trips.</p>
 </div>
 <div id="approach" class="section level2">
 <h2>Approach</h2>
 <p>The initial determination was whether to combine the household travel survey with the on-board survey and subsequently estimate a model using the entire set of modes (including the transit sub-modes). This would entail potential re-calculation of the survey weights.</p>
 <p>The alternate approach was to estimate conditional transit sub-mode models using the onboard survey and then estimate a nested mode choice model using all the modes but fixing the transit sub-mode utility coefficients as appropriate. Essentially, the logsum computed from the transit nest would be the key utility component for the main transit alternative. The transit sub-mode model can also be viewed as a model that predicts transit sub-mode shares conditional on the main mode being chosen as transit.</p>
-<p>A closer look at the onboard survey revealed that while the data regarding the transit sub-mode was rich, the information regarding the tour type was not available. Whether trips are work, other or shop related could be ascertained from the onboard survey but there was no information regarding tour types or the overall travel pattern of the individual respondent. Given that the trip purposes in the TRM model are designed based on the tour type and trip type, records from the onboard survey could not be matched directly to the TRM trip purpose definitions. Therefore, the alternate approach of estimating transit sub-models from the onboard survey was chosen.</p>
+<p>A closer look at the onboard survey revealed that while the data regarding the transit sub-mode was rich, the information regarding the tour type was not available. Whether trips are work, other or shop related could be ascertained from the onboard survey but there was no information regarding tour types or the overall travel pattern of the individual respondent. Given that the trip purposes in TRMG2 are designed based on the tour type and trip type, records from the onboard survey could not be matched directly to the TRM trip purpose definitions. Therefore, the alternate approach of estimating transit sub-models from the onboard survey was chosen.</p>
 <p>Given the above, the mode choice estimation approach for the TRM followed a two-stage process:</p>
-<ul>
-<li>Stage1: Estimate Transit sub-mode models (nest) for three main types (Work, Shop and Other) from the onboard survey. The transit nest is organized by access mode and transit mode, as was indicated during the estimation process. The three access modes are Walk, Park&amp;Ride (PNR) and Kiss&amp;Ride (KNR). The modes in the base year include local bus (LB) and express bus (EB).</li>
-<li>Stage 2: Estimate a nested model for each trip purpose in the TRM. The top-level choices are the main modes namely Auto, Non-HH Auto and Transit. The Auto nest includes the sub-modes SOV, HOV2 and HOV3. The Non-HH Auto nest includes the modes AutoPay and OtherAuto. The appropriate Transit nest is stitched by keeping the utilities and the coefficients from the transit nest models fixed (essentially fixing the logsums). Depending on the trip purpose and observed distributions in the survey, certain transit access modes were dropped for certain purposes. The parameters of the utility function of the various auto modes, ASC’s and nest coefficients for the top-level alternatives are estimated during the process. Certain key utility terms common to a particular nest (e.g., Transit) were added to the appropriate nest alternative (e.g., to the Transit alternative) to capture the fundamental choice of the main mode. A weighted estimation was performed using the trip final weights.</li>
-</ul>
+<div id="stage-1" class="section level3">
+<h3>Stage 1</h3>
+<p>Estimate Transit sub-mode models (nest) for three main types (Work, Shop and Other) from the onboard survey. The transit nest is organized by access mode and transit mode, which was revealed by the estimation process. The three access modes are Walk, Park &amp; Ride (PNR) and Kiss &amp; Ride (KNR). The modes in the base year include local bus (LB) and express bus (EB), and these are the only modes with estimated coefficients.</p>
+</div>
+<div id="stage-2" class="section level3">
+<h3>Stage 2</h3>
+<p>Estimate a nested model for each trip purpose in TRMG2. The top-level choices are the main modes namely Auto, Non-HH Auto and Transit. The Auto nest includes the sub-modes SOV, HOV2 and HOV3. The Non-HH Auto nest includes the modes AutoPay and OtherAuto. The appropriate Transit nest is stitched by keeping the utilities and the coefficients from the transit nest models fixed (essentially fixing the logsums). For some trip purposes, certain transit access modes were dropped if there were no observations in the survey. The parameters of the utility function of the various auto modes, ASC’s and nest coefficients for the top-level alternatives are estimated during the process. Certain key utility terms common to a particular nest (e.g., Transit) were added to the appropriate nest alternative (e.g., to the Transit alternative) to capture the fundamental choice of the main mode. A weighted estimation was performed using the trip final weights.</p>
 <p>The conceptual figure of a typical nested model is presented in the figure. Note that the utility coefficients and structure for the Transit come from the estimations in Stage 1 described above. For instance, for the w_hb_w purpose, where the tour mode is work and the trip mode is work, the transit nest for the work transit purpose is used in the final mode choice specification.</p>
 <p><img src="img/mc/full_tree.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>In the following sections, the three Transit nest models are first described, followed by the completed models for each of the TRM trip purposes.</p>
+</div>
 </div>
 <div id="transit-submodels" class="section level1">
 <h1>Transit Submodels</h1>
 <div id="work" class="section level2">
 <h2>Work</h2>
-<p>This model is estimated from the onboard survey for trips whose purpose is work. All six transit modes are considered, and the estimated model has the nested structure below, nested by access mode and then by transit mode.</p>
+<p>This model is estimated from the onboard survey for work trips. All six combinations of transit and access mode are considered, and the estimated model has the nested structure below, nested by access mode and then by transit mode. The estimation process indicated that this nesting structure (rather than main mode first followed by access mode), was more appropriate for the Triangle. This reflects the large differences in behavior between households with and without autos. For most people, they must first determine if driving is an option. If it isn’t, they can only take transit if they can walk to it.</p>
 <p><img src="img/mc/transit_sub_work.png" width="100%" style="display: block; margin: auto;" /></p>
 <div id="utility-specification" class="section level3">
 <h3>Utility specification</h3>
-<p>The utility specification mainly comprises of the level of service transit variables and auto sufficiency market segmentation terms. The utility structure is shown in the first table below where the letter ‘X’ indicates that the variable is included in the utility equation for the appropriate alternative (column).The ASC row shows the estimated constant values with the corresponding tStat within the brackets. The three nest coefficients are also shown with their tStats.</p>
+<p>The utility specification mainly comprises of the level of service transit variables and auto sufficiency market segmentation terms. The utility equations are shown in the first table below where the letter ‘X’ indicates that the variable is included in the utility equation for the appropriate alternative (column). The alternative-specific constant (ASC) row shows the estimated constant values with the corresponding tStat within the brackets. The three nest coefficients are also shown with their tStats.</p>
 <p><img src="img/mc/transit_sub_work.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_work2.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_work3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_work4.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>Transit LOS variables are significant as expected.</li>
-<li>A fare coefficient could not be directly estimated. Instead, a VOT of 11.9 $/hr was used to convert the fare to equivalent time and a time coefficient was estimated.<br />
-</li>
-<li>Nested Logit estimation is known to be non-unique and is influenced by the starting values of the nest coefficients. This implies that potentially several estimations must be run with a different set of starting nest coefficients. After a wide range of experiments on the TRM data, it was necessary to fix the PNR nest coefficient to 1.</li>
-<li>As expected, households with zero vehicles tend to prefer walk access to transit options.</li>
-<li>Vehicle insufficient households prefer not to use PNR since that would presumably deem the vehicle to be unused at the parking lot.</li>
-<li>While preparing the estimation dataset, the appropriate skim for the various transit mode based on time of day was attached to the survey records and used in the utility specification.</li>
-</ul>
+<p>As expected, transit LOS variables are significant. A fare coefficient could not be directly estimated. Instead, a VOT of 11.9 $/hr was used to convert the fare to equivalent time and a time coefficient was estimated. This ensures that the model is sensitive to changes in fare policy.</p>
+<p>Nested Logit estimation is known to be non-unique and is influenced by the starting values of the nest coefficients. This implies that potentially several estimations must be run with a different set of starting nest coefficients. After a wide range of experiments on the TRM data, it was necessary to fix the PNR nest coefficient to 1 (implying that PNR_LB and PNR_EB are treated as top-level modes).</p>
+<p>As expected, households with zero vehicles tend to prefer walk access to transit options. Similarly, vehicle insufficient households prefer not to use PNR since that would presumably make the vehicle unusable while in the parking lot.</p>
 </div>
 </div>
 <div id="other" class="section level2">
@@ -365,27 +354,20 @@
 <p><img src="img/mc/transit_sub_other1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_other2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_other3.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-1" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>A VOT of 11.9 $/hr was used to obtain the fare coefficient.</li>
-</ul>
+<p>Again, a VOT of 11.9 $/hr was used to obtain the fare coefficient.</p>
 </div>
 </div>
 <div id="shop" class="section level2">
 <h2>Shop</h2>
-<p>Since it is unlikely that the shop purpose trips use PNR and KNR, the transit alternatives consist only of the walk access modes. This was also borne by the choices in the survey that had almost no PNR/KNR trips for the shop purpose.</p>
+<p>The onboard survey revealed that it is very unlikely that shop trips use PNR and KNR, which is intuitive. If a household has access to a car with which to make a PNR/KNR trip, they would prefer to simply drive directly to the store and have an easy way to transport groceries or other purchases. As a result, the transit alternatives consist only of the walk access modes.</p>
 <div id="utility-specification-2" class="section level3">
 <h3>Utility specification</h3>
 <p><img src="img/mc/transit_sub_shop1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/transit_sub_shop2.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="notes-2" class="section level3">
+<div id="notes" class="section level3">
 <h3>Notes</h3>
-<ul>
-<li>A VOT of 11.9 $/hr was used to obtain the Fare coefficient.</li>
-</ul>
+<p>As with the other submodels, a VOT of 11.9 $/hr was used to obtain the Fare coefficient.</p>
 </div>
 </div>
 </div>
@@ -393,32 +375,26 @@
 <h1>Homebased work trips</h1>
 <div id="w_hb_w" class="section level2">
 <h2>W_HB_W</h2>
-<p>These are trips on a work tour with one end being home and the other being work. During the estimation process, the full nesting structure including all modes in the transit sub-nest were specified. The utility equations from the work transit nest model along with their coefficients were retained (and fixed), except the transit sub-mode ASCs. These were allowed to be determined by the estimation. This was done to enable the estimation to adjust the constants of the transit mode to fit the shares from the household travel survey. A weighted estimation using the trip weights were performed.</p>
-<p>The utility spec for the combined data is shown below. Note that the transit sub-mode utilities are not shown in the table.</p>
+<p>These are trips on a work tour with one end being home and the other being work. During the estimation process, the full nesting structure including all modes in the transit sub-nest were specified. The utility equations from the work transit nest model along with their coefficients were retained (and fixed), except the transit sub-mode ASCs. These were allowed to be determined by the estimation. This was done to enable the estimation to adjust the constants of the transit mode to fit the top-level shares from the household travel survey. A weighted estimation using the trip weights was performed.</p>
+<p>The utility spec for the combined data is shown below. Note that the transit sub-mode utilities are not shown in the table (see above).</p>
 <div id="utility-specification-3" class="section level3">
 <h3>Utility specification</h3>
 <p><img src="img/mc/w_hb_w1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/w_hb_w2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/w_hb_w4.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/w_hb_w3.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-3" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>As expected, the time coefficients are highly significant. The TNC time coefficient is deemed less onerous than other auto modes, which is an intuitive result given that you don’t have to drive and can (e.g.) read a book</li>
-<li>Toll coefficients for the auto modes were computed using a VOT of 16.4 $/hr.</li>
-<li>The nest structure for the NonHHAuto is justified, given the tStat of the nest coefficient of -11.8. The Auto nest is retained despite the nest coefficient having a low tStat.</li>
-<li>Parking logsums have a significant effect on the SOV and HOV modes as well as the OtherAuto mode.</li>
-<li>High Income has a positive effect on the SOV and HOV modes.</li>
-<li>Vehicle insufficient households have a higher tendency to prefer AutoPay and OtherAuto modes as opposed to SOV and HOV modes.</li>
-<li>During application, the model is applied to five segments and four time periods (20 combinations). The segments are v0 (Zero Autos), Low-Income and High-Income vehicle insufficient HHs (ilvi and ihvi), Low-Income and High-Income vehicle sufficient HHs (ilvs and ihvs). The coefficients of the high income and vehicle insufficient utility terms are enforced depending on the segment. The appropriate time-period skims by mode are used.</li>
-<li>OD based TNC wait times and fares are used as utility variables for the AutoPay mode and the computation of these variables is described in the Accessibility page.</li>
-</ul>
+<p>As expected, the time coefficients are highly significant. The TNC time coefficient is deemed less onerous than other auto modes, which is an intuitive result given that you don’t have to drive and can (e.g.) read a book.</p>
+<p>Toll coefficients for the auto modes were computed using a VOT of 16.4 $/hr.</p>
+<p>The nest structure for the NonHHAuto is justified, given the tStat of the nest coefficient of -11.8. The Auto nest is also retained despite the nest coefficient having a low tStat.</p>
+<p>Parking logsums have a significant effect on the SOV and HOV modes as well as the OtherAuto mode. As parking conditions deteriorate, trips shift into modes like Transit, AutoPay, and OtherAuto.</p>
+<p>High Income has a positive effect on the SOV and HOV modes. Similarly, vehicle insufficient households have a higher tendency to prefer AutoPay and OtherAuto modes as opposed to SOV and HOV modes.</p>
+<p>During application, the model is applied to five segments and four time periods (20 combinations). The segments are v0 (Zero Autos); Low-Income and High-Income vehicle insufficient HHs (ilvi and ihvi); and Low-Income and High-Income vehicle sufficient HHs (ilvs and ihvs). The coefficients of the high income and vehicle insufficient utility terms are enforced depending on the segment.</p>
+<p>TNC wait times and fares are used as utility variables for the AutoPay mode and the computation of these variables is described in the Accessibility page.</p>
 </div>
 </div>
 <div id="w_hb_o" class="section level2">
 <h2>W_HB_O</h2>
-<p>The survey revealed that nearly all the transit trips for this type are walk access. Therefore, the PNR and KNR branches were removed from the transit nest in the final specification. The Transit node only has the walk-local and walk-express alternatives. The appropriate utility equations and coefficients (expect the ASCs) for the walk-local and walk-express modes from the work transit sub-nest model are ported over and fixed. The final nesting structure is shown below.</p>
+<p>The survey revealed that nearly all the transit trips for this type are walk access. Therefore, the PNR and KNR branches were removed from the transit nest in the final specification. The Transit node only has the walk-local and walk-express alternatives. The appropriate utility equations and coefficients (except the ASCs) for the walk-local and walk-express modes from the work transit sub-nest model are fixed based on the transit submodel estimation. The final nesting structure is shown below.</p>
 <div id="utility-specification-4" class="section level3">
 <h3>Utility specification</h3>
 <p><img src="img/mc/w_hb_o1.png" width="100%" style="display: block; margin: auto;" /></p>
@@ -426,17 +402,9 @@
 <p><img src="img/mc/w_hb_o3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/w_hb_o4.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/w_hb_o5.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-4" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>As expected, the time coefficients are highly significant.</li>
-<li>The VOT for the Auto modes computed from the time and cost estimates is close to the desired value of time of $16.4/hr</li>
-<li>Although a nest coefficient for the Auto mode could not be estimated, this coefficient was set to 0.75 to match the estimated value from the w_hb_w model.</li>
-<li>Since this purpose consists of short errand on the work tour, parking logsums for work were not found to be significant.</li>
-<li>The positive effect of high income on auto modes persisted.</li>
-<li>Vehicle insufficient households incline towards OtherAuto and Transit modes</li>
-</ul>
+<p>As with W_HB_W, the time coefficients are highly significant in this model. The VOT for the Auto modes computed from the time and cost estimates is close to the desired value of time of $16.4/hr.</p>
+<p>Although a nest coefficient for the Auto mode could not be estimated, this coefficient was set to 0.75 to match the estimated value from the w_hb_w model. Since this purpose consists of short errands on the work tour, parking logsums for work were not found to be significant.</p>
+<p>Other similarities to W_HB_W included the positive effect of high income on auto modes persisted and the preference of vehicle insufficient households to use OtherAuto and Transit modes</p>
 </div>
 </div>
 <div id="w_hb_ek12" class="section level2">
@@ -446,28 +414,21 @@
 </div>
 <div id="homebased-non-work-trips" class="section level1">
 <h1>Homebased non-work trips</h1>
-<p>The purposes N_HB_OME, N_HB_ODShort, N_HB_ODLong, N_HB_OMED and N_HB_K12 fall under this category. Typically, it was observed that transit PNR and KNR modes were seldom used for these purposes. The tree structure for these purposes is shown below with one exception being that the N_HB_K12 purpose does not have the walk-express mode but has a SchoolBus mode.</p>
+<p>The purposes N_HB_OME, N_HB_ODShort, N_HB_ODLong, N_HB_OMED and N_HB_K12 fall under this category. Typically, Caliper observed that transit PNR and KNR modes were seldom used for these purposes. The tree structure for these purposes is shown below.</p>
 <p><img src="img/mc/nhb_full_nest.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>N_HB_K12 is the one exception to the above graphic, as it includes a SchoolBus mode rather than walk to express bus.</p>
 <div id="n_hb_ome" class="section level2">
 <h2>N_HB_OME</h2>
-<p>These are home based trips that involve shopping, eating out and other maintenance cash spending activities that are part of a non-work tour. Therefore, the transit nest model for the shop purpose (with the walk-local and walk-express alternatives) is used. This is the only model where the ‘Shop’ transit sub-nest coefficients are used. As expected, for trips such as shopping, PNR and KNR modes were not chosen. If a person has access to a car, they will use it buy groceries rather than try and cary them on the bus.</p>
+<p>These are home based trips on non-work tours that involve shopping, eating out and other maintenance cash spending activities. Therefore, the transit nest model for the shop purpose (with the walk-local and walk-express alternatives) is used. This is the only model where the ‘Shop’ transit sub-nest coefficients are used. As expected, for trips such as shopping, PNR and KNR modes were not chosen. If a person has access to a car, they will use it buy groceries rather than try and carry them on the bus.</p>
 <div id="utility-specification-5" class="section level3">
 <h3>Utility specification</h3>
 <p><img src="img/mc/n_hb_ome1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_ome2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_ome3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_ome4.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-5" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>The time coefficients are highly significant.</li>
-<li>Parking logsums have an important effect on choice of auto modes, which makes sense.For work trips, you have to work near your job and parking is less of a consideration. For non-mandatory trips like shopping, people are more sensitive to parking cost and availability.</li>
-<li>High income has a positive effect on HOV and an even larger positive effect on HOV trips</li>
-<li>HH Size 1 coefficient highly negative for HOV trips</li>
-<li>Vehicle sufficiency plays a significant role in choice of SOV and other modes (with varying effects).</li>
-<li>During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.</li>
-</ul>
+<p>Parking logsums have an important effect on choice of auto modes, which makes sense. For work trips, travelers have to work near their job and parking is less of a consideration. For non-mandatory trips like shopping, people are more sensitive to parking cost and availability.</p>
+<p>High income has a positive effect on HOV and an even larger positive effect on SOV trips. At the same time, the HH Size 1 coefficient is highly negative for HOV trips (which is intuitive). Vehicle sufficiency plays a significant role in choice of SOV and other modes (with varying effects).</p>
+<p>Because estimation is done on dissaggregate survey records, the high-income housing variable was either 1 or 0. During model application, which is aggregate, the percent of the zone that is high income is used. This can take values between 0 and 1.</p>
 </div>
 </div>
 <div id="n_hb_od_short" class="section level2">
@@ -479,18 +440,8 @@
 <p><img src="img/mc/n_hb_od_short2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_od_short3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_od_short4.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-6" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>The coefficients for the Non-HHAuto modes during the estimation had incorrect signs and were generally not significant. Therefore, a binary choice model with the alternatives AutoPay and OtherAuto was estimated from the survey using all the home-based trips on non-work tours. Only trips that chose these two alternatives were used in the estimation. The binary choice model coefficients and utility equations were fixed in the final mode choice model. These coefficients are indicated by an appropriate symbol in the table above.</li>
-<li>The time coefficient is highly significant.</li>
-<li>Parking logsums had a positive effect on the OtherAuto mode</li>
-<li>High income has a negative effect on choosing the transit mode</li>
-<li>Single person households tend not to generate HOV trips</li>
-<li>Vehicle insufficiency increases probability of choosing transit</li>
-<li>During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.</li>
-</ul>
+<p>The coefficients for the Non-HHAuto modes during the estimation had incorrect signs and were generally not significant. Therefore, a binary choice model with the alternatives AutoPay and OtherAuto was estimated from the survey using all the home-based trips on non-work tours. Only trips that chose these two alternatives were used in the estimation. The binary choice model coefficients and utility equations were fixed in the final mode choice model. This increased sample size allowed Caliper to achieve appropriate coefficients.</p>
+<p>Coefficients match similar patterns shown by other purposes and are logical.</p>
 </div>
 </div>
 <div id="n_hb_od_long" class="section level2">
@@ -502,17 +453,7 @@
 <p><img src="img/mc/n_hb_od_long2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_od_long3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_od_long4.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-7" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>The time coefficients are highly significant.</li>
-<li>Parking logsums have a positive effect on all the auto modes</li>
-<li>High income has a negative effect on choosing the transit mode</li>
-<li>Single person HHs do not generate as many HOV trips</li>
-<li>Vehicle insufficiency increases probability of choosing Transit, AutoPay and OtherAuto</li>
-<li>During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.</li>
-</ul>
+<p>All coefficients are intuitive as seen in other models. For example, time coefficients are significant and parking logsums indidicate correct model response to parking variables.</p>
 </div>
 </div>
 <div id="n_hb_omed" class="section level2">
@@ -524,53 +465,74 @@
 <p><img src="img/mc/n_hb_omed2.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_omed3.png" width="50%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_omed4.png" width="50%" style="display: block; margin: auto;" /></p>
-</div>
-<div id="notes-8" class="section level3">
-<h3>Notes</h3>
-<ul>
-<li>During the initial estimation, the time coefficient (along with an asserted toll coefficient derived from the time coefficient) for the auto modes had a positive sign. A model without the toll coefficient however yielded a feasible value for the time coefficient. This value was fixed in the final estimation along with the asserted toll coefficient using the value of time of $11.9/hr.</li>
-<li>The time coefficients for the NonHHAuto modes are highly significant.</li>
-<li>Parking logsums had a positive effect on all the auto modes mode</li>
-<li>High income has a positive effect on choosing the auto modes</li>
-<li>Households with size 1 do not tend to generate HOV trips</li>
-<li>Vehicle insufficiency increases probability of choosing Transit, AutoPay and OtherAuto</li>
-<li>During model application, the percent of high income corresponding to the origin zone is used, since the application is aggregate.</li>
-</ul>
+<p>During the initial estimation, the time coefficient (along with an asserted toll coefficient derived from the time coefficient) for the auto modes had a positive sign. A model without the toll coefficient however yielded a feasible value for the time coefficient. This value was fixed in the final estimation along with the asserted toll coefficient using the value of time of $11.9/hr.</p>
+<p>Other coefficients follow the same logical patterns as other purposes.</p>
 </div>
 </div>
 <div id="n_hb_k12" class="section level2">
 <h2>N_HB_K12</h2>
-<p>These are home based school related trips that are part of a non-work tour and include school trips made by kids and drop off trips. The survey indicated that the AutoPay and all transit modes except the walk local were not used. Therefore, a simple MNL model with the modes SOV, HOV2, HOV3, OtherAuto, Walk-Local transit and SchoolBus was estimated. The utility equation for the walk local transit was borrowed from the ‘Other’ transit sub-mode model.</p>
+<p>These are home based school related trips that are part of a non-work tour and include school trips made by kids and drop off trips made by adults. The survey indicated that walk-to-local bus was the only transit mode used. AutoPay was also not used. Therefore, a simple MNL model with the modes SOV, HOV2, HOV3, OtherAuto, Walk-Local transit, and SchoolBus was estimated. The utility equation for the walk local transit was borrowed from the ‘Other’ transit sub-mode model.</p>
 <div id="utility-specification-9" class="section level3">
 <h3>Utility specification</h3>
 <p><img src="img/mc/n_hb_k12_1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p><img src="img/mc/n_hb_k12_2.png" width="50%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="notes-9" class="section level3">
+<div id="notes-1" class="section level3">
 <h3>Notes</h3>
-<ul>
-<li>There is no Walk access to express bus mode.</li>
-<li>The time coefficients are significant as expected with the school bus time being onerous compares to driving kids to school.</li>
-<li>Large HHs prefer school pickup/drop-offs</li>
-<li>Choice of mode for this purpose is probably determined by several other factors specific to individual households are thus not adequately captured by a choice model. Nevertheless, a choice model helps fix the shares of the primary modes for this purpose, namely SchoolBus and HOV</li>
-</ul>
+<p>The time coefficients are significant as expected, and the school bus time is actually more onerous compared to driving kids to school. This is an amusing result that is nevertheless intuitive for anyone who rode the bus as a child.</p>
+<p>Large HHs prefer school pickup/drop-offs compared to riding the bus.</p>
+<p>Choice of mode for this purpose is probably determined by several other factors specific to individual households and are thus not adequately captured by a choice model. Nevertheless, a choice model helps fix the shares of the primary modes for this purpose, namely SchoolBus and HOV</p>
 </div>
 </div>
 </div>
 <div id="calibration" class="section level1">
 <h1>Calibration</h1>
-<p>Mode choice ASCS were calibrated to match the adjusted targets shown below. The mode choice targets are generated from the survey for each combination of trip purpose and HH market segment. Note that target shares are not split by transit sub-mode due to paucity of transit trips in the survey. The shares vary significantly by market segment, especially for the zero-auto segment as expected. Further, during the transit ridership validation, the survey transit targets were scaled down to match transit boardings.</p>
-<p>The additional ASC adjustments were not large, reassuring faith in the model estimates. All these targets were met with a sufficiently small reasonable threshold.</p>
+<p>Mode choice ASCs were calibrated to match the adjusted targets shown below. The mode choice targets are generated from the survey for each combination of trip purpose and HH market segment. Note that target shares are not split by transit sub-mode due to the lack of transit trips in the survey. The shares vary significantly by market segment, especially for the zero-auto segment as expected. Further, during the transit ridership validation, the survey transit targets were scaled down to match transit boardings.</p>
+<p>The additional ASC adjustments were not large, which increased confidence in the estimated coefficients.</p>
 <p><img src="img/mc/asc_calibration.png" width="85%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="application" class="section level1">
 <h1>Application</h1>
-<p>As mentioned earlier, the mode choice output shares can only be applied after the destination choice model has been run. However, the destination choice model requires mode choice logsums by mode, period, purpose and segment. To facilitate this, the mode choice models are run first and the probability matrices and logsums are calculated and stored. After the destination choice model is complete, the stored probability matrices are used to split the appropriate PA matrices by mode. The following rules are used during the mode choice application for a specific purpose, segment and time period.</p>
+<p>As mentioned, the mode choice output shares can only be applied after the destination choice model has been run. However, the destination choice model requires mode choice logsums by mode, period, purpose and segment. To facilitate this, the mode choice models are run first and the probability matrices and logsums are calculated and stored. After the destination choice model is complete, the stored probability matrices are used to split the appropriate PA matrices by mode. The following rules are used during the mode choice application for a specific purpose, segment and time period.</p>
 <ul>
-<li>For the zero-vehicle segment, SOV, HOV2 and HOV3 are deemed unavailable.</li>
-<li>The appropriate period skims are used, depending on the time period.</li>
+<li>For the zero-vehicle segment, SOV, HOV2 and HOV3 are made unavailable.</li>
+<li>The appropriate skims are used depending on the time period.</li>
 <li>Transit modes are automatically dropped for matrix cells with missing transit skim values.</li>
 </ul>
+</div>
+<div id="rail-and-brt" class="section level1">
+<h1>Rail and BRT</h1>
+<p>Rail and Bus Rapid Transit (BRT) do not exist in the Triangle in 2020; however, the region is actively studying these modes for the future. As a result, Caliper asserted mode choice nests for Light Rail (LR), Commuter Rail (LR), and BRT. This assertion combined revealed modal data from the on-board survey (just as value of time coefficients) and guidelines provided by FTA and used in the STOPS model (<a href="https://www.transit.dot.gov/funding/grant-programs/capital-investments/stops-workshop-atlantic-city-may-17-2015">link1</a> <a href="https://www.fsutmsonline.net/images/uploads/Task_1_Guidebook_for_Florida_STOPS_Application.pdf">link2</a>).</p>
+<p>The first FTA factor to consider is what they call “Visibility”. In short, as more of the service operates on fixed guideway, the higher this factor goes (bounded between 0 and 1).</p>
+<p><img src="img/mc/fta_visibility.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>For TRMG2, the following visibility factors were assumed:</p>
+<ul>
+<li>BRT: 0.25</li>
+<li>LRT: 0.50</li>
+<li>CRT: 1.00</li>
+</ul>
+<p>Additionally, the graphic below shows the FTA guidance on path-based constants. These are presented as penalties added to bus, but Caliper applied them as bonuses for rail and BRT.</p>
+<p><img src="img/mc/fta_path_constants.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>TRMG2 market segmentation does not match the above chart exactly. Caliper made the following assumptions about equivalency:</p>
+<ul>
+<li>zero-vehicle segment (v0): 0 vehicle households</li>
+<li>vehicle insufficient segment (vi): 1 vehicle households</li>
+<li>vehicle sufficient segment (vs): 2+ vehicle households</li>
+</ul>
+<p>Additionally, the cost coefficients from estimation (generally around .022) were within the FTA guidance of .02 - .03. Caliper applied the following discounts to in-vehicle time (adjusted based on our assumed visibility scores):</p>
+<ul>
+<li>BRT: 5%</li>
+<li>LRT: 10%</li>
+<li>CRT: 20%</li>
+</ul>
+<p>The table below is a concrete example of how LRT was modified for the N_HB_OD_Short purpose. In the gray cells, the numbers in blue show the modifications. The IVTT time is discounted and the mode is given bonus path type constants based on visibility, market segment, and scaled by G2s cost coefficient.</p>
+<p><img src="img/mc/lr_adjustment.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>Additionally, Caliper compared these adjustments to the existing TRMV6.2 model. In that model, a single premium mode exists with the following adjustments:</p>
+<ul>
+<li>IVTT discount of 15%</li>
+<li>30 bonus minutes added to the constant</li>
+</ul>
+<p>All else equal, TRMG2s smaller discounts and bonuses should lead to more conservative ridership estimates. However, during planning analysis, the region can adjust the visibility factors to reflect the actual service being planned. For example, if planned BRT service operates fully inside reserved right of way, the visibility factor should be increased.</p>
 </div>
 </div>
 

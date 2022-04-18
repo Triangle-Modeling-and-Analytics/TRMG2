@@ -56,15 +56,19 @@ write_csv(
 
 ## Introduction
 
-Vehicle ownership is a long-term decision that directly impacts daily mode
+Auto ownership is a long-term decision that directly impacts daily mode
 choice. The choice is influenced by household factors like income and number
-of workers, but also by where people choose to live. The auto-ownership model
-allows the TRMG2 to be sensitive to these factors and respond to changes in the
+of workers, but also by where people choose to live. The auto ownership model
+allows TRMG2 to be sensitive to these factors and respond to changes in the
 future.
+
+Auto ownership is predicted using a discrete choice model. For more details on
+general model form, click
+[here](https://tfresource.org/topics/Choice_models.html).
 
 ## Model Structure
 
-The auto-ownership model in the TRMG2 makes use of variables from the synthetic
+The auto ownership model in TRMG2 makes use of variables from the synthetic
 population and zonal accessibility to make predictions. The model structure is
 a simple multinomial logistic (MNL) regression model with five alternatives:
 
@@ -80,8 +84,11 @@ Model estimation was performed using TransCADs built-in logit model engine, and
 the table below shows the utility terms, coefficients, and goodness of fit.
 
 ```{r, include=FALSE}
-coeffs <- read_csv("data/input/auto_ownership/ao_final_coefficients.csv") %>%
-  mutate(across(.cols = c(veh0:veh4), .fns = ~round(.x, 3))) %>%
+coeffs <- read_csv("../master/resident/auto_ownership/ao_coefficients.csv") %>%
+  select(Term = Description, Alternative,Coefficient) %>%
+  mutate(Coefficient = round(Coefficient, 1)) %>%
+  pivot_wider(id_cols = c(Term), names_from = Alternative, values_from = Coefficient) %>%
+  mutate(across(.cols = c(v0:v4), .fns = ~round(.x, 3))) %>%
   mutate(across(.fns = ~ifelse(is.na(.x), "", .x)))
 ```
 
@@ -91,25 +98,32 @@ coeffs %>%
   kable_styling(full_width = FALSE)
 ```
 
+Household income categories are defined [here](population_synthesis.html#household-income). Accessibility terms are discussed in detail [here](accessibility.html).
+
+As an example, the 1-vehicle coefficients in the table above translate into
+a utility formula that starts like this:
+
+$U = 4.88 + 0.7 * Workers + 0.1 * Seniors - 0.4 * WalkAccess + ...$
+
 The coefficients all have the right sign and the relative sizes are intuitive.
-One particularly encouraging result of this model is that households with strong
+For example, higher-income households are more likely to own more cars. One
+particularly encouraging result of this model is that households with strong
 walk and transit accessibility are less likely to own a vehicle and even less
 likely to own multiple vehicles. This adds another dimension of model
 sensitivity to transit investments. New transit routes will affect long-term
 household decisions about auto ownership, which further influence their daily
-decisions about mode choice.
+transportation decisions.
 
 Looking in more detail, the trend for coefficients across alternatives is also
-intuitive. Large numbers of workers in a household has a small positive impact on the
-utility of owning 1 auto, but a large impact on owning 2 or more. High income
-households are more likely to own more vehicles. Children make it less likely to
-own 3 or more cars, because there are fewer drivers. Finally, the model's Rho^2
-shows strong predictive power.
+intuitive. Large numbers of workers in a household have a small positive impact
+on the utility of owning 1 auto, but a large impact on owning 2 or more. High
+income households are more likely to own more vehicles. Finally, the model's
+Rho^2 of 0.42 shows strong predictive power.
 
 ## Calibration
 
-Even before calibration, the estimated coefficients produced results that
-closely  matched the survey as shown in the table below.
+The estimated coefficients produce results that closely matched the survey as
+shown in the table below.
 
 ```{r, include=FALSE}
 # These should come from an application of the model before any calibration

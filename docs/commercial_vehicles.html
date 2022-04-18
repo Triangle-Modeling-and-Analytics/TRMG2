@@ -191,6 +191,9 @@
          <a href="resident_dest_choice.html">Destination Choice</a>
        </li>
        <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
          <a href="nhb.html">Non-homebased</a>
        </li>
      </ul>
@@ -242,7 +245,11 @@
       <li><a href="#introduction">Introduction</a></li>
       <li><a href="#trip-rates">Trip Rates</a></li>
       <li><a href="#time-of-day">Time of Day</a></li>
-      <li><a href="#distribution">Distribution</a></li>
+      <li><a href="#distribution">Distribution</a><ul>
+      <li><a href="#cv">CV</a></li>
+      <li><a href="#sut">SUT</a></li>
+      <li><a href="#mut">MUT</a></li>
+      </ul></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -258,16 +265,16 @@
 <div id="main">
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Commercial vehicles and trucks can be a significant source of congestion on major facilities in an urban area, and in most instances, their travel behavior distinct from residents. To better capture the commercial vehicle element of traffic in the TRMG2, a separate set of commercial vehicle models were developed. These include trip generation, time of day, and distribution for three commercial vehicle types: commercial autos, vans, and pickups (CV); single unit trucks (SUT); and multi-unit trucks (MUT).</p>
+<p>Commercial vehicles and trucks contribute significantly to congestion on major facilities in an urban area. In most instances, their travel behavior is distinct from residents of that urban area. To better capture commercial vehicle traffic in TRMG2, a separate set of commercial vehicle models were developed. These include trip generation, time of day, and distribution for three commercial vehicle types: commercial autos, vans, and pickups (CV), single unit trucks (SUT), and multi-unit trucks (MUT).</p>
 <p>These classes are defined using the <a href="https://www.fhwa.dot.gov/policyinformation/tmguide/tmg_2013/vehicle-types.cfm">federal vehicle classification</a>.</p>
 <p>CV - Classes 1-3<br />
 SUT - Classes 5-7<br />
 MUT - Classes 8-13</p>
-<p>The models are implementations of the <a href="https://trid.trb.org/view.aspx?id=859168">Quick Response Freight Manual</a> (QRFM) and are re-estimated where possible using the Triangle’s 2010 Commercial Vehicle survey.</p>
+<p>The models use the <a href="https://trid.trb.org/view.aspx?id=859168">Quick Response Freight Manual</a> (QRFM) approach and are re-estimated when possible using the Triangle’s 2010 Commercial Vehicle survey.</p>
 </div>
 <div id="trip-rates" class="section level2">
 <h2>Trip Rates</h2>
-<p>Initial estimation attempts led to poor model results. A fundamental problem may be regressing a 2010 survey against 2016 land use data. In addition, stakeholders noted some concerns with the survey. Given these issues, initial rates were borrowed from the QRFM and mapped to the TRMG2 employment types.</p>
+<p>Initial estimation attempts led to counter-intuitive coefficeints and poor model fit statistics. A fundamental problem may have been regressing a 2010 survey against 2016 land use data. In addition, stakeholders noted some concerns with the survey. Given these issues, initial rates were borrowed from the New River Valley MPO travel model.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -480,7 +487,7 @@ HH
 </div>
 <div id="time-of-day" class="section level2">
 <h2>Time of Day</h2>
-<p>The survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors used by the model.</p>
+<p>The 2010 survey included trip departure time, which was used to categorize trips by time period. The table below shows the estimated time of day factors (<a href="time_of_day.html#final_defs">time of day definitions</a>).</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -632,9 +639,9 @@ MUT
 </table>
 <p>Directionality factors are not calculated for commercial vehicles and trucks. Instead, they are assumed to be evenly split by direction.</p>
 </div>
-<div id="distribution" class="section level2">
+<div id="distribution" class="section level2 tabset">
 <h2>Distribution</h2>
-<p>Once generated, the commercial vehicle and truck trips are distributed among zones using a gravity model. Unfortunately, the CV survey did not contain information on both ends of the trip, which meant it could not be used to estimate model parameters. Model parameters were borrowed from the travel model in Blacksburg, VA and are shown below.</p>
+<p>Once generated, commercial vehicle and truck trips are distributed among zones using a <a href="https://tfresource.org/topics/Trip_distribution.html">gravity model</a>. Unfortunately, the CV survey did not contain information on both ends of the trip, which meant it could not be used to estimate model parameters. Model parameters were borrowed from the NRVMPO travel model and are shown below.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -709,7 +716,7 @@ Production
 </tr>
 </tbody>
 </table>
-<p>The table below shows the resulting average trip lengths in the model.</p>
+<p>The table below shows the resulting average commercial vehicle trip lengths in the model.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -733,7 +740,7 @@ CV
 10.0
 </td>
 <td style="text-align:right;">
-7.3
+7.1
 </td>
 </tr>
 <tr>
@@ -744,7 +751,7 @@ SUT
 12.0
 </td>
 <td style="text-align:right;">
-9.0
+8.9
 </td>
 </tr>
 <tr>
@@ -760,6 +767,19 @@ MUT
 </tr>
 </tbody>
 </table>
+<p>The charts below show the trip length frequency distribution graphs (in miles).</p>
+<div id="cv" class="section level3">
+<h3>CV</h3>
+<p><img src="img/cv/cv.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="sut" class="section level3">
+<h3>SUT</h3>
+<p><img src="img/cv/sut.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="mut" class="section level3">
+<h3>MUT</h3>
+<p><img src="img/cv/mut.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 </div>
 
