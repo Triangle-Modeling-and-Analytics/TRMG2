@@ -231,35 +231,3 @@ tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-## TNC Variables
-
-To support proper handling in mode choice, the TNC services (e.g. Uber and Lyft)
-need appropriate values for fare and initial wait times. Both were estimated as
-functions of accessibility, and are calculated during this step of the model.
-
-The linear regression model for fare was estimated from the survey and is shown
-below.
-
-$$Fare = 4.00 + 0.70 * length + 0.25 * time$$
-
-Where:
-
-$Fare$: Fare ($)  
-$length$: Trip distance (mi)  
-$time$: Trip time (min)
-
-```{r, out.width="75%", fig.show='hold',fig.align='center'}
-knitr::include_graphics("img/accessibility/tnc_fare_regression.png")
-```
-
-The wait time (shown in a map above), is a function of general accessibility as
-shown below:
-
-$$Wait_{OP} = 45.10 - 1534.4 / A_g + 13030.36 / A_g^2$$
-
-Where:
-
-$Wait_{op}$: Off-peak period wait time (min)  
-$A_g$: General accessibility
-
-In the peak period, 3.5 minutes are added to the wait time.
