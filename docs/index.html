@@ -7,7 +7,7 @@
 
         <meta name="author" content="Caliper Corporation" />
     
-        <meta name="date" content="2022-04-13" />
+        <meta name="date" content="2022-04-28" />
     
     <title>Triangle Regional Model G2</title>
 
@@ -242,11 +242,17 @@
    <div id="sidebar">
     <h2><a href="#content">Triangle Regional Model G2</a></h2>
     <div id="toc">
-      
+      <ul>
+      <li><a href="#construction-notice">Construction Notice</a></li>
+      <li><a href="#trmg2">TRMG2</a><ul>
+      <li><a href="#technical-excellence">Technical Excellence</a></li>
+      <li><a href="#user-experience">User Experience</a></li>
+      </ul></li>
+      </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2022-04-13</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2022-04-28</p>
           </div>
    </div>
    
@@ -255,9 +261,29 @@
    
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
+<div id="construction-notice" class="section level1">
+<h1>Construction Notice</h1>
 <p>This website is under construction.</p>
 <p>As the new Triangle Regional Model is developed, documentation will be added to the navigation bar at the top. All documentation is an interim product and is subject to change during the development process.</p>
 <p>For a list of common acronyms used in the documentation, click <a href="acronyms.html">here</a>.</p>
+</div>
+<div id="trmg2" class="section level1">
+<h1>TRMG2</h1>
+<p>The Triangle Regional Model Generation 2 (TRMG2) is the latest model in the Triangle. It is a model built from scratch and incorporates many innovations in technique as well as user experience.</p>
+<div id="technical-excellence" class="section level2">
+<h2>Technical Excellence</h2>
+<p>TRMG2 is a trip-based model, but includes numerous dissaggregate components including a synthetic population, auto ownership model, and decision trees to predict trip generation for each individual.</p>
+<p>The aggregate components of the model also represent advancements to the practice of the practice of travel demand modeling. A nested destination choice model allows travelers to first choose a destination district before choosing an individual zone. This choice is informed by robust mode choice and parking choice models. Additionally, non-home-based (NBH) trip models are all informed by home-based models, which provides much more information about where people are traveling and by what mode. This additional knowledge compared to traditional NHB model allows for much more accurate predictions.</p>
+<p>After trip generation, TRMG2 treats each of its four time periods independently. Feedback is performed for each period such that assignment travel times are accurately represented in the behavioral models.</p>
+</div>
+<div id="user-experience" class="section level2">
+<h2>User Experience</h2>
+<p>TRMG2 also greatly improves on user experience. This online documentation along with the wiki-styled User’s Guide allow for quick reference, but the model is designed to be intuitive to use without heavy reading of the documentation.</p>
+<p>TRMG2 is written entirely in GISDK, which means no complicated model setup. Instead, after the model is unzipped, the user only needs to drag and drop “trmg2.model” into TransCAD. The model’s flowchart will open and all the relevant code is compiled. The flowchart clearly illustrates the modeling process, and each step can be expanded to see more detail.</p>
+<p><img src="img/index/flowchart.png" width="80%" style="display: block; margin: auto;" /></p>
+<p>Improved user experience also extends to model maintenance and regional collaboration. The model is housed in an open-source GitHub repository. This allows the funding members (Capital Area MPO, Durham Chapel Hill Carrboro MPO, NC Department of Transportation, and GoTriangle) to coordinate and contribute to the model in an organized manner It also makes it easy for model users and regional stakeholders to obtain the model, and they can also provide feedback using GitHub issues.</p>
+</div>
+</div>
 </div>
 
    
