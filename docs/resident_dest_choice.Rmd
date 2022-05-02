@@ -21,9 +21,9 @@ library(kableExtra)
 
 ## Intro
 
-This document summarizes the destination choice (DC) models estimated using
-travel survey and other data from the Triangle region. These models will become
-a part of the G2 hybrid travel demand model. Within the hybrid framework,
+This document summarizes the destination choice (DC) models estimated using the
+household travel survey and other data from the Triangle region. These models
+are a part of the G2 hybrid travel demand model. Within the hybrid framework,
 destination choice is modeled in the aggregate for each of several trip
 purposes. Vehicle sufficiency and income are used to further refine the market
 segments.
@@ -43,7 +43,7 @@ NL models were attempted for the latter set of purposes but did not provide
 justifiably better models.
 - All models were estimated using Larch (Newman, 2021).
 
-### A note on model fit
+### A Note on Model Fit
 
 While the fit of a discrete choice model is popularly assessed through the
 rho-squared and asymptotic rho-squared statistics, they are tricky to interpret
@@ -52,24 +52,27 @@ the calculation of the base log-likelihood, LL(0), which forms the reference for
 the rho-squared calculation. LL(0) is based on the assumption that all
 alternatives are equally likely. However, the zone alternatives in destination
 choice are not truly elemental alternatives but are themselves rather the
-collection of individual employment (say) options available within that zone.
-The size variable with its default coefficient of 1 must therefore be included
-when determining LL(0). This provides an automatic “improvement” of LL(0) over
-the case where the size variable is not included. Consequently, rho-squared
-falls. This should not be taken as automatic evidence of a poorer model. The
+collection of individual destinations available within that zone, in practice
+measured by employment. The size variable with its default coefficient of 1 must
+therefore be included when determining LL(0). This provides an automatic
+“improvement” of LL(0) over the case where the size variable is not included.
+Consequently, rho-squared falls. This should not be taken as automatic evidence
+of a poorer model. Another important consideration is that the rho-squared
+statistic decreases as the region is divided into more zones, but it is not
+reasonable to prefer models with fewer zones over models with more zones. The
 selection of the model should still (as always) be based on the reasonableness
 of its coefficients, their statistical significance, and model sensitivities.
 
-### Distance terms
+### Distance Terms
 
 Destination choice models in practice sometimes include distance and its
-mathematical transforms as part of each zone’s utility equation. While these
+mathematical transforms as part of each zone’s utility function. While these
 terms might improve statistical fit, they can cause unintended sensitivities
 that are counter-intuitive. These effects stem from the non-monotonic shape of
 the combined distance effect, as illustrated by the example below. Taken from a
 real-world model, this graph clearly shows how farther zones are less attractive
 only up to a certain threshold. Beyond that distance, the effect is reversed so
-that the farthest zones become more attractive (all else being the same).
+that the farthest zones become more attractive (all else being equal).
 
 ```{r, out.width= "115%", out.height="115%"}
 knitr::include_graphics("img/dc/distance_poly.png")
@@ -93,10 +96,9 @@ variables.
 
 ## Home-Based Trips
 
-The TRM region features eight home-based trip purposes as revealed by an
-analysis of the survey. Each purpose’s destination choice model is based on
-nested logit with zone clusters as nests. Each cluster has its constituent zones
-under it:
+The TRM region features eight home-based trip types as determined by an analysis
+of the survey. Each type's destination choice model is a nested logit model
+with zone clusters as nests. Each cluster has its constituent zones under it:
 
 ```{r, out.width= "115%", out.height="115%"}
 knitr::include_graphics("img/dc/model_structure.png")
@@ -117,9 +119,9 @@ The nested specification outperformed all other approaches.
 The utility specification for the DC models consisted of the following set of
 variables. Not all these variables are present in every specification since
 variables are retained depending on the significance of their estimated
-coefficients or owing to strong apriori assumptions.
+coefficients or owing to strong a priori assumptions.
 
-#### Size term
+#### Size Term
 
 This is the natural logarithm of the attractions at a destination zone, which
 itself is a linear combination of employment variables and their coefficients.
@@ -157,7 +159,8 @@ home and the chosen zone are within the same cluster (nest).
 choosing the same zone as the origin.
 - **Cluster Nest coefficients**: A nest coefficient for each of the 12 clusters
 is estimated.
-- **Cluster ASCs**: Likewise, ASCs are estimated for each cluster.
+- **Cluster ASCs**: Likewise, alternative specific constants (ASCs) are
+  estimated for each cluster.
 
 The rich utility specification allows the model to capture the decision-making
 process of choosing destination zones and capturing cluster-to-cluster flows.
@@ -207,8 +210,8 @@ magnitude, confirming that the model’s explanatory power is derived from other
 variables and is sensitive to changes in model inputs.
 
 Intrazonal and home cluster effects are strong. Residents of Cary, Durham,
-Chapel Hill, Garner often live and work in the same cluster. Similar effects are
-also true for the peripheral clusters toward the northeast and south.
+Chapel Hill, and Garner often live and work in the same cluster. Similar effects
+are also observed for the peripheral clusters toward the northeast and south.
 
 Root mode choice logsums are significant for workers from zero-auto households,
 capturing a coupling with access to public transit modes. Using root mode choice
@@ -229,7 +232,7 @@ It's coefficient is effectively 1, which implies an MNL-type sub-nest.
 The size variables are stratified by income using the percentage of low and high
 paying jobs in each zone. This is how the model pairs high-income workers (e.g.
 in the Regency area of Cary) with high-paying jobs in RTP. This stratification
-is critical for accurate work flows in region.
+is critical for accurate work flows in the region.
 
 #### Double constraint and attraction model
 
@@ -243,10 +246,10 @@ For work trips, a traditional assumption to make is that each job of the same
 type must attract the same work trips - even if the zone is in a remote
 location. The justification for this assumption has weakened in recent years
 with the rise in telecommuting, flex schedules, and other changes, but the TRMG2
-model implements double constraint for work trips. In the context of destination
-choice models, this is achieved by assigning each zone a "shadow price". This
-extra term in the utility equation is adjusted in an iterative fashion to match
-predicted attractions.
+model still implements double constraint for work trips. In the context of
+destination choice models, this is achieved by assigning each zone a "shadow
+price". This extra term in the utility equation is adjusted in an iterative
+fashion to match predicted attractions.
 
 These predicted attractions come from a regression model estimated from the
 survey data.
@@ -457,8 +460,8 @@ top-level choices (MNL).
 
 N_HB_OME corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at an “other” activity that involved the spending of
-money. This segment is close to the HBO (Home-Based Other) trip purpose in
-traditional models.
+money whether shopping, eating out, or personal business. This segment is close
+to the HBO (Home-Based Other) trip purpose in traditional models.
 
 #### Estimated coefficients and t statistics
 
@@ -527,7 +530,7 @@ This model has a strong fit and is primarily based on K12 enrollment and travel
 time (as expected). Additionally, the negative coefficient on the Durham and
 Northeast clusters means that (all else equal) zones in that cluster are less
 likely to be chosen. The positive intrazonal coefficient is expected given
-the tendency for people to be assigned to schools near their home.
+the tendency for people to attend schools near their home.
 
 ### N_HB_OD_Long
 
@@ -549,8 +552,8 @@ knitr::include_graphics("img/dc/n_hb_od_long3.png")
 ```
 
 The penalty on travel time above 30 minutes is reduced as seen in multiple trip
-trypes. The positive coefficient on walk accessibility means that these trips
-are more attracted to zones in area that are more dense. Home cluster effects
+types. The positive coefficient on walk accessibility means that these trips
+are more attracted to zones in areas that are more dense. Home cluster effects
 are strong, meaning that most of these trips stay within the home cluster.
 Employment, school enrollment, and residential population all are significant
 components of the size term. This reflects the catch-all nature of this trip
@@ -579,6 +582,8 @@ The attenuation on for drive time above 20 minutes is not as strong as other
 trip types. This indicates that these trips are likely just trying to reach the
 nearest attraction that satisfies the trip purpose. Similarly, home cluster
 effects and the intrazonal term are strong meaning that people stay nearby.
+These effects are reasonable, reflecting that people are not inclined to travel
+longer distances for short activities.
 
 Logsums for household auto, non-household auto, and transit all play an important
 role in determining where someone travels. Similar to the N_HB_OD_Long trip,
@@ -610,14 +615,14 @@ categories that combine trip purpose with travel mode:
 
 - NHB Work Tours by Auto
 - NHB Non-work Tours by Auto
-- NHB Tours by Public Transit
-- NHB Tours by Bike/Walk
+- NHB Trips by Public Transit
+- NHB Trips by Bike/Walk
 
 ### NHB Work Auto
 
 This segment corresponds to trips that are part of a work tour, do not have
-either end at home, and are associated with the auto mode. This segment would
-have been rolled into the NHBW (Non-Home-Based Work) trip purpose in
+either end at home, and are associated with the auto mode. Most of this segment
+would have been rolled into the NHBW (Non-Home-Based Work) trip purpose in
 traditional models.
 
 #### Estimated coefficients and t statistics
@@ -697,7 +702,7 @@ trip lengths beyond one mile in the survey.
 Intra-zonal and intra-cluster effects are strong, which also reflects the
 short-range nature of non-motorized trips. Finally, the walk accessibility of
 the destination is important for zero vehicle households. This captures an
-important reality: these households cannot use autos to make home-based trips.
+important reality: these households cannot use autos to make trips.
 
 ## DC Model Adjustments
 
