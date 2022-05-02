@@ -298,6 +298,21 @@
       </ul></li>
       <li><a href="#dc-model-adjustments">DC Model Adjustments</a></li>
       <li><a href="#dc-application">DC Application</a></li>
+      <li><a href="#validation">Validation</a><ul>
+      <li><a href="#trip-lengths">Trip Lengths</a></li>
+      <li><a href="#intra-zonal-percentages">Intra-Zonal Percentages</a></li>
+      <li><a href="#cluster-to-cluster-flows">Cluster-to-Cluster Flows</a><ul>
+      <li><a href="#w_hb_w-1">W_HB_W</a></li>
+      <li><a href="#w_hb_o-1">W_HB_O</a></li>
+      <li><a href="#w_hb_ek12-1">W_HB_EK12</a></li>
+      <li><a href="#n_hb_ome-1">N_HB_OME</a></li>
+      <li><a href="#n_hb_omed-1">N_HB_OMED</a></li>
+      <li><a href="#n_hb_k12-1">N_HB_K12</a></li>
+      <li><a href="#n_hb_od_short-1">N_HB_OD_Short</a></li>
+      <li><a href="#n_hb_od_long-1">N_HB_OD_Long</a></li>
+      </ul></li>
+      <li><a href="#nhb-trip-types">NHB Trip Types</a></li>
+      </ul></li>
       <li><a href="#references">References</a></li>
       </ul>
     </div>
@@ -698,6 +713,78 @@ Retail
 <li>The DC nested choice is run, which produces a zone-zone probability matrix, such that for each row (zone), the destination probabilities sum to 1. The determination of this probability matrix itself is the result of the nested DC, implemented as a two-stage destination choice model with a zone level model and cluster level model informed by zone-zone DC logsums.</li>
 <li>The trip productions are applied to each row to produce a PA matrix, which are then further multiplied by the stored mode choice probabilities to produce PA matrices by mode, purpose, segment and period. The matrices are then combined as required.</li>
 </ul>
+</div>
+<div id="validation" class="section level2">
+<h2>Validation</h2>
+<div id="trip-lengths" class="section level3">
+<h3>Trip Lengths</h3>
+<p>The model average trip lengths (miles and minutes) by purpose are compared against the survey in the tables below. The survey trip lengths and model trip lengths are computed using the final model skim data for the motorized trips. The survey trip lengths are computed as weighted averages using trip weights.</p>
+<p><img src="img/dc/validation/trip_lengths.png" width="90%" style="display: block; margin: auto;" /></p>
+<p>The model trip lengths compare favorably with the survey. Note that the destination choice model predict probability to all zones irrespective of the distance from the origin and therefore model levers are used to limit the choice set by purpose based on a threshold time. These levers are input to the model and may be modified/removed for future scenarios as required.</p>
+</div>
+<div id="intra-zonal-percentages" class="section level3">
+<h3>Intra-Zonal Percentages</h3>
+<p>The table below show the intrazonal percentages by purpose for the model and the survey, which indicates pretty much a spot-on match.</p>
+<p><img src="img/dc/validation/iz.png" width="55%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="cluster-to-cluster-flows" class="section level3">
+<h3>Cluster-to-Cluster Flows</h3>
+<p>The success of a travel demand model and its usefulness towards meaningful scenario analysis relies heavily on trip distribution and particularly on the validity of the cluster-to-cluster flows (or district to district flows). A model that matches observed cluster to cluster flows generally is successful in capturing the travel trends in the region and tends itself well to scenario analysis. Recall that in TRMG2, the top-level choice in the destination choice model is the choice of the cluster (where the home cluster is favored often) and then the second level is the choice of the zone within the cluster.</p>
+<p>The structure as well as the rich utility specification of the two stage DC nested model in TRMG2 was instrumental in matching the observed cluster-to-cluster flows from the survey, thereby inspiring a great deal of confidence in the model. The following table and charts illustrate the fit of the model to the observed cluster-to-cluster flows.</p>
+<div id="w_hb_w-1" class="section level4">
+<h4>W_HB_W</h4>
+<p>The W_HB_W purpose is unique because of shadow pricing employed in the model application. Regression models were estimated for the trip attractions that are then used to compute the shadow prices. Therefore, it is expected that the percentage of trips attracted to each cluster match between the model and the input attractions as shown below. The small values of the shadow prices however indicate that the original model without these shadow prices was also reasonably accurate.</p>
+<p><img src="img/dc/validation/whbw_attrs.png" width="50%" style="display: block; margin: auto;" /></p>
+<p>The following tables show the cluster-to-cluster percentage comparisons between the model and the survey. For estimation, only the home to work leg of the trip was used in the dataset, whereas the model PA totals consist of both the forward and return trips (in PA format). Therefore, it is not possible to compare exact numbers but rather look at the percentages of flows from cluster-to-cluster.</p>
+<p>The three tables below show the survey cluster-to-cluster percentages, the model percentages and the differences between the survey and the model respectively in a matrix format. Note that the last row in each table shows the percent of trips attracted to each cluster. There are differences for ‘w_hb_w’ because the shadow pricing matches the attractions derived from the attractions model as opposed to the survey numbers themselves. For a couple of the clusters, the survey attractions are different from the input attractions. For instance, the input attractions indicate that 5.51% of trips are attracted to the RTP cluster whereas the survey indicates that 7.84% of trips are attracted to the RTP cluster.</p>
+<p>Despite the shadow pricing showing a deviation from the raw survey numbers, the cluster-to-cluster percentages between the model and survey match very well, and the differences are small. This is further illustrated in the chart, where each point represents a cluster pair. The survey percentages and model percentages from the tables below are used for the x and y axis respectively. Most of the points are close to the 45-degree line. The regression line is also plotted, with a slope of 0.96, an intercept of nearly 0 and a R-squared of 0.94, indicating an excellent match. Note that only points that were observed in the survey are plotted.</p>
+<p><img src="img/dc/validation/whbw_survey.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbw_model.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbw_diff.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbw_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="w_hb_o-1" class="section level4">
+<h4>W_HB_O</h4>
+<p>Similar plots are shown for W_HB_O. This purpose has no shadow pricing and the match to the survey cluster-to-cluster flow is excellent.</p>
+<p><img src="img/dc/validation/whbo_survey.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbo_model.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbo_diff.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="img/dc/validation/whbo_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="w_hb_ek12-1" class="section level4">
+<h4>W_HB_EK12</h4>
+<p>The model cluster-to-cluster flow patterns match the survey closely for the rest of the purposes and only the charts are shown. In each chart, each point represents one cluster pair.</p>
+<p><img src="img/dc/validation/whbek12_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="n_hb_ome-1" class="section level4">
+<h4>N_HB_OME</h4>
+<p><img src="img/dc/validation/nhbome_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="n_hb_omed-1" class="section level4">
+<h4>N_HB_OMED</h4>
+<p><img src="img/dc/validation/nhbomed_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="n_hb_k12-1" class="section level4">
+<h4>N_HB_K12</h4>
+<p><img src="img/dc/validation/nhbk12_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="n_hb_od_short-1" class="section level4">
+<h4>N_HB_OD_Short</h4>
+<p><img src="img/dc/validation/nhbodshort_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="n_hb_od_long-1" class="section level4">
+<h4>N_HB_OD_Long</h4>
+<p><img src="img/dc/validation/nhbodlong_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>All the above graphs indicate that the cluster-to-cluster patterns revealed by the survey are adhered to in the model (with only a minimal set of adjustments), which in turn makes the more robust and inspires confidence in the model’s predictive capability.</p>
+</div>
+</div>
+<div id="nhb-trip-types" class="section level3">
+<h3>NHB Trip Types</h3>
+<p>The NHB trips are split by mode and consists of NHB trips on work tours (designated as W_NH) and NHB trips on non-work tours (designated as N_NH). The table below shows the comparison of model and survey trip lengths by purpose and mode.</p>
+<p><img src="img/dc/validation/nhb.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>A large percentage of these trips are SOV trips (&gt; 85%), for which the model compares very favorably with the survey.</p>
+<p>Although HOV2 and HOV3 trips show a larger discrepancy for NHB trips on work tours, these make up only 12% of the auto NHB trips on work tours. Likewise, the transit trips are only a fraction of the overall NHB trips. For these modes, the confidence in the survey numbers is also not high due to small sample sizes.</p>
+</div>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
