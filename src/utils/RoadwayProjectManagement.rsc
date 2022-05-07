@@ -61,7 +61,6 @@ Macro "Roadway Project Management" (MacroOpts)
   fix_master = RunMacro("Check Project Group Validity", llyr)
   if fix_master then do
     RunMacro("Clean Project Groups", master_dbd)
-    RunMacro("Destroy Progress Bars")
     Throw("Project groups fixed. Start the export process again.")
   end
 
