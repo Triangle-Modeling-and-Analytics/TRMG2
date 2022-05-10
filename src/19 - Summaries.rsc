@@ -4,28 +4,28 @@ and tables.
 */
 
 Macro "Maps" (Args)
-    RunMacro("Load Link Layer", Args)
-    RunMacro("Calculate Daily Fields", Args)
-    RunMacro("Create Count Difference Map", Args)
-    RunMacro("VOC Maps", Args)
-    RunMacro("Speed Maps", Args)
+    //RunMacro("Load Link Layer", Args)
+    //RunMacro("Calculate Daily Fields", Args)
+    //RunMacro("Create Count Difference Map", Args)
+    //RunMacro("VOC Maps", Args)
+    //RunMacro("Speed Maps", Args)
     return(1)
 endmacro
 
 Macro "Calibration Reports" (Args)
-    RunMacro("Count PRMSEs", Args)
+    //RunMacro("Count PRMSEs", Args)
     return(1)
 endmacro
 
 Macro "Other Reports" (Args)
-    RunMacro("Summarize HB DC and MC", Args)
-    RunMacro("Summarize NHB DC and MC", Args)
-    RunMacro("Summarize NM", Args)
-    RunMacro("Summarize Links", Args)
-    RunMacro("Congested VMT", Args)
-    RunMacro("Summarize Parking", Args)
-    RunMacro("Transit Summary", Args)
-    RunMacro("Create MOVES Inputs", Args)
+    //RunMacro("Summarize HB DC and MC", Args)
+    //RunMacro("Summarize NHB DC and MC", Args)
+    //RunMacro("Summarize NM", Args)
+    //RunMacro("Summarize Links", Args)
+    //RunMacro("Congested VMT", Args)
+    //RunMacro("Summarize Parking", Args)
+    //RunMacro("Transit Summary", Args)
+    //RunMacro("Create MOVES Inputs", Args)
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
     return(1)
@@ -1126,19 +1126,17 @@ Macro "VMT_Delay Summary" (Args)
   scen_outdir = Args.[Output Folder]
   hwy_dbd = Args.Links
   taz_dbd = Args.TAZs
-  report_dir = scen_outdir + "\\_reportingtool" //need to create this dir in argument file 
-  RunMacro("Create Directory", report_dir)
+  report_dir = scen_outdir + "\\_summaries\\_reportingtool" //need to create this dir in argument file 
   output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
   RunMacro("Create Directory", output_dir)
  
-  periods = {"AM", "MD", "PM", "NT"}
+  periods = Args.Periods
   a_dirs = {"AB", "BA"}
   veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
   fields = {"Flow", "VMT", "CgVMT", "Delay"}
   group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
-
-  {nlyr, llyr} = GetDBLayers(hwy_dbd)
-  map = RunMacro("G30 new map", hwy_dbd)
+  
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
 
   hwy_df = CreateObject("df") //Consider only reading hwy link (DTWB=D) to improve efficiency
   opts = null
@@ -1146,94 +1144,81 @@ Macro "VMT_Delay Summary" (Args)
   opts.fields = field_names
   hwy_df.read_view(opts)
 
-  // Caculate flow by direction, period, and vehicle class
+  // Caculate flow, VMT, and delay by direction, period, and vehicle class
+  outfield_totcgvmtdailysum = "Total_CgVMT_Daily" // Calculate this total field as it is not included in hwy dbd
+  v_totcgvmtdailysum = null
+
   for veh_class in veh_classes do 
-    outfield_totdaily = "Flow_"+ veh_class + "_Daily"
-    v_output_totdaily = null
+    outfield_totflowdaily = "Flow_"+ veh_class + "_Daily"
+    outfield_totvmtdaily = "VMT_"+ veh_class + "_Daily"
+    outfield_totcgvmtdaily = "CgVMT_"+ veh_class + "_Daily"
+    outfield_totdelaydaily = "Delay_"+ veh_class + "_Daily"
+    v_totflowdaily = null
+    v_totvmtdaily = null
+    v_totcgvmtdaily = null
+    v_totdelaydaily = null
 
     for period in periods do
-      outfield_tot = "Flow_"+ veh_class + "_" + period
-      v_output_tot = null
+      outfield_totflow = "Flow_"+ veh_class + "_" + period
+      outfield_totvmt = "VMT_" + veh_class + "_" + period
+      outfield_totcgvmt = "CgVMT_" + veh_class + "_" + period
+      outfield_totdelay = "Delay_" + veh_class + "_" + period      
+      v_totflow = null
+      v_totvmt = null
+      v_totcgvmt = null
+      v_totdelay = null
 
       for dir in a_dirs do
         input_field = dir + "_Flow_" + veh_class + "_" + period
-        v_add = hwy_df.get_col(input_field)
-        v_output_tot = nz(v_output_tot) + nz(v_add)
-      end
+        v_vol = hwy_df.get_col(input_field)
 
-      hwy_df.mutate(outfield_tot, v_output_tot)
-      v_output_totdaily = v_output_tot + nz(v_output_totdaily)
-    end
+        //flow
+        v_totflow = nz(v_totflow) + nz(v_vol)
 
-    hwy_df.mutate(outfield_totdaily, v_output_totdaily)
-  end
-  
-  // VMT and Congested VMT
-  outfield_totdaily = "Total_CgVMT_Daily" // Calculate this total field as it is not included in hwy dbd
-  v_output_totdaily = null
-  for veh_class in veh_classes do  
-    outfield_totdaily1 = "VMT_"+ veh_class + "_Daily"
-    outfield_totdaily2 = "CgVMT_"+ veh_class + "_Daily"
-    v_output_totdaily1 = null
-    v_output_totdaily2 = null
-
-    for period in periods do
-      out_field1 = "VMT_" + veh_class + "_" + period
-      out_field2 = "CgVMT_" + veh_class + "_" + period
-      v_output1 = null
-      v_output2 = null
-
-      for dir in a_dirs do
-        input_field = dir + "_Flow_" + veh_class + "_" + period
+        //VMT and cgVMT
         length = hwy_df.get_col("length")
         voc = hwy_df.get_col(dir + "_VOCD_" + period)
         cg_length = if voc >1 then length else 0
-        v_add = hwy_df.get_col(input_field)
-        v_output1 = nz(v_output1) + nz(v_add)*length
-        v_output2 = nz(v_output2) + nz(v_add)*cg_length
-      end 
+        v_totvmt = nz(v_totvmt) + nz(v_vol)*length
+        v_totcgvmt = nz(v_totcgvmt) + nz(v_vol)*cg_length
 
-      hwy_df.mutate(out_field1, v_output1)
-      hwy_df.mutate(out_field2, v_output2)
-      v_output_totdaily1 = nz(v_output_totdaily1) + nz(v_output1)
-      v_output_totdaily2 = nz(v_output_totdaily2) + nz(v_output2)
-    end
-    hwy_df.mutate(outfield_totdaily1, v_output_totdaily1)
-    hwy_df.mutate(outfield_totdaily2, v_output_totdaily2)
-    v_output_totdaily = nz(v_output_totdaily) + nz(v_output_totdaily2)
-  end
-  hwy_df.mutate(outfield_totdaily, v_output_totdaily)
-
-  // Delay
-  for veh_class in veh_classes do  
-    outfield_totdaily = "Delay_"+ veh_class + "_Daily"
-    v_output_totdaily = null
-
-    for period in periods do
-      out_field = "Delay_" + veh_class + "_" + period      
-      v_output = null
-
-      for dir in a_dirs do
-        // Get data vectors
+        //delay
         v_fft = hwy_df.get_col("FFTime")
         v_ct = hwy_df.get_col(dir + "_Time_" + period)
-        v_vol = hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period)
-
-        // Calculate delay
         v_delay = (v_ct - v_fft) * v_vol / 60
         v_delay = max(v_delay, 0)
-        v_output = nz(v_output) + nz(v_delay)
+        v_totdelay = nz(v_totdelay) + nz(v_delay)
       end
 
-      hwy_df.mutate(out_field, v_output)
-      v_output_totdaily = nz(v_output_totdaily) + nz(v_output)
-    end
+      //flow
+      hwy_df.mutate(outfield_totflow, v_totflow)
+      v_totflowdaily = v_totflow + nz(v_totflowdaily)
 
-    hwy_df.mutate(outfield_totdaily, v_output_totdaily)
+      //VMT and cgVMT
+      hwy_df.mutate(outfield_totvmt, v_totvmt)
+      hwy_df.mutate(outfield_totcgvmt, v_totcgvmt)
+      v_totvmtdaily = nz(v_totvmtdaily) + nz(v_totvmt)
+      v_totcgvmtdaily = nz(v_totcgvmtdaily) + nz(v_totcgvmt)
+
+      //delay
+      hwy_df.mutate(outfield_totdelay, v_totdelay)
+      v_totdelaydaily = nz(v_totdelaydaily) + nz(v_totdelay)
+    end
+    //flow
+    hwy_df.mutate(outfield_totflowdaily, v_totflowdaily)
+
+    //VMT and cgVMT
+    hwy_df.mutate(outfield_totvmtdaily, v_totvmtdaily)
+    hwy_df.mutate(outfield_totcgvmtdaily, v_totcgvmtdaily)
+    v_totcgvmtdailysum = nz(v_totcgvmtdailysum) + nz(v_totcgvmtdaily)
+
+    //delay
+    hwy_df.mutate(outfield_totdelaydaily, v_totflowdaily)
   end
+  hwy_df.mutate(outfield_totcgvmtdailysum, v_totcgvmtdailysum)
 
   // Build summary fields
-  periods = {"AM", "MD", "PM", "NT", "Daily"}
+  periods = periods + {"Daily"}
   for sum_field in fields do
     for veh_class in veh_classes do  
       for period in periods do
@@ -1271,16 +1256,14 @@ EndMacro
 Macro "Congestion Cost Summary" (Args)
   //Set input file path
   scen_outdir = Args.[Output Folder]
-  report_dir = scen_outdir + "\\_reportingtool" //need to create this dir in argument file 
-  RunMacro("Create Directory", report_dir)
+  report_dir = scen_outdir + "\\_summaries\\_reportingtool" //need to create this dir in argument file 
   output_dir = report_dir + "\\CongestionCost"
   RunMacro("Create Directory", output_dir)
 
   hwy_dbd = Args.Links
   vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
   p = RunMacro("Read Parameter File", {file: vot_params})
-  //periods = RunMacro("Get Unconverged Periods", Args)
-  periods = {"AM", "MD", "PM", "NT"}
+  periods = Args.Periods
   a_dirs = {"AB", "BA"}
   veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
   auto_classes = {"sov", "hov2", "hov3", "CV"}

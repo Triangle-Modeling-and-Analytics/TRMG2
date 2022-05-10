@@ -22,7 +22,7 @@ dBox "Transit Poverty HH Coverage" (Args) location: center, center, 80, 20
     static TOD, TOD_list, TOD_Index, UseStop, UseRoute
 
     Radius_list = {"0.1","0.25","0.5","0.75","1","1.5","2","2.5","3"}
-    TOD_list = {"Daily","AM", "MD", "PM", "NT"}
+    TOD_list = Args.periods + {"Daily"}
 
     EnableItem("Select Stop Radius")
 	  EnableItem("Select Route Radius")
@@ -93,10 +93,11 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_DBD, Census_Poverty_Data_Dir,
 
   // Set directory and create output folder
   Scenario_Dir = Args.[Scenario Folder]
+  master_dir = Args.[Master Folder]
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   se_file = Args.SE
-  reporting_dir = Scenario_Dir + "\\Output\\_reportingtool" //need to create this dir in argument file
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool" //need to create this dir in argument file
   output_dir = reporting_dir + "\\Transit_Poverty_HH_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -130,7 +131,11 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_DBD, Census_Poverty_Data_Dir,
   // Loop through each modes
   transit_modes = RunMacro("Get Transit Modes", TransModeTable) // get available transit mode in scenario
   transit_modes = {"all"} + transit_modes
-  mode_list = {"nt", "lb", "eb", "brt", "cr", "lr", "all"}
+  mode_list = {"nt", "lb", "eb", "brt", "cr", "lr", "all"} 
+  //This is not to get all modes in master transit, but to create a crosswalk between mode as integer and mode as string.
+  //For instance, in route system, local bus is coded as mode = 2, not mode = "lb". So in this list, lb is the 2nd place (pos = 2).
+  //Later on I need to query each mode, like get all local bus routes. This list help to create query 'select * where mode = pos'. 
+  //Any suggestion on how to do it?
 
   for mode in transit_modes do
     pos = ArrayPosition(mode_list, {mode},) //turn mode into integer because the RTS use integer
@@ -199,7 +204,15 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_DBD, Census_Poverty_Data_Dir,
     end
     RunMacro("Close All")
   end
-  PutInRecycleBin(temp_dir)
+  
+  //Delete temp files
+  files = GetDirectoryInfo(temp_dir + "/*", "File")
+  for i = 1 to files.length do
+    file = files[i][1]
+    filepath = temp_dir + "/" + file
+    DeleteFile(filepath)
+  end
+  RemoveDirectory(temp_dir)
 EndMacro
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -212,7 +225,7 @@ Macro "Poverty_HH_Estimator_Stop" (Args, BG_Layer_DBD, Census_Poverty_Data_Dir, 
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   se_file = Args.SE
-  reporting_dir = Scenario_Dir + "\\Output\\_reportingtool" //need to create this dir in argument file
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
   output_dir = reporting_dir + "\\Transit_Poverty_HH_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -311,11 +324,19 @@ Macro "Poverty_HH_Estimator_Stop" (Args, BG_Layer_DBD, Census_Poverty_Data_Dir, 
       df = CreateObject("df", output_name1)
       df.group_by(group_field)
       df.summarize(fields_to_sum, "sum")
-      df.mutate("PovertyPct", df.tbl.sum_Poverty_HH/df.tbl.sum_HH)
+      df.mutate("Poverty_Pct", df.tbl.sum_Poverty_HH/df.tbl.sum_HH)
       output_name2 = output_dir + "/" + TOD + "_" + mode +"Stop_PovertyReachedin" + R2S(StopBuffer) + "Miby" + group_field + ".csv"
       df.write_csv(output_name2) 
     end
     RunMacro("Close All")
   end
-  PutInRecycleBin(temp_dir)
+
+  //Delete temp files
+  files = GetDirectoryInfo(temp_dir + "/*", "File")
+  for i = 1 to files.length do
+    file = files[i][1]
+    filepath = temp_dir + "/" + file
+    DeleteFile(filepath)
+  end
+  RemoveDirectory(temp_dir)
 EndMacro

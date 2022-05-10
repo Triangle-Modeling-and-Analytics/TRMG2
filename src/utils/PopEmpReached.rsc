@@ -65,7 +65,7 @@ Macro "Highway_Transit_PopEmp" (Args, Radius, TOD)
   skim_dir = scen_dir + "\\Output\\skims"
   se_file = scen_dir + "\\Output\\sedata\\scenario_se.bin"
   TransModeTable = Args.TransModeTable
-  reporting_dir = scen_dir + "\\Output\\_reportingtool"
+  reporting_dir = scen_dir + "\\Output\\_summaries\\_reportingtool"
   //if GetDirectoryInfo(reporting_dir, "All") <> null then PutInRecycleBin(reporting_dir)
   output_dir = reporting_dir + "\\Pop_EmpReachedByHighwayTransit"
   temp_dir = output_dir + "\\Temp"
@@ -74,13 +74,12 @@ Macro "Highway_Transit_PopEmp" (Args, Radius, TOD)
 
   //Set parameter and file path
   auto_modes = {"sov", "hov"}
-  tranist_accessmodes = {"w","pnr","knr"} 
+  tranist_accessmodes = Args.access_modes
   transit_modes = RunMacro("Get Transit Modes", TransModeTable) // get available transit mode in scenario
   
   // Get population and employment
   SE = CreateObject("df", se_file)
-  TAZ_num = SE.nrow()
-  SE.filter("Type = 'Internal'")
+  //SE.filter("Type = 'Internal'")
   SE.mutate("TotalPop", SE.tbl.HH_POP + SE.tbl.StudGQ_NCSU + SE.tbl.StudGQ_UNC + SE.tbl.StudGQ_DUKE + SE.tbl.StudGQ_NCCU)
   SE.select({"TAZ", "Type", "TotalPop", "TotalEmp"})
   TAZ_Emp = SE.get_col("TotalEmp")
@@ -88,103 +87,116 @@ Macro "Highway_Transit_PopEmp" (Args, Radius, TOD)
   TotEmp = sum(V2A(nz(TAZ_Emp))) //need array
   TotPop = sum(V2A(nz(TAZ_Pop))) //need array
   
-  // Porcess auto
   // Create a place holder for auto_skim result
-  Auto_Skim_Mtx_Path = skim_dir + "\\roadway\\skim_sov_" + TOD +".mtx"
-  Auto_Skim_Mtx_Handle = OpenMatrix(Auto_Skim_Mtx_Path,)
-  Auto_Skim_Currency = CreateMatrixCurrency(Auto_Skim_Mtx_Handle, "CongTime", , , )
-  tempmatfile = temp_dir + "/Auto_" + TOD + "_skim.mtx"
-  matOpts = {"File Name": tempmatfile, Label: "Result MTX", Tables: {"Result"}}
-  mOut = CopyMatrixStructure({Auto_Skim_Currency}, matOpts)
-  mcOut = CreateMatrixCurrency(mOut,,,,)
-  
+  se_vw = OpenTable("se", "FFB", {se_file})
+  mtx_file = temp_dir + "/Auto_" + TOD + "_skim.mtx"
+  mh = CreateMatrixFromView("temp", se_vw + "|", "TAZ", "TAZ", {"TAZ"}, {"File Name": mtx_file})
+  mtx = CreateObject("Matrix", mh)
+  CloseView(se_vw)
+  mtx.AddCores({"Auto_Result"})
+  mtx.DropCores({"TAZ"})
+
   // Loop through auto skims
   for auto_mode in auto_modes do
-    Auto_Skim_Mtx_Path = skim_dir + "\\roadway\\skim_" + auto_mode + "_" + TOD +".mtx"
-    Auto_Skim_Mtx_Handle = OpenMatrix(Auto_Skim_Mtx_Path,)
-    Auto_Skim_Currency = CreateMatrixCurrency(Auto_Skim_Mtx_Handle, "CongTime", , , )
-    matrix_info = GetMatrixInfo(Auto_Skim_Mtx_Handle)
+    auto_skim_mtx_path = skim_dir + "\\roadway\\skim_" + auto_mode + "_" + TOD +".mtx"
+    auto_skim_mtx = CreateObject("Matrix", auto_skim_mtx_path)
+    auto_skinm_core = auto_skim_mtx.GetCore("CongTime")
 
     //Fill new skim with 1 to keep only O-D pairs under time threshold
-    mcOut = CreateMatrixCurrency(mOut,,,,)
-    Opts = null
-    Opts.Input.[Matrix Currency] = mcOut
-    Opts.Global.Method = 11
-    Opts.Global.[Cell Range] = 2
-    Opts.Global.[Expression Text] = "if [Result]=1 then 1 else if [" + matrix_info[6].Label + "].[CongTime]<" + Radius + " then 1 else null"
-    Opts.Global.[Force Missing] = "Yes"
-    ret_value = RunMacro("TCB Run Operation", "Fill Matrices", Opts) 
+    mc = mtx.GetCore("Auto_Result")
+    mc := if mc = 1 then 1 else if nz(auto_skinm_core) < s2r(Radius) and nz(auto_skinm_core) then 1 else null
   end
 
-  skim_binfile = temp_dir + "/Auto_" + TOD + "_skim.bin"
-  CreateTableFromMatrix(mOut, skim_binfile, "FFB", {{"Complete", "No"}, {"Tables", {"Result"}}})
+  automatrix = OpenMatrix(mtx_file,)  
+  autoskim_binfile = temp_dir + "/Auto_" + TOD + "_skim.bin"
+  CreateTableFromMatrix(automatrix, autoskim_binfile, "FFB", {{"Complete", "No"}, {"Tables", {"Auto_Result"}}})
+ 
+  // Porcess transit
+  // Create a place holder for transit_skim result
+  se_vw = OpenTable("se", "FFB", {se_file})
+  mtx_file = temp_dir + "/Transit_" + TOD + "_skim.mtx"
+  mh = CreateMatrixFromView("temp", se_vw + "|", "TAZ", "TAZ", {"TAZ"}, {"File Name": mtx_file})
+  mtx = CreateObject("Matrix", mh)
+  CloseView(se_vw)
+  mtx.AddCores({"Transit_Result"})
+  mtx.DropCores({"TAZ"})
+
+  //Loop through transit skims
+  for transit_mode in transit_modes do
+    for access_mode in tranist_accessmodes do
+        transit_skim_mtx_path = skim_dir + "\\transit\\skim_" + TOD +  "_" + access_mode + "_" + transit_mode + ".mtx"
+        transit_skim_mtx = CreateObject("Matrix", transit_skim_mtx_path)
+        transit_skim_core = transit_skim_mtx.GetCore("Total Time")
+
+        //Fill new skim with 1 to keep only O-D pairs under time threshold
+        mc = mtx.GetCore("Transit_Result")
+        mc := if mc = 1 then 1 else if nz(transit_skim_core) < s2r(Radius) and nz(transit_skim_core) >0 then 1 else null
+    end
+  end
+
+  transitmatrix = OpenMatrix(mtx_file,)  
+  transitskim_binfile = temp_dir + "/Transit_" + TOD + "_skim.bin"
+  CreateTableFromMatrix(transitmatrix, transitskim_binfile, "FFB", {{"Complete", "No"}, {"Tables", {"Transit_Result"}}})
+  
+  // Close mtx
+  mh = null
+  mtx = null  
+  mc = null
+  auto_skim_mtx = null
+  auto_skinm_core = null
+  transit_skim_mtx = null
+  transit_skim_core = null
+  automatrix = null
+  transitmatrix = null
 
   //Open skim bin and filter records based on time threshold
   //Aggregate by origin TAZ
   fields_to_sum = {"TotalPop", "TotalEmp"}
   dfa = null
-  dfa = CreateObject("df", skim_binfile)
-  dfa.left_join(SE, "Columns", "TAZ")
-  dfa.filter("Type = 'Internal'")
-  dfa.group_by("Rows")
+  dfa = CreateObject("df", autoskim_binfile)
+  names = dfa.colnames()
+  dfa.rename(names[1], "Row")
+  dfa.rename(names[2], "Col")
+  dfa.left_join(SE, "Col", "TAZ")
+  //dfa.filter("Type = 'Internal'")
+  dfa.group_by("Row")
   dfa.summarize(fields_to_sum, "sum")
   dfa.mutate("Pct_Pop_byAuto", dfa.tbl.sum_TotalPop/TotPop)
   dfa.mutate("Pct_Emp_byAuto", dfa.tbl.sum_TotalEmp/TotEmp)
   dfa.rename("sum_TotalPop", "Tot_Pop_byAuto")
   dfa.rename("sum_TotalEmp", "Tot_Emp_byAuto")
-    
-  // Porcess transit
-  // Create a place holder for transit_skim result
-  Transit_Skim_Mtx_Path = skim_dir + "\\transit\\skim_" + TOD +  "_w_lb.mtx"
-  Transit_Skim_Mtx_Handle = OpenMatrix(Transit_Skim_Mtx_Path,)
-  Transit_Skim_Currency = CreateMatrixCurrency(Transit_Skim_Mtx_Handle, "Total Time", , , )
-  tempmatfile = temp_dir + "/transit_" + TOD + "_skim.mtx"
-  matOpts = {"File Name": tempmatfile, Label: "Result MTX", Tables: {"Result"}}
-  mOut = CopyMatrixStructure({Transit_Skim_Currency}, matOpts)
-  mcOut = CreateMatrixCurrency(mOut,,,,)
-  
-  //Loop through transit skims
-  for transit_mode in transit_modes do
-    for access_mode in tranist_accessmodes do
-        //Export Skim to Bin for easy manipulation
-        Transit_Skim_Mtx_Path = skim_dir + "\\transit\\skim_" + TOD +  "_" + access_mode + "_" + transit_mode + ".mtx"
-        Transit_Skim_Mtx_Handle = OpenMatrix(Transit_Skim_Mtx_Path,)
-        Transit_Skim_Currency = CreateMatrixCurrency(Transit_Skim_Mtx_Handle, "Total Time", , , )
-        matrix_info = GetMatrixInfo(Transit_Skim_Mtx_Handle)
-
-        //Fill new skim with 1 to keep only O-D pairs under time threshold
-        mcOut = CreateMatrixCurrency(mOut,,,,)
-        Opts = null
-        Opts.Input.[Matrix Currency] = mcOut
-        Opts.Global.Method = 11
-        Opts.Global.[Cell Range] = 2
-        Opts.Global.[Expression Text] = "if [Result]=1 then 1 else if nz([" + matrix_info[6].Label + "].[Total Time])<" + Radius + " and nz([" + matrix_info[6].Label + "].[Total Time])>0 then 1 else null"
-        Opts.Global.[Force Missing] = "Yes"
-        ret_value = RunMacro("TCB Run Operation", "Fill Matrices", Opts) 
-    end
-  end
-       
-  skim_binfile = temp_dir + "/Transit_" + TOD + "_skim.bin"
-  CreateTableFromMatrix(mOut, skim_binfile, "FFB", {{"Complete", "No"}, {"Tables", {"Result"}}})
 
   //Open skim bin and filter records based on time threshold
   //Aggregate by origin TAZ
   dft = null
-  dft = CreateObject("df", skim_binfile)
-  dft.left_join(SE, "Columns", "TAZ")
-  dft.filter("Type = 'Internal'")
-  dft.group_by("Rows")
+  dft = CreateObject("df", transitskim_binfile)
+  names = dft.colnames()
+  dft.rename(names[1], "Row")
+  dft.rename(names[2], "Col")
+  dft.left_join(SE, "Col", "TAZ")
+  //dft.filter("Type = 'Internal'")
+  dft.group_by("Row")
   dft.summarize(fields_to_sum, "sum")
   dft.mutate("Pct_Pop_byTransit", dft.tbl.sum_TotalPop/TotPop)
   dft.mutate("Pct_Emp_byTransit", dft.tbl.sum_TotalEmp/TotEmp)
   dft.rename("sum_TotalPop", "Tot_Pop_byTransit")
   dft.rename("sum_TotalEmp", "Tot_Emp_byTransit")
+
   // because some TAZ have poor transit access even with pnr/knr so they cannot reach any destination within 15/30 minutes
   // by left join back to auto table, you have full list of TAZs.
-  dfa.left_join(dft, "Rows", "Rows")
-  dfa.rename("Rows", "TAZ") 
+  dfa.left_join(dft, "Row", "Row")
   dfa.write_csv(output_dir + "/PopEmpReachedin" + Radius + "Min_"+ TOD + ".csv") 
+  
   RunMacro("Close All")
-  PutInRecycleBin(temp_dir)
+
+  //Delete temp files
+  files = GetDirectoryInfo(temp_dir + "/*", "File")
+  for i = 1 to files.length do
+    file = files[i][1]
+    filepath = temp_dir + "/" + file
+    DeleteFile(filepath)
+  end
+  RemoveDirectory(temp_dir)
+
   Return(1)
 endmacro

@@ -21,7 +21,7 @@ dBox "Transit HH Strata Coverage" (Args) location: center, center, 80, 20
     static TOD, TOD_list, TOD_Index, UseStop, UseRoute
 
     Radius_list = {"0.1","0.25","0.5","0.75","1","1.5","2","2.5","3"}
-    TOD_list = {"Daily","AM", "MD", "PM", "NT"}
+    TOD_list = Args.periods + {"Daily"}
 
     EnableItem("Select Stop Buffer Radius")
 	EnableItem("Select Route Buffer Radius")
@@ -72,7 +72,7 @@ Macro "HH_Strata_Estimator_Route" (Args, TOD, RouteBuffer)
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   hh_file = Args.Households
-  reporting_dir = Scenario_Dir + "\\Output\\_reportingtool" //need to create this dir in argument file
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
   output_dir = reporting_dir + "\\Transit_HH_Strata_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -143,11 +143,11 @@ Macro "HH_Strata_Estimator_Route" (Args, TOD, RouteBuffer)
     end
     output_name1 = output_dir + "/" + TOD + "_" + mode +"Route_HHStrataReachedin" + R2S(RouteBuffer) + "Mi.csv"
     ExportView(jn_vw2 + "|", "CSV", output_name1, 
-              {"ID", "MPO", "District", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
+              {"ID", "MPO", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"ID", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
-    group_fields = {"MPO", "County", "District"}
+    group_fields = {"MPO", "County"}
     fields_to_sum = {"v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}
     for group_field in group_fields do
       df = null
@@ -173,7 +173,7 @@ Macro "HH_Strata_Estimator_Stop" (Args, TOD, StopBuffer)
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   hh_file = Args.Households
-  reporting_dir = Scenario_Dir + "\\Output\\_reportingtool" //need to create this dir in argument file
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
   output_dir = reporting_dir + "\\Transit_HH_Strata_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -246,11 +246,11 @@ Macro "HH_Strata_Estimator_Stop" (Args, TOD, StopBuffer)
     end
     output_name1 = output_dir + "/" + TOD + "_" + mode +"Stop_HHStrataReachedin" + R2S(StopBuffer) + "Mi.csv"
     ExportView(jn_vw2 + "|", "CSV", output_name1, 
-              {"ID", "MPO", "District", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
+              {"ID", "MPO", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"ID", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
-    group_fields = {"MPO", "County", "District"}
+    group_fields = {"MPO", "County"}
     fields_to_sum = {"v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}
     for group_field in group_fields do
       df = null
