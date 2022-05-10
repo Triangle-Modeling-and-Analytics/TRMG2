@@ -4,28 +4,28 @@ and tables.
 */
 
 Macro "Maps" (Args)
-    //RunMacro("Load Link Layer", Args)
-    //RunMacro("Calculate Daily Fields", Args)
-    //RunMacro("Create Count Difference Map", Args)
-    //RunMacro("VOC Maps", Args)
-    //RunMacro("Speed Maps", Args)
+    RunMacro("Load Link Layer", Args)
+    RunMacro("Calculate Daily Fields", Args)
+    RunMacro("Create Count Difference Map", Args)
+    RunMacro("VOC Maps", Args)
+    RunMacro("Speed Maps", Args)
     return(1)
 endmacro
 
 Macro "Calibration Reports" (Args)
-    //RunMacro("Count PRMSEs", Args)
+    RunMacro("Count PRMSEs", Args)
     return(1)
 endmacro
 
 Macro "Other Reports" (Args)
-    //RunMacro("Summarize HB DC and MC", Args)
-    //RunMacro("Summarize NHB DC and MC", Args)
-    //RunMacro("Summarize NM", Args)
-    //RunMacro("Summarize Links", Args)
-    //RunMacro("Congested VMT", Args)
-    //RunMacro("Summarize Parking", Args)
-    //RunMacro("Transit Summary", Args)
-    //RunMacro("Create MOVES Inputs", Args)
+    RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
+    RunMacro("Summarize NM", Args)
+    RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
+    RunMacro("Summarize Parking", Args)
+    RunMacro("Transit Summary", Args)
+    RunMacro("Create MOVES Inputs", Args)
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
     return(1)
@@ -1315,7 +1315,7 @@ Macro "Congestion Cost Summary" (Args)
   end
 
   // Build summary fields
-  periods = {"AM", "MD", "PM", "NT", "Daily"}
+  periods = periods + {"Daily"}
   for veh_class in veh_classes do  
     for period in periods do
       out_field = "CgCost_" + veh_class + "_" + period
