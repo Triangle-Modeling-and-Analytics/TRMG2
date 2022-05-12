@@ -335,12 +335,16 @@ Macro "VOC Maps" (Args)
       ColorRGB(8738, 24158, 43176)
     }
   }
+  color_suffixes = {"GrRd", "YlBu"}
 
-  for line_colors in a_line_colors do
+  for j = 1 to 2 do
+    line_colors = a_line_colors[j]
+    color_suffix = color_suffixes[j]
+
     for period in periods do
       for los in levels do
 
-        mapFile = output_dir + "/voc_" + period + "_LOS" + los + ".map"
+        mapFile = output_dir + "/voc_" + period + "_LOS" + los + "_" + color_suffix + ".map"
 
         //Create a new, blank map
         {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
