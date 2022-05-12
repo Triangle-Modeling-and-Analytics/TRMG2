@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
+
+        <meta name="author" content="Caliper Corporation" />
+    
+        <meta name="date" content="2022-05-12" />
+    
+    <title>Sensitivity Tests</title>
+
+        <script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+        <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="site_libs/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+        <script src="site_libs/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+        <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+        <script src="site_libs/navigation-1.1/tabsets.js"></script>
+        <link href="site_libs/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+        <script src="site_libs/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+        <link href="site_libs/readthedown-0.1/readthedown.css" rel="stylesheet" />
+        <link href="site_libs/readthedown-0.1/readthedown_fonts_embed.css" rel="stylesheet" />
+        <script src="site_libs/readthedown-0.1/readthedown.js"></script>
+        <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+        <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    
+    
+    
+        <link rel="stylesheet" href="styles.css" type="text/css" />
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
+
+    <!-- code folding -->
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
+
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
+
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
+    </style>
+    
+</head>
+
+<body class="preload">
+
+   	
+         <!-- readthedown start -->   
+   <div id="content" data-toggle="wy-nav-shift">
+     <nav id="nav-top" role="navigation" aria-label="top navigation">
+       <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+     </nav>
+         
+   
+      
+      <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">TRMG2</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Databases
+           
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li>
+            <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+          </li>
+          <li>
+            <a href="networks.html">Networks</a>
+          </li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Surveys
+           
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li>
+            <a href="survey_processing.html">Household Survey</a>
+          </li>
+          <li>
+            <a href="obs_processing.html">On-Board Survey</a>
+          </li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Resident Models
+           
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li>
+            <a href="population_synthesis.html">Synthesis</a>
+          </li>
+          <li>
+            <a href="auto_ownership.html">Auto Ownership</a>
+          </li>
+          <li>
+            <a href="resident_production.html">Production</a>
+          </li>
+          <li>
+            <a href="time_of_day.html">Time of Day</a>
+          </li>
+          <li>
+            <a href="resident_nonmotorized.html">Non-motorized</a>
+          </li>
+          <li>
+            <a href="parking.html">Parking</a>
+          </li>
+          <li>
+            <a href="resident_dest_choice.html">Destination Choice</a>
+          </li>
+          <li>
+            <a href="resident_mode_choice.html">Mode Choice</a>
+          </li>
+          <li>
+            <a href="nhb.html">Non-homebased</a>
+          </li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Other Models
+           
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li>
+            <a href="accessibility.html">Accessibility</a>
+          </li>
+          <li>
+            <a href="university.html">University</a>
+          </li>
+          <li>
+            <a href="airport.html">Airport</a>
+          </li>
+          <li>
+            <a href="ieei.html">Internal/External</a>
+          </li>
+          <li>
+            <a href="commercial_vehicles.html">Commercial Vehicles</a>
+          </li>
+          <li>
+            <a href="assignment_roadway.html">Roadway Assignment</a>
+          </li>
+          <li>
+            <a href="validation.html">Validation</a>
+          </li>
+        </ul>
+      </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+        <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+      </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container -->
+      </div><!--/.navbar -->
+        
+      <h1 class="title">Sensitivity Tests</h1>
+      
+         <!-- readthedown authors -->
+   <div id="sidebar">
+    <h2><a href="#content">Sensitivity Tests</a></h2>
+    <div id="toc">
+      <ul>
+      <li><a href="#intro">Intro</a></li>
+      <li><a href="#increased-income">Increased Income</a>
+      <ul>
+      <li><a href="#auto-ownership-changes">Auto Ownership
+      Changes</a></li>
+      <li><a href="#hb-trip-production-changes">HB Trip Production
+      Changes</a></li>
+      <li><a href="#non-motorized-changes">Non-Motorized
+      Changes</a></li>
+      <li><a href="#mode-choice-changes">Mode Choice Changes</a></li>
+      <li><a href="#nhb-trip-changes">NHB Trip Changes</a></li>
+      <li><a href="#highway-assignment-changes">Highway Assignment
+      Changes</a></li>
+      </ul></li>
+      <li><a href="#new-bus-route">New Bus Route</a>
+      <ul>
+      <li><a href="#auto-ownership-changes-1">Auto Ownership
+      Changes</a></li>
+      <li><a href="#hb-trip-production-changes-1">HB Trip Production
+      Changes</a></li>
+      <li><a href="#non-motorized-changes-1">Non-Motorized
+      Changes</a></li>
+      <li><a href="#mode-choice-changes-1">Mode Choice Changes</a></li>
+      <li><a href="#nhb-trip-changes-1">NHB Trip Changes</a></li>
+      <li><a href="#transit-assignment-changes">Transit Assignment
+      Changes</a></li>
+      <li><a href="#highway-assignment-changes-1">Highway Assignment
+      Changes</a></li>
+      </ul></li>
+      <li><a href="#pedestrian-infrastructure">Pedestrian
+      Infrastructure</a>
+      <ul>
+      <li><a href="#walk-accessibility">Walk Accessibility</a></li>
+      <li><a href="#auto-ownership-changes-2">Auto Ownership
+      Changes</a></li>
+      <li><a href="#hb-trip-production-changes-2">HB Trip Production
+      Changes</a></li>
+      <li><a href="#non-motorized-changes-2">Non-Motorized
+      Changes</a></li>
+      <li><a href="#nhb-trip-changes-2">NHB Trip Changes</a></li>
+      <li><a href="#destination-choice-changes">Destination Choice
+      Changes</a></li>
+      </ul></li>
+      <li><a href="#highway-capacity">Highway Capacity</a>
+      <ul>
+      <li><a href="#assignment-changes">Assignment Changes</a></li>
+      <li><a href="#mode-choice-changes-2">Mode Choice Changes</a></li>
+      <li><a href="#destination-choice-changes-1">Destination Choice
+      Changes</a></li>
+      </ul></li>
+      <li><a href="#highway-tolling">Highway Tolling</a></li>
+      <li><a href="#parking">Parking</a></li>
+      </ul>
+    </div>
+    <div id="postamble" data-toggle="wy-nav-shift" class="status">
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper
+Corporation</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> May
+12, 2022</p>
+          </div>
+   </div>
+     
+
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div id="main">
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>As part of the model validation and testing, Caliper performed a
+number of sensitivity tests to ensure that the model responds reasonably
+to changes in inputs. Changes were made to income, the transit network,
+the all-streets non-motorized network, highway network capacities and
+tolls, and parking supply and cost. All these tests indicate that the
+model is responding reasonably to input changes and is appropriately
+sensitive. Each of the tests conducted are documented below.</p>
+</div>
+<div id="increased-income" class="section level2">
+<h2>Increased Income</h2>
+<p>No build scenario: 2020 Base Year</p>
+<p>Build scenario: 2020 Base Year + increased income in south Durham</p>
+<p>In this scenario, Caliper tested a simple increase of income in the
+area of south Durham highlighted in the map below. The household income
+for this whole area was increased to $120,000, and the percentage of
+high income workers was adjusted to 70%. The resulting increases in auto
+ownership, trip-making, auto and particularly SOV mode shares, and VMT
+and VHT were reasonable.</p>
+<p><img src="img/sensitivity/IncomeIncreaseArea.png" width="50%" style="display: block; margin: auto;" /></p>
+<div id="auto-ownership-changes" class="section level3">
+<h3>Auto Ownership Changes</h3>
+<p>The first change resulting from the increased income was an increase
+in automobile ownership. The total automobiles owned in these zones
+increased by 2,544 from 11,477 to 14,021. This equates to an increase in
+average auto ownership from 1.38 cars/household to 1.68 cars/household
+in these zones.</p>
+</div>
+<div id="hb-trip-production-changes" class="section level3">
+<h3>HB Trip Production Changes</h3>
+<p>In response to the direct effect of income and the indirect effect of
+auto ownership, trip production increased for every trip type. The total
+number of work trips (W_HB_W) increased the least (since the number of
+workers did not increase, just their income) and long activity
+discretionary activities (N_HB_OD_Long) increased the most. The total
+home-based trips in the affected zones increased by 14.7% from 48,986 to
+56,169.</p>
+</div>
+<div id="non-motorized-changes" class="section level3">
+<h3>Non-Motorized Changes</h3>
+<p>Despite the overall increase in HB trips, the increase in income and
+consequently vehicle ownership led to a slight (2.5%) decrease in
+home-based (HB) non-motorized trips from 5,429 to 5,293. The overall
+increase in trip-making was large enough for some purposes (such as
+discretionary) that non-motorized trips increased slightly for these
+purposes (although they decreased as a mode share), but this was more
+than offset primarily by less people walking for shopping, eating out
+(OME), and work. The increase in overall HB trips also led to an
+increase in NHB trips, including non-motorized trips. The increase of
+127 non-home-based non-motorized trips results in a net loss of only 29
+total non-motorized trips.</p>
+</div>
+<div id="mode-choice-changes" class="section level3">
+<h3>Mode Choice Changes</h3>
+<p>The increases in income and auto ownership also led to HB mode
+shifts. Transit trips decreased by slightly more than half from 1,726 to
+814. Auto trips increased overall and also shifted towards SOV
+comprising 46% of HB trips for the subarea in the base case and 50% in
+the scenario, resulting in more vehicle trips from the subarea.</p>
+</div>
+<div id="nhb-trip-changes" class="section level3">
+<h3>NHB Trip Changes</h3>
+<p>The increase of HB auto trips also led to an increase in
+non-home-based (NHB) auto trips of 4,270 trips. However, NHB auto_pay
+trips decreased by 53 trips, and transit NHB trips decreased by 368
+trips.</p>
+</div>
+<div id="highway-assignment-changes" class="section level3">
+<h3>Highway Assignment Changes</h3>
+<p>The increased vehicle trips resulted in an increase of 59,071 VMT
+(0.10% regional increase), 1,551 VHT (0.12% regional increase), and 170
+more vehicle hours of delay (0.38% increase). As can be seen in the
+following map, the increases were largest in the area of south Durham
+with the increased income, but most all of Durham saw increased traffic
+and some increases reached as far as Raleigh.</p>
+<p><img src="img/sensitivity/IncomeAssignment.png" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="new-bus-route" class="section level2">
+<h2>New Bus Route</h2>
+<p>No Build Scenario: 2020 Base Year</p>
+<p>Build Scenario: 2020 Base Year + added bus route</p>
+<p>In this scenario, Caliper tested adding a new bus route. A route was
+added in north Raleigh from the Crabtree Valley mall up Creedmoor,
+Millbrook, and Leesville roads and ending at a large quarry. The new
+route can be seen in bright green in the map below. 30- and 60-minute
+headways were assumed for peak and off-peak periods respectively.</p>
+<p><img src="img/sensitivity/NewBusRoute.png" width="75%" style="display: block; margin: auto;" /></p>
+<p>The model’s results were reasonable, predicting a daily ridership on
+the new route of 509 passengers similar to the ridership of existing
+GoRaleigh route 23L which is similar in length with one end at Crabtree
+Valley Mall.</p>
+<div id="auto-ownership-changes-1" class="section level3">
+<h3>Auto Ownership Changes</h3>
+<p>The first change in the model in response to the new bus route is a
+decrease in auto ownership near the route. The auto ownership in the
+zones affected by the new route decreased from 1.635 cars/household to
+1.625 cars/household, a 0.6% decrease in autos owned in the
+corridor.</p>
+<p><img src="img/sensitivity/BusAutosChange.png" width="65%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="hb-trip-production-changes-1" class="section level3">
+<h3>HB Trip Production Changes</h3>
+<p>In response to the decrease auto ownership, home-based (HB)
+trip-making decreased by a total of 299 trips or 0.2% from 146,328 to
+146,029.</p>
+</div>
+<div id="non-motorized-changes-1" class="section level3">
+<h3>Non-Motorized Changes</h3>
+<p>Despite the overall decrease in trip-making, there was a small
+increase in HB non-motorized trips, but the increase was only 35 trips
+(0.12% in the area affected). The increase in transit and non-motorized
+HB trips also led to an increase of 17 non-motorized NHB trips, for a
+total increase of 52 non-motorized trips.</p>
+</div>
+<div id="mode-choice-changes-1" class="section level3">
+<h3>Mode Choice Changes</h3>
+<p>Despite the overall decrease in HB trips, there was an increase of
+234 transit trips or an increase in transit mode share in the affected
+zones from 0.7% to 0.9%. Between the decrease in trip-making and shift
+to transit, HB auto trips decreased by 528.</p>
+</div>
+<div id="nhb-trip-changes-1" class="section level3">
+<h3>NHB Trip Changes</h3>
+<p>The increase in transit HB trips and decrease in auto HB trips
+resulted in concomitant changes in non-home-based (NHB) trips. NHB auto
+trips decreased by 208, while NHB transit trips increased by 186.</p>
+</div>
+<div id="transit-assignment-changes" class="section level3">
+<h3>Transit Assignment Changes</h3>
+<p>From the above it can be seen that total transit trips increased by
+420. The difference of 89 trips from the total route ridership of 509
+were thus the result of shifts in existing transit trips from other
+routes to the new route.</p>
+</div>
+<div id="highway-assignment-changes-1" class="section level3">
+<h3>Highway Assignment Changes</h3>
+<p>The decreased auto trips resulted in a decrease of 4,436 VMT (0.01%
+of the regional total), 111 VHT (0.01% of the regional total), and 14
+less vehicle hours of delay (0.03%). As can be seen in the following map
+the decreases are focused around the new bus route corridor,
+particularly on Leesville Rd. on which the new route runs but also
+decreasing parallel route US 70. Even with a relative gap of 0.00001,
+there is still evidence of noise in the assignment convergence at this
+small scale (changes of less than 500 vpd), seen primarily in downtown
+Raleigh. That said, the real project impacts dominate the assignment
+results, and the model appears to be appropriately sensitive even at
+this fine scale.</p>
+<p><img src="img/sensitivity/BusHwyAssignment.png" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="pedestrian-infrastructure" class="section level2">
+<h2>Pedestrian Infrastructure</h2>
+<p>No Build Scenario: 2020 Base Year</p>
+<p>Build Scenario: 2020 Base Year – pedestrian overpass</p>
+<p>In this scenario, Caliper tested the removal of the pedestrian
+overpass over I-440 at Yadkin Dr. The model results are reasonable. The
+largest impact the model predicts is change in destination (at least 43
+trips), followed by change in mode (9 trips), followed by change in auto
+ownership (4 cars), followed by change in trip-making (2 trips).</p>
+<div id="walk-accessibility" class="section level3">
+<h3>Walk Accessibility</h3>
+<p>The map below shows the location of the pedestrian overpass removed,
+and resulting decreases in Walk Access.</p>
+<p><img src="img/sensitivity/PedWalkability.png" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="auto-ownership-changes-2" class="section level3">
+<h3>Auto Ownership Changes</h3>
+<p>The reductions in walk accessibilities resulted in the model
+predicting an additional 4 household vehicles, a 0.07% change in the
+affected zones increasing average automobile ownership in the zones from
+1.610 to 1.612 vehicles per household. It is unclear if the addition or
+removal of a pedestrian overpass would actually result in any change in
+vehicle ownership, but it may on the margin and the change is small
+enough and in the correct direction to be plausible.</p>
+</div>
+<div id="hb-trip-production-changes-2" class="section level3">
+<h3>HB Trip Production Changes</h3>
+<p>The very small increase in vehicle ownership resulted in a very small
+increase of two HB trips. This implies that half the time or every other
+day having an additional car resulted in an additional tour. Even at
+this micro scale the model’s response seems reasonable.</p>
+</div>
+<div id="non-motorized-changes-2" class="section level3">
+<h3>Non-Motorized Changes</h3>
+<p>Although total trips increased by two, total daily HB non-motorized
+trips decreased by seven and motorized trips increased by nine. Thus,
+the mode shift was more significant than trip suppression/induction
+which stands to reason.</p>
+</div>
+<div id="nhb-trip-changes-2" class="section level3">
+<h3>NHB Trip Changes</h3>
+<p>The decrease in HB nonmotorized trips led to a further decrease of
+two NHB nonmotorized trips daily, making the total decrease in
+non-motorized trips nine. This implies that roughly a quarter of the
+nonmotorized tours eliminated had more than one stop which seems
+eminently plausible.</p>
+</div>
+<div id="destination-choice-changes" class="section level3">
+<h3>Destination Choice Changes</h3>
+<p>Although the model does not assign non-motorized trips, it is
+possible to compare the trips between the zones north of I-440 near the
+pedestrian bridge and those south of I-440 near the pedestrian bridge.
+It would make sense that many of these trips would use the pedestrian
+bridge to cross I-440, although given the size of the zones, many of
+these trips are also likely served by Lassiter Mill Rd. and the
+Greenway’s crossings. In the base case there are 253 pedestrian trips
+crossing I-440 in this vicinity. With the removal of the pedestrian
+bridge this number decreases to 201. Since only nine of these trips
+shifted to auto, this implies that the remaining 43 were diverted to
+destinations on the same side of I-440. It also suggests that in the
+base case there are at least 52 daily trips on the pedestrian bridge
+that change either mode or destination to avoid a pedestrian crossing of
+I-440 without the bridge. However, the total number of trips utilizing
+the bridge is likely larger in the base case since some of the trips
+affected by the removal of the pedestrian bridge presumably just change
+routes and cross instead at Lassiter Mill Rd. or using the Greenway. In
+summary, it is possible that the largest impact of removing the
+pedestrian bridge would be route changes, but without a non-motorized
+assignment the model cannot tell us. The largest impact the model
+predicts is change in destination (at least 43 trips), followed by
+change in mode (9 trips), followed by change in auto ownership (4 cars),
+followed by change in trip-making (2 trips). This makes sense. The
+presence or absence of the pedestrian bridge does not have much impact
+on trip-making. It mainly changes the routes and destinations of
+people’s non-motorized trips, but a small number of important trips
+shift to auto and an even smaller number of people on the margin might
+buy a car.</p>
+</div>
+</div>
+<div id="highway-capacity" class="section level2">
+<h2>Highway Capacity</h2>
+<p>No Build Scenario: 2016 Base Year</p>
+<p>Build Scenario: 2016 Base Year + added travel lanes on I-40</p>
+<p>In this scenario Caliper tested adding an additional lane of travel
+in each direction on I-40 from the Triangle Parkway to Wade Ave and
+along Wade Ave to I-440.</p>
+<p>The model results are reasonable. The increased capacity on I-40 has
+a meaningful impact on reducing regional delay and decreases regional
+VHT, but at the cost of some induced VMT. The majority of the induced
+VMT comes from destination choice where overall resident trip lengths
+increased by less than two hundredths of a mile. The remainder of the
+induced VMT was primarily people choosing longer but now faster routes
+in assignment, with a very small amount of induced VMT from mode
+shift.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+VMT
+</th>
+<th style="text-align:right;">
+VHT
+</th>
+<th style="text-align:right;">
+Delay
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Base
+</td>
+<td style="text-align:right;">
+57,609,957
+</td>
+<td style="text-align:right;">
+1,189,580
+</td>
+<td style="text-align:right;">
+35,640
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Scenario
+</td>
+<td style="text-align:right;">
+57,748,698
+</td>
+<td style="text-align:right;">
+1,188,817
+</td>
+<td style="text-align:right;">
+34,018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Change
+</td>
+<td style="text-align:right;">
+138,741
+</td>
+<td style="text-align:right;">
+-762
+</td>
+<td style="text-align:right;">
+-1,622
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+% Change
+</td>
+<td style="text-align:right;">
+0.20%
+</td>
+<td style="text-align:right;">
+-0.10%
+</td>
+<td style="text-align:right;">
+-4.60%
+</td>
+</tr>
+</tbody>
+</table>
+<p>There were no changes in auto ownership or trip-making as the result
+of increased highway capacity.</p>
+<div id="assignment-changes" class="section level3">
+<h3>Assignment Changes</h3>
+<p>Route choice in assignment was the primary change in link level
+volumes, with I-40 attracting more flow and diverting it from competing
+routes, most notably I-540, but also the Triangle Parkway, NC 54, NC 55,
+etc. Some facilities feeding I-40 also saw increased volume, most
+notably I-440 north and east of Wade Ave.</p>
+<p><img src="img/sensitivity/HwyCapAssignment.png" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="mode-choice-changes-2" class="section level3">
+<h3>Mode Choice Changes</h3>
+<p>As expected, the mode shift is small, but towards auto modes with
+most of the shift coming from transit.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Mode
+</th>
+<th style="text-align:right;">
+Change
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Auto
+</td>
+<td style="text-align:right;">
+128.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Transit
+</td>
+<td style="text-align:right;">
+-81.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Walk &amp; Bike
+</td>
+<td style="text-align:right;">
+-46.4
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="destination-choice-changes-1" class="section level3">
+<h3>Destination Choice Changes</h3>
+<p>The increased capacity of I-40 does cause a modest shift of
+destinations, increasing destinations along the corridor and decreasing
+destinations primarily along competing corridors, most notably the
+Triangle Parkway, but also I-540. The map below shows the change in AM
+destinations from the base scenario. The changes ranged from -8.4 to
++14.6, but the vast majority of destinations were essentially unchanged.
+The net effect, however, was an increase in average trip lengths from
+7.169 miles in the base to 7.185 in the build scenario since travelers
+were able to travel further in the same amount of time due to decreased
+congestion on I-40.</p>
+<p><img src="img/sensitivity/HwyCapDest.png" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="highway-tolling" class="section level2">
+<h2>Highway Tolling</h2>
+</div>
+<div id="parking" class="section level2">
+<h2>Parking</h2>
+</div>
+</div>
+
+   
+      <br>
+      <br>
+      <br>
+      <hr>
+      <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2022</p>
+   
+            
+      
+
+  <script>
+    $(document).ready(function () {
+
+			
+ 		
+	    });
+  </script>
+
+
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
+</body>
+</html>
