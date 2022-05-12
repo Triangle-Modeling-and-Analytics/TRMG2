@@ -5,7 +5,7 @@ packages_vector <- c("tidyverse",
                      "kableExtra",
                      "readr")
                      
-)
+
 
 need_to_install <- packages_vector[!(packages_vector %in% installed.packages()[,"Package"])]
 if (length(need_to_install)) install.packages(need_to_install)

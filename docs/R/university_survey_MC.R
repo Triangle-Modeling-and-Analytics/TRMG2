@@ -249,3 +249,4 @@ trips_bypurpose_oncampusUC1_plot <-trip_subset_df %>%
 calibrationtargets_bypurpose_oncampus<-write_csv(calibrationtargets_bypurpose_oncampus_df,paste0(univ_dir,"calibrationtargets_bypurpose_oncampus.CSV"))
 calibrationtargets_bypurpose_offcampus<-write_csv(calibrationtargets_bypurpose_offcampus_df, paste0(univ_dir,"calibrationtargets_bypurpose_offcampus.CSV"))
 calibrationtargets_alltrips_df <-write_csv(calibrationtargets_alltrips_df, paste0(univ_dir,"calibrationtargets_alltrips.CSV"))
+
