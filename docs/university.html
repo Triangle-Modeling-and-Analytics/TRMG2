@@ -15,7 +15,6 @@
 
 <title>University</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,6 +34,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
@@ -45,9 +45,7 @@
   div.column{display: inline-block; vertical-align: top; width: 50%;}
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
-      .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-
+    </style>
 
 
 
@@ -78,9 +76,6 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
-}
-details > summary > p:only-child {
-  display: inline;
 }
 pre code {
   padding: 0;
@@ -306,7 +301,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -316,7 +311,7 @@ div.tocify {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Databases
      
     <span class="caret"></span>
@@ -331,7 +326,7 @@ div.tocify {
   </ul>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Surveys
      
     <span class="caret"></span>
@@ -346,7 +341,7 @@ div.tocify {
   </ul>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Resident Models
      
     <span class="caret"></span>
@@ -379,7 +374,7 @@ div.tocify {
   </ul>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Other Models
      
     <span class="caret"></span>
@@ -435,7 +430,7 @@ div.tocify {
 <h2>University Model Sources</h2>
 <p>Although the Triangle region is home to several large universities, the data availability for university travel at each campus is limited. in 2016, these four universities had a combined enrollment of 84,481, with 31,025 students at NCSU; 29,437 at UNC; 15,904 at Duke; and 8,115 at NCCU.</p>
 <p>Only NCSU had a travel survey in the region, therefore the development of the university sub-model relies solely on the 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Unfortunately, the NCSU survey only represented a 1% sample of student trips at NCSU.</p>
-<p>It is important to consider that when using the NCSU dataset to represent all travel, that the available survey records amount to a 0.4% sample of all four universities(336cleaned samples/84,481 students), thus making it difficult to assure student patterns are accurately represented at all four locations.</p>
+<p>It is important to consider that when using the NCSU dataset to represent all travel, that the available survey records amount to a 0.4% sample of all four universities(336 cleaned samples / 84,481 students), thus making it difficult to assure student patterns are accurately represented at all four locations.</p>
 <p>However, since survey records exist for NCSU students only in the dataset, it was assumed that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
 <div id="ncsu-student-travel-survey" class="section level3">
 <h3>NCSU Student Travel Survey</h3>
@@ -1410,7 +1405,7 @@ NA
 <h2>Trip Distribution</h2>
 <p>The second step of the University Model development process is to develop a trip distribution model. In this step, the TAZ level productions and attractions estimated in the trip generation step are allocated to TAZ pairs. The allocation is based on a gravity model that takes into account the distance between each of the TAZ pairs.</p>
 <p>A distance-based gravity model is used to distribute the university trips from production zones to attraction zones. The specification of a gravity model is shown below:</p>
-<p>T_ij = (P_i × A_j) / F_ij</p>
+<p>$T_{ij} = (P_i × A_j) / F_{ij} $</p>
 <p>where T_ij denote the trips from production zone i to attraction zone j, P represents the trip productions, A represents the trip attractions, F is a measure of the separation between the production and attraction zones called a friction factor.</p>
 <p>Following standard practice, it was assumed that the friction factors are a function of highway travel distance and that they follow a gamma distribution, as below:</p>
 <p>F(d) = α × d^(-β) × e^(-θd)</p>
@@ -1437,13 +1432,13 @@ c
 Home-Campus - Off-campus students
 </td>
 <td style="text-align:right;">
-5.0
+5
 </td>
 <td style="text-align:right;">
-5.0
+0.8
 </td>
 <td style="text-align:right;">
-5.0
+0.1
 </td>
 </tr>
 <tr>
@@ -1451,13 +1446,13 @@ Home-Campus - Off-campus students
 Home-Other- Off-campus students
 </td>
 <td style="text-align:right;">
-0.8
+5
 </td>
 <td style="text-align:right;">
 0.9
 </td>
 <td style="text-align:right;">
-1.1
+0.1
 </td>
 </tr>
 <tr>
@@ -1465,10 +1460,10 @@ Home-Other- Off-campus students
 All other
 </td>
 <td style="text-align:right;">
-0.1
+5
 </td>
 <td style="text-align:right;">
-0.1
+1.1
 </td>
 <td style="text-align:right;">
 0.1

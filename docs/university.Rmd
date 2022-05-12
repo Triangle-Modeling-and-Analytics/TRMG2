@@ -93,7 +93,7 @@ Although the Triangle region is home to several large universities, the data ava
 
 Only NCSU had a travel survey in the region, therefore the development of the university sub-model relies solely on the 2014 survey of NCSU students conducted by ITRE on behalf of the NC Department of Transportation. Unfortunately, the NCSU survey only represented a 1% sample of student trips at NCSU.  
 
-It is important to consider that when using the NCSU dataset to represent all travel, that the available survey records amount to a 0.4% sample of all four universities(`r Respondents_Total`cleaned samples/`r prettyNum(enrollment_total, big.mark = ",")` students), thus making it difficult to assure student patterns are accurately represented at all four locations.
+It is important to consider that when using the NCSU dataset to represent all travel, that the available survey records amount to a 0.4% sample of all four universities(`r Respondents_Total` cleaned samples / `r prettyNum(enrollment_total, big.mark = ",")` students), thus making it difficult to assure student patterns are accurately represented at all four locations.
 
 However, since survey records exist for NCSU students only in the dataset, it was assumed that the travel behavior of students attending NCSU is sufficiently representative of NCCU, Duke, and UNC students.^[It is recognized that each university has a unique setting, mode choice and other differences but given data availability NCSU data had to be assumed as transferable.]
 
@@ -314,7 +314,7 @@ The second step of the University Model development process is to develop a trip
 
 A distance-based gravity model is used to distribute the university trips from production zones to attraction zones. The specification of a gravity model is shown below: 
 
-T_ij = (P_i × A_j) / F_ij 
+$T_{ij} = (P_i × A_j) / F_{ij} $
 
 where T_ij denote the trips from production zone i to attraction zone j, P represents the trip productions, A represents the trip attractions, F is a measure of the separation between the production and attraction zones called a friction factor.
 
@@ -323,10 +323,12 @@ Following standard practice, it was assumed that the friction factors are a func
 F(d) = α × d^(-β) × e^(-θd)
 
 ```{r}
-df <- tibble(Purpose = c("Home-Campus - Off-campus students","Home-Other- Off-campus students","All other"),
-             a = c(5,0.8,0.1), 
-             b = c(5,0.9,0.1), 
-             c = c(5,1.15,0.1))
+df <- tibble(
+  Purpose = c("Home-Campus - Off-campus students","Home-Other- Off-campus students","All other"),
+  a = c(5, 5, 5),
+  b = c(.8, .9, 1.15),
+  c = c(.1, .1, .1)
+)
 
 df  %>%
   kable(digits = 1) %>%
