@@ -495,3 +495,13 @@ The UNC specific adjustment was done by adding a negative utility for auto mode 
 
 
 ![](university_files/university-summary-figures/unc_zones_map_zoomed.png)
+
+## Validation
+
+Comparing the model volumes to traffic counts revealed over-assignments around
+all university campuses. As a result, the trip production rates were reduced by
+10%.
+
+```{r, eval=FALSE}
+write_csv(tod_factors, "../master/university/university_tod.csv")
+```
