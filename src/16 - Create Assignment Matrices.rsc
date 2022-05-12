@@ -18,8 +18,8 @@ Macro "Create Assignment Matrices" (Args)
     RunMacro("HB Remove Interim Matrices", Args)
     RunMacro("NHB Collapse Matrices and Occupancy", Args)
     RunMacro("Add CVs and Trucks", Args)
-    RunMacro("VOT Split", Args)
-    RunMacro("VOT Aggregation", Args)
+    // RunMacro("VOT Split", Args)
+    // RunMacro("VOT Aggregation", Args)
     RunMacro("Add Externals", Args)
     RunMacro("Add University", Args)
 
@@ -272,7 +272,7 @@ Macro "HB Remove Interim Matrices" (Args)
 
     assn_dir = Args.[Output Folder] + "/assignment/roadway"
 
-    files = RunMacro("Catalog Files", assn_dir, "mtx")
+    files = RunMacro("Catalog Files", {dir: assn_dir, ext: "mtx"})
 
     files_to_keep = {
         "od_veh_trips_AM",
@@ -311,7 +311,7 @@ Macro "NHB Collapse Auto Modes" (Args)
         {OptArray: true}
     )
     CloseView(share_vw)
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip everything but auto_pay matrices. Also skip converged periods.
@@ -358,7 +358,7 @@ Macro "NHB Collapse Matrices and Occupancy" (Args)
 
     // Add NHB trips to OD assignment matrices (and convert to veh trips)
     hov3_vw = OpenTable("hov3", "CSV", {hov3_file})
-    nhb_mtxs = RunMacro("Catalog Files", nhb_dir, "mtx")
+    nhb_mtxs = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
     for nhb_mtx_file in nhb_mtxs do
         
         // Skip transit and walkbike matrices and any converged periods
@@ -522,6 +522,7 @@ Macro "VOT Split" (Args)
                 costcoef = p.(pkop + "_costcoef")
                 meantime = p.(pkop + "_meantime")
                 sdtime = p.(pkop + "_sdtime")
+                calibfactor = p.("calib_factor")
                 for i = 1 to 5 do
                     votcut = p.("votcut" + i2s(i))
                     out_core = veh_class + "_VOT" + i2s(i)
@@ -531,7 +532,7 @@ Macro "VOT Split" (Args)
                     cores = output.data.cores
 
                     // Calculate cumulative probability
-                    cores.lognorm := (votcut * costcoef) / (log(cores.wgtinc) * log(10 * length_skim + 5) * 60 * (targetvot/meanvot))
+                    cores.lognorm := (votcut * costcoef) / (log(cores.wgtinc) * log(10 * length_skim + 5) * 60 * calibfactor * (targetvot/meanvot))
                     cores.zscore := (log(-1 * cores.lognorm) - meantime) / sdtime
                     RunMacro("erf_normdist", output, cumu_prob)
 
@@ -677,13 +678,14 @@ Macro "Add Externals" (Args)
         ee_core_name = ee_core_names[i]
         ie_core_name = ie_core_names[i]
 
+        // Currently treating all external auto as sov, but could split into occupancy classes in future given data
         // ee/ie core names look like "EE_AUTO_AM" or "IEEI_CVMUT_MD"
         parts = ParseString(ee_core_name, "_")
         period = parts[3]
         if periods.position(period) = 0 then continue
-        if parts[2] = "AUTO" then core_name = "sov_VOT2"
-        if parts[2] = "CVSUT" then core_name = "SUT_VOT2"
-        if parts[2] = "CVMUT" then core_name = "MUT_VOT3"
+        if parts[2] = "AUTO" then core_name = "sov"
+        if parts[2] = "CVSUT" then core_name = "SUT"
+        if parts[2] = "CVMUT" then core_name = "MUT"
 
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
@@ -717,9 +719,9 @@ Macro "Add University" (Args)
         trip_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", trip_mtx_file)
 
-        // "auto" core from university model trips is put into "sov_VOT2" in od trips
+        // "auto" core from university model trips is put into "sov" in od trips
         univ_core = univ_mtx.GetCore("auto")
-        trip_core = trip_mtx.GetCore("sov_VOT2")
+        trip_core = trip_mtx.GetCore("sov")
 
         trip_core := nz(trip_core) + nz(univ_core)
     end

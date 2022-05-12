@@ -104,6 +104,7 @@ Macro "Calculate NM Probabilities" (Args, trip_types)
         obj.AddPrimarySpec(primary_spec)
         nm_table = output_dir + "\\" + trip_type + ".bin"
         obj.AddOutputSpec({ProbabilityTable: nm_table})
+        obj.RandomSeed = 199999
         obj.Evaluate()
     end
 endmacro
@@ -132,8 +133,10 @@ Macro "Separate NM Trips" (Args, trip_types)
         
         // Add field to person table
         per_out_field = trip_type + "_m"
+        nm_field = trip_type + "_nm"
         per_fields_to_add = per_fields_to_add + {
-            {per_out_field, "Real", 10, 2,,,, "Motorized " + trip_type + " person trips"}
+            {per_out_field, "Real", 10, 2,,,, "Motorized " + trip_type + " person trips"},
+            {nm_field, "Real", 10, 2,,,, "NonMotorized " + trip_type + " person trips"}
         }
         RunMacro("Add Fields", {view: per_vw, a_fields: per_fields_to_add})
         
@@ -141,6 +144,8 @@ Macro "Separate NM Trips" (Args, trip_types)
         if trip_type = "W_HB_EK12_All" then do
             v = GetDataVector(per_vw + "|", trip_type, )
             SetDataVector(per_vw + "|", per_out_field, v, )
+            v2 = Vector(v.length, "Long", {Constant: 0})
+            SetDataVector(per_vw + "|", nm_field, v2, )
             continue
         end
         
@@ -162,6 +167,7 @@ Macro "Separate NM Trips" (Args, trip_types)
         
         SetDataVector(jv + "|", nm_vw + "." + trip_type, v_nm, )
         SetDataVector(jv + "|", per_vw + "." + per_out_field, v_person, )
+        SetDataVector(jv + "|", per_vw + "." + nm_field, v_nm, )
         CloseView(jv)
         CloseView(nm_vw)
     end
@@ -201,7 +207,7 @@ Macro "Aggregate HB NonMotorized Walk Trips" (Args, trip_types)
     for trip_type in trip_types do
         file = nm_dir + "/" + trip_type + ".bin"
         vw = OpenTable("temp", "FFB", {file})
-        v = GetDataVector(vw + "|", trip_type, )
+        v = GetDataVector(vw + "|", trip_type, {{"Sort Order",{{"ID","Ascending"}}}})
         CloseView(vw)
         per_df.tbl.(trip_type) = v
     end

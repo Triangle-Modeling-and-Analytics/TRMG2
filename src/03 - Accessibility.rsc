@@ -112,9 +112,9 @@ Macro "Calc Intersection Approach Density" (Args)
     
     
     // Determine intersection approach densities. Only consider approaches
-    // from arterials/collectors.
+    // from arterials/collectors/locals.
     v_type = GetDataVector(link_lyr + "|", "HCMType", )
-    v_count = if v_type = "Arterial" or v_type = "Collector" then 1 else 0
+    v_count = if v_type = "MajorArterial" or v_type = "Arterial" or v_type = "MajorCollector" or v_type = "Collector" or v_type = "Local" then 1 else 0
     SetDataVector(link_lyr + "|", "to_count", v_count, )
     from_node = CreateNodeField(link_lyr, "from_node", node_lyr + ".ID", "From", )
     to_node = CreateNodeField(link_lyr, "to_node", node_lyr + ".ID", "To", )
@@ -159,7 +159,7 @@ Macro "Calc Intersection Approach Density" (Args)
 
     CloseView(se_vw)
     CloseView(jv)
-    CloseMap()
+    CloseMap(map)
 endmacro
 
 /*
@@ -360,10 +360,9 @@ Macro "Calc Percent of Zone Near Bus Stop" (Args)
     {map, {route_lyr, stop_lyr, , node_lyr, link_lyr}} = RunMacro("Create Map", {file: route_file})
     {taz_lyr} = GetDBLayers(taz_file)
     taz_lyr = AddLayer(map, taz_lyr, taz_file, taz_lyr, )
-    taz_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
-    RunMacro("Add Fields", {view: taz_lyr, a_fields: taz_fields})
+    a_fields =  {{"PctNearBusStop", "Real", 10, 2,,,, "Percent of zone within 1/4 mile of bus stop|(e.g. .5 = 50%"}}
     se_vw = OpenTable("se", "FFB", {se_file})
-    RunMacro("Add Fields", {view: se_vw, a_fields: taz_fields})
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
 
     // Buffer and intersect
     SetLayer(stop_lyr)

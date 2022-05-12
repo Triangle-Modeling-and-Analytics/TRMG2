@@ -1,471 +1,290 @@
 <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
 
-<html>
+        <meta name="author" content="Caliper Corporation" />
+    
+        <meta name="date" content="2021-02-08" />
+    
+    <title>Time of Day</title>
 
-<head>
+        <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="site_libs/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="site_libs/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+    <script src="site_libs/navigation-1.1/tabsets.js"></script>
+    <link href="site_libs/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+    <script src="site_libs/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+    <link href="site_libs/readthedown-0.1/readthedown.css" rel="stylesheet" />
+    <link href="site_libs/readthedown-0.1/readthedown_fonts_embed.css" rel="stylesheet" />
+    <script src="site_libs/readthedown-0.1/readthedown.js"></script>
+    <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+    <script src="site_libs/htmlwidgets-1.5.2/htmlwidgets.js"></script>
+    <script src="site_libs/plotly-binding-4.9.2.1/plotly.js"></script>
+    <script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+    <link href="site_libs/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
+    <script src="site_libs/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
+    <link href="site_libs/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="site_libs/plotly-main-1.52.2/plotly-latest.min.js"></script>
+    <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    
+    
+    
+        <link rel="stylesheet" href="styles.css" type="text/css" />
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
 
-<meta charset="utf-8" />
-<meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+    <!-- code folding -->
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
 
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
 
-<meta name="author" content="Caliper Corporation" />
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
 
-<meta name="date" content="2021-02-08" />
-
-<title>Time of Day, Directionality, and Occupancy</title>
-
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
-<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="site_libs/navigation-1.1/tabsets.js"></script>
-<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
-<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
-<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
-<script src="site_libs/htmlwidgets-1.5.2/htmlwidgets.js"></script>
-<script src="site_libs/plotly-binding-4.9.2.1/plotly.js"></script>
-<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
-<link href="site_libs/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
-<script src="site_libs/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
-<link href="site_libs/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
-<script src="site_libs/plotly-main-1.52.2/plotly-latest.min.js"></script>
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
-
-<style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
     </style>
-
-
-
-
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
-
-<link rel="stylesheet" href="styles.css" type="text/css" />
-
-
-
-<style type = "text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
-img {
-  max-width:100%;
-}
-.tabbed-pane {
-  padding-top: 12px;
-}
-.html-widget {
-  margin-bottom: 20px;
-}
-button.code-folding-btn:focus {
-  outline: none;
-}
-summary {
-  display: list-item;
-}
-</style>
-
-
-<style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 60px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h2 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h3 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h4 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h5 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h6 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.dropdown-submenu {
-  position: relative;
-}
-.dropdown-submenu>.dropdown-menu {
-  top: 0;
-  left: 100%;
-  margin-top: -6px;
-  margin-left: -1px;
-  border-radius: 0 6px 6px 6px;
-}
-.dropdown-submenu:hover>.dropdown-menu {
-  display: block;
-}
-.dropdown-submenu>a:after {
-  display: block;
-  content: " ";
-  float: right;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
-  border-width: 5px 0 5px 5px;
-  border-left-color: #cccccc;
-  margin-top: 5px;
-  margin-right: -10px;
-}
-.dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
-}
-.dropdown-submenu.pull-left {
-  float: none;
-}
-.dropdown-submenu.pull-left>.dropdown-menu {
-  left: -100%;
-  margin-left: 10px;
-  border-radius: 6px 0 6px 6px;
-}
-</style>
-
-<script>
-// manage active state of menu based on current page
-$(document).ready(function () {
-  // active menu anchor
-  href = window.location.pathname
-  href = href.substr(href.lastIndexOf('/') + 1)
-  if (href === "")
-    href = "index.html";
-  var menuAnchor = $('a[href="' + href + '"]');
-
-  // mark it active
-  menuAnchor.parent().addClass('active');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
-});
-</script>
-
-<!-- tabsets -->
-
-<style type="text/css">
-.tabset-dropdown > .nav-tabs {
-  display: inline-table;
-  max-height: 500px;
-  min-height: 44px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs > li.active {
-  display: block;
-}
-
-.tabset-dropdown > .nav-tabs > li > a,
-.tabset-dropdown > .nav-tabs > li > a:focus,
-.tabset-dropdown > .nav-tabs > li > a:hover {
-  border: none;
-  display: inline-block;
-  border-radius: 4px;
-  background-color: transparent;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
-  display: block;
-  float: none;
-}
-
-.tabset-dropdown > .nav-tabs > li {
-  display: none;
-}
-</style>
-
-<!-- code folding -->
-
-
-
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
-
+    
 </head>
 
-<body>
+<body class="preload">
 
-
-<div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
-
-
-
-
-<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="index.html">TRMG2</a>
+            <!-- readthedown start -->   
+   <div id="content" data-toggle="wy-nav-shift">
+     <nav id="nav-top" role="navigation" aria-label="top navigation">
+       <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+     </nav>
+         
+   
+      
+   <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+     <div class="container">
+       <div class="navbar-header">
+         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+         </button>
+         <a class="navbar-brand" href="index.html">TRMG2</a>
+       </div>
+       <div id="navbar" class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+           <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Databases
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+       </li>
+       <li>
+         <a href="networks.html">Networks</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Surveys
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="survey_processing.html">Household Survey</a>
+       </li>
+       <li>
+         <a href="obs_processing.html">On-Board Survey</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Resident Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="population_synthesis.html">Synthesis</a>
+       </li>
+       <li>
+         <a href="auto_ownership.html">Auto Ownership</a>
+       </li>
+       <li>
+         <a href="resident_production.html">Production</a>
+       </li>
+       <li>
+         <a href="time_of_day.html">Time of Day</a>
+       </li>
+       <li>
+         <a href="resident_nonmotorized.html">Non-motorized</a>
+       </li>
+       <li>
+         <a href="parking.html">Parking</a>
+       </li>
+       <li>
+         <a href="resident_dest_choice.html">Destination Choice</a>
+       </li>
+       <li>
+         <a href="nhb.html">Non-homebased</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Other Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
+         <a href="airport.html">Airport</a>
+       </li>
+       <li>
+         <a href="ieei.html">Internal/External</a>
+       </li>
+       <li>
+         <a href="commercial_vehicles.html">Commercial Vehicles</a>
+       </li>
+       <li>
+         <a href="assignment_roadway.html">Roadway Assignment</a>
+       </li>
+     </ul>
+   </li>
+         </ul>
+         <ul class="nav navbar-nav navbar-right">
+           <li>
+     <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+   </li>
+         </ul>
+       </div><!--/.nav-collapse -->
+     </div><!--/.container -->
+   </div><!--/.navbar -->
+        
+      <h1 class="title">Time of Day</h1>
+      
+         <!-- readthedown authors -->
+   <div id="sidebar">
+    <h2><a href="#content">Time of Day</a></h2>
+    <div id="toc">
+      <ul>
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#peak-period-determination">Peak period determination</a><ul>
+      <li><a href="#final_defs">Final Period Definitions</a></li>
+      </ul></li>
+      <li><a href="#time-of-day-factors">Time of day factors</a><ul>
+      <li><a href="#homebased">Homebased</a></li>
+      <li><a href="#nonhomebased">NonHomebased</a></li>
+      </ul></li>
+      <li><a href="#directionality-factors">Directionality factors</a><ul>
+      <li><a href="#treatment-of-skims">Treatment of skims</a></li>
+      </ul></li>
+      <li><a href="#vehicle-occupancy-factors">Vehicle occupancy factors</a></li>
+      <li><a href="#period-capacity-factors">Period capacity factors</a><ul>
+      <li><a href="#qualitative-example">Qualitative example</a></li>
+      <li><a href="#calculation-from-survey">Calculation from survey</a></li>
+      </ul></li>
+      </ul>
     </div>
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Databases
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
-    </li>
-    <li>
-      <a href="networks.html">Networks</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Surveys
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="survey_processing.html">Household Survey</a>
-    </li>
-    <li>
-      <a href="obs_processing.html">On-Board Survey</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Resident Models
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="population_synthesis.html">Synthesis</a>
-    </li>
-    <li>
-      <a href="auto_ownership.html">Auto Ownership</a>
-    </li>
-    <li>
-      <a href="resident_production.html">Production</a>
-    </li>
-    <li>
-      <a href="time_of_day.html">Time of Day</a>
-    </li>
-    <li>
-      <a href="resident_nonmotorized.html">Non-motorized</a>
-    </li>
-    <li>
-      <a href="parking.html">Parking</a>
-    </li>
-    <li>
-      <a href="nhb.html">Non-homebased</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Other Models
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="accessibility.html">Accessibility</a>
-    </li>
-    <li>
-      <a href="airport.html">Airport</a>
-    </li>
-    <li>
-      <a href="ieei.html">Internal/External</a>
-    </li>
-    <li>
-      <a href="commercial_vehicles.html">Commercial Vehicles</a>
-    </li>
-  </ul>
-</li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
-</li>
-      </ul>
-    </div><!--/.nav-collapse -->
-  </div><!--/.container -->
-</div><!--/.navbar -->
-
-<div class="fluid-row" id="header">
-
-
-
-<h1 class="title toc-ignore">Time of Day, Directionality, and Occupancy</h1>
-<h4 class="author">Caliper Corporation</h4>
-<h4 class="date">February 8, 2021</h4>
-
-</div>
-
-
+    <div id="postamble" data-toggle="wy-nav-shift" class="status">
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> February 8, 2021</p>
+          </div>
+   </div>
+   
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div id="main">
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>This page details the steps taken to determine the most appropriate time period definitions for the Triangle Regional Model (TRMG2). Caliper used the processed household survey to perform the analysis.</p>
+<p>This page details the steps taken to determine the most appropriate time period definitions for the Triangle Regional Model (TRMG2). Once determined, this page also determines the directionality, occupancy, and capacity factors for each time period. Caliper used the processed household survey to perform the analysis.</p>
 </div>
 <div id="peak-period-determination" class="section level1">
 <h1>Peak period determination</h1>
 <p><em>(To skip to the final period definitions, click <a href="#final_defs">here</a>.)</em></p>
 <p>Peak period determination is based on an analysis of the trips in motion throughout the day. First, the day is broken up into 15-minute increments. A trip from the household survey is said to be “in motion” if any portion of the trip occurs within the 15-minute bin. As a result, a single trip can be counted in multiple bins. Determining the peak period considers the distribution of all trips as well as the distribution of trips on work tours individually. The chart below shows these two distributions, which look as expected with the AM peak being shorter and more condensed than the PM.</p>
-<div id="htmlwidget-ec40c638d7419ee4a323" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ec40c638d7419ee4a323">{"x":{"visdat":{"61c8206a6a84":["function () ","plotlyVisDat"]},"cur_data":"61c8206a6a84","attrs":{"61c8206a6a84":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"61c8206a6a84.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Distribution of Trips in Motion by Purpose","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,6006.91633033752,3410.09362983704,4500.83061599731,4765.82431411743,8006.77574920654,6569.41974258423,7685.39112472534,8822.62908744812,13670.3632354736,19029.7920532227,30755.1913146973,39920.9330482483,73005.4471073151,93167.3357563019,152907.307727814,214949.553100586,337438.420101802,336102.567385737,360868.730823898,338909.257696533,375600.01715126,317963.929812177,324390.293670972,277819.02749602,304165.385853767,238720.6982282,211784.448801359,201598.047504425,261437.061003685,224179.39450868,240411.656651815,216316.87800916,258394.671279271,233479.573026657,241689.977338791,244000.05855751,314327.5847435,274645.207396825,261858.255025228,255500.890740713,302353.041838964,260254.874181112,247806.449596723,233514.178727468,284385.483388265,287609.348368009,336457.066494306,316149.00978597,384585.508785566,355704.032983144,388814.663953781,367504.416643524,451568.284702047,390884.834669813,402207.104516411,367950.996014659,458363.171119054,435887.117752393,461875.915699641,416503.391982079,446978.036206245,350113.10400486,340046.982152939,285602.246705691,292584.817763964,234046.789671898,222718.154975573,198955.189921061,202134.527949015,157585.30718867,152419.587581635,117983.69462204,137054.122617722,99612.0579586029,86675.2117328644,68056.894449234,55649.9656295776,42631.0930080414,39612.3422546387,30402.3474349976,34907.5340042114,28604.2598323822,25186.135099411,21243.2928848267,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  6,007","  3,410","  4,501","  4,766","  8,007","  6,569","  7,685","  8,823"," 13,670"," 19,030"," 30,755"," 39,921"," 73,005"," 93,167","152,907","214,950","337,438","336,103","360,869","338,909","375,600","317,964","324,390","277,819","304,165","238,721","211,784","201,598","261,437","224,179","240,412","216,317","258,395","233,480","241,690","244,000","314,328","274,645","261,858","255,501","302,353","260,255","247,806","233,514","284,385","287,609","336,457","316,149","384,586","355,704","388,815","367,504","451,568","390,885","402,207","367,951","458,363","435,887","461,876","416,503","446,978","350,113","340,047","285,602","292,585","234,047","222,718","198,955","202,135","157,585","152,420","117,984","137,054"," 99,612"," 86,675"," 68,057"," 55,650"," 42,631"," 39,612"," 30,402"," 34,908"," 28,604"," 25,186"," 21,243","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6593.75918197632,10495.2417373657,16177.1951370239,21337.3504562378,38714.4268798828,43514.4934501648,65666.2001285553,86489.1554737091,141025.194073359,149134.995801036,161429.576951091,144395.589840953,154607.089163844,126857.728663826,114486.740981102,93276.8254264196,82803.5459127426,54031.9008331299,46680.0662546158,40871.8711566925,44832.6411361694,37928.4909000397,41539.4283638001,37545.1418762207,41549.0018920899,36748.8684005737,48649.3619918823,51888.9503307343,86562.3391017914,73143.4974250794,73236.4439620972,69757.4209632874,79823.8787784577,64540.350063324,51388.7570552826,45252.1525268555,57877.5988750458,53590.1729049683,56697.467300415,54118.2288579941,64745.7610502243,58228.6229400635,76457.8760757446,73539.88387146,110964.418190384,114604.069358254,141527.684072558,134662.718091075,194375.002415021,183897.287487348,183724.700570742,148759.346390406,152983.076712926,114388.242678324,97863.8950659434,75776.4539200465,67947.3298298518,48919.5318994522,44579.5964078903,38554.1393985748,41244.9993591309,32195.8383808136,25442.4671154022,17983.6726665497,25867.90234375,18728.86211586,13486.4835357666,10726.4907131195,8487.2252292633,8756.64052391052,7938.54296684265,8202.9447593689,7960.69645500183,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,594"," 10,495"," 16,177"," 21,337"," 38,714"," 43,514"," 65,666"," 86,489","141,025","149,135","161,430","144,396","154,607","126,858","114,487"," 93,277"," 82,804"," 54,032"," 46,680"," 40,872"," 44,833"," 37,928"," 41,539"," 37,545"," 41,549"," 36,749"," 48,649"," 51,889"," 86,562"," 73,143"," 73,236"," 69,757"," 79,824"," 64,540"," 51,389"," 45,252"," 57,878"," 53,590"," 56,697"," 54,118"," 64,746"," 58,229"," 76,458"," 73,540","110,964","114,604","141,528","134,663","194,375","183,897","183,725","148,759","152,983","114,388"," 97,864"," 75,776"," 67,947"," 48,920"," 44,580"," 38,554"," 41,245"," 32,196"," 25,442"," 17,984"," 25,868"," 18,729"," 13,486"," 10,726","  8,487","  8,757","  7,939","  8,203","  7,961","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-9e38d50e2da86f8a36f7" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9e38d50e2da86f8a36f7">{"x":{"visdat":{"f9452e53554":["function () ","plotlyVisDat"]},"cur_data":"f9452e53554","attrs":{"f9452e53554":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"f9452e53554.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Distribution of Trips in Motion by Purpose","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,5945.12788581848,3348.30518531799,4439.04217147827,4704.03586959839,7944.9873046875,6569.41974258423,7650.52649688721,8787.76445960999,13411.3341026306,18229.0125999451,28913.9909095764,38191.8768180847,71191.829309845,90081.8227714539,146877.196955109,209124.593864822,326198.012791697,329449.225043742,353113.30230217,331409.616427867,367088.942487208,311419.027768898,315681.303531075,271277.171519025,294502.119558398,232484.666225815,205376.187961006,194197.500863139,251300.697794024,211504.631925011,228277.16379776,207486.794792557,245119.096050644,224399.742426936,231016.737443034,234002.046767298,299367.227620188,264513.510301972,252683.038114929,249272.932777786,294700.355118179,253483.210161591,240360.00188961,226827.44401207,275459.272150421,276223.193789864,326445.083478355,307090.948027039,371930.610236549,344302.676666641,373254.621165339,355684.610476939,436502.963108826,377831.296956825,386974.47785422,352479.232389577,442346.516891225,422037.970301374,441191.025574748,399784.62896862,424986.198323631,334160.17294445,321429.719278717,268392.029727618,273306.61837546,216023.765723228,209003.323243777,189735.895117442,194008.708122889,148141.753700892,142877.933980942,113266.926252365,131319.997823715,96452.1574268341,83623.873205185,65535.9308948517,51915.967010498,40859.7853374481,37896.4789199829,29395.5302963257,34368.1490573883,27987.8609237671,24001.2375392914,20812.7892074585,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  5,945","  3,348","  4,439","  4,704","  7,945","  6,569","  7,651","  8,788"," 13,411"," 18,229"," 28,914"," 38,192"," 71,192"," 90,082","146,877","209,125","326,198","329,449","353,113","331,410","367,089","311,419","315,681","271,277","294,502","232,485","205,376","194,198","251,301","211,505","228,277","207,487","245,119","224,400","231,017","234,002","299,367","264,514","252,683","249,273","294,700","253,483","240,360","226,827","275,459","276,223","326,445","307,091","371,931","344,303","373,255","355,685","436,503","377,831","386,974","352,479","442,347","422,038","441,191","399,785","424,986","334,160","321,430","268,392","273,307","216,024","209,003","189,736","194,009","148,142","142,878","113,267","131,320"," 96,452"," 83,624"," 65,536"," 51,916"," 40,860"," 37,896"," 29,396"," 34,368"," 27,988"," 24,001"," 20,813","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6369.59467697144,9998.16197967529,16040.7375106812,21016.4885276794,38485.3757194519,42981.0423110962,65279.7516330719,86155.2202114105,139783.648373667,148021.603307215,160056.097770182,143802.377543894,153490.786513774,126103.262115288,113640.615468407,93211.1351439794,82776.3266614914,54155.1241477966,46563.8470338821,40587.2272838593,44428.8296569824,37652.4390338898,41102.8711303711,36486.1791633606,41060.556917572,36810.0827125549,48084.6340068817,50834.3917392731,82684.9869197846,68999.5601753235,69154.6709999085,66422.9201759338,75852.4987319946,61364.7230705261,49880.5831207275,44043.3398059845,57203.8431552887,53300.0112480164,55754.2103446961,53781.6364377976,63815.1467336655,56981.1046775818,75287.8038124085,73540.4276607513,110507.300749588,113888.608346748,139846.064568011,133500.947883097,192955.694366519,181550.49726874,181355.300446892,147179.676063919,151845.199206416,113182.404244487,96912.4110212962,75305.4269158045,68035.7878529231,49235.2586107254,44739.2118330002,38599.4923152924,40836.5931167603,31717.5986347199,24910.0653095245,17929.6273288727,25682.4184150696,18573.8741779327,13378.4125061035,10750.0732898712,8510.80780601501,8756.64052391052,7938.54296684265,8202.9447593689,7848.26408195495,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,370","  9,998"," 16,041"," 21,016"," 38,485"," 42,981"," 65,280"," 86,155","139,784","148,022","160,056","143,802","153,491","126,103","113,641"," 93,211"," 82,776"," 54,155"," 46,564"," 40,587"," 44,429"," 37,652"," 41,103"," 36,486"," 41,061"," 36,810"," 48,085"," 50,834"," 82,685"," 69,000"," 69,155"," 66,423"," 75,852"," 61,365"," 49,881"," 44,043"," 57,204"," 53,300"," 55,754"," 53,782"," 63,815"," 56,981"," 75,288"," 73,540","110,507","113,889","139,846","133,501","192,956","181,550","181,355","147,180","151,845","113,182"," 96,912"," 75,305"," 68,036"," 49,235"," 44,739"," 38,599"," 40,837"," 31,718"," 24,910"," 17,930"," 25,682"," 18,574"," 13,378"," 10,750","  8,511","  8,757","  7,939","  8,203","  7,848","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <p>The next step is to determine the peak hour for all trips and those on work tours. In the tables below, the AM and PM peak hours by type are presented. At a minimum, the AM and PM peak periods should contain the respective peak hour for work trips and all trips. The chart below shows that the peak hour for work and all trips are exactly the same in the Triangle region based on the surveys as is often, but not always, the case.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -545,8 +364,8 @@ All
 </tr>
 </tbody>
 </table>
-<div id="htmlwidget-742f199ff5f1113f997f" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-742f199ff5f1113f997f">{"x":{"visdat":{"61c8b125304":["function () ","plotlyVisDat"]},"cur_data":"61c8b125304","attrs":{"61c8b125304":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"61c8b125304.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true},"61c8b125304.2":{"x":[7.83333333333333,17.1666666666667],"y":[471113.434013634,471113.434013634],"mode":"text","hoverinfo":"x","text":["Work and All","Work and All"],"name":"Peak Hours","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Peak Hours","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"shapes":[{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":461875.915699641}],"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,6006.91633033752,3410.09362983704,4500.83061599731,4765.82431411743,8006.77574920654,6569.41974258423,7685.39112472534,8822.62908744812,13670.3632354736,19029.7920532227,30755.1913146973,39920.9330482483,73005.4471073151,93167.3357563019,152907.307727814,214949.553100586,337438.420101802,336102.567385737,360868.730823898,338909.257696533,375600.01715126,317963.929812177,324390.293670972,277819.02749602,304165.385853767,238720.6982282,211784.448801359,201598.047504425,261437.061003685,224179.39450868,240411.656651815,216316.87800916,258394.671279271,233479.573026657,241689.977338791,244000.05855751,314327.5847435,274645.207396825,261858.255025228,255500.890740713,302353.041838964,260254.874181112,247806.449596723,233514.178727468,284385.483388265,287609.348368009,336457.066494306,316149.00978597,384585.508785566,355704.032983144,388814.663953781,367504.416643524,451568.284702047,390884.834669813,402207.104516411,367950.996014659,458363.171119054,435887.117752393,461875.915699641,416503.391982079,446978.036206245,350113.10400486,340046.982152939,285602.246705691,292584.817763964,234046.789671898,222718.154975573,198955.189921061,202134.527949015,157585.30718867,152419.587581635,117983.69462204,137054.122617722,99612.0579586029,86675.2117328644,68056.894449234,55649.9656295776,42631.0930080414,39612.3422546387,30402.3474349976,34907.5340042114,28604.2598323822,25186.135099411,21243.2928848267,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  6,007","  3,410","  4,501","  4,766","  8,007","  6,569","  7,685","  8,823"," 13,670"," 19,030"," 30,755"," 39,921"," 73,005"," 93,167","152,907","214,950","337,438","336,103","360,869","338,909","375,600","317,964","324,390","277,819","304,165","238,721","211,784","201,598","261,437","224,179","240,412","216,317","258,395","233,480","241,690","244,000","314,328","274,645","261,858","255,501","302,353","260,255","247,806","233,514","284,385","287,609","336,457","316,149","384,586","355,704","388,815","367,504","451,568","390,885","402,207","367,951","458,363","435,887","461,876","416,503","446,978","350,113","340,047","285,602","292,585","234,047","222,718","198,955","202,135","157,585","152,420","117,984","137,054"," 99,612"," 86,675"," 68,057"," 55,650"," 42,631"," 39,612"," 30,402"," 34,908"," 28,604"," 25,186"," 21,243","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6593.75918197632,10495.2417373657,16177.1951370239,21337.3504562378,38714.4268798828,43514.4934501648,65666.2001285553,86489.1554737091,141025.194073359,149134.995801036,161429.576951091,144395.589840953,154607.089163844,126857.728663826,114486.740981102,93276.8254264196,82803.5459127426,54031.9008331299,46680.0662546158,40871.8711566925,44832.6411361694,37928.4909000397,41539.4283638001,37545.1418762207,41549.0018920899,36748.8684005737,48649.3619918823,51888.9503307343,86562.3391017914,73143.4974250794,73236.4439620972,69757.4209632874,79823.8787784577,64540.350063324,51388.7570552826,45252.1525268555,57877.5988750458,53590.1729049683,56697.467300415,54118.2288579941,64745.7610502243,58228.6229400635,76457.8760757446,73539.88387146,110964.418190384,114604.069358254,141527.684072558,134662.718091075,194375.002415021,183897.287487348,183724.700570742,148759.346390406,152983.076712926,114388.242678324,97863.8950659434,75776.4539200465,67947.3298298518,48919.5318994522,44579.5964078903,38554.1393985748,41244.9993591309,32195.8383808136,25442.4671154022,17983.6726665497,25867.90234375,18728.86211586,13486.4835357666,10726.4907131195,8487.2252292633,8756.64052391052,7938.54296684265,8202.9447593689,7960.69645500183,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,594"," 10,495"," 16,177"," 21,337"," 38,714"," 43,514"," 65,666"," 86,489","141,025","149,135","161,430","144,396","154,607","126,858","114,487"," 93,277"," 82,804"," 54,032"," 46,680"," 40,872"," 44,833"," 37,928"," 41,539"," 37,545"," 41,549"," 36,749"," 48,649"," 51,889"," 86,562"," 73,143"," 73,236"," 69,757"," 79,824"," 64,540"," 51,389"," 45,252"," 57,878"," 53,590"," 56,697"," 54,118"," 64,746"," 58,229"," 76,458"," 73,540","110,964","114,604","141,528","134,663","194,375","183,897","183,725","148,759","152,983","114,388"," 97,864"," 75,776"," 67,947"," 48,920"," 44,580"," 38,554"," 41,245"," 32,196"," 25,442"," 17,984"," 25,868"," 18,729"," 13,486"," 10,726","  8,487","  8,757","  7,939","  8,203","  7,961","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[7.83333333333333,17.1666666666667],"y":[471113.434013634,471113.434013634],"mode":"text","hoverinfo":["x","x"],"text":["Work and All","Work and All"],"name":"Peak Hours","type":"scatter","marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-1249cb537ebf8358a2b2" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1249cb537ebf8358a2b2">{"x":{"visdat":{"f9484ec38":["function () ","plotlyVisDat"]},"cur_data":"f9484ec38","attrs":{"f9484ec38":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"f9484ec38.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true},"f9484ec38.2":{"x":[7.83333333333333,17.1666666666667],"y":[451193.44722905,451193.44722905],"mode":"text","hoverinfo":"x","text":["Work and All","Work and All"],"name":"Peak Hours","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Peak Hours","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"shapes":[{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":442346.516891225}],"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,5945.12788581848,3348.30518531799,4439.04217147827,4704.03586959839,7944.9873046875,6569.41974258423,7650.52649688721,8787.76445960999,13411.3341026306,18229.0125999451,28913.9909095764,38191.8768180847,71191.829309845,90081.8227714539,146877.196955109,209124.593864822,326198.012791697,329449.225043742,353113.30230217,331409.616427867,367088.942487208,311419.027768898,315681.303531075,271277.171519025,294502.119558398,232484.666225815,205376.187961006,194197.500863139,251300.697794024,211504.631925011,228277.16379776,207486.794792557,245119.096050644,224399.742426936,231016.737443034,234002.046767298,299367.227620188,264513.510301972,252683.038114929,249272.932777786,294700.355118179,253483.210161591,240360.00188961,226827.44401207,275459.272150421,276223.193789864,326445.083478355,307090.948027039,371930.610236549,344302.676666641,373254.621165339,355684.610476939,436502.963108826,377831.296956825,386974.47785422,352479.232389577,442346.516891225,422037.970301374,441191.025574748,399784.62896862,424986.198323631,334160.17294445,321429.719278717,268392.029727618,273306.61837546,216023.765723228,209003.323243777,189735.895117442,194008.708122889,148141.753700892,142877.933980942,113266.926252365,131319.997823715,96452.1574268341,83623.873205185,65535.9308948517,51915.967010498,40859.7853374481,37896.4789199829,29395.5302963257,34368.1490573883,27987.8609237671,24001.2375392914,20812.7892074585,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  5,945","  3,348","  4,439","  4,704","  7,945","  6,569","  7,651","  8,788"," 13,411"," 18,229"," 28,914"," 38,192"," 71,192"," 90,082","146,877","209,125","326,198","329,449","353,113","331,410","367,089","311,419","315,681","271,277","294,502","232,485","205,376","194,198","251,301","211,505","228,277","207,487","245,119","224,400","231,017","234,002","299,367","264,514","252,683","249,273","294,700","253,483","240,360","226,827","275,459","276,223","326,445","307,091","371,931","344,303","373,255","355,685","436,503","377,831","386,974","352,479","442,347","422,038","441,191","399,785","424,986","334,160","321,430","268,392","273,307","216,024","209,003","189,736","194,009","148,142","142,878","113,267","131,320"," 96,452"," 83,624"," 65,536"," 51,916"," 40,860"," 37,896"," 29,396"," 34,368"," 27,988"," 24,001"," 20,813","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6369.59467697144,9998.16197967529,16040.7375106812,21016.4885276794,38485.3757194519,42981.0423110962,65279.7516330719,86155.2202114105,139783.648373667,148021.603307215,160056.097770182,143802.377543894,153490.786513774,126103.262115288,113640.615468407,93211.1351439794,82776.3266614914,54155.1241477966,46563.8470338821,40587.2272838593,44428.8296569824,37652.4390338898,41102.8711303711,36486.1791633606,41060.556917572,36810.0827125549,48084.6340068817,50834.3917392731,82684.9869197846,68999.5601753235,69154.6709999085,66422.9201759338,75852.4987319946,61364.7230705261,49880.5831207275,44043.3398059845,57203.8431552887,53300.0112480164,55754.2103446961,53781.6364377976,63815.1467336655,56981.1046775818,75287.8038124085,73540.4276607513,110507.300749588,113888.608346748,139846.064568011,133500.947883097,192955.694366519,181550.49726874,181355.300446892,147179.676063919,151845.199206416,113182.404244487,96912.4110212962,75305.4269158045,68035.7878529231,49235.2586107254,44739.2118330002,38599.4923152924,40836.5931167603,31717.5986347199,24910.0653095245,17929.6273288727,25682.4184150696,18573.8741779327,13378.4125061035,10750.0732898712,8510.80780601501,8756.64052391052,7938.54296684265,8202.9447593689,7848.26408195495,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,370","  9,998"," 16,041"," 21,016"," 38,485"," 42,981"," 65,280"," 86,155","139,784","148,022","160,056","143,802","153,491","126,103","113,641"," 93,211"," 82,776"," 54,155"," 46,564"," 40,587"," 44,429"," 37,652"," 41,103"," 36,486"," 41,061"," 36,810"," 48,085"," 50,834"," 82,685"," 69,000"," 69,155"," 66,423"," 75,852"," 61,365"," 49,881"," 44,043"," 57,204"," 53,300"," 55,754"," 53,782"," 63,815"," 56,981"," 75,288"," 73,540","110,507","113,889","139,846","133,501","192,956","181,550","181,355","147,180","151,845","113,182"," 96,912"," 75,305"," 68,036"," 49,235"," 44,739"," 38,599"," 40,837"," 31,718"," 24,910"," 17,930"," 25,682"," 18,574"," 13,378"," 10,750","  8,511","  8,757","  7,939","  8,203","  7,848","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[7.83333333333333,17.1666666666667],"y":[451193.44722905,451193.44722905],"mode":"text","hoverinfo":["x","x"],"text":["Work and All","Work and All"],"name":"Peak Hours","type":"scatter","marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <div id="final_defs" class="section level2">
 <h2>Final Period Definitions</h2>
 <p>Based on the trips in motion profile, there are four distinct periods of the day. AM and PM peaks have the highest intensity of trip making, followed by mid-day, with the overnight period containing the fewest trips in motion. Boundaries for these periods are defined such that the variance of trips in motion within periods is smallest while variance between periods is largest.</p>
@@ -627,8 +446,8 @@ NT
 </tr>
 </tbody>
 </table>
-<div id="htmlwidget-9be0e10792b11bf65aa4" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9be0e10792b11bf65aa4">{"x":{"visdat":{"61c8678eced":["function () ","plotlyVisDat"]},"cur_data":"61c8678eced","attrs":{"61c8678eced":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"61c8678eced.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true},"61c8678eced.2":{"x":[3.5,8,12.25,16.875,21.1248611111111],"y":[489588.470641619,489588.470641619,489588.470641619,489588.470641619,489588.470641619],"mode":"text","hoverinfo":"x","text":["NT","AM","MD","PM","NT"],"name":"Period","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Peak Periods","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"shapes":[{"type":"rect","fillcolor":"gray","line":{"color":"black"},"opacity":0.3,"x0":7,"x1":9,"y0":0,"y1":480350.952327627},{"type":"rect","fillcolor":"gray","line":{"color":"black"},"opacity":0.3,"x0":15.5,"x1":18.25,"y0":0,"y1":480350.952327627},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":461875.915699641},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":461875.915699641}],"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,6006.91633033752,3410.09362983704,4500.83061599731,4765.82431411743,8006.77574920654,6569.41974258423,7685.39112472534,8822.62908744812,13670.3632354736,19029.7920532227,30755.1913146973,39920.9330482483,73005.4471073151,93167.3357563019,152907.307727814,214949.553100586,337438.420101802,336102.567385737,360868.730823898,338909.257696533,375600.01715126,317963.929812177,324390.293670972,277819.02749602,304165.385853767,238720.6982282,211784.448801359,201598.047504425,261437.061003685,224179.39450868,240411.656651815,216316.87800916,258394.671279271,233479.573026657,241689.977338791,244000.05855751,314327.5847435,274645.207396825,261858.255025228,255500.890740713,302353.041838964,260254.874181112,247806.449596723,233514.178727468,284385.483388265,287609.348368009,336457.066494306,316149.00978597,384585.508785566,355704.032983144,388814.663953781,367504.416643524,451568.284702047,390884.834669813,402207.104516411,367950.996014659,458363.171119054,435887.117752393,461875.915699641,416503.391982079,446978.036206245,350113.10400486,340046.982152939,285602.246705691,292584.817763964,234046.789671898,222718.154975573,198955.189921061,202134.527949015,157585.30718867,152419.587581635,117983.69462204,137054.122617722,99612.0579586029,86675.2117328644,68056.894449234,55649.9656295776,42631.0930080414,39612.3422546387,30402.3474349976,34907.5340042114,28604.2598323822,25186.135099411,21243.2928848267,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  6,007","  3,410","  4,501","  4,766","  8,007","  6,569","  7,685","  8,823"," 13,670"," 19,030"," 30,755"," 39,921"," 73,005"," 93,167","152,907","214,950","337,438","336,103","360,869","338,909","375,600","317,964","324,390","277,819","304,165","238,721","211,784","201,598","261,437","224,179","240,412","216,317","258,395","233,480","241,690","244,000","314,328","274,645","261,858","255,501","302,353","260,255","247,806","233,514","284,385","287,609","336,457","316,149","384,586","355,704","388,815","367,504","451,568","390,885","402,207","367,951","458,363","435,887","461,876","416,503","446,978","350,113","340,047","285,602","292,585","234,047","222,718","198,955","202,135","157,585","152,420","117,984","137,054"," 99,612"," 86,675"," 68,057"," 55,650"," 42,631"," 39,612"," 30,402"," 34,908"," 28,604"," 25,186"," 21,243","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6593.75918197632,10495.2417373657,16177.1951370239,21337.3504562378,38714.4268798828,43514.4934501648,65666.2001285553,86489.1554737091,141025.194073359,149134.995801036,161429.576951091,144395.589840953,154607.089163844,126857.728663826,114486.740981102,93276.8254264196,82803.5459127426,54031.9008331299,46680.0662546158,40871.8711566925,44832.6411361694,37928.4909000397,41539.4283638001,37545.1418762207,41549.0018920899,36748.8684005737,48649.3619918823,51888.9503307343,86562.3391017914,73143.4974250794,73236.4439620972,69757.4209632874,79823.8787784577,64540.350063324,51388.7570552826,45252.1525268555,57877.5988750458,53590.1729049683,56697.467300415,54118.2288579941,64745.7610502243,58228.6229400635,76457.8760757446,73539.88387146,110964.418190384,114604.069358254,141527.684072558,134662.718091075,194375.002415021,183897.287487348,183724.700570742,148759.346390406,152983.076712926,114388.242678324,97863.8950659434,75776.4539200465,67947.3298298518,48919.5318994522,44579.5964078903,38554.1393985748,41244.9993591309,32195.8383808136,25442.4671154022,17983.6726665497,25867.90234375,18728.86211586,13486.4835357666,10726.4907131195,8487.2252292633,8756.64052391052,7938.54296684265,8202.9447593689,7960.69645500183,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,594"," 10,495"," 16,177"," 21,337"," 38,714"," 43,514"," 65,666"," 86,489","141,025","149,135","161,430","144,396","154,607","126,858","114,487"," 93,277"," 82,804"," 54,032"," 46,680"," 40,872"," 44,833"," 37,928"," 41,539"," 37,545"," 41,549"," 36,749"," 48,649"," 51,889"," 86,562"," 73,143"," 73,236"," 69,757"," 79,824"," 64,540"," 51,389"," 45,252"," 57,878"," 53,590"," 56,697"," 54,118"," 64,746"," 58,229"," 76,458"," 73,540","110,964","114,604","141,528","134,663","194,375","183,897","183,725","148,759","152,983","114,388"," 97,864"," 75,776"," 67,947"," 48,920"," 44,580"," 38,554"," 41,245"," 32,196"," 25,442"," 17,984"," 25,868"," 18,729"," 13,486"," 10,726","  8,487","  8,757","  7,939","  8,203","  7,961","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[3.5,8,12.25,16.875,21.1248611111111],"y":[489588.470641619,489588.470641619,489588.470641619,489588.470641619,489588.470641619],"mode":"text","hoverinfo":["x","x","x","x","x"],"text":["NT","AM","MD","PM","NT"],"name":"Period","type":"scatter","marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-3dbc81159546ec045f6b" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3dbc81159546ec045f6b">{"x":{"visdat":{"f94596c5578":["function () ","plotlyVisDat"]},"cur_data":"f94596c5578","attrs":{"f94596c5578":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"All","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"},"f94596c5578.1":{"x":{},"y":{},"mode":"lines","hoverinfo":"text+x","text":{},"name":"Work","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true},"f94596c5578.2":{"x":[3.5,8,12.25,16.875,21.1248611111111],"y":[468887.307904699,468887.307904699,468887.307904699,468887.307904699,468887.307904699],"mode":"text","hoverinfo":"x","text":["NT","AM","MD","PM","NT"],"name":"Period","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Peak Periods","xaxis":{"domain":[0,1],"automargin":true,"title":"Time of Day"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Trips in Motion"},"shapes":[{"type":"rect","fillcolor":"gray","line":{"color":"black"},"opacity":0.3,"x0":7,"x1":9,"y0":0,"y1":460040.377566874},{"type":"rect","fillcolor":"gray","line":{"color":"black"},"opacity":0.3,"x0":15.5,"x1":18.25,"y0":0,"y1":460040.377566874},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":7,"x1":8,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"blue","line":{"color":"blue"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":442346.516891225},{"type":"rect","fillcolor":"green","line":{"color":"green"},"opacity":0.3,"x0":16.75,"x1":17.75,"y0":0,"y1":442346.516891225}],"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75,24],"y":[2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,2169.83521461487,5945.12788581848,3348.30518531799,4439.04217147827,4704.03586959839,7944.9873046875,6569.41974258423,7650.52649688721,8787.76445960999,13411.3341026306,18229.0125999451,28913.9909095764,38191.8768180847,71191.829309845,90081.8227714539,146877.196955109,209124.593864822,326198.012791697,329449.225043742,353113.30230217,331409.616427867,367088.942487208,311419.027768898,315681.303531075,271277.171519025,294502.119558398,232484.666225815,205376.187961006,194197.500863139,251300.697794024,211504.631925011,228277.16379776,207486.794792557,245119.096050644,224399.742426936,231016.737443034,234002.046767298,299367.227620188,264513.510301972,252683.038114929,249272.932777786,294700.355118179,253483.210161591,240360.00188961,226827.44401207,275459.272150421,276223.193789864,326445.083478355,307090.948027039,371930.610236549,344302.676666641,373254.621165339,355684.610476939,436502.963108826,377831.296956825,386974.47785422,352479.232389577,442346.516891225,422037.970301374,441191.025574748,399784.62896862,424986.198323631,334160.17294445,321429.719278717,268392.029727618,273306.61837546,216023.765723228,209003.323243777,189735.895117442,194008.708122889,148141.753700892,142877.933980942,113266.926252365,131319.997823715,96452.1574268341,83623.873205185,65535.9308948517,51915.967010498,40859.7853374481,37896.4789199829,29395.5302963257,34368.1490573883,27987.8609237671,24001.2375392914,20812.7892074585,0],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  2,170","  5,945","  3,348","  4,439","  4,704","  7,945","  6,569","  7,651","  8,788"," 13,411"," 18,229"," 28,914"," 38,192"," 71,192"," 90,082","146,877","209,125","326,198","329,449","353,113","331,410","367,089","311,419","315,681","271,277","294,502","232,485","205,376","194,198","251,301","211,505","228,277","207,487","245,119","224,400","231,017","234,002","299,367","264,514","252,683","249,273","294,700","253,483","240,360","226,827","275,459","276,223","326,445","307,091","371,931","344,303","373,255","355,685","436,503","377,831","386,974","352,479","442,347","422,038","441,191","399,785","424,986","334,160","321,430","268,392","273,307","216,024","209,003","189,736","194,009","148,142","142,878","113,267","131,320"," 96,452"," 83,624"," 65,536"," 51,916"," 40,860"," 37,896"," 29,396"," 34,368"," 27,988"," 24,001"," 20,813","      0"],"name":"All","type":"scatter","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75,4,4.25,4.5,4.75,5,5.25,5.5,5.75,6,6.25,6.5,6.75,7,7.25,7.5,7.75,8,8.25,8.5,8.75,9,9.25,9.5,9.75,10,10.25,10.5,10.75,11,11.25,11.5,11.75,12,12.25,12.5,12.75,13,13.25,13.5,13.75,14,14.25,14.5,14.75,15,15.25,15.5,15.75,16,16.25,16.5,16.75,17,17.25,17.5,17.75,18,18.25,18.5,18.75,19,19.25,19.5,19.75,20,20.25,20.5,20.75,21,21.25,21.5,21.75,22,22.25,22.5,22.75,23,23.25,23.5,23.75],"y":[193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,193.561111450195,1044.11817932129,673.78125,1290.64489746094,1290.64489746094,3582.1994972229,2401.72974014282,2696.99674224854,3107.886510849,6369.59467697144,9998.16197967529,16040.7375106812,21016.4885276794,38485.3757194519,42981.0423110962,65279.7516330719,86155.2202114105,139783.648373667,148021.603307215,160056.097770182,143802.377543894,153490.786513774,126103.262115288,113640.615468407,93211.1351439794,82776.3266614914,54155.1241477966,46563.8470338821,40587.2272838593,44428.8296569824,37652.4390338898,41102.8711303711,36486.1791633606,41060.556917572,36810.0827125549,48084.6340068817,50834.3917392731,82684.9869197846,68999.5601753235,69154.6709999085,66422.9201759338,75852.4987319946,61364.7230705261,49880.5831207275,44043.3398059845,57203.8431552887,53300.0112480164,55754.2103446961,53781.6364377976,63815.1467336655,56981.1046775818,75287.8038124085,73540.4276607513,110507.300749588,113888.608346748,139846.064568011,133500.947883097,192955.694366519,181550.49726874,181355.300446892,147179.676063919,151845.199206416,113182.404244487,96912.4110212962,75305.4269158045,68035.7878529231,49235.2586107254,44739.2118330002,38599.4923152924,40836.5931167603,31717.5986347199,24910.0653095245,17929.6273288727,25682.4184150696,18573.8741779327,13378.4125061035,10750.0732898712,8510.80780601501,8756.64052391052,7938.54296684265,8202.9447593689,7848.26408195495,7266.09953689575,4765.4617061615,2970.16893196106],"mode":"lines","hoverinfo":["text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x","text+x"],"text":["    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","    194","  1,044","    674","  1,291","  1,291","  3,582","  2,402","  2,697","  3,108","  6,370","  9,998"," 16,041"," 21,016"," 38,485"," 42,981"," 65,280"," 86,155","139,784","148,022","160,056","143,802","153,491","126,103","113,641"," 93,211"," 82,776"," 54,155"," 46,564"," 40,587"," 44,429"," 37,652"," 41,103"," 36,486"," 41,061"," 36,810"," 48,085"," 50,834"," 82,685"," 69,000"," 69,155"," 66,423"," 75,852"," 61,365"," 49,881"," 44,043"," 57,204"," 53,300"," 55,754"," 53,782"," 63,815"," 56,981"," 75,288"," 73,540","110,507","113,889","139,846","133,501","192,956","181,550","181,355","147,180","151,845","113,182"," 96,912"," 75,305"," 68,036"," 49,235"," 44,739"," 38,599"," 40,837"," 31,718"," 24,910"," 17,930"," 25,682"," 18,574"," 13,378"," 10,750","  8,511","  8,757","  7,939","  8,203","  7,848","  7,266","  4,765","  2,970"],"name":"Work","type":"scatter","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[3.5,8,12.25,16.875,21.1248611111111],"y":[468887.307904699,468887.307904699,468887.307904699,468887.307904699,468887.307904699],"mode":"text","hoverinfo":["x","x","x","x","x"],"text":["NT","AM","MD","PM","NT"],"name":"Period","type":"scatter","marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <p>The table below shows the average 15-minute trips in motion during each period. These period definitions accurately capture the disparate characteristics of each.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -647,7 +466,7 @@ Mean Trips in Motion
 AM
 </td>
 <td style="text-align:right;">
-329477
+321743
 </td>
 </tr>
 <tr>
@@ -655,7 +474,7 @@ AM
 MD
 </td>
 <td style="text-align:right;">
-272153
+262349
 </td>
 </tr>
 <tr>
@@ -663,7 +482,7 @@ MD
 PM
 </td>
 <td style="text-align:right;">
-413621
+397634
 </td>
 </tr>
 <tr>
@@ -671,7 +490,7 @@ PM
 NT
 </td>
 <td style="text-align:right;">
-75469
+71885
 </td>
 </tr>
 </tbody>
@@ -758,6 +577,8 @@ NT
 </tr>
 </tbody>
 </table>
+<div id="homebased" class="section level2">
+<h2>Homebased</h2>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -801,16 +622,16 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:left;">
-10.6%
+10.3%
 </td>
 <td style="text-align:left;">
-30.3%
+30.5%
 </td>
 <td style="text-align:left;">
-24.9%
+24.8%
 </td>
 <td style="text-align:left;">
-34.2%
+34.4%
 </td>
 </tr>
 <tr>
@@ -818,16 +639,16 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:left;">
-15.2%
+16.6%
 </td>
 <td style="text-align:left;">
-30.2%
+31.0%
 </td>
 <td style="text-align:left;">
-28.0%
+27.6%
 </td>
 <td style="text-align:left;">
-26.6%
+24.8%
 </td>
 </tr>
 <tr>
@@ -838,13 +659,13 @@ N_HB_OME_All
 3.8%
 </td>
 <td style="text-align:left;">
-47.3%
+47.4%
 </td>
 <td style="text-align:left;">
 22.9%
 </td>
 <td style="text-align:left;">
-26.0%
+25.9%
 </td>
 </tr>
 <tr>
@@ -886,16 +707,16 @@ W_HB_EK12_All
 W_HB_O_All
 </td>
 <td style="text-align:left;">
-15.4%
+15.2%
 </td>
 <td style="text-align:left;">
-15.2%
+15.0%
 </td>
 <td style="text-align:left;">
 30.1%
 </td>
 <td style="text-align:left;">
-39.3%
+39.7%
 </td>
 </tr>
 <tr>
@@ -903,20 +724,149 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:left;">
-28.8%
+28.9%
 </td>
 <td style="text-align:left;">
 19.3%
 </td>
 <td style="text-align:left;">
-28.2%
+28.3%
 </td>
 <td style="text-align:left;">
-23.7%
+23.5%
 </td>
 </tr>
 </tbody>
 </table>
+</div>
+<div id="nonhomebased" class="section level2">
+<h2>NonHomebased</h2>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Trip Type
+</th>
+<th style="text-align:left;">
+AM
+</th>
+<th style="text-align:left;">
+MD
+</th>
+<th style="text-align:left;">
+PM
+</th>
+<th style="text-align:left;">
+NT
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N_NH_K12_All
+</td>
+<td style="text-align:left;">
+27.4%
+</td>
+<td style="text-align:left;">
+34.4%
+</td>
+<td style="text-align:left;">
+29.0%
+</td>
+<td style="text-align:left;">
+9.2%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_NH_O_All
+</td>
+<td style="text-align:left;">
+13.8%
+</td>
+<td style="text-align:left;">
+45.8%
+</td>
+<td style="text-align:left;">
+24.8%
+</td>
+<td style="text-align:left;">
+15.6%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_NH_OME_All
+</td>
+<td style="text-align:left;">
+4.9%
+</td>
+<td style="text-align:left;">
+60.1%
+</td>
+<td style="text-align:left;">
+18.8%
+</td>
+<td style="text-align:left;">
+16.2%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_NH_EK12_All
+</td>
+<td style="text-align:left;">
+50.7%
+</td>
+<td style="text-align:left;">
+14.2%
+</td>
+<td style="text-align:left;">
+30.5%
+</td>
+<td style="text-align:left;">
+4.6%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_NH_O_All
+</td>
+<td style="text-align:left;">
+11.0%
+</td>
+<td style="text-align:left;">
+44.8%
+</td>
+<td style="text-align:left;">
+30.8%
+</td>
+<td style="text-align:left;">
+13.4%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W_NH_WR_All
+</td>
+<td style="text-align:left;">
+8.2%
+</td>
+<td style="text-align:left;">
+65.0%
+</td>
+<td style="text-align:left;">
+21.1%
+</td>
+<td style="text-align:left;">
+5.7%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="directionality-factors" class="section level1">
 <h1>Directionality factors</h1>
@@ -966,7 +916,7 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-0.84
+0.85
 </td>
 <td style="text-align:right;">
 0.56
@@ -983,13 +933,13 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-0.65
+0.68
 </td>
 <td style="text-align:right;">
-0.55
+0.56
 </td>
 <td style="text-align:right;">
-0.45
+0.44
 </td>
 <td style="text-align:right;">
 0.45
@@ -1000,7 +950,7 @@ N_HB_OD_Short
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-0.68
+0.69
 </td>
 <td style="text-align:right;">
 0.47
@@ -1054,7 +1004,7 @@ W_HB_O_All
 1.00
 </td>
 <td style="text-align:right;">
-0.47
+0.46
 </td>
 <td style="text-align:right;">
 0.02
@@ -1089,9 +1039,9 @@ W_HB_W_All
 <p>In the TRMG2, the directionality factors are used to further improve the period-specific skims. The easiest way to explain the improvement is using the PM period as an example.</p>
 <p>In the PM period, 95% of home-based work trips in the survey are traveling back home. Trip productions estimated by the model are in PA format and, with a traditional approach, would see skim times from home to work, which are near free-flow speed. This unrealistic representation of travel time would cause incorrect mode and destination choices to be predicted.</p>
 <p>To properly represent aggregate travel times, the PA and AP directions must be combined using a weighted average as shown below:</p>
-<p><br /><span class="math display"><em>T</em><em>T</em><sub><em>a</em><em>v</em><em>g</em></sub> = <em>f</em><sub><em>p</em><em>a</em></sub> * <em>T</em><em>T</em><sub><em>i</em><em>j</em></sub> + (1 − <em>f</em><sub><em>p</em><em>a</em></sub>) * <em>T</em><em>T</em><sub><em>j</em><em>i</em></sub></span><br /></p>
+<p><span class="math display">\[TT_{avg} = f_{pa} * TT_{ij} + (1 - f_{pa}) * TT_{ji}\]</span></p>
 <p>Where:<br />
-<span class="math inline"><em>T</em><em>T</em><sub><em>a</em><em>v</em><em>g</em></sub></span> is the average travel time from zone i to j; <span class="math inline"><em>f</em><sub><em>p</em><em>a</em></sub></span> is the PA factor; <span class="math inline"><em>T</em><em>T</em><sub><em>i</em><em>j</em></sub></span> is the travel time from zone i to j; and <span class="math inline"><em>T</em><em>T</em><sub><em>j</em><em>i</em></sub></span> is the travel time from zone j to i.</p>
+<span class="math inline">\(TT_{avg}\)</span> is the average travel time from zone i to j; <span class="math inline">\(f_{pa}\)</span> is the PA factor; <span class="math inline">\(TT_{ij}\)</span> is the travel time from zone i to j; and <span class="math inline">\(TT_{ji}\)</span> is the travel time from zone j to i.</p>
 <p>The table below shows the directional factors used to average skims. Note that for non-home-based trips and all off-peak trips, a simple 50/50 split was used. For home-based trips in the off-peak, the survey showed that the directionality was close enough to 50/50 that the extra complexity was not warranted.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1309,13 +1259,13 @@ N_HB_OD_Long
 3.474
 </td>
 <td style="text-align:right;">
-3.837
+3.836
 </td>
 <td style="text-align:right;">
-3.400
+3.397
 </td>
 <td style="text-align:right;">
-3.671
+3.664
 </td>
 </tr>
 <tr>
@@ -1326,13 +1276,13 @@ N_HB_OD_Short
 3.740
 </td>
 <td style="text-align:right;">
-3.620
+3.628
 </td>
 <td style="text-align:right;">
-3.355
+3.359
 </td>
 <td style="text-align:right;">
-3.783
+3.803
 </td>
 </tr>
 <tr>
@@ -1371,57 +1321,6 @@ N_HB_OMED_All
 </tr>
 <tr>
 <td style="text-align:left;">
-N_NH_K12_All
-</td>
-<td style="text-align:right;">
-3.625
-</td>
-<td style="text-align:right;">
-3.571
-</td>
-<td style="text-align:right;">
-3.650
-</td>
-<td style="text-align:right;">
-3.571
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_NH_O_All
-</td>
-<td style="text-align:right;">
-3.482
-</td>
-<td style="text-align:right;">
-3.491
-</td>
-<td style="text-align:right;">
-3.677
-</td>
-<td style="text-align:right;">
-3.438
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_NH_OME_All
-</td>
-<td style="text-align:right;">
-3.683
-</td>
-<td style="text-align:right;">
-3.865
-</td>
-<td style="text-align:right;">
-3.400
-</td>
-<td style="text-align:right;">
-3.672
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 W_HB_EK12_All
 </td>
 <td style="text-align:right;">
@@ -1445,13 +1344,13 @@ W_HB_O_All
 3.414
 </td>
 <td style="text-align:right;">
-3.334
+3.333
 </td>
 <td style="text-align:right;">
 3.166
 </td>
 <td style="text-align:right;">
-3.480
+3.474
 </td>
 </tr>
 <tr>
@@ -1471,60 +1370,9 @@ W_HB_W_All
 3.475
 </td>
 </tr>
-<tr>
-<td style="text-align:left;">
-W_NH_EK12_All
-</td>
-<td style="text-align:right;">
-3.210
-</td>
-<td style="text-align:right;">
-3.210
-</td>
-<td style="text-align:right;">
-3.210
-</td>
-<td style="text-align:right;">
-3.210
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_NH_O_All
-</td>
-<td style="text-align:right;">
-3.295
-</td>
-<td style="text-align:right;">
-3.237
-</td>
-<td style="text-align:right;">
-3.175
-</td>
-<td style="text-align:right;">
-3.295
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_NH_WR_All
-</td>
-<td style="text-align:right;">
-3.850
-</td>
-<td style="text-align:right;">
-3.850
-</td>
-<td style="text-align:right;">
-3.850
-</td>
-<td style="text-align:right;">
-3.850
-</td>
-</tr>
 </tbody>
 </table>
-<p>Roadway assignment in the model is done by vehicle class (sov, hov2, hov3). As a result, “auto pay” and “other modes” must be converted into those classes. The table below shows the factors calculated from the survey used to do this.</p>
+<p>Roadway assignment in the model is done by vehicle class (sov, hov2, hov3). As a result, “auto pay” and “other modes” must be converted into those classes. The table below shows the homebased trip factors calculated from the survey used to do this.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1562,13 +1410,13 @@ N_HB_K12_All
 N_HB_OD_Long
 </td>
 <td style="text-align:right;">
-0.147
+0.142
 </td>
 <td style="text-align:right;">
-0.452
+0.456
 </td>
 <td style="text-align:right;">
-0.401
+0.402
 </td>
 </tr>
 <tr>
@@ -1576,13 +1424,13 @@ N_HB_OD_Long
 N_HB_OD_Short
 </td>
 <td style="text-align:right;">
-0.204
+0.212
 </td>
 <td style="text-align:right;">
-0.259
+0.237
 </td>
 <td style="text-align:right;">
-0.537
+0.551
 </td>
 </tr>
 <tr>
@@ -1611,48 +1459,6 @@ N_HB_OMED_All
 </td>
 <td style="text-align:right;">
 0.174
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_NH_K12_All
-</td>
-<td style="text-align:right;">
-0.022
-</td>
-<td style="text-align:right;">
-0.384
-</td>
-<td style="text-align:right;">
-0.594
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_NH_O_All
-</td>
-<td style="text-align:right;">
-0.166
-</td>
-<td style="text-align:right;">
-0.259
-</td>
-<td style="text-align:right;">
-0.574
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_NH_OME_All
-</td>
-<td style="text-align:right;">
-0.093
-</td>
-<td style="text-align:right;">
-0.297
-</td>
-<td style="text-align:right;">
-0.609
 </td>
 </tr>
 <tr>
@@ -1688,55 +1494,62 @@ W_HB_O_All
 W_HB_W_All
 </td>
 <td style="text-align:right;">
-0.475
+0.482
 </td>
 <td style="text-align:right;">
-0.280
+0.276
 </td>
 <td style="text-align:right;">
-0.246
+0.242
+</td>
+</tr>
+</tbody>
+</table>
+<p>For non-homebased trips, the factors are calculated by tour type (work or non work). They are shown in the table below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+tour_type
+</th>
+<th style="text-align:right;">
+sov
+</th>
+<th style="text-align:right;">
+hov2
+</th>
+<th style="text-align:right;">
+hov3
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NonWork
+</td>
+<td style="text-align:right;">
+0.53
+</td>
+<td style="text-align:right;">
+0.227
+</td>
+<td style="text-align:right;">
+0.243
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-W_NH_EK12_All
+Work
 </td>
 <td style="text-align:right;">
-0.000
+0.51
 </td>
 <td style="text-align:right;">
-1.000
+0.148
 </td>
 <td style="text-align:right;">
-0.000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_NH_O_All
-</td>
-<td style="text-align:right;">
-0.334
-</td>
-<td style="text-align:right;">
-0.359
-</td>
-<td style="text-align:right;">
-0.307
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-W_NH_WR_All
-</td>
-<td style="text-align:right;">
-0.621
-</td>
-<td style="text-align:right;">
-0.244
-</td>
-<td style="text-align:right;">
-0.135
+0.342
 </td>
 </tr>
 </tbody>
@@ -1810,8 +1623,8 @@ Percent
 </tr>
 </tbody>
 </table>
-<div id="htmlwidget-6500b0b27bf895814d52" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-6500b0b27bf895814d52">{"x":{"visdat":{"61c8517e67ad":["function () ","plotlyVisDat"]},"cur_data":"61c8517e67ad","attrs":{"61c8517e67ad":{"x":{},"y":{},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"61c8517e67ad.1":{"x":{},"y":{},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"Hour of Day","type":"category","categoryorder":"array","categoryarray":["6-7","7-8","8-9"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Hour"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["6-7","7-8","8-9"],"y":[1050,1050,1050],"name":"Capacity","type":"bar","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["6-7","7-8","8-9"],"y":[500,900,500],"name":"Demand","type":"bar","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-95e63065a712fe420b50" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-95e63065a712fe420b50">{"x":{"visdat":{"f94627c1958":["function () ","plotlyVisDat"]},"cur_data":"f94627c1958","attrs":{"f94627c1958":{"x":{},"y":{},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"f94627c1958.1":{"x":{},"y":{},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"Hour of Day","type":"category","categoryorder":"array","categoryarray":["6-7","7-8","8-9"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Hour"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["6-7","7-8","8-9"],"y":[1050,1050,1050],"name":"Capacity","type":"bar","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["6-7","7-8","8-9"],"y":[500,900,500],"name":"Demand","type":"bar","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <p>The easiest way to represent this in a period assignment would be to add up the total capacity and total demand from each hour.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -1841,8 +1654,8 @@ Demand
 </tr>
 </tbody>
 </table>
-<div id="htmlwidget-7ba0a0a5d632f719cd6c" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7ba0a0a5d632f719cd6c">{"x":{"visdat":{"61c821536fc9":["function () ","plotlyVisDat"]},"cur_data":"61c821536fc9","attrs":{"61c821536fc9":{"x":{},"y":{},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"61c821536fc9.1":{"x":{},"y":{},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"Hour of Day","type":"category","categoryorder":"array","categoryarray":["6-9"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Hour"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["6-9"],"y":[3150],"name":"Capacity","type":"bar","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["6-9"],"y":[1900],"name":"Demand","type":"bar","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-0514f43cae1c389772ab" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0514f43cae1c389772ab">{"x":{"visdat":{"f942026601":["function () ","plotlyVisDat"]},"cur_data":"f942026601","attrs":{"f942026601":{"x":{},"y":{},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"f942026601.1":{"x":{},"y":{},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"Hour of Day","type":"category","categoryorder":"array","categoryarray":["6-9"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Hour"},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["6-9"],"y":[3150],"name":"Capacity","type":"bar","marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["6-9"],"y":[1900],"name":"Demand","type":"bar","marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <p>In this simple representation, no one experiences congestion. This does not match the real world graph, which shows that nearly half the vehicles in the period experience congested conditions. This occurs between 7:00 am and 8:00 am. This discrepancy between the real world and a naive period representation can cause numerous errors in the model, including:</p>
 <ul>
 <li>Longer trip lengths</li>
@@ -1852,14 +1665,14 @@ Demand
 </ul>
 <p>The period capacity factor (PCF) corrects for this, and is the inverse of a similar concept from traffic engineering: the peak hour factor (PHF). In traffic engineering, the PHF adjusts hourly volume based on the highest 15-minute volume within the hour. While the PHF is used to adjust demand given a fixed capacity, the PCF adjusts period capacity based on the highest-volume hour of the period.</p>
 <p>Consider our example of a three-hour period from 6:00 am to 9:00 am. If the actual demand was evenly distributed across the period, the PHF would be .33. The PCF, the inverse of the PHF, would be 3. In this scenario, the hourly capacity would be multiplied by 3, which would lead to the capacity shown in the table above. Instead, using the actual demand from our example, the PHF would be:</p>
-<p><br /><span class="math display"><em>P</em><em>H</em><em>F</em> = 900/(500 + 900 + 500) = 0.474</span><br /></p>
+<p><span class="math display">\[PHF = 900 /(500 + 900 + 500) = 0.474\]</span></p>
 <p>Taking the inverse gives a PCF of:</p>
-<p><br /><span class="math display"><em>P</em><em>C</em><em>F</em> = 1/.474 = 2.11</span><br /></p>
+<p><span class="math display">\[PCF = 1 / .474 = 2.11\]</span></p>
 <p>The period capacity that most-accurately reflects congestion would be:</p>
-<p><br /><span class="math display"><em>P</em><em>e</em><em>r</em><em>i</em><em>o</em><em>d</em><em>C</em><em>a</em><em>p</em><em>a</em><em>c</em><em>i</em><em>t</em><em>y</em> = 1050 * 2.11 = 2215</span><br /></p>
+<p><span class="math display">\[Period Capacity = 1050 * 2.11 = 2215\]</span></p>
 <p>That capacity is shown relative to the period demand in the chart below. This relationship is a better representation of real world conditions.</p>
-<div id="htmlwidget-b9d6c53294d500d2f84f" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b9d6c53294d500d2f84f">{"x":{"visdat":{"61c8671629af":["function () ","plotlyVisDat"]},"cur_data":"61c8671629af","attrs":{"61c8671629af":{"x":{},"y":{},"marker":{"color":"ff7f0e"},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"61c8671629af.1":{"x":{},"y":{},"marker":{"color":"1f77b4"},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Final Model Representation","xaxis":{"domain":[0,1],"automargin":true,"title":"","type":"category","categoryorder":"array","categoryarray":["PCF = 2.11","PCF = 3.00"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Period"},"barmode":"stack","hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["PCF = 3.00","PCF = 2.11"],"y":[1900,1900],"marker":{"color":"ff7f0e","line":{"color":"rgba(31,119,180,1)"}},"name":"Demand","type":"bar","error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["PCF = 3.00","PCF = 2.11"],"y":[1250,316],"marker":{"color":"1f77b4","line":{"color":"rgba(255,127,14,1)"}},"name":"Capacity","type":"bar","error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-715b94756bd20968529d" style="width:768px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-715b94756bd20968529d">{"x":{"visdat":{"f944b494a38":["function () ","plotlyVisDat"]},"cur_data":"f944b494a38","attrs":{"f944b494a38":{"x":{},"y":{},"marker":{"color":"ff7f0e"},"name":"Demand","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"},"f944b494a38.1":{"x":{},"y":{},"marker":{"color":"1f77b4"},"name":"Capacity","alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Final Model Representation","xaxis":{"domain":[0,1],"automargin":true,"title":"","type":"category","categoryorder":"array","categoryarray":["PCF = 2.11","PCF = 3.00"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"Veh per Period"},"barmode":"stack","hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"x":["PCF = 3.00","PCF = 2.11"],"y":[1900,1900],"marker":{"color":"ff7f0e","line":{"color":"rgba(31,119,180,1)"}},"name":"Demand","type":"bar","error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["PCF = 3.00","PCF = 2.11"],"y":[1250,316],"marker":{"color":"1f77b4","line":{"color":"rgba(255,127,14,1)"}},"name":"Capacity","type":"bar","error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -1953,7 +1766,7 @@ AM
 0.54
 </td>
 <td style="text-align:right;">
-1.87
+1.86
 </td>
 </tr>
 <tr>
@@ -1973,7 +1786,7 @@ MD
 0.20
 </td>
 <td style="text-align:right;">
-4.90
+4.88
 </td>
 </tr>
 <tr>
@@ -1993,7 +1806,7 @@ PM
 0.39
 </td>
 <td style="text-align:right;">
-2.57
+2.56
 </td>
 </tr>
 <tr>
@@ -2013,83 +1826,136 @@ NT
 0.32
 </td>
 <td style="text-align:right;">
-3.13
+3.14
 </td>
 </tr>
 </tbody>
 </table>
-<p>A <a href="https://www.fhwa.dot.gov/planning/tmip/publications/other_reports/validation_and_reasonableness_2010/ch08.cfm">general guideline</a> to follow suggests the model should provide 8-12 hours of capacity per day. The PCFs calculated directly from the survey data provide 12.46. This is slightly higher but acceptable.</p>
+<p>The approach above is most appropriate in the short peak periods to accurately capture peak congestion. However, the long duration of the MD and NT periods and overall light congestion lead the approach to overstate congestion. For this reason, additional capacity is added. The final period factors are shown below.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Period
+</th>
+<th style="text-align:right;">
+From
+</th>
+<th style="text-align:right;">
+To
+</th>
+<th style="text-align:right;">
+Length (hrs)
+</th>
+<th style="text-align:right;">
+Model Capacity (hrs)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+AM
+</td>
+<td style="text-align:right;">
+07:00:00
+</td>
+<td style="text-align:right;">
+09:00:00
+</td>
+<td style="text-align:right;">
+2.00
+</td>
+<td style="text-align:right;">
+1.86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MD
+</td>
+<td style="text-align:right;">
+09:00:00
+</td>
+<td style="text-align:right;">
+15:30:00
+</td>
+<td style="text-align:right;">
+6.50
+</td>
+<td style="text-align:right;">
+5.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PM
+</td>
+<td style="text-align:right;">
+15:30:00
+</td>
+<td style="text-align:right;">
+18:15:00
+</td>
+<td style="text-align:right;">
+2.75
+</td>
+<td style="text-align:right;">
+2.56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NT
+</td>
+<td style="text-align:right;">
+18:15:00
+</td>
+<td style="text-align:right;">
+07:00:00
+</td>
+<td style="text-align:right;">
+12.75
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-
-<br>
-<br>
-<br>
-<hr>
-<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
-
-
-</div>
 </div>
 
-</div>
+   
+      <br>
+   <br>
+   <br>
+   <hr>
+   <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2022</p>
+   
+            
+      
 
-<script>
+  <script>
+    $(document).ready(function () {
 
-// add bootstrap table styles to pandoc tables
-function bootstrapStylePandocTables() {
-  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
-}
-$(document).ready(function () {
-  bootstrapStylePandocTables();
-});
-
-
-</script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
+			
+ 		
+	    });
+  </script>
 
 
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
 </body>
 </html>

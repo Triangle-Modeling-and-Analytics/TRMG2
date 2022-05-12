@@ -117,7 +117,7 @@ Macro "Copy TAZ" (Args)
 
   // Remove any dbd files in the taz directory
   dir = Args.[Input Folder] + "/tazs"
-  a_dbds = RunMacro("Catalog Files", dir, "dbd")
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: "dbd"})
   for i = 1 to a_dbds.length do
     DeleteDatabase(a_dbds[i])
   end
@@ -136,7 +136,7 @@ Macro "Create Scenario SE" (Args)
 
   // Remove any bin or dcb files in the directory
   dir = Args.[Input Folder] + "/sedata"
-  a_dbds = RunMacro("Catalog Files", dir, {"bin", "dcb"})
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: {"bin", "dcb", "bxl"}})
   for i = 1 to a_dbds.length do
     DeleteFile(a_dbds[i])
   end
@@ -169,7 +169,7 @@ Macro "Create Scenario Roadway" (Args)
 
   // Remove any dbd files in the directory
   dir = Args.[Input Folder] + "/networks"
-  a_dbds = RunMacro("Catalog Files", dir, "dbd")
+  a_dbds = RunMacro("Catalog Files", {dir: dir, ext: "dbd"})
   for i = 1 to a_dbds.length do
     DeleteDatabase(a_dbds[i])
   end
@@ -226,31 +226,5 @@ Macro "Create Scenario Transit" (Args)
     "Use the following query to find them: 'Centroid = 1 and PNR = 1'"
   )
 
-  // Remove modes from the mode table that don't exist in the scenario. This
-  // will in turn control which networks (tnw) get created.
-  temp_vw = OpenTable("mode", "CSV", {Args.TransModeTable, })
-  mode_vw = ExportView(temp_vw + "|", "MEM", "mode_table", , )
-  SetView(mode_vw)
-  del_set = CreateSet("to_delete")
-  CloseView(temp_vw)
-  v_mode_ids = GetDataVector(mode_vw + "|", "mode_id", )
-  for mode_id in v_mode_ids do
-    if mode_id = 1 then continue
-    SetLayer(rlyr)
-    query = "Select * where Mode = " + String(mode_id)
-    n = SelectByQuery("sel", "several", query)
-    if n = 0 then do
-      SetView(mode_vw)
-      rh = LocateRecord(mode_vw + "|", "mode_id", {mode_id}, )
-      SelectRecord(del_set)
-    end
-  end
-  SetView(mode_vw)
-  DeleteRecordsInSet(del_set)
-  ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
-  CloseView(mode_vw)
-  DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
-
   CloseMap(map)
 EndMacro
-

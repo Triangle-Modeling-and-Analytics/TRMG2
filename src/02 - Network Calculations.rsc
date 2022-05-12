@@ -6,6 +6,7 @@ Macro "Create Initial Output Files" (Args)
     created = RunMacro("Is Scenario Created", Args)
     if !created then return(0)
     RunMacro("Create Output Copies", Args)
+    RunMacro("Filter Transit Modes", Args)
     RunMacro("Check SE Data", Args)
     return(1)
 EndMacro
@@ -96,6 +97,130 @@ Macro "Create Output Copies" (Args)
     ExportView(se + "|", "FFB", Args.SE, , )
     CloseView(se)
 EndMacro
+
+
+/*
+Remove modes from the mode table that don't exist in the scenario. This
+will in turn control which networks (tnw) get created.
+*/
+
+Macro "Filter Transit Modes" (Args)
+        
+    rts_file = Args.Routes
+    opts.file = rts_file
+    {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", opts)
+    
+    temp_vw = OpenTable("mode", "CSV", {Args.TransModeTable, })
+    mode_vw = ExportView(temp_vw + "|", "MEM", "mode_table", , )
+    SetView(mode_vw)
+    del_set = CreateSet("to_delete")
+    CloseView(temp_vw)
+    v_mode_ids = GetDataVector(mode_vw + "|", "mode_id", )
+    for mode_id in v_mode_ids do
+        if mode_id = 1 then continue
+        SetLayer(rlyr)
+        query = "Select * where Mode = " + String(mode_id)
+        n = SelectByQuery("sel", "several", query)
+        if n = 0 then do
+            SetView(mode_vw)
+            rh = LocateRecord(mode_vw + "|", "mode_id", {mode_id}, )
+            SelectRecord(del_set)
+        end
+    end
+    SetView(mode_vw)
+    DeleteRecordsInSet(del_set)
+    ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
+    CloseView(mode_vw)
+    DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
+    
+    // Remove modes from MC parameter files
+    RunMacro("Filter Resident HB Transit Modes", Args)
+    
+    CloseMap(map)
+endmacro
+
+
+/*
+Removes modes from the resident HB csv parameter files if they don't exist
+in the scenario.
+*/
+
+Macro "Filter Resident HB Transit Modes" (Args)
+    
+    mode_table = Args.TransModeTable
+    access_modes = Args.access_modes
+    mc_dir = Args.[Input Folder] + "/resident/mode"
+    
+    transit_modes = RunMacro("Get Transit Modes", mode_table)
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    for trip_type in trip_types do
+        nest_file = mc_dir + "/" + trip_type + "_nest.csv"
+        coef_file = mc_dir + "/" + trip_type + ".csv"
+
+        // Filter coefficient file
+        coef_vw = OpenTable("coef", "CSV", {coef_file})
+        SetView(coef_vw)
+        // Start by selecting all non-transit modes
+        query = "Select * where"
+        for i = 1 to access_modes.length do
+            access = access_modes[i]
+            if i = 1 then query = query + " not(Alternative contains '" + access + "_')"
+            else query = query + " and not(Alternative contains '" + access + "_')"
+        end
+        SelectByQuery("export", "more", query)
+        // Now add transit modes that exist to the selection
+        for mode in transit_modes do
+            for access in access_modes do
+                alt = access + "_" + mode
+                query = "Select * where Alternative = '" + alt + "'"
+                SelectByQuery("export", "more", query)
+            end
+        end
+        out_file = Substitute(coef_file, ".csv", "_copy.csv", )
+        out_file = Lower(out_file)
+        ExportView(coef_vw + "|export", "CSV", out_file, , {"CSV Header": "true"})
+        CloseView(coef_vw)
+        DeleteFile(coef_file)
+        CopyFile(out_file, coef_file)
+        DeleteFile(out_file)
+
+        // Filter nest file
+        vw_temp = OpenTable("temp", "CSV", {nest_file})
+        nest_vw = ExportView(vw_temp + "|", "MEM", "nest", , )
+        CloseView(vw_temp)
+        v_orig = GetDataVector(nest_vw + "|", "Alternatives", )
+        v_final = v_orig
+        for i = 1 to v_orig.length do
+            str_orig = v_orig[i]
+            parts = ParseString(str_orig, ", ")
+            str_final = ""
+            for part in parts do
+                // Determine if this part is a transit mode
+                transit = 0
+                for access in access_modes do
+                    if Position(part, access + "_") > 0 then do
+                        transit = 1
+                        break
+                    end
+                end
+                // Keep all non-transit modes
+                if !transit then str_final = str_final + ", " + part
+                // Only keep transit modes that are present in this scenario
+                if transit then do
+                    {access, mode} = ParseString(part, "_")
+                    if transit_modes.position(mode) > 0 
+                        then str_final = str_final + ", " + part
+                end
+            end
+            str_final = Right(str_final, StringLength(str_final) - 2)
+            v_final[i] = str_final
+        end
+
+        SetDataVector(nest_vw + "|", "Alternatives", v_final, )
+        ExportView(nest_vw + "|", "CSV", nest_file, , {"CSV Header": "true"})
+        CloseView(nest_vw)
+    end
+endmacro
 
 /*
 Checks the SE data for logical problems
@@ -694,13 +819,16 @@ Macro "Other Attributes" (Args)
     set.B = if Position(v_dtwb, "B") <> 0 then 1 else 0
     SetDataVectors(llyr + "|", set, )
 
-    // Limit the possible KNR nodes to those with bus stops on them
+    // Limit the possible KNR nodes to those with bus stops on them that have drive access
     a_fields = {
         {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"}
     }
     RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
+    SetLayer(llyr)
+    SelectByQuery("drive_links", "several", "Select * where D = 1")
     SetLayer(nlyr)
-    n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280)
+    SelectByLinks("drive nodes", "several", "drive_links", )
+    n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280, {"Source And": "drive nodes"})
     v = Vector(n, "Long", {Constant: 1})
     SetDataVector(nlyr + "|knr", "KNR", v, )
 
@@ -795,6 +923,7 @@ Macro "Calculate Bus Speeds" (Args)
     SetDataVectors(jv + "|", data, )
 
     CloseView(jv)
+    CloseView(eq_vw)
     CloseMap(map)
 endmacro
 
@@ -836,7 +965,7 @@ Macro "Create Link Networks" (Args)
             o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
             o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
             if GetFileInfo(turn_prohibtions) <> null then o.TurnProhibitionTable = turn_prohibtions
-            o.NetworkName = net_file
+            o.OutNetworkName = net_file
             o.Run()
             netSetObj = null
             netSetObj = CreateObject("Network.Settings")
@@ -844,6 +973,7 @@ Macro "Create Link Networks" (Args)
             netSetObj.LoadNetwork(net_file)
             netSetObj.CentroidFilter = "Centroid = 1"
             netSetObj.LinkTollFilter = "TollType = 'Toll'"
+            netSetObj.SetPenalties({UTurn: -1})
             netSetObj.Run()
         end
     end
@@ -910,17 +1040,19 @@ endmacro
 
 Macro "Create Route Networks" (Args)
 
-    // Initial processing is called by the main model, but also by the Fixed
-    // OD assignment tool. When doing fixed highway assignment, skip this step
-    // to save time.
-    if Args.fixed_od then return()
-
     link_dbd = Args.Links
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
     periods = RunMacro("Get Unconverged Periods", Args)
     access_modes = Args.access_modes
     TransModeTable = Args.TransModeTable
+
+    // Retag stops to nodes. While this step is done by the route manager
+    // during scenario creation, a user might create a new route to test after
+    // creating the scenario. This makes sure it 'just works'.
+    {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
+    TagRouteStopsWithNode(rlyr,,"Node_ID",.2)
+    CloseMap(map)
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     transit_modes = {"all"} + transit_modes
@@ -938,7 +1070,7 @@ Macro "Create Route Networks" (Args)
                 file_name = output_dir + "\\tnet_" + period + "_" + access_mode + "_" + transit_mode + ".tnw"
                 o = CreateObject("Network.CreateTransit")
                 o.LayerRS = rts_file
-                o.NetworkName = file_name
+                o.OutNetworkName = file_name
                 o.StopToNodeTagField = "Node_ID"
                 o.RouteFilter = period + "Headway > 0"
                 o.IncludeWalkLinks = true
@@ -993,7 +1125,7 @@ Macro "Create Route Networks" (Args)
                 // o.LinkImpedance = "IVTT"
                 o.Parameters({
                     MaxTripCost : 240,
-                    MaxTransfers : 2,
+                    MaxTransfers : 1,
                     VOT : 0.1984 // $/min (40% of the median wage)
                 })
                 o.AccessControl({
@@ -1003,18 +1135,18 @@ Macro "Create Route Networks" (Args)
                 o.Combination({CombinationFactor: .1})
                 o.StopTimeFields({
                     InitialPenalty: null,
-                    TransferPenalty: "xfer_pen",
+                    //TransferPenalty: "xfer_pen",
                     DwellOn: "dwell_on",
                     DwellOff: "dwell_off"
                 })
                 o.TimeGlobals({
                     // Headway: 14,
                     InitialPenalty: 0,
-                    TransferPenalty: 3,
-                    MaxInitialWait: 20,
+                    TransferPenalty: 5,
+                    MaxInitialWait: 30,
                     MaxTransferWait: 10,
                     MinInitialWait: 2,
-                    MinTransferWait: 2,
+                    MinTransferWait: 5,
                     Layover: 5, 
                     MaxAccessWalk: 45,
                     MaxEgressWalk: 45,
@@ -1044,12 +1176,12 @@ Macro "Create Route Networks" (Args)
                     Fare: 1,
                     Time: 1,
                     InitialPenalty: 1,
-                    TransferPenalty: 1,
-                    InitialWait: 2,
-                    TransferWeight: 2,
+                    TransferPenalty: 3,
+                    InitialWait: 3,
+                    TransferWait: 3,
                     Dwelling: 2,
                     WalkTimeFactor: 3,
-                    DriveTimeFactor: 0
+                    DriveTimeFactor: 1
                 })
                 o.Fare({
                     Type: "Flat",

@@ -69,9 +69,6 @@ Macro "Fixed OD Assignment" (MacroOpts)
 
     mr = CreateObject("Model.Runtime")
     Args = mr.GetValues()
-    // This flag is used to modify certain steps of the model.
-    // For example, 
-    Args.fixed_od = "true" // lets us skip transit net creation
     ret = mr.RunStep("Create Initial Output Files", {Silent: "true"})
     if !ret then Throw("Fixed OD: 'Create Initial Output Files' failed")
     ret = mr.RunStep("Network Calculators", {Silent: "true"})
@@ -92,7 +89,7 @@ Macro "Fixed OD Assignment" (MacroOpts)
     RunMacro("Count PRMSEs", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Links", Args)
 endmacro
 
 /*

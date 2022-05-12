@@ -19,8 +19,11 @@ endmacro
 
 Macro "Other Reports" (Args)
     RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
-    RunMacro("Summarize by FT and AT", Args)
+    RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
+    RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
     return(1)
@@ -133,6 +136,7 @@ Macro "Calculate Daily Fields" (Args)
     {"BA_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"}
   }
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  fields_to_add = null
 
   for d = 1 to a_dir.length do
     dir = a_dir[d]
@@ -168,22 +172,17 @@ Macro "Calculate Daily Fields" (Args)
 
   // Sum up the flow fields
   for mode in modes do
-    if mode = "SUT" then vots = {1, 2, 3}
-    else if mode = "MUT" then vots = {1, 2, 3, 4, 5}
-    else vots = {2, 3, 4, 5}
 
     for dir in a_dir do
       out_field = dir + "_" + mode + "_Flow_Daily"
       fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,,"Daily " + dir + " " + mode + " Flow"}}
       v_output = null
 
-      // For this direction and mode, sum every combination of VOT and period
-      for vot in vots do
-        for period in a_periods do
-          input_field = dir + "_Flow_" + mode + "_VOT" + String(vot) + "_" + period
-          v_add = GetDataVector(llyr + "|", input_field, )
-          v_output = nz(v_output) + nz(v_add)
-        end
+      // For this direction and mode, sum every period
+      for period in a_periods do
+        input_field = dir + "_Flow_" + mode + "_" + period
+        v_add = GetDataVector(llyr + "|", input_field, )
+        v_output = nz(v_output) + nz(v_add)
       end
 
       output.(out_field) = v_output
@@ -191,10 +190,16 @@ Macro "Calculate Daily Fields" (Args)
       output.Total_Flow_Daily = nz(output.Total_Flow_Daily) + v_output
     end
   end
+  output.Total_CV_Flow_Daily = output.AB_CV_Flow_Daily + output.BA_CV_Flow_Daily
+  output.Total_SUT_Flow_Daily = output.AB_SUT_Flow_Daily + output.BA_SUT_Flow_Daily
+  output.Total_MUT_Flow_Daily = output.AB_MUT_Flow_Daily + output.BA_MUT_Flow_Daily
   fields_to_add = fields_to_add + {
     {"AB_Flow_Daily", "Real", 10, 2,,,,"AB Daily Flow"},
     {"BA_Flow_Daily", "Real", 10, 2,,,,"BA Daily Flow"},
-    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"}
+    {"Total_Flow_Daily", "Real", 10, 2,,,,"Daily Flow in both direction"},
+    {"Total_CV_Flow_Daily", "Real", 10, 2,,,,"Daily CV Flow in both direction"},
+    {"Total_SUT_Flow_Daily", "Real", 10, 2,,,,"Daily SUT Flow in both direction"},
+    {"Total_MUT_Flow_Daily", "Real", 10, 2,,,,"Daily MUT Flow in both direction"}
   }
 
   // Other fields to sum
@@ -214,6 +219,15 @@ Macro "Calculate Daily Fields" (Args)
     end
 
     fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,,"Daily " + field + " in both directions"}}
+  end
+
+  // The assignment files don't have total delay by period. Create those.
+  for period in a_periods do
+    out_field = "Tot_Delay_" + period
+    fields_to_add = fields_to_add + {{out_field, "Real", 10, 2,,,, period + " Total Delay"}}
+    {v_ab, v_ba} = GetDataVectors(llyr + "|", {"AB_Delay_" + period, "BA_Delay_" + period}, )
+    v_output = nz(v_ab) + nz(v_ba)
+    output.(out_field) = v_output
   end
 
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
@@ -241,27 +255,27 @@ Macro "Create Count Difference Map" (Args)
   opts.field_suffix = "All"
   RunMacro("Count Difference Map", opts)
 
-//   // Create SUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - SUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "SUTCount"
-//   opts.vol_field = "SUT_Flow_Daily"
-//   opts.field_suffix = "SUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create SUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - SUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountSUT"
+  opts.vol_field = "Total_SUT_Flow_Daily"
+  opts.field_suffix = "SUT"
+  RunMacro("Count Difference Map", opts)
 
-//   // Create MUT count diff map
-//   opts = null
-//   opts.output_file = output_dir +
-//     "/_summaries/maps/Count Difference - MUT.map"
-//   opts.hwy_dbd = hwy_dbd
-//   opts.count_id_field = "CountID"
-//   opts.count_field = "MUTCount"
-//   opts.vol_field = "MUT_Flow_Daily"
-//   opts.field_suffix = "MUT"
-//   RunMacro("Count Difference Map", opts)
+  // Create MUT count diff map
+  opts = null
+  opts.output_file = output_dir +
+    "/_summaries/maps/Count Difference - MUT.map"
+  opts.hwy_dbd = hwy_dbd
+  opts.count_id_field = "CountID"
+  opts.count_field = "DailyCountMUT"
+  opts.vol_field = "Total_MUT_Flow_Daily"
+  opts.field_suffix = "MUT"
+  RunMacro("Count Difference Map", opts)
 EndMacro
 
 /*
@@ -277,8 +291,19 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
+  opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  RunMacro("Roadway Count Comparison Tables", opts)
+
+  // Rename screenline to cutline
+  in_file = opts.out_dir + "/count_comparison_by_screenline.csv"
+  out_file = opts.out_dir + "/count_comparison_by_cutline.csv"
+  if GetFileInfo(out_file) <> null then DeleteFile(out_file)
+  RenameFile(in_file, out_file)
+
+  // Run it again to generate the screenline table
+  opts.screenline_field = "Screenline"
   RunMacro("Roadway Count Comparison Tables", opts)
 endmacro
 
@@ -294,110 +319,127 @@ Macro "VOC Maps" (Args)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   levels = {"D", "E"}
 
-  for period in periods do
-    for los in levels do
+  // The first set of colors are the traditional green-to-red ramp. The second
+  // set of colors are yellow-to-blue, which is color-blind friendly.
+  a_line_colors =	{
+    {
+      ColorRGB(10794, 52428, 17733),
+      ColorRGB(63736, 63736, 3084),
+      ColorRGB(65535, 32896, 0),
+      ColorRGB(65535, 0, 0)
+    },
+    {
+      ColorRGB(65535, 65535, 54248),
+      ColorRGB(41377, 56026, 46260),
+      ColorRGB(16705, 46774, 50372),
+      ColorRGB(8738, 24158, 43176)
+    }
+  }
+  color_suffixes = {"GrRd", "YlBu"}
 
-      mapFile = output_dir + "/voc_" + period + "_LOS" + los + ".map"
+  for j = 1 to 2 do
+    line_colors = a_line_colors[j]
+    color_suffix = color_suffixes[j]
 
-      //Create a new, blank map
-      {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
-      SetLayerVisibility(map + "|" + nlyr, "false")
-      SetLayer(llyr)
+    for period in periods do
+      for los in levels do
 
-      // Dualized Scaled Symbol Theme
-      flds = {llyr+".AB_Flow_" + period}
-      opts = null
-      opts.Title = period + " Flow"
-      opts.[Data Source] = "All"
-      opts.[Minimum Size] = 1
-      opts.[Maximum Size] = 10
-      theme_name = CreateContinuousTheme("Flows", flds, opts)
-      // Set color to white to make it disappear in legend
-      dual_colors = {ColorRGB(65535,65535,65535)}
-      dual_linestyles = {LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})}
-      dual_linesizes = {0}
-      SetThemeLineStyles(theme_name , dual_linestyles)
-      SetThemeLineColors(theme_name , dual_colors)
-      SetThemeLineWidths(theme_name , dual_linesizes)
-      ShowTheme(, theme_name)
+        mapFile = output_dir + "/voc_" + period + "_LOS" + los + "_" + color_suffix + ".map"
 
-      // Apply color theme based on the V/C
-      num_classes = 4
-      theme_title = if period = "Daily"
-        then "Max V/C (LOS " + los + ")"
-        else period + " V/C (LOS " + los + ")"
-      cTheme = CreateTheme(
-        theme_title, llyr+".AB_VOC" + los + "_" + period, "Manual",
-        num_classes,
-        {
-          {"Values",{
-            {0.0,"True",0.6,"False"},
-            {0.6,"True",0.75,"False"},
-            {0.75,"True",0.9,"False"},
-            {0.9,"True",100,"False"}
-            }},
-          {"Other", "False"}
+        //Create a new, blank map
+        {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+        SetLayerVisibility(map + "|" + nlyr, "false")
+        SetLayer(llyr)
+
+        // Dualized Scaled Symbol Theme
+        flds = {llyr+".AB_Flow_" + period}
+        opts = null
+        opts.Title = period + " Flow"
+        opts.[Data Source] = "All"
+        opts.[Minimum Size] = 1
+        opts.[Maximum Size] = 10
+        theme_name = CreateContinuousTheme("Flows", flds, opts)
+        // Set color to white to make it disappear in legend
+        dual_colors = {ColorRGB(65535,65535,65535)}
+        dual_linestyles = {LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})}
+        dual_linesizes = {0}
+        SetThemeLineStyles(theme_name , dual_linestyles)
+        SetThemeLineColors(theme_name , dual_colors)
+        SetThemeLineWidths(theme_name , dual_linesizes)
+        ShowTheme(, theme_name)
+
+        // Apply color theme based on the V/C
+        num_classes = 4
+        theme_title = if period = "Daily"
+          then "Max V/C (LOS " + los + ")"
+          else period + " V/C (LOS " + los + ")"
+        cTheme = CreateTheme(
+          theme_title, llyr+".AB_VOC" + los + "_" + period, "Manual",
+          num_classes,
+          {
+            {"Values",{
+              {0.0,"True",0.6,"False"},
+              {0.6,"True",0.75,"False"},
+              {0.75,"True",0.9,"False"},
+              {0.9,"True",100,"False"}
+              }},
+            {"Other", "False"}
+          }
+        )
+
+        dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
+
+        for i = 1 to num_classes do
+            class_id = llyr +"|" + cTheme + "|" + String(i)
+            SetLineStyle(class_id, dualline)
+            SetLineColor(class_id, line_colors[i])
+            SetLineWidth(class_id, 2)
+        end
+
+        // Change the labels of the classes for legend
+        labels = {
+          "Congestion Free (VC < .6)",
+          "Moderate Traffic (VC .60 to .75)",
+          "Heavy Traffic (VC .75 to .90)",
+          "Stop and Go (VC > .90)"
         }
-      )
+        SetThemeClassLabels(cTheme, labels)
+        ShowTheme(,cTheme)
 
-      line_colors =	{
-        ColorRGB(10794, 52428, 17733),
-        ColorRGB(63736, 63736, 3084),
-        ColorRGB(65535, 32896, 0),
-        ColorRGB(65535, 0, 0)
-      }
-      dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
+        // Hide centroid connectors
+        SetLayer(llyr)
+        ccquery = "Select * where HCMType = 'CC'"
+        n1 = SelectByQuery ("CCs", "Several", ccquery,)
+        if n1 > 0 then SetDisplayStatus(llyr + "|CCs", "Invisible")
 
-      for i = 1 to num_classes do
-          class_id = llyr +"|" + cTheme + "|" + String(i)
-          SetLineStyle(class_id, dualline)
-          SetLineColor(class_id, line_colors[i])
-          SetLineWidth(class_id, 2)
+        // Configure Legend
+        SetLegendDisplayStatus(llyr + "|", "False")
+        RunMacro("G30 create legend", "Theme")
+        subtitle = if period = "Daily"
+          then "Daily Flow + Max V/C"
+          else period + " Period"
+        SetLegendSettings (
+          GetMap(),
+          {
+            "Automatic",
+            {0, 1, 0, 0, 1, 4, 0},
+            {1, 1, 1},
+            {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
+            {"", subtitle}
+          }
+        )
+        str1 = "XXXXXXXX"
+        solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+        SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+        // Save map
+        RedrawMap(map)
+        windows = GetWindows("Map")
+        window = windows[1][1]
+        RestoreWindow(window)
+        SaveMap(map, mapFile)
+        CloseMap(map)
       end
-
-      // Change the labels of the classes for legend
-      labels = {
-        "Congestion Free (VC < .6)",
-        "Moderate Traffic (VC .60 to .75)",
-        "Heavy Traffic (VC .75 to .90)",
-        "Stop and Go (VC > .90)"
-      }
-      SetThemeClassLabels(cTheme, labels)
-      ShowTheme(,cTheme)
-
-      // Hide centroid connectors
-      SetLayer(llyr)
-      ccquery = "Select * where HCMType = 'CC'"
-      n1 = SelectByQuery ("CCs", "Several", ccquery,)
-      if n1 > 0 then SetDisplayStatus(llyr + "|CCs", "Invisible")
-
-      // Configure Legend
-      SetLegendDisplayStatus(llyr + "|", "False")
-      RunMacro("G30 create legend", "Theme")
-      subtitle = if period = "Daily"
-        then "Daily Flow + Max V/C"
-        else period + " Period"
-      SetLegendSettings (
-        GetMap(),
-        {
-          "Automatic",
-          {0, 1, 0, 0, 1, 4, 0},
-          {1, 1, 1},
-          {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
-          {"", subtitle}
-        }
-      )
-      str1 = "XXXXXXXX"
-      solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
-      SetLegendOptions (GetMap(), {{"Background Style", solid}})
-
-      // Save map
-      RedrawMap(map)
-      windows = GetWindows("Map")
-      window = windows[1][1]
-      RestoreWindow(window)
-      SaveMap(map, mapFile)
-      CloseMap(map)
     end
   end
 EndMacro
@@ -536,11 +578,11 @@ Macro "Summarize HB DC and MC" (Args)
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   trip_dir = scen_dir + "/output/resident/trip_matrices"
-  output_dir = scen_dir + "/output/_summaries/dc"
+  output_dir = scen_dir + "/output/_summaries/resident_hb"
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
 
-  mtx_files = RunMacro("Catalog Files", trip_dir, "mtx")
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
   df = RunMacro("Matrix Stats", mtx_files)
@@ -550,7 +592,8 @@ Macro "Summarize HB DC and MC" (Args)
   df.mutate("matrix", v)
   df.rename({"matrix", "core"}, {"trip_type", "mode"})
   df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
-  df.filter("mode <> 'all_transit'")
+  df.filter("mode contains 'mc_'")
+  df.mutate("mode", Substitute(df.tbl.mode, "mc_", "", ))
   modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
@@ -568,7 +611,7 @@ Macro "Summarize HB DC and MC" (Args)
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
   df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
 
-  // Create a totals matrix for each trip type
+  // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
     total_file = output_dir + "/" + trip_type + ".mtx"
@@ -589,7 +632,7 @@ Macro "Summarize HB DC and MC" (Args)
       in_mtx = CreateObject("Matrix", in_file)
       core_names = in_mtx.GetCoreNames()
       for core_name in core_names do
-        if core_name = "all_transit" then continue
+        if Left(core_name, 3) <> "dc_" then continue // only summarize the dc matrices
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
       end
@@ -607,28 +650,42 @@ Macro "Summarize HB DC and MC" (Args)
   // Calculate TLFDs
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
   skim_mtx = CreateObject("Matrix", skim_mtx_file)
-  skim_core = skim_mtx.GetCore("Length (Skim)")
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
   for mtx_file in total_files do
-    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     mtx = CreateObject("Matrix", mtx_file)
     trip_core = mtx.GetCore("total")
 
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
     tld = CreateObject("Distribution.TLD")
     tld.StartValue = 0
     tld.BinSize = 1
     tld.TripMatrix = trip_core
-    tld.ImpedanceMatrix = skim_core
+    tld.ImpedanceMatrix = skim_coreD
     tld.OutputMatrix(out_mtx_file)
     tld.Run()
     res = tld.GetResults()
     avg_length = res.Data.AvTripLength
     trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlft.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
   end
   mtx = null
   trip_core = null
 
   df = CreateObject("df", stats_file)
   df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
   df.write_csv(stats_file)
 
   // Cluster-2-Cluster flows
@@ -656,12 +713,135 @@ Macro "Summarize HB DC and MC" (Args)
     mtx = null
     core = null
   end
+  CloseMap(map)
 
   // Remove the totals matrices to save space
-  for file in total_files do
+  // for file in total_files do
+  //   DeleteFile(file)
+  // end
+EndMacro
+
+/*
+Summarizes resident non-homebased trips
+*/
+
+Macro "Summarize NHB DC and MC" (Args)
+
+  periods = Args.periods
+  taz_file = Args.TAZs
+  scen_dir = Args.[Scenario Folder]
+  trip_dir = scen_dir + "/output/resident/nhb/dc/trip_matrices"
+  output_dir = scen_dir + "/output/_summaries/resident_nhb"
+  skim_dir = scen_dir + "/output/skims/roadway"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+
+  // Create table of statistics
+  df = RunMacro("Matrix Stats", mtx_files)
+  df.mutate("period", Right(df.tbl.matrix, 2))
+  v_type_orig = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
+  v_mode = CopyVector(v_type_orig)
+  v_type = CopyVector(v_type_orig)
+  for i = 1 to v_type.length do
+    type = v_type[i]
+    parts = ParseString(type, "_")
+    mode = parts[parts.length]
+    if mode = "pay" then do
+      v_mode[i] = "auto_pay"
+      v_type[i] = Substitute(type, "_auto_pay", "", )
+    end else do
+      v_mode[i] = mode
+      v_type[i] = Substitute(type, "_" + mode, "", )
+    end
+  end
+  df.mutate("trip_type", v_type)
+  df.mutate("mode", v_mode)
+  df.filter("core = 'Total'")
+  df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
+  modal_file = output_dir + "/nhb_trip_stats_by_modeperiod.csv"
+  df.write_csv(modal_file)
+
+  // Create a daily matrix for each trip type
+  v_type = SortVector(v_type_orig, {Unique: "true"})
+  for type in v_type do
+    daily_file = output_dir + "/" + type + "_daily.mtx"
+    daily_files = daily_files + {daily_file}
+
+    for period in periods do
+      period_file = trip_dir + "/" + type + "_" + period + ".mtx"
+
+      if period = periods[1] then do
+        CopyFile(period_file, daily_file)
+        daily_mtx = CreateObject("Matrix", daily_file)
+        to_drop = daily_mtx.GetCoreNames()
+        daily_mtx.AddCores({"daily"})
+        daily_mtx.DropCores(to_drop)
+        daily_core = daily_mtx.GetCore("daily")
+        daily_core := 0
+      end
+
+      period_mtx = CreateObject("Matrix", period_file)
+      period_core = period_mtx.GetCore("Total")
+      daily_core := daily_core + nz(period_core)
+    end
+  end
+  daily_mtx = null
+  daily_core = null
+
+  // Summarize daily matrices
+  df = RunMacro("Matrix Stats", daily_files)
+  df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
+  stats_file = output_dir + "/nhb_trip_stats_by_type.csv"
+  df.write_csv(stats_file)
+
+  // Calculate TLFDs
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
+  for mtx_file in daily_files do
+    {drive, folder, name, ext} = SplitPath(mtx_file)
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("daily")
+
+    out_mtx_file = output_dir + "/" + name + "_tlfd.mtx"
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreD
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = output_dir + "/" + name + "_tlft.mtx"
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
+  end
+  mtx = null
+  trip_core = null
+
+  df = CreateObject("df", stats_file)
+  df.mutate("avg_length_mi", A2V(trip_lengths))
+  df.mutate("avg_time_min", A2V(trip_times))
+  df.write_csv(stats_file)
+
+  // Remove the daily matrices to save space
+  for file in daily_files do
     DeleteFile(file)
   end
-EndMacro
+endmacro
 
 /*
 
@@ -709,16 +889,115 @@ endmacro
 Summarize highway stats like VMT and VHT
 */
 
-Macro "Summarize by FT and AT" (Args)
+Macro "Summarize Links" (Args)
 
-  opts.hwy_dbd = Args.Links
+  hwy_dbd = Args.Links
+  taz_dbd = Args.TAZs
+  periods = Args.periods
+  periods = periods + {"Daily"}
+
+  // Tag links with various geographies
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+  {tlyr} = GetDBLayers(taz_dbd)
+  tlyr = AddLayer(map, tlyr, taz_dbd, tlyr)
+  a_fields =  {
+      {"MPO", "Character", 10, ,,,, "The MPO this link is located in"},
+      {"County", "Character", 10, ,,,, "The county this link is located in"}
+  }
+  RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+  TagLayer("Value", llyr + "|", llyr + ".MPO", tlyr + "|", tlyr + ".MPO")
+  TagLayer("Value", llyr + "|", llyr + ".County", tlyr + "|", tlyr + ".County")
+  CloseMap(map)
+
+  opts.hwy_dbd = hwy_dbd
   out_dir = Args.[Output Folder]
-  opts.output_dir = out_dir + "/_summaries/roadway_tables"
-  opts.summary_fields = {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
-  RunMacro("Link Summary by FT and AT", opts)
-
-  RunMacro("Close All")
+  for period in periods do
+    
+    if period = "Daily"
+      then total = "Total"
+      else total = "Tot"
+    
+    // opts.summary_fields = {total + "_Flow_" + period, "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
+    opts.summary_fields = {total + "_Flow_" + period, total + "_VMT_" + period, total + "_VHT_" + period, total + "_Delay_" + period}
+    grouping_fields = {"AreaType", "MPO", "County"}
+    for grouping_field in grouping_fields do
+      opts.output_csv = out_dir + "/_summaries/roadway_tables/Link_Summary_by_FT_and_" + grouping_field + "_" + period + ".csv"
+      opts.grouping_fields = {"HCMType", grouping_field}
+      RunMacro("Link Summary", opts)
+      // Calculate space-mean-speed
+      df = CreateObject("df")
+      df.read_csv(opts.output_csv)
+      v_vmt = df.tbl.("sum_" + total + "_VMT_" + period)
+      v_vht = df.tbl.("sum_" + total + "_VHT_" + period)
+      df.mutate("SpaceMeanSpeed", v_vmt / v_vht)
+      df.write_csv(opts.output_csv)
+    end
+  end
 EndMacro
+
+/*
+Calculates the percent of VMT that is congested
+*/
+
+Macro "Congested VMT" (Args)
+  
+  hwy_dbd = Args.Links
+  periods = Args.periods
+  out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+
+  // Calculate congested VMT on each link
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+  for period in Args.periods do
+    fields_to_add = fields_to_add + {{"CongestedVMT_" + period, "Real", 10, ,,,, "The VMT in the " + period + " period that is congested"}}
+    
+    v_ab_vc = GetDataVector(llyr + "|", "AB_VOCE_" + period, )
+    v_ba_vc = GetDataVector(llyr + "|", "BA_VOCE_" + period, )
+    v_ab_vmt = GetDataVector(llyr + "|", "AB_VMT_" + period, )
+    v_ba_vmt = GetDataVector(llyr + "|", "BA_VMT_" + period, )
+    v_ab_cong_vmt = if v_ab_vc > .75 then v_ab_vmt else 0
+    v_ba_cong_vmt = if v_ba_vc > .75 then v_ba_vmt else 0
+    output.("CongestedVMT_" + period) = v_ab_cong_vmt + v_ba_cong_vmt
+  end
+  RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
+  SetDataVectors(llyr + "|", output, )
+  CloseMap(map)
+
+  // Summarize links
+  for period in periods do
+    opts.summary_fields = opts.summary_fields + {"CongestedVMT_" + period, "Tot_VMT_" + period}
+  end
+  opts.hwy_dbd = hwy_dbd
+  grouping_fields = {"MPO", "County"}
+  for grouping_field in grouping_fields do
+    opts.output_csv = out_dir + "/Congested_VMT_by_" + grouping_field + ".csv"
+    opts.grouping_fields = {grouping_field}
+    RunMacro("Link Summary", opts)
+
+    df = CreateObject("df")
+    df.read_csv(opts.output_csv)
+    for field in df.colnames() do
+      if Left(field, 4) = "sum_" then do
+        new_field = Substitute(field, "sum_", "", )
+        df.rename(field, new_field)
+      end
+    end
+    
+    v_cong_daily = 0
+    v_tot_daily = 0
+    for period in periods do
+      v_cong = df.tbl.("CongestedVMT_" + period)
+      v_tot = df.tbl.("Tot_VMT_" + period)
+      v_pct = Round(v_cong / v_tot * 100, 2)
+      df.mutate("PctCongestedVMT_" + period, v_pct)
+
+      v_cong_daily = v_cong_daily + v_cong
+      v_tot_daily = v_tot_daily + v_tot
+    end
+    v_pct_daily = Round(v_cong_daily / v_tot_daily * 100, 2)
+    df.mutate("PctCongestedVMT_Daily", v_pct_daily)
+    df.write_csv(opts.output_csv)
+  end
+endmacro
 
 /*
 Summarizes transit assignment.
@@ -745,6 +1024,7 @@ Generates CSV tables needed generate MOVES air quality inputs
 Macro "Create MOVES Inputs" (Args)
 
   hwy_dbd = Args.Links
+  popsyn_dir = Args.[Output Folder] + "/resident/population_synthesis"
   summary_dir = Args.[Output Folder] + "/_summaries/MOVES"
   assn_dir = Args.[Output Folder] + "/assignment/roadway"
   periods = Args.periods
@@ -787,18 +1067,69 @@ Macro "Create MOVES Inputs" (Args)
   end
 
   // Vehicle population
-  veh_total = 0
-  for period in periods do
-    mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
-    mtx = CreateObject("Matrix", mtx_file)
-    core_names = mtx.GetCoreNames()
-    stats = MatrixStatistics(mtx.GetMatrixHandle(), {Tables: core_names})
-    for core_name in core_names do
-      veh_total = veh_total + stats.(core_name).Sum
-    end
-  end
+  hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
+  v = GetDataVector(hh_vw + "|", "Autos", )
+  veh_total = VectorStatistic(v, "Sum", )
+  CloseView(hh_vw)
   out_file = summary_dir + "/total_vehicles.csv"
   f = OpenFile(out_file, "w")
   WriteLine(f, String(veh_total))
   CloseFile(f)
+endmacro
+
+/*
+
+*/
+
+Macro "Summarize Parking"  (Args)
+
+  hbmtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  nhbmtx_dir = Args.[Output Folder] + "/resident/nhb/dc/trip_matrices"
+  summary_dir = Args.[Output Folder] + "/_summaries/parking"
+  periods = Args.periods
+
+  RunMacro("Create Directory", summary_dir)
+  
+  mtx_files = RunMacro("Catalog Files", {dir: hbmtx_dir, ext: "mtx"})
+
+  // Create a starting matrix
+  out_file = summary_dir + "/parking_daily.mtx"
+  CopyFile(mtx_files[1], out_file)
+  mtx = CreateObject("Matrix", out_file)
+  core_names = mtx.GetCoreNames()
+  mtx.AddCores({"parkwalk", "parkshuttle"})
+  mtx.DropCores(core_names)
+  cores = mtx.GetCores()
+  cores.parkwalk := 0
+  cores.parkshuttle := 0
+
+  // Collapse the "from park" trips into the daily matrix
+  for i = 1 to 2 do
+      if i = 2 then mtx_files = RunMacro("Catalog Files", {dir: nhbmtx_dir, ext: "mtx"})
+    for mtx_file in mtx_files do
+      {drive, path, name, ext} = SplitPath(mtx_file)
+      parts = ParseString(name, "_")
+      //period = parts[parts.length]
+      if parts[2] = "transit" or parts[2] = "walkbike" or parts[3] = "auto" then continue
+
+      in_mtx = CreateObject("Matrix", mtx_file)
+      in_cores = in_mtx.GetCores()
+      cores.parkwalk := cores.parkwalk + 
+        nz(in_cores.sov_parkwalk_frompark) + 
+        nz(in_cores.hov2_parkwalk_frompark) + 
+        nz(in_cores.hov3_parkwalk_frompark) +
+        nz(in_cores.Total_parkwalk_frompark)
+      cores.parkshuttle := cores.parkshuttle + 
+        nz(in_cores.sov_parkshuttle_frompark) + 
+        nz(in_cores.hov2_parkshuttle_frompark) + 
+        nz(in_cores.hov3_parkshuttle_frompark) +
+        nz(in_cores.Total_parkshuttle_frompark)
+    end
+  end
+
+  // Replace 0 with null to reduce size
+  cores.parkwalk := if cores.parkwalk = 0 then null else cores.parkwalk
+  cores.parkshuttle := if cores.parkshuttle = 0 then null else cores.parkshuttle
+  cores = null
+  mtx.Pack()
 endmacro

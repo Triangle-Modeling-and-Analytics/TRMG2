@@ -161,6 +161,8 @@ Applies double constraint to work trips. Iterates 3 times.
 
 Macro "HBW DC" (Args)
 
+    if Args.FeedbackIteration = 1 then RunMacro("Create Intra Cluster Matrix", Args)
+
     trip_types = {"W_HB_W_All"}
     max_iters = 3
     for i = 1 to max_iters do
@@ -234,6 +236,7 @@ Macro "Calculate Destination Choice" (Args, trip_types)
             for segment in segments do
                 opts.segments = {segment}
                 opts.matrices = {
+                    intra_cluster: {File: skims_dir + "/IntraCluster.mtx"},
                     sov_skim: {File: sov_skim},
                     mc_logsums: {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
                 }
@@ -339,6 +342,7 @@ Macro "Apportion Resident HB Trips" (Args)
     mc_dir = out_dir + "/resident/mode"
     trip_dir = out_dir + "/resident/trip_matrices"
     periods = RunMacro("Get Unconverged Periods", Args)
+    access_modes = Args.access_modes
 
     se_vw = OpenTable("se", "FFB", {se_file})
 
@@ -368,8 +372,11 @@ Macro "Apportion Resident HB Trips" (Args)
                 if segment = segments[1] then do
                     CopyFile(mc_mtx_file, out_mtx_file)
                     out_mtx = CreateObject("Matrix", out_mtx_file)
-                    cores = out_mtx.GetCores()
                     core_names = out_mtx.GetCoreNames()
+                    // create extra mc cores that can be used for summaries (not modified by parking)
+                    mc_cores = V2A("mc_" + A2V(core_names))
+                    out_mtx.AddCores(mc_cores)
+                    cores = out_mtx.GetCores()
                     for core_name in core_names do
                         cores.(core_name) := nz(cores.(core_name)) * 0
                     end
@@ -384,20 +391,34 @@ Macro "Apportion Resident HB Trips" (Args)
                 out_cores = out_mtx.GetCores()
                 for mode in mode_names do
                     out_cores.(mode) := nz(out_cores.(mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
+                    
+                    // Create extra cores that just hold dc/mc results that are not
+                    // modified by subsequent model steps. These are created primarily
+                    // for summary/auditing. The model does not use them during feedback.
+                    out_cores.("mc_" + mode) := nz(out_cores.("mc_" + mode)) + v_prods * nz(dc_cores.final_prob) * nz(mc_cores.(mode))
+                    if mode = mode_names[1] then do
+                        // Add extra cores to hold dc-only results
+                        dc_core = "dc_" + segment
+                        out_mtx.AddCores({dc_core})
+                        dc_core = out_mtx.GetCore(dc_core)
+                        dc_core := nz(dc_core) + v_prods * nz(dc_cores.final_prob)
+                    end
                 end
             end
 
             // Create an extra core the combines all transit modes together
             // This is not assigned, but is used in the NHB trip generation
             // model.
-            mode_names = out_mtx.GetCoreNames()
+            core_names = out_mtx.GetCoreNames()
             out_mtx.AddCores({"all_transit"})
             cores = out_mtx.GetCores()
             cores.all_transit := 0
-            modes_to_skip = {"sov", "hov2", "hov3", "auto_pay", "other_auto", "school_bus"}
-            for mode in mode_names do
-                if modes_to_skip.position(mode) > 0 then continue
-                cores.all_transit := nz(cores.all_transit) + nz(cores.(mode))
+            for core_name in core_names do
+                parts = ParseString(core_name, "_")
+                access_mode = parts[1]
+                // skip non-transit cores
+                if access_modes.position(access_mode) = 0 then continue
+                cores.all_transit := nz(cores.all_transit) + nz(cores.(core_name))
             end
             cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
         end

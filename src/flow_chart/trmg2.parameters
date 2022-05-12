@@ -5,12 +5,12 @@
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
         Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
         Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2016.bin", "Description":"Master SE data bin file" }
+        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2020.bin", "Description":"Master SE data bin file" }
     
     Section = "Main Scenario Inputs"
     
         Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
-        Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2016", "Description":"Scenario folder" }
+        Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2020", "Description":"Scenario folder" }
         Args.[Input Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder" }
         Args.[Input Links] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_links.dbd", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Input Routes] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario input routes. Created during scenario creation." }
@@ -21,6 +21,7 @@
     
         Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
         Args.[Network Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\networks", "Description":"Folder containing networks" }
+        Args.[Summary Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\_summaries", "Description":"Folder containing summary info" }
         Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
         Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
         Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
@@ -112,7 +113,7 @@
 
     Section = "Parking Model|Coefficients"
     
-        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.820,-2.820,-2.730,-2.730}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
+        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.600,-2.600,-3.000,-3.000}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
 
     Section = "Parking Model|Output"
     
@@ -122,14 +123,14 @@
 
     Section = "NonHomeBased"
 
-        Args.NHBGenCalibFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
+        Args.NHBTODFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
         Args.NHBDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\dc\\nhb_dc_size_terms.csv", "Caption":"Resident NHB DC Size Coefficients" }
 
     Section = "Numeric Parameters"
     
-        Args.FeedbackConvergence = { "Type":"int" , "Value":1, "Description":"%RMSE between skims. 1 = 1%" }
+        Args.FeedbackConvergence = { "Type":"double" , "Value":.1, "Description":"%RMSE between skims. .1 = 0.1%" }
         Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
-        Args.AssignConvergence = { "Type":"double" , "Value":0.0001, "Description":"Assignment Convergence (%RMSE)" }
+        Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
         Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }

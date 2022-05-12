@@ -71,53 +71,31 @@ added to HOV3+.
 
 ## Value of time
 
-Once trips are collapsed into the primary vehicle classes, they are split into
-different value of time categories. The procedure for doing this is borrowed
-from the NC Statewide Model
-([documentation](other_docs/NCSTM_TollDocumentation_Section11-2.docx)). For
-residents, this stratification is informed by household income, time of day of
-the trip, and by the length of the trip. 
+Once trips are collapsed into the primary vehicle classes, they are assigned
+values of time. The base values were borrowed from the NC Statewide Model, but
+were then calibrated to match NC 540 traffic counts.
 
-Qualitatively, value of time goes up:
-
-- As income increases
-- As trip length increases
-- In the peak periods (where work trips are most common)
-
-The NCSTM/TRMG2 procedure divides each class into five VOT categories, except
-SUT which is divided into three. These are shown in the table below.
 ```{r, include=FALSE}
 tbl <- read_csv("../master/assignment/vot_params.csv")
 ```
 
 ```{r}
-tbl <- tbl[1:18, c("Name", "Value")]
 tbl <- tbl %>%
-  separate(Name, into = c("a", "b", "c"), fill = "right") %>%
-  mutate(
-    Name = ifelse(!is.na(c), paste(a, b), a),
-    VOT = ifelse(is.na(c), b, c)
-  ) %>%
-  select(Name, VOT, Value) %>%
-  pivot_wider(names_from = Name, values_from = Value) %>%
-  mutate(VOT = gsub("vot", "", VOT)) %>%
-  rename(
-    `VOT Group` = VOT,
-    `PK Auto` = `pk auto`,
-    `OP Auto` = `op auto`,
-    SUT = sut,
-    MUT = mut
-  ) 
+  select(Name, Value) %>%
+  mutate(Name = case_when(
+    Name == "pk_auto" ~ "Autos/CV (PK)",
+    Name == "op_auto" ~ "Autos/CV (OP)",
+    Name == "sut" ~ "SUT",
+    Name == "mut" ~ "MUT",
+    TRUE ~ "Calibration Factor"
+  )) %>%
+  rename(`VOT ($/hr)` = Value)
+  
 
 tbl %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 ```
-
-Such a high number of classes significantly increases assignment run time. To
-mitigate this, categories 1-3 for the auto classes are collapsed and use the
-values from VOT group 2. This trade off is reasonable given that it is the
-higher VOT categories that are most likely to consider toll facilities.
 
 ## Assignment parameters
 
@@ -132,7 +110,6 @@ Relevant assignment details are listed below:
 
 The table below shows the alpha and beta values used for the BPR VDF.
 
-**TODO: Add info on scaling process**
 
 ```{r, include=FALSE}
 df <- read_csv("../master/networks/ff_speed_alpha_beta.csv") %>%

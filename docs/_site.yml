@@ -31,12 +31,16 @@ navbar:
           href: parking.html
         - text: "Destination Choice"
           href: resident_dest_choice.html
+        - text: "Mode Choice"
+          href: resident_mode_choice.html
         - text: "Non-homebased"
           href: nhb.html
     - text: Other Models
       menu:
         - text: "Accessibility"
           href: accessibility.html
+        - text: "University"
+          href: university.html
         - text: "Airport"
           href: airport.html
         - text: "Internal/External"
@@ -45,18 +49,15 @@ navbar:
           href: commercial_vehicles.html
         - text: "Roadway Assignment"
           href: assignment_roadway.html
+        - text: "Validation"
+          href: validation.html
   right:
     - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2
 output:
-  html_document:
-    theme: flatly
-    highlight: tango
-    mathjax: null
-    toc: TRUE
-    toc_depth: 3
-    toc_float:
-      collapsed: true
-    includes:
-        after_body: include/after_body.html
-    css: styles.css
+    rmdformats::readthedown:
+      toc_depth: 4
+      menu: "static"
+      includes:
+          after_body: include/after_body.html
+      css: styles.css

@@ -1246,8 +1246,12 @@ the survey (based on trip weight).
 
 ```{r}
 calib_factors <- calibration_trips %>%
-  mutate(factor = round(survey / model, 4)) %>%
-  select(trip_type, segment, factor)
+  mutate(factor = survey / model) %>%
+  select(trip_type, segment, factor) %>%
+  mutate(
+    factor = factor * 0.963, # final validation factor based on counts
+    factor = round(factor, 3)
+  ) 
 
 calib_factors %>%
   rename(`Trip Type` = trip_type, Factor = factor) %>%

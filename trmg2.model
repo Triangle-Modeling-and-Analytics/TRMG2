@@ -91,6 +91,10 @@ Macro "Time of Day Split" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Time of Day Split"}},
                   {"Picture","bmp\\planpeople_v3.bmp"}}
+Data:
+    In({ Args.[ResTODFactors] })
+    In({ Args.[SE] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -98,6 +102,11 @@ Macro "Parking Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Parking Probabilities"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
+Data:
+    In({ Args.[ParkMCCoeffs] })
+    Out({ Args.[Parking DC Prob Matrix] })
+    Out({ Args.[Parking DC Util Matrix] })
+    Out({ Args.[Parking Logsums Table] })
 EndMacro
 
 
@@ -112,6 +121,9 @@ Macro "Destination Probabilities" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Destination Probabilities"}},
                   {"Picture","bmp\\planmodesplit_v3.bmp"}}
+Data:
+    In({ Args.[ResDCAttrRates] })
+    In({ Args.[ResDCSizeCoeffs] })
 EndMacro
 
 
@@ -119,6 +131,9 @@ Macro "Aggregation to Zones" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Aggregation to Zones"}},
                   {"Picture","bmp\\planpeople_v3.bmp"}}
+Data:
+    In({ Args.[Persons] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -564,6 +579,8 @@ Macro "Roadway Skims" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Roadway Skims"}},
                   {"Picture","bmp/planskim_v3.bmp"}}
+Data:
+    In({ Args.[Network Folder] })
 EndMacro
 
 
@@ -571,6 +588,9 @@ Macro "Transit Skims" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"Transit Skims"}},
                   {"Picture","bmp/planskim_v3.bmp"}}
+Data:
+    In({ Args.[Network Folder] })
+    In({ Args.[TransModeTable] })
 EndMacro
 
 
@@ -635,6 +655,9 @@ Macro "NHB Generation by Mode" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NHB Generation by Mode"}},
                   {"Picture","bmp/plantour_v3.bmp"}}
+Data:
+    In({ Args.[NHBTODFacs] })
+    Out({ Args.[SE] })
 EndMacro
 
 
@@ -642,6 +665,10 @@ Macro "NHB Destination Choice" (Args,Result)
     Attributes = {{"Class",{"GISDK"}},
                   {"MacroNames",{"NHB Destination Choice"}},
                   {"Picture","bmp/plantour_v3.bmp"}}
+Data:
+    In({ Args.[NHBDCSizeCoeffs] })
+    In({ Args.[NHBHOV3OccFactors] })
+    In({ Args.[NHBOtherShares] })
 EndMacro
 
 
@@ -775,6 +802,8 @@ EndMacro
 Macro "Summaries" (Args,Result)
     Attributes = {{"Description","Stage 1"},
                   {"Picture","bmp\\planmatrix_v3.bmp"}}
+Data:
+    Out({ Args.[Summary Folder] })
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
     model = FlowChart({"Maps"},{"Other Reports"},"Group steps")

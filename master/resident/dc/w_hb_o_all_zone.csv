@@ -1,8 +1,9 @@
 Expression,Segment,Coefficient,Description
-se.w_hbo_size.D,,0.653,Size term
-nz(mc_logsums.transit),,0.162,
-nz(mc_logsums.nonhh_auto),,3.27,
-sov_skim.IZ,,0.958,
-sov_skim.CongTime,,-0.111,
-"max(0, sov_skim.CongTime - 30)",,0.0325,
-sov_skim.IZ,,-0.958,Adjustment
+se.w_hbo_size.D,,0.612,Size term
+nz(mc_logsums.TransitComposite),,0.0705,
+nz(mc_logsums.NonHHAutoComposite),,0.459,
+intra_cluster.IZ,,0.647,
+sov_skim.CongTime,,-0.193,
+"max(0, sov_skim.CongTime - 30)",,0.131,
+intra_cluster.IZ,,0.45,Adjustment
+sov_skim.CongTime > 50,,-99,Cutoff

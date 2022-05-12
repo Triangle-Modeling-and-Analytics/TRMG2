@@ -1,9 +1,7 @@
 Expression,Segment,Coefficient,Description
-se.n_hbome_size.D,,0.837,Size term
-nz(mc_logsums.auto),vi,0.202,
-nz(mc_logsums.auto),vs,0.202,
-nz(mc_logsums.nonhh_auto),,1.18,
-sov_skim.IZ,,0.394,
-sov_skim.CongTime,,-0.156,
-"max(0, sov_skim.CongTime - 30)",,0.082,
-sov_skim.IZ,,-0.394,Adjustment
+se.n_hbome_size.D,,0.881,Size term
+nz(mc_logsums.NonHHAutoComposite),,0.416,
+sov_skim.CongTime,,-0.208,
+"max(0, sov_skim.CongTime - 30)",,0.136,
+intra_cluster.IZ,,0.225,Adjustment
+sov_skim.CongTime > 55,,-99,Cutoff

@@ -70,6 +70,9 @@ Macro "Calculate MC" (Args)
     input_mc_dir = input_dir + "/resident/mode"
     output_dir = Args.[Output Folder] + "/resident/mode"
     periods = RunMacro("Get Unconverged Periods", Args)
+    mode_table = Args.TransModeTable
+    transit_modes = RunMacro("Get Transit Modes", mode_table)
+    access_modes = Args.access_modes
 
     // Determine trip purposes
     prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
@@ -110,14 +113,17 @@ Macro "Calculate MC" (Args)
             }
             opts.matrices = {
                 sov_skim: {File: sov_skim},
-                hov_skim: {File: hov_skim},
-                w_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_lb.mtx"},
-                w_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_w_eb.mtx"},
-                pnr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_lb.mtx"},
-                pnr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_pnr_eb.mtx"},
-                knr_lb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_lb.mtx"},
-                knr_eb_skim: {File: skims_dir + "transit\\skim_" + period + "_knr_eb.mtx"}
+                hov_skim: {File: hov_skim}
             }
+            // Transit skims depend on which modes are present in the scenario
+            for transit_mode in transit_modes do
+                for access_mode in access_modes do
+                    source_name = access_mode + "_" + transit_mode + "_skim"
+                    file_name = skims_dir + "transit\\skim_" + period + "_" + access_mode + "_" + transit_mode + ".mtx"
+                    if GetFileInfo(file_name) <> null then opts.matrices.(source_name) = {File: file_name}
+                end
+            end
+
             opts.output_dir = output_dir
             
             // RunMacro("Parallel.SetMaxEngines", 3)

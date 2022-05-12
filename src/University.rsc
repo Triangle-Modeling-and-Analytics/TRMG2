@@ -1,4 +1,16 @@
 /*
+University Model
+
+Modeled Trip Purposes -
+UHC: Home-Based-Campus
+UHO: Home-Based-Other
+UCO: Campus-Based-Other
+UC1: On-Campus
+UCC: Inter-Campus
+UOO: University student Other-Other
+*/
+
+/*
 Called by the flowchart
 */
 
@@ -15,7 +27,7 @@ Called by the flowchart
 */
 
 Macro "University DC & MC" (Args)
-    RunMacro("Mark UNC Zones", Args)
+    RunMacro("Mark Univ Zones", Args)
     RunMacro("University Gravity", Args)
     RunMacro("University Combine Campus", Args)
     RunMacro("University MC Probabilities", Args)
@@ -23,43 +35,6 @@ Macro "University DC & MC" (Args)
     RunMacro("University Other to Other", Args)
     RunMacro("University Combine Matrices", Args)
     RunMacro("University Directionality", Args)
-    return(1)
-endmacro
-
-/*
-University Model
-
-Modeled Trip Purposes -
-UHC: Home-Based-Campus
-UHO: Home-Based-Other
-UCO: Campus-Based-Other
-UC1: On-Campus
-UCC: Inter-Campus
-UOO: University student Other-Other
-*/
-
-/*
-This macro is primarily used for testing the university
-model standalone. It is not called during a full model run. Instead, the
-individual macros are called as appropriate by the non-resident steps.
-*/
-
-Macro "University" (Args)
-    RunMacro("TCB Init")
-
-    RunMacro("University Productions", Args)
-    RunMacro("University Attractions", Args)
-    RunMacro("University Balance Ps and As", Args)
-    RunMacro("University TOD", Args)
-    RunMacro("Mark UNC Zones", Args)
-    RunMacro("University Gravity", Args)
-    RunMacro("University Combine Campus", Args)
-    RunMacro("University MC Probabilities", Args)
-    RunMacro("University Mode Choice", Args)
-    RunMacro("University Other to Other", Args)
-    RunMacro("University Combine Matrices", Args)
-    RunMacro("University Directionality", Args)
-
     return(1)
 endmacro
 
@@ -106,15 +81,15 @@ Macro "University Productions" (Args)
     for c = 1 to campus_list.length do
         campus = campus_list[c]
 
-        production_uhc_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHC_On
-        production_uhc_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHC_Off
+        production_uhc_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHC_On * rate.calib_factor
+        production_uhc_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHC_Off * rate.calib_factor
 
-        production_uho_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHO_On
-        production_uho_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHO_Off
+        production_uho_on = data.("StudGQ_" + campus) * rate.Prod_Rate_UHO_On * rate.calib_factor
+        production_uho_off = data.("StudOff_" + campus) * rate.Prod_Rate_UHO_Off * rate.calib_factor
 
-        production_uco = data.("BuildingS_" + campus) * rate.Prod_Rate_UCO
-        production_ucc = data.("BuildingS_" + campus) * rate.Prod_Rate_UCC
-        production_uc1 = data.("BuildingS_" + campus) * rate.Prod_Rate_UC1
+        production_uco = data.("BuildingS_" + campus) * rate.Prod_Rate_UCO * rate.calib_factor
+        production_ucc = data.("BuildingS_" + campus) * rate.Prod_Rate_UCC * rate.calib_factor
+        production_uc1 = data.("BuildingS_" + campus) * rate.Prod_Rate_UC1 * rate.calib_factor
 
         a_fields = {
             {"ProdOn_UHC_" + campus, "Real", 10, 2, , , , campus + " UHC OnCampus Students Production"},
@@ -307,38 +282,68 @@ Split university balanced productions and attractions by time periods
 
 Macro "University TOD" (Args)
     se_file = Args.SE
-    tod_file = Args.[Input Folder] + "\\university\\university_tod.csv"
+    tod_file = Args.[Input Folder] + "/university/university_tod.csv"
 
     se_vw = OpenTable("se", "FFB", {se_file})
+    fac_vw = OpenTable("tod_fac", "CSV", {tod_file})
+    v_type = GetDataVector(fac_vw + "|", "trip_type", )
+    v_tod = GetDataVector(fac_vw + "|", "tod", )
+    v_fac = GetDataVector(fac_vw + "|", "factor", )
 
-    {drive, folder, name, ext} = SplitPath(tod_file)
+    univs = {"NCSU", "UNC", "DUKE", "NCCU"}
 
-    RunMacro("Create Sum Product Fields", {
-        view: se_vw, factor_file: tod_file,
-        field_desc: "University Productions and Attractions by Time of Day|See " + name + ext + " for details."
-    })
+    for i = 1 to v_type.length do
+        type = v_type[i]
+        tod = v_tod[i]
+        fac = v_fac[i]
+        
+        if Position(type, "H") > 0
+            then prefixes = {"ProdOn", "ProdOff", "AttrOn", "AttrOff"}
+            else prefixes = {"Prod", "Attr"}
 
+        for univ in univs do
+            for prefix in prefixes do
+                daily_name = prefix + "_" + type + "_" + univ
+                
+                v_daily = GetDataVector(se_vw + "|", daily_name, )
+                v_result = v_daily * fac
+                field_name = daily_name + "_" + tod
+                a_fields_to_add = a_fields_to_add + {
+                    {field_name, "Real", 10, 2,,,, "University Ps and As by TOD"}
+                }
+                data.(field_name) = v_result
+            end
+        end
+    end
+    RunMacro("Add Fields", {view: se_vw, a_fields: a_fields_to_add})
+    SetDataVectors(se_vw + "|", data, )    
     CloseView(se_vw)
+    CloseView(fac_vw)
 endmacro
 
 /*
-The university MC model needs the field UNC_Zones. Rather than add this to the master
+The university MC model needs the field UNC_Zones, Duke_Zones and NCSU_Zones. Rather than add this to the master
 SE data (because it is a derivative of other zones), calculate it here.
 */
 
-Macro "Mark UNC Zones" (Args)
+Macro "Mark Univ Zones" (Args)
 
+    univs = {"UNC", "Duke", "NCSU", "NCCU"}
     se_file = Args.SE
 
     se_vw = Opentable("se", "FFB", {se_file})
-    a_fields =  {
-        {"UNC_Zones", "Integer", 10, ,,,, "UNC campus zones used for university mode choice|BuildingS_UNC + StudGQ_UNC > 0"}
-    }
+    a_fields = null
+    for univ in univs do
+        a_fields = a_fields + {{univ + "_Zones", "Integer", 10, ,,,, univ + " campus zones used for university mode choice|BuildingS_" + univ + " + StudGQ_" + univ + " > 0"}}
+    end
     RunMacro("Add Fields", {view: se_vw, a_fields: a_fields})
-    v_sq = GetDataVector(se_vw + "|", "BuildingS_UNC", )
-    v_gq = GetDataVector(se_vw + "|", "StudGQ_UNC", )
-    v_unc = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
-    SetDataVector(se_vw + "|", "UNC_Zones", v_unc, )
+    
+    vecsSet = null
+    for univ in univs do
+        {v_sq, v_gq} = GetDataVectors(se_vw + "|", {"BuildingS_" + univ, "StudGQ_" + univ},)
+        vecsSet.(univ + "_Zones") = if nz(v_sq) + nz(v_gq) > 0 then 1 else 0
+    end
+    SetDataVectors(se_vw + "|", vecsSet, )
 endmacro
 
 /*

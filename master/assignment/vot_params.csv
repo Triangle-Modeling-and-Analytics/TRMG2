@@ -1,42 +1,6 @@
 Name,Value,Description
-pk_auto_vot1,3.28,$/hr These $/hr values are the actual VOTs used. The remaining values are used in the disaggregation process.
-pk_auto_vot2,7.15,$/hr
-pk_auto_vot3,12.29,$/hr
-pk_auto_vot4,19.53,$/hr
-pk_auto_vot5,38.58,$/hr
-op_auto_vot1,3.22,$/hr
-op_auto_vot2,7.08,$/hr
-op_auto_vot3,12.21,$/hr
-op_auto_vot4,19.41,$/hr
-op_auto_vot5,36.37,$/hr
-sut_vot1,20.52,$/hr
-sut_vot2,38.79,$/hr
-sut_vot3,56.75,$/hr
-mut_vot1,12.57,$/hr
-mut_vot2,31.12,$/hr
-mut_vot3,49.54,$/hr
-mut_vot4,67.95,$/hr
-mut_vot5,88.34,$/hr
-calib_factor,2.5,VOT values above are multiplied by this factor. Calibrated to match base year 540 counts.
-votcut1,5.02,VOT Q1 cutline
-votcut2,9.63,VOT Q2 cutline
-votcut3,15.73,VOT Q3 cutline
-votcut4,24.98,VOT Q4 cutline
-pk_meanvot,8.1,Peak Period Mean VOT
-pk_targetvot,14.39,Peak Period Target VOT
-pk_costcoef,-111,Peak Period Cost Coefficient
-pk_meantime,-1.01,Peak Period Mean Time
-pk_sdtime,0.818,Peak Period StDev Time
-op_meanvot,7.9,Non-Peak Period Mean VOT
-op_targetvot,11.92,Non-Peak Period Target VOT
-op_costcoef,-131,Non-Peak Period Cost Coefficient
-op_meantime,-0.883,Non-Peak Period Mean Time
-op_sdtime,0.781,Non-Peak Period StDev Time
-sutwgt1,0.343,Single Unit Truck Weight VOT1
-sutwgt2,0.506,Single Unit Truck Weight VOT2
-sutwgt3,0.151,Single Unit Truck Weight VOT3
-mutwgt1,0.058,Multi Unit Truck Weight VOT1
-mutwgt2,0.238,Multi Unit Truck Weight VOT2
-mutwgt3,0.385,Multi Unit Truck Weight VOT3
-mutwgt4,0.249,Multi Unit Truck Weight VOT4
-mutwgt5,0.07,Multi Unit Truck Weight VOT5
+pk_auto,17.11,$/hr
+op_auto,17,$/hr
+sut,26.82,$/hr
+mut,40.48,$/hr
+calib_factor,2,VOT values above are multiplied by this factor. Calibrated to match base year 540 counts.

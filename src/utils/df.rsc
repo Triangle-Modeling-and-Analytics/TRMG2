@@ -578,6 +578,7 @@ Class "df" (tbl, desc, groups)
     // Create a view and export to csv
     vw = self.create_view()
     ExportView(vw + "|", "CSV", file, , {"CSV Header": "true"})
+    CloseView(vw)
     DeleteFile(Substitute(file, ".csv", ".DCC", ))
   EndItem
 

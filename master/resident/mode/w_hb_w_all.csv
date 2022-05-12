@@ -58,6 +58,45 @@ w_eb,w_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 w_eb,w_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 w_eb,w_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 w_eb,w_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+w_brt,Constant,,7.104,Constant
+w_brt,Constant,v0,0.3492,Zero-vehicle households
+w_brt,Constant,ilvi,0.084,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+w_brt,Constant,ihvi,0.084,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+w_brt,Constant,ilvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+w_brt,Constant,ihvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+w_brt,w_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
+w_brt,w_brt_skim.Fare,,-0.1132,Transit fare
+w_brt,w_brt_skim.[Access Walk Time],,-0.1138,Access walk time
+w_brt,w_brt_skim.[Initial Wait Time],,-0.0437,Initial wait time
+w_brt,w_brt_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+w_brt,w_brt_skim.[Egress Walk Time],,-0.051437,Egress walk time
+w_brt,w_brt_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+w_lr,Constant,,7.104,Constant
+w_lr,Constant,v0,0.3492,Zero-vehicle households
+w_lr,Constant,ilvi,0.168,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+w_lr,Constant,ihvi,0.168,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+w_lr,Constant,ilvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+w_lr,Constant,ihvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+w_lr,w_lr_skim.[In-Vehicle Time] * .9,,-0.022449,IVTT (discounted)
+w_lr,w_lr_skim.Fare,,-0.1132,Transit fare
+w_lr,w_lr_skim.[Access Walk Time],,-0.1138,Access walk time
+w_lr,w_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+w_lr,w_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+w_lr,w_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+w_lr,w_lr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+w_cr,Constant,,6.328,Constant
+w_cr,Constant,v0,0.3492,Zero-vehicle households
+w_cr,Constant,ilvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
+w_cr,Constant,ihvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
+w_cr,Constant,ilvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
+w_cr,Constant,ihvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
+w_cr,w_cr_skim.[In-Vehicle Time] * .8,,-0.022449,IVTT (discounted)
+w_cr,w_cr_skim.Fare,,-0.1132,Transit fare
+w_cr,w_cr_skim.[Access Walk Time],,-0.1138,Access walk time
+w_cr,w_cr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+w_cr,w_cr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+w_cr,w_cr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+w_cr,w_cr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
 knr_lb,Constant,,1.044,Constant
 knr_lb,knr_lb_skim.[In-Vehicle Time],,-0.022449,IVTT
 knr_lb,knr_lb_skim.Fare,,-0.1132,Transit fare
@@ -73,6 +112,40 @@ knr_eb,knr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_eb,knr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_eb,knr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 knr_eb,knr_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+knr_brt,Constant,,1.044,Constant
+knr_brt,Constant,,0.084,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+knr_brt,Constant,,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+knr_brt,knr_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
+knr_brt,knr_brt_skim.Fare,,-0.1132,Transit fare
+knr_brt,knr_brt_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_brt,knr_brt_skim.[Initial Wait Time],,-0.0437,Initial wait time
+knr_brt,knr_brt_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+knr_brt,knr_brt_skim.[Egress Walk Time],,-0.051437,Egress walk time
+knr_brt,knr_brt_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+knr_lr,Constant,,1.044,Constant
+knr_lr,Constant,ilvi,0.168,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+knr_lr,Constant,ihvi,0.168,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+knr_lr,Constant,ilvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+knr_lr,Constant,ihvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+knr_lr,knr_lr_skim.[In-Vehicle Time] * .9,,-0.022449,IVTT (discounted)
+knr_lr,knr_lr_skim.Fare,,-0.1132,Transit fare
+knr_lr,knr_lr_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_lr,knr_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+knr_lr,knr_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+knr_lr,knr_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+knr_lr,knr_lr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+knr_cr,Constant,,1.044,Constant
+knr_cr,Constant,ilvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
+knr_cr,Constant,ihvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
+knr_cr,Constant,ilvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
+knr_cr,Constant,ihvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
+knr_cr,knr_cr_skim.[In-Vehicle Time] * .8,,-0.022449,IVTT (discounted)
+knr_cr,knr_cr_skim.Fare,,-0.1132,Transit fare
+knr_cr,knr_cr_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_cr,knr_cr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+knr_cr,knr_cr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+knr_cr,knr_cr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+knr_cr,knr_cr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
 pnr_lb,Constant,,2.667,Constant
 pnr_lb,Constant,v0,-99,Auto Availability
 pnr_lb,Constant,ilvi,-2.037,Vehicle insufficient households
@@ -95,25 +168,61 @@ pnr_eb,pnr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_eb,pnr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_eb,pnr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 pnr_eb,pnr_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
-auto_pay,Constant,v0,0.498845,Additional Calibration Constant
-other_auto,Constant,v0,-2.066048,Additional Calibration Constant
-sov,Constant,ilvi,1.23976,Additional Calibration Constant
-hov2,Constant,ilvi,1.044654,Additional Calibration Constant
-hov3,Constant,ilvi,1.435656,Additional Calibration Constant
-auto_pay,Constant,ilvi,2.137728,Additional Calibration Constant
-other_auto,Constant,ilvi,1.113463,Additional Calibration Constant
-sov,Constant,ilvs,0.066761,Additional Calibration Constant
-hov2,Constant,ilvs,0.241113,Additional Calibration Constant
-hov3,Constant,ilvs,-0.025861,Additional Calibration Constant
-auto_pay,Constant,ilvs,0.117105,Additional Calibration Constant
-other_auto,Constant,ilvs,-0.444753,Additional Calibration Constant
-sov,Constant,ihvi,0.191538,Additional Calibration Constant
-hov2,Constant,ihvi,-0.319303,Additional Calibration Constant
-hov3,Constant,ihvi,0.201191,Additional Calibration Constant
-auto_pay,Constant,ihvi,1.181703,Additional Calibration Constant
-other_auto,Constant,ihvi,-0.058121,Additional Calibration Constant
-sov,Constant,ihvs,0.891578,Additional Calibration Constant
-hov2,Constant,ihvs,0.729155,Additional Calibration Constant
-hov3,Constant,ihvs,0.568766,Additional Calibration Constant
-auto_pay,Constant,ihvs,2.379175,Additional Calibration Constant
-other_auto,Constant,ihvs,1.190797,Additional Calibration Constant
+pnr_brt,Constant,,2.667,Constant
+pnr_brt,Constant,v0,-99,Auto Availability
+pnr_brt,Constant,ilvi,-2.037,Vehicle insufficient households
+pnr_brt,Constant,ihvi,-2.037,Vehicle insufficient households
+pnr_brt,Constant,,0.126,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+pnr_brt,pnr_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
+pnr_brt,pnr_brt_skim.Fare,,-0.1132,Transit fare
+pnr_brt,pnr_brt_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_brt,pnr_brt_skim.[Initial Wait Time],,-0.0437,Initial wait time
+pnr_brt,pnr_brt_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+pnr_brt,pnr_brt_skim.[Egress Walk Time],,-0.051437,Egress walk time
+pnr_brt,pnr_brt_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+pnr_lr,Constant,,2.667,Constant
+pnr_lr,Constant,v0,-99,Auto Availability
+pnr_lr,Constant,ilvi,-2.037,Vehicle insufficient households
+pnr_lr,Constant,ihvi,-2.037,Vehicle insufficient households
+pnr_lr,Constant,,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+pnr_lr,pnr_lr_skim.[In-Vehicle Time] * .9,,-0.022449,IVTT (discounted)
+pnr_lr,pnr_lr_skim.Fare,,-0.1132,Transit fare
+pnr_lr,pnr_lr_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_lr,pnr_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+pnr_lr,pnr_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+pnr_lr,pnr_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+pnr_lr,pnr_lr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+pnr_cr,Constant,,3.518,Constant
+pnr_cr,Constant,v0,-99,Auto Availability
+pnr_cr,Constant,ilvi,-2.037,Vehicle insufficient households
+pnr_cr,Constant,ihvi,-2.037,Vehicle insufficient households
+pnr_cr,Constant,,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
+pnr_cr,pnr_cr_skim.[In-Vehicle Time] * .8,,-0.022449,IVTT (discounted)
+pnr_cr,pnr_cr_skim.Fare,,-0.1132,Transit fare
+pnr_cr,pnr_cr_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_cr,pnr_cr_skim.[Initial Wait Time],,-0.0437,Initial wait time
+pnr_cr,pnr_cr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
+pnr_cr,pnr_cr_skim.[Egress Walk Time],,-0.051437,Egress walk time
+pnr_cr,pnr_cr_skim.[Number of Transfers] > 1,,-0.3324,High transfers
+auto_pay,Constant,v0,1.338744,Additional Calibration Constant
+other_auto,Constant,v0,-1.053495,Additional Calibration Constant
+sov,Constant,ilvi,4.381675,Additional Calibration Constant
+hov2,Constant,ilvi,4.186595,Additional Calibration Constant
+hov3,Constant,ilvi,4.575522,Additional Calibration Constant
+auto_pay,Constant,ilvi,2.424086,Additional Calibration Constant
+other_auto,Constant,ilvi,4.286127,Additional Calibration Constant
+sov,Constant,ilvs,3.299876,Additional Calibration Constant
+hov2,Constant,ilvs,3.472254,Additional Calibration Constant
+hov3,Constant,ilvs,3.218251,Additional Calibration Constant
+auto_pay,Constant,ilvs,-0.312514,Additional Calibration Constant
+other_auto,Constant,ilvs,2.808129,Additional Calibration Constant
+sov,Constant,ihvi,3.023787,Additional Calibration Constant
+hov2,Constant,ihvi,2.509505,Additional Calibration Constant
+hov3,Constant,ihvi,3.036025,Additional Calibration Constant
+auto_pay,Constant,ihvi,1.596163,Additional Calibration Constant
+other_auto,Constant,ihvi,2.773005,Additional Calibration Constant
+sov,Constant,ihvs,4.06634,Additional Calibration Constant
+hov2,Constant,ihvs,3.897848,Additional Calibration Constant
+hov3,Constant,ihvs,3.709095,Additional Calibration Constant
+auto_pay,Constant,ihvs,3.18576,Additional Calibration Constant
+other_auto,Constant,ihvs,4.418747,Additional Calibration Constant

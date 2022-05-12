@@ -150,8 +150,12 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             Time: "MSATime",
             Iteration: feedback_iter
         })
-        o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"
-        if OtherOpts.flow_table <> null then o.FlowTable = OtherOpts.flow_table
+
+        if OtherOpts.flow_table <> null then 
+            o.FlowTable = OtherOpts.flow_table
+        else
+            o.FlowTable = assn_dir + "\\roadway_assignment_" + period + ".bin"   
+        
         // Add classes for each combination of vehicle type and VOT
         // If doing a test assignment, just create a single class from the
         // dummy matrix
@@ -170,77 +174,59 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 then pkop = "pk"
                 else pkop = "op"
 
-            // Auto VOT 1 and 2 are collapsed into 2
-            auto_vot_ints = {2, 3, 4, 5}
-
             // sov
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                sov_opts = {
-                    Demand: "sov_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostSOV"
-                }
-                if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(sov_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.(pkop + "_auto") / 60 // ($/min)
+            sov_opts = {
+                Demand: "sov",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostSOV"
+            }
+            if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(sov_opts)
             // hov2
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                o.AddClass({
-                    Demand: "hov2_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostHOV"
-                })
-            end
+            o.AddClass({
+                Demand: "hov2",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostHOV"
+            })
             // hov3
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                o.AddClass({
-                    Demand: "hov3_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostHOV"
-                })
-            end
+            o.AddClass({
+                Demand: "hov3",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostHOV"
+            })
             // CV
-            for i in auto_vot_ints do
-                voi = vot_params.calib_factor * vot_params.(pkop + "_auto_vot" + String(i)) / 60 // ($/min)
-                cv_opts = {
-                    Demand: "CV_VOT" + String(i),
-                    PCE: 1,
-                    VOI: voi,
-                    LinkTollField: "TollCostSOV"
-                }
-                if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(cv_opts)
-            end
+            cv_opts = {
+                Demand: "CV",
+                PCE: 1,
+                VOI: voi,
+                LinkTollField: "TollCostSOV"
+            }
+            if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(cv_opts)
             // SUT
-            for i = 1 to 3 do
-                voi = vot_params.calib_factor * vot_params.("sut_vot" + String(i)) / 60 // ($/min)
-                sut_opts = {
-                    Demand: "SUT_VOT" + String(i),
-                    PCE: 1.5,
-                    VOI: voi,
-                    LinkTollField: "TollCostSUT"
-                }
-                if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(sut_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.("sut") / 60 // ($/min)
+            sut_opts = {
+                Demand: "SUT",
+                PCE: 1.5,
+                VOI: voi,
+                LinkTollField: "TollCostSUT"
+            }
+            if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(sut_opts)
             // MUT
-            for i = 1 to 5 do
-                voi = vot_params.calib_factor * vot_params.("mut_vot" + String(i)) / 60 // ($/min)
-                mut_opts = {
-                    Demand: "MUT_VOT" + String(i),
-                    PCE: 2.5,
-                    VOI: voi,
-                    LinkTollField: "TollCostMUT"
-                }
-                if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
-                o.AddClass(mut_opts)
-            end
+            voi = vot_params.calib_factor * vot_params.("mut") / 60 // ($/min)
+            mut_opts = {
+                Demand: "MUT",
+                PCE: 2.5,
+                VOI: voi,
+                LinkTollField: "TollCostMUT"
+            }
+            if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
+            o.AddClass(mut_opts)
         end
         ret_value = o.Run()
         results = o.GetResults()
@@ -340,6 +326,13 @@ Macro "Calculate Skim PRMSEs" (Args)
         new_skim = CreateObject("Matrix", new_skim_file)
         new_core = new_skim.GetCore("CongTime")
         results = MatrixRMSE(old_core, new_core)
+
+        // // This is testing/research code for alternative convergence approaches.
+        // flow_mtx_file = assn_dir + "/od_veh_trips_" + period + ".mtx"
+        // flow_mtx = CreateObject("Matrix", flow_mtx_file)
+        // weight_core = flow_mtx.GetCore("sov_VOT2")
+        // results2 = RunMacro("Matrix RMSE", {mc1: old_core, mc2: new_core, mc_weight: weight_core})
+
         old_skim = null
         old_core = null
         new_skim = null
@@ -348,6 +341,53 @@ Macro "Calculate Skim PRMSEs" (Args)
         Args.(period + "_PRMSE") = results.RelRMSE
         RunMacro("Write PRMSE", Args, period)
     end
+endmacro
+
+/*
+Similar to the GISDK function MatrixRMSE(), but allows for
+a weight matrix (usually a flow matrix). This means differnces
+in ij pair travel times with little to no flow do not influence
+the %RMSE calculation.
+*/
+
+Macro "Matrix RMSE" (MacroOpts)
+
+    mc1 = MacroOpts.mc1
+    mc2 = MacroOpts.mc2
+    mc_weight = MacroOpts.mc_weight
+
+    mtx1 = CreateObject("Matrix", mc1)
+    mtx2 = CreateObject("Matrix", mc2)
+
+    // Calculate squared errors
+    mtx2.AddCores({"sqerr"})
+    sqerr_core = mtx2.GetCore("sqerr")
+    sqerr_core := pow(mc2 - mc1, 2)
+    
+    // Calculate total weight
+    mtx_weight = CreateObject("Matrix", mc_weight)
+    weight_mh = mtx_weight.GetMatrixHandle()
+    stats = MatrixStatistics(weight_mh, {Tables: {mc_weight.core}})
+    tot_weight = stats.(mc_weight.core).Sum
+
+    // Weight the squared errors
+    sqerr_core := sqerr_core * mc_weight / tot_weight
+
+    // Finish rmse calc (prmse numerator)
+    temp_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {sqerr_core.core}})
+    rmse = Pow(temp_stats.(sqerr_core.core).Sum, .5)
+
+    // Calculate the average weighted skim (prmse denominator)
+    mtx2.AddCores({"weighted_skim"})
+    wskim_core = mtx2.GetCore("weighted_skim")
+    wskim_core := mc1 * mc_weight / tot_weight
+    wskim_stats = MatrixStatistics(mtx2.GetMatrixHandle(), {Tables: {wskim_core.core}})
+    prmse = rmse / wskim_stats.(wskim_core.core).Sum * 100
+
+    sqerr_core = null
+    wskim_core = null
+    mtx2.DropCores({"temp", "weighted_skim"})
+    return({rmse: rmse, prmse: prmse})
 endmacro
 
 /*

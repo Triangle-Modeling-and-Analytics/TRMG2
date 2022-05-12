@@ -1,454 +1,316 @@
 <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
 
-<html>
+        <meta name="author" content="Caliper Corporation" />
+    
+        <meta name="date" content="2021-03-03" />
+    
+    <title>Non-Homebased Trips</title>
 
-<head>
+        <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="site_libs/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="site_libs/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+    <script src="site_libs/navigation-1.1/tabsets.js"></script>
+    <link href="site_libs/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+    <script src="site_libs/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+    <link href="site_libs/readthedown-0.1/readthedown.css" rel="stylesheet" />
+    <link href="site_libs/readthedown-0.1/readthedown_fonts_embed.css" rel="stylesheet" />
+    <script src="site_libs/readthedown-0.1/readthedown.js"></script>
+    <script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+    <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    
+    
+    
+        <link rel="stylesheet" href="styles.css" type="text/css" />
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
 
-<meta charset="utf-8" />
-<meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+    <!-- code folding -->
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
 
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
 
-<meta name="author" content="Caliper Corporation" />
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
 
-<meta name="date" content="2021-03-03" />
-
-<title>Non-Homebased Trips</title>
-
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
-<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="site_libs/navigation-1.1/tabsets.js"></script>
-<script src="site_libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
-<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
-<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
-
-<style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
     </style>
-
-
-
-
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
-
-<link rel="stylesheet" href="styles.css" type="text/css" />
-
-
-
-<style type = "text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
-img {
-  max-width:100%;
-}
-.tabbed-pane {
-  padding-top: 12px;
-}
-.html-widget {
-  margin-bottom: 20px;
-}
-button.code-folding-btn:focus {
-  outline: none;
-}
-summary {
-  display: list-item;
-}
-</style>
-
-
-<style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 60px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h2 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h3 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h4 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h5 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.section h6 {
-  padding-top: 65px;
-  margin-top: -65px;
-}
-.dropdown-submenu {
-  position: relative;
-}
-.dropdown-submenu>.dropdown-menu {
-  top: 0;
-  left: 100%;
-  margin-top: -6px;
-  margin-left: -1px;
-  border-radius: 0 6px 6px 6px;
-}
-.dropdown-submenu:hover>.dropdown-menu {
-  display: block;
-}
-.dropdown-submenu>a:after {
-  display: block;
-  content: " ";
-  float: right;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
-  border-width: 5px 0 5px 5px;
-  border-left-color: #cccccc;
-  margin-top: 5px;
-  margin-right: -10px;
-}
-.dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
-}
-.dropdown-submenu.pull-left {
-  float: none;
-}
-.dropdown-submenu.pull-left>.dropdown-menu {
-  left: -100%;
-  margin-left: 10px;
-  border-radius: 6px 0 6px 6px;
-}
-</style>
-
-<script>
-// manage active state of menu based on current page
-$(document).ready(function () {
-  // active menu anchor
-  href = window.location.pathname
-  href = href.substr(href.lastIndexOf('/') + 1)
-  if (href === "")
-    href = "index.html";
-  var menuAnchor = $('a[href="' + href + '"]');
-
-  // mark it active
-  menuAnchor.parent().addClass('active');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
-});
-</script>
-
-<!-- tabsets -->
-
-<style type="text/css">
-.tabset-dropdown > .nav-tabs {
-  display: inline-table;
-  max-height: 500px;
-  min-height: 44px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs > li.active {
-  display: block;
-}
-
-.tabset-dropdown > .nav-tabs > li > a,
-.tabset-dropdown > .nav-tabs > li > a:focus,
-.tabset-dropdown > .nav-tabs > li > a:hover {
-  border: none;
-  display: inline-block;
-  border-radius: 4px;
-  background-color: transparent;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
-  display: block;
-  float: none;
-}
-
-.tabset-dropdown > .nav-tabs > li {
-  display: none;
-}
-</style>
-
-<!-- code folding -->
-
-
-
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
-
+    
 </head>
 
-<body>
+<body class="preload">
 
-
-<div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
-
-
-
-
-<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="index.html">TRMG2</a>
+            <!-- readthedown start -->   
+   <div id="content" data-toggle="wy-nav-shift">
+     <nav id="nav-top" role="navigation" aria-label="top navigation">
+       <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+     </nav>
+         
+   
+      
+   <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+     <div class="container">
+       <div class="navbar-header">
+         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+           <span class="icon-bar"></span>
+         </button>
+         <a class="navbar-brand" href="index.html">TRMG2</a>
+       </div>
+       <div id="navbar" class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+           <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Databases
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="tazs_and_se_data.html">TAZs and SE Data</a>
+       </li>
+       <li>
+         <a href="networks.html">Networks</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Surveys
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="survey_processing.html">Household Survey</a>
+       </li>
+       <li>
+         <a href="obs_processing.html">On-Board Survey</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Resident Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="population_synthesis.html">Synthesis</a>
+       </li>
+       <li>
+         <a href="auto_ownership.html">Auto Ownership</a>
+       </li>
+       <li>
+         <a href="resident_production.html">Production</a>
+       </li>
+       <li>
+         <a href="time_of_day.html">Time of Day</a>
+       </li>
+       <li>
+         <a href="resident_nonmotorized.html">Non-motorized</a>
+       </li>
+       <li>
+         <a href="parking.html">Parking</a>
+       </li>
+       <li>
+         <a href="resident_dest_choice.html">Destination Choice</a>
+       </li>
+       <li>
+         <a href="nhb.html">Non-homebased</a>
+       </li>
+     </ul>
+   </li>
+   <li class="dropdown">
+     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+       Other Models
+        
+       <span class="caret"></span>
+     </a>
+     <ul class="dropdown-menu" role="menu">
+       <li>
+         <a href="accessibility.html">Accessibility</a>
+       </li>
+       <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
+         <a href="airport.html">Airport</a>
+       </li>
+       <li>
+         <a href="ieei.html">Internal/External</a>
+       </li>
+       <li>
+         <a href="commercial_vehicles.html">Commercial Vehicles</a>
+       </li>
+       <li>
+         <a href="assignment_roadway.html">Roadway Assignment</a>
+       </li>
+     </ul>
+   </li>
+         </ul>
+         <ul class="nav navbar-nav navbar-right">
+           <li>
+     <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
+   </li>
+         </ul>
+       </div><!--/.nav-collapse -->
+     </div><!--/.container -->
+   </div><!--/.navbar -->
+        
+      <h1 class="title">Non-Homebased Trips</h1>
+      
+         <!-- readthedown authors -->
+   <div id="sidebar">
+    <h2><a href="#content">Non-Homebased Trips</a></h2>
+    <div id="toc">
+      <ul>
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#work-tours">Work tours</a><ul>
+      <li><a href="#w_nh_ek12_all">W_NH_EK12_All</a><ul>
+      <li><a href="#sov">SOV</a></li>
+      <li><a href="#hov2">HOV2</a></li>
+      <li><a href="#hov3">HOV3+</a></li>
+      <li><a href="#auto-pay">Auto Pay</a></li>
+      <li><a href="#transit">Transit</a></li>
+      <li><a href="#non-motorized">Non-motorized</a></li>
+      </ul></li>
+      <li><a href="#w_nh_wr_all">W_NH_WR_All</a><ul>
+      <li><a href="#sov-1">SOV</a></li>
+      <li><a href="#hov2-1">HOV2</a></li>
+      <li><a href="#hov3-1">HOV3+</a></li>
+      <li><a href="#auto-pay-1">Auto Pay</a></li>
+      <li><a href="#transit-1">Transit</a></li>
+      <li><a href="#non-motorized-1">Non-motorized</a></li>
+      </ul></li>
+      <li><a href="#w_nh_o_all">W_NH_O_All</a><ul>
+      <li><a href="#sov-2">SOV</a></li>
+      <li><a href="#hov2-2">HOV2</a></li>
+      <li><a href="#hov3-2">HOV3+</a></li>
+      <li><a href="#auto-pay-2">Auto Pay</a></li>
+      <li><a href="#transit-2">Transit</a></li>
+      <li><a href="#non-motorized-2">Non-motorized</a></li>
+      </ul></li>
+      </ul></li>
+      <li><a href="#non-work-tours">Non-work tours</a><ul>
+      <li><a href="#n_nh_k12_all">N_NH_K12_All</a><ul>
+      <li><a href="#sov-3">SOV</a></li>
+      <li><a href="#hov2-3">HOV2</a></li>
+      <li><a href="#hov3-3">HOV3+</a></li>
+      <li><a href="#auto-pay-3">Auto Pay</a></li>
+      <li><a href="#transit-3">Transit</a></li>
+      <li><a href="#non-motorized-3">Non-motorized</a></li>
+      </ul></li>
+      <li><a href="#n_nh_ome_all">N_NH_OME_All</a><ul>
+      <li><a href="#sov-4">SOV</a></li>
+      <li><a href="#hov2-4">HOV2</a></li>
+      <li><a href="#hov3-4">HOV3+</a></li>
+      <li><a href="#auto-pay-4">Auto Pay</a></li>
+      <li><a href="#transit-4">Transit</a></li>
+      <li><a href="#non-motorized-4">Non-motorized</a></li>
+      </ul></li>
+      <li><a href="#n_nh_o_all">N_NH_O_All</a><ul>
+      <li><a href="#sov-5">SOV</a></li>
+      <li><a href="#hov2-5">HOV2</a></li>
+      <li><a href="#hov3-5">HOV3+</a></li>
+      <li><a href="#auto-pay-5">Auto Pay</a></li>
+      <li><a href="#transit-5">Transit</a></li>
+      <li><a href="#non-motorized-5">Non-motorized</a></li>
+      </ul></li>
+      </ul></li>
+      <li><a href="#boosting-charts">Boosting charts</a></li>
+      <li><a href="#chained-nhb-trips">Chained NHB Trips</a><ul>
+      <li><a href="#hb-attractions">HB Attractions</a></li>
+      <li><a href="#nh-trip-ends">NH Trip Ends</a></li>
+      </ul></li>
+      <li><a href="#time-of-day-adjustment">Time of Day Adjustment</a></li>
+      </ul>
     </div>
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Databases
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="tazs_and_se_data.html">TAZs and SE Data</a>
-    </li>
-    <li>
-      <a href="networks.html">Networks</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Surveys
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="survey_processing.html">Household Survey</a>
-    </li>
-    <li>
-      <a href="obs_processing.html">On-Board Survey</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Resident Models
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="population_synthesis.html">Synthesis</a>
-    </li>
-    <li>
-      <a href="auto_ownership.html">Auto Ownership</a>
-    </li>
-    <li>
-      <a href="resident_production.html">Production</a>
-    </li>
-    <li>
-      <a href="time_of_day.html">Time of Day</a>
-    </li>
-    <li>
-      <a href="resident_nonmotorized.html">Non-motorized</a>
-    </li>
-    <li>
-      <a href="parking.html">Parking</a>
-    </li>
-    <li>
-      <a href="nhb.html">Non-homebased</a>
-    </li>
-  </ul>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Other Models
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="accessibility.html">Accessibility</a>
-    </li>
-    <li>
-      <a href="airport.html">Airport</a>
-    </li>
-    <li>
-      <a href="ieei.html">Internal/External</a>
-    </li>
-    <li>
-      <a href="commercial_vehicles.html">Commercial Vehicles</a>
-    </li>
-  </ul>
-</li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="https://github.com/Caliper-Corporation/TRMG2">Github</a>
-</li>
-      </ul>
-    </div><!--/.nav-collapse -->
-  </div><!--/.container -->
-</div><!--/.navbar -->
-
-<div class="fluid-row" id="header">
-
-
-
-<h1 class="title toc-ignore">Non-Homebased Trips</h1>
-<h4 class="author">Caliper Corporation</h4>
-<h4 class="date">March 3, 2021</h4>
-
-</div>
-
-
+    <div id="postamble" data-toggle="wy-nav-shift" class="status">
+                  <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 3, 2021</p>
+          </div>
+   </div>
+   
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div id="main">
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>There are many problems related to non-home-based trips in traditional trip-based models arising from the fact that they are disconnected from the home-based trips with which they comprise complete tours. In order to properly represent non-home-based trips, two spatial distribution or destination/spatial choice models are required to account for both the trip’s origin location and destination location. The four-step model architecture is fundamentally flawed because it produces non-home-based trips from only one trip distribution or spatial choice model.</p>
@@ -510,10 +372,10 @@ W_HB_EK12_All_hov
 0.7301
 </td>
 <td style="text-align:right;">
-0.0087
+0.0088
 </td>
 <td style="text-align:right;">
-83.4773
+83.4003
 </td>
 <td style="text-align:right;">
 0.0000
@@ -530,10 +392,10 @@ W_HB_EK12_All_hov
 0.7301
 </td>
 <td style="text-align:right;">
-0.0087
+0.0088
 </td>
 <td style="text-align:right;">
-83.4773
+83.4003
 </td>
 <td style="text-align:right;">
 0.0000
@@ -547,13 +409,13 @@ W_HB_O_All_hov2
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0581
+0.0580
 </td>
 <td style="text-align:right;">
 0.0086
 </td>
 <td style="text-align:right;">
-6.7478
+6.7371
 </td>
 <td style="text-align:right;">
 0.0000
@@ -567,13 +429,13 @@ W_HB_O_All_hov3
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0581
+0.0580
 </td>
 <td style="text-align:right;">
 0.0086
 </td>
 <td style="text-align:right;">
-6.7478
+6.7371
 </td>
 <td style="text-align:right;">
 0.0000
@@ -587,16 +449,16 @@ W_HB_O_All_sov
 W_HB_O_All_sov
 </td>
 <td style="text-align:right;">
-0.0101
+0.0102
 </td>
 <td style="text-align:right;">
 0.0056
 </td>
 <td style="text-align:right;">
-1.7988
+1.8066
 </td>
 <td style="text-align:right;">
-0.0721
+0.0709
 </td>
 </tr>
 <tr>
@@ -607,16 +469,16 @@ W_HB_W_All_hov2
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0081
+0.0080
 </td>
 <td style="text-align:right;">
 0.0034
 </td>
 <td style="text-align:right;">
-2.3821
+2.3756
 </td>
 <td style="text-align:right;">
-0.0173
+0.0176
 </td>
 </tr>
 <tr>
@@ -627,16 +489,16 @@ W_HB_W_All_hov3
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0081
+0.0080
 </td>
 <td style="text-align:right;">
 0.0034
 </td>
 <td style="text-align:right;">
-2.3821
+2.3756
 </td>
 <td style="text-align:right;">
-0.0173
+0.0176
 </td>
 </tr>
 <tr>
@@ -647,16 +509,16 @@ W_HB_W_All_sov
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0081
+0.0080
 </td>
 <td style="text-align:right;">
 0.0034
 </td>
 <td style="text-align:right;">
-2.3821
+2.3756
 </td>
 <td style="text-align:right;">
-0.0173
+0.0176
 </td>
 </tr>
 <tr>
@@ -667,7 +529,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0699
+0.0698
 </td>
 <td style="text-align:right;">
 NA
@@ -716,13 +578,13 @@ W_HB_EK12_All_hov2
 W_HB_EK12_All_hov
 </td>
 <td style="text-align:right;">
-0.2464
+0.2463
 </td>
 <td style="text-align:right;">
-0.0084
+0.0085
 </td>
 <td style="text-align:right;">
-29.1686
+29.1102
 </td>
 <td style="text-align:right;">
 0.0000
@@ -736,13 +598,13 @@ W_HB_EK12_All_hov3
 W_HB_EK12_All_hov
 </td>
 <td style="text-align:right;">
-0.2464
+0.2463
 </td>
 <td style="text-align:right;">
-0.0084
+0.0085
 </td>
 <td style="text-align:right;">
-29.1686
+29.1102
 </td>
 <td style="text-align:right;">
 0.0000
@@ -756,13 +618,13 @@ W_HB_O_All_hov2
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0350
+0.0351
 </td>
 <td style="text-align:right;">
-0.0043
+0.0044
 </td>
 <td style="text-align:right;">
-8.0393
+8.0470
 </td>
 <td style="text-align:right;">
 0.0000
@@ -776,13 +638,13 @@ W_HB_O_All_hov3
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0350
+0.0351
 </td>
 <td style="text-align:right;">
-0.0043
+0.0044
 </td>
 <td style="text-align:right;">
-8.0393
+8.0470
 </td>
 <td style="text-align:right;">
 0.0000
@@ -796,13 +658,13 @@ W_HB_O_All_sov
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0350
+0.0351
 </td>
 <td style="text-align:right;">
-0.0043
+0.0044
 </td>
 <td style="text-align:right;">
-8.0393
+8.0470
 </td>
 <td style="text-align:right;">
 0.0000
@@ -816,16 +678,16 @@ W_HB_O_All_walkbike
 W_HB_O_All_walkbike
 </td>
 <td style="text-align:right;">
-0.0578
+0.0062
 </td>
 <td style="text-align:right;">
-0.0196
+0.0274
 </td>
 <td style="text-align:right;">
-2.9473
+0.2267
 </td>
 <td style="text-align:right;">
-0.0032
+0.8207
 </td>
 </tr>
 <tr>
@@ -836,7 +698,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.1526
+0.1478
 </td>
 <td style="text-align:right;">
 NA
@@ -891,7 +753,7 @@ W_HB_EK12_All_hov
 0.0065
 </td>
 <td style="text-align:right;">
-14.5507
+14.5353
 </td>
 <td style="text-align:right;">
 0
@@ -911,7 +773,7 @@ W_HB_EK12_All_hov
 0.0065
 </td>
 <td style="text-align:right;">
-14.5507
+14.5353
 </td>
 <td style="text-align:right;">
 0
@@ -931,7 +793,7 @@ W_HB_O_All_auto
 0.0034
 </td>
 <td style="text-align:right;">
-6.6645
+6.6670
 </td>
 <td style="text-align:right;">
 0
@@ -951,7 +813,7 @@ W_HB_O_All_auto
 0.0034
 </td>
 <td style="text-align:right;">
-6.6645
+6.6670
 </td>
 <td style="text-align:right;">
 0
@@ -971,7 +833,7 @@ W_HB_O_All_auto
 0.0034
 </td>
 <td style="text-align:right;">
-6.6645
+6.6670
 </td>
 <td style="text-align:right;">
 0
@@ -1048,7 +910,7 @@ W_HB_EK12_All_walkbike
 0.0235
 </td>
 <td style="text-align:right;">
-43.746
+43.7047
 </td>
 <td style="text-align:right;">
 0
@@ -1062,7 +924,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0001
+0.0000
 </td>
 <td style="text-align:right;">
 NA
@@ -1121,7 +983,7 @@ W_HB_EK12_All_auto
 0.0152
 </td>
 <td style="text-align:right;">
-6.3448
+6.3523
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1141,7 +1003,7 @@ W_HB_EK12_All_auto
 0.0152
 </td>
 <td style="text-align:right;">
-6.3448
+6.3523
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1155,13 +1017,13 @@ W_HB_O_All_hov2
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0772
+0.0776
 </td>
 <td style="text-align:right;">
 0.0081
 </td>
 <td style="text-align:right;">
-9.5527
+9.6033
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1175,13 +1037,13 @@ W_HB_O_All_hov3
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0772
+0.0776
 </td>
 <td style="text-align:right;">
 0.0081
 </td>
 <td style="text-align:right;">
-9.5527
+9.6033
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1195,13 +1057,13 @@ W_HB_O_All_sov
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.0772
+0.0776
 </td>
 <td style="text-align:right;">
 0.0081
 </td>
 <td style="text-align:right;">
-9.5527
+9.6033
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1215,16 +1077,16 @@ W_HB_W_All_hov2
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0185
+0.0180
 </td>
 <td style="text-align:right;">
 0.0059
 </td>
 <td style="text-align:right;">
-3.1433
+3.0728
 </td>
 <td style="text-align:right;">
-0.0017
+0.0021
 </td>
 </tr>
 <tr>
@@ -1235,16 +1097,16 @@ W_HB_W_All_hov3
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0185
+0.0180
 </td>
 <td style="text-align:right;">
 0.0059
 </td>
 <td style="text-align:right;">
-3.1433
+3.0728
 </td>
 <td style="text-align:right;">
-0.0017
+0.0021
 </td>
 </tr>
 <tr>
@@ -1255,16 +1117,16 @@ W_HB_W_All_sov
 W_HB_W_All_auto
 </td>
 <td style="text-align:right;">
-0.0185
+0.0180
 </td>
 <td style="text-align:right;">
 0.0059
 </td>
 <td style="text-align:right;">
-3.1433
+3.0728
 </td>
 <td style="text-align:right;">
-0.0017
+0.0021
 </td>
 </tr>
 <tr>
@@ -1275,7 +1137,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.5171
+0.5142
 </td>
 <td style="text-align:right;">
 NA
@@ -1324,16 +1186,16 @@ W_HB_O_All_hov2
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0135
+0.0134
 </td>
 <td style="text-align:right;">
 0.0066
 </td>
 <td style="text-align:right;">
-2.0371
+2.0310
 </td>
 <td style="text-align:right;">
-0.0417
+0.0423
 </td>
 </tr>
 <tr>
@@ -1344,16 +1206,16 @@ W_HB_O_All_hov3
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0135
+0.0134
 </td>
 <td style="text-align:right;">
 0.0066
 </td>
 <td style="text-align:right;">
-2.0371
+2.0310
 </td>
 <td style="text-align:right;">
-0.0417
+0.0423
 </td>
 </tr>
 <tr>
@@ -1364,13 +1226,13 @@ W_HB_O_All_sov
 W_HB_O_All_sov
 </td>
 <td style="text-align:right;">
-0.0340
+0.0341
 </td>
 <td style="text-align:right;">
 0.0042
 </td>
 <td style="text-align:right;">
-8.0611
+8.0715
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1384,7 +1246,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.4322
+0.4302
 </td>
 <td style="text-align:right;">
 NA
@@ -1433,13 +1295,13 @@ W_HB_O_All_hov2
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0663
+0.0662
 </td>
 <td style="text-align:right;">
 0.0066
 </td>
 <td style="text-align:right;">
-9.9721
+9.9573
 </td>
 <td style="text-align:right;">
 0
@@ -1453,13 +1315,13 @@ W_HB_O_All_hov3
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.0663
+0.0662
 </td>
 <td style="text-align:right;">
 0.0066
 </td>
 <td style="text-align:right;">
-9.9721
+9.9573
 </td>
 <td style="text-align:right;">
 0
@@ -1479,7 +1341,7 @@ W_HB_W_All_hov3
 0.0182
 </td>
 <td style="text-align:right;">
-18.3515
+18.3353
 </td>
 <td style="text-align:right;">
 0
@@ -1493,7 +1355,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0837
+0.0854
 </td>
 <td style="text-align:right;">
 NA
@@ -1548,7 +1410,7 @@ W_HB_O_All_auto_pay
 0.0544
 </td>
 <td style="text-align:right;">
-7.8719
+7.8645
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1565,10 +1427,10 @@ W_HB_O_All_sov
 0.0031
 </td>
 <td style="text-align:right;">
-0.0009
+0.0010
 </td>
 <td style="text-align:right;">
-3.2243
+3.2284
 </td>
 <td style="text-align:right;">
 0.0013
@@ -1582,7 +1444,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.1380
+0.1375
 </td>
 <td style="text-align:right;">
 NA
@@ -1635,13 +1497,13 @@ W_HB_EK12_All_walkbike
 W_HB_EK12_All_walkbike
 </td>
 <td style="text-align:right;">
-0.7263
+0.7254
 </td>
 <td style="text-align:right;">
-0.1284
+0.1167
 </td>
 <td style="text-align:right;">
-5.6563
+6.2179
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1655,13 +1517,13 @@ W_HB_O_All_sov
 W_HB_O_All_sov
 </td>
 <td style="text-align:right;">
-0.0216
+0.0175
 </td>
 <td style="text-align:right;">
-0.0044
+0.0040
 </td>
 <td style="text-align:right;">
-4.9570
+4.4222
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1675,16 +1537,16 @@ W_HB_W_All_sov
 W_HB_W_All_sov
 </td>
 <td style="text-align:right;">
-0.0045
+0.0037
 </td>
 <td style="text-align:right;">
-0.0027
+0.0025
 </td>
 <td style="text-align:right;">
-1.6616
+1.4857
 </td>
 <td style="text-align:right;">
-0.0967
+0.1374
 </td>
 </tr>
 <tr>
@@ -1695,16 +1557,16 @@ W_HB_W_All_walkbike
 W_HB_W_All_walkbike
 </td>
 <td style="text-align:right;">
-0.0127
+0.0143
 </td>
 <td style="text-align:right;">
-0.0162
+0.0155
 </td>
 <td style="text-align:right;">
-0.7824
+0.9282
 </td>
 <td style="text-align:right;">
-0.4340
+0.3534
 </td>
 </tr>
 <tr>
@@ -1715,7 +1577,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3563
+0.3088
 </td>
 <td style="text-align:right;">
 NA
@@ -1768,13 +1630,13 @@ W_HB_EK12_All_hov2
 W_HB_EK12_All_auto
 </td>
 <td style="text-align:right;">
-0.2443
+0.2445
 </td>
 <td style="text-align:right;">
-0.0386
+0.0380
 </td>
 <td style="text-align:right;">
-6.3347
+6.4259
 </td>
 <td style="text-align:right;">
 0
@@ -1788,13 +1650,13 @@ W_HB_EK12_All_hov3
 W_HB_EK12_All_auto
 </td>
 <td style="text-align:right;">
-0.2443
+0.2445
 </td>
 <td style="text-align:right;">
-0.0386
+0.0380
 </td>
 <td style="text-align:right;">
-6.3347
+6.4259
 </td>
 <td style="text-align:right;">
 0
@@ -1808,13 +1670,13 @@ W_HB_O_All_hov2
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.9183
+0.9186
 </td>
 <td style="text-align:right;">
-0.0379
+0.0374
 </td>
 <td style="text-align:right;">
-24.2431
+24.5913
 </td>
 <td style="text-align:right;">
 0
@@ -1828,13 +1690,13 @@ W_HB_O_All_hov3
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.9183
+0.9186
 </td>
 <td style="text-align:right;">
-0.0379
+0.0374
 </td>
 <td style="text-align:right;">
-24.2431
+24.5913
 </td>
 <td style="text-align:right;">
 0
@@ -1848,13 +1710,13 @@ W_HB_O_All_sov
 W_HB_O_All_sov
 </td>
 <td style="text-align:right;">
-1.3854
+1.3806
 </td>
 <td style="text-align:right;">
-0.0239
+0.0237
 </td>
 <td style="text-align:right;">
-57.8823
+58.3367
 </td>
 <td style="text-align:right;">
 0
@@ -1868,7 +1730,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.4549
+0.4537
 </td>
 <td style="text-align:right;">
 NA
@@ -1917,13 +1779,13 @@ W_HB_O_All_hov2
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.3788
+0.3786
 </td>
 <td style="text-align:right;">
-0.0187
+0.0188
 </td>
 <td style="text-align:right;">
-20.2093
+20.1731
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1937,13 +1799,13 @@ W_HB_O_All_hov3
 W_HB_O_All_hov
 </td>
 <td style="text-align:right;">
-0.3788
+0.3786
 </td>
 <td style="text-align:right;">
-0.0187
+0.0188
 </td>
 <td style="text-align:right;">
-20.2093
+20.1731
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1957,13 +1819,13 @@ W_HB_O_All_sov
 W_HB_O_All_sov
 </td>
 <td style="text-align:right;">
-0.1541
+0.1548
 </td>
 <td style="text-align:right;">
-0.0119
+0.0120
 </td>
 <td style="text-align:right;">
-12.9067
+12.9171
 </td>
 <td style="text-align:right;">
 0.0000
@@ -1977,16 +1839,16 @@ W_HB_O_All_walkbike
 W_HB_O_All_walkbike
 </td>
 <td style="text-align:right;">
-0.1271
+0.0357
 </td>
 <td style="text-align:right;">
-0.0445
+0.0621
 </td>
 <td style="text-align:right;">
-2.8573
+0.5749
 </td>
 <td style="text-align:right;">
-0.0043
+0.5654
 </td>
 </tr>
 <tr>
@@ -2003,7 +1865,7 @@ W_HB_W_All_hov2
 0.0319
 </td>
 <td style="text-align:right;">
-9.6216
+9.6041
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2017,7 +1879,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3797
+0.3763
 </td>
 <td style="text-align:right;">
 NA
@@ -2066,13 +1928,13 @@ W_HB_O_All_hov2
 W_HB_O_All_hov2
 </td>
 <td style="text-align:right;">
-0.0835
+0.0841
 </td>
 <td style="text-align:right;">
 0.0178
 </td>
 <td style="text-align:right;">
-4.6959
+4.7219
 </td>
 <td style="text-align:right;">
 0
@@ -2086,13 +1948,13 @@ W_HB_O_All_hov3
 W_HB_O_All_hov3
 </td>
 <td style="text-align:right;">
-0.8470
+0.8492
 </td>
 <td style="text-align:right;">
 0.0198
 </td>
 <td style="text-align:right;">
-42.8590
+42.9192
 </td>
 <td style="text-align:right;">
 0
@@ -2106,13 +1968,13 @@ W_HB_W_All_hov3
 W_HB_W_All_hov3
 </td>
 <td style="text-align:right;">
-0.3234
+0.3228
 </td>
 <td style="text-align:right;">
 0.0351
 </td>
 <td style="text-align:right;">
-9.2203
+9.1863
 </td>
 <td style="text-align:right;">
 0
@@ -2126,7 +1988,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0927
+0.0950
 </td>
 <td style="text-align:right;">
 NA
@@ -2179,13 +2041,13 @@ W_HB_O_All_lb
 W_HB_O_All_lb
 </td>
 <td style="text-align:right;">
-0.9698
+0.9194
 </td>
 <td style="text-align:right;">
-0.0498
+0.0464
 </td>
 <td style="text-align:right;">
-19.4698
+19.8041
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2199,13 +2061,13 @@ W_HB_O_All_walkbike
 W_HB_O_All_walkbike
 </td>
 <td style="text-align:right;">
-0.3447
+0.6707
 </td>
 <td style="text-align:right;">
-0.0140
+0.0181
 </td>
 <td style="text-align:right;">
-24.6758
+36.9936
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2219,16 +2081,16 @@ W_HB_W_All_hov2
 W_HB_W_All_hov
 </td>
 <td style="text-align:right;">
-0.0162
+0.0108
 </td>
 <td style="text-align:right;">
-0.0084
+0.0079
 </td>
 <td style="text-align:right;">
-1.9243
+1.3709
 </td>
 <td style="text-align:right;">
-0.0544
+0.1705
 </td>
 </tr>
 <tr>
@@ -2239,16 +2101,16 @@ W_HB_W_All_hov3
 W_HB_W_All_hov
 </td>
 <td style="text-align:right;">
-0.0162
+0.0108
 </td>
 <td style="text-align:right;">
-0.0084
+0.0079
 </td>
 <td style="text-align:right;">
-1.9243
+1.3709
 </td>
 <td style="text-align:right;">
-0.0544
+0.1705
 </td>
 </tr>
 <tr>
@@ -2259,7 +2121,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0295
+0.0288
 </td>
 <td style="text-align:right;">
 NA
@@ -2308,13 +2170,13 @@ W_HB_O_All_sov
 W_HB_O_All_auto
 </td>
 <td style="text-align:right;">
-0.2250
+0.1982
 </td>
 <td style="text-align:right;">
-0.0127
+0.0117
 </td>
 <td style="text-align:right;">
-17.6943
+16.9974
 </td>
 <td style="text-align:right;">
 0
@@ -2328,13 +2190,13 @@ W_HB_O_All_walkbike
 W_HB_O_All_walkbike
 </td>
 <td style="text-align:right;">
-0.8538
+0.9543
 </td>
 <td style="text-align:right;">
-0.0458
+0.0585
 </td>
 <td style="text-align:right;">
-18.6286
+16.3209
 </td>
 <td style="text-align:right;">
 0
@@ -2348,13 +2210,13 @@ W_HB_W_All_sov
 W_HB_W_All_sov
 </td>
 <td style="text-align:right;">
-0.0334
+0.0299
 </td>
 <td style="text-align:right;">
-0.0080
+0.0073
 </td>
 <td style="text-align:right;">
-4.1797
+4.0990
 </td>
 <td style="text-align:right;">
 0
@@ -2368,7 +2230,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3887
+0.3942
 </td>
 <td style="text-align:right;">
 NA
@@ -2432,10 +2294,10 @@ N_HB_K12_All_hov
 0.0014
 </td>
 <td style="text-align:right;">
-3.6165
+3.5007
 </td>
 <td style="text-align:right;">
-0.0003
+0.0005
 </td>
 </tr>
 <tr>
@@ -2452,10 +2314,10 @@ N_HB_K12_All_hov
 0.0014
 </td>
 <td style="text-align:right;">
-3.6165
+3.5007
 </td>
 <td style="text-align:right;">
-0.0003
+0.0005
 </td>
 </tr>
 <tr>
@@ -2469,10 +2331,10 @@ N_HB_K12_All_sov
 0.0277
 </td>
 <td style="text-align:right;">
-0.0021
+0.0022
 </td>
 <td style="text-align:right;">
-13.3051
+12.8787
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2489,13 +2351,13 @@ N_HB_OD_All_sov
 0.0032
 </td>
 <td style="text-align:right;">
-0.0009
+0.0010
 </td>
 <td style="text-align:right;">
-3.4528
+3.3380
 </td>
 <td style="text-align:right;">
-0.0006
+0.0008
 </td>
 </tr>
 <tr>
@@ -2509,13 +2371,13 @@ N_HB_OD_All_sov
 0.0032
 </td>
 <td style="text-align:right;">
-0.0009
+0.0010
 </td>
 <td style="text-align:right;">
-3.4528
+3.3380
 </td>
 <td style="text-align:right;">
-0.0006
+0.0008
 </td>
 </tr>
 <tr>
@@ -2526,13 +2388,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.4339
+0.5897
 </td>
 <td style="text-align:right;">
-0.1079
+0.0958
 </td>
 <td style="text-align:right;">
--10.1674
+-8.3851
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2546,13 +2408,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.4007
+0.2536
 </td>
 <td style="text-align:right;">
-0.0511
+0.0454
 </td>
 <td style="text-align:right;">
-7.8377
+5.5820
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2566,7 +2428,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0801
+0.0792
 </td>
 <td style="text-align:right;">
 NA
@@ -2618,10 +2480,10 @@ N_HB_K12_All_hov2
 0.0397
 </td>
 <td style="text-align:right;">
-0.0027
+0.0028
 </td>
 <td style="text-align:right;">
-14.5542
+14.0875
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2638,10 +2500,10 @@ N_HB_K12_All_hov3
 0.0190
 </td>
 <td style="text-align:right;">
-0.0024
+0.0025
 </td>
 <td style="text-align:right;">
-7.8548
+7.6022
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2658,13 +2520,13 @@ N_HB_K12_All_school_bus
 0.0043
 </td>
 <td style="text-align:right;">
-0.0024
+0.0025
 </td>
 <td style="text-align:right;">
-1.8117
+1.7535
 </td>
 <td style="text-align:right;">
-0.0701
+0.0795
 </td>
 </tr>
 <tr>
@@ -2681,10 +2543,10 @@ N_HB_OD_Long_hov
 0.0015
 </td>
 <td style="text-align:right;">
-3.7439
+3.6165
 </td>
 <td style="text-align:right;">
-0.0002
+0.0003
 </td>
 </tr>
 <tr>
@@ -2701,10 +2563,10 @@ N_HB_OD_Long_hov
 0.0015
 </td>
 <td style="text-align:right;">
-3.7439
+3.6165
 </td>
 <td style="text-align:right;">
-0.0002
+0.0003
 </td>
 </tr>
 <tr>
@@ -2718,13 +2580,13 @@ N_HB_OD_Short_hov2
 0.0059
 </td>
 <td style="text-align:right;">
-0.0027
+0.0028
 </td>
 <td style="text-align:right;">
-2.1824
+2.1139
 </td>
 <td style="text-align:right;">
-0.0291
+0.0345
 </td>
 </tr>
 <tr>
@@ -2735,13 +2597,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov3
 </td>
 <td style="text-align:right;">
-0.0194
+0.0195
 </td>
 <td style="text-align:right;">
-0.0028
+0.0029
 </td>
 <td style="text-align:right;">
-7.0091
+6.8004
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2755,13 +2617,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.1674
+0.3182
 </td>
 <td style="text-align:right;">
-0.1708
+0.1512
 </td>
 <td style="text-align:right;">
--13.6441
+-11.3338
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2775,13 +2637,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.8587
+0.5507
 </td>
 <td style="text-align:right;">
-0.0809
+0.0717
 </td>
 <td style="text-align:right;">
-10.6092
+7.6783
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2795,7 +2657,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.1273
+0.1235
 </td>
 <td style="text-align:right;">
 NA
@@ -2847,10 +2709,10 @@ N_HB_K12_All_hov
 0.0490
 </td>
 <td style="text-align:right;">
-0.0024
+0.0025
 </td>
 <td style="text-align:right;">
-20.6040
+19.9428
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2867,10 +2729,10 @@ N_HB_K12_All_hov
 0.0490
 </td>
 <td style="text-align:right;">
-0.0024
+0.0025
 </td>
 <td style="text-align:right;">
-20.6040
+19.9428
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2887,13 +2749,13 @@ N_HB_OD_Long_hov2
 0.0099
 </td>
 <td style="text-align:right;">
-0.0029
+0.0030
 </td>
 <td style="text-align:right;">
-3.4244
+3.3093
 </td>
 <td style="text-align:right;">
-0.0006
+0.0009
 </td>
 </tr>
 <tr>
@@ -2907,13 +2769,13 @@ N_HB_OD_Long_hov3
 0.0083
 </td>
 <td style="text-align:right;">
-0.0030
+0.0031
 </td>
 <td style="text-align:right;">
-2.7835
+2.6859
 </td>
 <td style="text-align:right;">
-0.0054
+0.0072
 </td>
 </tr>
 <tr>
@@ -2927,10 +2789,10 @@ N_HB_OD_Short_hov2
 0.0282
 </td>
 <td style="text-align:right;">
-0.0037
+0.0038
 </td>
 <td style="text-align:right;">
-7.6051
+7.3718
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2944,13 +2806,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov3
 </td>
 <td style="text-align:right;">
-0.0294
+0.0295
 </td>
 <td style="text-align:right;">
-0.0038
+0.0039
 </td>
 <td style="text-align:right;">
-7.7736
+7.5407
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2964,13 +2826,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.1455
+0.3046
 </td>
 <td style="text-align:right;">
-0.2074
+0.1831
 </td>
 <td style="text-align:right;">
--12.7267
+-10.5809
 </td>
 <td style="text-align:right;">
 0.0000
@@ -2984,13 +2846,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.9240
+0.5705
 </td>
 <td style="text-align:right;">
-0.0983
+0.0868
 </td>
 <td style="text-align:right;">
-9.4026
+6.5682
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3004,7 +2866,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.1416
+0.1371
 </td>
 <td style="text-align:right;">
 NA
@@ -3061,13 +2923,13 @@ N_HB_K12_All_hov2
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0069
+0.0062
 </td>
 <td style="text-align:right;">
 0.0010
 </td>
 <td style="text-align:right;">
-7.1678
+6.4399
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3081,13 +2943,13 @@ N_HB_K12_All_hov3
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0069
+0.0062
 </td>
 <td style="text-align:right;">
 0.0010
 </td>
 <td style="text-align:right;">
-7.1678
+6.4399
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3101,13 +2963,13 @@ N_HB_K12_All_sov
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0069
+0.0062
 </td>
 <td style="text-align:right;">
 0.0010
 </td>
 <td style="text-align:right;">
-7.1678
+6.4399
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3127,10 +2989,10 @@ N_HB_K12_All_school_bus
 0.0017
 </td>
 <td style="text-align:right;">
-3.5602
+3.5959
 </td>
 <td style="text-align:right;">
-0.0004
+0.0003
 </td>
 </tr>
 <tr>
@@ -3141,13 +3003,13 @@ N_HB_K12_All_walkbike
 N_HB_K12_All_walkbike
 </td>
 <td style="text-align:right;">
-0.0244
+0.0260
 </td>
 <td style="text-align:right;">
-0.0054
+0.0056
 </td>
 <td style="text-align:right;">
-4.4969
+4.6034
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3161,16 +3023,16 @@ N_HB_OD_Short_hov2
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.0036
+0.0037
 </td>
 <td style="text-align:right;">
 0.0013
 </td>
 <td style="text-align:right;">
-2.7120
+2.7155
 </td>
 <td style="text-align:right;">
-0.0067
+0.0066
 </td>
 </tr>
 <tr>
@@ -3181,16 +3043,16 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.0036
+0.0037
 </td>
 <td style="text-align:right;">
 0.0013
 </td>
 <td style="text-align:right;">
-2.7120
+2.7155
 </td>
 <td style="text-align:right;">
-0.0067
+0.0066
 </td>
 </tr>
 <tr>
@@ -3201,16 +3063,16 @@ N_HB_OD_Short_walkbike
 N_HB_OD_Short_walkbike
 </td>
 <td style="text-align:right;">
-0.0017
+0.0049
 </td>
 <td style="text-align:right;">
-0.0011
+0.0018
 </td>
 <td style="text-align:right;">
-1.5845
+2.6384
 </td>
 <td style="text-align:right;">
-0.1131
+0.0083
 </td>
 </tr>
 <tr>
@@ -3221,13 +3083,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-1.0723
+1.0690
 </td>
 <td style="text-align:right;">
-0.0066
+0.0070
 </td>
 <td style="text-align:right;">
--40.4887
+-41.6507
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3241,13 +3103,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.0916
+0.0883
 </td>
 <td style="text-align:right;">
-0.0087
+0.0092
 </td>
 <td style="text-align:right;">
-10.5112
+9.5699
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3261,7 +3123,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0826
+0.0779
 </td>
 <td style="text-align:right;">
 NA
@@ -3314,16 +3176,16 @@ N_HB_OD_Long_hov2
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0197
+0.0193
 </td>
 <td style="text-align:right;">
-0.0079
+0.0082
 </td>
 <td style="text-align:right;">
-2.5032
+2.3662
 </td>
 <td style="text-align:right;">
-0.0123
+0.018
 </td>
 </tr>
 <tr>
@@ -3334,16 +3196,16 @@ N_HB_OD_Long_hov3
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0197
+0.0193
 </td>
 <td style="text-align:right;">
-0.0079
+0.0082
 </td>
 <td style="text-align:right;">
-2.5032
+2.3662
 </td>
 <td style="text-align:right;">
-0.0123
+0.018
 </td>
 </tr>
 <tr>
@@ -3354,16 +3216,16 @@ N_HB_OD_Short_hov2
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0197
+0.0193
 </td>
 <td style="text-align:right;">
-0.0079
+0.0082
 </td>
 <td style="text-align:right;">
-2.5032
+2.3662
 </td>
 <td style="text-align:right;">
-0.0123
+0.018
 </td>
 </tr>
 <tr>
@@ -3374,16 +3236,16 @@ N_HB_OD_Short_hov3
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0197
+0.0193
 </td>
 <td style="text-align:right;">
-0.0079
+0.0082
 </td>
 <td style="text-align:right;">
-2.5032
+2.3662
 </td>
 <td style="text-align:right;">
-0.0123
+0.018
 </td>
 </tr>
 <tr>
@@ -3397,13 +3259,13 @@ N_HB_OD_Long_sov
 0.0992
 </td>
 <td style="text-align:right;">
-0.0099
+0.0102
 </td>
 <td style="text-align:right;">
-9.9995
+9.7562
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3414,16 +3276,16 @@ N_HB_OD_Short_sov
 N_HB_OD_Short_sov
 </td>
 <td style="text-align:right;">
-0.0971
+0.1034
 </td>
 <td style="text-align:right;">
-0.0145
+0.0153
 </td>
 <td style="text-align:right;">
-6.6842
+6.7536
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3434,16 +3296,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.5816
+0.5840
 </td>
 <td style="text-align:right;">
-0.0092
+0.0095
 </td>
 <td style="text-align:right;">
-63.2665
+61.4779
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3454,16 +3316,16 @@ N_HB_OMED_All_sov
 N_HB_OMED_All_sov
 </td>
 <td style="text-align:right;">
-0.2353
+0.2348
 </td>
 <td style="text-align:right;">
-0.0297
+0.0307
 </td>
 <td style="text-align:right;">
-7.9278
+7.6431
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3474,16 +3336,16 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.0818
+0.1098
 </td>
 <td style="text-align:right;">
-0.3545
+0.3314
 </td>
 <td style="text-align:right;">
--10.9120
+-11.0764
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3494,16 +3356,16 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-1.1839
+1.0454
 </td>
 <td style="text-align:right;">
-0.1677
+0.1569
 </td>
 <td style="text-align:right;">
-7.0590
+6.6638
 </td>
 <td style="text-align:right;">
-0.0000
+0.000
 </td>
 </tr>
 <tr>
@@ -3514,7 +3376,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.5115
+0.5160
 </td>
 <td style="text-align:right;">
 NA
@@ -3563,16 +3425,16 @@ N_HB_OD_Long_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.0821
+0.0813
 </td>
 <td style="text-align:right;">
-0.0078
+0.0080
 </td>
 <td style="text-align:right;">
-10.5184
+10.1000
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3583,16 +3445,16 @@ N_HB_OD_Short_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.0821
+0.0813
 </td>
 <td style="text-align:right;">
-0.0078
+0.0080
 </td>
 <td style="text-align:right;">
-10.5184
+10.1000
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3603,16 +3465,16 @@ N_HB_OD_Long_hov2
 N_HB_OD_Long_hov2
 </td>
 <td style="text-align:right;">
-0.2283
+0.2281
 </td>
 <td style="text-align:right;">
-0.0138
+0.0142
 </td>
 <td style="text-align:right;">
-16.5854
+16.0705
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3623,16 +3485,16 @@ N_HB_OD_Short_hov2
 N_HB_OD_Short_hov2
 </td>
 <td style="text-align:right;">
-0.1959
+0.1968
 </td>
 <td style="text-align:right;">
-0.0177
+0.0183
 </td>
 <td style="text-align:right;">
-11.0712
+10.7560
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3643,16 +3505,16 @@ N_HB_OME_All_hov2
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.2711
+0.2710
 </td>
 <td style="text-align:right;">
-0.0069
+0.0071
 </td>
 <td style="text-align:right;">
-39.4564
+38.2199
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3663,16 +3525,16 @@ N_HB_OME_All_hov3
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.2711
+0.2710
 </td>
 <td style="text-align:right;">
-0.0069
+0.0071
 </td>
 <td style="text-align:right;">
-39.4564
+38.2199
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3683,16 +3545,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0270
+0.0269
 </td>
 <td style="text-align:right;">
-0.0087
+0.0090
 </td>
 <td style="text-align:right;">
-3.0923
+2.9839
 </td>
 <td style="text-align:right;">
-0.002
+0.0029
 </td>
 </tr>
 <tr>
@@ -3706,13 +3568,13 @@ N_HB_OMED_All_hov2
 0.3699
 </td>
 <td style="text-align:right;">
-0.0309
+0.0319
 </td>
 <td style="text-align:right;">
-11.9657
+11.5886
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3723,16 +3585,16 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.1178
+0.2314
 </td>
 <td style="text-align:right;">
-0.3720
+0.3219
 </td>
 <td style="text-align:right;">
--10.7551
+-10.7117
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3743,16 +3605,16 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-1.0156
+0.6957
 </td>
 <td style="text-align:right;">
-0.1761
+0.1525
 </td>
 <td style="text-align:right;">
-5.7673
+4.5629
 </td>
 <td style="text-align:right;">
-0.000
+0.0000
 </td>
 </tr>
 <tr>
@@ -3763,7 +3625,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.5579
+0.5620
 </td>
 <td style="text-align:right;">
 NA
@@ -3812,13 +3674,13 @@ N_HB_OD_Long_hov3
 N_HB_OD_Long_hov3
 </td>
 <td style="text-align:right;">
-0.1697
+0.1689
 </td>
 <td style="text-align:right;">
-0.0101
+0.0104
 </td>
 <td style="text-align:right;">
-16.8355
+16.2646
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3835,13 +3697,13 @@ N_HB_OD_Short_hov2
 0.0469
 </td>
 <td style="text-align:right;">
-0.0125
+0.0129
 </td>
 <td style="text-align:right;">
-3.7609
+3.6340
 </td>
 <td style="text-align:right;">
-0.0002
+0.0003
 </td>
 </tr>
 <tr>
@@ -3852,13 +3714,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov3
 </td>
 <td style="text-align:right;">
-0.1450
+0.1473
 </td>
 <td style="text-align:right;">
-0.0127
+0.0132
 </td>
 <td style="text-align:right;">
-11.3848
+11.1721
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3875,13 +3737,13 @@ N_HB_OME_All_hov2
 0.0120
 </td>
 <td style="text-align:right;">
-0.0061
+0.0063
 </td>
 <td style="text-align:right;">
-1.9710
+1.9063
 </td>
 <td style="text-align:right;">
-0.0487
+0.0566
 </td>
 </tr>
 <tr>
@@ -3892,13 +3754,13 @@ N_HB_OME_All_hov3
 N_HB_OME_All_hov3
 </td>
 <td style="text-align:right;">
-0.5084
+0.5080
 </td>
 <td style="text-align:right;">
-0.0083
+0.0086
 </td>
 <td style="text-align:right;">
-61.2496
+59.2615
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3912,16 +3774,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0128
+0.0127
 </td>
 <td style="text-align:right;">
-0.0062
+0.0064
 </td>
 <td style="text-align:right;">
-2.0727
+2.0009
 </td>
 <td style="text-align:right;">
-0.0382
+0.0454
 </td>
 </tr>
 <tr>
@@ -3932,13 +3794,13 @@ N_HB_OMED_All_hov3
 N_HB_OMED_All_hov3
 </td>
 <td style="text-align:right;">
-0.2361
+0.2359
 </td>
 <td style="text-align:right;">
-0.0324
+0.0335
 </td>
 <td style="text-align:right;">
-7.2856
+7.0483
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3952,13 +3814,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.0478
+0.1347
 </td>
 <td style="text-align:right;">
-0.2918
+0.2564
 </td>
 <td style="text-align:right;">
--14.0487
+-12.2073
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3972,13 +3834,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-1.4460
+0.9546
 </td>
 <td style="text-align:right;">
-0.1382
+0.1215
 </td>
 <td style="text-align:right;">
-10.4646
+7.8579
 </td>
 <td style="text-align:right;">
 0.0000
@@ -3992,7 +3854,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3861
+0.3912
 </td>
 <td style="text-align:right;">
 NA
@@ -4045,13 +3907,13 @@ N_HB_OD_Long_lb
 N_HB_OD_Long_lb
 </td>
 <td style="text-align:right;">
-0.0417
+0.0414
 </td>
 <td style="text-align:right;">
-0.0076
+0.0079
 </td>
 <td style="text-align:right;">
-5.4559
+5.2654
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4065,13 +3927,13 @@ N_HB_OD_Short_lb
 N_HB_OD_Short_lb
 </td>
 <td style="text-align:right;">
-0.2976
+0.2998
 </td>
 <td style="text-align:right;">
-0.0094
+0.0097
 </td>
 <td style="text-align:right;">
-31.7100
+30.8129
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4085,13 +3947,13 @@ N_HB_OME_All_lb
 N_HB_OME_All_lb
 </td>
 <td style="text-align:right;">
-0.3021
+0.3018
 </td>
 <td style="text-align:right;">
-0.0075
+0.0077
 </td>
 <td style="text-align:right;">
-40.3804
+39.0659
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4105,13 +3967,13 @@ N_HB_OME_All_walkbike
 N_HB_OME_All_walkbike
 </td>
 <td style="text-align:right;">
-0.0091
+0.0097
 </td>
 <td style="text-align:right;">
-0.0024
+0.0025
 </td>
 <td style="text-align:right;">
-3.8787
+3.8553
 </td>
 <td style="text-align:right;">
 0.0001
@@ -4125,7 +3987,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0375
+0.0364
 </td>
 <td style="text-align:right;">
 NA
@@ -4174,16 +4036,16 @@ N_HB_K12_All_lb
 N_HB_K12_All_lb
 </td>
 <td style="text-align:right;">
-0.0870
+0.0871
 </td>
 <td style="text-align:right;">
-0.0503
+0.0482
 </td>
 <td style="text-align:right;">
-1.7308
+1.8057
 </td>
 <td style="text-align:right;">
-0.0835
+0.0710
 </td>
 </tr>
 <tr>
@@ -4194,13 +4056,13 @@ N_HB_OD_Long_auto_pay
 N_HB_O_All_auto_pay
 </td>
 <td style="text-align:right;">
-0.4492
+0.4460
 </td>
 <td style="text-align:right;">
-0.0199
+0.0191
 </td>
 <td style="text-align:right;">
-22.5294
+23.2954
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4214,13 +4076,13 @@ N_HB_OD_Short_auto_pay
 N_HB_O_All_auto_pay
 </td>
 <td style="text-align:right;">
-0.4492
+0.4460
 </td>
 <td style="text-align:right;">
-0.0199
+0.0191
 </td>
 <td style="text-align:right;">
-22.5294
+23.2954
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4234,13 +4096,13 @@ N_HB_OME_All_auto_pay
 N_HB_O_All_auto_pay
 </td>
 <td style="text-align:right;">
-0.4492
+0.4460
 </td>
 <td style="text-align:right;">
-0.0199
+0.0191
 </td>
 <td style="text-align:right;">
-22.5294
+23.2954
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4254,13 +4116,13 @@ N_HB_OMED_All_auto_pay
 N_HB_O_All_auto_pay
 </td>
 <td style="text-align:right;">
-0.4492
+0.4460
 </td>
 <td style="text-align:right;">
-0.0199
+0.0191
 </td>
 <td style="text-align:right;">
-22.5294
+23.2954
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4274,16 +4136,16 @@ N_HB_OD_Long_lb
 N_HB_OD_All_lb
 </td>
 <td style="text-align:right;">
-0.0814
+0.0730
 </td>
 <td style="text-align:right;">
-0.0227
+0.0218
 </td>
 <td style="text-align:right;">
-3.5849
+3.3536
 </td>
 <td style="text-align:right;">
-0.0003
+0.0008
 </td>
 </tr>
 <tr>
@@ -4294,16 +4156,16 @@ N_HB_OD_Short_lb
 N_HB_OD_All_lb
 </td>
 <td style="text-align:right;">
-0.0814
+0.0730
 </td>
 <td style="text-align:right;">
-0.0227
+0.0218
 </td>
 <td style="text-align:right;">
-3.5849
+3.3536
 </td>
 <td style="text-align:right;">
-0.0003
+0.0008
 </td>
 </tr>
 <tr>
@@ -4314,56 +4176,56 @@ N_HB_OD_Long_walkbike
 N_HB_OD_Long_walkbike
 </td>
 <td style="text-align:right;">
-0.0422
+0.0370
 </td>
 <td style="text-align:right;">
-0.0078
+0.0092
 </td>
 <td style="text-align:right;">
-5.3830
+4.0270
+</td>
+<td style="text-align:right;">
+0.0001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short_sov
+</td>
+<td style="text-align:left;">
+N_HB_OD_Short_sov
+</td>
+<td style="text-align:right;">
+0.0141
+</td>
+<td style="text-align:right;">
+0.0054
+</td>
+<td style="text-align:right;">
+2.5946
+</td>
+<td style="text-align:right;">
+0.0095
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+N_HB_OD_Short_walkbike
+</td>
+<td style="text-align:left;">
+N_HB_OD_Short_walkbike
+</td>
+<td style="text-align:right;">
+0.0333
+</td>
+<td style="text-align:right;">
+0.0064
+</td>
+<td style="text-align:right;">
+5.1591
 </td>
 <td style="text-align:right;">
 0.0000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OD_Short_sov
-</td>
-<td style="text-align:left;">
-N_HB_OD_Short_sov
-</td>
-<td style="text-align:right;">
-0.0144
-</td>
-<td style="text-align:right;">
-0.0056
-</td>
-<td style="text-align:right;">
-2.5781
-</td>
-<td style="text-align:right;">
-0.0100
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-N_HB_OD_Short_walkbike
-</td>
-<td style="text-align:left;">
-N_HB_OD_Short_walkbike
-</td>
-<td style="text-align:right;">
-0.0136
-</td>
-<td style="text-align:right;">
-0.0040
-</td>
-<td style="text-align:right;">
-3.3894
-</td>
-<td style="text-align:right;">
-0.0007
 </td>
 </tr>
 <tr>
@@ -4374,16 +4236,16 @@ N_HB_OME_All_hov2
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.0088
+0.0087
 </td>
 <td style="text-align:right;">
-0.0028
+0.0027
 </td>
 <td style="text-align:right;">
-3.1553
+3.2581
 </td>
 <td style="text-align:right;">
-0.0016
+0.0011
 </td>
 </tr>
 <tr>
@@ -4394,16 +4256,16 @@ N_HB_OME_All_hov3
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.0088
+0.0087
 </td>
 <td style="text-align:right;">
-0.0028
+0.0027
 </td>
 <td style="text-align:right;">
-3.1553
+3.2581
 </td>
 <td style="text-align:right;">
-0.0016
+0.0011
 </td>
 </tr>
 <tr>
@@ -4414,16 +4276,16 @@ N_HB_OME_All_lb
 N_HB_OME_All_lb
 </td>
 <td style="text-align:right;">
-0.0625
+0.0644
 </td>
 <td style="text-align:right;">
-0.0285
+0.0274
 </td>
 <td style="text-align:right;">
-2.1894
+2.3516
 </td>
 <td style="text-align:right;">
-0.0286
+0.0187
 </td>
 </tr>
 <tr>
@@ -4434,13 +4296,13 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0255
+0.0242
 </td>
 <td style="text-align:right;">
-0.0035
+0.0034
 </td>
 <td style="text-align:right;">
-7.1894
+7.1388
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4454,13 +4316,13 @@ N_HB_OME_All_walkbike
 N_HB_OME_All_walkbike
 </td>
 <td style="text-align:right;">
-0.1991
+0.0913
 </td>
 <td style="text-align:right;">
-0.0090
+0.0089
 </td>
 <td style="text-align:right;">
-22.1654
+10.2424
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4474,13 +4336,13 @@ N_HB_OMED_All_walkbike
 N_HB_OME_All_walkbike
 </td>
 <td style="text-align:right;">
-0.1991
+0.0913
 </td>
 <td style="text-align:right;">
-0.0090
+0.0089
 </td>
 <td style="text-align:right;">
-22.1654
+10.2424
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4497,13 +4359,13 @@ N_HB_OMED_All_hov
 0.0215
 </td>
 <td style="text-align:right;">
-0.0104
+0.0099
 </td>
 <td style="text-align:right;">
-2.0709
+2.1577
 </td>
 <td style="text-align:right;">
-0.0384
+0.0310
 </td>
 </tr>
 <tr>
@@ -4517,13 +4379,13 @@ N_HB_OMED_All_hov
 0.0215
 </td>
 <td style="text-align:right;">
-0.0104
+0.0099
 </td>
 <td style="text-align:right;">
-2.0709
+2.1577
 </td>
 <td style="text-align:right;">
-0.0384
+0.0310
 </td>
 </tr>
 <tr>
@@ -4534,13 +4396,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-1.0056
+1.0069
 </td>
 <td style="text-align:right;">
-0.0138
+0.0143
 </td>
 <td style="text-align:right;">
--80.0787
+-74.5180
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4554,16 +4416,16 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.0171
+0.0169
 </td>
 <td style="text-align:right;">
-0.0184
+0.0189
 </td>
 <td style="text-align:right;">
-0.9310
+0.8917
 </td>
 <td style="text-align:right;">
-0.3519
+0.3726
 </td>
 </tr>
 <tr>
@@ -4574,7 +4436,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.2938
+0.3255
 </td>
 <td style="text-align:right;">
 NA
@@ -4627,13 +4489,13 @@ N_HB_OD_Long_hov2
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0242
+0.0238
 </td>
 <td style="text-align:right;">
-0.0039
+0.0041
 </td>
 <td style="text-align:right;">
-6.2666
+5.7806
 </td>
 <td style="text-align:right;">
 0
@@ -4647,13 +4509,13 @@ N_HB_OD_Long_hov3
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0242
+0.0238
 </td>
 <td style="text-align:right;">
-0.0039
+0.0041
 </td>
 <td style="text-align:right;">
-6.2666
+5.7806
 </td>
 <td style="text-align:right;">
 0
@@ -4667,13 +4529,13 @@ N_HB_OD_Short_hov2
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0242
+0.0238
 </td>
 <td style="text-align:right;">
-0.0039
+0.0041
 </td>
 <td style="text-align:right;">
-6.2666
+5.7806
 </td>
 <td style="text-align:right;">
 0
@@ -4687,13 +4549,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_All_hov
 </td>
 <td style="text-align:right;">
-0.0242
+0.0238
 </td>
 <td style="text-align:right;">
-0.0039
+0.0041
 </td>
 <td style="text-align:right;">
-6.2666
+5.7806
 </td>
 <td style="text-align:right;">
 0
@@ -4707,13 +4569,13 @@ N_HB_OD_Long_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.1037
+0.1079
 </td>
 <td style="text-align:right;">
-0.0040
+0.0043
 </td>
 <td style="text-align:right;">
-25.7754
+25.2109
 </td>
 <td style="text-align:right;">
 0
@@ -4727,13 +4589,13 @@ N_HB_OD_Short_sov
 N_HB_OD_All_sov
 </td>
 <td style="text-align:right;">
-0.1037
+0.1079
 </td>
 <td style="text-align:right;">
-0.0040
+0.0043
 </td>
 <td style="text-align:right;">
-25.7754
+25.2109
 </td>
 <td style="text-align:right;">
 0
@@ -4747,13 +4609,13 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0292
+0.0321
 </td>
 <td style="text-align:right;">
-0.0043
+0.0045
 </td>
 <td style="text-align:right;">
-6.8520
+7.0767
 </td>
 <td style="text-align:right;">
 0
@@ -4767,13 +4629,13 @@ N_HB_OMED_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0292
+0.0321
 </td>
 <td style="text-align:right;">
-0.0043
+0.0045
 </td>
 <td style="text-align:right;">
-6.8520
+7.0767
 </td>
 <td style="text-align:right;">
 0
@@ -4787,13 +4649,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.1296
+0.2122
 </td>
 <td style="text-align:right;">
-0.2944
+0.2584
 </td>
 <td style="text-align:right;">
--11.8248
+-12.0121
 </td>
 <td style="text-align:right;">
 0
@@ -4807,13 +4669,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.9714
+0.7377
 </td>
 <td style="text-align:right;">
-0.1395
+0.1225
 </td>
 <td style="text-align:right;">
-6.9647
+6.0198
 </td>
 <td style="text-align:right;">
 0
@@ -4827,7 +4689,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3882
+0.3822
 </td>
 <td style="text-align:right;">
 NA
@@ -4876,13 +4738,13 @@ N_HB_OD_Long_hov2
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0225
+0.0222
 </td>
 <td style="text-align:right;">
-0.0039
+0.0040
 </td>
 <td style="text-align:right;">
-5.8121
+5.5898
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4896,13 +4758,13 @@ N_HB_OD_Long_hov3
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0225
+0.0222
 </td>
 <td style="text-align:right;">
-0.0039
+0.0040
 </td>
 <td style="text-align:right;">
-5.8121
+5.5898
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4916,13 +4778,13 @@ N_HB_OD_Long_sov
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0225
+0.0222
 </td>
 <td style="text-align:right;">
-0.0039
+0.0040
 </td>
 <td style="text-align:right;">
-5.8121
+5.5898
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4936,13 +4798,13 @@ N_HB_OD_Short_hov2
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.1271
+0.1266
 </td>
 <td style="text-align:right;">
-0.0071
+0.0073
 </td>
 <td style="text-align:right;">
-17.9138
+17.2242
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4956,13 +4818,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov
 </td>
 <td style="text-align:right;">
-0.1271
+0.1266
 </td>
 <td style="text-align:right;">
-0.0071
+0.0073
 </td>
 <td style="text-align:right;">
-17.9138
+17.2242
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4976,13 +4838,13 @@ N_HB_OD_Short_sov
 N_HB_OD_Short_sov
 </td>
 <td style="text-align:right;">
-0.1568
+0.1619
 </td>
 <td style="text-align:right;">
-0.0081
+0.0085
 </td>
 <td style="text-align:right;">
-19.4184
+19.0696
 </td>
 <td style="text-align:right;">
 0.0000
@@ -4996,16 +4858,16 @@ N_HB_OME_All_hov2
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.0118
+0.0117
 </td>
 <td style="text-align:right;">
-0.0040
+0.0041
 </td>
 <td style="text-align:right;">
-2.9689
+2.8574
 </td>
 <td style="text-align:right;">
-0.0030
+0.0043
 </td>
 </tr>
 <tr>
@@ -5016,16 +4878,16 @@ N_HB_OME_All_hov3
 N_HB_OME_All_hov
 </td>
 <td style="text-align:right;">
-0.0118
+0.0117
 </td>
 <td style="text-align:right;">
-0.0040
+0.0041
 </td>
 <td style="text-align:right;">
-2.9689
+2.8574
 </td>
 <td style="text-align:right;">
-0.0030
+0.0043
 </td>
 </tr>
 <tr>
@@ -5036,16 +4898,16 @@ N_HB_OME_All_sov
 N_HB_OME_All_sov
 </td>
 <td style="text-align:right;">
-0.0111
+0.0110
 </td>
 <td style="text-align:right;">
-0.0050
+0.0052
 </td>
 <td style="text-align:right;">
-2.2099
+2.1231
 </td>
 <td style="text-align:right;">
-0.0271
+0.0338
 </td>
 </tr>
 <tr>
@@ -5059,10 +4921,10 @@ N_HB_OMED_All_hov
 0.0999
 </td>
 <td style="text-align:right;">
-0.0147
+0.0152
 </td>
 <td style="text-align:right;">
-6.7835
+6.5694
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5079,10 +4941,10 @@ N_HB_OMED_All_hov
 0.0999
 </td>
 <td style="text-align:right;">
-0.0147
+0.0152
 </td>
 <td style="text-align:right;">
-6.7835
+6.5694
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5096,13 +4958,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.0643
+0.1589
 </td>
 <td style="text-align:right;">
-0.2856
+0.2479
 </td>
 <td style="text-align:right;">
--14.8198
+-13.7932
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5116,13 +4978,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-1.3056
+0.8764
 </td>
 <td style="text-align:right;">
-0.1353
+0.1176
 </td>
 <td style="text-align:right;">
-9.6489
+7.4555
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5136,7 +4998,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.3421
+0.3316
 </td>
 <td style="text-align:right;">
 NA
@@ -5185,13 +5047,13 @@ N_HB_K12_All_hov2
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0475
+0.0476
 </td>
 <td style="text-align:right;">
-0.0037
+0.0038
 </td>
 <td style="text-align:right;">
-12.7349
+12.3978
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5205,13 +5067,13 @@ N_HB_K12_All_hov3
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0475
+0.0476
 </td>
 <td style="text-align:right;">
-0.0037
+0.0038
 </td>
 <td style="text-align:right;">
-12.7349
+12.3978
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5225,13 +5087,13 @@ N_HB_K12_All_sov
 N_HB_K12_All_auto
 </td>
 <td style="text-align:right;">
-0.0475
+0.0476
 </td>
 <td style="text-align:right;">
-0.0037
+0.0038
 </td>
 <td style="text-align:right;">
-12.7349
+12.3978
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5245,13 +5107,13 @@ N_HB_OD_Long_hov2
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0287
+0.0284
 </td>
 <td style="text-align:right;">
-0.0029
+0.0030
 </td>
 <td style="text-align:right;">
-9.8678
+9.5192
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5265,13 +5127,13 @@ N_HB_OD_Long_hov3
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0287
+0.0284
 </td>
 <td style="text-align:right;">
-0.0029
+0.0030
 </td>
 <td style="text-align:right;">
-9.8678
+9.5192
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5285,13 +5147,13 @@ N_HB_OD_Long_sov
 N_HB_OD_Long_auto
 </td>
 <td style="text-align:right;">
-0.0287
+0.0284
 </td>
 <td style="text-align:right;">
-0.0029
+0.0030
 </td>
 <td style="text-align:right;">
-9.8678
+9.5192
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5305,13 +5167,13 @@ N_HB_OD_Short_hov2
 N_HB_OD_Short_hov2
 </td>
 <td style="text-align:right;">
-0.0726
+0.0727
 </td>
 <td style="text-align:right;">
-0.0078
+0.0081
 </td>
 <td style="text-align:right;">
-9.2814
+8.9965
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5325,13 +5187,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov3
 </td>
 <td style="text-align:right;">
-0.1582
+0.1589
 </td>
 <td style="text-align:right;">
-0.0078
+0.0081
 </td>
 <td style="text-align:right;">
-20.2361
+19.6750
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5345,16 +5207,16 @@ N_HB_OD_Short_sov
 N_HB_OD_Short_sov
 </td>
 <td style="text-align:right;">
-0.0131
+0.0135
 </td>
 <td style="text-align:right;">
-0.0061
+0.0064
 </td>
 <td style="text-align:right;">
-2.1444
+2.1096
 </td>
 <td style="text-align:right;">
-0.0320
+0.0349
 </td>
 </tr>
 <tr>
@@ -5365,16 +5227,16 @@ N_HB_OME_All_hov2
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-0.0051
+0.0048
 </td>
 <td style="text-align:right;">
-0.0023
+0.0024
 </td>
 <td style="text-align:right;">
-2.1874
+2.0019
 </td>
 <td style="text-align:right;">
-0.0287
+0.0453
 </td>
 </tr>
 <tr>
@@ -5385,16 +5247,16 @@ N_HB_OME_All_hov3
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-0.0051
+0.0048
 </td>
 <td style="text-align:right;">
-0.0023
+0.0024
 </td>
 <td style="text-align:right;">
-2.1874
+2.0019
 </td>
 <td style="text-align:right;">
-0.0287
+0.0453
 </td>
 </tr>
 <tr>
@@ -5405,16 +5267,16 @@ N_HB_OME_All_sov
 N_HB_OME_All
 </td>
 <td style="text-align:right;">
-0.0051
+0.0048
 </td>
 <td style="text-align:right;">
-0.0023
+0.0024
 </td>
 <td style="text-align:right;">
-2.1874
+2.0019
 </td>
 <td style="text-align:right;">
-0.0287
+0.0453
 </td>
 </tr>
 <tr>
@@ -5425,13 +5287,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-0.0578
+0.1692
 </td>
 <td style="text-align:right;">
-0.2718
+0.2356
 </td>
 <td style="text-align:right;">
--16.0227
+-14.2709
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5445,13 +5307,13 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-1.3611
+0.8498
 </td>
 <td style="text-align:right;">
-0.1288
+0.1117
 </td>
 <td style="text-align:right;">
-10.5678
+7.6048
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5465,7 +5327,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.2724
+0.2534
 </td>
 <td style="text-align:right;">
 NA
@@ -5514,16 +5376,16 @@ N_HB_OD_Long_auto_pay
 N_HB_OD_Long_auto_pay
 </td>
 <td style="text-align:right;">
-0.2116
+0.2106
 </td>
 <td style="text-align:right;">
-0.0027
+0.0028
 </td>
 <td style="text-align:right;">
-78.3958
+75.6171
 </td>
 <td style="text-align:right;">
-0.0000
+0
 </td>
 </tr>
 <tr>
@@ -5534,16 +5396,16 @@ N_HB_OD_Short_auto_pay
 N_HB_OD_Short_auto_pay
 </td>
 <td style="text-align:right;">
--0.0013
+0.0000
 </td>
 <td style="text-align:right;">
-0.0053
+0.0055
 </td>
 <td style="text-align:right;">
--0.2397
+0.0000
 </td>
 <td style="text-align:right;">
-0.8106
+1
 </td>
 </tr>
 <tr>
@@ -5563,7 +5425,7 @@ N_HB_OD_Short_sov
 0.0000
 </td>
 <td style="text-align:right;">
-1.0000
+1
 </td>
 </tr>
 <tr>
@@ -5574,7 +5436,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.0140
+0.0132
 </td>
 <td style="text-align:right;">
 NA
@@ -5623,13 +5485,13 @@ N_HB_OD_Long_lb
 N_HB_OD_Long_lb
 </td>
 <td style="text-align:right;">
-0.0766
+0.0761
 </td>
 <td style="text-align:right;">
-0.0136
+0.0139
 </td>
 <td style="text-align:right;">
-5.6422
+5.4637
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5643,13 +5505,13 @@ N_HB_OD_Short_lb
 N_HB_OD_Short_lb
 </td>
 <td style="text-align:right;">
-0.6752
+0.6860
 </td>
 <td style="text-align:right;">
-0.0174
+0.0180
 </td>
 <td style="text-align:right;">
-38.7384
+38.0847
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5663,16 +5525,16 @@ N_HB_OD_Short_sov
 N_HB_OD_Short_sov
 </td>
 <td style="text-align:right;">
-0.0055
+0.0056
 </td>
 <td style="text-align:right;">
-0.0026
+0.0027
 </td>
 <td style="text-align:right;">
-2.1070
+2.0806
 </td>
 <td style="text-align:right;">
-0.0351
+0.0375
 </td>
 </tr>
 <tr>
@@ -5683,16 +5545,16 @@ N_HB_OD_Short_walkbike
 N_HB_OD_Short_walkbike
 </td>
 <td style="text-align:right;">
-0.0030
+0.0082
 </td>
 <td style="text-align:right;">
-0.0019
+0.0032
 </td>
 <td style="text-align:right;">
-1.6218
+2.5627
 </td>
 <td style="text-align:right;">
-0.1049
+0.0104
 </td>
 </tr>
 <tr>
@@ -5703,13 +5565,13 @@ N_HB_OME_All_lb
 N_HB_OME_All_lb
 </td>
 <td style="text-align:right;">
-0.0806
+0.0794
 </td>
 <td style="text-align:right;">
-0.0133
+0.0137
 </td>
 <td style="text-align:right;">
-6.0588
+5.7998
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5723,13 +5585,13 @@ N_HB_OMED_All_lb
 N_HB_OMED_All_lb
 </td>
 <td style="text-align:right;">
-0.4703
+0.4658
 </td>
 <td style="text-align:right;">
-0.0251
+0.0258
 </td>
 <td style="text-align:right;">
-18.7723
+18.0571
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5792,13 +5654,13 @@ N_HB_OD_Long_walkbike
 N_HB_OD_Long_walkbike
 </td>
 <td style="text-align:right;">
-0.0413
+0.0437
 </td>
 <td style="text-align:right;">
-0.0089
+0.0086
 </td>
 <td style="text-align:right;">
-4.6659
+5.0645
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5812,13 +5674,13 @@ N_HB_OD_Short_sov
 N_HB_OD_OME_sov
 </td>
 <td style="text-align:right;">
-0.0280
+0.0115
 </td>
 <td style="text-align:right;">
-0.0033
+0.0027
 </td>
 <td style="text-align:right;">
-8.3736
+4.3120
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5832,13 +5694,13 @@ N_HB_OME_All_sov
 N_HB_OD_OME_sov
 </td>
 <td style="text-align:right;">
-0.0280
+0.0115
 </td>
 <td style="text-align:right;">
-0.0033
+0.0027
 </td>
 <td style="text-align:right;">
-8.3736
+4.3120
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5852,16 +5714,16 @@ N_HB_OD_Short_hov2
 N_HB_OD_Short_hov2
 </td>
 <td style="text-align:right;">
-0.0226
+0.0254
 </td>
 <td style="text-align:right;">
-0.0081
+0.0065
 </td>
 <td style="text-align:right;">
-2.7756
+3.9067
 </td>
 <td style="text-align:right;">
-0.0055
+0.0001
 </td>
 </tr>
 <tr>
@@ -5872,13 +5734,13 @@ N_HB_OD_Short_hov3
 N_HB_OD_Short_hov3
 </td>
 <td style="text-align:right;">
-0.0698
+0.0553
 </td>
 <td style="text-align:right;">
-0.0082
+0.0066
 </td>
 <td style="text-align:right;">
-8.4653
+8.3890
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5892,13 +5754,13 @@ N_HB_OD_Short_walkbike
 N_HB_OD_Short_walkbike
 </td>
 <td style="text-align:right;">
-0.0248
+0.0286
 </td>
 <td style="text-align:right;">
-0.0045
+0.0060
 </td>
 <td style="text-align:right;">
-5.4736
+4.7268
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5912,16 +5774,16 @@ N_HB_OME_All_walkbike
 N_HB_OME_All_walkbike
 </td>
 <td style="text-align:right;">
-0.1097
+0.0038
 </td>
 <td style="text-align:right;">
-0.0102
+0.0084
 </td>
 <td style="text-align:right;">
-10.7816
+0.4535
 </td>
 <td style="text-align:right;">
-0.0000
+0.6502
 </td>
 </tr>
 <tr>
@@ -5932,13 +5794,13 @@ alpha
 NA
 </td>
 <td style="text-align:right;">
-1.0309
+1.0668
 </td>
 <td style="text-align:right;">
-0.0153
+0.0132
 </td>
 <td style="text-align:right;">
--71.0576
+-55.0747
 </td>
 <td style="text-align:right;">
 0.0000
@@ -5952,16 +5814,16 @@ gamma
 NA
 </td>
 <td style="text-align:right;">
-0.0549
+0.1042
 </td>
 <td style="text-align:right;">
-0.0203
+0.0175
 </td>
 <td style="text-align:right;">
-2.7071
+5.9600
 </td>
 <td style="text-align:right;">
-0.0068
+0.0000
 </td>
 </tr>
 <tr>
@@ -5972,7 +5834,7 @@ r_sq
 NA
 </td>
 <td style="text-align:right;">
-0.2966
+0.2255
 </td>
 <td style="text-align:right;">
 NA
@@ -5996,12 +5858,12 @@ NA
 <p>While no zone in the Triangle region has an auto accessibility below four, walk accessibilities can approach zero. If a zone has limited walk accessibility, the boosted model will ensure that few (if any) NHB walk trips are produced.</p>
 <p>This same approach was attempted for transit, but was discarded after it returned spurious results. These counter-intuitive results are likely due to the nature of the transit production models, which are driven almost entirely by home-based transit trips. These can only occur where transit access exists. By contrast, walk production models are influenced heavily by drive modes, which are common in all zones regardless of walk accessibility. This is why the walk models benefit from accessibility boosting while transit do not.</p>
 <p>For NHB auto trips, the slope of the line indicates the sensitivity to accessibility. For example, the least sensitive trip is the K12 SOV trip, which can be made after a parent drops a child off at school. For these trips, the accessibility of the school zone is not as important. On the other hand, group shopping trips (OME HOV) are the most sensitive to accessibility. These relationships between trip type and sensitivity to accessibility are intuitive.</p>
-<p><img src="nhb_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="nhb_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
 </div>
 <div id="chained-nhb-trips" class="section level2 tabset">
 <h2>Chained NHB Trips</h2>
 <p>The models above predict non-home-based trips using home-based trip ends; however, multiple NHB trips can be chained together. Three NHB trips in a row result in a middle trip where neither trip end is coincident with a home-based attraction from the same tour. If these chained NHB trips have a different distribution pattern, then home-based attractions would not be sufficient to predict the full range of NHB behavior.</p>
-<p>In previous work, Caliper tested this question and repeatedly found that the pattern of the chained NHB trip ends are not significantly different in distribution compared to home-based trip ends. Caliper used the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB trip ends were aggregated to the TAZ and correlation was computed. The correlation value of 0.817 confirms that these chained trips ends are highly correlated with home-based trip attractions. Their patterns can be adequately captured by the NHB models already estimated. Other than calibration to ensure accurate NHB trip totals, no special handling is needed.</p>
+<p>In previous work, Caliper tested this question and repeatedly found that the pattern of the chained NHB trip ends are not significantly different in distribution compared to home-based trip ends. Caliper used the Triangle survey to confirm this assumption for the TRMG2. To do this, the HB attractions and NHB trip ends were aggregated to the TAZ and correlation was computed. The correlation value of 0.824 confirms that these chained trips ends are highly correlated with home-based trip attractions. Their patterns can be adequately captured by the NHB models already estimated. Other than calibration to ensure accurate NHB trip totals, no special handling is needed.</p>
 <p>The two maps below show this correlation visually.</p>
 <div id="hb-attractions" class="section level3">
 <h3>HB Attractions</h3>
@@ -6012,165 +5874,308 @@ NA
 <p><img src="img/nhb/nhb_trip_ends.png" width="70%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="calibration" class="section level2">
-<h2>Calibration</h2>
-<p>After applying the estimated model, Caliper calculated calibration factors such that total NHB trips matched the expanded survey. Factors were calculated by tour type and mode. A coarser approach, such as calibrating a single factor for all NHB trips, would leave rarer modes like transit with either too few or to many trips.</p>
-<p>Some of the calibration factors are larger than those seen in other models (e.g. homebased generation). This is the result of two features of this modeling approach. Firstly, recall that the estimated models do not predict chained NHB trips (see previous section). While the spatial distribution of predicted trips is representative, the totals must be scaled up to account for these additional trips.</p>
-<p>Secondly, the scaling of trip productions by zonal accessibility also impacts trip totals. There is no guarantee, for example, that the number of trips scaled up and down will match or that the original total will be preserved. The impact is especially large for transit. No boosting coefficients could be estimated from the survey, but the model enforces logical consistency by removing transit NHB trip predicted where no transit access exists. This requires that the remaining NHB transit trips be scaled up to compensate.</p>
-<p>For these reasons, these calibration factors are acceptable as long as assignment results and distribution patterns look reasonable.</p>
+<div id="time-of-day-adjustment" class="section level2">
+<h2>Time of Day Adjustment</h2>
+<p>The independent feedback by time of day in TRMMG2 presents a unique challenge for NHB. NHB and HB trips have very different time of day patterns (see Time of Day documentation), but NHB generation is simply rates multiplied by HB trip ends. Without correction, this would mean that the NHB trips would have the same distribution as HB trips. To correct this, Caliper calculated adjustment factors by tour type, mode, and time of day. This was done by comparing raw model outputs back to the observed NHB trips from the survey.</p>
+<p>The easiest way to understand the table below is by highlighting one row as an example. For SOV trips on work tours, these factors move NHB trips out of the AM and NT periods and into the MD and PM. Another way of saying it is that, compared to HB trips, NHB trips are less likely in the AM/NT and more likely in the MD/PM. The large mid day factor reflects lunch trips and other mid-day activities. The relative size of the AM and PM periods confirms what we know: that stops are more likely to be made on the way home compared to the way to work (e.g. picking up groceries).</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
+Tour Type
+</th>
+<th style="text-align:left;">
 Mode
 </th>
 <th style="text-align:right;">
-NonWork Tour
+AM
 </th>
 <th style="text-align:right;">
-Work Tour
+MD
+</th>
+<th style="text-align:right;">
+NT
+</th>
+<th style="text-align:right;">
+PM
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-SOV
+NonWork
 </td>
-<td style="text-align:right;">
-2.16
-</td>
-<td style="text-align:right;">
-2.01
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-HOV2
-</td>
-<td style="text-align:right;">
-2.27
-</td>
-<td style="text-align:right;">
-1.36
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-HOV3
-</td>
-<td style="text-align:right;">
-2.83
-</td>
-<td style="text-align:right;">
-0.88
-</td>
-</tr>
-<tr>
 <td style="text-align:left;">
 Auto Pay
 </td>
 <td style="text-align:right;">
-1.08
+0.80
 </td>
 <td style="text-align:right;">
-1.15
+6.00
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+6.33
 </td>
 </tr>
 <tr>
+<td style="text-align:left;">
+NonWork
+</td>
+<td style="text-align:left;">
+HOV2
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+1.48
+</td>
+<td style="text-align:right;">
+0.62
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonWork
+</td>
+<td style="text-align:left;">
+HOV3
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+1.41
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonWork
+</td>
+<td style="text-align:left;">
+SOV
+</td>
+<td style="text-align:right;">
+1.39
+</td>
+<td style="text-align:right;">
+1.69
+</td>
+<td style="text-align:right;">
+0.45
+</td>
+<td style="text-align:right;">
+0.74
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonWork
+</td>
 <td style="text-align:left;">
 Transit
 </td>
 <td style="text-align:right;">
-2.98
+2.37
 </td>
 <td style="text-align:right;">
-1.13
+6.09
+</td>
+<td style="text-align:right;">
+0.45
+</td>
+<td style="text-align:right;">
+1.97
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
+NonWork
+</td>
+<td style="text-align:left;">
 Nonmotorized
 </td>
 <td style="text-align:right;">
-1.40
+1.37
 </td>
 <td style="text-align:right;">
-2.31
+1.96
+</td>
+<td style="text-align:right;">
+1.19
+</td>
+<td style="text-align:right;">
+1.56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+Auto Pay
+</td>
+<td style="text-align:right;">
+0.57
+</td>
+<td style="text-align:right;">
+3.47
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+<td style="text-align:right;">
+2.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+HOV2
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+3.37
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+HOV3
+</td>
+<td style="text-align:right;">
+0.69
+</td>
+<td style="text-align:right;">
+2.50
+</td>
+<td style="text-align:right;">
+0.43
+</td>
+<td style="text-align:right;">
+1.42
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+SOV
+</td>
+<td style="text-align:right;">
+0.87
+</td>
+<td style="text-align:right;">
+3.56
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+1.33
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+Transit
+</td>
+<td style="text-align:right;">
+7.04
+</td>
+<td style="text-align:right;">
+8.60
+</td>
+<td style="text-align:right;">
+1.37
+</td>
+<td style="text-align:right;">
+3.76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Work
+</td>
+<td style="text-align:left;">
+Nonmotorized
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+5.20
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+0.60
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-
-<br>
-<br>
-<br>
-<hr>
-<p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2021</p>
-
-
-</div>
 </div>
 
-</div>
+   
+      <br>
+   <br>
+   <br>
+   <hr>
+   <p><a href="https://www.caliper.com/">Caliper Corporation</a>, 2022</p>
+   
+            
+      
 
-<script>
+  <script>
+    $(document).ready(function () {
 
-// add bootstrap table styles to pandoc tables
-function bootstrapStylePandocTables() {
-  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
-}
-$(document).ready(function () {
-  bootstrapStylePandocTables();
-});
-
-
-</script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3,h4",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
+			
+ 		
+	    });
+  </script>
 
 
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
 </body>
 </html>
