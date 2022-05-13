@@ -51,6 +51,8 @@ navbar:
           href: assignment_roadway.html
         - text: "Validation"
           href: validation.html
+        - text: "Sensitivity Tests"
+          href: sensitivity_tests.html
   right:
     - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2
