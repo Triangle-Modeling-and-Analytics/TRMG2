@@ -19,22 +19,20 @@ library(kableExtra)
 
 ## Intro
 
-As part of the model validation and testing, Caliper performed a number of
-sensitivity tests to ensure that the model responds reasonably to changes in
-inputs.  Changes were made to income, the transit network, the all-streets
-non-motorized network, highway network capacities and tolls, and parking supply
-and cost. All these tests indicate that the model is responding reasonably to
-input changes and is appropriately sensitive.  Each of the tests conducted are 
-documented below. 
+Caliper performed a number of sensitivity tests to ensure that the model
+responds reasonably to changes in inputs. Changes were made to income, the
+transit network, the all-streets non-motorized network, highway network
+capacities and tolls, and parking supply and cost. All these tests indicate that
+the model is responding reasonably to input changes and is appropriately
+sensitive. Each of the tests conducted are documented below.
 
 ## Increased Income
 
-No build scenario:    2020 Base Year
-
-Build scenario:       2020 Base Year + increased income in south Durham
+- No build scenario: 2020 Base Year
+- Build scenario: 2020 Base Year + increased income in south Durham
 
 In this scenario, Caliper tested a simple increase of income in the area of
-south Durham highlighted in the map below.  The household income for this whole
+south Durham highlighted in the map below.  The household income for this entire
 area was increased to $120,000, and the percentage of high income workers was
 adjusted to 70%. The resulting increases in auto ownership, trip-making, auto
 and particularly SOV mode shares, and VMT and VHT were reasonable.
@@ -94,14 +92,14 @@ knitr::include_graphics("img/sensitivity/IncomeAssignment.png")
 ```
 
 ## New Bus Route
-No Build Scenario: 2020 Base Year
 
-Build Scenario: 2020 Base Year + added bus route 
+- No Build Scenario: 2020 Base Year
+- Build Scenario: 2020 Base Year + added bus route 
 
 In this scenario, Caliper tested adding a new bus route.  A route was added in
 north Raleigh from the Crabtree Valley mall up Creedmoor, Millbrook, and
 Leesville roads and ending at a large quarry.  The new route can be seen in
-bright green in the map below.  30- and 60-minute headways were assumed for peak
+green in the map below.  30- and 60-minute headways were assumed for peak
 and off-peak periods respectively.
 
 ```{r, out.width="75%", fig.align='center'}
@@ -166,9 +164,9 @@ knitr::include_graphics("img/sensitivity/BusHwyAssignment.png")
 ```
 
 ## Pedestrian Infrastructure 
-No Build Scenario: 2020 Base Year
 
-Build Scenario: 2020 Base Year – pedestrian overpass  
+- No Build Scenario: 2020 Base Year
+- Build Scenario: 2020 Base Year – pedestrian overpass  
 
 In this scenario, Caliper tested the removal of the pedestrian overpass over
 I-440 at Yadkin Dr.  The model results are reasonable.  The largest impact the
@@ -216,32 +214,33 @@ compare the trips between the zones north of I-440 near the pedestrian bridge
 and those south of I-440 near the pedestrian bridge.  It would make sense that
 many of these trips would use the pedestrian bridge to cross I-440, although
 given the size of the zones, many of these trips are also likely served by
-Lassiter Mill Rd. and the Greenway’s crossings.  In the base case there are 253
-pedestrian trips crossing I-440 in this vicinity.  With the removal of the
-pedestrian bridge this number decreases to 201.  Since only nine of these trips
-shifted to auto, this implies that the remaining 43 were diverted to
-destinations on the same side of I-440.  It also suggests that in the base case
-there are at least 52 daily trips on the pedestrian bridge that change either
-mode or destination to avoid a pedestrian crossing of I-440 without the bridge.
-However, the total number of trips utilizing the bridge is likely larger in the
-base case since some of the trips affected by the removal of the pedestrian
-bridge presumably just change routes and cross instead at Lassiter Mill Rd. or
-using the Greenway.  In summary, it is possible that the largest impact of
-removing the pedestrian bridge would be route changes, but without a
-non-motorized assignment the model cannot tell us.  The largest impact the model
-predicts is change in destination (at least 43 trips), followed by change in
-mode (9 trips), followed by change in auto ownership (4 cars), followed by
-change in trip-making (2 trips).  This makes sense.  The presence or absence of
-the pedestrian bridge does not have much impact on trip-making.  It mainly
-changes the routes and destinations of people’s non-motorized trips, but a small
-number of important trips shift to auto and an even smaller number of people on
-the margin might buy a car.
+Lassiter Mill Rd. and the Greenway’s crossings.  
+
+In the base case there are 253 pedestrian trips crossing I-440 in this vicinity.
+With the removal of the pedestrian bridge this number decreases to 201.  Since
+only nine of these trips shifted to auto, this implies that the remaining 43
+were diverted to destinations on the same side of I-440.  It also suggests that
+in the base case there are at least 52 daily trips on the pedestrian bridge that
+change either mode or destination to avoid a pedestrian crossing of I-440
+without the bridge. However, the total number of trips utilizing the bridge is
+likely larger in the base case since some of the trips affected by the removal
+of the pedestrian bridge presumably just change routes and cross instead at
+Lassiter Mill Rd. or using the Greenway.
+
+In summary, it is possible that the largest impact of removing the pedestrian
+bridge would be route changes, but without a non-motorized assignment the model
+cannot tell us.  The largest impact the model predicts is change in destination
+(at least 43 trips), followed by change in mode (9 trips), followed by change in
+auto ownership (4 cars), followed by change in trip-making (2 trips).  This
+makes sense.  The presence or absence of the pedestrian bridge does not have
+much impact on trip-making.  It mainly changes the routes and destinations of
+people’s non-motorized trips, but a small number of important trips shift to
+auto and an even smaller number of people on the margin might buy a car.
 
 ## Highway Capacity 
 
-No Build Scenario: 2016 Base Year
-
-Build Scenario: 2016 Base Year + added travel lanes on I-40
+- No Build Scenario: 2016 Base Year
+- Build Scenario: 2016 Base Year + added travel lanes on I-40
 
 In this scenario Caliper tested adding an additional lane of travel in each
 direction on I-40 from the Triangle Parkway to Wade Ave and along Wade Ave to
@@ -311,4 +310,65 @@ knitr::include_graphics("img/sensitivity/HwyCapDest.png")
 
 ## Highway Tolling
 
+- No Build Scenario:  2020 Base Year
+- Build Scenario: 2020 Base Year + 50% increase in toll costs
+
+In this scenario, Caliper tested how the model would respond to an increase
+in the toll prices along NC 540.
+
+### Assignment Changes
+
+The model response met expectations. The largest impacts were seen in route
+choices while only inconsequential changes were observed in destination and
+mode choices. Additionally, the route choice changes made sense with parallel
+routes like NC 55 seeing large increases in volume as shown in the map below.
+
+```{r, out.width="75%", fig.align='center'}
+knitr::include_graphics("img/sensitivity/toll_change.png")
+```
+
+### Destination Choice Changes
+
+The map below shows the relatively minor changes in destination choices.
+
+```{r, out.width="75%", fig.align='center'}
+knitr::include_graphics("img/sensitivity/toll_dc_change.png")
+```
+
+### Mode Choice Changes
+
+The table below shows that the changes in mode choice were also minor
+but also in the right direction.
+
+```{r}
+df <- tibble(
+  Scenario = c("Base", "High Toll", "Difference"),
+  `AM Auto Trips` = c("887,813", "887,763", "-50")
+)
+df %>%
+  kable(align = "lr") %>%
+  kable_styling(full_width = FALSE)
+```
+
+
 ## Parking
+
+- No Build Scenario:  2020 Base Year
+- Build Scenario: 2020 Base Year + reduction in parking capacity
+
+In this test, Caliper verified that the model responds appropriately to changes
+in parking supply. Caliper reduced the parking capacity of zone 1421 from 1800
+to 900 spaces. The map below shows the the changes in park and walk trips. The
+blue zone is zone 1421 with a reduction of 561 trips. Instead, those travelers
+divert to park in other zones proportional to the number of spaces in them and
+inversely proportional to how far away they are. Finally, the model kept all
+parking changes within the same parking district, which is the desired result.
+
+```{r, out.width="75%", fig.align='center'}
+knitr::include_graphics("img/sensitivity/parking_pnw_change.png")
+```
+
+Caliper also checked for changes in mode and destination choice. Neither were
+affected in any meaningful way by this change. This reduction in capacity was
+relatively small and didn't significantly affect the total parking available in
+downtown Raleigh.
