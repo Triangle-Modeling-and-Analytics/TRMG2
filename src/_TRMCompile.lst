@@ -30,3 +30,7 @@ utils/TransitProjectManagement.rsc
 utils/LinkDiffTool.rsc
 utils/FixedODAssignment.rsc
 utils/Calibrators.rsc
+utils/PopEmpReached.rsc
+utils/TRMTransitCoverage_Poverty.rsc
+utils/TRMTransitCoverage_HHStrata.rsc
+utils/transittool.rsc
