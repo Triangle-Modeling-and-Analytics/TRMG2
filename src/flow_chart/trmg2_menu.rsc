@@ -105,7 +105,8 @@ menu "TRMG2 Utilities"
 
     MenuItem "merge_tool" text: "Merge Line Layers" do
         mr = CreateObject("Model.Runtime")
-        mr.RunCodeEx("Open Merge Dbox")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open Merge Dbox", Args)
     enditem
 endMenu
 

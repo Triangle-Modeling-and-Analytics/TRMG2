@@ -3,10 +3,10 @@ Dialog box for the merge tool and the macro used to open it from
 the TRMG2 drop down menu.
 */
 
-Macro "Open Merge Dbox"
-	RunDbox("Merge")
+Macro "Open Merge Dbox" (Args)
+	RunDbox("Merge", Args)
 endmacro
-dBox "Merge" (Args) location: x, y
+dBox "Merge" (Args) location: x, y, , 17
     Title: "Master Layer Merge Tool" toolbox NoKeyBoard
 
     close do
@@ -14,13 +14,8 @@ dBox "Merge" (Args) location: x, y
     enditem
 
     init do
-        static x, y
+        static x, y, initial_dir, poly_dir, old_dbd, new_dbd, poly_dbd
         if x = null then x = -3
-    enditem
-
-    // Quit Button
-    button 40, 20, 10 Prompt:"Quit" do
-        Return(1)
     enditem
 
     // Original Layer
@@ -29,7 +24,7 @@ dBox "Merge" (Args) location: x, y
     button after, same, 6 Prompt: "..."  default do
         on escape goto nodir
         old_dbd = ChooseFile(
-            {{"DBD", ".dbd"}},
+            {{"Original Link Layer", "*.dbd"}},
             "Select original link layer",
             {"Initial Directory": initial_dir}
         )
@@ -38,6 +33,9 @@ dBox "Merge" (Args) location: x, y
         nodir:
         on error, notfound, escape default
     enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage("The master link layer to be updated.")
+    enditem
 
     // New Layer
     text 1, after variable: "New Layer"
@@ -45,7 +43,7 @@ dBox "Merge" (Args) location: x, y
     button after, same, 6 Prompt: "..."  do
         on escape goto nodir
         new_dbd = ChooseFile(
-            {{"DBD", ".dbd"}},
+            {{"New Link Layer", "*.dbd"}},
             "Select new link layer",
             {"Initial Directory": initial_dir}
         )
@@ -54,21 +52,100 @@ dBox "Merge" (Args) location: x, y
         nodir:
         on error, notfound, escape default
     enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage("The new master link layer with updated values for some links")
+    enditem
 
     // Polygon Layer
     text 1, after variable: "Polygon Layer"
     text same, after, 40 variable: poly_dbd framed
     button after, same, 6 Prompt: "..."  do
         on escape goto nodir
+        poly_dir = Args.[Model Folder] + "\\other\\mpo_regions"
         poly_dbd = ChooseFile(
-            {{"DBD", ".dbd"}},
+            {{"Polygon Layer", "*.dbd;*.cdf"}},
             "Select polygon layer",
-            {"Initial Directory": initial_dir}
+            {{"Initial Directory", poly_dir}}
         )
-        {drive, path, name, ext} = SplitPath(poly_dbd)
-        initial_dir = drive + path
+        {drive, path, , } = SplitPath(poly_dbd)
+        poly_dir = drive + path
         nodir:
         on error, notfound, escape default
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage(
+            "The polygon layer defines the region to update. Only links " +
+            "within the polygon are updated."
+        )
+    enditem
+
+    // Create map
+    button 1, 9, 20 Prompt: "Create Map"  do
+        if old_dbd = null then Throw("Choose the original link layer")
+        if new_dbd = null then Throw("Choose the new link layer")
+        if poly_dbd = null then Throw("Choose the polygon layer that defines the region to be updated.")
+
+        // Close the check map if it is open
+        {maps, , } = GetMaps()
+        if maps.position(check_map) <> 0 then CloseMap(check_map)
+
+        merge = CreateObject("MergeTool", {
+            OldDBD: old_dbd,
+            NewDBD: new_dbd,
+            PolyDBD: poly_dbd
+        })
+        check_map = merge.CreateMap()
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage(
+            "This step is not required, but is useful to check that input " +
+            "arguments are set correctly."
+        )
+    enditem
+
+    // Quit Button
+    button 1, 15, 10 Prompt:"Quit" do
+        Return(1)
+    enditem
+
+    // Help Button
+    button 20, 15, 10 Prompt:"Help" do
+        ShowMessage(
+            "The master link layer is managed jointly by DCHC MPO and CAMPO. " +
+            "This often requires them to make edits at the same time. This " + 
+            "tool makes it easier to merge those disparate edits back " +
+            "together.\n\n" +
+            "Point the tool to the original link layer to update, the new " +
+            "link layer with updated attributes/geography, and a polygon " +
+            "defining the subarea within which to update. Click Merge.\n\n" +
+            "The tool does not modify any of the layers. Instead, a new " +
+            "geographic file is created in a 'merge_output' folder in the " +
+            "same directory as the original link layer."
+        )
+    enditem
+
+
+    // Merge Button
+    button 40, same, 10 Prompt:"Merge" do
+        if old_dbd = null then Throw("Choose the original link layer")
+        if new_dbd = null then Throw("Choose the new link layer")
+        if poly_dbd = null then Throw("Choose the polygon layer that defines the region to be updated.")
+
+        // Close the check map if it is open
+        {maps, , } = GetMaps()
+        if maps.position(check_map) <> 0 then CloseMap(check_map)
+
+        merge = CreateObject("MergeTool", {
+            OldDBD: old_dbd,
+            NewDBD: new_dbd,
+            PolyDBD: poly_dbd
+        })
+        merge.Replace()
+
+        ShowMessage(
+            "Merge finished.\nA new folder named 'merge_output' has been " + 
+            "created next to the original link layer. Find the results there."
+        )
     enditem
 
 enddbox
@@ -193,5 +270,40 @@ Class "MergeTool" (MacroOpts)
         
         CloseMap(map)
         DeleteDatabase(sub_dbd)
+    enditem
+
+    Macro "CreateMap" (MacroOpts) do
+        
+        old_dbd = self.OldDBD
+        new_dbd = self.NewDBD
+        poly_dbd = self.PolyDBD
+
+        {check_map, {new_nlyr, new_llyr}} = RunMacro("Create Map", {File: new_dbd, minimized: "false"})
+        new_nlyr = RenameLayer(new_nlyr, "new node", )
+        new_llyr = RenameLayer(new_llyr, "new links", )
+
+        // Add layers
+        {old_nlyr, old_llyr} = GetDBLayers(old_dbd)
+        old_nlyr = AddLayer(check_map, old_nlyr, old_dbd, old_nlyr, )
+        old_llyr = AddLayer(check_map, old_llyr, old_dbd, old_llyr, )
+        RunMacro("G30 new layer default settings", new_nlyr)
+        RunMacro("G30 new layer default settings", new_llyr)
+        old_nlyr = RenameLayer(old_nlyr, "original node", )
+        old_llyr = RenameLayer(old_llyr, "original links", )
+        {plyr} = GetDBLayers(poly_dbd)
+        plyr = AddLayer(check_map, plyr, poly_dbd, plyr, )
+        RunMacro("G30 new layer default settings", old_nlyr)
+        RunMacro("G30 new layer default settings", old_llyr)
+        plyr = RenameLayer(plyr, "polygon", )
+        
+        // Colors/Styles
+        SetLineColor(new_llyr + "|", ColorRGB(0, 0, 65535))
+        SetLineColor(plyr + "|", ColorRGB(65535, 0, 0))
+        SetLineWidth(plyr + "|", 3)
+        SetLayerVisibility(check_map + "|" + old_nlyr, "false")
+        SetLayerVisibility(check_map + "|" + new_nlyr, "false")
+        SetLayer(old_llyr)
+
+        return(check_map)
     enditem
 endclass
