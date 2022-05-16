@@ -30,3 +30,4 @@ utils/TransitProjectManagement.rsc
 utils/LinkDiffTool.rsc
 utils/FixedODAssignment.rsc
 utils/Calibrators.rsc
+utils/merge_tool.rsc

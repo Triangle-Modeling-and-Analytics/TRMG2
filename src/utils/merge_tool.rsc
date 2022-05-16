@@ -1,4 +1,79 @@
 /*
+Dialog box for the merge tool and the macro used to open it from
+the TRMG2 drop down menu.
+*/
+
+Macro "Open Merge Dbox"
+	RunDbox("Merge")
+endmacro
+dBox "Merge" (Args) location: x, y
+    Title: "Master Layer Merge Tool" toolbox NoKeyBoard
+
+    close do
+        return()
+    enditem
+
+    init do
+        static x, y
+        if x = null then x = -3
+    enditem
+
+    // Quit Button
+    button 40, 20, 10 Prompt:"Quit" do
+        Return(1)
+    enditem
+
+    // Original Layer
+    text 1, 0 variable: "Original Layer"
+    text same, after, 40 variable: old_dbd framed
+    button after, same, 6 Prompt: "..."  default do
+        on escape goto nodir
+        old_dbd = ChooseFile(
+            {{"DBD", ".dbd"}},
+            "Select original link layer",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(old_dbd)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+
+    // New Layer
+    text 1, after variable: "New Layer"
+    text same, after, 40 variable: new_dbd framed
+    button after, same, 6 Prompt: "..."  do
+        on escape goto nodir
+        new_dbd = ChooseFile(
+            {{"DBD", ".dbd"}},
+            "Select new link layer",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(new_dbd)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+
+    // Polygon Layer
+    text 1, after variable: "Polygon Layer"
+    text same, after, 40 variable: poly_dbd framed
+    button after, same, 6 Prompt: "..."  do
+        on escape goto nodir
+        poly_dbd = ChooseFile(
+            {{"DBD", ".dbd"}},
+            "Select polygon layer",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(poly_dbd)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+
+enddbox
+
+/*
 
 */
 
