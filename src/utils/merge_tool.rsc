@@ -6,7 +6,7 @@ the TRMG2 drop down menu.
 Macro "Open Merge Dbox" (Args)
 	RunDbox("Merge", Args)
 endmacro
-dBox "Merge" (Args) location: x, y, , 17
+dBox "Merge" (Args) location: x, y, , 15
     Title: "Master Layer Merge Tool" toolbox NoKeyBoard
 
     close do
@@ -80,7 +80,7 @@ dBox "Merge" (Args) location: x, y, , 17
     enditem
 
     // Create map
-    button 1, 9, 20 Prompt: "Create Map"  do
+    button 16, 9, 20 Prompt: "Create Map"  do
         if old_dbd = null then Throw("Choose the original link layer")
         if new_dbd = null then Throw("Choose the new link layer")
         if poly_dbd = null then Throw("Choose the polygon layer that defines the region to be updated.")
@@ -104,12 +104,12 @@ dBox "Merge" (Args) location: x, y, , 17
     enditem
 
     // Quit Button
-    button 1, 15, 10 Prompt:"Quit" do
+    button 1, 13, 10 Prompt:"Quit" do
         Return(1)
     enditem
 
     // Help Button
-    button 20, 15, 10 Prompt:"Help" do
+    button 22, same, 10 Prompt:"Help" do
         ShowMessage(
             "The master link layer is managed jointly by DCHC MPO and CAMPO. " +
             "This often requires them to make edits at the same time. This " + 
@@ -126,7 +126,7 @@ dBox "Merge" (Args) location: x, y, , 17
 
 
     // Merge Button
-    button 40, same, 10 Prompt:"Merge" do
+    button 42, same, 10 Prompt:"Merge" do
         if old_dbd = null then Throw("Choose the original link layer")
         if new_dbd = null then Throw("Choose the new link layer")
         if poly_dbd = null then Throw("Choose the polygon layer that defines the region to be updated.")
