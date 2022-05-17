@@ -53,7 +53,7 @@ dBox "Merge" (Args) location: x, y, , 17
         on error, notfound, escape default
     enditem
     button after, same, 3 Prompt: "?"  do
-        ShowMessage("The new master link layer with updated values for some links")
+        ShowMessage("The new master link layer where some links are updated.")
     enditem
 
     // Polygon Layer
