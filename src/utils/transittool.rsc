@@ -220,10 +220,10 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     SetView(jnvw)
 
     // Create a theme for the travel time difference
-    numClasses = 5
+    numClasses = 4
     opts = null
     opts.[Pretty Values] = "True"
-    opts.Title = "Change in Transit Travel Time"
+    opts.Title = "Change in Transit Travel Time (Minutes)"
     opts.Other = "False"
     opts.[Force Value] = 0
     opts.zero = "TRUE"
@@ -232,7 +232,12 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
 
     // Set theme fill color and style
     opts = null
-    a_color = GeneratePalette(ColorRGB(65535, 65535, 54248), ColorRGB(8738, 24158, 43176), numClasses, opts)
+    a_color = {
+      ColorRGB(8738, 24158, 43176),
+      ColorRGB(16705, 46774, 50372),
+      ColorRGB(41377, 56026, 46260),
+      ColorRGB(65535, 65535, 54248)
+    }
     SetThemeFillColors(cTheme, a_color)
     str1 = "XXXXXXXX"
     solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
@@ -246,8 +251,12 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     lightGray = ColorRGB(45000, 45000, 45000)
     SetLineColor(, lightGray)
 
+    cls_labels = GetThemeClassLabels(cTheme)
+    info = GetThemeClasses(cTheme)
+    SetThemeClassLabels(cTheme, cls_labels)
+
     // Configure Legend
-    SetLegendDisplayStatus(cTheme, "False")
+    SetLegendDisplayStatus(cTheme, "True")
     RunMacro("G30 create legend", "Theme")
     subtitle = TOD + " Period"
     SetLegendSettings (
