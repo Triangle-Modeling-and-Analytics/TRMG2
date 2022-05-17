@@ -102,6 +102,12 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open Fixed OD Dbox", Args)
     enditem
+
+    MenuItem "merge_tool" text: "Merge Line Layers" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open Merge Dbox", Args)
+    enditem
 endMenu
 
 menu "TRMG2 Calibrators"

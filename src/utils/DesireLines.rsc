@@ -159,27 +159,10 @@ Macro "DesireLines2" (Args, taz_file, type, agg, tod, mode, taz_lyr)
 
 	// Determine cores of interest based on mode selected
 	mtx = CreateObject("Matrix", mtx_file)
-	if mode = "Auto" then do
-		auto_modes = {"sov", "hov2", "hov3", "CV"}
-		vots = {2, 4, 5}
-		for auto_mode in auto_modes do
-			for vot in vots do
-				a_corenames = a_corenames + {auto_mode + "_VOT" + String(vot)}
-			end
-		end
-	end
+	if mode = "Auto" then a_corenames = {"sov", "hov2", "hov3", "CV"}
 	else if mode = "Transit" then a_corenames = mtx.GetCoreNames()
-	else if mode = "Truck" then a_corenames = {
-		"SUT_VOT1",
-		"SUT_VOT2",
-		"SUT_VOT3",
-		"MUT_VOT1",
-		"MUT_VOT2",
-		"MUT_VOT3",
-		"MUT_VOT4",
-		"MUT_VOT5"
-	}
-	else if mode = "BikeWalk"  then do
+	else if mode = "Truck" then a_corenames = {"SUT", "MUT"}
+	else if mode = "BikeWalk" then do
 		a_corenames = mtx.GetCoreNames()
 		a_corenames = ExcludeArrayElements(a_corenames, 8, a_corenames.length - 7)
 	end
