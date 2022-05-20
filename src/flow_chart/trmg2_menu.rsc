@@ -108,6 +108,12 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCodeEx("Open Merge Dbox", Args)
     enditem
+
+    MenuItem "seupdate_tool" text: "Update SE Data" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open SEUpdate Dbox", Args)
+    enditem
 endMenu
 
 menu "TRMG2 Calibrators"

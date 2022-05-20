@@ -4,7 +4,120 @@ totals. An original se data file is used to establish county control totals.
 Then a new/updated se file is used to determine which zones were manually
 changed. All other zones within the county are adjusted to preserve the original
 total.
+*/
 
+Macro "Open SEUpdate Dbox" (Args)
+	RunDbox("SEUpdate", Args)
+endmacro
+dBox "SEUpdate" (Args) location: x, y, , 15
+    Title: "SE Data Update Tool" toolbox NoKeyBoard
+
+    close do
+        return()
+    enditem
+
+    init do
+        static x, y, initial_dir, taz_dir, orig_se, new_se, taz_dbd
+        if x = null then x = -3
+        if taz_dbd = null then taz_dbd = Args.[Master TAZs]
+    enditem
+
+    // Original SE
+    text 1, 0 variable: "Original SE"
+    text same, after, 40 variable: orig_se framed
+    button after, same, 6 Prompt: "..."  default do
+        on escape goto nodir
+        orig_se = ChooseFile(
+            {{"Original SE Data", "*.bin"}},
+            "Select original se data file",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(orig_se)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage("The original SE data. Used to calculate county control totals.")
+    enditem
+
+    // New SE Data
+    text 1, after variable: "New SE"
+    text same, after, 40 variable: new_se framed
+    button after, same, 6 Prompt: "..."  do
+        on escape goto nodir
+        new_se = ChooseFile(
+            {{"New SE Data", "*.bin"}},
+            "Select new link layer",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(new_se)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage("The new se data where some zones have been modified.")
+    enditem
+
+    // TAZ Layer
+    text 1, after variable: "TAZ Layer"
+    text same, after, 40 variable: taz_dbd framed
+    button after, same, 6 Prompt: "..."  do
+        on escape goto nodir
+        taz_dir = Args.[Model Folder] + "\\master\\tazs"
+        taz_dbd = ChooseFile(
+            {{"TAZ Layer", "*.dbd"}},
+            "Select taz layer",
+            {{"Initial Directory", taz_dir}}
+        )
+        {drive, path, , } = SplitPath(taz_dbd)
+        taz_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage(
+            "The taz layer is used to lookup the county of each zone."
+        )
+    enditem
+
+    // Quit Button
+    button 1, 13, 10 Prompt:"Quit" do
+        Return(1)
+    enditem
+
+    // Help Button
+    button 22, same, 10 Prompt:"Help" do
+        ShowMessage(
+            "For some applications, a modeler may want to increase the " + 
+            "employment or housing in several zones while maintaining the " +
+            "county-level totals.\n\n" +
+            "Modify the zones of interest in the new se data file. The original " +
+            "file is used to calculate county-level control totals, and the " +
+            "unchanged zones in the new se data will be modified so that the " +
+            "county totals remain unchanged.\n\n" +
+            "Supported Fields: HH, HH_POP, and employment by type fields"
+        )
+    enditem
+
+    // Update Button
+    button 42, same, 10 Prompt:"Update" do
+        if orig_se = null then Throw("Choose the original link layer")
+        if new_se = null then Throw("Choose the new link layer")
+        if taz_dbd = null then Throw("Choose the polygon layer that defines the region to be updated.")
+        
+        RunMacro("SEUpdate", {
+            OrigSE: orig_se,
+            NewSE: new_se,
+            TAZ: taz_dbd
+        })
+        ShowMessage("SE Data update complete.")
+    enditem
+
+enddbox
+
+/*
 Inputs
     * OrigSE
         * String
@@ -17,7 +130,7 @@ Inputs
     * TAZ
         * String
         * The TAZ file. This is needed because county info is not stored on
-          the se data table.
+          the se data table. Either the dbd or bin file can be provided.
           
 */
 
@@ -44,6 +157,8 @@ Macro "SEUpdate" (MacroOpts)
     if TypeOf(taz) = "null" then Throw("SEUpdate: 'TAZ' is null.")
     if TypeOf(taz) <> "string" then Throw("SEUpdate: 'TAZ' must be a string.")
     if GetFileInfo(taz) = null then Throw("SEUpdate: 'TAZ' file does not exist.")
+    {drive, path, name, ext} = SplitPath(taz)
+    if ext = ".dbd" then taz = Substitute(taz, ext, ".bin", )
 
     fields_to_update = {
         "HH", "HH_POP", "Industry", "Office", "Service_RateLow", 
@@ -135,4 +250,5 @@ Macro "SEUpdate" (MacroOpts)
         join = null
     end
     orig_and_new = null
+    new.DropFields({FieldNames: {"diff", "unmod_cnt_total", "pct"}})
 endmacro
