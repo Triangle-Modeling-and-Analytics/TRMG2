@@ -45,6 +45,11 @@ Macro "SEUpdate" (MacroOpts)
     if TypeOf(taz) <> "string" then Throw("SEUpdate: 'TAZ' must be a string.")
     if GetFileInfo(taz) = null then Throw("SEUpdate: 'TAZ' file does not exist.")
 
+    fields_to_update = {
+        "HH", "HH_POP", "Industry", "Office", "Service_RateLow", 
+        "Service_RateHigh", "Retail"
+    }
+
     // Calculate control totals
     taz = CreateObject("Table", taz)
     orig = CreateObject("Table", orig_se)
@@ -53,70 +58,81 @@ Macro "SEUpdate" (MacroOpts)
         LeftFields: "TAZ",
         RightFields: "ID"
     })
+    for field in fields_to_update do
+        field_stats = field_stats + {{field, {"sum"}}}
+    end
     totals = join.Aggregate({
         GroupBy: "County",
-        FieldStats: {HH: {"sum"}}
+        FieldStats: field_stats
     })
     join = null
-    
-    // Identify modified zones and calc diff by zone
+
     new = CreateObject("Table", new_se)
     new.AddField("modified")
     new.AddField("diff")
     new.AddField("unmod_cnt_total")
-    join = orig.Join({
+    new.AddField("pct")
+    new_vw = new.GetView()
+    orig_vw = orig.GetView()
+    orig_and_new = orig.Join({
         Table: new,
         LeftFields: "TAZ",
         RightFields: "TAZ"
     })
-    new_vw = new.GetView()
-    orig_vw = orig.GetView()
-    v_orig_hh = join.(orig_vw + ".HH")
-    v_new_hh = join.(new_vw + ".HH")
-    v_mod = if v_new_hh <> v_orig_hh then 1 else 0
-    v_diff = v_new_hh - v_orig_hh
-    join.modified = v_mod
-    join.diff = v_diff
+
+    for field in fields_to_update do
     
-    // Calc diff by county
-    join = new.Join({
-        Table: taz,
-        LeftFields: "TAZ",
-        RightFields: "ID"
-    })
-    county_diff = join.Aggregate({
-        GroupBy: "County",
-        FieldStats: {diff: {"sum"}}
-    })
-    
-    // For each non-modified zone, determine its % of its county
-    join.CreateSet({SetName: "unmodified", Filter: "modified = 0"})
-    join.ChangeSet("unmodified")
-    agg = join.Aggregate({
-        GroupBy: "County",
-        FieldStats: {HH: {"sum"}}
-    })
-    join2 = join.Join({
-        Table: agg,
-        LeftFields: "County",
-        RightFields: "County"
-    })
-    join2.unmod_cnt_total = join2.sum_HH
-    join2 = null
-    join = null
-    new.AddField("pct")
-    new.pct = if new.modified <> 1 then new.HH / new.unmod_cnt_total else 0
-    
-    // Redistribute county differences
-    join = new.Join({
-        Table: taz,
-        LeftFields: "TAZ",
-        RightFields: "ID"
-    })
-    join2 = join.Join({
-        Table: county_diff,
-        LeftFields: "County",
-        RightFields: "County"
-    })
-    join2.HH = join2.HH - join2.sum_diff * join2.pct    
+        // Identify modified zones and calc diff by zone
+        v_orig = orig_and_new.(orig_vw + "." + field)
+        v_new = orig_and_new.(new_vw + "." + field)
+        v_mod = if v_new <> v_orig then 1 else 0
+        if v_mod.sum() = 0 then continue // skip if nothing modified
+        v_diff = v_new - v_orig
+        orig_and_new.modified = v_mod
+        orig_and_new.diff = v_diff
+        
+        // Calc diff by county
+        join = new.Join({
+            Table: taz,
+            LeftFields: "TAZ",
+            RightFields: "ID"
+        })
+        county_diff = join.Aggregate({
+            GroupBy: "County",
+            FieldStats: {diff: {"sum"}}
+        })
+        
+        // For each non-modified zone, determine its % of its county
+        join.CreateSet({SetName: "unmodified", Filter: "modified = 0"})
+        join.ChangeSet("unmodified")
+        agg = join.Aggregate({
+            GroupBy: "County",
+            FieldStats: {{field, {"sum"}}}
+        })
+        join2 = join.Join({
+            Table: agg,
+            LeftFields: "County",
+            RightFields: "County"
+        })
+        join2.unmod_cnt_total = join2.("sum_" + field)
+        join2 = null
+        join = null
+        new.pct = if new.modified <> 1 then new.(field) / new.unmod_cnt_total else 0
+        
+        // Redistribute county differences
+        join = new.Join({
+            Table: taz,
+            LeftFields: "TAZ",
+            RightFields: "ID"
+        })
+        join2 = join.Join({
+            Table: county_diff,
+            LeftFields: "County",
+            RightFields: "County"
+        })
+        join2.(field) = join2.(field) - join2.sum_diff * join2.pct
+        join2 = null
+        join = null
+    end
+    orig_and_new = null
 endmacro
