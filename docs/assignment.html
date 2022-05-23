@@ -9,7 +9,7 @@
     
         <meta name="date" content="2021-10-07" />
     
-    <title>Roadway Assignment</title>
+    <title>Assignment</title>
 
         <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -221,7 +221,10 @@
          <a href="commercial_vehicles.html">Commercial Vehicles</a>
        </li>
        <li>
-         <a href="assignment_roadway.html">Roadway Assignment</a>
+         <a href="assignment.html">Assignment</a>
+       </li>
+       <li>
+         <a href="validation.html">Validation</a>
        </li>
      </ul>
    </li>
@@ -235,23 +238,22 @@
      </div><!--/.container -->
    </div><!--/.navbar -->
         
-      <h1 class="title">Roadway Assignment</h1>
+      <h1 class="title">Assignment</h1>
       
          <!-- readthedown authors -->
    <div id="sidebar">
-    <h2><a href="#content">Roadway Assignment</a></h2>
+    <h2><a href="#content">Assignment</a></h2>
     <div id="toc">
       <ul>
-      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#highway-assignment">Highway Assignment</a><ul>
       <li><a href="#assignment-by-time-period">Assignment by time period</a></li>
       <li><a href="#matrix-creation">Matrix creation</a></li>
       <li><a href="#value-of-time">Value of time</a></li>
       <li><a href="#assignment-parameters">Assignment parameters</a><ul>
-      <li><a href="#vdf-parameters">VDF parameters</a><ul>
-      <li><a href="#alphas">Alphas</a></li>
-      <li><a href="#betas">Betas</a></li>
+      <li><a href="#vdf-parameters">VDF parameters</a></li>
       </ul></li>
       </ul></li>
+      <li><a href="#transit-assignment">Transit Assignment</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -265,8 +267,8 @@
    
 <!-- Don't indent these lines or it will mess pre blocks indentation --> 
 <div id="main">
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
+<div id="highway-assignment" class="section level2">
+<h2>Highway Assignment</h2>
 <p>For a more basic introduction to highway assignment, see the <a href="https://tfresource.org/topics/Network_assignment.html">Travel Forecasting Resource</a> page on the topic. In short, roadway assignment is where the predicted trips and roadway network are combined to predict volumes and travel times.</p>
 <p>TRMG2 uses a static, multi-class assignment with the following basic vehicle classes:</p>
 <ul>
@@ -278,19 +280,18 @@
 <li>MUT: multi-unit trucks</li>
 </ul>
 <p>In addition, the classes are further segmented by value of time. This is done to accurately capture toll road usage. Finally, vehicles are assigned separately by time period. More details are provided in the sections below.</p>
-</div>
-<div id="assignment-by-time-period" class="section level2">
-<h2>Assignment by time period</h2>
+<div id="assignment-by-time-period" class="section level3">
+<h3>Assignment by time period</h3>
 <p>A defining feature of TRMG2 is the independent treatment of each time period. Traditionally, travel models used the AM period to represent both AM and PM periods. The primary benefit of this approach was reduced computational burden, and as long as the AM and PM periods were nearly symmetrical, errors introduced by this simplification were small.</p>
 <p>In the Triangle, the AM and PM periods are not symmetrical. The <a href="time_of_day.html">trips-in-motion</a> analysis performed using the travel survey shows a large disparity between the peaks driven largely by non-work travel. The PM peak lasts longer, and places more demand on the transportation system. In order to capture these differences, model estimation and application must treat the PM peak separately.</p>
 </div>
-<div id="matrix-creation" class="section level2">
-<h2>Matrix creation</h2>
+<div id="matrix-creation" class="section level3">
+<h3>Matrix creation</h3>
 <p>TRMG2 has models to predict demand for many markets including residents, commercial vehicles, university students, and external travelers. The output of these models is combined into a single trip matrix for each time period. During this process, directional and occupancy factors are applied to arrive at vehicle trip matrices in Origin-Destination format (click <a href="time_of_day.html#Directionality_factors">here</a> for resident factors).</p>
 <p>A separate note about the “auto pay” mode (Uber, Lyft, etc.) is warranted. When converting person trips to vehicle trips, a person traveling alone is a single vehicle trip (1 person trip = 1 vehicle trip). However, by definition, they have a driver. This means they are eligible for any HOV lanes the region might construct in the future. For this reason, a person traveling alone is added to the HOV2 matrix while a person traveling with one or more family members is added to HOV3+.</p>
 </div>
-<div id="value-of-time" class="section level2">
-<h2>Value of time</h2>
+<div id="value-of-time" class="section level3">
+<h3>Value of time</h3>
 <p>Once trips are collapsed into the primary vehicle classes, they are assigned values of time. The base values were borrowed from the NC Statewide Model, but were then calibrated to match NC 540 traffic counts.</p>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
@@ -347,8 +348,8 @@ Calibration Factor
 </tbody>
 </table>
 </div>
-<div id="assignment-parameters" class="section level2">
-<h2>Assignment parameters</h2>
+<div id="assignment-parameters" class="section level3">
+<h3>Assignment parameters</h3>
 <p>Relevant assignment details are listed below:</p>
 <ul>
 <li>Algorithm: N-conjugate Frank-Wolfe</li>
@@ -356,11 +357,11 @@ Calibration Factor
 <li>Relative Gap: .0001 (1e-4)</li>
 <li>Maximum Iterations: 500</li>
 </ul>
-<div id="vdf-parameters" class="section level3 tabset">
-<h3>VDF parameters</h3>
+<div id="vdf-parameters" class="section level4 tabset">
+<h4>VDF parameters</h4>
 <p>The table below shows the alpha and beta values used for the BPR VDF.</p>
-<div id="alphas" class="section level4">
-<h4>Alphas</h4>
+<div id="alphas" class="section level5">
+<h5>Alphas</h5>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -538,8 +539,8 @@ TLHighway
 </tbody>
 </table>
 </div>
-<div id="betas" class="section level4">
-<h4>Betas</h4>
+<div id="betas" class="section level5">
+<h5>Betas</h5>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -628,6 +629,11 @@ TLHighway
 </table>
 </div>
 </div>
+</div>
+</div>
+<div id="transit-assignment" class="section level2">
+<h2>Transit Assignment</h2>
+<p>TRMG2 uses Caliper’s Pathfinder transit assignment algorithm. This is the same algorithm used for skimming and assignment uses identical networks. Separate assignments are done for each combination of access mode (e.g. walk, PNR, KNR) and primary mode (e.g. local bus, express bus, or rail in future scenarios). This ensures consistency between mode choice and assignment. As with roadway assignment, each time period is also assigned separately. Transit assignment is not part of model feedback, but happens after highway assignment has converged.</p>
 </div>
 </div>
 
