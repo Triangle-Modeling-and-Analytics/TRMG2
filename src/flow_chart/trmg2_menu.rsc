@@ -94,7 +94,7 @@ menu "TRMG2 Utilities"
 
     MenuItem "diff" text: "Diff Tool" do
         mr = CreateObject("Model.Runtime")
-        mr.RunCode("Open Diff Tool")
+        mr.RunCodeEx("Open Diff Tool")
     enditem
 
     MenuItem "fixed_od" text: "Fixed OD Assignment" do
