@@ -64,7 +64,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     // Set working directory
     S1_Dir = Args.[Scenario Folder]
     reporting_dir = S1_Dir + "\\output\\_summaries\\_reportingtool"
-    output_dir = reporting_dir + "\\Transit Scenario Comparison"
+    output_dir = reporting_dir + "\\Transit_Scenario_Comparison"
     if GetDirectoryInfo(output_dir, "All") <> null then PutInRecycleBin(output_dir)
     RunMacro("Create Directory", reporting_dir) //need to create this during create scenario step
     RunMacro("Create Directory", output_dir)
@@ -183,15 +183,15 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     )
 
     //eliminate transit time over 60 minutes (unrealistic)
-    v_s1_tt = if v_s1_tt < 60 then v_s1_tt else if v_s2_tt < 60 and v_s2_tt >0 then v_s1_tt else 0
-    v_s2_tt = if v_s2_tt < 60 then v_s2_tt else if v_s1_tt < 60 and v_s1_tt >0 then v_s2_tt else 0
+    v_s1_tt = if v_s1_tt < 60 then v_s1_tt else if v_s2_tt < 60 and v_s2_tt >0 then v_s1_tt else null
+    v_s2_tt = if v_s2_tt < 60 then v_s2_tt else if v_s1_tt < 60 and v_s1_tt >0 then v_s2_tt else null
     SetDataVector(sp_vw + "|", s1_tt, v_s1_tt, )
     SetDataVector(sp_vw + "|", s2_tt, v_s2_tt, )
     
     //Calculate delta
-    v_Time = if v_s1_tt > 0 and v_s2_tt > 0 then v_s1_tt - v_s2_tt else 0
+    v_Time = if v_s1_tt > 0 and v_s2_tt > 0 then v_s1_tt - v_s2_tt else null
     v_Trips = v_s1_trip - v_s2_trip
-    v_Access = if v_s1_tt = 0 and v_s2_tt > 0 then -1 else if v_s1_tt > 0 and v_s2_tt = 0 then 1 else 0
+    v_Access = if v_s1_tt = 0 and v_s2_tt > 0 then -1 else if v_s1_tt > 0 and v_s2_tt = 0 then 1 else null
     SetDataVector(sp_vw + "|", "Delta_Time", v_Time, )
     SetDataVector(sp_vw + "|", "Delta_Trips", v_Trips, )
     SetDataVector(sp_vw + "|", "Delta_Access", v_Access, )
@@ -199,16 +199,16 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     //Aggregate by origin TAZ
     grouped_vw1 = AggregateTable(
         "grouped_vw1", sp_vw + "|", "FFB", output_dir + "/Comparison_" + TOD + ".bin", "RCIndex", 
-        {{"Delta_Time", "SUM", }, {"Delta_Trips", "SUM",}, {"Delta_Access", "SUM",}}, 
-        {"Missing As Zero": "true"}
+        {{"Delta_Time", "AVG", }, {"Delta_Trips", "SUM",}, {"Delta_Access", "SUM",}}, 
+        {"Missing As Zero": "false"}
     )
 
     //Remove -0.0
     vw = OpenTable("vw", "FFB", {output_dir + "/Comparison_" + TOD + ".bin"})
-    {v1, v2} = GetDataVectors(vw+"|", {"Delta_Time", "Delta_Trips"}, )
+    {v1, v2} = GetDataVectors(vw+"|", {"Avg Delta_Time", "Delta_Trips"}, )
     v1 = Round(v1, 1)
     v2 = Round(v2,0)
-    SetDataVector(vw + "|", "Delta_Time", v1, )
+    SetDataVector(vw + "|", "Avg Delta_Time", v1, )
     SetDataVector(vw + "|", "Delta_Trips", v2, )
  
     
@@ -223,12 +223,13 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     numClasses = 4
     opts = null
     opts.[Pretty Values] = "True"
-    opts.Title = "Change in Transit Travel Time (Minutes)"
+    opts.[Drop Empty Classes] = "True"
+    opts.Title = "On average by origin zone in " + TOD
     opts.Other = "False"
     opts.[Force Value] = 0
     opts.zero = "TRUE"
 
-    cTheme = CreateTheme("Transit Time", jnvw+".Delta_Time", "Equal Steps" , numClasses, opts)
+    cTheme = CreateTheme("Transit Time", jnvw+".Avg Delta_Time", "Equal Steps" , numClasses, opts)
 
     // Set theme fill color and style
     opts = null
@@ -252,21 +253,25 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     SetLineColor(, lightGray)
 
     cls_labels = GetThemeClassLabels(cTheme)
-    info = GetThemeClasses(cTheme)
+    for i = 1 to cls_labels.length do
+      label = cls_labels[i]
+
+    end
     SetThemeClassLabels(cTheme, cls_labels)
 
     // Configure Legend
     SetLegendDisplayStatus(cTheme, "True")
     RunMacro("G30 create legend", "Theme")
-    subtitle = TOD + " Period"
+    title = "Transit Travel Time Changes"
+    footnote = "Transit travel time capped, see user guide."
     SetLegendSettings (
       GetMap(),
       {
         "Automatic",
         {0, 1, 0, 0, 1, 4, 0},
         {1, 1, 1},
-        {"Arial|Bold|16", "Arial|9", "Arial|Bold|16", "Arial|12"},
-        {"", subtitle}
+        {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
+        {title, footnote}
       }
     )
     SetLegendOptions (GetMap(), {{"Background Style", solid}})

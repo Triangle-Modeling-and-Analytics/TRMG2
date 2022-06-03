@@ -126,6 +126,12 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
     enditem
+
+    MenuItem "TripAggregation" text: "Trip Matrix Aggregation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Trip Aggregation Tool Dbox", Args)
+    enditem
 endMenu
 
 menu "TRMG2 Calibrators"
