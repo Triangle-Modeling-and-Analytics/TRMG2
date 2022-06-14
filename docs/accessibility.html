@@ -191,6 +191,9 @@
          <a href="resident_dest_choice.html">Destination Choice</a>
        </li>
        <li>
+         <a href="resident_mode_choice.html">Mode Choice</a>
+       </li>
+       <li>
          <a href="nhb.html">Non-homebased</a>
        </li>
      </ul>
@@ -206,6 +209,9 @@
          <a href="accessibility.html">Accessibility</a>
        </li>
        <li>
+         <a href="university.html">University</a>
+       </li>
+       <li>
          <a href="airport.html">Airport</a>
        </li>
        <li>
@@ -216,6 +222,9 @@
        </li>
        <li>
          <a href="assignment_roadway.html">Roadway Assignment</a>
+       </li>
+       <li>
+         <a href="validation.html">Validation</a>
        </li>
      </ul>
    </li>
@@ -251,7 +260,6 @@
       <li><a href="#stop-proximity-1">Stop Proximity</a></li>
       <li><a href="#walkability-1">Walkability</a></li>
       <li><a href="#logsum-accessibilities">Logsum Accessibilities</a></li>
-      <li><a href="#tnc-variables">TNC Variables</a></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
@@ -607,23 +615,6 @@ Industry
 </tr>
 </tbody>
 </table>
-</div>
-<div id="tnc-variables" class="section level2">
-<h2>TNC Variables</h2>
-<p>To support proper handling in mode choice, the TNC services (e.g. Uber and Lyft) need appropriate values for fare and initial wait times. Both were estimated as functions of accessibility, and are calculated during this step of the model.</p>
-<p>The linear regression model for fare was estimated from the survey and is shown below.</p>
-<p><span class="math display">\[Fare = 4.00 + 0.70 * length + 0.25 * time\]</span></p>
-<p>Where:</p>
-<p><span class="math inline">\(Fare\)</span>: Fare ($)<br />
-<span class="math inline">\(length\)</span>: Trip distance (mi)<br />
-<span class="math inline">\(time\)</span>: Trip time (min)</p>
-<p><img src="img/accessibility/tnc_fare_regression.png" width="75%" style="display: block; margin: auto;" /></p>
-<p>The wait time (shown in a map above), is a function of general accessibility as shown below:</p>
-<p><span class="math display">\[Wait_{OP} = 45.10 - 1534.4 / A_g + 13030.36 / A_g^2\]</span></p>
-<p>Where:</p>
-<p><span class="math inline">\(Wait_{op}\)</span>: Off-peak period wait time (min)<br />
-<span class="math inline">\(A_g\)</span>: General accessibility</p>
-<p>In the peak period, 3.5 minutes are added to the wait time.</p>
 </div>
 </div>
 
