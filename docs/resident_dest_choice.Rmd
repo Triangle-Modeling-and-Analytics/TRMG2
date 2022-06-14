@@ -779,7 +779,7 @@ and may be modified/removed for future scenarios as required.
 
 ### Intra-Zonal Percentages
 
-The table below show the intrazonal percentages by purpose for the model and the
+The table below shows the intrazonal percentages by purpose for the model and the
 survey, which indicates pretty much a spot-on match.
 
 ```{r, fig.align='center', out.width="55%"}
@@ -793,7 +793,7 @@ scenario analysis relies heavily on trip distribution and particularly on the
 validity of the cluster-to-cluster flows (or district to district flows). A
 model that matches observed cluster to cluster flows generally is successful in
 capturing the travel trends in the region and tends itself well to scenario
-analysis. Recall that in TRMG2, the top-level choice in the destination choice
+analysis. Recall that in TRMG2, the top-level in the destination choice
 model is the choice of the cluster (where the home cluster is favored often) and
 then the second level is the choice of the zone within the cluster.
 
@@ -923,12 +923,12 @@ knitr::include_graphics("img/dc/validation/nhbodlong_scatter.png")
 
 All the above graphs indicate that the cluster-to-cluster patterns revealed by
 the survey are adhered to in the model (with only a minimal set of adjustments),
-which in turn makes the more robust and inspires confidence in the model’s
+which in turn makes the model more robust and inspires confidence in the model’s
 predictive capability.
 
 ### NHB Trip Types
 
-The NHB trips are split by mode and consists of NHB trips on work tours
+The NHB trips are split by mode and consist of NHB trips on work tours
 (designated as W_NH) and NHB trips on non-work tours (designated as N_NH). The
 table below shows the comparison of model and survey trip lengths by purpose and
 mode.
