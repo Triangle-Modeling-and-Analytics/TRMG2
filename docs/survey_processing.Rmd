@@ -1757,8 +1757,9 @@ Column definitions:
     - `O`: Other
   - Non-work tours:
     - `K12`: school (K-12)
-    - `OME`: Maintenance, shopping, dining
+    - `OME`: Other Maintenance/Entertainment
     - `OMED`: Medical
+    - `OD`: Other/Discretionary
 - **Duration**
   - `Long`: Activity above 30 minutes
   - `Short`: Activity below 30 minutes
