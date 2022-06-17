@@ -160,7 +160,7 @@ knitr::include_graphics("img/mc/transit_sub_work.png")
 ```
 
 ```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("img/mc/transit_sub_work2.png")
+knitr::include_graphics("img/mc/transit_sub_work2.bmp")
 ```
 
 ```{r, fig.align='center', out.width="50%"}
@@ -487,12 +487,12 @@ response to parking variables.
 
 These are home based medical related trips (including pharmacies) that are part
 of a non-work tour. The walk access branch (with the walk-local and walk-express
-alternatives) from the ‘Other’ transit nest model is used.
+alternatives) from the ‘Shop’ transit nest model is used.
 
 ### Utility specification
 
 ```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("img/mc/n_hb_omed1.png")
+knitr::include_graphics("img/mc/n_hb_omed1.bmp")
 ```
 
 ```{r, fig.align='center', out.width="50%"}
