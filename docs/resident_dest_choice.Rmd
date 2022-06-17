@@ -41,7 +41,8 @@ knitr::include_graphics("img/dc/clusters.png")
 multinomial logit (MNL) models were estimated for non-home-based trip purposes.
 NL models were attempted for the latter set of purposes but did not provide
 justifiably better models.
-- All models were estimated using Larch (Newman, 2021).
+- All models were estimated using Larch (Newman, 2021), which is a Python
+library for logit estimation.
 
 ### A Note on Model Fit
 
@@ -91,8 +92,7 @@ inclusion of both variables often causes difficulties in model estimation as the
 algorithm struggles to uniquely split the effects between them.
 
 For the above reasons, the destination choice models for TRM rely on travel
-times, logsums by mode type, and other skims rather than distance-based
-variables.
+times and logsums by mode type rather than distance-based variables.
 
 ## Home-Based Trips
 
@@ -129,32 +129,33 @@ These coefficients are simultaneously estimated with other parameters. Since it
 is required that these coefficients be positive, the utility formulation
 specifies coefficients that are then exponentiated. Successful estimation
 requires that one of these attraction variable coefficients is fixed. The
-estimation also provides a coefficient for the size variable, which
+estimation provides a coefficient for the size term, which
 theoretically should be between 0 and 1.
 
 #### Mode Choice Logsums
 
 Using mode choice root logsums typically presents a problem in destination
 choice. The root logsum value is dominated by the auto nest which washes out
-effects from non-dominant modes. For example, drastically improving the
-transit accessibility to a particular zone will not affect the probability of
-choosing that zone if the transit logsums are dwarfed by the auto logsums. To
-circumvent this issue, separate auto, transit, and non-household auto logsums
-from the respective nests are used in the TRM specifications. The logsums are
-segmented by vehicle sufficiency market segments for added explanatory power.
-Work trip logsums are further distinguished by high- and low-income segments.
-Finally, note that there is no auto logsum component for the zero-vehicle
-households market segment.
+effects from non-dominant modes. For example, drastically improving the transit
+accessibility to a particular zone will not affect the probability of choosing
+that zone if the transit logsums are dwarfed by the auto logsums. To circumvent
+this issue, separate auto, transit, and non-household auto logsums from the
+respective nests are used in the TRM specifications (a non-household auto could
+be a neighbor's car for example). The logsums are segmented by vehicle
+sufficiency market segments for added explanatory power. Work trip logsums are
+further distinguished by high- and low-income segments. Finally, note that there
+is no auto logsum component for the zero-vehicle households market segment.
 
 #### Others
 
 - **4D measures**: Several 4D measures such as transit accessibility, hospital
 accessibility, walk accessibility, employment densities are considered.
-- **Time Coefficient(s)**: The auto times corresponding to the latest model
+- **Time Coefficient(s)**: The auto travel times corresponding to the latest model
 skims are attached depending upon the time of day the respondent made the trip.
 A time coefficient is estimated in each specification.
-- **Intra-Cluster effects**: Intra-Cluster coefficients are estimated if the
-home and the chosen zone are within the same cluster (nest).
+- **Intra-Cluster effects**: Intra-Cluster coefficients ('HomeCluster' in the 
+tables below) are estimated if the home and the chosen zone are within the same 
+cluster (nest).
 - **Intra-Zonal effect**: A coefficient is estimated to boost the utility of
 choosing the same zone as the origin.
 - **Cluster Nest coefficients**: A nest coefficient for each of the 12 clusters
@@ -227,7 +228,7 @@ accessibilities are also drivers of a zone’s attractiveness for work tours.
 Most of the cluster nest coefficients are significantly different from 1, which
 means the nested structure is justified. Research Triangle Park is a special
 cluster (very low residential land use, very high technology employment, etc.).
-It's coefficient is effectively 1, which implies an MNL-type sub-nest.
+Its coefficient is effectively 1, which implies an MNL-type sub-nest.
 
 The size variables are stratified by income using the percentage of low and high
 paying jobs in each zone. This is how the model pairs high-income workers (e.g.
@@ -377,7 +378,7 @@ broom::tidy(model) %>%
 
 During model application, predicted attractions are always scaled to match
 predicted productions before applying double constraint. As a consequence, the
-attraction model should predict total attractions that is close to predicted
+attraction model should predict total attractions that are close to predicted
 productions. This is referred to as PA balance ("production/attraction balance").
 If it does not, adding employment to a zone will have unexpectedly high (or low)
 impacts on total zonal attractions.
@@ -410,7 +411,7 @@ model’s explanatory power is derived from other variables and is sensitive to
 changes in model inputs.
 
 The model has a sophisticated approach to travel time. Travel time is more
-important up to the first 30 minutes. Excess time beyond this threshold is gets
+important up to the first 30 minutes. Excess time beyond this threshold gets
 a slight discount. This reflects a difference in the behavior for these longer
 trips, which are dominated more by what is at the destination rather than the
 time to get there.
@@ -424,10 +425,10 @@ zero-vehicle households. Non-household auto logsums (primarily taxis and TNCs)
 are also significant.
 
 The number of households is a major factor in the calculation of the size
-variable, reflecting the inclusion of personal visits in this trip purpose.
-Logically, the retail and service employment also help drive trips to specific
-destinations. Income-based stratification of employment did not make a
-difference in model performance.
+variable, reflecting the inclusion of personal visits (e.g. to a friend's house)
+in this trip purpose. Logically, the retail and service employment also help
+drive trips to specific destinations. Income-based stratification of employment
+did not make a difference in model performance.
 
 Most cluster nest coefficients are significantly different from 1, so the
 nested structure is justified. As with W_HB_W, RTP is an exception to this.
@@ -461,7 +462,8 @@ top-level choices (MNL).
 N_HB_OME corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at an “other” activity that involved the spending of
 money whether shopping, eating out, or personal business. This segment is close
-to the HBO (Home-Based Other) trip purpose in traditional models.
+to the HBO (Home-Based Other) trip purpose in traditional models (OME: 'Other 
+Maintenance/Eat').
 
 #### Estimated coefficients and t statistics
 
@@ -503,7 +505,7 @@ A zone's accessibility to a hospital is a strong predictor in this model. This
 captures the important clustering of doctor's offices, clinics, and pharmacies
 around major hospitals.
 
-Travel time above 30 minutes has almost no impact on desintation choice. This is
+Travel time above 30 minutes has almost no impact on destination choice. This is
 an encouraging result. People traveling long distances to see a specialist are
 not impacted by travel time in a major way.
 
@@ -514,7 +516,8 @@ from service employment related to the presence of hospitals.
 
 N_HB_K12 corresponds to trips that are not part of a work tour, have one end at
 home, and the other end at a school. This segment would have been part of the HB
-School trip purpose in traditional models.
+School trip purpose in traditional models, and can be made by either students
+traveling to school or parents dropping them off.
 
 #### Estimated coefficients and t statistics
 
@@ -564,7 +567,9 @@ type.
 N_HB_OD_Short corresponds to trips that are not part of a work tour, have one end
 at home, and the other end at an “other” activity shorter than 30 minutes in
 duration. This segment would have been rolled into the HBO (Home-Based Other)
-trip purpose in traditional models.
+trip purpose in traditional models. As an example, a trip to a friend's
+house to pick up or drop off something would be included here assuming they
+didn't stay and visit for longer than 30 minutes.
 
 #### Estimated coefficients and t statistics
 
@@ -578,7 +583,7 @@ knitr::include_graphics("img/dc/n_hb_od_short3.png")
 ```
 
 
-The attenuation on for drive time above 20 minutes is not as strong as other
+The attenuation on drive time above 20 minutes is not as strong as other
 trip types. This indicates that these trips are likely just trying to reach the
 nearest attraction that satisfies the trip purpose. Similarly, home cluster
 effects and the intrazonal term are strong meaning that people stay nearby.
@@ -587,7 +592,7 @@ longer distances for short activities.
 
 Logsums for household auto, non-household auto, and transit all play an important
 role in determining where someone travels. Similar to the N_HB_OD_Long trip,
-the size term is made up of employment, enrollment, and household population.
+the size term is made up of employment, K-12 enrollment, and household population.
 
 ## Non-Home-Based trips
 
@@ -618,7 +623,7 @@ categories that combine trip purpose with travel mode:
 - NHB Trips by Public Transit
 - NHB Trips by Bike/Walk
 
-### NHB Work Auto
+### NHB Work Trips by Auto
 
 This segment corresponds to trips that are part of a work tour, do not have
 either end at home, and are associated with the auto mode. Most of this segment
@@ -641,7 +646,7 @@ intra-cluster effect is strong, which is expected given shorter trip lengths of
 NHB trips. Attractions are driven by a variety of employment as well as
 school enrollment.
 
-### NHB NonWork Auto
+### NHB NonWork Trips by Auto
 
 This segment corresponds to trips that are part of a non-work tour, do not have
 either end at home, and use the auto mode. This segment would have been rolled
@@ -661,7 +666,7 @@ The non-work auto trip model looks similar to work, but the inclusion of parking
 logsums captures a major difference between the two trip types: work trips are
 not impacted by parking variables while non-work trips are.
 
-### NHB Transit
+### NHB Transit Trips
 
 All NHB transit trips are handled with a single destination choice model.
 
@@ -738,7 +743,7 @@ models in the TRM model framework. In the TRM model, the destination choice is
 the higher-level choice which is then followed by the mode choice for a given
 purpose, market segment and period. However, the utility equation for the DC
 models contains mode choice logsums. Therefore, a three-step process is followed
-for each combination of purpose, segment and time period:
+for each combination of trip purpose, market segment and time period:
 
 - The mode choice model is run for the given purpose, segment and time period,
 taking care to use the appropriate time period skim matrices. The output logsum
@@ -774,7 +779,7 @@ and may be modified/removed for future scenarios as required.
 
 ### Intra-Zonal Percentages
 
-The table below show the intrazonal percentages by purpose for the model and the
+The table below shows the intrazonal percentages by purpose for the model and the
 survey, which indicates pretty much a spot-on match.
 
 ```{r, fig.align='center', out.width="55%"}
@@ -788,7 +793,7 @@ scenario analysis relies heavily on trip distribution and particularly on the
 validity of the cluster-to-cluster flows (or district to district flows). A
 model that matches observed cluster to cluster flows generally is successful in
 capturing the travel trends in the region and tends itself well to scenario
-analysis. Recall that in TRMG2, the top-level choice in the destination choice
+analysis. Recall that in TRMG2, the top-level in the destination choice
 model is the choice of the cluster (where the home cluster is favored often) and
 then the second level is the choice of the zone within the cluster.
 
@@ -918,12 +923,12 @@ knitr::include_graphics("img/dc/validation/nhbodlong_scatter.png")
 
 All the above graphs indicate that the cluster-to-cluster patterns revealed by
 the survey are adhered to in the model (with only a minimal set of adjustments),
-which in turn makes the more robust and inspires confidence in the model’s
+which in turn makes the model more robust and inspires confidence in the model’s
 predictive capability.
 
 ### NHB Trip Types
 
-The NHB trips are split by mode and consists of NHB trips on work tours
+The NHB trips are split by mode and consist of NHB trips on work tours
 (designated as W_NH) and NHB trips on non-work tours (designated as N_NH). The
 table below shows the comparison of model and survey trip lengths by purpose and
 mode.

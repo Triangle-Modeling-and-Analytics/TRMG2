@@ -310,7 +310,7 @@ Macro "Determine Area Type" (Args)
             "Service_RateHigh",
             "Retail"
         },
-        {OptArray: TRUE}
+        {OptArray: TRUE, "Missing as Zero": TRUE}
     )
     tot_emp = data.Industry + data.Office + data.Service_RateLow + 
         data.Service_RateHigh + data.Retail

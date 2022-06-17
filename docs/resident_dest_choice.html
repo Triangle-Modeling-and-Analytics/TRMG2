@@ -221,10 +221,13 @@
          <a href="commercial_vehicles.html">Commercial Vehicles</a>
        </li>
        <li>
-         <a href="assignment_roadway.html">Roadway Assignment</a>
+         <a href="assignment.html">Assignment</a>
        </li>
        <li>
          <a href="validation.html">Validation</a>
+       </li>
+       <li>
+         <a href="sensitivity_tests.html">Sensitivity Tests</a>
        </li>
      </ul>
    </li>
@@ -283,13 +286,13 @@
       </ul></li>
       </ul></li>
       <li><a href="#non-home-based-trips">Non-Home-Based trips</a><ul>
-      <li><a href="#nhb-work-auto">NHB Work Auto</a><ul>
+      <li><a href="#nhb-work-trips-by-auto">NHB Work Trips by Auto</a><ul>
       <li><a href="#estimated-coefficients-and-t-statistics-8">Estimated coefficients and t statistics</a></li>
       </ul></li>
-      <li><a href="#nhb-nonwork-auto">NHB NonWork Auto</a><ul>
+      <li><a href="#nhb-nonwork-trips-by-auto">NHB NonWork Trips by Auto</a><ul>
       <li><a href="#estimated-coefficients-and-t-statistics-9">Estimated coefficients and t statistics</a></li>
       </ul></li>
-      <li><a href="#nhb-transit">NHB Transit</a><ul>
+      <li><a href="#nhb-transit-trips">NHB Transit Trips</a><ul>
       <li><a href="#estimated-coefficients-and-t-statistics-10">Estimated coefficients and t statistics</a></li>
       </ul></li>
       <li><a href="#nhb-nonmotorized">NHB NonMotorized</a><ul>
@@ -338,7 +341,7 @@
 <p><img src="img/dc/clusters.png" width="100%" height="80%" /></p>
 <ul>
 <li>Nested Logit (NL) models were estimated for the home-based trip purposes while multinomial logit (MNL) models were estimated for non-home-based trip purposes. NL models were attempted for the latter set of purposes but did not provide justifiably better models.</li>
-<li>All models were estimated using Larch (Newman, 2021).</li>
+<li>All models were estimated using Larch (Newman, 2021), which is a Python library for logit estimation.</li>
 </ul>
 <div id="a-note-on-model-fit" class="section level3">
 <h3>A Note on Model Fit</h3>
@@ -351,7 +354,7 @@
 <p>Such models only remain valid for the range of distances observed in the survey data used for model estimation. Scenarios involving longer distances will produce unintuitive model sensitivities.</p>
 <p>Another concern with distance variables is their static nature. Since they are not responsive to congestion, they cannot capture destination choice sensitivity to this key real-world and policy-relevant aspect.</p>
 <p>In addition, distance is highly correlated with travel times so that the inclusion of both variables often causes difficulties in model estimation as the algorithm struggles to uniquely split the effects between them.</p>
-<p>For the above reasons, the destination choice models for TRM rely on travel times, logsums by mode type, and other skims rather than distance-based variables.</p>
+<p>For the above reasons, the destination choice models for TRM rely on travel times and logsums by mode type rather than distance-based variables.</p>
 </div>
 </div>
 <div id="home-based-trips" class="section level2">
@@ -374,18 +377,18 @@
 <p>The utility specification for the DC models consisted of the following set of variables. Not all these variables are present in every specification since variables are retained depending on the significance of their estimated coefficients or owing to strong a priori assumptions.</p>
 <div id="size-term" class="section level4">
 <h4>Size Term</h4>
-<p>This is the natural logarithm of the attractions at a destination zone, which itself is a linear combination of employment variables and their coefficients. These coefficients are simultaneously estimated with other parameters. Since it is required that these coefficients be positive, the utility formulation specifies coefficients that are then exponentiated. Successful estimation requires that one of these attraction variable coefficients is fixed. The estimation also provides a coefficient for the size variable, which theoretically should be between 0 and 1.</p>
+<p>This is the natural logarithm of the attractions at a destination zone, which itself is a linear combination of employment variables and their coefficients. These coefficients are simultaneously estimated with other parameters. Since it is required that these coefficients be positive, the utility formulation specifies coefficients that are then exponentiated. Successful estimation requires that one of these attraction variable coefficients is fixed. The estimation provides a coefficient for the size term, which theoretically should be between 0 and 1.</p>
 </div>
 <div id="mode-choice-logsums" class="section level4">
 <h4>Mode Choice Logsums</h4>
-<p>Using mode choice root logsums typically presents a problem in destination choice. The root logsum value is dominated by the auto nest which washes out effects from non-dominant modes. For example, drastically improving the transit accessibility to a particular zone will not affect the probability of choosing that zone if the transit logsums are dwarfed by the auto logsums. To circumvent this issue, separate auto, transit, and non-household auto logsums from the respective nests are used in the TRM specifications. The logsums are segmented by vehicle sufficiency market segments for added explanatory power. Work trip logsums are further distinguished by high- and low-income segments. Finally, note that there is no auto logsum component for the zero-vehicle households market segment.</p>
+<p>Using mode choice root logsums typically presents a problem in destination choice. The root logsum value is dominated by the auto nest which washes out effects from non-dominant modes. For example, drastically improving the transit accessibility to a particular zone will not affect the probability of choosing that zone if the transit logsums are dwarfed by the auto logsums. To circumvent this issue, separate auto, transit, and non-household auto logsums from the respective nests are used in the TRM specifications (a non-household auto could be a neighbor’s car for example). The logsums are segmented by vehicle sufficiency market segments for added explanatory power. Work trip logsums are further distinguished by high- and low-income segments. Finally, note that there is no auto logsum component for the zero-vehicle households market segment.</p>
 </div>
 <div id="others" class="section level4">
 <h4>Others</h4>
 <ul>
 <li><strong>4D measures</strong>: Several 4D measures such as transit accessibility, hospital accessibility, walk accessibility, employment densities are considered.</li>
-<li><strong>Time Coefficient(s)</strong>: The auto times corresponding to the latest model skims are attached depending upon the time of day the respondent made the trip. A time coefficient is estimated in each specification.</li>
-<li><strong>Intra-Cluster effects</strong>: Intra-Cluster coefficients are estimated if the home and the chosen zone are within the same cluster (nest).</li>
+<li><strong>Time Coefficient(s)</strong>: The auto travel times corresponding to the latest model skims are attached depending upon the time of day the respondent made the trip. A time coefficient is estimated in each specification.</li>
+<li><strong>Intra-Cluster effects</strong>: Intra-Cluster coefficients (‘HomeCluster’ in the tables below) are estimated if the home and the chosen zone are within the same cluster (nest).</li>
 <li><strong>Intra-Zonal effect</strong>: A coefficient is estimated to boost the utility of choosing the same zone as the origin.</li>
 <li><strong>Cluster Nest coefficients</strong>: A nest coefficient for each of the 12 clusters is estimated.</li>
 <li><strong>Cluster ASCs</strong>: Likewise, alternative specific constants (ASCs) are estimated for each cluster.</li>
@@ -410,7 +413,7 @@
 <p>Intrazonal and home cluster effects are strong. Residents of Cary, Durham, Chapel Hill, and Garner often live and work in the same cluster. Similar effects are also observed for the peripheral clusters toward the northeast and south.</p>
 <p>Root mode choice logsums are significant for workers from zero-auto households, capturing a coupling with access to public transit modes. Using root mode choice logsums for the other auto sufficiency markets caused unrealistic signs as well as much poorer model fit. This can be explained by the fact that these logsums are primarily driven by auto skims, which are already a part of the utility equation (the “Time” term).</p>
 <p>Hospitals are major sources of employment in the region, and accessibility to hospital jobs helps drive work destination attractiveness. Transit and walk accessibilities are also drivers of a zone’s attractiveness for work tours.</p>
-<p>Most of the cluster nest coefficients are significantly different from 1, which means the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.). It’s coefficient is effectively 1, which implies an MNL-type sub-nest.</p>
+<p>Most of the cluster nest coefficients are significantly different from 1, which means the nested structure is justified. Research Triangle Park is a special cluster (very low residential land use, very high technology employment, etc.). Its coefficient is effectively 1, which implies an MNL-type sub-nest.</p>
 <p>The size variables are stratified by income using the percentage of low and high paying jobs in each zone. This is how the model pairs high-income workers (e.g. in the Regency area of Cary) with high-paying jobs in RTP. This stratification is critical for accurate work flows in the region.</p>
 </div>
 <div id="double-constraint-and-attraction-model" class="section level4">
@@ -543,7 +546,7 @@ Retail
 </tr>
 </tbody>
 </table>
-<p>During model application, predicted attractions are always scaled to match predicted productions before applying double constraint. As a consequence, the attraction model should predict total attractions that is close to predicted productions. This is referred to as PA balance (“production/attraction balance”). If it does not, adding employment to a zone will have unexpectedly high (or low) impacts on total zonal attractions.</p>
+<p>During model application, predicted attractions are always scaled to match predicted productions before applying double constraint. As a consequence, the attraction model should predict total attractions that are close to predicted productions. This is referred to as PA balance (“production/attraction balance”). If it does not, adding employment to a zone will have unexpectedly high (or low) impacts on total zonal attractions.</p>
 <p>The coefficients in the table above were multiplied by 2.45 during model calibration to achieve the appropriate PA balance of 1.0.</p>
 </div>
 </div>
@@ -555,10 +558,10 @@ Retail
 <p><img src="img/dc/w_hb_o_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/w_hb_o_all2.png" width="90%" style="display: block; margin: auto;" /></p>
 <p><img src="img/dc/w_hb_o_all3.png" width="60%" style="display: block; margin: auto;" /></p>
 <p>ASCs were estimated for all but one of the clusters, but only the significant ones were retained. These ASCs are very small in magnitude, confirming that the model’s explanatory power is derived from other variables and is sensitive to changes in model inputs.</p>
-<p>The model has a sophisticated approach to travel time. Travel time is more important up to the first 30 minutes. Excess time beyond this threshold is gets a slight discount. This reflects a difference in the behavior for these longer trips, which are dominated more by what is at the destination rather than the time to get there.</p>
+<p>The model has a sophisticated approach to travel time. Travel time is more important up to the first 30 minutes. Excess time beyond this threshold gets a slight discount. This reflects a difference in the behavior for these longer trips, which are dominated more by what is at the destination rather than the time to get there.</p>
 <p>Home cluster effects are strong for residents of Cary, Garner, Raleigh, Southern Durham and the southeastern periphery. People in these clusters often stop in the same cluster for their intermediate activities.</p>
 <p>The public transit mode choice logsum is significant for certain segments like zero-vehicle households. Non-household auto logsums (primarily taxis and TNCs) are also significant.</p>
-<p>The number of households is a major factor in the calculation of the size variable, reflecting the inclusion of personal visits in this trip purpose. Logically, the retail and service employment also help drive trips to specific destinations. Income-based stratification of employment did not make a difference in model performance.</p>
+<p>The number of households is a major factor in the calculation of the size variable, reflecting the inclusion of personal visits (e.g. to a friend’s house) in this trip purpose. Logically, the retail and service employment also help drive trips to specific destinations. Income-based stratification of employment did not make a difference in model performance.</p>
 <p>Most cluster nest coefficients are significantly different from 1, so the nested structure is justified. As with W_HB_W, RTP is an exception to this.</p>
 </div>
 </div>
@@ -574,7 +577,7 @@ Retail
 </div>
 <div id="n_hb_ome" class="section level3">
 <h3>N_HB_OME</h3>
-<p>N_HB_OME corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that involved the spending of money whether shopping, eating out, or personal business. This segment is close to the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<p>N_HB_OME corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity that involved the spending of money whether shopping, eating out, or personal business. This segment is close to the HBO (Home-Based Other) trip purpose in traditional models (OME: ‘Other Maintenance/Eat’).</p>
 <div id="estimated-coefficients-and-t-statistics-3" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
 <p><img src="img/dc/n_hb_ome_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_ome_all2.png" width="90%" style="display: block; margin: auto;" /></p>
@@ -591,13 +594,13 @@ Retail
 <p><img src="img/dc/n_hb_omed_all1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_omed_all2.png" width="90%" style="display: block; margin: auto;" /></p>
 <p><img src="img/dc/n_hb_omed_all3.png" width="60%" style="display: block; margin: auto;" /></p>
 <p>A zone’s accessibility to a hospital is a strong predictor in this model. This captures the important clustering of doctor’s offices, clinics, and pharmacies around major hospitals.</p>
-<p>Travel time above 30 minutes has almost no impact on desintation choice. This is an encouraging result. People traveling long distances to see a specialist are not impacted by travel time in a major way.</p>
+<p>Travel time above 30 minutes has almost no impact on destination choice. This is an encouraging result. People traveling long distances to see a specialist are not impacted by travel time in a major way.</p>
 <p>Attractions are driven by retail and service employment, with an added boost from service employment related to the presence of hospitals.</p>
 </div>
 </div>
 <div id="n_hb_k12" class="section level3">
 <h3>N_HB_K12</h3>
-<p>N_HB_K12 corresponds to trips that are not part of a work tour, have one end at home, and the other end at a school. This segment would have been part of the HB School trip purpose in traditional models.</p>
+<p>N_HB_K12 corresponds to trips that are not part of a work tour, have one end at home, and the other end at a school. This segment would have been part of the HB School trip purpose in traditional models, and can be made by either students traveling to school or parents dropping them off.</p>
 <div id="estimated-coefficients-and-t-statistics-5" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
 <p><img src="img/dc/n_hb_k12_all1.png" width="90%" style="display: block; margin: auto;" /></p>
@@ -617,13 +620,13 @@ Retail
 </div>
 <div id="n_hb_od_short" class="section level3">
 <h3>N_HB_OD_Short</h3>
-<p>N_HB_OD_Short corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity shorter than 30 minutes in duration. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models.</p>
+<p>N_HB_OD_Short corresponds to trips that are not part of a work tour, have one end at home, and the other end at an “other” activity shorter than 30 minutes in duration. This segment would have been rolled into the HBO (Home-Based Other) trip purpose in traditional models. As an example, a trip to a friend’s house to pick up or drop off something would be included here assuming they didn’t stay and visit for longer than 30 minutes.</p>
 <div id="estimated-coefficients-and-t-statistics-7" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
 <p><img src="img/dc/n_hb_od_short1.png" width="90%" style="display: block; margin: auto;" /><img src="img/dc/n_hb_od_short2.png" width="90%" style="display: block; margin: auto;" /></p>
 <p><img src="img/dc/n_hb_od_short3.png" width="60%" style="display: block; margin: auto;" /></p>
-<p>The attenuation on for drive time above 20 minutes is not as strong as other trip types. This indicates that these trips are likely just trying to reach the nearest attraction that satisfies the trip purpose. Similarly, home cluster effects and the intrazonal term are strong meaning that people stay nearby. These effects are reasonable, reflecting that people are not inclined to travel longer distances for short activities.</p>
-<p>Logsums for household auto, non-household auto, and transit all play an important role in determining where someone travels. Similar to the N_HB_OD_Long trip, the size term is made up of employment, enrollment, and household population.</p>
+<p>The attenuation on drive time above 20 minutes is not as strong as other trip types. This indicates that these trips are likely just trying to reach the nearest attraction that satisfies the trip purpose. Similarly, home cluster effects and the intrazonal term are strong meaning that people stay nearby. These effects are reasonable, reflecting that people are not inclined to travel longer distances for short activities.</p>
+<p>Logsums for household auto, non-household auto, and transit all play an important role in determining where someone travels. Similar to the N_HB_OD_Long trip, the size term is made up of employment, K-12 enrollment, and household population.</p>
 </div>
 </div>
 </div>
@@ -652,8 +655,8 @@ Retail
 <li>NHB Trips by Public Transit</li>
 <li>NHB Trips by Bike/Walk</li>
 </ul>
-<div id="nhb-work-auto" class="section level3">
-<h3>NHB Work Auto</h3>
+<div id="nhb-work-trips-by-auto" class="section level3">
+<h3>NHB Work Trips by Auto</h3>
 <p>This segment corresponds to trips that are part of a work tour, do not have either end at home, and are associated with the auto mode. Most of this segment would have been rolled into the NHBW (Non-Home-Based Work) trip purpose in traditional models.</p>
 <div id="estimated-coefficients-and-t-statistics-8" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
@@ -662,8 +665,8 @@ Retail
 <p>Drive time has the expected negative sensitivity, with times above 30 minutes penalized to a lesser extent than the first 30 minutes. The generic intra-cluster effect is strong, which is expected given shorter trip lengths of NHB trips. Attractions are driven by a variety of employment as well as school enrollment.</p>
 </div>
 </div>
-<div id="nhb-nonwork-auto" class="section level3">
-<h3>NHB NonWork Auto</h3>
+<div id="nhb-nonwork-trips-by-auto" class="section level3">
+<h3>NHB NonWork Trips by Auto</h3>
 <p>This segment corresponds to trips that are part of a non-work tour, do not have either end at home, and use the auto mode. This segment would have been rolled into the NHBO (Non-Home-Based Other) trip purpose in traditional models.</p>
 <div id="estimated-coefficients-and-t-statistics-9" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
@@ -672,8 +675,8 @@ Retail
 <p>The non-work auto trip model looks similar to work, but the inclusion of parking logsums captures a major difference between the two trip types: work trips are not impacted by parking variables while non-work trips are.</p>
 </div>
 </div>
-<div id="nhb-transit" class="section level3">
-<h3>NHB Transit</h3>
+<div id="nhb-transit-trips" class="section level3">
+<h3>NHB Transit Trips</h3>
 <p>All NHB transit trips are handled with a single destination choice model.</p>
 <div id="estimated-coefficients-and-t-statistics-10" class="section level4">
 <h4>Estimated coefficients and t statistics</h4>
@@ -707,7 +710,7 @@ Retail
 </div>
 <div id="dc-application" class="section level2">
 <h2>DC Application</h2>
-<p>This section is a short note on the application of the destination choice models in the TRM model framework. In the TRM model, the destination choice is the higher-level choice which is then followed by the mode choice for a given purpose, market segment and period. However, the utility equation for the DC models contains mode choice logsums. Therefore, a three-step process is followed for each combination of purpose, segment and time period:</p>
+<p>This section is a short note on the application of the destination choice models in the TRM model framework. In the TRM model, the destination choice is the higher-level choice which is then followed by the mode choice for a given purpose, market segment and period. However, the utility equation for the DC models contains mode choice logsums. Therefore, a three-step process is followed for each combination of trip purpose, market segment and time period:</p>
 <ul>
 <li>The mode choice model is run for the given purpose, segment and time period, taking care to use the appropriate time period skim matrices. The output logsum matrix (by mode, segment and period) and the output mode choice probability matrix are stored.</li>
 <li>The DC nested choice is run, which produces a zone-zone probability matrix, such that for each row (zone), the destination probabilities sum to 1. The determination of this probability matrix itself is the result of the nested DC, implemented as a two-stage destination choice model with a zone level model and cluster level model informed by zone-zone DC logsums.</li>
@@ -724,12 +727,12 @@ Retail
 </div>
 <div id="intra-zonal-percentages" class="section level3">
 <h3>Intra-Zonal Percentages</h3>
-<p>The table below show the intrazonal percentages by purpose for the model and the survey, which indicates pretty much a spot-on match.</p>
+<p>The table below shows the intrazonal percentages by purpose for the model and the survey, which indicates pretty much a spot-on match.</p>
 <p><img src="img/dc/validation/iz.png" width="55%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="cluster-to-cluster-flows" class="section level3">
 <h3>Cluster-to-Cluster Flows</h3>
-<p>The success of a travel demand model and its usefulness towards meaningful scenario analysis relies heavily on trip distribution and particularly on the validity of the cluster-to-cluster flows (or district to district flows). A model that matches observed cluster to cluster flows generally is successful in capturing the travel trends in the region and tends itself well to scenario analysis. Recall that in TRMG2, the top-level choice in the destination choice model is the choice of the cluster (where the home cluster is favored often) and then the second level is the choice of the zone within the cluster.</p>
+<p>The success of a travel demand model and its usefulness towards meaningful scenario analysis relies heavily on trip distribution and particularly on the validity of the cluster-to-cluster flows (or district to district flows). A model that matches observed cluster to cluster flows generally is successful in capturing the travel trends in the region and tends itself well to scenario analysis. Recall that in TRMG2, the top-level in the destination choice model is the choice of the cluster (where the home cluster is favored often) and then the second level is the choice of the zone within the cluster.</p>
 <p>The structure as well as the rich utility specification of the two stage DC nested model in TRMG2 was instrumental in matching the observed cluster-to-cluster flows from the survey, thereby inspiring a great deal of confidence in the model. The following table and charts illustrate the fit of the model to the observed cluster-to-cluster flows.</p>
 <div id="w_hb_w-1" class="section level4">
 <h4>W_HB_W</h4>
@@ -775,12 +778,12 @@ Retail
 <div id="n_hb_od_long-1" class="section level4">
 <h4>N_HB_OD_Long</h4>
 <p><img src="img/dc/validation/nhbodlong_scatter.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>All the above graphs indicate that the cluster-to-cluster patterns revealed by the survey are adhered to in the model (with only a minimal set of adjustments), which in turn makes the more robust and inspires confidence in the model’s predictive capability.</p>
+<p>All the above graphs indicate that the cluster-to-cluster patterns revealed by the survey are adhered to in the model (with only a minimal set of adjustments), which in turn makes the model more robust and inspires confidence in the model’s predictive capability.</p>
 </div>
 </div>
 <div id="nhb-trip-types" class="section level3">
 <h3>NHB Trip Types</h3>
-<p>The NHB trips are split by mode and consists of NHB trips on work tours (designated as W_NH) and NHB trips on non-work tours (designated as N_NH). The table below shows the comparison of model and survey trip lengths by purpose and mode.</p>
+<p>The NHB trips are split by mode and consist of NHB trips on work tours (designated as W_NH) and NHB trips on non-work tours (designated as N_NH). The table below shows the comparison of model and survey trip lengths by purpose and mode.</p>
 <p><img src="img/dc/validation/nhb.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>A large percentage of these trips are SOV trips (&gt; 85%), for which the model compares very favorably with the survey.</p>
 <p>Although HOV2 and HOV3 trips show a larger discrepancy for NHB trips on work tours, these make up only 12% of the auto NHB trips on work tours. Likewise, the transit trips are only a fraction of the overall NHB trips. For these modes, the confidence in the survey numbers is also not high due to small sample sizes.</p>
