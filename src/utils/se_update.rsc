@@ -17,14 +17,14 @@ dBox "SEUpdate" (Args) location: x, y, , 15
     enditem
 
     init do
-        static x, y, initial_dir, taz_dir, orig_se, new_se, taz_dbd
+        static x, y, initial_dir, taz_dir, orig_se, new_se, base_se, taz_dbd
         if x = null then x = -3
         if taz_dbd = null then taz_dbd = Args.[Master TAZs]
     enditem
 
     // Original SE
     text 1, 0 variable: "Original SE"
-    text same, after, 40 variable: orig_se framed
+    text same, after, 50 variable: orig_se framed
     button after, same, 6 Prompt: "..."  default do
         on escape goto nodir
         orig_se = ChooseFile(
@@ -43,12 +43,12 @@ dBox "SEUpdate" (Args) location: x, y, , 15
 
     // New SE Data
     text 1, after variable: "New SE"
-    text same, after, 40 variable: new_se framed
+    text same, after, 50 variable: new_se framed
     button after, same, 6 Prompt: "..."  do
         on escape goto nodir
         new_se = ChooseFile(
             {{"New SE Data", "*.bin"}},
-            "Select new link layer",
+            "Select new se data file",
             {"Initial Directory": initial_dir}
         )
         {drive, path, name, ext} = SplitPath(new_se)
@@ -60,9 +60,28 @@ dBox "SEUpdate" (Args) location: x, y, , 15
         ShowMessage("The new se data where some zones have been modified.")
     enditem
 
+    // Base SE Data
+    text 1, after variable: "Base SE"
+    text same, after, 50 variable: base_se framed
+    button after, same, 6 Prompt: "..."  do
+        on escape goto nodir
+        base_se = ChooseFile(
+            {{"Base SE Data", "*.bin"}},
+            "Select base se data file",
+            {"Initial Directory": initial_dir}
+        )
+        {drive, path, name, ext} = SplitPath(base_se)
+        initial_dir = drive + path
+        nodir:
+        on error, notfound, escape default
+    enditem
+    button after, same, 3 Prompt: "?"  do
+        ShowMessage("The base year se data (optional). If provided, adjustments will only be made to the growth in TAZs.")
+    enditem
+
     // TAZ Layer
     text 1, after variable: "TAZ Layer"
-    text same, after, 40 variable: taz_dbd framed
+    text same, after, 50 variable: taz_dbd framed
     button after, same, 6 Prompt: "..."  do
         on escape goto nodir
         taz_dir = Args.[Model Folder] + "\\master\\tazs"
@@ -110,6 +129,7 @@ dBox "SEUpdate" (Args) location: x, y, , 15
         RunMacro("SEUpdate", {
             OrigSE: orig_se,
             NewSE: new_se,
+            BaseSE: base_se,
             TAZ: taz_dbd
         })
         ShowMessage("SE Data update complete.")
@@ -134,18 +154,11 @@ Inputs
           
 */
 
-Macro "test"
-    RunMacro("SEUpdate", {
-        OrigSE: "C:\\projects\\TRM\\trm_project\\repo_trmg2\\master\\sedata\\se_2020.bin",
-        NewSE: "C:\\projects\\TRM\\trm_project\\repo_trmg2\\master\\sedata\\se_2020_new.bin",
-        TAZ: "C:\\projects\\TRM\\trm_project\\repo_trmg2\\master\\tazs\\master_tazs.BIN"
-    })
-endmacro
-
 Macro "SEUpdate" (MacroOpts)
 
     orig_se = MacroOpts.OrigSE
     new_se = MacroOpts.NewSE
+    base_se = MacroOpts.BaseSE
     taz = MacroOpts.TAZ
 
     if TypeOf(orig_se) = "null" then Throw("SEUpdate: 'OrigSE' is null.")
@@ -165,24 +178,11 @@ Macro "SEUpdate" (MacroOpts)
         "Service_RateHigh", "Retail"
     }
 
-    // Calculate control totals
+
     taz = CreateObject("Table", taz)
     orig = CreateObject("Table", orig_se)
-    join = orig.Join({
-        Table: taz,
-        LeftFields: "TAZ",
-        RightFields: "ID"
-    })
-    for field in fields_to_update do
-        field_stats = field_stats + {{field, {"sum"}}}
-    end
-    totals = join.Aggregate({
-        GroupBy: "County",
-        FieldStats: field_stats
-    })
-    join = null
-
     new = CreateObject("Table", new_se)
+    new.AddField("growth")
     new.AddField("modified")
     new.AddField("diff")
     new.AddField("unmod_cnt_total")
@@ -195,16 +195,33 @@ Macro "SEUpdate" (MacroOpts)
         RightFields: "TAZ"
     })
 
+    if base_se <> null then do
+        base = CreateObject("Table", base_se)
+        base_vw = base.GetView()
+        orig_and_new = orig_and_new.Join({
+            Table: base,
+            LeftFields: new_vw + ".TAZ",
+            RightFields: "TAZ"
+        })
+    end
+
+
     for field in fields_to_update do
     
         // Identify modified zones and calc diff by zone
         v_orig = orig_and_new.(orig_vw + "." + field)
         v_new = orig_and_new.(new_vw + "." + field)
+        if base <> null then do
+            v_base = orig_and_new.(base_vw + "." + field)
+            v_orig = v_orig - v_base
+            v_new = v_new - v_base
+        end
         v_mod = if v_new <> v_orig then 1 else 0
         if v_mod.sum() = 0 then continue // skip if nothing modified
         v_diff = v_new - v_orig
         orig_and_new.modified = v_mod
         orig_and_new.diff = v_diff
+        orig_and_new.growth = v_orig
         
         // Calc diff by county
         join = new.Join({
@@ -222,18 +239,18 @@ Macro "SEUpdate" (MacroOpts)
         join.ChangeSet("unmodified")
         agg = join.Aggregate({
             GroupBy: "County",
-            FieldStats: {{field, {"sum"}}}
+            FieldStats: {{"growth", {"sum"}}}
         })
         join2 = join.Join({
             Table: agg,
             LeftFields: "County",
             RightFields: "County"
         })
-        join2.unmod_cnt_total = join2.("sum_" + field)
+        join2.unmod_cnt_total = join2.("sum_growth")
         join2 = null
         join = null
-        new.pct = if new.modified <> 1 then new.(field) / new.unmod_cnt_total else 0
-        
+        new.pct = if new.modified <> 1 then new.growth / new.unmod_cnt_total else 0
+
         // Redistribute county differences
         join = new.Join({
             Table: taz,
@@ -250,5 +267,5 @@ Macro "SEUpdate" (MacroOpts)
         join = null
     end
     orig_and_new = null
-    new.DropFields({FieldNames: {"diff", "unmod_cnt_total", "pct"}})
+    new.DropFields({FieldNames: {"growth", "modified", "diff", "unmod_cnt_total", "pct"}})
 endmacro
