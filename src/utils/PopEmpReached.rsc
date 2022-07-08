@@ -2,7 +2,7 @@ Macro "Open PopEmpReached Dbox" (Args)
 	RunDbox("PopEmpReached", Args)
 endmacro
 
-dBox "PopEmpReached" (Args) location: x, y
+dBox "PopEmpReached" (Args) center, center, 60, 9
   Title: "Population_Employment_Accessibility Tool V 1.0" toolbox NoKeyBoard
 
   // What happens when the "x" is clicked
@@ -12,10 +12,8 @@ dBox "PopEmpReached" (Args) location: x, y
 
   init do
 
-    static x, y, TOD, Radius, TOD_Index, Radius_Index, Radius_list, TOD_list
+    static TOD, Radius, TOD_Index, Radius_Index, Radius_list, TOD_list
 	
-    if x = null then x = -3
-  
     EnableItem("Select time threshold(minutes)")
 	  Radius_list = {"15", "30", "45", "60", "75", "90"}
 
@@ -25,22 +23,22 @@ dBox "PopEmpReached" (Args) location: x, y
    enditem
   
   // Quit Button
-  button 1, 15, 10 Prompt:"Quit" do
+  button 5, 7, 10 Prompt:"Quit" do
     Return(1)
   enditem
   
-  Popdown Menu "Select time threshold(minutes)" 22,10,10,5 Prompt: "Select time threshold (minutes)" 
+  Popdown Menu "Select time threshold(minutes)" 30,1,10,5 Prompt: "Select time threshold (minutes)" 
     List: Radius_list Variable: Radius_Index do
     Radius = Radius_list[Radius_Index]
   enditem
 	
-  Popdown Menu "Select TOD" 58,10,10,5 Prompt: "Choose TOD" 
+  Popdown Menu "Select TOD" 14,4,10,5 Prompt: "Choose TOD" 
     List: TOD_list Variable: TOD_Index do
     TOD = TOD_list[TOD_Index]
   enditem
   
   // Make Map Button
-  button 40, 15, 30 Prompt:"Generate Results" do // button p1,p2,p3, p1 horizontal, p2 vertical, p3 length
+  button 25, 7, 30 Prompt:"Generate Results" do // button p1,p2,p3, p1 horizontal, p2 vertical, p3 length
 
     if !RunMacro("Highway_Transit_PopEmp", Args, Radius, TOD) then goto exit	
 
@@ -65,9 +63,9 @@ Macro "Highway_Transit_PopEmp" (Args, Radius, TOD)
   skim_dir = scen_dir + "\\Output\\skims"
   se_file = scen_dir + "\\Output\\sedata\\scenario_se.bin"
   TransModeTable = Args.TransModeTable
-  reporting_dir = scen_dir + "\\Output\\_summaries\\_reportingtool"
+  reporting_dir = scen_dir + "\\Output\\_summaries"
   //if GetDirectoryInfo(reporting_dir, "All") <> null then PutInRecycleBin(reporting_dir)
-  output_dir = reporting_dir + "\\Pop_EmpReachedByHighwayTransit"
+  output_dir = reporting_dir + "\\Pop_Emp_Accessibility"
   temp_dir = output_dir + "\\Temp"
   RunMacro("Create Directory", output_dir)
   RunMacro("Create Directory", temp_dir)
@@ -185,6 +183,7 @@ Macro "Highway_Transit_PopEmp" (Args, Radius, TOD)
   // because some TAZ have poor transit access even with pnr/knr so they cannot reach any destination within 15/30 minutes
   // by left join back to auto table, you have full list of TAZs.
   dfa.left_join(dft, "Row", "Row")
+  dfa.rename("Row", "TAZ")
   dfa.write_csv(output_dir + "/PopEmpReachedin" + Radius + "Min_"+ TOD + ".csv") 
   
   RunMacro("Close All")

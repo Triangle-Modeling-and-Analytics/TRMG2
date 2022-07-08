@@ -99,7 +99,7 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir,
   masterTransModeTable = Args.[Master Folder] + "\\networks\\transit_mode_table.csv"
   taz_file = Args.TAZs
   se_file = Args.SE
-  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool" //need to create this dir in argument file
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries" //need to create this dir in argument file
   output_dir = reporting_dir + "\\Transit_Poverty_HH_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -186,23 +186,25 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir,
     jn_vw1 = JoinViews("Buffer_Poverty", TAZ_Buffer+".AREA_1", TAZ_Poverty + ".AREA_1",)
     jn_vw2 = JoinViews("SE_Buffer_Poverty", SE + ".TAZ", jn_vw1 + "." + TAZ_Buffer + ".AREA_1",)
     jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", )
-    CreateExpression(jn_vw3, "Poverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
-    CreateExpression(jn_vw3, "Poverty_HH", "Poverty_Pct * HH * PERCENT_1",)
-    output_name1 = output_dir + "/" + TOD + "_" + mode +"Route_PovertyReachedin" + R2S(RouteBuffer) + "Mi.csv"
+    CreateExpression(jn_vw3, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
+    CreateExpression(jn_vw3, "Total_HH", "HH * PERCENT_1",)
+    CreateExpression(jn_vw3, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
+    CreateExpression(jn_vw3, "Poverty_Pct", "Poverty_HH/HH",)
+    output_name1 = output_dir + "/" + TOD + "_Route_" + mode +"_PovertyReachedin" + R2S(RouteBuffer) + "Mi.csv"
     ExportView(jn_vw3 + "|", "CSV", output_name1, 
-              {"TAZ", "MPO", "County", "HH", "Poverty_Pct", "Poverty_HH"}, 
+              {"TAZ", "MPO", "County", "Total_HH", "Poverty_Pct", "Poverty_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"TAZ", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
     group_fields = {"MPO", "County"}
-    fields_to_sum = {"HH", "Poverty_HH"}
+    fields_to_sum = {"Total_HH", "Poverty_HH"}
     for group_field in group_fields do
       df = null
       df = CreateObject("df", output_name1)
       df.group_by(group_field)
       df.summarize(fields_to_sum, "sum")
-      df.mutate("Poverty_Pct", df.tbl.sum_Poverty_HH/df.tbl.sum_HH)
-      output_name2 = output_dir + "/" + TOD + "_" + mode +"Route_PovertyReachedin" + R2S(RouteBuffer) + "Miby" + group_field + ".csv"
+      df.mutate("Poverty_Pct", df.tbl.sum_Poverty_HH/df.tbl.sum_Total_HH)
+      output_name2 = output_dir + "/" + TOD + "_Route_" + mode +"_PovertyReachedin" + R2S(RouteBuffer) + "Miby" + group_field + ".csv"
       df.write_csv(output_name2) 
     end
     RunMacro("Close All")
@@ -229,7 +231,7 @@ Macro "Poverty_HH_Estimator_Stop" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir, 
   masterTransModeTable = Args.[Master Folder] + "\\networks\\transit_mode_table.csv"
   taz_file = Args.TAZs
   se_file = Args.SE
-  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries"
   output_dir = reporting_dir + "\\Transit_Poverty_HH_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -320,23 +322,25 @@ Macro "Poverty_HH_Estimator_Stop" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir, 
     jn_vw1 = JoinViews("Buffer_Poverty", TAZ_Buffer+".AREA_1", TAZ_Poverty + ".AREA_1",)
     jn_vw2 = JoinViews("SE_Buffer_Poverty", SE + ".TAZ", jn_vw1 + "." + TAZ_Buffer + ".AREA_1",)
     jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", )
-    CreateExpression(jn_vw3, "Poverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
-    CreateExpression(jn_vw3, "Poverty_HH", "Poverty_Pct * HH * PERCENT_1",)
-    output_name1 = output_dir + "/" + TOD + "_" + mode +"Stop_PovertyReachedin" + R2S(StopBuffer) + "Mi.csv"
+    CreateExpression(jn_vw3, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
+    CreateExpression(jn_vw3, "Total_HH", "HH * PERCENT_1",)
+    CreateExpression(jn_vw3, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
+    CreateExpression(jn_vw3, "Poverty_Pct", "Poverty_HH/HH",)
+    output_name1 = output_dir + "/" + TOD + "_Stop_" + mode +"_PovertyReachedin" + R2S(StopBuffer) + "Mi.csv"
     ExportView(jn_vw3 + "|", "CSV", output_name1, 
-              {"TAZ", "MPO", "County", "HH", "Poverty_Pct", "Poverty_HH"}, 
+              {"TAZ", "MPO", "County", "Total_HH", "Poverty_Pct", "Poverty_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"TAZ", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
     group_fields = {"MPO", "County"}
-    fields_to_sum = {"HH", "Poverty_HH"}
+    fields_to_sum = {"Total_HH", "Poverty_HH"}
     for group_field in group_fields do
       df = null
       df = CreateObject("df", output_name1)
       df.group_by(group_field)
       df.summarize(fields_to_sum, "sum")
-      df.mutate("Poverty_Pct", df.tbl.sum_Poverty_HH/df.tbl.sum_HH)
-      output_name2 = output_dir + "/" + TOD + "_" + mode +"Stop_PovertyReachedin" + R2S(StopBuffer) + "Miby" + group_field + ".csv"
+      df.mutate("Poverty_Pct", df.tbl.sum_Poverty_HH/df.tbl.sum_Total_HH)
+      output_name2 = output_dir + "/" + TOD + "_Stop_" + mode +"_PovertyReachedin" + R2S(StopBuffer) + "Miby" + group_field + ".csv"
       df.write_csv(output_name2) 
     end
     RunMacro("Close All")

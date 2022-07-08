@@ -28,7 +28,7 @@ enddbox
 
 Macro "Aggregate matrix" (Args)
     scen_dir = Args.[Scenario Folder]
-    reporting_dir = scen_dir + "\\output\\_summaries\\_reportingtool"
+    reporting_dir = scen_dir + "\\output\\_summaries"
     output_dir = reporting_dir + "\\Trip_aggregation"
     RunMacro("Create Directory", output_dir)
     
@@ -39,22 +39,30 @@ Macro "Aggregate matrix" (Args)
     nhb_dir = scen_dir + "\\output\\resident\\nhb\\dc\\trip_matrices"
 
     //set core names to combine
-    res_corenames = {"sov", "hov2", "hov3", "school bus", "all_transit"}
+    res_corenames = {"sov", "hov2", "hov3", "school_bus", "all_transit"}
     purposes = {"HBW", "HBSch", "HBO", "HBU", "NHB"}
     //univ_cores = {"auto", "walk", "bike", "w_lb", "pnr_lb"} all cores in univ mtx
     //nhb-cores = {"sov", "hov2", "hov3", "Total"} all cores in nhb mtx
 
+    //Create output matrix
+    out_file_daily = output_dir + "/pa_mototrip_matrix_daily.mtx"
+    res_trip_files = RunMacro("Catalog Files", {dir: resident_dir, ext: "mtx"}) 
+    CopyFile(res_trip_files[1], out_file_daily)
+    daily_mtx = CreateObject("Matrix", out_file_daily)
+    daily_core_names = daily_mtx.GetCoreNames()
+    daily_mtx.AddCores({"Total"} + purposes)
+    daily_mtx.DropCores(daily_core_names)
+    daily_cores = daily_mtx.GetCores()
+
     for period in periods do
 
         //Create output matrix
-        out_file = output_dir + "/pa_trip_matrix_"+ period + ".mtx"
-        res_trip_files = RunMacro("Catalog Files", {dir: resident_dir, ext: "mtx"}) 
+        out_file = output_dir + "/pa_mototrip_matrix_"+ period + ".mtx"
         CopyFile(res_trip_files[1], out_file)
         mtx = CreateObject("Matrix", out_file)
         core_names = mtx.GetCoreNames()
-        mtx.AddCores({"Total"})
+        mtx.AddCores({"Total"} + purposes)
         mtx.DropCores(core_names)
-        mtx.AddCores(purposes)
         cores = mtx.GetCores()
         
         //resident trip        
@@ -67,14 +75,17 @@ Macro "Aggregate matrix" (Args)
             if Position(name, "_W_") then do //if work
                 for res_corename in res_corenames do
                     cores.("HBW") := nz(cores.("HBW")) + nz(trip_cores.(res_corename))
+                    daily_cores.("HBW") := nz(daily_cores.("HBW")) + nz(trip_cores.(res_corename))
                 end
             end else if Position(name, "_K12_") then do //if school
                 for res_corename in res_corenames do
                     cores.("HBSch") := nz(cores.("HBSch")) + nz(trip_cores.(res_corename))
+                    daily_cores.("HBSch") := nz(daily_cores.("HBSch")) + nz(trip_cores.(res_corename))
                 end
             end else do // if other
                 for res_corename in res_corenames do
                     cores.("HBO") := nz(cores.("HBO")) + nz(trip_cores.(res_corename))
+                    daily_cores.("HBO") := nz(daily_cores.("HBO")) + nz(trip_cores.(res_corename))
                 end
             end
         end
@@ -85,7 +96,11 @@ Macro "Aggregate matrix" (Args)
         trip_corenames = trip_mtx.GetCoreNames()
         trip_cores = trip_mtx.GetCores()
         for trip_corename in trip_corenames do
-            cores.("HBU") := nz(cores.("HBU")) + nz(trip_cores.(trip_corename))
+            if trip_corename = "walk" or trip_corename = "bike" then continue
+            else do
+                cores.("HBU") := nz(cores.("HBU")) + nz(trip_cores.(trip_corename))
+                daily_cores.("HBU") := nz(daily_cores.("HBU")) + nz(trip_cores.(trip_corename))
+            end
         end
 
         //uhb trip
@@ -93,11 +108,14 @@ Macro "Aggregate matrix" (Args)
         for trip_file in nhb_trip_files do
             {, , name, } = SplitPath(trip_file)
             if !Position(name, period) then continue //if mtx is not for this TOD, skip
+            if Position(name, "walkbike") then continue
+            trip_corenames = if Position(name, "OV") then {"Total", "w_lb"} else {"Total"} //for SOV/HOV matrix, add total and w_lb. for all other modes, only total
             trip_mtx = CreateObject("Matrix", trip_file)
-            trip_corenames = trip_mtx.GetCoreNames()
+            //trip_corenames = trip_mtx.GetCoreNames()
             trip_cores = trip_mtx.GetCores()
             for trip_corename in trip_corenames do
                 cores.("NHB") := nz(cores.("NHB")) + nz(trip_cores.(trip_corename))
+                daily_cores.("NHB") := nz(daily_cores.("NHB")) + nz(trip_cores.(trip_corename))
             end
         end
 
@@ -108,6 +126,10 @@ Macro "Aggregate matrix" (Args)
 
         mtx = null
         trip_mtx = null
+    end
+    
+    for p in purposes do
+        daily_cores.("Total") := nz(daily_cores.("Total")) + nz(daily_cores.(p))
     end
 
 endmacro

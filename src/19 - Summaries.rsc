@@ -998,7 +998,8 @@ Macro "Transit Summary" (Args)
   RunMacro("Summarize Transit", {
     transit_asn_dir: assn_dir,
     output_dir: out_dir + "/_summaries/transit",
-    loaded_network: Args.Links
+    loaded_network: Args.Links,
+    scen_rts: Args.[Input Routes]
   })
 EndMacro
 
@@ -1126,7 +1127,7 @@ Macro "VMT_Delay Summary" (Args)
   scen_outdir = Args.[Output Folder]
   hwy_dbd = Args.Links
   taz_dbd = Args.TAZs
-  report_dir = scen_outdir + "\\_summaries\\_reportingtool" //need to create this dir in argument file 
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
   output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
   RunMacro("Create Directory", output_dir)
  
@@ -1247,7 +1248,7 @@ Macro "VMT_Delay Summary" (Args)
             df.rename(name, new_name)
         end
     end
-    df.write_csv(output_dir + "/link_summary_by_" + var +".csv")
+    df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
   end
   
 EndMacro
@@ -1256,7 +1257,7 @@ EndMacro
 Macro "Congestion Cost Summary" (Args)
   //Set input file path
   scen_outdir = Args.[Output Folder]
-  report_dir = scen_outdir + "\\_summaries\\_reportingtool" //need to create this dir in argument file 
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
   output_dir = report_dir + "\\CongestionCost"
   RunMacro("Create Directory", output_dir)
 
@@ -1296,9 +1297,9 @@ Macro "Congestion Cost Summary" (Args)
 
       for dir in a_dirs do
         // Get data vectors
-        v_fft = hwy_df.get_col("FFTime")
-        v_ct = hwy_df.get_col(dir + "_Time_" + period)
-        v_vol = hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period)
+        v_fft = nz(hwy_df.get_col("FFTime"))
+        v_ct = nz(hwy_df.get_col(dir + "_Time_" + period))
+        v_vol = nz(hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period))
 
         // Calculate delay
         v_delay = (v_ct - v_fft) * v_vol / 60

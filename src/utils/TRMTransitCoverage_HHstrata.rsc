@@ -72,7 +72,7 @@ Macro "HH_Strata_Estimator_Route" (Args, TOD, RouteBuffer)
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   hh_file = Args.Households
-  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries"
   output_dir = reporting_dir + "\\Transit_HH_Strata_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -85,6 +85,8 @@ Macro "HH_Strata_Estimator_Route" (Args, TOD, RouteBuffer)
   hh.group_by({"ZoneID", "market_segment"})
   hh.summarize({"WEIGHT"}, "sum")
   hh.spread("market_segment", "sum_WEIGHT",)
+  hh.rename("ZoneID", "TAZ")
+  hh.mutate("Total", nz(hh.tbl.v0) + nz(hh.tbl.ilvi) + nz(hh.tbl.ihvi) + nz(hh.tbl.ilvs) + nz(hh.tbl.ihvs))
   TAZ_HHstrata_filename = output_dir + "/" + "HH_Strata_byTAZ.csv"
   hh.write_csv(TAZ_HHstrata_filename) 
   
@@ -135,33 +137,32 @@ Macro "HH_Strata_Estimator_Route" (Args, TOD, RouteBuffer)
     int_vw = OpenTable("int_vw","DBASE",{buffer_intxDBF,})
     SetView(int_vw)
     num_Buffer = SelectByQuery("BufferSet", "Several", "Select * where AREA_1>0 and AREA_2>0",) // Select only intx shape within TAZ and buffer
-    agg_vw = AggregateTable("agg",int_vw+"|BufferSet", "FFB", temp_dir + "/" + TOD + "_" + mode + "_" +"RouteBuffer_TAZ.bin", "AREA_1", 
+    agg_vw = AggregateTable("agg",int_vw+"|BufferSet", "FFB", temp_dir + "/" + TOD + "_" + mode + "_RouteBuffer_TAZ.bin", "AREA_1", 
             {{"PERCENT_1","sum", }}, {"Missing As Zero": "true"}) // here we know which TAZs make up the buffer and their pct
 
     //Join TAZ_Buffer to TAZ_HHstrata
-    TAZ_Buffer = OpenTable("TAZ_Buffer","FFB",{temp_dir + "/" + TOD + "_" + mode + "_" +"RouteBuffer_TAZ.bin",})
+    TAZ_Buffer = OpenTable("TAZ_Buffer","FFB",{temp_dir + "/" + TOD + "_" + mode + "_RouteBuffer_TAZ.bin",})
     TAZ_HHstrata = OpenTable("TAZ_HHstrata","CSV", { TAZ_HHstrata_filename,})
-    jn_vw1 = JoinViews("Buffer_HHstrata", TAZ_Buffer+".AREA_1", TAZ_HHstrata + ".ZoneID",)
+    jn_vw1 = JoinViews("Buffer_HHstrata", TAZ_Buffer+".AREA_1", TAZ_HHstrata + ".TAZ",)
     jn_vw2= JoinViews("TAZ_Buffer_HHstrata", tlyr + ".ID", jn_vw1 + "." + TAZ_Buffer + ".AREA_1", )
-    segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
+    segments = {"ihvi", "ihvs", "ilvi",  "ilvs", "v0", "Total"}
     for segment in segments do
         CreateExpression(jn_vw2, segment + "_HH", "PERCENT_1 * " + segment,)
     end
-    output_name1 = output_dir + "/" + TOD + "_" + mode +"Route_HHStrataReachedin" + R2S(RouteBuffer) + "Mi.csv"
+    output_name1 = output_dir + "/" + TOD + "_Route_" + mode +"_HHStrataReachedin" + R2S(RouteBuffer) + "Mi.csv"
     ExportView(jn_vw2 + "|", "CSV", output_name1, 
-              {"ID", "MPO", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
+              {"ID", "MPO", "County", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH", "v0_HH", "Total_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"ID", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
     group_fields = {"MPO", "County"}
-    fields_to_sum = {"v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}
+    fields_to_sum = {"ihvi_HH", "ihvs_HH", "ilvi_HH", "ilvs_HH", "v0_HH", "Total_HH"}
     for group_field in group_fields do
       df = null
       df = CreateObject("df", output_name1)
       df.group_by(group_field)
       df.summarize(fields_to_sum, "sum")
-      df.mutate("Sum_HH", round(df.tbl.sum_v0_HH + df.tbl.sum_ilvi_HH + df.tbl.sum_ihvi_HH + df.tbl.sum_ilvs_HH + df.tbl.sum_ihvs_HH, 0))
-      output_name2 = output_dir + "/" + TOD + "_" + mode +"Route_HHStrataReachedin" + R2S(RouteBuffer) + "Miby" + group_field + ".csv"
+      output_name2 = output_dir + "/" + TOD + "_Route_" + mode +"_HHStrataReachedin" + R2S(RouteBuffer) + "Miby" + group_field + ".csv"
       df.write_csv(output_name2) 
     end
     RunMacro("Close All")
@@ -179,7 +180,7 @@ Macro "HH_Strata_Estimator_Stop" (Args, TOD, StopBuffer)
   TransModeTable = Args.TransModeTable
   taz_file = Args.TAZs
   hh_file = Args.Households
-  reporting_dir = Scenario_Dir + "\\Output\\_summaries\\_reportingtool"
+  reporting_dir = Scenario_Dir + "\\Output\\_summaries"
   output_dir = reporting_dir + "\\Transit_HH_Strata_Coverage" 
   temp_dir = output_dir + "\\temp"
   RunMacro("Create Directory", output_dir)
@@ -192,6 +193,8 @@ Macro "HH_Strata_Estimator_Stop" (Args, TOD, StopBuffer)
   hh.group_by({"ZoneID", "market_segment"})
   hh.summarize({"WEIGHT"}, "sum")
   hh.spread("market_segment", "sum_WEIGHT",)
+  hh.rename("ZoneID", "TAZ")
+  hh.mutate("Total", nz(hh.tbl.v0) + nz(hh.tbl.ilvi) + nz(hh.tbl.ihvi) + nz(hh.tbl.ilvs) + nz(hh.tbl.ihvs))
   TAZ_HHstrata_filename = output_dir + "/" + "HH_Strata_byTAZ.csv"
   hh.write_csv(TAZ_HHstrata_filename) 
   
@@ -244,37 +247,45 @@ Macro "HH_Strata_Estimator_Stop" (Args, TOD, StopBuffer)
     int_vw = OpenTable("int_vw","DBASE",{buffer_intxDBF,})
     SetView(int_vw)
     num_Buffer = SelectByQuery("BufferSet", "Several", "Select * where AREA_1>0 and AREA_2>0",) // Select only intx shape within TAZ and buffer
-    agg_vw = AggregateTable("agg",int_vw+"|BufferSet", "FFB", temp_dir + "/" + TOD + "_" + mode + "_" +"StopBuffer_TAZ.bin", "AREA_1", 
+    agg_vw = AggregateTable("agg",int_vw+"|BufferSet", "FFB", temp_dir + "/" + TOD + "_" + mode +"_StopBuffer_TAZ.bin", "AREA_1", 
             {{"PERCENT_1","sum", }}, {"Missing As Zero": "true"}) // here we know which TAZs make up the buffer and their pct
 
     //Join TAZ_Buffer to TAZ_HHstrata
-    TAZ_Buffer = OpenTable("TAZ_Buffer","FFB",{temp_dir + "/" + TOD + "_" + mode + "_" +"StopBuffer_TAZ.bin",})
+    TAZ_Buffer = OpenTable("TAZ_Buffer","FFB",{temp_dir + "/" + TOD + "_" + mode + "_StopBuffer_TAZ.bin",})
     TAZ_HHstrata = OpenTable("TAZ_HHstrata","CSV", { TAZ_HHstrata_filename,})
-    jn_vw1 = JoinViews("Buffer_HHstrata", TAZ_Buffer+".AREA_1", TAZ_HHstrata + ".ZoneID",)
+    jn_vw1 = JoinViews("Buffer_HHstrata", TAZ_Buffer+".AREA_1", TAZ_HHstrata + ".TAZ",)
     jn_vw2= JoinViews("TAZ_Buffer_HHstrata", tlyr + ".ID", jn_vw1 + "." + TAZ_Buffer + ".AREA_1", )
-    segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
+    segments = {"ihvi", "ihvs", "ilvi",  "ilvs", "v0", "Total"}
     for segment in segments do
         CreateExpression(jn_vw2, segment + "_HH", "PERCENT_1 * " + segment,)
     end
-    output_name1 = output_dir + "/" + TOD + "_" + mode +"Stop_HHStrataReachedin" + R2S(StopBuffer) + "Mi.csv"
+    output_name1 = output_dir + "/" + TOD + "_Stop_" + mode +"_HHStrataReachedin" + R2S(StopBuffer) + "Mi.csv"
     ExportView(jn_vw2 + "|", "CSV", output_name1, 
-              {"ID", "MPO", "County", "v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}, 
+              {"ID", "MPO", "County", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH", "v0_HH", "Total_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"ID", "Ascending"}} }})
 
     //Aggregate output by MPO/COUNTY/DISTRICT
     group_fields = {"MPO", "County"}
-    fields_to_sum = {"v0_HH", "ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH"}
+    fields_to_sum = {"ilvi_HH", "ihvi_HH", "ilvs_HH", "ihvs_HH", "v0_HH", "Total_HH"}
     for group_field in group_fields do
       df = null
       df = CreateObject("df", output_name1)
       df.group_by(group_field)
       df.summarize(fields_to_sum, "sum")
-      df.mutate("Sum_HH", round(df.tbl.sum_v0_HH + df.tbl.sum_ilvi_HH + df.tbl.sum_ihvi_HH + df.tbl.sum_ilvs_HH + df.tbl.sum_ihvs_HH, 0))
-      output_name2 = output_dir + "/" + TOD + "_" + mode +"Stop_HHStrataReachedin" + R2S(StopBuffer) + "Miby" + group_field + ".csv"
+      //df.mutate("Sum_HH", round(df.tbl.sum_v0_HH + df.tbl.sum_ilvi_HH + df.tbl.sum_ihvi_HH + df.tbl.sum_ilvs_HH + df.tbl.sum_ihvs_HH, 0))
+      output_name2 = output_dir + "/" + TOD + "_Stop_" + mode +"_HHStrataReachedin" + R2S(StopBuffer) + "Miby" + group_field + ".csv"
       df.write_csv(output_name2) 
     end
     RunMacro("Close All")
   end
-  PutInRecycleBin(temp_dir)
+  
+  //Delete temp files
+  files = GetDirectoryInfo(temp_dir + "/*", "File")
+  for i = 1 to files.length do
+    file = files[i][1]
+    filepath = temp_dir + "/" + file
+    DeleteFile(filepath)
+  end
+  RemoveDirectory(temp_dir)
   
 EndMacro
