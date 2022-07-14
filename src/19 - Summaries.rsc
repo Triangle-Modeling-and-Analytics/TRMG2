@@ -907,6 +907,16 @@ Macro "Summarize Links" (Args)
   RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
   TagLayer("Value", llyr + "|", llyr + ".MPO", tlyr + "|", tlyr + ".MPO")
   TagLayer("Value", llyr + "|", llyr + ".County", tlyr + "|", tlyr + ".County")
+  SetLayer(llyr)
+  fields = {"MPO", "County"}
+  for field in fields do
+    query = "Select * where " + field + " = null"
+    n = SelectByQuery("missing", "several", query)
+    if n = 0 then continue
+    query2 = "Select * where " + field + " <> null"
+    n = SelectByQuery("not missing", "several", query2)
+    TagLayer("Value", llyr + "|missing", llyr + "." + field, llyr + "|not missing", llyr + "." + field)
+  end
   CloseMap(map)
 
   opts.hwy_dbd = hwy_dbd
