@@ -32,6 +32,7 @@ Macro "Create Transit Matrices2" (Args)
         out_file = trn_dir + "/transit_" + period + ".mtx"
         CopyFile(files[1], out_file)
         mtx = CreateObject("Matrix", out_file)
+        RenameMatrix(mtx.GetMatrixHandle(), "Trips")
         core_names = mtx.GetCoreNames()
         mtx.AddCores({"temp"})
         mtx.DropCores(core_names)

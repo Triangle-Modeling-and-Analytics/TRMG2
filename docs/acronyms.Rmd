@@ -29,3 +29,21 @@ documentation.
 - HH: Household
 - HB: Home-based
 - NHB: Non-home-based
+
+## Trip Types
+Trip types have the following form: "N_HB_OD_Short"
+
+Each of the four pieces of this classification convery information about the trip.
+
+- Tour Type
+  - W: Work
+  - N: Non-work
+- Home-based
+  - HB: Home-based
+  - NHB: Non-home-based
+- Trip Purpose
+  - Various. See [here](resident_production.html)
+- Activity Duration
+  - Short
+  - Long
+  - All

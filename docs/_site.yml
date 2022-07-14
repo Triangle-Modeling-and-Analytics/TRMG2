@@ -47,10 +47,12 @@ navbar:
           href: ieei.html
         - text: "Commercial Vehicles"
           href: commercial_vehicles.html
-        - text: "Roadway Assignment"
-          href: assignment_roadway.html
+        - text: "Assignment"
+          href: assignment.html
         - text: "Validation"
           href: validation.html
+        - text: "Sensitivity Tests"
+          href: sensitivity_tests.html
   right:
     - text: "Github"
       href: https://github.com/Caliper-Corporation/TRMG2

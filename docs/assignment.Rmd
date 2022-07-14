@@ -1,5 +1,5 @@
 ---
-title: "Roadway Assignment"
+title: "Assignment"
 author: "Caliper Corporation"
 date: "October 7, 2021"
 output: html_document
@@ -17,7 +17,7 @@ library(knitr)
 library(kableExtra)
 ```
 
-## Introduction
+## Highway Assignment
 
 For a more basic introduction to highway assignment, see the [Travel Forecasting
 Resource](https://tfresource.org/topics/Network_assignment.html) page on the
@@ -37,7 +37,7 @@ In addition, the classes are further segmented by value of time. This is done
 to accurately capture toll road usage. Finally, vehicles are assigned separately
 by time period. More details are provided in the sections below.
 
-## Assignment by time period
+### Assignment by time period
 
 A defining feature of TRMG2 is the independent treatment of each time period.
 Traditionally, travel models used the AM period to represent both AM and PM
@@ -52,7 +52,7 @@ PM peak lasts longer, and places more demand on the transportation system. In
 order to capture these differences, model estimation and application must treat
 the PM peak separately.
 
-## Matrix creation
+### Matrix creation
 
 TRMG2 has models to predict demand for many markets including residents,
 commercial vehicles, university students, and external travelers. The
@@ -69,7 +69,7 @@ construct in the future. For this reason, a person traveling alone is added to
 the HOV2 matrix while a person traveling with one or more family members is
 added to HOV3+.
 
-## Value of time
+### Value of time
 
 Once trips are collapsed into the primary vehicle classes, they are assigned
 values of time. The base values were borrowed from the NC Statewide Model, but
@@ -97,7 +97,7 @@ tbl %>%
   kable_styling(full_width = FALSE)
 ```
 
-## Assignment parameters
+### Assignment parameters
 
 Relevant assignment details are listed below:
 
@@ -106,7 +106,7 @@ Relevant assignment details are listed below:
 - Relative Gap: .0001 (1e-4)
 - Maximum Iterations: 500
 
-### VDF parameters {.tabset}
+#### VDF parameters {.tabset}
 
 The table below shows the alpha and beta values used for the BPR VDF.
 
@@ -118,7 +118,7 @@ df <- read_csv("../master/networks/ff_speed_alpha_beta.csv") %>%
   filter(!(HCMType %in% c("CC", "TransitOnly")))
 ```
 
-#### Alphas
+##### Alphas
 
 ```{r}
 df %>%
@@ -128,7 +128,7 @@ df %>%
   kable_styling(full_width = FALSE)
 ```
 
-#### Betas
+##### Betas
 
 ```{r}
 df %>%
@@ -138,3 +138,13 @@ df %>%
   kable() %>%
   kable_styling(full_width = FALSE)
 ```
+
+## Transit Assignment
+
+TRMG2 uses Caliper's Pathfinder transit assignment algorithm. This is the same
+algorithm used for skimming and assignment uses identical networks. Separate
+assignments are done for each combination of access mode (e.g. walk, PNR, KNR)
+and primary mode (e.g. local bus, express bus, or rail in future scenarios).
+This ensures consistency between mode choice and assignment. As with roadway
+assignment, each time period is also assigned separately. Transit assignment is
+not part of model feedback, but happens after highway assignment has converged.

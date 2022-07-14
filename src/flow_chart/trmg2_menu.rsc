@@ -94,7 +94,7 @@ menu "TRMG2 Utilities"
 
     MenuItem "diff" text: "Diff Tool" do
         mr = CreateObject("Model.Runtime")
-        mr.RunCode("Open Diff Tool")
+        mr.RunCodeEx("Open Diff Tool")
     enditem
 
     MenuItem "fixed_od" text: "Fixed OD Assignment" do
@@ -107,6 +107,12 @@ menu "TRMG2 Utilities"
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCodeEx("Open Merge Dbox", Args)
+    enditem
+
+    MenuItem "seupdate_tool" text: "Update SE Data" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open SEUpdate Dbox", Args)
     enditem
 endMenu
 
