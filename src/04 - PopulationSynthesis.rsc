@@ -234,6 +234,7 @@ Macro "Synthesize Population"(Args)
     o.ReportExtraHouseholdField("HINCP", "HHInc")
     o.OutputPersonsFile = Args.Persons
     o.ReportExtraPersonsField("SEX", "gender") // Add extra field from Person Seed and change the name
+    o.ReportExtraPersonsField("RAC1P", "race") // Add extra field from Person seed and change the name
     o.ReportExtraPersonsField("ESR", "EmploymentStatus")
     
     // Optional IPU by-products

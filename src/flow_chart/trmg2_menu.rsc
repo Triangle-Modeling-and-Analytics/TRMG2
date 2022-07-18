@@ -114,6 +114,36 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCodeEx("Open SEUpdate Dbox", Args)
     enditem
+
+    MenuItem "PopEmpReached" text: "Population and Employement Accessibility" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open PopEmpReached Dbox", Args)
+    enditem
+	
+	MenuItem "TRMTransitCoverage_Poverty" text: "Transit Poverty HH Coverage" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Transit Poverty HH Coverage Dbox", Args)
+    enditem
+
+    MenuItem "TRMTransitCoverage_HHStrata" text: "Transit HH Strata Coverage" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Transit HH Strata Coverage Dbox", Args)
+    enditem
+
+    MenuItem "TransitScenarioComparion" text: "Transit Scenario Comparison" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
+    enditem
+
+    MenuItem "TripAggregation" text: "Motorized Trip Matrix Aggregation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Trip Aggregation Tool Dbox", Args)
+    enditem
 endMenu
 
 menu "TRMG2 Calibrators"
