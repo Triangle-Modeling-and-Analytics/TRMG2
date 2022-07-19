@@ -32,3 +32,8 @@ utils/FixedODAssignment.rsc
 utils/Calibrators.rsc
 utils/merge_tool.rsc
 utils/se_update.rsc
+utils/PopEmpReached.rsc
+utils/TRMTransitCoverage_Poverty.rsc
+utils/TRMTransitCoverage_HHStrata.rsc
+utils/transittool.rsc
+utils/trip_aggregation.rsc
