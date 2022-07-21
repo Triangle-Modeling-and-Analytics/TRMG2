@@ -26,6 +26,8 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
+    RunMacro("VMT_Delay Summary", Args)
+    RunMacro("Congestion Cost Summary", Args)
     return(1)
 endmacro
 
@@ -1023,7 +1025,9 @@ Macro "Transit Summary" (Args)
   RunMacro("Summarize Transit", {
     transit_asn_dir: assn_dir,
     output_dir: out_dir + "/_summaries/transit",
-    loaded_network: Args.Links
+    loaded_network: Args.Links,
+    scen_rts: Args.Routes
+
   })
 EndMacro
 
@@ -1143,3 +1147,229 @@ Macro "Summarize Parking"  (Args)
   cores = null
   mtx.Pack()
 endmacro
+
+Macro "VMT_Delay Summary" (Args)
+
+  //Set input file path
+  scen_dir = Args.[Scenario Folder]
+  scen_outdir = Args.[Output Folder]
+  hwy_dbd = Args.Links
+  taz_dbd = Args.TAZs
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
+  output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
+  RunMacro("Create Directory", output_dir)
+ 
+  periods = Args.Periods
+  a_dirs = {"AB", "BA"}
+  veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+  fields = {"Flow", "VMT", "CgVMT", "Delay"}
+  group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
+  
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+
+  hwy_df = CreateObject("df") //Consider only reading hwy link (DTWB=D) to improve efficiency
+  opts = null
+  opts.view = llyr
+  opts.fields = field_names
+  hwy_df.read_view(opts)
+
+  // Caculate flow, VMT, and delay by direction, period, and vehicle class
+  outfield_totcgvmtdailysum = "Total_CgVMT_Daily" // Calculate this total field as it is not included in hwy dbd
+  v_totcgvmtdailysum = null
+
+  for veh_class in veh_classes do 
+    outfield_totflowdaily = "Flow_"+ veh_class + "_Daily"
+    outfield_totvmtdaily = "VMT_"+ veh_class + "_Daily"
+    outfield_totcgvmtdaily = "CgVMT_"+ veh_class + "_Daily"
+    outfield_totdelaydaily = "Delay_"+ veh_class + "_Daily"
+    v_totflowdaily = null
+    v_totvmtdaily = null
+    v_totcgvmtdaily = null
+    v_totdelaydaily = null
+
+    for period in periods do
+      outfield_totflow = "Flow_"+ veh_class + "_" + period
+      outfield_totvmt = "VMT_" + veh_class + "_" + period
+      outfield_totcgvmt = "CgVMT_" + veh_class + "_" + period
+      outfield_totdelay = "Delay_" + veh_class + "_" + period      
+      v_totflow = null
+      v_totvmt = null
+      v_totcgvmt = null
+      v_totdelay = null
+
+      for dir in a_dirs do
+        input_field = dir + "_Flow_" + veh_class + "_" + period
+        v_vol = hwy_df.get_col(input_field)
+
+        //flow
+        v_totflow = nz(v_totflow) + nz(v_vol)
+
+        //VMT and cgVMT
+        length = hwy_df.get_col("length")
+        voc = hwy_df.get_col(dir + "_VOCD_" + period)
+        cg_length = if voc >1 then length else 0
+        v_totvmt = nz(v_totvmt) + nz(v_vol)*length
+        v_totcgvmt = nz(v_totcgvmt) + nz(v_vol)*cg_length
+
+        //delay
+        v_fft = hwy_df.get_col("FFTime")
+        v_ct = hwy_df.get_col(dir + "_Time_" + period)
+        v_delay = (v_ct - v_fft) * v_vol / 60
+        v_delay = max(v_delay, 0)
+        v_totdelay = nz(v_totdelay) + nz(v_delay)
+      end
+
+      //flow
+      hwy_df.mutate(outfield_totflow, v_totflow)
+      v_totflowdaily = v_totflow + nz(v_totflowdaily)
+
+      //VMT and cgVMT
+      hwy_df.mutate(outfield_totvmt, v_totvmt)
+      hwy_df.mutate(outfield_totcgvmt, v_totcgvmt)
+      v_totvmtdaily = nz(v_totvmtdaily) + nz(v_totvmt)
+      v_totcgvmtdaily = nz(v_totcgvmtdaily) + nz(v_totcgvmt)
+
+      //delay
+      hwy_df.mutate(outfield_totdelay, v_totdelay)
+      v_totdelaydaily = nz(v_totdelaydaily) + nz(v_totdelay)
+    end
+    //flow
+    hwy_df.mutate(outfield_totflowdaily, v_totflowdaily)
+
+    //VMT and cgVMT
+    hwy_df.mutate(outfield_totvmtdaily, v_totvmtdaily)
+    hwy_df.mutate(outfield_totcgvmtdaily, v_totcgvmtdaily)
+    v_totcgvmtdailysum = nz(v_totcgvmtdailysum) + nz(v_totcgvmtdaily)
+
+    //delay
+    hwy_df.mutate(outfield_totdelaydaily, v_totflowdaily)
+  end
+  hwy_df.mutate(outfield_totcgvmtdailysum, v_totcgvmtdailysum)
+
+  // Build summary fields
+  periods = periods + {"Daily"}
+  for sum_field in fields do
+    for veh_class in veh_classes do  
+      for period in periods do
+        out_field = sum_field + "_" + veh_class + "_" + period
+        fields_to_sum = fields_to_sum + {out_field}
+      end
+    end
+  end
+
+  fields_to_sum = fields_to_sum + {"Total_Flow_Daily", "Total_VMT_Daily", "Total_CgVMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
+  field_out = {"ID"} + group_fields + fields_to_sum
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.select(field_out)
+  hwy_df.write_csv(output_dir + "/link_VMT_Delay.csv")
+  RunMacro("Close All")
+
+  // Summarize by different variable
+  for var in group_fields do
+    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
+    df.group_by(var)
+    df.summarize(fields_to_sum, {"sum", "count"})
+    names = df.colnames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            df.rename(name, new_name)
+        end
+    end
+    df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
+  end
+  
+EndMacro
+
+
+Macro "Congestion Cost Summary" (Args)
+  //Set input file path
+  scen_outdir = Args.[Output Folder]
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
+  output_dir = report_dir + "\\CongestionCost"
+  RunMacro("Create Directory", output_dir)
+
+  hwy_dbd = Args.Links
+  vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+  p = RunMacro("Read Parameter File", {file: vot_params})
+  periods = Args.Periods
+  a_dirs = {"AB", "BA"}
+  veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+  auto_classes = {"sov", "hov2", "hov3", "CV"}
+  group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
+
+  {nLayer, llyr} = GetDBLayers(hwy_dbd)
+  llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
+
+  hwy_df = CreateObject("df")
+  opts = null
+  opts.view = llyr
+  opts.fields = field_names
+  hwy_df.read_view(opts)
+
+  // Calculate CgCost
+  for veh_class in veh_classes do
+    outfield_daily = "CgCost_" + veh_class + "_Daily"
+    v_output_daily = null
+
+    for period in periods do
+      outfield = "CgCost_" + veh_class + "_" + period
+      v_output = null
+
+      // Determine VOT based on veh type
+      if period = "AM" or period = "PM"
+        then pkop = "pk"
+        else pkop = "op"
+      if auto_classes.position(veh_class) > 0 then vot = p.(pkop + "_auto")
+      else vot = p.(veh_class)
+
+      for dir in a_dirs do
+        // Get data vectors
+        v_fft = nz(hwy_df.get_col("FFTime"))
+        v_ct = nz(hwy_df.get_col(dir + "_Time_" + period))
+        v_vol = nz(hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period))
+
+        // Calculate delay
+        v_delay = (v_ct - v_fft) * v_vol / 60
+        v_delay = max(v_delay, 0)
+        v_cost = v_delay * vot
+
+        v_output = nz(v_output) + v_cost
+      end  
+
+      v_output_daily = v_output + nz(v_output_daily)
+      hwy_df.mutate(outfield, v_output)
+    end
+    hwy_df.mutate(outfield_daily, v_output_daily)
+  end
+
+  // Build summary fields
+  periods = periods + {"Daily"}
+  for veh_class in veh_classes do  
+    for period in periods do
+      out_field = "CgCost_" + veh_class + "_" + period
+      fields_to_sum = fields_to_sum + {out_field}
+    end
+  end
+
+  field_out = {"ID"} + group_fields + fields_to_sum
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.select(field_out)
+  hwy_df.write_csv(output_dir + "/LinkCongestionCost.csv")
+
+  // Summarize by different variable  
+  for var in group_fields do
+    cg_df = CreateObject("df", output_dir + "/LinkCongestionCost.csv")
+    cg_df.group_by(var)
+    cg_df.summarize(fields_to_sum, {"sum", "count"})
+    names = cg_df.colnames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            cg_df.rename(name, new_name)
+        end
+    end
+    cg_df.write_csv(output_dir + "/CongestionCost_summary_by_" + var +".csv")
+  end
+  CloseView(llyr)
+EndMacro
