@@ -28,6 +28,7 @@ Macro "Other Reports" (Args)
     RunMacro("Create MOVES Inputs", Args)
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
+    RunMacro("Create PA Vehicle Trip Matrices", Args)
     return(1)
 endmacro
 
@@ -1373,3 +1374,84 @@ Macro "Congestion Cost Summary" (Args)
   end
   CloseView(llyr)
 EndMacro
+
+/*
+This macro creates aggregate trip matrices that are vehicle
+trips but still in PA format. This is useful for various reporting
+tools.
+*/
+
+Macro "Create PA Vehicle Trip Matrices" (Args)
+
+    // This section is a slight modification to the "HB Occupancy" macro
+    factor_file = Args.HBHOV3OccFactors
+    periods = Args.periods
+    trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
+    summary_dir = Args.[Output Folder] + "/_summaries/resident_hb"
+
+    fac_vw = OpenTable("factors", "CSV", {factor_file})
+    
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        period = fac_vw.tod
+        hov3_factor = fac_vw.hov3
+
+        if periods.position(period) = 0 then goto skip
+
+        per_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+        veh_mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+        CopyFile(per_mtx_file, veh_mtx_file)
+        mtx = CreateObject("Matrix", veh_mtx_file)
+        cores = mtx.GetCores()
+        cores.hov2 := cores.hov2 / 2
+        cores.hov3 := cores.hov3 / hov3_factor
+
+        skip:
+        rh = GetNextRecord(fac_vw + "|", rh, )
+    end
+    CloseView(fac_vw)
+
+    // This section is a slight modification to "HB Collapse Trip Types"
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    auto_cores = {"sov", "hov2", "hov3"}
+
+    for period in periods do
+
+        // Create the final matrix for the period using the first trip type matrix
+        mtx_file = trip_dir + "/pa_veh_trips_" + trip_types[1] + "_" + period + ".mtx"
+        out_file = summary_dir + "/pa_veh_trips_" + period + ".mtx"
+        CopyFile(mtx_file, out_file)
+        out_mtx = CreateObject("Matrix", out_file)
+        core_names = out_mtx.GetCoreNames()
+        for core_name in core_names do
+            if auto_cores.position(core_name) = 0 then to_remove = to_remove + {core_name}
+        end
+        out_mtx.DropCores(to_remove)
+        to_remove = null
+        out_cores = out_mtx.GetCores()
+
+        // Add the remaining matrices to the output matrix
+        for t = 2 to trip_types.length do
+            trip_type = trip_types[t]
+
+            mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+            mtx = CreateObject("Matrix", mtx_file)
+            cores = mtx.GetCores()
+            for core_name in auto_cores do
+                if cores.(core_name) = null then continue
+                out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
+            end
+        end
+
+        // Remove interim files
+        mtx = null
+        cores = null
+        out_mtx = null
+        out_cores = null
+        for trip_type in trip_types do
+            mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+            DeleteFile(mtx_file)
+        end
+    end
+endmacro
