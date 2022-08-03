@@ -223,3 +223,14 @@ HBO in other models). Compared to using work trips, this shifts demand from the
 AM and PM periods into the off peak. These travelers (e.g. with long commutes to
 work) need to leave earlier in the day. They cross the model boundary earlier
 (and later) than the peaks for internal residents.
+
+```{r, include=FALSE}
+tod_df <- read_csv("../master/external/ieei_tod.csv")
+```
+
+```{r}
+tod_df %>%
+  rename(Period = period, Factor = factor) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```

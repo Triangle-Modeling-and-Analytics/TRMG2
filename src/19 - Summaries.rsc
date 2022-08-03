@@ -26,6 +26,9 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create MOVES Inputs", Args)
+    RunMacro("VMT_Delay Summary", Args)
+    RunMacro("Congestion Cost Summary", Args)
+    RunMacro("Create PA Vehicle Trip Matrices", Args)
     return(1)
 endmacro
 
@@ -907,6 +910,16 @@ Macro "Summarize Links" (Args)
   RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
   TagLayer("Value", llyr + "|", llyr + ".MPO", tlyr + "|", tlyr + ".MPO")
   TagLayer("Value", llyr + "|", llyr + ".County", tlyr + "|", tlyr + ".County")
+  SetLayer(llyr)
+  fields = {"MPO", "County"}
+  for field in fields do
+    query = "Select * where " + field + " = null"
+    n = SelectByQuery("missing", "several", query)
+    if n = 0 then continue
+    query2 = "Select * where " + field + " <> null"
+    n = SelectByQuery("not missing", "several", query2)
+    TagLayer("Value", llyr + "|missing", llyr + "." + field, llyr + "|not missing", llyr + "." + field)
+  end
   CloseMap(map)
 
   opts.hwy_dbd = hwy_dbd
@@ -1013,7 +1026,9 @@ Macro "Transit Summary" (Args)
   RunMacro("Summarize Transit", {
     transit_asn_dir: assn_dir,
     output_dir: out_dir + "/_summaries/transit",
-    loaded_network: Args.Links
+    loaded_network: Args.Links,
+    scen_rts: Args.Routes
+
   })
 EndMacro
 
@@ -1132,4 +1147,311 @@ Macro "Summarize Parking"  (Args)
   cores.parkshuttle := if cores.parkshuttle = 0 then null else cores.parkshuttle
   cores = null
   mtx.Pack()
+endmacro
+
+Macro "VMT_Delay Summary" (Args)
+
+  //Set input file path
+  scen_dir = Args.[Scenario Folder]
+  scen_outdir = Args.[Output Folder]
+  hwy_dbd = Args.Links
+  taz_dbd = Args.TAZs
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
+  output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
+  RunMacro("Create Directory", output_dir)
+ 
+  periods = Args.Periods
+  a_dirs = {"AB", "BA"}
+  veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+  fields = {"Flow", "VMT", "CgVMT", "Delay"}
+  group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
+  
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+
+  hwy_df = CreateObject("df") //Consider only reading hwy link (DTWB=D) to improve efficiency
+  opts = null
+  opts.view = llyr
+  opts.fields = field_names
+  hwy_df.read_view(opts)
+
+  // Caculate flow, VMT, and delay by direction, period, and vehicle class
+  outfield_totcgvmtdailysum = "Total_CgVMT_Daily" // Calculate this total field as it is not included in hwy dbd
+  v_totcgvmtdailysum = null
+
+  for veh_class in veh_classes do 
+    outfield_totflowdaily = "Flow_"+ veh_class + "_Daily"
+    outfield_totvmtdaily = "VMT_"+ veh_class + "_Daily"
+    outfield_totcgvmtdaily = "CgVMT_"+ veh_class + "_Daily"
+    outfield_totdelaydaily = "Delay_"+ veh_class + "_Daily"
+    v_totflowdaily = null
+    v_totvmtdaily = null
+    v_totcgvmtdaily = null
+    v_totdelaydaily = null
+
+    for period in periods do
+      outfield_totflow = "Flow_"+ veh_class + "_" + period
+      outfield_totvmt = "VMT_" + veh_class + "_" + period
+      outfield_totcgvmt = "CgVMT_" + veh_class + "_" + period
+      outfield_totdelay = "Delay_" + veh_class + "_" + period      
+      v_totflow = null
+      v_totvmt = null
+      v_totcgvmt = null
+      v_totdelay = null
+
+      for dir in a_dirs do
+        input_field = dir + "_Flow_" + veh_class + "_" + period
+        v_vol = hwy_df.get_col(input_field)
+
+        //flow
+        v_totflow = nz(v_totflow) + nz(v_vol)
+
+        //VMT and cgVMT
+        length = hwy_df.get_col("length")
+        voc = hwy_df.get_col(dir + "_VOCD_" + period)
+        cg_length = if voc >1 then length else 0
+        v_totvmt = nz(v_totvmt) + nz(v_vol)*length
+        v_totcgvmt = nz(v_totcgvmt) + nz(v_vol)*cg_length
+
+        //delay
+        v_fft = hwy_df.get_col("FFTime")
+        v_ct = hwy_df.get_col(dir + "_Time_" + period)
+        v_delay = (v_ct - v_fft) * v_vol / 60
+        v_delay = max(v_delay, 0)
+        v_totdelay = nz(v_totdelay) + nz(v_delay)
+      end
+
+      //flow
+      hwy_df.mutate(outfield_totflow, v_totflow)
+      v_totflowdaily = v_totflow + nz(v_totflowdaily)
+
+      //VMT and cgVMT
+      hwy_df.mutate(outfield_totvmt, v_totvmt)
+      hwy_df.mutate(outfield_totcgvmt, v_totcgvmt)
+      v_totvmtdaily = nz(v_totvmtdaily) + nz(v_totvmt)
+      v_totcgvmtdaily = nz(v_totcgvmtdaily) + nz(v_totcgvmt)
+
+      //delay
+      hwy_df.mutate(outfield_totdelay, v_totdelay)
+      v_totdelaydaily = nz(v_totdelaydaily) + nz(v_totdelay)
+    end
+    //flow
+    hwy_df.mutate(outfield_totflowdaily, v_totflowdaily)
+
+    //VMT and cgVMT
+    hwy_df.mutate(outfield_totvmtdaily, v_totvmtdaily)
+    hwy_df.mutate(outfield_totcgvmtdaily, v_totcgvmtdaily)
+    v_totcgvmtdailysum = nz(v_totcgvmtdailysum) + nz(v_totcgvmtdaily)
+
+    //delay
+    hwy_df.mutate(outfield_totdelaydaily, v_totflowdaily)
+  end
+  hwy_df.mutate(outfield_totcgvmtdailysum, v_totcgvmtdailysum)
+
+  // Build summary fields
+  periods = periods + {"Daily"}
+  for sum_field in fields do
+    for veh_class in veh_classes do  
+      for period in periods do
+        out_field = sum_field + "_" + veh_class + "_" + period
+        fields_to_sum = fields_to_sum + {out_field}
+      end
+    end
+  end
+
+  fields_to_sum = fields_to_sum + {"Total_Flow_Daily", "Total_VMT_Daily", "Total_CgVMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
+  field_out = {"ID"} + group_fields + fields_to_sum
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.select(field_out)
+  hwy_df.write_csv(output_dir + "/link_VMT_Delay.csv")
+  RunMacro("Close All")
+
+  // Summarize by different variable
+  for var in group_fields do
+    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
+    df.group_by(var)
+    df.summarize(fields_to_sum, {"sum", "count"})
+    names = df.colnames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            df.rename(name, new_name)
+        end
+    end
+    df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
+  end
+  
+EndMacro
+
+
+Macro "Congestion Cost Summary" (Args)
+  //Set input file path
+  scen_outdir = Args.[Output Folder]
+  report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
+  output_dir = report_dir + "\\CongestionCost"
+  RunMacro("Create Directory", output_dir)
+
+  hwy_dbd = Args.Links
+  vot_params = Args.[Input Folder] + "/assignment/vot_params.csv"
+  p = RunMacro("Read Parameter File", {file: vot_params})
+  periods = Args.Periods
+  a_dirs = {"AB", "BA"}
+  veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+  auto_classes = {"sov", "hov2", "hov3", "CV"}
+  group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
+
+  {nLayer, llyr} = GetDBLayers(hwy_dbd)
+  llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
+
+  hwy_df = CreateObject("df")
+  opts = null
+  opts.view = llyr
+  opts.fields = field_names
+  hwy_df.read_view(opts)
+
+  // Calculate CgCost
+  for veh_class in veh_classes do
+    outfield_daily = "CgCost_" + veh_class + "_Daily"
+    v_output_daily = null
+
+    for period in periods do
+      outfield = "CgCost_" + veh_class + "_" + period
+      v_output = null
+
+      // Determine VOT based on veh type
+      if period = "AM" or period = "PM"
+        then pkop = "pk"
+        else pkop = "op"
+      if auto_classes.position(veh_class) > 0 then vot = p.(pkop + "_auto")
+      else vot = p.(veh_class)
+
+      for dir in a_dirs do
+        // Get data vectors
+        v_fft = nz(hwy_df.get_col("FFTime"))
+        v_ct = nz(hwy_df.get_col(dir + "_Time_" + period))
+        v_vol = nz(hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period))
+
+        // Calculate delay
+        v_delay = (v_ct - v_fft) * v_vol / 60
+        v_delay = max(v_delay, 0)
+        v_cost = v_delay * vot
+
+        v_output = nz(v_output) + v_cost
+      end  
+
+      v_output_daily = v_output + nz(v_output_daily)
+      hwy_df.mutate(outfield, v_output)
+    end
+    hwy_df.mutate(outfield_daily, v_output_daily)
+  end
+
+  // Build summary fields
+  periods = periods + {"Daily"}
+  for veh_class in veh_classes do  
+    for period in periods do
+      out_field = "CgCost_" + veh_class + "_" + period
+      fields_to_sum = fields_to_sum + {out_field}
+    end
+  end
+
+  field_out = {"ID"} + group_fields + fields_to_sum
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.select(field_out)
+  hwy_df.write_csv(output_dir + "/LinkCongestionCost.csv")
+
+  // Summarize by different variable  
+  for var in group_fields do
+    cg_df = CreateObject("df", output_dir + "/LinkCongestionCost.csv")
+    cg_df.group_by(var)
+    cg_df.summarize(fields_to_sum, {"sum", "count"})
+    names = cg_df.colnames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            cg_df.rename(name, new_name)
+        end
+    end
+    cg_df.write_csv(output_dir + "/CongestionCost_summary_by_" + var +".csv")
+  end
+  CloseView(llyr)
+EndMacro
+
+/*
+This macro creates aggregate trip matrices that are vehicle
+trips but still in PA format. This is useful for various reporting
+tools.
+*/
+
+Macro "Create PA Vehicle Trip Matrices" (Args)
+
+    // This section is a slight modification to the "HB Occupancy" macro
+    factor_file = Args.HBHOV3OccFactors
+    periods = Args.periods
+    trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
+    summary_dir = Args.[Output Folder] + "/_summaries/resident_hb"
+
+    fac_vw = OpenTable("factors", "CSV", {factor_file})
+    
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        period = fac_vw.tod
+        hov3_factor = fac_vw.hov3
+
+        if periods.position(period) = 0 then goto skip
+
+        per_mtx_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+        veh_mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+        CopyFile(per_mtx_file, veh_mtx_file)
+        mtx = CreateObject("Matrix", veh_mtx_file)
+        cores = mtx.GetCores()
+        cores.hov2 := cores.hov2 / 2
+        cores.hov3 := cores.hov3 / hov3_factor
+
+        skip:
+        rh = GetNextRecord(fac_vw + "|", rh, )
+    end
+    CloseView(fac_vw)
+
+    // This section is a slight modification to "HB Collapse Trip Types"
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    auto_cores = {"sov", "hov2", "hov3"}
+
+    for period in periods do
+
+        // Create the final matrix for the period using the first trip type matrix
+        mtx_file = trip_dir + "/pa_veh_trips_" + trip_types[1] + "_" + period + ".mtx"
+        out_file = summary_dir + "/pa_veh_trips_" + period + ".mtx"
+        CopyFile(mtx_file, out_file)
+        out_mtx = CreateObject("Matrix", out_file)
+        core_names = out_mtx.GetCoreNames()
+        for core_name in core_names do
+            if auto_cores.position(core_name) = 0 then to_remove = to_remove + {core_name}
+        end
+        out_mtx.DropCores(to_remove)
+        to_remove = null
+        out_cores = out_mtx.GetCores()
+
+        // Add the remaining matrices to the output matrix
+        for t = 2 to trip_types.length do
+            trip_type = trip_types[t]
+
+            mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+            mtx = CreateObject("Matrix", mtx_file)
+            cores = mtx.GetCores()
+            for core_name in auto_cores do
+                if cores.(core_name) = null then continue
+                out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
+            end
+        end
+
+        // Remove interim files
+        mtx = null
+        cores = null
+        out_mtx = null
+        out_cores = null
+        for trip_type in trip_types do
+            mtx_file = trip_dir + "/pa_veh_trips_" + trip_type + "_" + period + ".mtx"
+            DeleteFile(mtx_file)
+        end
+    end
 endmacro

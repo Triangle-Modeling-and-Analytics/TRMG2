@@ -1914,6 +1914,7 @@ Macro "Summarize Transit" (MacroOpts)
   transit_asn_dir = MacroOpts.transit_asn_dir
   output_dir = MacroOpts.output_dir
   loaded_network = MacroOpts.loaded_network
+  scen_rts =  MacroOpts.scen_rts
   
   // Argument checking
   if transit_asn_dir = null 
@@ -1928,6 +1929,11 @@ Macro "Summarize Transit" (MacroOpts)
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
   
+  // Get agency name and route name
+  rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
+  rts = CreateObject("df", rts_bin)
+  rts.select({"Route_ID", "Route_Name", "Agency"})
+
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
   onoff.group_by({"ROUTE", "access", "mode", "period"})
@@ -1936,6 +1942,7 @@ Macro "Summarize Transit" (MacroOpts)
   opts = null
   opts.new_names = {"route", "access", "mode", "period"} + cols_to_summarize
   onoff.colnames(opts)
+  onoff.left_join(rts, "route", "Route_ID")
   onoff.write_csv(output_dir + "/boardings_and_alightings_by_period.csv")
   daily = onoff.copy()
   daily.group_by("route")
@@ -1946,7 +1953,8 @@ Macro "Summarize Transit" (MacroOpts)
   daily.mutate("access", "All")
   daily.mutate("mode", "All")
   daily.mutate("period", "Daily")
-  daily.select({"route", "access", "mode", "period"} + cols_to_summarize)
+  daily.left_join(rts, "route", "Route_ID")
+  daily.select({"route", "Route_Name", "Agency", "access", "mode", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
 
   // aggregate transit flow by link and join to layer
@@ -1971,6 +1979,7 @@ Macro "Summarize Transit" (MacroOpts)
   flow.rename(
     {"Route", "sum_pass_hours", "sum_pass_miles"},
     {"route", "pass_hours", "pass_miles"})
+  flow.left_join(rts, "Route", "Route_ID")
   flow_file = output_dir + "/passenger_miles_and_hours.csv"
   flow.write_csv(flow_file)
 EndMacro
