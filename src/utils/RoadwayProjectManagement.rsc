@@ -74,6 +74,7 @@ Macro "Roadway Project Management" (MacroOpts)
   for p = v_projIDs.length to 1 step -1 do
     projID = v_projIDs[p]
     type = TypeOf(projID)
+    proj_found = 0
 
     // Add "UpdatedWithP" field
     if p = v_projIDs.length then do
@@ -96,6 +97,7 @@ Macro "Roadway Project Management" (MacroOpts)
       qry = qry + " and UpdatedWithP = null"
       n = SelectByQuery("updateLinks", "Several", qry)
       if n > 0 then do
+        proj_found = 1
 
         // Loop over each field to update
         for f = 1 to attrList.length do
@@ -117,6 +119,13 @@ Macro "Roadway Project Management" (MacroOpts)
         end
         SetDataVector(llyr + "|updateLinks", "UpdatedWithP", v_vec, )
       end
+    end
+
+    if !proj_found then do
+      if type = "string"
+        then errmsg = "Project '" + projID + "' not found."
+        else errmsg = "Project '" + String(projID) + "' not found."
+      Throw(errmsg)
     end
   end
 

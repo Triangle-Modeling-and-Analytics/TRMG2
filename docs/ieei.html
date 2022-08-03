@@ -7,7 +7,7 @@
 
         <meta name="author" content="Caliper Corporation" />
     
-        <meta name="date" content="2022-04-07" />
+        <meta name="date" content="2022-08-03" />
     
     <title>Internal/External</title>
 
@@ -221,7 +221,13 @@
          <a href="commercial_vehicles.html">Commercial Vehicles</a>
        </li>
        <li>
-         <a href="assignment_roadway.html">Roadway Assignment</a>
+         <a href="assignment.html">Assignment</a>
+       </li>
+       <li>
+         <a href="validation.html">Validation</a>
+       </li>
+       <li>
+         <a href="sensitivity_tests.html">Sensitivity Tests</a>
        </li>
      </ul>
    </li>
@@ -266,7 +272,7 @@
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Caliper Corporation</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> April 07, 2022</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> August 03, 2022</p>
           </div>
    </div>
    
@@ -1609,6 +1615,52 @@ Very Short
 <div id="ieei-time-of-day" class="section level3">
 <h3>IE/EI Time of Day</h3>
 <p>The data available was not adequate to calculate time of day shares for the IE/EI trips. Instead, the factors were borrowed from N_HB_OD_Long (similar to HBO in other models). Compared to using work trips, this shifts demand from the AM and PM periods into the off peak. These travelers (e.g. with long commutes to work) need to leave earlier in the day. They cross the model boundary earlier (and later) than the peaks for internal residents.</p>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Period
+</th>
+<th style="text-align:right;">
+Factor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+AM
+</td>
+<td style="text-align:right;">
+0.154
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MD
+</td>
+<td style="text-align:right;">
+0.152
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PM
+</td>
+<td style="text-align:right;">
+0.301
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NT
+</td>
+<td style="text-align:right;">
+0.393
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
