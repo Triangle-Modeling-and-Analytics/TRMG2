@@ -350,7 +350,7 @@ Macro "Clean Project Groups" (master_dbd)
         opts.[Omit Missing] = "True"
         opts.Unique = "True"
         v_test = SortVector(v_test, opts)
-        if v_test.length = 1 then target_group = pgroup
+        if v_test.length = 1 and v_test[1] = id then target_group = pgroup
       end
 
       // if none found, create a new group
