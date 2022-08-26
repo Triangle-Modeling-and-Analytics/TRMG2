@@ -64,10 +64,10 @@ enddbox
 
 Macro "Compare Scenarios" (MacroOpts)
 
-    RunMacro("Compare summary tables", MacroOpts)
+    RunMacro("Compare Summary Tables", MacroOpts)
 endmacro
 
-Macro "Compare summary tables" (MacroOpts)
+Macro "Compare Summary Tables" (MacroOpts)
 
     ref_scen = MacroOpts.ref_scen
     new_scen = MacroOpts.new_scen
@@ -79,7 +79,9 @@ Macro "Compare summary tables" (MacroOpts)
     comp_dir = new_scen + "/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
-        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"Sum", "total", "pct"}}
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"Sum", "total", "pct"}},
+        {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
+        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
     }
     for i = 1 to tables_to_compare.length do
         table = tables_to_compare[i][1]
@@ -90,7 +92,7 @@ Macro "Compare summary tables" (MacroOpts)
         {drive, path, , } = SplitPath(comp_file)
         RunMacro("Create Directory", drive + path)
         
-        RunMacro("Diff Table", {
+        RunMacro("Diff Tables", {
             Table1: ref_scen + table,
             Table2: new_scen + table,
             OutputFile: comp_file,
@@ -105,7 +107,7 @@ Compares the same table between two scenarios. Can be used for summary CSVs,
 se bin table, etc.
 */
 
-Macro "Diff Table" (MacroOpts)
+Macro "Diff Tables" (MacroOpts)
     
     table1 = MacroOpts.Table1
     table2 = MacroOpts.Table2
@@ -114,6 +116,14 @@ Macro "Diff Table" (MacroOpts)
     out_file = MacroOpts.OutputFile
 
     if out_file = null then out_file = Substitute(table2, ".", "_diff.", )
+    if cols_to_diff = null then do
+        temp = CreateObject("Table", table2)
+        field_names = temp.GetFieldNames()
+        for id_col in id_cols do
+            pos = field_names.position(id_col)
+            field_names = ExcludeArrayElements(field_names, pos, 1)
+        end
+    end
 
     // tbl1 = CreateObject("Table", table1)
     tbl1 = CreateObject("Table", {FileName: table1})
