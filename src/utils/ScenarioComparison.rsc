@@ -64,7 +64,8 @@ enddbox
 
 Macro "Compare Scenarios" (MacroOpts)
 
-    RunMacro("Compare Summary Tables", MacroOpts)
+    // RunMacro("Compare Summary Tables", MacroOpts)
+    RunMacro("Compare Zonal Data", MacroOpts)
 endmacro
 
 Macro "Compare Summary Tables" (MacroOpts)
@@ -145,4 +146,30 @@ Macro "Diff Tables" (MacroOpts)
         tbl3.(col + "_diff") = tbl3.(col) - tbl3.(col + "_ref")
     end
     tbl3.Export({FileName: out_file})
+endmacro
+
+/*
+
+*/
+
+Macro "Compare Zonal Data" (MacroOpts)
+    
+    ref_scen = MacroOpts.ref_scen
+    new_scen = MacroOpts.new_scen
+    sub_poly = MacroOpts.sub_poly
+
+
+    dbd = new_scen + "/input/tazs/scenario_tazs.dbd"
+    map = CreateObject("Map", dbd)
+    taz_lyr = map.GetActiveLayer()
+    taz_tbl =  CreateObject("Table", taz_lyr)
+    se_tbl = CreateObject("Table", new_scen + "/comparison_outputs/output/sedata/scenario_se.bin")
+
+    join_tbl = taz_tbl.Join({
+        Table: se_tbl,
+        LeftFields: "ID",
+        RightFields: "Table_2.TAZ"
+    })
+    join_tbl.View()
+    map.View()
 endmacro
