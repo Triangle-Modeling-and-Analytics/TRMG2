@@ -168,26 +168,37 @@ Macro "Compare Zonal Data" (MacroOpts)
     taz_lyr = map.RenameLayer({LayerName: taz_lyr, NewName: "TAZs"})
     taz_tbl =  CreateObject("Table", taz_lyr)
     se_tbl = CreateObject("Table", {FileName: comp_dir + "/output/sedata/scenario_se.bin", View: "se"})
+    if sub_poly <> null then do
+        se_tbl.AddField("in_subarea")
+    end
 
     join_tbl = taz_tbl.Join({
         Table: se_tbl,
         LeftFields: "ID",
         RightFields: "Table_2.TAZ"
     })
-    jv = join_tbl.GetView()
 
     if sub_poly <> null then do
+        // Add the subarea polygon and mark which TAZs are in it.
         {sub_layer} = map.AddLayer({
             FileName: sub_poly,
             LineColor: "Black",
             LineWidth: 2
         })
+        map.SelectByVicinity({
+            SetName: "subarea",
+            SearchLayer: sub_layer
+        })
+        join_tbl.ChangeSet("subarea")
+        join_tbl.in_subarea = 1
+        map.DropSet("subarea")
         map.RenameLayer({
             LayerName: sub_layer,
             NewName: "Sub Area"
         })
     end
 
+    jv = join_tbl.GetView()
     fields_to_map = {
         "HH", "HH_POP", "Industry", "Office", "Service_RateLow", 
         "Service_RateHigh", "Retail"
