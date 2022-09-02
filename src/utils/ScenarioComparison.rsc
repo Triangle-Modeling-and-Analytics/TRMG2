@@ -158,18 +158,54 @@ Macro "Compare Zonal Data" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly
 
+    comp_dir = new_scen + "/comparison_outputs"
+    map_dir = comp_dir + "/maps"
+    RunMacro("Create Directory", map_dir)
 
     dbd = new_scen + "/input/tazs/scenario_tazs.dbd"
     map = CreateObject("Map", dbd)
     taz_lyr = map.GetActiveLayer()
+    taz_lyr = map.RenameLayer({LayerName: taz_lyr, NewName: "TAZs"})
     taz_tbl =  CreateObject("Table", taz_lyr)
-    se_tbl = CreateObject("Table", new_scen + "/comparison_outputs/output/sedata/scenario_se.bin")
+    se_tbl = CreateObject("Table", {FileName: comp_dir + "/output/sedata/scenario_se.bin", View: "se"})
 
     join_tbl = taz_tbl.Join({
         Table: se_tbl,
         LeftFields: "ID",
         RightFields: "Table_2.TAZ"
     })
-    join_tbl.View()
-    map.View()
+    jv = join_tbl.GetView()
+
+    if sub_poly <> null then do
+        {sub_layer} = map.AddLayer({
+            FileName: sub_poly,
+            LineColor: "Black",
+            LineWidth: 2
+        })
+        map.RenameLayer({
+            LayerName: sub_layer,
+            NewName: "Sub Area"
+        })
+    end
+
+    fields_to_map = {
+        "HH", "HH_POP", "Industry", "Office", "Service_RateLow", 
+        "Service_RateHigh", "Retail"
+    }
+    for field in fields_to_map do
+        map.ColorTheme({
+            ThemeName: field + " Difference",
+            FieldName: jv + "." + field + "_diff",
+            NumClasses: 8,
+            Method: "Equal Steps",
+            BreakAt: 0,
+            Colors: {
+                StartColor: "blue",
+                MidColor: "white",
+                EndColor: "red"
+            }
+        })
+        map.CreateLegend()
+        map.Save(map_dir + "/" + field + " Differences.map")
+    end
 endmacro
