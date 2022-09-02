@@ -64,7 +64,7 @@ enddbox
 
 Macro "Compare Scenarios" (MacroOpts)
 
-    // RunMacro("Compare Summary Tables", MacroOpts)
+    RunMacro("Compare Summary Tables", MacroOpts)
     RunMacro("Compare Zonal Data", MacroOpts)
 endmacro
 
@@ -126,26 +126,34 @@ Macro "Diff Tables" (MacroOpts)
         end
     end
 
-    // tbl1 = CreateObject("Table", table1)
+    // Create tables and rename/add fields
     tbl1 = CreateObject("Table", {FileName: table1})
     tbl1 = tbl1.Export({FieldNames: id_cols + cols_to_diff})
     tbl2 = CreateObject("Table", table2)
     tbl2 = tbl2.Export({FieldNames: id_cols + cols_to_diff})
     for col in cols_to_diff do
         tbl1.RenameField({FieldName: col, NewName: col + "_ref"})
+        tbl2.RenameField({FieldName: col, NewName: col + "_new"})
         tbl2.AddField(col + "_diff")
     end
     
+    // Calculate differences
     tbl3 = tbl1.Join({
         Table: tbl2,
         LeftFields: id_cols,
         RightFields: id_cols
     })
-
     for col in cols_to_diff do
-        tbl3.(col + "_diff") = tbl3.(col) - tbl3.(col + "_ref")
+        tbl3.(col + "_diff") = tbl3.(col + "_new") - tbl3.(col + "_ref")
     end
     tbl3.Export({FileName: out_file})
+
+    // Clean up id name columns
+    tbl4 = CreateObject("Table", out_file)
+    for col in id_cols do
+        tbl4.RenameField({FieldName: "Table_2." + col, NewName: col})
+        tbl4.DropFields("Table_3." + col)
+    end
 endmacro
 
 /*
