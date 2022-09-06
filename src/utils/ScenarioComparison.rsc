@@ -66,6 +66,8 @@ Macro "Compare Scenarios" (MacroOpts)
 
     RunMacro("Compare Summary Tables", MacroOpts)
     RunMacro("Compare Zonal Data", MacroOpts)
+    RunMacro("Compare Link Data", MacroOpts)
+    RunMacro("Aggregate SE and Link Data", MacroOpts)
 endmacro
 
 Macro "Compare Summary Tables" (MacroOpts)
@@ -183,7 +185,7 @@ Macro "Compare Zonal Data" (MacroOpts)
     join_tbl = taz_tbl.Join({
         Table: se_tbl,
         LeftFields: "ID",
-        RightFields: "Table_2.TAZ"
+        RightFields: "TAZ"
     })
 
     if sub_poly <> null then do
@@ -212,6 +214,7 @@ Macro "Compare Zonal Data" (MacroOpts)
         "Service_RateHigh", "Retail"
     }
     for field in fields_to_map do
+        map.SetLayer(taz_lyr)
         map.ColorTheme({
             ThemeName: field + " Difference",
             FieldName: jv + "." + field + "_diff",
@@ -227,4 +230,125 @@ Macro "Compare Zonal Data" (MacroOpts)
         map.CreateLegend()
         map.Save(map_dir + "/" + field + " Differences.map")
     end
+endmacro
+
+
+/*
+
+*/
+
+Macro "Compare Link Data" (MacroOpts)
+    
+    ref_scen = MacroOpts.ref_scen
+    new_scen = MacroOpts.new_scen
+    sub_poly = MacroOpts.sub_poly
+
+    comp_dir = new_scen + "/comparison_outputs"
+    map_dir = comp_dir + "/maps"
+    RunMacro("Create Directory", map_dir)
+
+    dbd = new_scen + "/output/networks/scenario_links.dbd"
+    map = CreateObject("Map", dbd)
+    {node_layer, link_lyr} = map.GetLayerNames()
+    map.HideLayer(node_layer)
+    map.SetLayer(link_lyr)
+    link_lyr = map.RenameLayer({LayerName: link_lyr, NewName: "Roads"})
+    link_tbl =  CreateObject("Table", link_lyr)
+    diff_tbl = CreateObject("Table", {FileName: comp_dir + "/output/networks/scenario_links.bin", View: "diff"})
+    if sub_poly <> null then do
+        diff_tbl.AddField("in_subarea")
+    end
+
+    join_tbl = link_tbl.Join({
+        Table: diff_tbl,
+        LeftFields: "ID",
+        RightFields: "ID"
+    })
+
+    if sub_poly <> null then do
+        // Add the subarea polygon and mark which links are in it.
+        {sub_layer} = map.AddLayer({
+            FileName: sub_poly,
+            LineColor: "Black",
+            LineWidth: 2
+        })
+        map.SelectByVicinity({
+            SetName: "subarea",
+            SearchLayer: sub_layer
+        })
+        join_tbl.ChangeSet("subarea")
+        join_tbl.in_subarea = 1
+        map.DropSet("subarea")
+        map.RenameLayer({
+            LayerName: sub_layer,
+            NewName: "Sub Area"
+        })
+    end
+
+    jv = join_tbl.GetView()
+    fields_to_map = {
+        "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"
+    }
+
+    for field in fields_to_map do
+        expr = CreateExpression(jv, "abs_" + field + "_diff", "abs(" + field + "_diff)", )
+        map.SizeTheme({
+            ThemeName: "Absolute Difference",
+            FieldName: expr
+        })
+        map.ColorTheme({
+            ThemeName: field + " Difference",
+            FieldName: field + "_diff",
+            NumClasses: 8,
+            Method: "Equal Steps",
+            BreakAt: 0,
+            Colors: {
+                StartColor: "blue",
+                MidColor: "white",
+                EndColor: "red"
+            }
+        })
+        map.CreateLegend()
+        map.Save(map_dir + "/" + field + " Differences.map")
+    end
+endmacro
+
+/*
+
+*/
+
+Macro "Aggregate SE and Link Data" (MacroOpts)
+
+    ref_scen = MacroOpts.ref_scen
+    new_scen = MacroOpts.new_scen
+    sub_poly = MacroOpts.sub_poly
+
+    comp_dir = new_scen + "/comparison_outputs"
+    tables_to_compare = {
+        {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
+        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
+    }
+
+    for i = 1 to tables_to_compare.length do
+        table = tables_to_compare[i][1]
+        id_col = tables_to_compare[i][2]
+        diff_cols = tables_to_compare[i][3]
+
+        comp_file = comp_dir + table
+
+        tbl = CreateObject("Table", comp_file)
+        opts = null
+        for col in diff_cols do
+            opts.FieldStats = opts.FieldStats + {{col + "_diff", "sum"}}
+        end
+        agg = tbl.Aggregate(opts)
+        agg.Export(Substitute(comp_file, ".bin", "_agg.bin", ))
+        if sub_poly <> null then do
+            query = "in_subarea = 1"
+            tbl.SelectByQuery({SetName: "subarea", Query: query})
+            agg = tbl.Aggregate(opts)
+            agg.Export(Substitute(comp_file, ".bin", "_agg_subarea.bin", ))
+        end
+    end
+
 endmacro
