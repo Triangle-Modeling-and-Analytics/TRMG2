@@ -7,10 +7,10 @@ MLHighway,Downtown,Restrictive,1600,1440
 MLHighway,Rural,Restrictive,1600,1440
 MLHighway,Suburban,Restrictive,1600,1440
 MLHighway,Urban,Restrictive,1600,1440
-TLHighway,Downtown,Restrictive,1400,1260
-TLHighway,Rural,Restrictive,1400,1260
-TLHighway,Suburban,Restrictive,1400,1260
-TLHighway,Urban,Restrictive,1400,1260
+TLHighway,Downtown,None,1400,1260
+TLHighway,Rural,None,1400,1260
+TLHighway,Suburban,None,1400,1260
+TLHighway,Urban,None,1400,1260
 Superstreet,Downtown,Restrictive,1800,1620
 Superstreet,Rural,Restrictive,1800,1620
 Superstreet,Suburban,Restrictive,1800,1620
