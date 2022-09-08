@@ -75,7 +75,7 @@ Local,Suburban,Restrictive,912,821
 Local,Urban,None,650,585
 Local,Urban,NonRestrictive,800,720
 Local,Urban,Restrictive,900,810
-CC,Downtown,,10000,10000
-CC,Rural,,10000,10000
-CC,Suburban,,10000,10000
-CC,Urban,,10000,10000
+CC,Downtown,None,10000,10000
+CC,Rural,None,10000,10000
+CC,Suburban,None,10000,10000
+CC,Urban,None,10000,10000

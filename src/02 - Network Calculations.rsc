@@ -523,7 +523,7 @@ Macro "Capacity" (Args)
         RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
     end
 
-    // Override median values for certain area types
+    // Override median values for certain HCM types
     hcm_type = GetDataVector(link_lyr + "|", "HCMType", )
     hcm_med = GetDataVector(link_lyr + "|", "HCMMedian", )
     hcm_med = if hcm_type = "Freeway" then "Restrictive"
@@ -531,6 +531,7 @@ Macro "Capacity" (Args)
         else if hcm_type = "TLHighway" then "None"
         else if hcm_type = "SuperStreet" then "Restrictive"
         else if hcm_type = "CC" then "None"
+        else if hcm_type <> null and hcm_med = null then "None"
         else hcm_med
     SetDataVector(link_lyr + "|", "HCMMedian", hcm_med, )
 
@@ -543,17 +544,8 @@ Macro "Capacity" (Args)
         {cap_specs.HCMType, cap_specs.AreaType, cap_specs.HCMMedian},
         null
     )
-    // hcm_type = GetDataVector(jv + "|", link_specs.HCMType, )
-    // hcm_med = GetDataVector(jv + "|", link_specs.HCMMedian, )
-    // boost = if hcm_type = "Freeway" then 1
-    //     else if hcm_type = "Superstreet" then 1
-    //     else if hcm_med = "NonRestrictive" then 1.04
-    //     else if hcm_med = "Restrictive" then 1.08
-    //     else 1
     capd = GetDataVector(jv + "|", cap_specs.capd_phpl, )
     cape = GetDataVector(jv + "|", cap_specs.cape_phpl, )
-    // capd = capd * boost
-    // cape = cape * boost
     SetDataVector(jv + "|", link_specs.capd_phpl, capd, )
     SetDataVector(jv + "|", link_specs.cape_phpl, cape, )
     CloseView(jv)
