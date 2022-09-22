@@ -139,10 +139,22 @@ menu "TRMG2 Utilities"
         mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
     enditem
 
-    MenuItem "TripAggregation" text: "Motorized Trip Matrix Aggregation" do
+    MenuItem "TripAggregation_Moto" text: "Motorized Trip Matrix Aggregation" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        mr.RunCode("Open Trip Aggregation Tool Dbox", Args)
+        mr.RunCode("Open Moto Trip Aggregation Tool Dbox", Args)
+    enditem
+
+    MenuItem "TripAggregation_NM" text: "NM Trip Matrix Aggregation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
+    enditem
+
+    MenuItem "ZonalVMT" text: "Zonal VMT Calculation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Zonal VMT Calculation Dbox", Args)
     enditem
 endMenu
 
