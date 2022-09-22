@@ -25,7 +25,6 @@ Macro "Other Reports" (Args)
     RunMacro("Congested VMT", Args)
     RunMacro("Summarize Parking", Args)
     RunMacro("Transit Summary", Args)
-    //RunMacro("Create MOVES Inputs", Args) move to util tool
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
     return(1)
