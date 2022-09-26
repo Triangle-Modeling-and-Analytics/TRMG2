@@ -67,10 +67,68 @@ enddbox
 
 Macro "Compare Scenarios" (MacroOpts)
 
-    RunMacro("Compare Summary Tables", MacroOpts)
-    RunMacro("Compare Zonal Data", MacroOpts)
-    RunMacro("Compare Link Data", MacroOpts)
-    RunMacro("Aggregate SE and Link Data", MacroOpts)
+    sub_poly = MacroOpts.sub_poly
+
+    if sub_poly <> null then RunMacro("Run MC/DC Summaries for Subarea", MacroOpts)
+    // RunMacro("Compare Summary Tables", MacroOpts)
+    // RunMacro("Compare Zonal Data", MacroOpts)
+    // RunMacro("Compare Link Data", MacroOpts)
+    // RunMacro("Aggregate SE and Link Data", MacroOpts)
+endmacro
+
+/*
+If a subarea is provided, some of the G2 summaries are re-produced for just
+that area.
+*/
+
+Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
+    
+    ref_scen = MacroOpts.ref_scen
+    new_scen = MacroOpts.new_scen
+    sub_poly = MacroOpts.sub_poly
+
+    dirs = {ref_scen, new_scen}
+    for dir in dirs do
+
+        dbd = dir + "/input/tazs/scenario_tazs.dbd"
+        map = CreateObject("Map", dbd)
+        taz_lyr = map.GetActiveLayer()
+        taz_tbl = CreateObject("Table", taz_lyr)
+        taz_tbl.AddField("in_subarea")
+            
+        // Add the subarea polygon and mark TAZs within it
+        {sub_layer} = map.AddLayer({
+            FileName: sub_poly,
+            LineColor: "Black",
+            LineWidth: 2
+        })
+        map.SelectByVicinity({
+            SetName: "subarea",
+            SearchLayer: sub_layer
+        })
+        taz_tbl.ChangeSet("subarea")
+        taz_tbl.in_subarea = 1
+
+        trip_dir = dir + "/output/resident/trip_matrices"
+        mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+        for mtx_file in mtx_files do
+            mtx = CreateObject("Matrix", mtx_file)
+            mtx.AddIndex({
+                IndexName: "subarea",
+                ViewName: taz_lyr,
+                Filter: "in_subarea = 1",
+                OriginalID: "ID",
+                NewID: "ID",
+                Dimension: "Both"
+            })
+        end
+
+        // Call G2 summary macro
+        Args.TAZs = dbd
+        Args.[Scenario Folder] = dir
+        Args.index = "subarea"
+        RunMacro("Summarize HB DC and MC", Args)
+    end
 endmacro
 
 Macro "Compare Summary Tables" (MacroOpts)
