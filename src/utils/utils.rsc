@@ -2607,12 +2607,14 @@ Inputs
   * matrices
     * String or array/vector of strings
     * Full paths to matrix files to be summarized.
+  * index
+    * optional string. name of index to use
 
 Returns
   * Returns a gplyr data frame
 */
 
-Macro "Matrix Stats" (matrices)
+Macro "Matrix Stats" (matrices, index)
   
   if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
@@ -2627,6 +2629,7 @@ Macro "Matrix Stats" (matrices)
     // get matrix core names and stats
     {drive, folder, name, ext} = SplitPath(mtx_file)
     mtx = OpenMatrix(mtx_file, )
+    if index <> null then SetMatrixIndex(mtx, index, index)
     a_corenames = GetMatrixCoreNames(mtx)
     a_stats = MatrixStatistics(mtx, )
 
