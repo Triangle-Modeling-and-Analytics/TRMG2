@@ -70,10 +70,10 @@ Macro "Compare Scenarios" (MacroOpts)
     sub_poly = MacroOpts.sub_poly
 
     if sub_poly <> null then RunMacro("Run MC/DC Summaries for Subarea", MacroOpts)
-    // RunMacro("Compare Summary Tables", MacroOpts)
-    // RunMacro("Compare Zonal Data", MacroOpts)
-    // RunMacro("Compare Link Data", MacroOpts)
-    // RunMacro("Aggregate SE and Link Data", MacroOpts)
+    RunMacro("Compare Summary Tables", MacroOpts)
+    RunMacro("Compare Zonal Data", MacroOpts)
+    RunMacro("Compare Link Data", MacroOpts)
+    RunMacro("Aggregate SE and Link Data", MacroOpts)
 endmacro
 
 /*
@@ -109,6 +109,7 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
         taz_tbl.ChangeSet("subarea")
         taz_tbl.in_subarea = 1
 
+        // Add sub area index to the matrices
         trip_dir = dir + "/output/resident/trip_matrices"
         mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
         for mtx_file in mtx_files do
