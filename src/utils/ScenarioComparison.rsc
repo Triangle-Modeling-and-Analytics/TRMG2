@@ -39,7 +39,10 @@ dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" t
     Text 15, after, 15 Framed Prompt: "Subarea Polygon:" Variable: sub_poly
     Button after, same, 5, 1 Prompt: "..." do
         on error, escape goto skip3
-        sub_poly = ChooseFile({{"polygon layer", "*.dbd"}}, "Choose a polygon layer", )
+        sub_poly = ChooseFile(
+            {{"polygon layer", "*.dbd"}}, "Choose a polygon layer", 
+            {"Initial Directory": new_scen}
+        )
         skip3:
         on error default
     enditem
@@ -289,6 +292,7 @@ Macro "Compare Link Data" (MacroOpts)
     fields_to_map = {
         "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"
     }
+    map.SetLayer(link_lyr)
 
     for field in fields_to_map do
         expr = CreateExpression(jv, "abs_" + field + "_diff", "abs(" + field + "_diff)", )
