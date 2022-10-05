@@ -1,0 +1,11 @@
+
+68
+"ID",I,1,4,0,10,0,,"","",,"Sum",
+"ABInitCongTimeAM",R,5,8,0,10,4,,"","Do not edit this field unless updating the model||This initial congested time comes from a converged|model run. It's purpose is to speed up model run time|by reducing the number of feedback iterations|required. If a link does not have a value in this|field, the model will use the free-flow speed|instead.",,"Sum",
+"BAInitCongTimeAM",R,13,8,0,10,4,,"","",,"Sum",
+"ABInitCongTimeMD",R,21,8,0,10,4,,"","",,"Sum",
+"BAInitCongTimeMD",R,29,8,0,10,4,,"","",,"Sum",
+"ABInitCongTimePM",R,37,8,0,10,4,,"","",,"Sum",
+"BAInitCongTimePM",R,45,8,0,10,4,,"","",,"Sum",
+"ABInitCongTimeNT",R,53,8,0,10,4,,"","",,"Sum",
+"BAInitCongTimeNT",R,61,8,0,10,4,,"","",,"Sum",
