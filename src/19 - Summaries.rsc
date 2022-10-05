@@ -9,6 +9,7 @@ Macro "Maps" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
+    // RunMacro("Isochrones", Args)
     return(1)
 endmacro
 
@@ -569,6 +570,78 @@ Macro "Speed Maps" (Args)
     CloseMap(map)
   end
 EndMacro
+
+/*
+Creates isochrone (travel time band) maps
+*/
+
+Macro "Isochrones" (Args)
+  hwy_dbd = Args.Links
+  map_dir = Args.[Output Folder] + "\\_summaries\\maps"
+  if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
+  net_dir = Args.[Output Folder] + "\\networks"
+  exclusion_file = Args.[Model Folder] + "\\other\\iso_exclusion\\IsochroneExclusionAreas.cdf"
+  
+  periods = {"AM"}
+  dirs = {"outbound", "inbound"}
+  nodes = {
+    108108, // Raleigh
+    15670,  // Durham
+    10827   // RDU
+  }
+  names = {
+    "Raleigh",
+    "Durham",
+    "RDU"
+  }
+  
+  //Create a new, blank map
+  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd, minimized: "false"})
+  SetLayerVisibility(map + "|" + nlyr, "false")
+  SetLayer(llyr)
+
+  for period in periods do
+    for i = 1 to nodes.length do
+      node_id = nodes[i]
+      name = names[i]
+
+      SetLayer(nlyr)
+      cord = GetPoint(node_id)
+      SetLayer(llyr)
+
+      for dir in dirs do
+        map_file = map_dir + "\\iso_" + name + "_" + dir + "_" + period + ".map"
+        net_file = net_dir + "\\net_" + period + "_sov.net"
+
+        nh = ReadNetwork(net_file)
+
+        o = null
+        o = CreateObject("Routing.Bands")
+        o.NetworkName = net_file
+        o.RoutingLayer = GetLayer()
+        o.Minimize = "CongTime"
+        o.Interval = 10
+        o.BandMax  = 30
+        o.CumulativeBands = "Yes"
+        o.InboundBands = if dir = "inbound"
+          then true
+          else false
+        o.CreateTheme = true
+        o.LoadExclusionAreas(exclusion_file)
+        o.CreateBands({
+          Coords: {cord},
+          FileName: GetTempFileName("*.dbd"),
+          LayerName : name + " " + dir + " bands"
+        })
+
+        RedrawMap(map)
+        SaveMap(map_file)
+      end
+    end
+  end
+
+  CloseMap()
+endmacro
 
 /*
 Creates a table of statistics and writes out
