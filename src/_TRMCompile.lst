@@ -28,6 +28,7 @@ utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc
 utils/LinkDiffTool.rsc
+utils/ScenarioComparison.rsc
 utils/FixedODAssignment.rsc
 utils/Calibrators.rsc
 utils/merge_tool.rsc

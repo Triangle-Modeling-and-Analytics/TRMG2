@@ -573,6 +573,9 @@ EndMacro
 /*
 Creates a table of statistics and writes out
 final tables to CSV.
+
+This macro is also used by the scenario comparison tool to re-summarize for
+a subarea if one is provided. In that case, Args will have an 'index' option.
 */
 
 Macro "Summarize HB DC and MC" (Args)
@@ -584,11 +587,12 @@ Macro "Summarize HB DC and MC" (Args)
   output_dir = scen_dir + "/output/_summaries/resident_hb"
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+  index = Args.index // used by scenario comparison tool
 
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
-  df = RunMacro("Matrix Stats", mtx_files)
+  df = RunMacro("Matrix Stats", mtx_files, index)
   df.mutate("period", Right(df.tbl.matrix, 2))
   df.mutate("matrix", Substitute(df.tbl.matrix, "pa_per_trips_", "", ))
   v = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
@@ -597,7 +601,9 @@ Macro "Summarize HB DC and MC" (Args)
   df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
   df.filter("mode contains 'mc_'")
   df.mutate("mode", Substitute(df.tbl.mode, "mc_", "", ))
-  modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
+  if index <> null
+    then modal_file = output_dir + "/hb_trip_stats_by_modeperiod_subarea.csv"
+    else modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
   // Summarize by mode
@@ -612,7 +618,13 @@ Macro "Summarize HB DC and MC" (Args)
   df_tot.rename("sum_Sum", "total")
   df.left_join(df_tot, "trip_type", "trip_type")
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
-  df.write_csv(output_dir + "/hb_trip_mode_shares.csv")
+  if index <> null
+    then file = output_dir + "/hb_trip_mode_shares_subarea.csv"
+    else file = output_dir + "/hb_trip_mode_shares.csv"
+  df.write_csv(file)
+
+  // if called by the summary comparison tool, end here
+  if index <> null then return()
 
   // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
