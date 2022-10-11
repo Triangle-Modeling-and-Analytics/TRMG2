@@ -123,8 +123,8 @@ Macro "Roadway Project Management" (MacroOpts)
 
     if !proj_found then do
       if type = "string"
-        then errmsg = "Project '" + projID + "' not found."
-        else errmsg = "Project '" + String(projID) + "' not found."
+        then errmsg = "Project '" + projID + "' appears in the roadway project list but is not found in the master layer."
+        else errmsg = "Project '" + String(projID) + "' appears in the roadway project list but is not found in the master layer."
       Throw(errmsg)
     end
   end
