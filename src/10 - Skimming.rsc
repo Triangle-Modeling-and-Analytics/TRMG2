@@ -123,8 +123,7 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
 
             // Auto pay fare
             m.AddCores({"auto_pay_fare"})
-            cores = m.data.cores
-            cores.auto_pay_fare := 4 + .7 * cores.[Length (Skim)] + .25 * cores.CongTime
+            m.auto_pay_fare := 4 + .7 * m.[Length (Skim)] + .25 * m.CongTime
         end
     end
 endmacro
@@ -155,19 +154,15 @@ Macro "Create Average Roadway Skims" (Args)
             out_skim = skim_dir + "/avg_skim_" + tod + "_" + tour_type + "_" + hb + "_" + mode + ".mtx"
 
             CopyFile(in_skim, out_skim)
-            out_m = CreateObject("Matrix")
-            out_m.LoadMatrix(out_skim)
-            out_cores = out_m.data.cores
-            TransposeMatrix(out_m.MatrixHandle, {"File Name": trans_skim, Label: "transposed"})
-            t_m = CreateObject("Matrix")
-            t_m.LoadMatrix(trans_skim)
-            t_cores = t_m.data.cores
+            out_m = CreateObject("Matrix", out_skim)
+            TransposeMatrix(out_m.GetMatrixHandle(), {"File Name": trans_skim, Label: "transposed"})
+            t_m = CreateObject("Matrix", trans_skim)
 
-            for core in out_m.CoreNames do
-                out_cores.(core) := pa_fac * out_cores.(core) + ap_fac * t_cores.(core)
+            cores = out_m.GetCoreNames()
+            for core in cores do
+                out_m.(core) := pa_fac * out_m.(core) + ap_fac * t_m.(core)
             end
             t_m = null
-            t_cores = null
             DeleteFile(trans_skim)
         end
 
@@ -180,13 +175,11 @@ Macro "Create Average Roadway Skims" (Args)
     for file in a_mtx_files do
         {drive, folder, name, ext} = SplitPath(file)
         if Left(name, 3) <> "avg" then continue
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(file)
+        mtx = CreateObject("Matrix", file)
         mtx.AddCores("IZ")
-        cores = mtx.data.cores
-        cores.IZ := 0
-        v = Vector(cores.IZ.Rows, "Float", {Constant: 1})
-        SetMatrixVector(cores.IZ, v, {Diagonal: "true"})
+        mtx.IZ := 0
+        v = Vector(mtx.IZ.Rows, "Float", {Constant: 1})
+        SetMatrixVector(mtx.IZ, v, {Diagonal: "true"})
     end
 endmacro
 
