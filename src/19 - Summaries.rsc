@@ -9,7 +9,7 @@ Macro "Maps" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    // RunMacro("Isochrones", Args)
+    RunMacro("Isochrones", Args)
     return(1)
 endmacro
 
@@ -628,14 +628,15 @@ Macro "Isochrones" (Args)
           else false
         o.CreateTheme = true
         o.LoadExclusionAreas(exclusion_file)
-        o.CreateBands({
+        res = o.CreateBands({
           Coords: {cord},
           FileName: GetTempFileName("*.dbd"),
           LayerName : name + " " + dir + " bands"
         })
 
         RedrawMap(map)
-        SaveMap(map_file)
+        SaveMap(map, map_file)
+        DropLayer(map, res.Layer)
       end
     end
   end
