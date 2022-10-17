@@ -657,9 +657,9 @@ Macro "University Combine Matrices" (Args)
             else do
                 mc_mtx = CreateObject("Matrix", mtx_file)
                 out_mtx = CreateObject("Matrix", out_mtx_file)
-                out_core_names = out_mtx.GetCoreNames()
+                mc_core_names = mc_mtx.GetCoreNames()
 
-                for core in out_core_names do
+                for core in mc_core_names do
                     out_mtx.(core) := Nz(out_mtx.(core)) + Nz(mc_mtx.(core))
                 end
 
