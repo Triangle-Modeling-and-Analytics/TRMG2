@@ -1,8 +1,8 @@
-Macro "Open Trip Aggregation Tool Dbox" (Args)
-	RunDbox("Trip Aggregation Tool", Args)
+Macro "Open Moto Trip Aggregation Tool Dbox" (Args)
+	RunDbox("Moto Trip Aggregation Tool", Args)
 endmacro
 
-dBox "Trip Aggregation Tool" (Args) center, center, 40, 8 Title: "Trip Matrix Aggregation Tool" Help: "test" toolbox
+dBox "Moto Trip Aggregation Tool" (Args) center, center, 40, 8 Title: "Trip Matrix Aggregation Tool" Help: "test" toolbox
 
     close do
         return()
