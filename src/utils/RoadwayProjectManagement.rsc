@@ -123,8 +123,8 @@ Macro "Roadway Project Management" (MacroOpts)
 
     if !proj_found then do
       if type = "string"
-        then errmsg = "Project '" + projID + "' not found."
-        else errmsg = "Project '" + String(projID) + "' not found."
+        then errmsg = "Project '" + projID + "' appears in the roadway project list but is not found in the master layer."
+        else errmsg = "Project '" + String(projID) + "' appears in the roadway project list but is not found in the master layer."
       Throw(errmsg)
     end
   end
@@ -350,7 +350,7 @@ Macro "Clean Project Groups" (master_dbd)
         opts.[Omit Missing] = "True"
         opts.Unique = "True"
         v_test = SortVector(v_test, opts)
-        if v_test.length = 1 and v_test[1] = id then target_group = pgroup
+        if v_test.length = 0 or (v_test.length = 1 and v_test[1] = id) then target_group = pgroup
       end
 
       // if none found, create a new group

@@ -45,7 +45,7 @@
                                                     {"Urban",30},
                                                     {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
         Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }    
-        Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time.bin", "Description":"Initial travel time estimates" }    
+        Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time_2020.bin", "Description":"Initial travel time estimates" }    
         Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
         Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
         Args.TransponderRatioSUT = { "Type":"double" , "Value":0.70, "Description":"Ratio of SUTs with a toll transponder (0-1)" }

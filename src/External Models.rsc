@@ -389,14 +389,8 @@ Macro "IEEI Directionality" (Args)
   mat = null
   tmat = null
     
-  mtx = CreateObject("Matrix")
-  mtx.LoadMatrix(ieei_od_matrix_file)  
-  mtx_core_names = mtx.data.CoreNames
-  cores = mtx.data.cores
-
-  t_mtx = CreateObject("Matrix")
-  t_mtx.LoadMatrix(ieei_od_transpose_matrix_file)
-  t_cores = t_mtx.data.cores
+  mtx = CreateObject("Matrix", ieei_od_matrix_file)
+  t_mtx = CreateObject("Matrix", ieei_od_transpose_matrix_file)
   
   fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
   
@@ -408,13 +402,11 @@ Macro "IEEI Directionality" (Args)
 	
 	core_name = "IEEI_" + type + "_" + period
 	
-	cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+	mtx.(core_name) := Nz(mtx.(core_name)) * pa_factor + Nz(t_mtx.(core_name)) * (1 - pa_factor)
 
     rh = GetNextRecord(fac_vw + "|", rh, )
   end
   
-  cores = null
-  t_cores = null
   mtx = null
   t_mtx = null
   CloseView(fac_vw)

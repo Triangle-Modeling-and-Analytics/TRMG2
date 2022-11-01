@@ -1,44 +1,53 @@
 
 Macro "Model.Attributes" (Args,Result)
-    Attributes = {{"BannerHeight",90},
-                  {"BannerPicture","src\\flow_chart\\bmp\\banner.jpg"},
-                    {"BannerWidth",1000},
-                    {"Base Scenario Name","Model"},
-                    {"ClearLogFiles",0},
-                    {"CloseOpenFiles",1},
-                    {"CodeUI","src\\trmg2.dbd"},
-                    {"DebugMode",1},
-                    {"ExpandStages","Side by Side"},
-                    {"HideBanner",0},
-                    {"MaxProgressBars",4},
-                    {"MinItemSpacing",20},
-                    {"Output Folder Format","Output Folder\\Scenario Name"},
-                    {"Output Folder Parameter","Output Folder"},
-                    {"Output Folder Per Run","No"},
-                    {"Picture","bmp\\TransCAD_Model.bmp"},
-                    {"ReportAfterStep",1},
-                    {"Requires",{{"Program","TransCAD"},
-                  {"Version",9},
-                  {"Build",32795}}},
-                    {"RunParallel",0},
-                    {"Shape","Rectangle"},
-                    {"ShowTaskMonitor",1},
-                    {"Time Stamp Format","yyyyMMdd_HHmm"}}
+    Attributes = {
+        {"BannerHeight", 90},
+        {"BannerPicture", "src\\flow_chart\\bmp\\banner.jpg"},
+        {"BannerWidth", 1000},
+        {"Base Scenario Name", "Model"},
+        {"ClearLogFiles", 0},
+        {"CloseOpenFiles", 1},
+        {"CodeUI", "src\\trmg2.dbd"},
+        {"DebugMode", 1},
+        {"ExpandStages", "Side by Side"},
+        {"HideBanner", 0},
+        {"MaxProgressBars", 4},
+        {"MinItemSpacing", 6},
+        {"Output Folder Format", "Output Folder\\Scenario Name"},
+        {"Output Folder Parameter", "Output Folder"},
+        {"Output Folder Per Run", "No"},
+        {"Picture", "bmp\\TransCAD_Model.bmp"},
+        {"ReportAfterStep", 1},
+        {"Requires",
+{{"Program", "TransCAD"},
+{"Version", 9},
+{"Build", 32840}}},
+{"RunParallel", 0},
+{"Shape", "Rectangle"},
+{"ShowTaskMonitor", 1},
+{"Time Stamp Format", "yyyyMMdd_HHmm"}
+    }
 EndMacro
 
 
 Macro "Model.Step" (Args,Result)
-    Attributes = {{"FrameColor",{255,255,255}},
-                  {"Height",30},
-                  {"PicturePosition","CenterRight"},
-                    {"TextFont","Calibri|12|400|000000|0"},
-                    {"Width",260}}
+    Attributes = {
+        {"FrameColor",{255,255,255}},
+        {"Height", 30},
+        {"PicturePosition", "CenterRight"},
+        {"TextFont", "Calibri|12|400|000000|0"},
+        {"Width", 260}
+    }
 EndMacro
 
 
 Macro "Model.Arrow" (Args,Result)
-    Attributes = {{"ArrowHead","Triangle"},
-                  {"ArrowHeadSize",8}}
+    Attributes = {
+        {"ArrowHead", "Triangle"},
+        {"ArrowHeadSize", 8},
+        {"PenWidth", 1},
+        {"ArrowBaseSize", 10}
+    }
 EndMacro
 
 

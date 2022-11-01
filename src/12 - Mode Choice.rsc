@@ -166,20 +166,16 @@ Macro "Post Process Logsum" (Args)
                 core_names = mtx._GetCoreNames()
                 if ArrayPosition(core_names, {"nonhh_auto"},) > 0 then do
                     mtx.AddCores({"NonHHAutoComposite"})
-                    cores = mtx.data.cores
-                    cores.NonHHAutoComposite := log(1 + nz(exp(cores.nonhh_auto)))
+                    mtx.NonHHAutoComposite := log(1 + nz(exp(mtx.nonhh_auto)))
                 end
                 if ArrayPosition(core_names, {"transit"},) > 0 then do
                     mtx.AddCores({"TransitComposite"})
-                    cores = mtx.data.cores
-                    cores.TransitComposite := log(1 + nz(exp(cores.transit)))
+                    mtx.TransitComposite := log(1 + nz(exp(mtx.transit)))
                 end
                 if segment <> "v0" and ArrayPosition(core_names, {"auto"},) > 0 then do
                     mtx.AddCores({"AutoComposite"})
-                    cores = mtx.data.cores
-                    cores.AutoComposite := log(1 + nz(exp(cores.auto)))
+                    mtx.AutoComposite := log(1 + nz(exp(mtx.auto)))
                 end
-                cores = null
                 mtx = null
             end
         end

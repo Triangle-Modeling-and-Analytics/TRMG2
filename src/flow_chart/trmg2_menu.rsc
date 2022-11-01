@@ -97,6 +97,11 @@ menu "TRMG2 Utilities"
         mr.RunCodeEx("Open Diff Tool")
     enditem
 
+    MenuItem "scen comp" text: "Scenario Comparison" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open Scenario Comp Tool")
+    enditem
+
     MenuItem "fixed_od" text: "Fixed OD Assignment" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()

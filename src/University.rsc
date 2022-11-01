@@ -393,31 +393,23 @@ Macro "University Combine Campus" (Args)
         univ_mtx = null
         out_mtx = null
 
-        univ_mtx = CreateObject("Matrix")
-        univ_mtx.LoadMatrix(university_mtx_file)
-
-        out_mtx = CreateObject("Matrix")
-        out_mtx.LoadMatrix(out_mtx_file)
-
-        cores = univ_mtx.data.cores
-        out_cores = out_mtx.data.cores
+        univ_mtx = CreateObject("Matrix", university_mtx_file)
+        out_mtx = CreateObject("Matrix", out_mtx_file)
 
         // initilize with zero
         for core in out_core_names do
-            out_cores.(core) := 0
+            out_mtx.(core) := 0
         end
 
         // add purpose trips by campus
         for campus in campus_list do
             for core in out_core_names do
-                out_cores.(core) := out_cores.(core) + Nz(cores.(core + "_" + campus + "_" + period))
+                out_mtx.(core) := out_mtx.(core) + Nz(univ_mtx.(core + "_" + campus + "_" + period))
             end
         end
 
     end
 
-    cores = null
-    out_cores = null
     univ_mtx = null
     out_mtx = null
 
@@ -562,32 +554,22 @@ Macro "University Other to Other" (Args)
                 CopyFile(mtx_file, other_mtx_file)
             end
             else do
-                mc_mtx = CreateObject("Matrix")
-                mc_mtx.LoadMatrix(mtx_file)
-                mc_cores = mc_mtx.data.cores
-
-                out_mtx = CreateObject("Matrix")
-                out_mtx.LoadMatrix(other_mtx_file)
-                out_cores = out_mtx.data.cores
+                mc_mtx = CreateObject("Matrix", mtx_file)
+                out_mtx = CreateObject("Matrix", other_mtx_file)
 
                 for mode in mode_names do
-                    out_cores.(mode) := Nz(out_cores.(mode)) + Nz(mc_cores.(mode))
+                    out_mtx.(mode) := Nz(out_mtx.(mode)) + Nz(mc_mtx.(mode))
                 end
 
-                out_cores = null
                 out_mtx = null
-                mc_cores = null
                 mc_mtx = null
             end
         end
 
         // get marginals for other to other trips
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(other_mtx_file)
-        cores = mtx.data.cores
-
+        mtx = CreateObject("Matrix", other_mtx_file)
         for mode in mode_names do
-            attractions = A2V(GetMatrixMarginals(cores.(mode), "sum", "column"))
+            attractions = A2V(GetMatrixMarginals(mtx.(mode), "sum", "column"))
             rate = trip_rates.(mode)
             uoo_attr = attractions * rate
 
@@ -605,16 +587,13 @@ Macro "University Other to Other" (Args)
         seed_mtx_file = trips_dir + "university_other_seed.mtx"
         CopyFile(other_mtx_file, seed_mtx_file)
 
-        seed_mtx = CreateObject("Matrix")
-        seed_mtx.LoadMatrix(seed_mtx_file)
-        seed_cores = seed_mtx.data.cores
-        seed_core_names = seed_mtx.data.CoreNames
+        seed_mtx = CreateObject("Matrix", seed_mtx_file)
+        seed_core_names = seed_mtx.GetCoreNames()
 
         for core in seed_core_names do
-            seed_cores.(core) := 1.0
+            seed_mtx.(core) := 1.0
         end
 
-        seed_cores = null
         seed_mtx = null
 
         // IPF seed matrix to marginals to get other to other trips.
@@ -676,22 +655,15 @@ Macro "University Combine Matrices" (Args)
                 core = null
             end
             else do
-                mc_mtx = CreateObject("Matrix")
-                mc_mtx.LoadMatrix(mtx_file)
-                mc_cores = mc_mtx.data.cores
+                mc_mtx = CreateObject("Matrix", mtx_file)
+                out_mtx = CreateObject("Matrix", out_mtx_file)
+                mc_core_names = mc_mtx.GetCoreNames()
 
-                out_mtx = CreateObject("Matrix")
-                out_mtx.LoadMatrix(out_mtx_file)
-                out_cores = out_mtx.data.cores
-                out_core_names = out_mtx.data.CoreNames
-
-                for core in out_core_names do
-                    out_cores.(core) := Nz(out_cores.(core)) + Nz(mc_cores.(core))
+                for core in mc_core_names do
+                    out_mtx.(core) := Nz(out_mtx.(core)) + Nz(mc_mtx.(core))
                 end
 
-                out_cores = null
                 out_mtx = null
-                mc_cores = null
                 mc_mtx = null
             end
 
@@ -733,14 +705,11 @@ Macro "University Directionality" (Args)
         mat = null
         tmat = null
 
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(od_matrix_file)
-        mtx_core_names = mtx.data.CoreNames
-        cores = mtx.data.cores
+        mtx = CreateObject("Matrix", od_matrix_file)
+        mtx_core_names = mtx.GetCoreNames()
 
         t_mtx = CreateObject("Matrix")
         t_mtx.LoadMatrix(od_transpose_matrix_file)
-        t_cores = t_mtx.data.cores
 
         pa_factor = dir_factors.(period)
 
@@ -748,11 +717,9 @@ Macro "University Directionality" (Args)
             // Do not convert transit cores to OD
             if core_name = "w_lb" then continue
             if core_name = "pnr_lb" then continue
-            cores.(core_name) := Nz(cores.(core_name)) * pa_factor + Nz(t_cores.(core_name)) * (1 - pa_factor)
+            mtx.(core_name) := Nz(mtx.(core_name)) * pa_factor + Nz(t_mtx.(core_name)) * (1 - pa_factor)
         end
 
-        cores = null
-        t_cores = null
         mtx = null
         t_mtx = null
         DeleteFile(pa_matrix_file)

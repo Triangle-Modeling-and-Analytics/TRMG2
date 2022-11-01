@@ -1867,15 +1867,13 @@ Macro "Accessibility Calculator" (MacroOpts)
     c = S2R(v_params[c_pos])
 
     // Calculate logsum
-    skim = CreateObject("Matrix")
-    skim.LoadMatrix(skim_file)
+    skim = CreateObject("Matrix", skim_file)
     skim.AddCores({"size", "util"})
-    cores = skim.data.cores
     size = GetDataVector(table_vw + "|", out_field + "_attr", )
-    cores.size := size
-    cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
-    cores.util := if cores.size = 0 then 0 else cores.util
-    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    skim.size := size
+    skim.util := skim.size * pow(skim.(skim_core), b) * exp(c * skim.(skim_core))
+    skim.util := if skim.size = 0 then 0 else skim.util
+    rowsum = GetMatrixVector(skim.util, {Marginal: "Row Sum"})
     logsum = Max(0, log(rowsum))
     
     // Put logsum into table
@@ -2607,12 +2605,14 @@ Inputs
   * matrices
     * String or array/vector of strings
     * Full paths to matrix files to be summarized.
+  * index
+    * optional string. name of index to use
 
 Returns
   * Returns a gplyr data frame
 */
 
-Macro "Matrix Stats" (matrices)
+Macro "Matrix Stats" (matrices, index)
   
   if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
@@ -2627,6 +2627,7 @@ Macro "Matrix Stats" (matrices)
     // get matrix core names and stats
     {drive, folder, name, ext} = SplitPath(mtx_file)
     mtx = OpenMatrix(mtx_file, )
+    if index <> null then SetMatrixIndex(mtx, index, index)
     a_corenames = GetMatrixCoreNames(mtx)
     a_stats = MatrixStatistics(mtx, )
 
