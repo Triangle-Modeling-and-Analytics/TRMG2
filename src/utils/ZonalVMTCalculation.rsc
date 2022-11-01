@@ -209,8 +209,8 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     // Configure Legend
     SetLegendDisplayStatus(cTheme, "True")
     RunMacro("G30 create legend", "Theme")
-    title = "Zonal VMT Changes"
-    //footnote = "Transit travel time capped, see user guide."
+    title = "Change in VMT Ratio"
+    footnote = "Change in Ratio of Zonal VMT per Capita to Regional VMT per Capita."
     SetLegendSettings (
       GetMap(),
       {
