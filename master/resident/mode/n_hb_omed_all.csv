@@ -58,7 +58,7 @@ w_brt,w_brt_skim.Fare,,-0.232,Fare
 w_brt,w_brt_skim.[Access Walk Time],,-0.1461,Access walk time
 w_brt,w_brt_skim.[Initial Wait Time],,-0.123,Initial wait time
 w_brt,w_brt_skim.[Egress Walk Time],,-0.1972,Egress walk time
-w_brt,w_brt_skim.[Number of Transfers] > 1,,-1.4619,High transfers
+w_brt,w_brt_skim.[Number of Transfers] > 2,,-1.4619,High transfers
 w_lr,Constant,,9.577,Constant
 w_lr,Constant,v0,3.789,Zero-vehicle households
 w_lr,Constant,vi,3.789,Vehicle insufficient households
@@ -69,7 +69,7 @@ w_lr,w_lr_skim.Fare,,-0.232,Fare
 w_lr,w_lr_skim.[Access Walk Time],,-0.1461,Access walk time
 w_lr,w_lr_skim.[Initial Wait Time],,-0.123,Initial wait time
 w_lr,w_lr_skim.[Egress Walk Time],,-0.1972,Egress walk time
-w_lr,w_lr_skim.[Number of Transfers] > 1,,-1.4619,High transfers
+w_lr,w_lr_skim.[Number of Transfers] > 2,,-1.4619,High transfers
 auto_pay,Constant,v0,0.92578,Additional Calibration Constant
 other_auto,Constant,v0,1.77795,Additional Calibration Constant
 sov,Constant,vi,6.200475,Additional Calibration Constant
