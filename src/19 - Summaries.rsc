@@ -1148,6 +1148,8 @@ Macro "Summarize Parking"  (Args)
   out_file = summary_dir + "/parking_daily.mtx"
   CopyFile(mtx_files[1], out_file)
   mtx = CreateObject("Matrix", out_file)
+  mh = mtx.GetMatrixHandle()
+  RenameMatrix(mh, "Person Trips")
   core_names = mtx.GetCoreNames()
   mtx.AddCores({"parkwalk", "parkshuttle"})
   mtx.DropCores(core_names)
