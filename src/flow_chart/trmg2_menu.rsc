@@ -156,6 +156,12 @@ menu "TRMG2 Utilities"
         mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
     enditem
 
+    MenuItem "MOVES" text: "MOVES Input Preparation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Prepare MOVES Input Dbox", Args)
+    enditem
+
     MenuItem "ZonalVMT" text: "Zonal VMT Calculation" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
