@@ -1081,6 +1081,7 @@ Macro "Congested VMT" (Args)
   for grouping_field in grouping_fields do
     opts.output_csv = out_dir + "/Congested_VMT_by_" + grouping_field + ".csv"
     opts.grouping_fields = {grouping_field}
+    opts.filter = "HCMType <> 'CC'"
     RunMacro("Link Summary", opts)
 
     df = CreateObject("df")
