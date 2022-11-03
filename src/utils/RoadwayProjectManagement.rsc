@@ -85,7 +85,7 @@ Macro "Roadway Project Management" (MacroOpts)
     // Add "UpdatedWithP" field
     if p = v_projIDs.length then do
       type2 = if CompareStrings(type, "string", ) then "Character" else "Integer"
-      a_fields = {{"UpdatedWithP", type2, 10, }}
+      a_fields = {{"UpdatedWithP", type2, 16, }}
       RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     end
 
