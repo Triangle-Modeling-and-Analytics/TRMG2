@@ -138,7 +138,8 @@ Macro "Roadway Project Management" (MacroOpts)
   CloseFile(file)
   errmsg = "Projects not found in the master network. See error log in the scenario folder."
   if num_notfound > 0 then Throw(errmsg)
-  if num_notfound = 0 and GetFileInfo(file) <> null then DeleteFile(file) //remove error log once scenario created successfully
+  //remove error log once scenario created successfully
+  if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.
