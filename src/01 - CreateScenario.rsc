@@ -185,7 +185,6 @@ Macro "Create Scenario Roadway" (Args)
   opts.hwy_dbd = scen_hwy
   opts.proj_list = Args.[Scenario Folder] + "/RoadwayProjectList.csv"
   opts.master_dbd = master_hwy
-  opts.scen_folder = Args.[Scenario Folder]
   RunMacro("Roadway Project Management", opts)
 
   RunMacro("Close All")

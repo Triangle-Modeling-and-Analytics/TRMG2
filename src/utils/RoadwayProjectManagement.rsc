@@ -38,7 +38,6 @@ Macro "Roadway Project Management" (MacroOpts)
   hwy_dbd = MacroOpts.hwy_dbd
   proj_list = MacroOpts.proj_list
   master_dbd = MacroOpts.master_dbd
-  scen_folder = MacroOpts.scen_folder
 
   // Argument check
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
@@ -73,7 +72,9 @@ Macro "Roadway Project Management" (MacroOpts)
 
   // Loop over each project ID
   num_notfound = 0
-  error_file = scen_folder + "/NetworkBuildingError.csv"
+
+  {drive, path, , } = SplitPath(hwy_dbd)
+  error_file = drive + path + "RoadwayBuildingError.csv"
   file = OpenFile(error_file, "w")
   WriteLine(file, "Below projects are missing:")
   
