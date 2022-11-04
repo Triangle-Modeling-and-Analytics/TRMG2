@@ -1081,6 +1081,7 @@ Macro "Congested VMT" (Args)
   for grouping_field in grouping_fields do
     opts.output_csv = out_dir + "/Congested_VMT_by_" + grouping_field + ".csv"
     opts.grouping_fields = {grouping_field}
+    opts.filter = "HCMType <> 'CC'"
     RunMacro("Link Summary", opts)
 
     df = CreateObject("df")
@@ -1147,6 +1148,8 @@ Macro "Summarize Parking"  (Args)
   out_file = summary_dir + "/parking_daily.mtx"
   CopyFile(mtx_files[1], out_file)
   mtx = CreateObject("Matrix", out_file)
+  mh = mtx.GetMatrixHandle()
+  RenameMatrix(mh, "Person Trips")
   core_names = mtx.GetCoreNames()
   mtx.AddCores({"parkwalk", "parkshuttle"})
   mtx.DropCores(core_names)

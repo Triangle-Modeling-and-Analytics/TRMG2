@@ -71,6 +71,13 @@ Macro "Roadway Project Management" (MacroOpts)
   attrList = ExcludeArrayElements(attrList, 1, 1)
 
   // Loop over each project ID
+  num_notfound = 0
+
+  {drive, path, , } = SplitPath(hwy_dbd)
+  error_file = drive + path + "RoadwayBuildingError.csv"
+  file = OpenFile(error_file, "w")
+  WriteLine(file, "Below projects are missing:")
+  
   for p = v_projIDs.length to 1 step -1 do
     projID = v_projIDs[p]
     type = TypeOf(projID)
@@ -79,7 +86,7 @@ Macro "Roadway Project Management" (MacroOpts)
     // Add "UpdatedWithP" field
     if p = v_projIDs.length then do
       type2 = if CompareStrings(type, "string", ) then "Character" else "Integer"
-      a_fields = {{"UpdatedWithP", type2, 10, }}
+      a_fields = {{"UpdatedWithP", type2, 16, }}
       RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     end
 
@@ -122,12 +129,18 @@ Macro "Roadway Project Management" (MacroOpts)
     end
 
     if !proj_found then do
+      num_notfound = num_notfound + 1
       if type = "string"
-        then errmsg = "Project '" + projID + "' appears in the roadway project list but is not found in the master layer."
-        else errmsg = "Project '" + String(projID) + "' appears in the roadway project list but is not found in the master layer."
-      Throw(errmsg)
+        then WriteLine(file, projID)
+        else WriteLine(file, String(projID))
     end
   end
+  
+  CloseFile(file)
+  errmsg = "Projects not found in the master network. See error log in the scenario folder."
+  if num_notfound > 0 then Throw(errmsg)
+  //remove error log once scenario created successfully
+  if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.

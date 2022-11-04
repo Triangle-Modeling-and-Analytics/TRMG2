@@ -601,6 +601,14 @@ Macro "Convert ProjID to RouteID" (MacroOpts)
   opts.file = rts_file
   {map, {rlyr, slyr, phlyr}} = RunMacro("Create Map", opts)
 
+  // Create an error file that will list any project IDs not found in the
+  // route system.
+  num_notfound = 0
+  {drive, path, , } = SplitPath(rts_file)
+  error_file = drive + path + "TransitBuildingError.csv"
+  file = OpenFile(error_file, "w")
+  WriteLine(file, "Below projects are missing:")
+
   // Convert project IDs into route IDs
   SetLayer(rlyr)
   route_set = "scenario routes"
@@ -608,15 +616,27 @@ Macro "Convert ProjID to RouteID" (MacroOpts)
     id = v_pid[i]
 
     // Select routes that match the current project id
-    id = if TypeOf(id) = "string" then "'" + id + "'" else String(id)
-    qry = "Select * where ProjID = " + id
+    type = TypeOf(id)
+    id2 = if type = "string" then "'" + id + "'" else String(id)
+    qry = "Select * where ProjID = " + id2
     operation = if i = 1 then "several" else "more"
     n = SelectByQuery(route_set, operation, qry)
-    if n = 0 then do
-      string = "Route with ProjID = " + id + " not found in route layer."
-      Throw(string)
+    if n = n_prev then do
+      num_notfound = num_notfound + 1
+      if type = "string"
+        then WriteLine(file, id)
+        else WriteLine(file, String(id))
     end
+
+    n_prev = n
   end
+
+  CloseFile(file)
+  if num_notfound > 0 then Throw(
+    "Projects not found in the master route system. See error log in the scenario folder."
+  )
+  //remove error log once scenario created successfully
+  if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
 
   // Get final results
   v_rid = GetDataVector(rlyr + "|" + route_set, "Route_ID", )

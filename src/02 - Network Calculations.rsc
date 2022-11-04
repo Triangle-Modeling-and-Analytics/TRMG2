@@ -519,7 +519,16 @@ Macro "Capacity" (Args)
     n = SelectByQuery("sel", "several", ramp_query)
     if n > 0 then do
         fac_field = "HCMType"
-        a_ft_priority = {"Freeway", "Arterial", "Collector", "Superstreet", "MLHighway", "TLHighway"}
+        a_ft_priority = {
+            "Freeway",
+            "MajorArterial",
+            "Arterial",
+            "MajorCollector",
+            "Collector",
+            "Superstreet",
+            "MLHighway",
+            "TLHighway"
+        }
         RunMacro("Assign FT to Ramps", link_lyr, node_lyr, ramp_query, fac_field, a_ft_priority)
     end
 
