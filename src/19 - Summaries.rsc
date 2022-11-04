@@ -294,6 +294,7 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
+  opts.median_field = "HCMMedian"
   opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"

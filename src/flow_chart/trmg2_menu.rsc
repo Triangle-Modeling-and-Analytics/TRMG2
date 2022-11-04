@@ -41,7 +41,8 @@ Class "Visualize.Menu.Items"
         self.runtimeObj.RunCode("CreateWebDiagram", {MatrixName: mName, TAZDB: TAZGeoFile, DiagramType: "Sankey"})
     enditem         
 
-endClass 
+EndClass
+
 
 MenuItem "TRMG2 Menu Item" text: "TRMG2"
     menu "TRMG2 Menu"
@@ -81,7 +82,6 @@ menu "TRMG2 Menu"
     MenuItem "Calibrators" text: "Calibrators"
         menu "TRMG2 Calibrators"
 endMenu 
-
 menu "TRMG2 Utilities"
     init do
     enditem
@@ -168,7 +168,6 @@ menu "TRMG2 Utilities"
         mr.RunCode("Open Zonal VMT Calculation Dbox", Args)
     enditem
 endMenu
-
 menu "TRMG2 Calibrators"
     init do
     enditem
@@ -191,3 +190,6 @@ menu "TRMG2 Calibrators"
         mr.RunCode("Calibrate HB MC", Args)
     enditem
 endMenu
+
+
+
