@@ -97,6 +97,11 @@ menu "TRMG2 Utilities"
         mr.RunCodeEx("Open Diff Tool")
     enditem
 
+    MenuItem "scen comp" text: "Scenario Comparison" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open Scenario Comp Tool")
+    enditem
+
     MenuItem "fixed_od" text: "Fixed OD Assignment" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
@@ -139,10 +144,28 @@ menu "TRMG2 Utilities"
         mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
     enditem
 
-    MenuItem "TripAggregation" text: "Motorized Trip Matrix Aggregation" do
+    MenuItem "TripAggregation_Moto" text: "Motorized Trip Matrix Aggregation" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        mr.RunCode("Open Trip Aggregation Tool Dbox", Args)
+        mr.RunCode("Open Moto Trip Aggregation Tool Dbox", Args)
+    enditem
+
+    MenuItem "TripAggregation_NM" text: "NM Trip Matrix Aggregation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
+    enditem
+
+    MenuItem "MOVES" text: "MOVES Input Preparation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Prepare MOVES Input Dbox", Args)
+    enditem
+
+    MenuItem "ZonalVMT" text: "Zonal VMT Calculation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Zonal VMT Calculation Dbox", Args)
     enditem
 endMenu
 menu "TRMG2 Calibrators"

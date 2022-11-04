@@ -12,7 +12,7 @@ Macro "Model.Attributes" (Args,Result)
         {"ExpandStages", "Side by Side"},
         {"HideBanner", 0},
         {"MaxProgressBars", 4},
-        {"MinItemSpacing", 20},
+        {"MinItemSpacing", 6},
         {"Output Folder Format", "Output Folder\\Scenario Name"},
         {"Output Folder Parameter", "Output Folder"},
         {"Output Folder Per Run", "No"},
@@ -21,7 +21,7 @@ Macro "Model.Attributes" (Args,Result)
         {"Requires",
 {{"Program", "TransCAD"},
 {"Version", 9},
-{"Build", 32795}}},
+{"Build", 32840}}},
 {"RunParallel", 0},
 {"Shape", "Rectangle"},
 {"ShowTaskMonitor", 1},
@@ -44,7 +44,9 @@ EndMacro
 Macro "Model.Arrow" (Args,Result)
     Attributes = {
         {"ArrowHead", "Triangle"},
-        {"ArrowHeadSize", 8}
+        {"ArrowHeadSize", 8},
+        {"PenWidth", 1},
+        {"ArrowBaseSize", 10}
     }
 EndMacro
 
