@@ -538,7 +538,7 @@ Macro "Capacity" (Args)
     hcm_med = if hcm_type = "Freeway" then "Restrictive"
         else if hcm_type = "MLHighway" then "Restrictive"
         else if hcm_type = "TLHighway" then "None"
-        else if hcm_type = "SuperStreet" then "Restrictive"
+        else if hcm_type = "Superstreet" then "Restrictive"
         else if hcm_type = "CC" then "None"
         else if hcm_type <> null and hcm_med = null then "None"
         else hcm_med
