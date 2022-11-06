@@ -1751,6 +1751,7 @@ Macro "Link Summary" (MacroOpts)
   if grouping_fields <> null
     then opts.fields = grouping_fields + summary_fields
     else opts.fields = summary_fields
+  if filter <> null then opts.fields = opts.fields + {"HCMType"}
   hwy_df.read_view(opts)
 
   // Optional filter
