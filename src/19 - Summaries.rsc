@@ -1151,6 +1151,7 @@ Macro "Summarize Parking"  (Args)
   mtx = CreateObject("Matrix", out_file)
   mh = mtx.GetMatrixHandle()
   RenameMatrix(mh, "Person Trips")
+  mh = null
   core_names = mtx.GetCoreNames()
   mtx.AddCores({"parkwalk", "parkshuttle"})
   mtx.DropCores(core_names)
