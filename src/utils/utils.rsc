@@ -1718,6 +1718,9 @@ Inputs (all in a named array)
     * Array of strings
     * Describes the names of the fields to sum up for each metric
     * Defaults to {"Flow_Daily", "VMT_Daily", "VHT_Daily", "Delay_Daily"}
+  * 'filter'
+    * Optional string
+    * Filter/query used to select a subset of records to summarize
 */
 
 Macro "Link Summary" (MacroOpts)
@@ -1729,6 +1732,7 @@ Macro "Link Summary" (MacroOpts)
   if TypeOf(grouping_fields) = "string" then grouping_fields = {grouping_fields}
   ft_field = MacroOpts.ft_field
   summary_fields = MacroOpts.summary_fields
+  filter = MacroOpts.filter
 
   // Argument checking
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
@@ -1747,7 +1751,11 @@ Macro "Link Summary" (MacroOpts)
   if grouping_fields <> null
     then opts.fields = grouping_fields + summary_fields
     else opts.fields = summary_fields
+  if filter <> null then opts.fields = opts.fields + {"HCMType"}
   hwy_df.read_view(opts)
+
+  // Optional filter
+  if filter <> null then hwy_df.filter(filter)
 
   // Summarize
   if grouping_fields <> null then hwy_df.group_by(grouping_fields)
@@ -1867,15 +1875,13 @@ Macro "Accessibility Calculator" (MacroOpts)
     c = S2R(v_params[c_pos])
 
     // Calculate logsum
-    skim = CreateObject("Matrix")
-    skim.LoadMatrix(skim_file)
+    skim = CreateObject("Matrix", skim_file)
     skim.AddCores({"size", "util"})
-    cores = skim.data.cores
     size = GetDataVector(table_vw + "|", out_field + "_attr", )
-    cores.size := size
-    cores.util := cores.size * pow(cores.(skim_core), b) * exp(c * cores.(skim_core))
-    cores.util := if cores.size = 0 then 0 else cores.util
-    rowsum = GetMatrixVector(cores.util, {Marginal: "Row Sum"})
+    skim.size := size
+    skim.util := skim.size * pow(skim.(skim_core), b) * exp(c * skim.(skim_core))
+    skim.util := if skim.size = 0 then 0 else skim.util
+    rowsum = GetMatrixVector(skim.util, {Marginal: "Row Sum"})
     logsum = Max(0, log(rowsum))
     
     // Put logsum into table
@@ -2416,6 +2422,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   count_field = MacroOpts.count_field
   class_field = MacroOpts.class_field
   area_field = MacroOpts.area_field
+  median_field = MacroOpts.median_field
   screenline_field = MacroOpts.screenline_field
   volume_breaks = MacroOpts.volume_breaks
   out_dir = MacroOpts.out_dir
@@ -2442,11 +2449,11 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     set: count_set,
     fields: {
       count_id_field, count_field, volume_field, class_field,
-      area_field, screenline_field
+      area_field, median_field, screenline_field
     }
   })
   df.group_by(count_id_field)
-  df.summarize({count_field, volume_field, class_field, area_field, screenline_field}, "first")
+  df.summarize({count_field, volume_field, class_field, area_field, median_field, screenline_field}, "first")
   field_names = df.colnames()
   for field_name in field_names do
     if Left(field_name, 6) = "first_"
@@ -2532,6 +2539,42 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     RunMacro("Write CSV by Line", file, lines)
   end
 
+  // Add median
+  if median_field <> null then do
+    lines = null
+    v_median = GetDataVector(agg_vw + "|", median_field, )
+    v_median = SortVector(v_median, {Unique: "true"})
+    for class_name in v_class do
+      for area in v_area do
+        for med in v_median do
+          set_name = "class_area_med"
+          if TypeOf(class_name) <> "string" then class_name = String(class_name)
+          if TypeOf(area) <> "string" then area = String(area)
+          if TypeOf(med) <> "string" then med = String(med)
+          query = "Select * where " + class_field + " = '" + class_name + "' and " + 
+            area_field + " = '" + area + "' and " + 
+            median_field + " = '" + med + "'"
+          n = SelectByQuery(set_name, "several", query, )
+          if n = 0 then continue
+          {v_count, v_volume} = GetDataVectors(agg_vw + "|" + set_name, {count_field, volume_field}, )
+          total_count = VectorStatistic(v_count, "Sum", )
+          total_volume = VectorStatistic(v_volume, "Sum", )
+          pct_diff = round((total_volume - total_count) / total_count * 100, 2)
+          {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
+          prmse = round(prmse, 2)
+          lines = lines + {
+            class_name + "," + area + "," + med + "," + String(n) + "," + String(total_count) + "," +
+            String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
+          }
+        end
+      end
+    end
+    lines = {"HCMType,AreaType,Median,N,TotalCount,TotalVolume,PctDiff,PRMSE"} + lines
+    lines = lines + area_total_line
+    file = out_dir + "/count_comparison_by_ft_and_at_and_med.csv"
+    RunMacro("Write CSV by Line", file, lines)
+  end
+
   // Volume group table
   lines = null
   for i = 2 to volume_breaks.length do
@@ -2607,12 +2650,14 @@ Inputs
   * matrices
     * String or array/vector of strings
     * Full paths to matrix files to be summarized.
+  * index
+    * optional string. name of index to use
 
 Returns
   * Returns a gplyr data frame
 */
 
-Macro "Matrix Stats" (matrices)
+Macro "Matrix Stats" (matrices, index)
   
   if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
@@ -2627,6 +2672,7 @@ Macro "Matrix Stats" (matrices)
     // get matrix core names and stats
     {drive, folder, name, ext} = SplitPath(mtx_file)
     mtx = OpenMatrix(mtx_file, )
+    if index <> null then SetMatrixIndex(mtx, index, index)
     a_corenames = GetMatrixCoreNames(mtx)
     a_stats = MatrixStatistics(mtx, )
 

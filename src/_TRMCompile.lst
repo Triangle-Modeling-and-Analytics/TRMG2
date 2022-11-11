@@ -28,6 +28,7 @@ utils/df.rsc
 utils/RoadwayProjectManagement.rsc
 utils/TransitProjectManagement.rsc
 utils/LinkDiffTool.rsc
+utils/ScenarioComparison.rsc
 utils/FixedODAssignment.rsc
 utils/Calibrators.rsc
 utils/merge_tool.rsc
@@ -36,4 +37,7 @@ utils/PopEmpReached.rsc
 utils/TRMTransitCoverage_Poverty.rsc
 utils/TRMTransitCoverage_HHStrata.rsc
 utils/transittool.rsc
-utils/trip_aggregation.rsc
+utils/trip_aggregation_moto.rsc
+utils/trip_aggregation_nm.rsc
+utils/MOVES.rsc
+utils/ZonalVMTCalculation.rsc

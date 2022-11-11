@@ -2,7 +2,7 @@ Macro "Open Transit Scenario Comparison Dbox" (Args)
 	RunDbox("Transit Scenario Comparison", Args)
 endmacro
 
-dBox "Transit Scenario Comparison" (Args) location: center, center, 60, 10
+dBox "Transit Scenario Comparison" (Args) location: center, center, 60, 11
   Title: "Transit Scenario Comparison" toolbox NoKeyBoard
 
   // What happens when the "x" is clicked
@@ -12,24 +12,18 @@ dBox "Transit Scenario Comparison" (Args) location: center, center, 60, 10
 
   init do
 
-    static TOD, S2_Dir, TOD_Index, TOD_list
-	
+    static TOD, S2_Dir, TOD_Index, TOD_list, S1_Dir, S1_Name, Scen_Dir
+    
+    Scen_Dir = Args.[Scenarios Folder]
+    S1_Dir = Args.[Scenario Folder]
+    S1_Name = Substitute(S1_Dir, Scen_Dir + "\\", "",)
     TOD_list = Args.Periods
 
 	EnableItem("Select TOD")
 	  
    enditem
   
-  // Quit Button
-  button 7, 8, 10 Prompt:"Quit" do
-    Return(1)
-  enditem
 
-  // TOD Button
-  Popdown Menu "Select TOD" 16,5,10,5 Prompt: "Choose TOD" 
-    List: TOD_list Variable: TOD_Index do
-    TOD = TOD_list[TOD_Index]
-  enditem
 
   // Comparing Scenario directory text and button
   text 5, 1 variable: "Old/Base Scenario Directory:"
@@ -43,8 +37,22 @@ dBox "Transit Scenario Comparison" (Args) location: center, center, 60, 10
     on error, notfound, escape default
   enditem 
 
-  // Make Map Button
-  button 21, 8, 30 Prompt:"Generate Results" do 
+  // TOD Button
+  Popdown Menu "Select TOD" 16,6,10,5 Prompt: "Choose TOD" 
+    List: TOD_list Variable: TOD_Index do
+    TOD = TOD_list[TOD_Index]
+  enditem
+
+  // New Scenario
+  Text 38, 4, 15 Prompt: "New Scenario (selected in scenario list):" Variable: S1_Name
+
+  // Quit Button
+  button 7, 9, 10 Prompt:"Quit" do
+    Return(1)
+  enditem
+
+  // Run Button
+  button 21, 9, 30 Prompt:"Generate Results" do 
 
     if !RunMacro("TransitScenarioComparison", Args, S2_Dir, TOD) then Throw("Something went wrong")
  
@@ -121,7 +129,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     
     sp_binfile = output_dir + "/Transit_" + TOD + "_SP.bin"
     matrix = OpenMatrix(out_file,)
-    CreateTableFromMatrix(matrix, sp_binfile, "FFB", {{"Complete", "No"}})
+    CreateTableFromMatrix(matrix, sp_binfile, "FFB", {{"Complete", "Yes"}})
   
     //Open sp bin and filter records to exclude OD pairs without access
     //Aggregate by origin TAZ
