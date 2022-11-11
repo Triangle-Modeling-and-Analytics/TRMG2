@@ -294,6 +294,7 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
+  opts.median_field = "HCMMedian"
   opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
@@ -1081,6 +1082,7 @@ Macro "Congested VMT" (Args)
   for grouping_field in grouping_fields do
     opts.output_csv = out_dir + "/Congested_VMT_by_" + grouping_field + ".csv"
     opts.grouping_fields = {grouping_field}
+    opts.filter = "HCMType <> 'CC'"
     RunMacro("Link Summary", opts)
 
     df = CreateObject("df")
@@ -1147,6 +1149,9 @@ Macro "Summarize Parking"  (Args)
   out_file = summary_dir + "/parking_daily.mtx"
   CopyFile(mtx_files[1], out_file)
   mtx = CreateObject("Matrix", out_file)
+  mh = mtx.GetMatrixHandle()
+  RenameMatrix(mh, "Person Trips")
+  mh = null
   core_names = mtx.GetCoreNames()
   mtx.AddCores({"parkwalk", "parkshuttle"})
   mtx.DropCores(core_names)
