@@ -30,7 +30,7 @@ Macro "test tpm"
   opts.scen_hwy = scen_dir + "/inputs/network/Scenario Line Layer.dbd"
   opts.proj_list = scen_dir + "/TransitProjectList.csv"
   opts.centroid_qry = "[Zone Centroid] = 'Y'"
-  opts.link_qry = "HCMType <> null"
+  opts.link_qry = null
   opts.output_rts_file = "Scenario Route System.rts"
   RunMacro("Transit Project Management", opts)
 
@@ -316,6 +316,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   opts = null
   opts.llyr = llyr
   opts.centroid_qry = centroid_qry
+  opts.link_qry = link_qry
   net_file = RunMacro("Create Simple Roadway Net", opts)
 
   // Get the name of the master (copy) route layer

@@ -965,6 +965,10 @@ Inputs (all in a named array)
       * Optional String
       * Query defining centroid set. If null, a centroid set will not be created.
         e.g. "FCLASS = 99"
+    * link_qry
+      * Optional String
+      * A selection set of links to create the network from. By default, all
+        link are used.
 
 Returns
   * net_file
@@ -983,6 +987,7 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   hwy_dbd = MacroOpts.hwy_dbd
   hwy_dbd_provided = if (hwy_dbd <> null) then "true" else "false"
   centroid_qry = MacroOpts.centroid_qry
+  link_qry = MacroOpts.link_qry
 
   // Argument checking
   if !llyr_provided and !hwy_dbd_provided = null then Throw(
@@ -1011,6 +1016,14 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   end
   a_path = SplitPath(hwy_dbd)
   out_dir = RunMacro("Normalize Path", a_path[1] + a_path[2])
+
+  // If link_qry is provided, create the set
+  if link_qry <> null then do
+    SetLayer(llyr)
+    link_set = CreateSet("link set")
+    n = SelectByQuery(link_set, "several", link_qry)
+    if n = 0 then Throw("Create Simple Network: 'link_qry' results in 0 links selected.")
+  end
 
   // Create a simple network of the scenario highway layer
   SetLayer(llyr)
@@ -1047,6 +1060,10 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   end
 
   // Workspace clean up.
+  if link_qry <> null then do
+    SetLayer(llyr)
+    DeleteSet(link_set)
+  end
   // If this macro create the map, then close it.
   if hwy_dbd_provided then CloseMap(map)
 
