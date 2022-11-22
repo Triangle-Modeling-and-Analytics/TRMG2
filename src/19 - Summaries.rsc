@@ -579,6 +579,8 @@ Macro "Isochrones" (Args)
   hwy_dbd = Args.Links
   map_dir = Args.[Output Folder] + "\\_summaries\\maps"
   if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
+  iso_dir = map_dir + "\\iso_layers"
+  if GetDirectoryInfo(iso_dir, "All") = null then CreateDirectory(iso_dir)
   net_dir = Args.[Output Folder] + "\\networks"
   exclusion_file = Args.[Model Folder] + "\\other\\iso_exclusion\\IsochroneExclusionAreas.cdf"
   
@@ -630,7 +632,7 @@ Macro "Isochrones" (Args)
         o.LoadExclusionAreas(exclusion_file)
         res = o.CreateBands({
           Coords: {cord},
-          FileName: GetTempFileName("*.dbd"),
+          FileName: iso_dir + "\\iso_" + name + "_" + dir + "_" + period + ".dbd",
           LayerName : name + " " + dir + " bands"
         })
 
