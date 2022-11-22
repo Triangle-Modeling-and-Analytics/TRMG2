@@ -779,11 +779,14 @@ Macro "Other Attributes" (Args)
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     // Determine weighted average toll cost based on transponder usage
     v_tollcost_auto = v_tollcost_t * trans_ratio_auto + v_tollcost_nt * (1 - trans_ratio_auto)
+    v_tollcost_auto = if v_tolltype = "Free" then 0 else v_tollcost_auto
     v_tollcost_hov = if v_tolltype = "HOT" then 0 else v_tollcost_auto
     v_tollcost_sut = v_tollcost_t * trans_ratio_sut + v_tollcost_nt * (1 - trans_ratio_sut)
     v_tollcost_sut = v_tollcost_sut * 2
+    v_tollcost_sut = if v_tolltype = "Free" then 0 else v_tollcost_sut
     v_tollcost_mut = v_tollcost_t * trans_ratio_mut + v_tollcost_nt * (1 - trans_ratio_mut)
     v_tollcost_mut = v_tollcost_mut * 4
+    v_tollcost_mut = if v_tolltype = "Free" then 0 else v_tollcost_mut
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
