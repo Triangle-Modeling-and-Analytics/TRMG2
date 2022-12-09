@@ -990,7 +990,7 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   link_qry = MacroOpts.link_qry
 
   // Argument checking
-  if !llyr_provided and !hwy_dbd_provided = null then Throw(
+  if !llyr_provided and !hwy_dbd_provided then Throw(
     "Either 'llyr' or 'hwy_dbd' must be provided."
   )
   if llyr_provided and hwy_dbd_provided then Throw(
