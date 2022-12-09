@@ -23,15 +23,14 @@ Macro "test tpm"
 
   RunMacro("Close All")
 
-  model_dir = "Y:\\projects/OahuMPO/Repo"
-  scen_dir = model_dir + "/scenarios/test"
   opts = null
-  opts.master_rts = model_dir + "/generic/inputs/master_network/Oahu Route System 102907.rts"
-  opts.scen_hwy = scen_dir + "/inputs/network/Scenario Line Layer.dbd"
-  opts.proj_list = scen_dir + "/TransitProjectList.csv"
-  opts.centroid_qry = "[Zone Centroid] = 'Y'"
-  opts.link_qry = null
-  opts.output_rts_file = "Scenario Route System.rts"
+  opts.master_rts = "C:\\projects\\TRM\\repo_trmg2\\master\\networks\\master_routes.rts"
+  opts.scen_hwy = "C:\\Users\\Kyle\\Desktop\\scratch\\scen\\scenario_links.dbd"
+  opts.proj_list = "C:\\Users\\Kyle\\Desktop\\scratch\\scen\\TransitProjectList.csv"
+  opts.centroid_qry = "Centroid = 1"
+  opts.link_qry = "HCMType <> null"
+  opts.output_rts_file = "test.rts"
+  opts.delete_shape_stops = "false"
   RunMacro("Transit Project Management", opts)
 
   ShowMessage("Done")
@@ -122,10 +121,154 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.out_dir = out_dir
   MacroOpts.delete_shape_stops = delete_shape_stops
 
-  RunMacro("Create Scenario Route System", MacroOpts)
+  // RunMacro("Export to GTFS", MacroOpts)
+  RunMacro("Import from GTFS", MacroOpts)
+Throw()
   RunMacro("Update Scenario Attributes", MacroOpts)
   RunMacro("Check Scenario Route System", MacroOpts)
 EndMacro
+
+/*
+
+*/
+
+Macro "Export to GTFS" (MacroOpts)
+
+  master_rts = MacroOpts.master_rts
+  proj_list = MacroOpts.proj_list
+
+  // Get project IDs from the project list
+  proj = OpenTable("projects", "CSV", {proj_list, })
+  proj_tbl = CreateObject("Table", proj_list)
+  v_pid = proj_tbl.ProjID
+  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
+
+  // Convert the project IDs into route IDs
+  opts = null
+  opts.rts_file = master_rts
+  opts.v_pid = v_pid
+  {v_rid, } = RunMacro("Convert ProjID to RouteID", opts)
+
+  // Select routes based on route ids
+  map = CreateObject("Map", master_rts)
+  {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  SetLayer(rlyr)
+  export_set = CreateSet("to export")
+  n_prev = 0
+  for i = 1 to v_rid.length do
+    rid = v_rid[i]
+    rid = if TypeOf(rid) = "string" then "'" + rid + "'" else String(rid)
+    qry = "Select * where Route_ID = " + rid
+    operation = if i = 1 then "several" else "more"
+    n = SelectByQuery(export_set, operation, qry)
+    if n <= n_prev then Throw(T(
+      "Transit Manager: Project %s in the project list was not found in the " +
+      "master route system.", 
+      {v_pid[i]}
+    ))
+    n_prev = n
+  end
+
+  // Basics
+  gtfs = CreateObject("GTFS Exporter", {
+    RouteFile: "C:\\projects\\TRM\\repo_trmg2\\master\\networks\\master_routes.rts",
+    RouteSet: export_set,
+    GTFSDirectory: "C:\\Users\\Kyle\\Desktop\\scratch\\gtfs_test"
+  })
+  gtfs.Export()
+
+endmacro
+
+/*
+
+*/
+
+Macro "Import from GTFS" (MacroOpts)
+
+  scen_hwy = MacroOpts.scen_hwy
+  master_rts = MacroOpts.master_rts
+  output_rts_file = MacroOpts.output_rts_file
+  link_qry = MacroOpts.link_qry
+  
+  // Create a network of the links to use
+  // TODO: the GTFS importer can use different networks for different
+  // modes, so we could have a rail network or a brt network
+  // that only those modes would use. This may not be necessary given the
+  // importer already uses the route alignment, though.
+  net_file = RunMacro("Create Simple Roadway Net", {
+    hwy_dbd: scen_hwy,
+    link_qry: link_qry
+  })
+
+  gtfs = CreateObject("GTFS Importer", {
+    RoadDatabase: scen_hwy,
+    GTFSDirectory: "C:\\Users\\Kyle\\Desktop\\scratch\\gtfs_test",
+    RouteFile: output_rts_file,
+    NetworkFile: net_file
+  })
+  // gtfs.Import({DropPhysicalStops: true})
+  gtfs.Import()
+
+  // Clean up attributes
+  map = CreateObject("Map", output_rts_file)
+  {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  tbl = CreateObject("Table", rlyr)
+  tbl.Route_Name = tbl.[Short Name]
+  tbl.RenameField({FieldName: "Route", NewName: "Master_Route_ID"})
+  tbl.ChangeField({
+    FieldName: "Master_Route_ID",
+    Description: "Route ID from the master route system"
+  })
+  tbl.DropFields({FieldNames: {
+    "Mode",
+    "Short Name",
+    "Long Name",
+    "Description",
+    "URL",
+    "Color",
+    "Text Color",
+    "Trip",
+    "Sign",
+    "Service",
+    "Agency Name",
+    "Agency URL",
+    "Agency Phone",
+    "Direction",
+    "M", "Tu", "W", "Th", "F", "Sa", "Su",
+    "ScheduleStartTime",
+    "ScheduleEndTime",
+    "AM", "Midday", "PM", "Night",
+    "Start Time", "End Time",
+    "Headway"
+  }})
+
+  // Add back attributes from the master route system
+  fields = {
+    {FieldName: "ProjID", Type: "string"},
+    {FieldName: "Mode", Type: "integer"},
+    {FieldName: "Fare", Type: "real"},
+    {FieldName: "AMHeadway", Type: "integer"},
+    {FieldName: "MDHeadway", Type: "integer"},
+    {FieldName: "PMHeadway", Type: "integer"},
+    {FieldName: "NTHeadway", Type: "integer"}
+  }
+  tbl.AddFields({Fields: fields})
+  {master_rlyr, , , } = map.AddRouteLayers({RouteFile: master_rts})
+  master_tbl = CreateObject("Table", master_rlyr)
+  join_tbl = tbl.Join({
+    Table: master_tbl,
+    LeftFields: "Master_Route_ID",
+    RightFields: "Route_ID"
+  })
+  join_tbl.(rlyr + ".ProjID") = join_tbl.(master_rlyr + ".ProjID")
+  join_tbl.(rlyr + ".Mode") = join_tbl.(master_rlyr + ".Mode")
+  join_tbl.(rlyr + ".Fare") = join_tbl.(master_rlyr + ".Fare")
+  join_tbl.(rlyr + ".AMHeadway") = join_tbl.(master_rlyr + ".AMHeadway")
+  join_tbl.(rlyr + ".MDHeadway") = join_tbl.(master_rlyr + ".MDHeadway")
+  join_tbl.(rlyr + ".PMHeadway") = join_tbl.(master_rlyr + ".PMHeadway")
+  join_tbl.(rlyr + ".NTHeadway") = join_tbl.(master_rlyr + ".NTHeadway")
+endmacro
 
 /*
 Creates the scenario route system.
@@ -404,10 +547,10 @@ Also tags stops with node IDs in the 'node_id' field.
 Macro "Update Scenario Attributes" (MacroOpts)
 
   // Argument extraction
-  master_rts = MacroOpts.master_rts
+  // master_rts = MacroOpts.master_rts
   scen_hwy = MacroOpts.scen_hwy
   proj_list = MacroOpts.proj_list
-  centroid_qry = MacroOpts.centroid_qry
+  // centroid_qry = MacroOpts.centroid_qry
   output_rts_file = MacroOpts.output_rts_file
 
   // Read in the parameter file
