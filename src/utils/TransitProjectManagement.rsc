@@ -30,7 +30,7 @@ Macro "test tpm"
   opts.centroid_qry = "Centroid = 1"
   opts.link_qry = "HCMType <> null"
   opts.output_rts_file = "test.rts"
-  opts.delete_shape_stops = "false"
+  opts.delete_shape_stops = "true"
   RunMacro("Transit Project Management", opts)
 
   ShowMessage("Done")
@@ -121,11 +121,11 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.out_dir = out_dir
   MacroOpts.delete_shape_stops = delete_shape_stops
 
-  // RunMacro("Export to GTFS", MacroOpts)
+  RunMacro("Export to GTFS", MacroOpts)
   RunMacro("Import from GTFS", MacroOpts)
-Throw()
   RunMacro("Update Scenario Attributes", MacroOpts)
-  RunMacro("Check Scenario Route System", MacroOpts)
+  Throw()
+  // RunMacro("Check Scenario Route System", MacroOpts)
 EndMacro
 
 /*
@@ -190,6 +190,7 @@ Macro "Import from GTFS" (MacroOpts)
   master_rts = MacroOpts.master_rts
   output_rts_file = MacroOpts.output_rts_file
   link_qry = MacroOpts.link_qry
+  delete_shape_stops = MacroOpts.delete_shape_stops
   
   // Create a network of the links to use
   // TODO: the GTFS importer can use different networks for different
@@ -207,12 +208,16 @@ Macro "Import from GTFS" (MacroOpts)
     RouteFile: output_rts_file,
     NetworkFile: net_file
   })
+  // TODO: drop physical stops when dev can run successfully
   // gtfs.Import({DropPhysicalStops: true})
   gtfs.Import()
 
-  // Clean up attributes
+  // Create map with both route systems
   map = CreateObject("Map", output_rts_file)
   {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  {master_rlyr, master_slyr, , } = map.AddRouteLayers({RouteFile: master_rts})
+
+  // Clean up route attributes
   tbl = CreateObject("Table", rlyr)
   tbl.Route_Name = tbl.[Short Name]
   tbl.RenameField({FieldName: "Route", NewName: "Master_Route_ID"})
@@ -243,7 +248,7 @@ Macro "Import from GTFS" (MacroOpts)
     "Headway"
   }})
 
-  // Add back attributes from the master route system
+  // Add back route attributes from the master route system
   fields = {
     {FieldName: "ProjID", Type: "string"},
     {FieldName: "Mode", Type: "integer"},
@@ -254,7 +259,6 @@ Macro "Import from GTFS" (MacroOpts)
     {FieldName: "NTHeadway", Type: "integer"}
   }
   tbl.AddFields({Fields: fields})
-  {master_rlyr, , , } = map.AddRouteLayers({RouteFile: master_rts})
   master_tbl = CreateObject("Table", master_rlyr)
   join_tbl = tbl.Join({
     Table: master_tbl,
@@ -268,6 +272,49 @@ Macro "Import from GTFS" (MacroOpts)
   join_tbl.(rlyr + ".MDHeadway") = join_tbl.(master_rlyr + ".MDHeadway")
   join_tbl.(rlyr + ".PMHeadway") = join_tbl.(master_rlyr + ".PMHeadway")
   join_tbl.(rlyr + ".NTHeadway") = join_tbl.(master_rlyr + ".NTHeadway")
+
+  // Clean up stop attributes
+  stop_tbl = CreateObject("Table", slyr)
+  stop_tbl.DropFields({FieldNames: {
+    "Pickup",
+    "Dropoff",
+    "Service",
+    "Length",
+    "Sequence"
+  }})
+  // Add back stop attributes from master
+  fields = {
+    {FieldName: "shape_stop", Type: "integer"},
+    {FieldName: "dwell_on", Type: "real"},
+    {FieldName: "dwell_off", Type: "real"},
+    {FieldName: "xfer_pen", Type: "real"}
+  }
+  stop_tbl.AddFields({Fields: fields})
+  stop_tbl.RenameField({FieldName: "GTFS_Stop_ID", NewName:"Master_Stop_ID"})
+  master_tbl = CreateObject("Table", master_slyr)
+  join_tbl = stop_tbl.Join({
+    Table: master_tbl,
+    LeftFields: "Master_Stop_ID",
+    RightFields: "ID"
+  })
+  join_tbl.(slyr + ".shape_stop") = join_tbl.(master_slyr + ".shape_stop")
+  join_tbl.(slyr + ".dwell_on") = join_tbl.(master_slyr + ".dwell_on")
+  join_tbl.(slyr + ".dwell_off") = join_tbl.(master_slyr + ".dwell_off")
+  join_tbl.(slyr + ".xfer_pen") = join_tbl.(master_slyr + ".xfer_pen")
+  join_tbl = null
+
+  stop_fields = stop_tbl.GetFieldNames()
+  if delete_shape_stops and stop_fields.position("shape_stop") <> 0 then do
+    n = stop_tbl.SelectByQuery({
+      SetName: "to remove",
+      Query: "shape_stop = 1",
+      Operation: "several"
+    })
+    if n > 0 then do
+      SetLayer(stop_tbl.GetView())
+      DeleteRecordsInSet("to remove")
+    end
+  end
 endmacro
 
 /*
