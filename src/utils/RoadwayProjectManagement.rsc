@@ -38,7 +38,6 @@ Macro "Roadway Project Management" (MacroOpts)
   hwy_dbd = MacroOpts.hwy_dbd
   proj_list = MacroOpts.proj_list
   master_dbd = MacroOpts.master_dbd
-  scen_folder = MacroOpts.scen_folder
 
   // Argument check
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
@@ -73,7 +72,9 @@ Macro "Roadway Project Management" (MacroOpts)
 
   // Loop over each project ID
   num_notfound = 0
-  error_file = scen_folder + "/NetworkBuildingError.csv"
+
+  {drive, path, , } = SplitPath(hwy_dbd)
+  error_file = drive + path + "RoadwayBuildingError.csv"
   file = OpenFile(error_file, "w")
   WriteLine(file, "Below projects are missing:")
   
@@ -85,7 +86,7 @@ Macro "Roadway Project Management" (MacroOpts)
     // Add "UpdatedWithP" field
     if p = v_projIDs.length then do
       type2 = if CompareStrings(type, "string", ) then "Character" else "Integer"
-      a_fields = {{"UpdatedWithP", type2, 10, }}
+      a_fields = {{"UpdatedWithP", type2, 16, }}
       RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
     end
 
@@ -138,7 +139,8 @@ Macro "Roadway Project Management" (MacroOpts)
   CloseFile(file)
   errmsg = "Projects not found in the master network. See error log in the scenario folder."
   if num_notfound > 0 then Throw(errmsg)
-  if num_notfound = 0 and GetFileInfo(file) <> null then DeleteFile(file) //remove error log once scenario created successfully
+  //remove error log once scenario created successfully
+  if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.

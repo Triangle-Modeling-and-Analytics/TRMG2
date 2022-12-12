@@ -18,8 +18,12 @@ dBox "Prepare MOVES Input" (Args) location: center, center, 46, 7
     taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
     taz_vw = OpenTable("taz","FFB", {taz_bin})
     county = GetDataVector(taz_vw + "|", "County", )
-    region_list = SortVector(county, {Unique: "true"})
-    region_list = V2A(region_list) + {"All_region"}
+    //mpo = GetDataVector(taz_vw + "|", "MPO", )
+    mpo_list = {"DCHC", "CAMPO"}
+    county_list = SortVector(county, {Unique: "true"})
+    //mpo_list = SortVector(mpo, {Unique: "true"})
+    //region_list = {"All_region"} + V2A(county_list) + V2A(mpo_list)
+    region_list = {"All_region"} + V2A(county_list) + mpo_list
     year_list = {"2020", "2025", "2030", "2035", "2040", "2045", "2050"}
 	  
     EnableItem("Select region")
@@ -64,12 +68,16 @@ Enddbox
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 Macro "MOVES" (Args, region, year)
 
+  //Set path
   hwy_dbd = Args.Links
   popsyn_dir = Args.[Output Folder] + "/resident/population_synthesis"
-  MOVES_dir = Args.[Base Folder] + "/other/MOVES"
-  summary_dir = Args.[Output Folder] + "/_summaries/MOVES"
+  MOVES_dir = Args.[Base Folder] + "/other/_reportingtool/MOVES"
+  summary_dir = Args.[Output Folder] + "/_summaries/MOVES/" + region
   assn_dir = Args.[Output Folder] + "/assignment/roadway"
   periods = Args.periods
+  taz_dbd = Args.TAZs
+  RunMacro("Create Directory", MOVES_dir)
+  RunMacro("Create Directory", summary_dir)
 
   // Read MOVES templates
   roadtype_file = MOVES_dir + "/fixed_template/Roadtype_template.csv"
@@ -82,13 +90,19 @@ Macro "MOVES" (Args, region, year)
   monthparam_file = MOVES_dir + "/Month_param.csv"
   weekendparam_file = MOVES_dir + "/Weekend_param.csv"
   todparam_file = MOVES_dir + "/TOD_param.csv"
+  
+  // Determine region type
+  region_type = if region = "All_region" then  "All_region"
+    else if region = "DCHC" or region = "CAMPO" then "MPO"
+    else "County"
 
   // Read highway layer
   objLyrs = CreateObject("AddDBLayers", {FileName: hwy_dbd})
   {nlayer, llyr} = objLyrs.Layers
   SetLayer(llyr)
   SelectByQuery("sel", "several", "Select * where D = 1 and HCMType <> 'CC'")
-  if region <> "All_region" then SelectByQuery("sel", "subset", "Select * where County = '" + region + "'")
+  if region_type = "County" then SelectByQuery("sel", "subset", "Select * where County = '" + region + "'")
+  if region_type = "MPO" then SelectByQuery("sel", "subset", "Select * where MPO = '" + region + "'")
 
   //1. Link table
   df = CreateObject("df")
@@ -108,11 +122,12 @@ Macro "MOVES" (Args, region, year)
   v_roadtype = v_at + " " + v_roadtype
   v_movestype = if v_roadtype = "Rural Restricted Access" then 2 else if v_roadtype = "Rural Unrestricted Access"  then 3 
                 else if v_roadtype = "Urban Restricted Access" then 4 else 5  
-  df.mutate("MOVEStype", v_movestype)
+  df.mutate("roadTypeID", v_movestype)
   df.write_csv(summary_dir + "/link_table.csv") // save link table as an output
+
   // Aggregate by moves type for easy calculation
   agg = df.copy()
-  agg.group_by("MOVEStype") 
+  agg.group_by("roadTypeID") 
   agg.summarize(fields_to_sum, "sum")
   names = agg.colnames()
   for name in names do
@@ -147,19 +162,31 @@ Macro "MOVES" (Args, region, year)
   */
  
   //2. Vehicle population
-  hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
-  v = GetDataVector(hh_vw + "|", "Autos", )
-  veh_total = VectorStatistic(v, "Sum", )
-  CloseView(hh_vw)
-  out_file = summary_dir + "/total_vehicles.csv"
-  f = OpenFile(out_file, "w")
-  WriteLine(f, String(veh_total))
-  CloseFile(f)
+  if region_type = "All_region" then do
+    hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
+    v = GetDataVector(hh_vw + "|", "Autos", )
+    veh_total = VectorStatistic(v, "Sum", )
+    CloseView(hh_vw)
+    out_file = summary_dir + "/total_vehicles.csv"
+    f = OpenFile(out_file, "w")
+    WriteLine(f, String(veh_total))
+    CloseFile(f)
+  end else do
+    taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
+    taz = CreateObject("df", taz_bin)
+    hh = CreateObject("df", popsyn_dir + "/Synthesized_HHs.bin")
+    hh.left_join(taz, "ZoneID", "ID")
+    hh.group_by("County")
+    hh.summarize("Autos", "sum")
+    hh.write_csv(summary_dir + "/county_vehicles.csv")
+  end
+
 
   //3. Road type output
   roadtype = Createobject("df", roadtype_file)
   agg.mutate("roadTypeVMTFraction", agg.tbl.Total_VMT_Daily/agg.tbl.Total_VMT_Daily.sum())
-  roadtype.left_join(agg,"MOVEStype", "MOVEStype")
+  roadtype.left_join(agg,"roadTypeID", "roadTypeID")
+  roadtype.select({"sourcetype", "roadTypeID", "roadTypeVMTFraction"})
   roadtype.write_csv(summary_dir + "/roadtype.csv")
   
   //4. Sourcetype output
@@ -174,19 +201,20 @@ Macro "MOVES" (Args, region, year)
   sourcetype.left_join(weekendparam, {"year", "day"}, {"year", "day"})
 	tot_VMT = agg.tbl.Total_VMT_Daily.sum()
   sourcetype.mutate("VMT", sourcetype.tbl.styFactor * sourcetype.tbl.month_model * sourcetype.tbl.wkFactor * tot_VMT)
-  sourcetype.write_csv(summary_dir + "/sourcetype.csv")
+  sourcetype.select({"sourcetype", "month", "day", "year", "styFactor", "VMT"})
+  sourcetype.write_csv(summary_dir + "/sourcetype_vmt.csv")
   
   //5. Hour output
   hour = Createobject("df", hour_file)
   todparam = Createobject("df", todparam_file)
   hour.left_join(todparam, "hour", "hour")
-  hour.left_join(agg, "MOVEStype", "MOVEStype")
+  hour.left_join(agg, "roadTypeID", "roadTypeID")
   hour.mutate("hourlyvmt", if hour.tbl.TOD = "AM" then hour.tbl.Tot_VMT_AM/2 * hour.tbl.hourFac else if hour.tbl.TOD = "MD" then hour.tbl.Tot_VMT_MD/6.5 * hour.tbl.hourFac 
                             else if hour.tbl.TOD = "PM" then hour.tbl.Tot_VMT_PM/2.75 * hour.tbl.hourFac else hour.tbl.Tot_VMT_NT/12.75 * hour.tbl.hourFac)
-  hour.group_by({"sourcetype", "MOVEStype", "day", "hour"})
+  hour.group_by({"sourcetype", "roadTypeID", "day", "hour"})
   hour.summarize({"hourlyvmt", "Total_VMT_Daily", "hourvmtfraction"}, {"sum", "avg"})
   hour.mutate("hourlypct", if hour.tbl.dayID = 5 then hour.tbl.sum_hourlyVMT/hour.tbl.sum_Total_VMT_Daily else hour.tbl.avg_hourvmtfraction)
-  hour.select({"sourcetype", "MOVEStype", "day", "hour", "hourlypct"})
+  hour.select({"sourcetype", "roadTypeID", "day", "hour", "hourlypct"})
   hour.write_csv(summary_dir + "/hourlyvmt.csv")
 
   //6. Speed output
@@ -205,22 +233,23 @@ Macro "MOVES" (Args, region, year)
   df1.gather(gather_cols, "TOD","bin")
   df1.mutate("TOD", right(df1.tbl.TOD, 2))
   df1.mutate("VHT", if df1.tbl.TOD = "AM" then df1.tbl.Tot_VHT_AM else if df1.tbl.TOD = "MD" then df1.tbl.Tot_VHT_MD else if df1.tbl.TOD = "PM" then df1.tbl.Tot_VHT_PM else df1.tbl.Tot_VHT_NT)
-  df1.group_by({"TOD", "MOVEStype", "bin"})
+  df1.group_by({"TOD", "roadTypeID", "bin"})
   df1.summarize("VHT", "sum")
   df1.rename("sum_VHT", "VHT")
   df1.filter("bin <> null")
 
   df2 = df1.copy()
-  df2.group_by({"TOD", "MOVEStype"})
+  df2.group_by({"TOD", "roadTypeID"})
   df2.summarize("VHT", "sum") //get the sum
   df2.rename('sum_VHT', "total_VHT")
 
-  df1.left_join(df2, {"TOD", "MOVEStype"}, {"TOD", "MOVEStype"})
+  df1.left_join(df2, {"TOD", "roadTypeID"}, {"TOD", "roadTypeID"})
   df1.mutate("AvgSpeedFraction", df1.tbl.VHT/df1.tbl.total_VHT) // get fraction
 
   //Join results to the speed template
   speed = Createobject("df", speed_file)
-  speed.left_join(df1, {"TOD", "MOVEStype", "avgSpeedBinID"}, {"TOD", "MOVEStype", "bin"})
+  speed.rename("AvgSpeedFraction", "DefaultFraction")
+  speed.left_join(df1, {"TOD", "roadTypeID", "avgSpeedBinID"}, {"TOD", "roadTypeID", "bin"})
   speed.mutate("AvgSpeedFraction", if speed.tbl.AvgSpeedFraction >0 then speed.tbl.AvgSpeedFraction else 0) //fill in missing zero
   speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then speed.tbl.AvgSpeedFraction else speed.tbl.DefaultFraction) // weekend fraction should be set to default
   speed.write_csv(summary_dir + "/speed.csv")
