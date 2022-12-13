@@ -15,13 +15,9 @@ library(knitr)
 library(kableExtra)
 ```
 
-# Construction Notice
-
-This website is under construction.
-
-As the new Triangle Regional Model is developed, documentation will be added
-to the navigation bar at the top. All documentation is an interim product and
-is subject to change during the development process.
+*This documentation reflects TRMG2 version 1.0. Later versions
+of the model may not match the charts and tables exactly due
+to network and other changes.*
 
 For a list of common acronyms used in the documentation, click
 [here](acronyms.html).

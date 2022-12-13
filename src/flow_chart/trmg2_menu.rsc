@@ -82,7 +82,6 @@ menu "TRMG2 Menu"
     MenuItem "Calibrators" text: "Calibrators"
         menu "TRMG2 Calibrators"
 endMenu 
-
 menu "TRMG2 Utilities"
     init do
     enditem
@@ -218,7 +217,6 @@ menu "Performance Measures"
         mr.RunCode("Open Prepare MOVES Input Dbox", Args)
     enditem
 endMenu
-
 menu "TRMG2 Calibrators"
     init do
     enditem

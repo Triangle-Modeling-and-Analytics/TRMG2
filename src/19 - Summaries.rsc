@@ -294,6 +294,7 @@ Macro "Count PRMSEs" (Args)
   opts.count_field = "Count_All"
   opts.class_field = "HCMType"
   opts.area_field = "AreaType"
+  opts.median_field = "HCMMedian"
   opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
   opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
@@ -578,6 +579,8 @@ Macro "Isochrones" (Args)
   hwy_dbd = Args.Links
   map_dir = Args.[Output Folder] + "\\_summaries\\maps"
   if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
+  iso_dir = map_dir + "\\iso_layers"
+  if GetDirectoryInfo(iso_dir, "All") = null then CreateDirectory(iso_dir)
   net_dir = Args.[Output Folder] + "\\networks"
   exclusion_file = Args.[Model Folder] + "\\other\\iso_exclusion\\IsochroneExclusionAreas.cdf"
   
@@ -629,7 +632,7 @@ Macro "Isochrones" (Args)
         o.LoadExclusionAreas(exclusion_file)
         o.CreateBands({
           Coords: {cord},
-          FileName: GetTempFileName("*.dbd"),
+          FileName: iso_dir + "\\iso_" + name + "_" + dir + "_" + period + ".dbd",
           LayerName : name + " " + dir + " bands"
         })
 
@@ -1134,6 +1137,7 @@ Macro "Summarize Parking"  (Args)
   mtx = CreateObject("Matrix", out_file)
   mh = mtx.GetMatrixHandle()
   RenameMatrix(mh, "Person Trips")
+  mh = null
   core_names = mtx.GetCoreNames()
   mtx.AddCores({"parkwalk", "parkshuttle"})
   mtx.DropCores(core_names)

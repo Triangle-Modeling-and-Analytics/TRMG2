@@ -30,6 +30,7 @@ Macro "test tpm"
   opts.scen_hwy = scen_dir + "/inputs/network/Scenario Line Layer.dbd"
   opts.proj_list = scen_dir + "/TransitProjectList.csv"
   opts.centroid_qry = "[Zone Centroid] = 'Y'"
+  opts.link_qry = null
   opts.output_rts_file = "Scenario Route System.rts"
   RunMacro("Transit Project Management", opts)
 
@@ -56,6 +57,11 @@ Inputs
       Query that defines centroids in the node layer. Centroids will be
       prevented from having stops tagged to them. Routes will also be prevented
       from traveleing through them.
+
+    link_qry
+      Optional string
+      A selection set of links that routes can use. By default, all links can
+      be used.
 
     proj_list
       String
@@ -89,6 +95,7 @@ Macro "Transit Project Management" (MacroOpts)
   scen_hwy = MacroOpts.scen_hwy
   proj_list = MacroOpts.proj_list
   centroid_qry = MacroOpts.centroid_qry
+  link_qry = MacroOpts.link_qry
   output_rts_file = MacroOpts.output_rts_file
   delete_shape_stops = MacroOpts.delete_shape_stops
 
@@ -98,6 +105,7 @@ Macro "Transit Project Management" (MacroOpts)
   if proj_list = null then Throw("'proj_list' not provided")
   if centroid_qry = null then Throw("'centroid_qry' not provided")
   centroid_qry = RunMacro("Normalize Query", centroid_qry)
+  link_qry = RunMacro("Normalize Query", link_qry)
   if output_rts_file = null then output_rts_file = "ScenarioRoutes.rts"
   if delete_shape_stops = null then delete_shape_stops = "true"
 
@@ -110,6 +118,7 @@ Macro "Transit Project Management" (MacroOpts)
   // Update the values of MacroOpts
   MacroOpts.output_rts_file = output_rts_file
   MacroOpts.centroid_qry = centroid_qry
+  MacroOpts.link_qry = link_qry
   MacroOpts.out_dir = out_dir
   MacroOpts.delete_shape_stops = delete_shape_stops
 
@@ -129,6 +138,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   scen_hwy = MacroOpts.scen_hwy
   proj_list = MacroOpts.proj_list
   centroid_qry = MacroOpts.centroid_qry
+  link_qry = MacroOpts.link_qry
   output_rts_file = MacroOpts.output_rts_file
   out_dir = MacroOpts.out_dir
   delete_shape_stops = MacroOpts.delete_shape_stops
@@ -215,6 +225,18 @@ Macro "Create Scenario Route System" (MacroOpts)
   non_centroid_set = CreateSet("non-centroids")
   SetInvert(non_centroid_set, centroid_set)
 
+  // If provided, use the link_qry to further reduce the non_centroid_set
+  if link_qry <> null then do
+    SetLayer(llyr)
+    route_link_set = CreateSet("route links")
+    n = SelectByQuery(route_link_set, "several", link_qry)
+    if n = 0 then Throw("'link_qry' results in 0 valid links for routes to use.")
+    SetLayer(nlyr)
+    route_link_nodes = CreateSet("route link nodes")
+    SelectByLinks(route_link_nodes, "several", "route links", )
+    SetAND(non_centroid_set, {non_centroid_set, route_link_nodes})
+  end
+
   // Perform a spatial join to match scenario nodes to master stops.
   opts = null
   opts.master_layer = slyr
@@ -294,6 +316,7 @@ Macro "Create Scenario Route System" (MacroOpts)
   opts = null
   opts.llyr = llyr
   opts.centroid_qry = centroid_qry
+  opts.link_qry = link_qry
   net_file = RunMacro("Create Simple Roadway Net", opts)
 
   // Get the name of the master (copy) route layer
