@@ -2,7 +2,7 @@ Macro "Open NM Trip Aggregation Tool Dbox" (Args)
 	RunDbox("NM Trip Aggregation Tool", Args)
 endmacro
 
-dBox "NM Trip Aggregation Tool" (Args) center, center, 40, 8 Title: "NM Trip Matrix Aggregation Tool" Help: "test" toolbox
+dBox "NM Trip Aggregation Tool" (Args) center, center, 40, 8 Title: "Person NM Trip Matrix Aggregation Tool" Help: "test" toolbox
 
     close do
         return()
@@ -29,7 +29,7 @@ enddbox
 Macro "Aggregate matrix" (Args)
     scen_dir = Args.[Scenario Folder]
     reporting_dir = scen_dir + "\\output\\_summaries"
-    output_dir = reporting_dir + "\\Trip_aggregation"
+    output_dir = reporting_dir + "\\PersonTrip_aggregation"
     RunMacro("Create Directory", output_dir)
     
     //set path
