@@ -208,6 +208,7 @@ Macro "Import from GTFS" (MacroOpts)
     RouteFile: output_rts_file,
     NetworkFile: net_file
   })
+  gtfs.ServicesFlag = 0
   // TODO: drop physical stops when dev can run successfully
   // gtfs.Import({DropPhysicalStops: true})
   gtfs.Import()
