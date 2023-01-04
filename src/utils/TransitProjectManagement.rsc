@@ -122,9 +122,10 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.delete_shape_stops = delete_shape_stops
 
   RunMacro("Export to GTFS", MacroOpts)
-  RunMacro("Import from GTFS", MacroOpts)
+  RunMacro("Import from GTFS", MacroOpts) 
   RunMacro("Update Scenario Attributes", MacroOpts)
   RunMacro("Check Scenario Route System", MacroOpts)
+  if delete_shape_stops then RunMacro("Remove Shape Stops", MacroOpts)
 EndMacro
 
 /*
@@ -302,19 +303,6 @@ Macro "Import from GTFS" (MacroOpts)
   join_tbl.(slyr + ".dwell_off") = join_tbl.(master_slyr + ".dwell_off")
   join_tbl.(slyr + ".xfer_pen") = join_tbl.(master_slyr + ".xfer_pen")
   join_tbl = null
-
-  stop_fields = stop_tbl.GetFieldNames()
-  if delete_shape_stops and stop_fields.position("shape_stop") <> 0 then do
-    n = stop_tbl.SelectByQuery({
-      SetName: "to remove",
-      Query: "shape_stop = 1",
-      Operation: "several"
-    })
-    if n > 0 then do
-      SetLayer(stop_tbl.GetView())
-      DeleteRecordsInSet("to remove")
-    end
-  end
 endmacro
 
 /*
@@ -455,14 +443,14 @@ Macro "Check Scenario Route System" (MacroOpts)
     opts.llyr = llyr_m
     opts.lookup_field = "Route_ID"
     opts.id = rid_m
-    length_m = RunMacro("Get Route Length", opts)
+    {length_m, num_stops_m} = RunMacro("Get Route Length and Stops", opts)
     // Calculate the route length in the scenario rts
     opts = null
     opts.rlyr = rlyr_s
     opts.llyr = llyr_s
     opts.lookup_field = "Route_ID"
     opts.id = rid_s
-    length_s = RunMacro("Get Route Length", opts)
+    {length_s, num_stops_s} = RunMacro("Get Route Length and Stops", opts)
 
     // calculate difference and percent difference
     diff = length_s - length_m
@@ -474,8 +462,11 @@ Macro "Check Scenario Route System" (MacroOpts)
     data.scenario_route_id = data.scenario_route_id + {rid_s}
     data.master_length = data.master_length + {length_m}
     data.scenario_length = data.scenario_length + {length_s}
-    data.diff = data.diff + {diff}
+    data.length_diff = data.length_diff + {diff}
     data.pct_diff = data.pct_diff + {pct_diff}
+    data.master_stops = data.master_stops + {num_stops_m}
+    data.scenario_stops = data.scenario_stops + {num_stops_s}
+    data.missing_stops = data.missing_stops + {num_stops_m - num_stops_s}
   end
 
   // Close both maps
@@ -484,12 +475,8 @@ Macro "Check Scenario Route System" (MacroOpts)
 
   // Convert the named array into a data frame
   length_df = CreateObject("df", data)
-
-  // Create the final data frame by joining the missing stops and length DFs
-  final_df = length_df.copy()
-  final_df.left_join(stops_df, "master_route_id", "Route_ID")
-  final_df.rename("missing_node", "missing_stops")
-  final_df.write_csv(out_dir + "/_rts_creation_results.csv")
+  
+  length_df.write_csv(out_dir + "/_rts_creation_results.csv")
 
   RunMacro("Close All")
 EndMacro
@@ -582,7 +569,7 @@ EndMacro
 
 /*
 Helper function for "Check Scenario Route System".
-Determines the length of the links that make up a route.
+Determines the length of the links that make up a route and number of stops.
 If this ends being used by multiple macros in different scripts, move it
 to the ModelUtilities.rsc file.
 
@@ -606,10 +593,12 @@ MacroOpts
     ID to look for in lookup_field
 
 Returns
-  Length of route
+  Array of two items
+    * Length of route
+    * Number of stops on route
 */
 
-Macro "Get Route Length" (MacroOpts)
+Macro "Get Route Length and Stops" (MacroOpts)
 
   // Argument extraction
   rlyr = MacroOpts.rlyr
@@ -629,6 +618,8 @@ Macro "Get Route Length" (MacroOpts)
   if rh = null then Throw("Value not found in" + lookup_field)
   SetRecord(rlyr, rh)
   route_name = rlyr.Route_Name
+  a_stops = GetRouteStops(rlyr, route_name, )
+  num_stops = a_stops.length
 
   // Get IDs of links that the route runs on
   a_links = GetRouteLinks(rlyr, route_name)
@@ -646,5 +637,31 @@ Macro "Get Route Length" (MacroOpts)
   // Set the layer back to the original if there was one.
   if cur_layer <> null then SetLayer(cur_layer)
 
-  return(length)
+  return({length, num_stops})
 EndMacro
+
+/*
+
+*/
+
+Macro "Remove Shape Stops" (MacroOpts)
+
+  output_rts_file = MacroOpts.output_rts_file
+  
+  map = CreateObject("Map", output_rts_file)
+  {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  stop_tbl = CreateObject("Table", slyr)
+  stop_fields = stop_tbl.GetFieldNames()
+  if delete_shape_stops and stop_fields.position("shape_stop") <> 0 then do
+    n = stop_tbl.SelectByQuery({
+      SetName: "to remove",
+      Query: "shape_stop = 1",
+      Operation: "several"
+    })
+    if n > 0 then do
+      SetLayer(stop_tbl.GetView())
+      DeleteRecordsInSet("to remove")
+    end
+  end
+
+endmacro
