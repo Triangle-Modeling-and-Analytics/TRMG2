@@ -114,7 +114,18 @@ Macro "Transit Project Management" (MacroOpts)
   out_dir = RunMacro("Normalize Path", out_dir)
   output_rts_file = out_dir + "\\" + output_rts_file
 
+  // The steps below will tweak the master route system so that it shows up
+  // as changed in a git diff. Make a temp copy to avoid this.
+  temp_dir = GetTempPath()
+  {temp_rts, } = RunMacro("Copy RTS Files", {
+    from_rts: master_rts,
+    to_dir: temp_dir,
+    include_hwy_files: true
+  })
+  master_rts = temp_rts
+
   // Update the values of MacroOpts
+  MacroOpts.master_rts = master_rts
   MacroOpts.output_rts_file = output_rts_file
   MacroOpts.centroid_qry = centroid_qry
   MacroOpts.link_qry = link_qry
