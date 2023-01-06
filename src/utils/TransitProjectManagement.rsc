@@ -209,9 +209,8 @@ Macro "Import from GTFS" (MacroOpts)
     NetworkFile: net_file
   })
   gtfs.ServicesFlag = 0
-  // TODO: drop physical stops when dev can run successfully
-  // gtfs.Import({DropPhysicalStops: true})
-  gtfs.Import()
+  gtfs.Import({DropPhysicalStops: true})
+
   // Create map with both route systems
   map = CreateObject("Map", output_rts_file)
   {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
