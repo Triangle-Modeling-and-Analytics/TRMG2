@@ -30,7 +30,6 @@ Macro "test tpm"
   opts.centroid_qry = "Centroid = 1"
   opts.link_qry = "HCMType <> null"
   opts.output_rts_file = "test.rts"
-  opts.delete_shape_stops = "true"
   RunMacro("Transit Project Management", opts)
 
   ShowMessage("Done")
@@ -66,12 +65,6 @@ Inputs
       String
       Full path to the CSV file containing the list of routes to include
 
-    delete_shape_stops
-      Boolean (default true)
-      Whether or not to remove shape stops after transferring routes. Should
-      be true when creating scenario networks. Setting it to false is helpful
-      when transferring master routes to a new link layer.
-
     output_rts_file
       Optional String
       The file name desired for the output route system.
@@ -96,7 +89,6 @@ Macro "Transit Project Management" (MacroOpts)
   centroid_qry = MacroOpts.centroid_qry
   link_qry = MacroOpts.link_qry
   output_rts_file = MacroOpts.output_rts_file
-  delete_shape_stops = MacroOpts.delete_shape_stops
 
   // Argument checking
   if master_rts = null then Throw("'master_rts' not provided")
@@ -106,7 +98,6 @@ Macro "Transit Project Management" (MacroOpts)
   centroid_qry = RunMacro("Normalize Query", centroid_qry)
   link_qry = RunMacro("Normalize Query", link_qry)
   if output_rts_file = null then output_rts_file = "ScenarioRoutes.rts"
-  if delete_shape_stops = null then delete_shape_stops = "true"
 
   // Set the output directory to be the same as the scenario roadway
   a_path = SplitPath(scen_hwy)
@@ -130,13 +121,11 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.centroid_qry = centroid_qry
   MacroOpts.link_qry = link_qry
   MacroOpts.out_dir = out_dir
-  MacroOpts.delete_shape_stops = delete_shape_stops
 
   RunMacro("Export to GTFS", MacroOpts)
   RunMacro("Import from GTFS", MacroOpts) 
   RunMacro("Update Scenario Attributes", MacroOpts)
   RunMacro("Check Scenario Route System", MacroOpts)
-  if delete_shape_stops then RunMacro("Remove Shape Stops", MacroOpts)
 EndMacro
 
 /*
@@ -201,7 +190,6 @@ Macro "Import from GTFS" (MacroOpts)
   master_rts = MacroOpts.master_rts
   output_rts_file = MacroOpts.output_rts_file
   link_qry = MacroOpts.link_qry
-  delete_shape_stops = MacroOpts.delete_shape_stops
   
   // Create a network of the links to use
   // TODO: the GTFS importer can use different networks for different
@@ -649,29 +637,3 @@ Macro "Get Route Length and Stops" (MacroOpts)
 
   return({length, num_stops})
 EndMacro
-
-/*
-
-*/
-
-Macro "Remove Shape Stops" (MacroOpts)
-
-  output_rts_file = MacroOpts.output_rts_file
-  
-  map = CreateObject("Map", output_rts_file)
-  {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
-  stop_tbl = CreateObject("Table", slyr)
-  stop_fields = stop_tbl.GetFieldNames()
-  if delete_shape_stops and stop_fields.position("shape_stop") <> 0 then do
-    n = stop_tbl.SelectByQuery({
-      SetName: "to remove",
-      Query: "shape_stop = 1",
-      Operation: "several"
-    })
-    if n > 0 then do
-      SetLayer(stop_tbl.GetView())
-      DeleteRecordsInSet("to remove")
-    end
-  end
-
-endmacro
