@@ -107,10 +107,9 @@ Macro "Transit Project Management" (MacroOpts)
 
   // The steps below will tweak the master route system so that it shows up
   // as changed in a git diff. Make a temp copy to avoid this.
-  temp_dir = GetTempPath()
-  {temp_rts, } = RunMacro("Copy RTS Files", {
+  {temp_rts, temp_hwy} = RunMacro("Copy RTS Files", {
     from_rts: master_rts,
-    to_dir: temp_dir,
+    to_dir: out_dir,
     include_hwy_files: true
   })
   master_rts = temp_rts
@@ -126,6 +125,10 @@ Macro "Transit Project Management" (MacroOpts)
   RunMacro("Import from GTFS", MacroOpts) 
   RunMacro("Update Scenario Attributes", MacroOpts)
   RunMacro("Check Scenario Route System", MacroOpts)
+
+  // Remove the temp copies
+  RunMacro("Delete RTS Files", temp_rts)
+  DeleteDatabase(temp_hwy)
 EndMacro
 
 /*
@@ -136,6 +139,7 @@ Macro "Export to GTFS" (MacroOpts)
 
   master_rts = MacroOpts.master_rts
   proj_list = MacroOpts.proj_list
+  scen_hwy = MacroOpts.scen_hwy
 
   // Get project IDs from the project list
   proj = OpenTable("projects", "CSV", {proj_list, })
@@ -170,11 +174,16 @@ Macro "Export to GTFS" (MacroOpts)
     n_prev = n
   end
 
-  // Basics
-  gtfs = CreateObject("GTFS Exporter", {
-    RouteFile: "C:\\projects\\TRM\\repo_trmg2\\master\\networks\\master_routes.rts",
+  // Create a gtfs folder to hold the export
+  {drive, folder, , } = SplitPath(scen_hwy)
+  gtfs_dir = drive + folder + "gtfs"
+  RunMacro("Create Directory", gtfs_dir)
+
+  // Export
+  gtfs = CreateObject("GTFSExporter", {
+    RouteFile: master_rts,
     RouteSet: export_set,
-    GTFSDirectory: "C:\\Users\\Kyle\\Desktop\\scratch\\gtfs_test"
+    GTFSFolder: gtfs_dir
   })
   gtfs.Export()
 
@@ -201,14 +210,24 @@ Macro "Import from GTFS" (MacroOpts)
     link_qry: link_qry
   })
 
-  gtfs = CreateObject("GTFS Importer", {
+  {drive, folder, , } = SplitPath(scen_hwy)
+  gtfs_dir = drive + folder + "gtfs"
+
+  gtfs = CreateObject("GTFSImporter", {
     RoadDatabase: scen_hwy,
-    GTFSDirectory: "C:\\Users\\Kyle\\Desktop\\scratch\\gtfs_test",
+    GTFSFolder: gtfs_dir,
     RouteFile: output_rts_file,
     NetworkFile: net_file
   })
   gtfs.ServicesFlag = 0
   gtfs.Import({DropPhysicalStops: true})
+
+  // Remove the temp gtfs directory
+  files = RunMacro("Catalog Files", {dir: gtfs_dir})
+  for file in files do
+    DeleteFile(file)
+  end
+  RemoveDirectory(gtfs_dir)
 
   // Create map with both route systems
   map = CreateObject("Map", output_rts_file)

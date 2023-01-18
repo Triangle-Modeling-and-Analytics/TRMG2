@@ -651,6 +651,7 @@ Returns
   rts_file
     String
     Full path to the resulting .RTS file
+  If 'include_hwy_files' is true, also returns the highway file in an array.
 */
 
 Macro "Copy RTS Files" (MacroOpts)
@@ -712,6 +713,21 @@ Macro "Copy RTS Files" (MacroOpts)
   // Return the resulting RTS file
   return(to_rts)
 EndMacro
+
+/*
+Delete rts files
+
+Other approaches were leaving some files behind. This will find them all
+and delete them.
+*/
+
+Macro "Delete RTS Files" (rts_file)
+  {drive, folder, name, ext} = SplitPath(rts_file)
+  {a_names, a_sizes} = GetRouteSystemFiles(rts_file)
+  for name in a_names do
+    DeleteFile(drive + folder + name)
+  end
+endmacro
 
 /*
 GetRouteSystemInfo() can sometimes return roadway file paths that are incorrect.
