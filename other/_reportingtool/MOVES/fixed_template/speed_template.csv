@@ -1,4 +1,4 @@
-sourceTypeID,MOVEStype,hourDayID,hourID,dayID,TOD,avgSpeedBinID,DefaultFraction
+sourceTypeID,roadTypeID,hourDayID,hourID,dayID,TOD,avgSpeedBinID,avgSpeedFraction
 11,2,12,1,2,NT,1,0.00313435
 11,2,12,1,2,NT,2,0.00369208
 11,2,12,1,2,NT,3,0.00162635

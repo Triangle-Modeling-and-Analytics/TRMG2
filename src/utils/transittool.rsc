@@ -73,10 +73,12 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     S1_Dir = Args.[Scenario Folder]
     reporting_dir = S1_Dir + "\\output\\_summaries"
     output_dir = reporting_dir + "\\Transit_Scenario_Comparison"
-    if GetDirectoryInfo(output_dir, "All") <> null then PutInRecycleBin(output_dir)
+    tod_dir = output_dir + "\\" + TOD
+    if GetDirectoryInfo(tod_dir, "All") <> null then PutInRecycleBin(output_dir)
     RunMacro("Create Directory", reporting_dir) //need to create this during create scenario step
     RunMacro("Create Directory", output_dir)
-    
+    RunMacro("Create Directory", tod_dir)
+
     //Loop through all mtx under skim folder
     comp_string = null
     scen_Dirs = {S1_Dir, S2_Dir}
@@ -92,7 +94,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         trn_skim_file = skim_dir_transit + "/skim_" + TOD + "_w_all.mtx"
         // Create a starting transit matrix to store results (only do this once)
         if i = 1 then do
-            out_file = output_dir + "/TransitShortestPath_" + scen_name + "_" + TOD + ".mtx"
+            out_file = tod_dir + "/TransitShortestPath_" + scen_name + "_" + TOD + ".mtx"
             CopyFile(trn_skim_file, out_file)
             mtx = CreateObject("Matrix", out_file)
             core_names = mtx.GetCoreNames()
@@ -127,7 +129,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         comp_string = scen_name + "_" + comp_string
     end
     
-    sp_binfile = output_dir + "/Transit_" + TOD + "_SP.bin"
+    sp_binfile = tod_dir + "/Transit_" + TOD + "_SP.bin"
     matrix = OpenMatrix(out_file,)
     CreateTableFromMatrix(matrix, sp_binfile, "FFB", {{"Complete", "Yes"}})
   
@@ -148,7 +150,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     a_fields =  {
         {"Delta_Time", "Real", 10, 1,,,, "Change in user transit travel time"},
         {"Delta_Trips", "Real", 10, ,,,, "Change in user transit trips"},
-        {"Delta_Access", "Real", 10, ,,,, "Change in number of TAZ destinations a user can reach by transit"}
+        {"Delta_Access", "Real", 10, ,,,, "Change in number of destination TAZs a user can reach by walk_to_transit mode from this orgin TAZ"}
     }
     RunMacro("Add Fields", {view: sp_vw, a_fields: a_fields})
     {v_s1_tt, v_s1_trip, v_s2_tt, v_s2_trip} = GetDataVectors(
@@ -177,13 +179,13 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     
     //Aggregate by origin TAZ
     grouped_vw1 = AggregateTable(
-        "grouped_vw1", sp_vw + "|", "FFB", output_dir + "/Comparison_" + TOD + ".bin", "RCIndex", 
+        "grouped_vw1", sp_vw + "|", "FFB", tod_dir + "/Comparison_" + TOD + ".bin", "RCIndex", 
         {{"Delta_Time", "AVG", }, {"Delta_Trips", "SUM",}, {"Delta_Access", "SUM",}}, 
         {"Missing As Zero": "false"}
     )
 
     //Remove -0.0
-    vw = OpenTable("vw", "FFB", {output_dir + "/Comparison_" + TOD + ".bin"})
+    vw = OpenTable("vw", "FFB", {tod_dir + "/Comparison_" + TOD + ".bin"})
     {v1, v2} = GetDataVectors(vw+"|", {"Avg Delta_Time", "Delta_Trips"}, )
     v1 = Round(v1, 1)
     v2 = Round(v2,0)
@@ -192,7 +194,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
  
     //Mapping TT
     taz_file = Args.TAZs
-    mapFile = output_dir + "/" + comp_string + "Comparison_TravelTime_" + TOD + ".map"
+    mapFile = tod_dir + "/" + comp_string + "Comparison_TravelTime_" + TOD + ".map"
     {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
     jnvw = JoinViews("jv", tlyr + ".ID", vw + ".RCIndex",)
     SetView(jnvw)
@@ -260,7 +262,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     ///////////////////////////////////////////////////////////////////////////////////////
     //Mapping Trips
     taz_file = Args.TAZs
-    mapFile = output_dir + "/" + comp_string + "Comparison_Trips_" + TOD + ".map"
+    mapFile = tod_dir + "/" + comp_string + "Comparison_Trips_" + TOD + ".map"
     {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
     jnvw = JoinViews("jv", tlyr + ".ID", vw + ".RCIndex",)
     SetView(jnvw)
@@ -363,8 +365,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     //df2.mutate("JoinID", string(df2.tbl.("route")) + df2.tbl.("access") + df2.tbl.("mode"))
 
     df1.left_join(df2, "route", "route")
-    df1.mutate("Delta_On", df1.tbl.("sum_On_x") - df1.tbl.("sum_On_y")) 
-    df1.mutate("Delta_Off", df1.tbl.("sum_Off_x") - df1.tbl.("sum_Off_y"))
+    df1.mutate("Delta_On", nz(df1.tbl.("sum_On_x")) - nz(df1.tbl.("sum_On_y"))) 
+    df1.mutate("Delta_Off", nz(df1.tbl.("sum_Off_x")) - nz(df1.tbl.("sum_Off_y")))
     df1.select({"route", "sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"})
 
     //by route
@@ -382,7 +384,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         end
     end
     
-    df1.write_csv(output_dir + "/boardings_alightings_byroute_" + TOD + ".csv")
+    df1.write_csv(tod_dir + "/boardings_alightings_byroute_" + TOD + ".csv")
 
     //by agency
     df1.group_by("Agency")
@@ -394,7 +396,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
             df1.rename(name, new_name)
         end
     end
-    df1.write_csv(output_dir + "/boardings_alightings_byagency_" + TOD + ".csv")
+    df1.write_csv(tod_dir + "/boardings_alightings_byagency_" + TOD + ".csv")
 
     //passenger miles and hours by route and agency
     df1 = null 
@@ -408,8 +410,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     df2.summarize({"pass_hours", "pass_miles"}, "sum")
 
     df1.left_join(df2, "route", "route")
-    df1.mutate("Delta_hours", df1.tbl.("sum_pass_hours_x") - df1.tbl.("sum_pass_hours_y")) 
-    df1.mutate("Delta_miles", df1.tbl.("sum_pass_miles_x") - df1.tbl.("sum_pass_miles_y"))
+    df1.mutate("Delta_hours", nz(df1.tbl.("sum_pass_hours_x")) - nz(df1.tbl.("sum_pass_hours_y")))
+    df1.mutate("Delta_miles", nz(df1.tbl.("sum_pass_miles_x")) - nz(df1.tbl.("sum_pass_miles_y")))
     names = df1.colnames()
     for name in names do
         if Left(name, 4) = "sum_" then do

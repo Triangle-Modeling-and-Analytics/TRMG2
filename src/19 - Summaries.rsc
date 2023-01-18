@@ -9,7 +9,7 @@ Macro "Maps" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    RunMacro("Isochrones", Args)
+    // RunMacro("Isochrones", Args)
     return(1)
 endmacro
 
@@ -630,15 +630,14 @@ Macro "Isochrones" (Args)
           else false
         o.CreateTheme = true
         o.LoadExclusionAreas(exclusion_file)
-        res = o.CreateBands({
+        o.CreateBands({
           Coords: {cord},
           FileName: iso_dir + "\\iso_" + name + "_" + dir + "_" + period + ".dbd",
           LayerName : name + " " + dir + " bands"
         })
 
         RedrawMap(map)
-        SaveMap(map, map_file)
-        DropLayer(map, res.Layer)
+        SaveMap(map_file)
       end
     end
   end
@@ -682,7 +681,7 @@ Macro "Summarize HB DC and MC" (Args)
     else modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
-  // Summarize by purpose and mode
+  // Summarize by mode
   mc_dir = scen_dir + "/output/_summaries/mc"
   df = CreateObject("df", modal_file)
   df.group_by({"trip_type", "mode"})
@@ -694,18 +693,6 @@ Macro "Summarize HB DC and MC" (Args)
   df_tot.rename("sum_Sum", "total")
   df.left_join(df_tot, "trip_type", "trip_type")
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
-  if index <> null
-    then file = output_dir + "/hb_trip_purpmode_shares_subarea.csv"
-    else file = output_dir + "/hb_trip_purpmode_shares.csv"
-  df.write_csv(file)
-  
-  // Summarize by mode
-  df.group_by("mode")
-  df.summarize("Sum", "sum")
-  df.rename("sum_Sum", "Trips")
-  df_tot_trips = df.tbl.Trips.sum()
-  df.mutate("Total_Trips", df_tot_trips)
-  df.mutate("pct", round(df.tbl.Trips / df.tbl.Total_Trips * 100, 2))
   if index <> null
     then file = output_dir + "/hb_trip_mode_shares_subarea.csv"
     else file = output_dir + "/hb_trip_mode_shares.csv"
@@ -1132,9 +1119,6 @@ Macro "Transit Summary" (Args)
 
   })
 EndMacro
-/*
-
-*/
 
 Macro "Summarize Parking"  (Args)
 
@@ -1199,7 +1183,6 @@ Macro "VMT_Delay Summary" (Args)
   scen_outdir = Args.[Output Folder]
   hwy_dbd = Args.Links
   taz_dbd = Args.TAZs
-  se_bin = Args.[Input SE]
   report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
   output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
   RunMacro("Create Directory", output_dir)
@@ -1304,13 +1287,12 @@ Macro "VMT_Delay Summary" (Args)
 
   fields_to_sum = fields_to_sum + {"Total_Flow_Daily", "Total_VMT_Daily", "Total_CgVMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
   field_out = {"ID"} + group_fields + fields_to_sum
-  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
   hwy_df.select(field_out)
   hwy_df.write_csv(output_dir + "/link_VMT_Delay.csv")
   RunMacro("Close All")
 
   // Summarize by different variable
-  group_fields = group_fields + {{"County", "HCMType"}} //add VMT by facility type by county
   for var in group_fields do
     df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
     df.group_by(var)
@@ -1322,57 +1304,8 @@ Macro "VMT_Delay Summary" (Args)
             df.rename(name, new_name)
         end
     end
-    if Typeof(var) = "string" then df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
-    else df.write_csv(output_dir + "/VMT_Delay_by_HCMType_by_County.csv")
+    df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
   end
-
-  // Calculate VMT per capita by MPO/County
-  taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
-  taz = CreateObject("df", taz_bin) // get county info for SE data
-  output = null
-  group_fields = {"County", "MPO"}
-  fields_to_sum = {"HH", "POP"}
-  for var in group_fields do 
-    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
-    df.group_by(var)
-    df.summarize("Total_VMT_Daily", "sum")
-    
-    se = CreateObject("df", se_bin)
-    se.mutate("POP", se.tbl.HH_POP + se.tbl.StudGQ_NCSU + se.tbl.StudGQ_UNC + se.tbl.StudGQ_DUKE + se.tbl.StudGQ_NCCU + se.tbl.CollegeOn)
-    se.left_join(taz, "TAZ", "ID")
-    se.group_by(var)
-    se.summarize(fields_to_sum, "sum")
-  
-    df.left_join(se, var, var)
-    names = df.colnames()
-    for name in names do
-        if Left(name, 4) = "sum_" then do
-            new_name = Substitute(name, "sum_", "", 1)
-            df.rename(name, new_name)
-        end
-        if name = "County" or name = "MPO" then do
-          new_name = "Geography"
-          df.rename(name, new_name)
-        end
-    end
-    df.mutate("VMT_per_HH", df.tbl.Total_VMT_Daily/df.tbl.HH)
-    df.mutate("VMT_per_POP", df.tbl.Total_VMT_Daily/df.tbl.POP)
-
-    if output = null then output = df.copy() // combine outputs into 1 csv file
-    else output.bind_rows(df)
-  end
-  output.write_csv(output_dir + "/VMT_perCapita.csv")
-
-  // Calculate VMT per capita for region
-  Total_VMT_Daily = df.tbl.Total_VMT_Daily.sum()
-  HH = se.tbl.sum_HH.sum()
-  POP = se.tbl.sum_POP.sum()
-  VMT_per_HH = Total_VMT_Daily/HH
-  VMT_per_POP = Total_VMT_Daily/POP
-  line = "Regional," + String(Total_VMT_Daily) + "," + String(HH) + "," + String(POP) + "," + String(VMT_per_HH) + "," + String(VMT_per_POP)
-  RunMacro("Append Line", {file: output_dir + "/VMT_perCapita.csv", line: line}) //add regional results to output file
-
-  
   
 EndMacro
 
@@ -1448,7 +1381,7 @@ Macro "Congestion Cost Summary" (Args)
   end
 
   field_out = {"ID"} + group_fields + fields_to_sum
-  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null")
+  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
   hwy_df.select(field_out)
   hwy_df.write_csv(output_dir + "/LinkCongestionCost.csv")
 

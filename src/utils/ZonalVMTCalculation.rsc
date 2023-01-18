@@ -64,7 +64,8 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     S1_Dir = Args.[Scenario Folder]
     TOD_list = Args.Periods
     taz_file = Args.TAZs
-    se_file = Args.[Input SE]
+    S1_se_file = Args.[Input SE]
+    S2_se_file = S2_Dir + "\\input\\sedata\\scenario_se.bin"
     reporting_dir = S1_Dir + "\\output\\_summaries"
     output_dir = reporting_dir + "\\Zonal_VMT_Comparison"
     //if GetDirectoryInfo(output_dir, "All") <> null then PutInRecycleBin(output_dir)
@@ -88,6 +89,7 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
         out_mtx.AddCores({"Autotrip_" + scen_name})
         out_mtx.AddCores({"Dist_" + scen_name})
         out_mtx.AddCores({"VMT_" + scen_name})
+        out_mtx.AddCores({"HH_POP_" + scen_name})
         comp_string = scen_name + "_" + comp_string
     end
     out_cores = out_mtx.GetCores() 
@@ -123,19 +125,25 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
 
         // Calculate zonal VMT
         out_cores.("VMT_" + scen_name) := out_cores.("Dist_" + scen_name) * out_cores.("Autotrip_" + scen_name)
+
+        // Create HH_Pop core for future use
+        out_cores.("HH_POP_" + scen_name) := 0
+
     end
 
     vmt_binfile = output_dir + "\\ZonalVMT.bin"
     out_mtx = OpenMatrix(out_file,)
     CreateTableFromMatrix(out_mtx, vmt_binfile, "FFB", {{"Complete", "No"}})
-  
+    
     // Aggregate by origin TAZ
     vmt_df = CreateObject("df", vmt_binfile)
     names = vmt_df.colnames()
-    s1 = names[6]
-    s2 = names[9]
+    s1_vmt = names[6]
+    s2_vmt = names[10]
+    s1_pop = names[7]
+    s2_pop = names[11]
     vmt_df.group_by("Origins")
-    vmt_df.summarize({s1, s2}, "sum")
+    vmt_df.summarize({s1_vmt, s2_vmt, s1_pop, s2_pop}, "sum")
     names = vmt_df.colnames()
     for name in names do
         if Left(name, 4) = "sum_" then do
@@ -145,20 +153,29 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     end
 
     // Calculate VMT per capita and VMTratio
-    se_df = CreateObject("df", se_file)
-    se_df.select({"TAZ", "HH_POP"})
-    vmt_df.left_join(se_df, "Origins", "TAZ")
-    vmt_df.mutate(s1 + "_percap", nz(vmt_df.tbl.(s1)/vmt_df.tbl.HH_Pop)) //calculate S1 zonal vmt per capita
-    vmt_df.mutate(s2 + "_percap", nz(vmt_df.tbl.(s2)/vmt_df.tbl.HH_Pop)) //calculate S2 zonal vmt per capita
-    s1_percap = vmt_df.get_col(s1 + "_percap")
-    s2_percap = vmt_df.get_col(s2 + "_percap")
-    s1_avgpercap = Avg(V2A(s1_percap)) //calculate S1 average zonal vmt per capita
-    s2_avgpercap = Avg(V2A(s2_percap))
+    S1_se_df = CreateObject("df", S1_se_file)
+    S1_se_df.select({"TAZ", "HH_POP"})
+    S1_se_df.rename("HH_POP", "S1_HH_POP")
 
-    vmt_df.mutate(s1 + "_ratio", vmt_df.tbl.(s1 + "_percap")/s1_avgpercap) //calculate per capita
-    vmt_df.mutate(s2 + "_ratio", vmt_df.tbl.(s2 + "_percap")/s2_avgpercap)
-    vmt_df.mutate("Ratio_Delta", nz(vmt_df.tbl.(s1 + "_ratio")) - nz(vmt_df.tbl.(s2 + "_ratio")))
+    S2_se_df = CreateObject("df", S1_se_file)
+    S2_se_df.select({"TAZ", "HH_POP"})
+    S2_se_df.rename("HH_POP", "S2_HH_POP")
+
+    vmt_df.left_join(S1_se_df, "Origins", "TAZ")
+    vmt_df.left_join(S2_se_df, "Origins", "TAZ")
+    vmt_df.mutate(s1_pop, vmt_df.tbl.("S1_HH_POP"))
+    vmt_df.mutate(s2_pop, vmt_df.tbl.("S2_HH_POP"))
+    vmt_df.mutate(s1_vmt + "_percap", nz(vmt_df.tbl.(s1_vmt)/vmt_df.tbl.(s1_pop))) //calculate S1 zonal vmt per capita
+    vmt_df.mutate(s2_vmt + "_percap", nz(vmt_df.tbl.(s2_vmt)/vmt_df.tbl.(s2_pop))) //calculate S2 zonal vmt per capita
+    s1_avgpercap = vmt_df.tbl.(s1_vmt).sum()/vmt_df.tbl.(s1_pop).sum() // calculate s1 regional vmt per capita
+    s2_avgpercap = vmt_df.tbl.(s2_vmt).sum()/vmt_df.tbl.(s2_pop).sum()
+    vmt_df.mutate(s1_vmt + "_ratio", vmt_df.tbl.(s1_vmt + "_percap")/s1_avgpercap) //calculate zonal vmt ratio
+    vmt_df.mutate(s2_vmt + "_ratio", vmt_df.tbl.(s2_vmt + "_percap")/s2_avgpercap)
+    vmt_df.mutate("VMT_percap_Delta", nz(vmt_df.tbl.(s1_vmt)) - nz(vmt_df.tbl.(s2_vmt)))
+
+    vmt_df.remove({"S1_HH_POP", "S2_HH_POP"})
     vmt_df.write_bin(output_dir + "/Comparison_zonalVMT.bin")
+    vmt_df.write_csv(output_dir + "/Comparison_zonalVMT.csv")
 
     // Mapping VMT delta on a taz map
     vw = OpenTable("vw", "FFB", {output_dir + "/Comparison_zonalVMT.bin"})
@@ -177,7 +194,7 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     opts.[Force Value] = 0
     opts.zero = "TRUE"
 
-    cTheme = CreateTheme("ZonalVMT", jnvw+".Ratio_Delta", "Equal Steps" , numClasses, opts)
+    cTheme = CreateTheme("ZonalVMT", jnvw+".VMT_percap_Delta", "Equal Steps" , numClasses, opts)
 
     // Set theme fill color and style
     opts = null
@@ -218,7 +235,7 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
         {0, 1, 0, 0, 1, 4, 0},
         {1, 1, 1},
         {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
-        {title, }
+        {title, footnote}
       }
     )
     SetLegendOptions (GetMap(), {{"Background Style", solid}})
@@ -238,6 +255,7 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     DeleteFile(out_file)
     DeleteFile(Substitute(vmt_binfile, ".bin", ".DCB",))
     DeleteFile(vmt_binfile)
+
     Return(1)
 
 endmacro
