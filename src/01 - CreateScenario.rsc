@@ -209,7 +209,7 @@ Macro "Create Scenario Transit" (Args)
   opts.scen_hwy = Args.[Input Links]
   opts.proj_list = scen_dir + "/TransitProjectList.csv"
   opts.centroid_qry = "Centroid = 1"
-  opts.link_qry = "HCMType <> null"
+  opts.link_qry = "HCMType <> null and HCMType <> 'CC'"
   {, , rts_name, ext} = SplitPath(scen_rts)
   opts.output_rts_file = rts_name + ext
   RunMacro("Transit Project Management", opts)
