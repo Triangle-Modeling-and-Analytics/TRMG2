@@ -1043,7 +1043,6 @@ Macro "Create Simple Roadway Net" (MacroOpts)
 
   // Create a simple network of the scenario highway layer
   SetLayer(llyr)
-  set_name = null
   net_file = out_dir + "/simple.net"
   label = "Simple Network"
   link_fields = {{"Length", {llyr + ".Length", llyr + ".Length", , , "False"}}}
@@ -1054,7 +1053,7 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   opts.[Link ID] = llyr + ".ID"
   opts.[Node ID] = nlyr + ".ID"
   opts.[Turn Penalties] = "Yes"
-  nh = CreateNetwork(set_name, net_file, label, link_fields, node_fields, opts)
+  nh = CreateNetwork(link_set, net_file, label, link_fields, node_fields, opts)
 
   // Add centroids to the network to prevent routes from passing through
   // Network Settings
