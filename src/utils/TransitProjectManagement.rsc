@@ -302,7 +302,6 @@ Macro "Import from GTFS" (MacroOpts)
   }})
   // Add back stop attributes from master
   fields = {
-    {FieldName: "shape_stop", Type: "integer"},
     {FieldName: "dwell_on", Type: "real"},
     {FieldName: "dwell_off", Type: "real"},
     {FieldName: "xfer_pen", Type: "real"}
@@ -315,7 +314,6 @@ Macro "Import from GTFS" (MacroOpts)
     LeftFields: "Master_Stop_ID",
     RightFields: "ID"
   })
-  join_tbl.(slyr + ".shape_stop") = join_tbl.(master_slyr + ".shape_stop")
   join_tbl.(slyr + ".dwell_on") = join_tbl.(master_slyr + ".dwell_on")
   join_tbl.(slyr + ".dwell_off") = join_tbl.(master_slyr + ".dwell_off")
   join_tbl.(slyr + ".xfer_pen") = join_tbl.(master_slyr + ".xfer_pen")
