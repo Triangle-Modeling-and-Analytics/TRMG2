@@ -217,7 +217,8 @@ Macro "Import from GTFS" (MacroOpts)
     RoadDatabase: scen_hwy,
     GTFSFolder: gtfs_dir,
     RouteFile: output_rts_file,
-    NetworkFile: net_file
+    NetworkFile: net_file,
+    RouteBuffer: 50/5280
   })
   gtfs.ServicesFlag = 0
   gtfs.Import({DropPhysicalStops: true})
