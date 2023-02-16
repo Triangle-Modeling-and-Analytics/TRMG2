@@ -58,8 +58,8 @@ Macro "TIA VMT" (Args)
     output_dir = reporting_dir + "\\VMT_TIA"
     RunMacro("Create Directory", output_dir)
     
-    // 1. Calculate home based VMT per resident
-    // 1.1 create output matrix
+    
+    // 0. create output matrix
     out_file = output_dir + "\\TIA_VMT.mtx"
     autotrip = autotrip_dir + "\\pa_veh_trips_AM.mtx"
     CopyFile(autotrip, out_file)
@@ -67,9 +67,30 @@ Macro "TIA VMT" (Args)
     out_core_names = out_mtx.GetCoreNames()
     out_mtx.AddCores({"HB_VMT"})
     out_mtx.DropCores(out_core_names)
-    out_core = out_mtx.GetCore("HB_VMT")
 
-    // 1.2 Loop through TOD to calculate daily VMT
+    // 0. Create the output table (first iteration only)
+    vmt_binfile = output_dir + "\\TIA_VMT.bin"
+    if GetFileInfo(vmt_binfile) <> null then do
+        DeleteFile(vmt_binfile)
+        DeleteFile(Substitute(vmt_binfile, ".bin", ".dcb", ))
+    end
+    out_vw = CreateTable("out", vmt_binfile, "FFB", {
+        {"TAZ", "Integer", 10, , , "Zone ID"}
+    })
+    se_vw = OpenTable("se", "FFB", {se_file})
+    taz = GetDataVector(se_vw + "|", "TAZ", )
+    n = GetRecordCount(se_vw, )
+    AddRecords(out_vw, , , {"empty records": n})
+    SetDataVector(out_vw + "|", "TAZ", taz, )
+    CloseView(se_vw)
+    CloseView(out_vw)
+
+    // 1. Calculate home based VMT per resident
+    // 1.1 Loop through TOD to calculate daily VMT
+    field_name = "HB_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+    
+    out_core = out_mtx.GetCore("HB_VMT")
     mode = {"sov", "hov2", "hov3"}
     for tod in TOD_list do
         // set input path
@@ -86,9 +107,15 @@ Macro "TIA VMT" (Args)
 
         out_core := nz(out_core) + nz(trip_cores.("sov")) * nz(skim_sov_core) + nz(trip_cores.("hov2")) * nz(skim_hov_core) +  nz(trip_cores.("hov3")) * nz(skim_hov_core)
     end
+    v_hbvmt = out_mtx.GetVector({"Core": "HB_VMT", Marginal: "Row Sum"})
+    v_hbvmt.rowbased = "true"
+    data.(field_name) = nz(v_hbvmt)
 
     // 2. Calculate total VMT per service population
     // 2.1 Calculate IEEI VMT
+    field_name = "IEEI_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+
     out_mtx.AddCores({"IEEI_VMT"})
     out_core = out_mtx.GetCore("IEEI_VMT")
 
@@ -106,7 +133,14 @@ Macro "TIA VMT" (Args)
         out_core := nz(out_core) + nz(skim_core) * nz(trip_cores.(core_name))
     end
 
+    v_ieeivmt = out_mtx.GetVector({"Core": "IEEI_VMT", Marginal: "Row Sum"})
+    v_ieeivmt.rowbased = "true"
+    data.(field_name) = nz(v_ieeivmt)
+
     // 3. Calculate home base work VMT
+    field_name = "HBW_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+
     RunMacro("Create HBW PA Vehicle Trip Matrices", Args)
     out_mtx.AddCores({"HBW_VMT"})
     out_core = out_mtx.GetCore("HBW_VMT")
@@ -129,29 +163,29 @@ Macro "TIA VMT" (Args)
         out_core := nz(out_core) + nz(trip_cores.("sov")) * nz(skim_sov_core) + nz(trip_cores.("hov2")) * nz(skim_hov_core) +  nz(trip_cores.("hov3")) * nz(skim_hov_core)
     end
 
-    vmt_binfile = output_dir + "\\TIA_VMT.bin"
-    out_mtx = OpenMatrix(out_file,)
-    CreateTableFromMatrix(out_mtx, vmt_binfile, "FFB", {{"Complete", "Yes"}})
-
-    // Aggregate by origin TAZ
-    vmt_df = CreateObject("df", vmt_binfile)
-    names = vmt_df.colnames()
-    hb_vmt = names[3]
-    ieei_vmt = names[4]
-    hbw_vmt = names[5]
-    vmt_df.group_by("Origins")
-    vmt_df.summarize({hb_vmt, ieei_vmt, hbw_vmt}, "sum")
-    names = vmt_df.colnames()
-    for name in names do
-        if Left(name, 4) = "sum_" then do
-            new_name = Substitute(name, "sum_", "", 1)
-            vmt_df.rename(name, new_name)
-        end
-    end
+    v_hbwvmt = out_mtx.GetVector({"Core": "HBW_VMT", Marginal: "Column Sum"})
+    v_hbwvmt.rowbased = "true"
+    data.(field_name) = nz(v_hbwvmt)
+    
+    // Fill in the raw output table
+    out_vw = OpenTable("out", "FFB", {vmt_binfile})
+    RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
+    SetDataVectors(out_vw + "|", data, )
+    CloseView(out_vw)
 
     // Join SE data
+    vmt_df = CreateObject("df", vmt_binfile)
+    names = vmt_df.colnames()
+    hb_vmt = names[2]
+    ieei_vmt = names[3]
+    hbw_vmt = names[4]
     se_df = CreateObject("df", se_file)
-    vmt_df.left_join(se_df, "Origins", "TAZ")
+    vmt_df.left_join(se_df, "TAZ", "TAZ")
+    vmt_df.mutate("Emp", vmt_df.tbl.("Industry") + vmt_df.tbl.("Retail") + vmt_df.tbl.("Service_RateHigh") + vmt_df.tbl.("Service_RateLow") + vmt_df.tbl.("Office"))
+    vmt_df.mutate("ServicePopulation", vmt_df.tbl.("HH_POP") + vmt_df.tbl.("Emp"))
+    vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.hb_vmt + vmt_df.tbl.ieei_vmt)/vmt_df.tbl.("ServicePopulation"))
+    vmt_df.mutate("HBVMT_perres", vmt_df.tbl.hb_vmt/vmt_df.tbl.("HH_POP"))
+    vmt_df.mutate("HBWVMT_peremp", vmt_df.tbl.hbw_vmt/vmt_df.tbl.("Emp"))
     vmt_df.write_csv(output_dir + "/TIA_VMT.csv")
 
     Return(1)    

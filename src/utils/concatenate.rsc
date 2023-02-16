@@ -42,7 +42,7 @@ dBox "Concatenate Files" (Args) center, center, 60, 6
 
     Button 41, 4, 10 Prompt: "Help" do
         ShowMessage(
-        "This tool is used to calculate VMT metrics for TIA projects. "
+        "This tool is used to export a model run’s csv files to one combined csv file."
      )
     enditem
 enddbox
