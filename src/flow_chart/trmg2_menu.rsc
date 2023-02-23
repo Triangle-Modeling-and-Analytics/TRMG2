@@ -59,7 +59,7 @@ menu "TRMG2 Menu"
 
         // Check that a scenario is selected and that a folder has been chosen
         if scen_name = null then do
-            ShowMessage("Choose a scenario (not 'Model')")
+            ShowMessage("Choose a scenario.")
             return()
         end
         if Args.[Scenario Folder] = null then do
@@ -86,20 +86,34 @@ menu "TRMG2 Utilities"
     init do
     enditem
 
+    MenuItem "Highway" text: "Highway Analysis"
+        menu "Highway Analysis"
+    
+    MenuItem "Accessibility" text: "Accessibility Analysis"
+        menu "Accessibility Analysis"
+
+    MenuItem "Matrix" text: "Matrix Aggregation"
+        menu "Matrix Aggregation"
+
+    MenuItem "Comparison" text: "Scenario Comparison Tools"
+        menu "Scenario Comparison Tools"
+    
+    MenuItem "Input" text: "Input Data Processing Tools"
+        menu "Input Data Processing Tools"
+
+    MenuItem "Performance" text: "Performance Measures"
+        menu "Performance Measures"
+    
+endMenu
+
+menu "Highway Analysis"
+    init do
+    enditem
+    
     MenuItem "desire_lines" text: "Desire Lines" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCode("Open Desire Lines Dbox", Args)
-    enditem
-
-    MenuItem "diff" text: "Diff Tool" do
-        mr = CreateObject("Model.Runtime")
-        mr.RunCodeEx("Open Diff Tool")
-    enditem
-
-    MenuItem "scen comp" text: "Scenario Comparison" do
-        mr = CreateObject("Model.Runtime")
-        mr.RunCodeEx("Open Scenario Comp Tool")
     enditem
 
     MenuItem "fixed_od" text: "Fixed OD Assignment" do
@@ -107,17 +121,10 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open Fixed OD Dbox", Args)
     enditem
+endMenu
 
-    MenuItem "merge_tool" text: "Merge Line Layers" do
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        mr.RunCodeEx("Open Merge Dbox", Args)
-    enditem
-
-    MenuItem "seupdate_tool" text: "Update SE Data" do
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        mr.RunCodeEx("Open SEUpdate Dbox", Args)
+menu "Accessibility Analysis"
+    init do
     enditem
 
     MenuItem "PopEmpReached" text: "Population and Employement Accessibility" do
@@ -137,13 +144,12 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open Transit HH Strata Coverage Dbox", Args)
     enditem
+endMenu
 
-    MenuItem "TransitScenarioComparion" text: "Transit Scenario Comparison" do
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
+menu "Matrix Aggregation"
+    init do
     enditem
-
+    
     MenuItem "TripAggregation_Moto" text: "Motorized Trip Matrix Aggregation" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
@@ -155,18 +161,74 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
     enditem
+endMenu
+
+menu "Scenario Comparison Tools"
+    init do
+    enditem
+
+    MenuItem "TransitScenarioComparion" text: "Transit Scenario Comparison" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Transit Scenario Comparison Dbox", Args)
+    enditem
+    
+    MenuItem "ZonalVMT" text: "Zonal VMT Calculation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Zonal VMT Calculation Dbox", Args)
+    enditem
+  
+    MenuItem "scen comp" text: "Scenario Comparison" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open Scenario Comp Tool")
+    enditem
+endMenu
+
+menu "Input Data Processing Tools"
+    init do
+    enditem
+
+    MenuItem "diff" text: "Diff Tool" do
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open Diff Tool")
+    enditem
+
+    MenuItem "merge_tool" text: "Merge Line Layers" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open Merge Dbox", Args)
+    enditem
+
+    MenuItem "seupdate_tool" text: "Update SE Data" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCodeEx("Open SEUpdate Dbox", Args)
+    enditem
+endMenu
+
+menu "Performance Measures"
+    init do
+    enditem
 
     MenuItem "MOVES" text: "MOVES Input Preparation" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCode("Open Prepare MOVES Input Dbox", Args)
     enditem
-
-    MenuItem "ZonalVMT" text: "Zonal VMT Calculation" do
+    /*
+    MenuItem "TIA" text: "TIA VMT Calculate" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        mr.RunCode("Open Zonal VMT Calculation Dbox", Args)
+        mr.RunCode("Open TIA VMT Dbox", Args)
     enditem
+    */
+    MenuItem "Concatenate Files" text: "Concatenate CSV Files" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Concatenate Files Dbox", Args)
+    enditem
+
 endMenu
 menu "TRMG2 Calibrators"
     init do
