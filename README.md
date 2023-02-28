@@ -14,7 +14,7 @@ This repo is the home for the TRMG2 during the development phase. Project stakeh
 Development documentation can be found here:  
 https://triangle-modeling-and-analytics.github.io/TRMG2/
 
-The user's guide wiki is located here:
+The user's guide wiki is located here:  
 https://github.com/Triangle-Modeling-and-Analytics/TRMG2/wiki
 
 Client PM: Leta Huntsinger  
