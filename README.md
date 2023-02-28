@@ -1,7 +1,7 @@
 # TRMG2
 The second generation of the Triangle Regional Model.
 
-This repo is the home for the TRMG2 during the development phase. Project stakeholders include:
+Project stakeholders include:
 
 - ITRE
 - CAMPO
