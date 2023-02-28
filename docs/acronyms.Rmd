@@ -33,7 +33,7 @@ documentation.
 ## Trip Types
 Trip types have the following form: "N_HB_OD_Short"
 
-Each of the four pieces of this classification convey information about the trip.
+Each of the four pieces of this classification convery information about the trip.
 
 - Tour Type
   - W: Work
