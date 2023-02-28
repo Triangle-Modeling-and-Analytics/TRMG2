@@ -651,6 +651,7 @@ Returns
   rts_file
     String
     Full path to the resulting .RTS file
+  If 'include_hwy_files' is true, also returns the highway file in an array.
 */
 
 Macro "Copy RTS Files" (MacroOpts)
@@ -712,6 +713,21 @@ Macro "Copy RTS Files" (MacroOpts)
   // Return the resulting RTS file
   return(to_rts)
 EndMacro
+
+/*
+Delete rts files
+
+Other approaches were leaving some files behind. This will find them all
+and delete them.
+*/
+
+Macro "Delete RTS Files" (rts_file)
+  {drive, folder, name, ext} = SplitPath(rts_file)
+  {a_names, a_sizes} = GetRouteSystemFiles(rts_file)
+  for name in a_names do
+    DeleteFile(drive + folder + name)
+  end
+endmacro
 
 /*
 GetRouteSystemInfo() can sometimes return roadway file paths that are incorrect.
@@ -990,7 +1006,7 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   link_qry = MacroOpts.link_qry
 
   // Argument checking
-  if !llyr_provided and !hwy_dbd_provided = null then Throw(
+  if !llyr_provided and !hwy_dbd_provided then Throw(
     "Either 'llyr' or 'hwy_dbd' must be provided."
   )
   if llyr_provided and hwy_dbd_provided then Throw(
@@ -1027,7 +1043,6 @@ Macro "Create Simple Roadway Net" (MacroOpts)
 
   // Create a simple network of the scenario highway layer
   SetLayer(llyr)
-  set_name = null
   net_file = out_dir + "/simple.net"
   label = "Simple Network"
   link_fields = {{"Length", {llyr + ".Length", llyr + ".Length", , , "False"}}}
@@ -1038,7 +1053,7 @@ Macro "Create Simple Roadway Net" (MacroOpts)
   opts.[Link ID] = llyr + ".ID"
   opts.[Node ID] = nlyr + ".ID"
   opts.[Turn Penalties] = "Yes"
-  nh = CreateNetwork(set_name, net_file, label, link_fields, node_fields, opts)
+  nh = CreateNetwork(link_set, net_file, label, link_fields, node_fields, opts)
 
   // Add centroids to the network to prevent routes from passing through
   // Network Settings

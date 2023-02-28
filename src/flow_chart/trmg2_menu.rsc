@@ -59,7 +59,7 @@ menu "TRMG2 Menu"
 
         // Check that a scenario is selected and that a folder has been chosen
         if scen_name = null then do
-            ShowMessage("Choose a scenario (not 'Model')")
+            ShowMessage("Choose a scenario.")
             return()
         end
         if Args.[Scenario Folder] = null then do
