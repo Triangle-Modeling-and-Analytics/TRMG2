@@ -208,6 +208,7 @@ Macro "TIA VMT" (Args)
     vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.("HB_VMT") + vmt_df.tbl.("IEEI_VMT") + vmt_df.tbl.("University_VMT"))/vmt_df.tbl.("ServicePopulation"))
     vmt_df.mutate("HBVMT_perres", vmt_df.tbl.("HB_VMT")/vmt_df.tbl.("HH_POP"))
     vmt_df.mutate("HBWVMT_peremp", vmt_df.tbl.("HBW_VMT")/vmt_df.tbl.("Emp"))
+    vmt_df.select({"TAZ", "HB_VMT", "IEEI_VMT", "University_VMT", "HBW_VMT", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
     vmt_df.write_csv(output_dir + "/TIA_VMT.csv")
 
     Return(1)    
@@ -224,8 +225,8 @@ Macro "Create HBW PA Vehicle Trip Matrices" (Args)
     // This section is a slight modification to the "HB Occupancy" macro
     factor_file = Args.HBHOV3OccFactors
     periods = Args.periods
-    trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
-    output_dir = Args.[Output Folder] + "\\_summaries\\VMT_TIA"
+    trip_dir = Args.[Scenario Folder] + "\\output\\resident\\trip_matrices"
+    output_dir = Args.[Scenario Folder] + "\\output\\_summaries\\VMT_TIA"
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     
