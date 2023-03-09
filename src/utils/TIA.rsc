@@ -208,7 +208,7 @@ Macro "TIA VMT" (Args)
     vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.("HB_VMT") + vmt_df.tbl.("IEEI_VMT") + vmt_df.tbl.("University_VMT"))/vmt_df.tbl.("ServicePopulation"))
     vmt_df.mutate("HBVMT_perres", vmt_df.tbl.("HB_VMT")/vmt_df.tbl.("HH_POP"))
     vmt_df.mutate("HBWVMT_peremp", vmt_df.tbl.("HBW_VMT")/vmt_df.tbl.("Emp"))
-    vmt_df.select({"TAZ", "HB_VMT", "IEEI_VMT", "University_VMT", "HBW_VMT", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
+    vmt_df.select({"TAZ", "HB_VMT", "IEEI_VMT", "University_VMT", "HBW_VMT", "HH_POP", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
     vmt_df.write_csv(output_dir + "/TIA_VMT.csv")
 
     Return(1)    
