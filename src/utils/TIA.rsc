@@ -120,7 +120,7 @@ Macro "TIA VMT" (Args)
     out_core = out_mtx.GetCore("IEEI_VMT")
 
     IEEI_dir = dir + "\\output\\external"
-    IEEI_trip = IEEI_dir + "\\ie_pa_trips.mtx"
+    IEEI_trip = IEEI_dir + "\\ie_od_trips.mtx"
     trip_mtx = CreateObject("Matrix", IEEI_trip)
     trip_cores = trip_mtx.GetCores()
     core_names = trip_mtx.GetCoreNames()
