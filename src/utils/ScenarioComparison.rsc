@@ -60,7 +60,11 @@ dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" t
     enditem
     Button 28, same Prompt: "Help" do
         ShowMessage(
-            "placeholder"
+            "This tool allows you to select two previously-run scenarios and " +
+            "creates comparison tables and maps. Optionally, you can include " +
+            "a polygon file to only compare a subarea.\n\n" +
+            "Find the output in the 'comparison_outputs' folder, which will " +
+            "be created in the 'New Scenario' directory."
         )
     enditem
 enddbox
@@ -145,7 +149,6 @@ Macro "Compare Summary Tables" (MacroOpts)
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
         {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"mode"}, {"total", "pct"}},
-        {"/output/_summaries/resident_hb/hb_trip_purpmode_shares.csv", {"trip_type", "mode"}, {"Sum", "total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
