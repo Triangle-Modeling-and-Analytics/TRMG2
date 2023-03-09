@@ -144,7 +144,7 @@ Macro "Compare Summary Tables" (MacroOpts)
     comp_dir = new_scen + "/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
-        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"mode"}, {"Trips", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_purpmode_shares.csv", {"trip_type", "mode"}, {"Sum", "total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
