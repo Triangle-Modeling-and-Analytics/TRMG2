@@ -216,6 +216,19 @@ menu "Performance Measures"
         Args = mr.GetValues()
         mr.RunCode("Open Prepare MOVES Input Dbox", Args)
     enditem
+    
+    MenuItem "TIA" text: "TIA VMT Calculate" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open TIA VMT Dbox", Args)
+    enditem
+    
+    MenuItem "Concatenate Files" text: "Concatenate CSV Files" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Concatenate Files Dbox", Args)
+    enditem
+
 endMenu
 menu "TRMG2 Calibrators"
     init do

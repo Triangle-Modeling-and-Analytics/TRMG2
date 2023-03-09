@@ -55,7 +55,7 @@ navbar:
           href: sensitivity_tests.html
   right:
     - text: "Github"
-      href: https://github.com/Caliper-Corporation/TRMG2
+      href: https://github.com/Triangle-Modeling-and-Analytics/TRMG2
 output:
     rmdformats::readthedown:
       toc_depth: 4
