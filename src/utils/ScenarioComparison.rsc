@@ -151,12 +151,12 @@ Macro "Compare Summary Tables" (MacroOpts)
     comp_dir = new_scen + "/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
-        // {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"total", "pct"}},
-        // {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
-        // {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
-        // {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
-        // {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
-        // {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"total", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
+        {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
+        {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
+        {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
+        {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
         {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
     }
     for i = 1 to tables_to_compare.length do
