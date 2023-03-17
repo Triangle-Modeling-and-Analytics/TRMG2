@@ -10,7 +10,7 @@ endmacro
 A tool for looking at changes between two link layers.
 */
 
-dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" toolbox
+dBox "scen_comp_tool" center, center, 47, 10 Title: "Scenario Comparison Tool" toolbox
 
     init do
         static ref_scen, new_scen, sub_poly
@@ -40,11 +40,14 @@ dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" t
     Button after, same, 5, 1 Prompt: "..." do
         on error, escape goto skip3
         sub_poly = ChooseFile(
-            {{"polygon layer", "*.dbd"}}, "Choose a polygon layer", 
+            {{"DBD", "*.dbd"}, {"CDF", "*.cdf"}}, "Choose a polygon layer", 
             {"Initial Directory": new_scen}
         )
         skip3:
         on error default
+    enditem
+    Button after, same, 5, 1 Prompt: "X" do
+        sub_poly = null
     enditem
 
     Button 2, 8 Prompt: "Compare Scenarios" do
@@ -148,7 +151,7 @@ Macro "Compare Summary Tables" (MacroOpts)
     comp_dir = new_scen + "/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
-        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"mode"}, {"total", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
@@ -270,7 +273,7 @@ Macro "Compare Zonal Data" (MacroOpts)
             SearchLayer: sub_layer
         })
         join_tbl.ChangeSet("subarea")
-        join_tbl.in_subarea = 1
+        join_tbl.[se.in_subarea] = 1
         map.DropSet("subarea")
         map.RenameLayer({
             LayerName: sub_layer,
@@ -295,6 +298,9 @@ Macro "Compare Zonal Data" (MacroOpts)
                 StartColor: "blue",
                 MidColor: "white",
                 EndColor: "red"
+            },
+            Options: {
+                "Pretty Values": "true"
             }
         })
         map.CreateLegend()
@@ -361,7 +367,19 @@ Macro "Compare Link Data" (MacroOpts)
     }
     map.SetLayer(link_lyr)
 
+    // Create a selection set of links to hide
+    query = "D = 0 or HCMType = 'CC'"
+    map.SelectByQuery({
+        SetName: "to_hide",
+        Query: query
+    })
+    map.ModifySetStyle({
+        Setname: "to_hide",
+        DisplayStatus: "Invisible"
+    })
+
     for field in fields_to_map do
+        map.SetLayer(link_lyr)
         expr = CreateExpression(jv, "abs_" + field + "_diff", "abs(" + field + "_diff)", )
         map.SizeTheme({
             ThemeName: "Absolute Difference",
@@ -377,6 +395,9 @@ Macro "Compare Link Data" (MacroOpts)
                 StartColor: "blue",
                 MidColor: "white",
                 EndColor: "red"
+            },
+            Options: {
+                "Pretty Values": "true"
             }
         })
         map.CreateLegend()
