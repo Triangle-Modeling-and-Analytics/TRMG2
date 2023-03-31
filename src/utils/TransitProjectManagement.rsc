@@ -134,15 +134,15 @@ Macro "Transit Project Management" (MacroOpts)
   MacroOpts.out_dir = out_dir
   MacroOpts.delete_shape_stops = delete_shape_stops
 
-  // broken_routes = RunMacro("Migrate Route System", MacroOpts)
-  // if broken_routes <> null then do
-  //   MacroOpts.broken_routes = broken_routes
-  //   RunMacro("Prepare Broken Routes", MacroOpts)
-  //   RunMacro("Export to GTFS", MacroOpts)
-  //   RunMacro("Import from GTFS", MacroOpts) 
-  //   RunMacro("Merge Route Systems", MacroOpts)
-  // end
-  // RunMacro("Update Scenario Attributes", MacroOpts)
+  broken_routes = RunMacro("Migrate Route System", MacroOpts)
+  if broken_routes <> null then do
+    MacroOpts.broken_routes = broken_routes
+    RunMacro("Prepare Broken Routes", MacroOpts)
+    RunMacro("Export to GTFS", MacroOpts)
+    RunMacro("Import from GTFS", MacroOpts) 
+    RunMacro("Merge Route Systems", MacroOpts)
+  end
+  RunMacro("Update Scenario Attributes", MacroOpts)
   RunMacro("Check Scenario Route System", MacroOpts)
   if delete_shape_stops then RunMacro("Remove Shape Stops", MacroOpts)
 
@@ -290,17 +290,17 @@ Macro "Prepare Broken Routes" (MacroOpts)
     DeleteRoute(rlyr, name)
   end
 
-  // Create a new projet list that is only of the broken routes
-  tbl = CreateObject("Table", proj_list)
-  for pid in v_proj_ids do
-    tbl.SelectByQuery({
-      SetName: "broken_routes",
-      Query: "ProjID = " + pid,
-      Operation: "more"
-    })
-  end
-  proj_list2 = Substitute(proj_list, ".csv", "_2.csv", )
-  tbl.Export({FileName: proj_list2})
+  // // Create a new projet list that is only of the broken routes
+  // tbl = CreateObject("Table", proj_list)
+  // for pid in v_proj_ids do
+  //   tbl.SelectByQuery({
+  //     SetName: "broken_routes",
+  //     Query: "ProjID = " + pid,
+  //     Operation: "more"
+  //   })
+  // end
+  // proj_list2 = Substitute(proj_list, ".csv", "_2.csv", )
+  // tbl.Export({FileName: proj_list2})
 endmacro
 
 /*
@@ -310,20 +310,22 @@ endmacro
 Macro "Export to GTFS" (MacroOpts)
 
   master_rts = MacroOpts.master_rts
-  proj_list = Substitute(MacroOpts.proj_list, ".csv", "_2.csv", )
+  broken_routes = MacroOpts.broken_routes
+  // proj_list = Substitute(MacroOpts.proj_list, ".csv", "_2.csv", )
   scen_hwy = MacroOpts.scen_hwy
 
-  // Get project IDs from the project list
-  proj_tbl = CreateObject("Table", proj_list)
-  v_pid = proj_tbl.ProjID
-  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
-  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
+  // // Get project IDs from the project list
+  // proj_tbl = CreateObject("Table", proj_list)
+  // v_pid = proj_tbl.ProjID
+  // if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  // if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
 
-  // Convert the project IDs into route IDs
-  opts = null
-  opts.rts_file = master_rts
-  opts.v_pid = v_pid
-  {v_rid, } = RunMacro("Convert ProjID to RouteID", opts)
+  // // Convert the project IDs into route IDs
+  // opts = null
+  // opts.rts_file = master_rts
+  // opts.v_pid = v_pid
+  // {v_rid, } = RunMacro("Convert ProjID to RouteID", opts)
+  v_rid = A2V(broken_routes)
 
   // Select routes based on route ids
   map = CreateObject("Map", master_rts)
@@ -337,12 +339,12 @@ Macro "Export to GTFS" (MacroOpts)
     qry = "Select * where Route_ID = " + rid
     operation = if i = 1 then "several" else "more"
     n = SelectByQuery(export_set, operation, qry)
-    if n <= n_prev then Throw(T(
-      "Transit Manager: Project %s in the project list was not found in the " +
-      "master route system.", 
-      {v_pid[i]}
-    ))
-    n_prev = n
+    // if n <= n_prev then Throw(T(
+    //   "Transit Manager: Project %s in the project list was not found in the " +
+    //   "master route system.", 
+    //   {v_pid[i]}
+    // ))
+    // n_prev = n
   end
 
   // Create a gtfs folder to hold the export
@@ -494,7 +496,7 @@ broken routes.
 Macro "Merge Route Systems" (MacroOpts)
   output_rts_file = MacroOpts.output_rts_file
   output_rts_file2 = Substitute(output_rts_file, ".rts", "_2.rts", )
-  proj_list = Substitute(MacroOpts.proj_list, ".csv", "_2.csv", )
+  // proj_list = Substitute(MacroOpts.proj_list, ".csv", "_2.csv", )
 
   rts = CreateObject("Map", output_rts_file)
   {nlyr, llyr, rlyr, slyr} = rts.GetLayerNames()
@@ -526,8 +528,8 @@ Macro "Merge Route Systems" (MacroOpts)
 
   // Delete the broken route files
   DeleteRouteSystem(output_rts_file2)
-  DeleteFile(proj_list)
-  DeleteFile(Substitute(proj_list, ".csv", ".dcc", ))
+  // DeleteFile(proj_list)
+  // DeleteFile(Substitute(proj_list, ".csv", ".dcc", ))
 endmacro
 
 /*
@@ -639,8 +641,6 @@ Macro "Check Scenario Route System" (MacroOpts)
     pid = v_rev_pid[i]
     rid_m = v_rid_m[i]
     rid_s = v_rid_s[i]
-
-if pid = "30" then Throw()
 
     // Calculate the route length in the master rts
     opts = null
