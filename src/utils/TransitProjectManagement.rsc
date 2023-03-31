@@ -170,7 +170,7 @@ macro "Migrate Route System" (MacroOpts)
   // to export.
   tbl = CreateObject("Table", master_rts)
   tbl.AddField({FieldName: "sel_temp"})
-  tbl.AddField({FieldName: "Master_Route_ID"})
+  tbl.AddField({FieldName: "Master_Route_ID", Type: "integer"})
   tbl.Master_Route_ID = tbl.Route_ID
   tbl = 0
   dm = CreateObject("DataManager")
@@ -200,6 +200,13 @@ macro "Migrate Route System" (MacroOpts)
     Filter: "sel_temp = 1"
   })
   dm = null
+
+  // Rename exported layer
+  map = CreateObject("Map", output_rts_file)
+  {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  RenameLayer(rlyr, "scenario_routes", {Permanent: "true"})
+  RenameLayer(slyr, "scenario_stops", {Permanent: "true"})
+  map = null
 
   // Delete any existing error log files before modifying the route system
 	{drive, folder, name, ext} = SplitPath(output_rts_file)
@@ -615,26 +622,38 @@ Macro "Check Scenario Route System" (MacroOpts)
   opts.rts_file = master_rts
   master_hwy_copy = RunMacro("Get RTS Roadway File", opts)
 
-  // Get project IDs from the project list and convert to route ids on both
-  // the master and scenario route systems.
-  proj = OpenTable("projects", "CSV", {proj_list, })
-  v_pid = GetDataVector(proj + "|", "ProjID", )
-  if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
-  if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
-  CloseView(proj)
-  opts = null
-  opts.rts_file = master_rts
-  opts.v_pid = v_pid
-  {v_rid_m, v_rev_pid} = RunMacro("Convert ProjID to RouteID", opts)
-  opts.rts_file = output_rts_file
-  {v_rid_s, } = RunMacro("Convert ProjID to RouteID", opts)
+  // // Get project IDs from the project list and convert to route ids on both
+  // // the master and scenario route systems.
+  // proj = OpenTable("projects", "CSV", {proj_list, })
+  // v_pid = GetDataVector(proj + "|", "ProjID", )
+  // if TypeOf(v_pid) = "null" then Throw("No transit project IDs found")
+  // if TypeOf(v_pid[1]) <> "string" then v_pid = String(v_pid)
+  // CloseView(proj)
+  // opts = null
+  // opts.rts_file = master_rts
+  // opts.v_pid = v_pid
+  // {v_rid_m, v_rev_pid} = RunMacro("Convert ProjID to RouteID", opts)
+  // opts.rts_file = output_rts_file
+  // {v_rid_s, } = RunMacro("Convert ProjID to RouteID", opts)
 
   // Open the master and scenario route systems in separate maps.
   master_map = CreateObject("Map", master_rts)
   {nlyr_m, llyr_m, rlyr_m, slyr_m} = master_map.GetLayerNames()
   scen_map = CreateObject("Map", output_rts_file)
   {nlyr_s, llyr_s, rlyr_s, slyr_s} = scen_map.GetLayerNames()
-  
+
+  // Create a joined table to get IDS
+  master = CreateObject("Table", rlyr_m)
+  scenario = CreateObject("Table", rlyr_s)
+  joined = scenario.Join({
+    Table: master,
+    LeftFields: "Master_Route_ID",
+    RightFields: "Route_ID"
+  })
+  v_rev_pid = joined.(scenario.GetView() + ".ProjID")
+  v_rid_m = joined.(master.GetView() + ".Route_ID")
+  v_rid_s = joined.(scenario.GetView() + ".Route_ID")
+
   // Compare master and scenario routes
   data = null
   for i = 1 to v_rev_pid.length do
