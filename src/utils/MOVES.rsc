@@ -186,7 +186,7 @@ Macro "MOVES" (Args, region, year)
   roadtype = Createobject("df", roadtype_file)
   agg.mutate("roadTypeVMTFraction", agg.tbl.Total_VMT_Daily/agg.tbl.Total_VMT_Daily.sum())
   roadtype.left_join(agg,"roadTypeID", "roadTypeID")
-  roadtype.select({"sourcetype", "roadTypeID", "roadTypeVMTFraction"})
+  roadtype.select({"sourcetypeID", "roadTypeID", "roadTypeVMTFraction"})
   roadtype.write_csv(summary_dir + "/roadtype.csv")
   
   //4. Sourcetype output
@@ -196,12 +196,12 @@ Macro "MOVES" (Args, region, year)
   weekendparam = Createobject("df", weekendparam_file)
 
   sourcetype. mutate("year", s2i(year))
-  sourcetype.left_join(sourcetypeparam, {"sourcetype", "year"}, {"sourcetype", "year"})
+  sourcetype.left_join(sourcetypeparam, {"sourcetypeID", "year"}, {"sourcetypeID", "year"})
   sourcetype.left_join(monthparam, "month")
   sourcetype.left_join(weekendparam, {"year", "day"}, {"year", "day"})
 	tot_VMT = agg.tbl.Total_VMT_Daily.sum()
   sourcetype.mutate("VMT", sourcetype.tbl.styFactor * sourcetype.tbl.month_model * sourcetype.tbl.wkFactor * tot_VMT)
-  sourcetype.select({"sourcetype", "month", "day", "year", "styFactor", "VMT"})
+  sourcetype.select({"sourcetypeID", "month", "day", "year", "styFactor", "VMT"})
   sourcetype.write_csv(summary_dir + "/sourcetype_vmt.csv")
   
   //5. Hour output
@@ -211,10 +211,10 @@ Macro "MOVES" (Args, region, year)
   hour.left_join(agg, "roadTypeID", "roadTypeID")
   hour.mutate("hourlyvmt", if hour.tbl.TOD = "AM" then hour.tbl.Tot_VMT_AM/2 * hour.tbl.hourFac else if hour.tbl.TOD = "MD" then hour.tbl.Tot_VMT_MD/6.5 * hour.tbl.hourFac 
                             else if hour.tbl.TOD = "PM" then hour.tbl.Tot_VMT_PM/2.75 * hour.tbl.hourFac else hour.tbl.Tot_VMT_NT/12.75 * hour.tbl.hourFac)
-  hour.group_by({"sourcetype", "roadTypeID", "day", "hour"})
+  hour.group_by({"sourcetypeID", "roadTypeID", "day", "hour"})
   hour.summarize({"hourlyvmt", "Total_VMT_Daily", "hourvmtfraction"}, {"sum", "avg"})
   hour.mutate("hourlypct", if hour.tbl.dayID = 5 then hour.tbl.sum_hourlyVMT/hour.tbl.sum_Total_VMT_Daily else hour.tbl.avg_hourvmtfraction)
-  hour.select({"sourcetype", "roadTypeID", "day", "hour", "hourlypct"})
+  hour.select({"sourcetypeID", "roadTypeID", "day", "hour", "hourlypct"})
   hour.write_csv(summary_dir + "/hourlyvmt.csv")
 
   //6. Speed output
@@ -222,16 +222,17 @@ Macro "MOVES" (Args, region, year)
   //Calculate speed bin
   for period in periods do
     // first calculate speed, as DBD file only has AB/BA speed.
-    vmt = df1.get_col("Tot_VMT_AM")
-    vht = df1.get_col("Tot_VHT_AM")
-    speed = vmt/vht
-    df1.mutate("speed", speed)
-    df1.mutate("speedbin_"+ period, if df1.tbl.speed <72.5 then Ceil((df1.tbl.speed + 2.5)/5) else 16)
+    v_vmt = df1.get_col("Tot_VMT_" + period)
+    v_vht = df1.get_col("Tot_VHT_" + period)
+    v_speed = v_vmt/v_vht
+    df1.mutate("speed_" + period, v_speed)
+    df1.mutate("speedbin_"+ period, if df1.tbl.("speed_" + period) <72.5 then Ceil((df1.tbl.("speed_" + period) + 2.5)/5) else 16)
   end
+
   //Calculate VHT fraction
   gather_cols = {"speedbin_AM", "speedbin_MD", "speedbin_PM", "speedbin_NT"} // wide table to long
-  df1.gather(gather_cols, "TOD","bin")
-  df1.mutate("TOD", right(df1.tbl.TOD, 2))
+  df1.gather(gather_cols, "TOD", "bin")
+  df1.mutate("TOD", right(df1.tbl.("TOD"), 2))
   df1.mutate("VHT", if df1.tbl.TOD = "AM" then df1.tbl.Tot_VHT_AM else if df1.tbl.TOD = "MD" then df1.tbl.Tot_VHT_MD else if df1.tbl.TOD = "PM" then df1.tbl.Tot_VHT_PM else df1.tbl.Tot_VHT_NT)
   df1.group_by({"TOD", "roadTypeID", "bin"})
   df1.summarize("VHT", "sum")
@@ -244,14 +245,14 @@ Macro "MOVES" (Args, region, year)
   df2.rename('sum_VHT', "total_VHT")
 
   df1.left_join(df2, {"TOD", "roadTypeID"}, {"TOD", "roadTypeID"})
-  df1.mutate("AvgSpeedFraction", df1.tbl.VHT/df1.tbl.total_VHT) // get fraction
+  df1.mutate("Fraction", if df1.tbl.VHT/df1.tbl.total_VHT>0 then df1.tbl.VHT/df1.tbl.total_VHT else 0) // get fraction
 
   //Join results to the speed template
   speed = Createobject("df", speed_file)
-  speed.rename("AvgSpeedFraction", "DefaultFraction")
+  speed.rename("avgSpeedFraction", "DefaultFraction")
   speed.left_join(df1, {"TOD", "roadTypeID", "avgSpeedBinID"}, {"TOD", "roadTypeID", "bin"})
-  speed.mutate("AvgSpeedFraction", if speed.tbl.AvgSpeedFraction >0 then speed.tbl.AvgSpeedFraction else 0) //fill in missing zero
-  speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then speed.tbl.AvgSpeedFraction else speed.tbl.DefaultFraction) // weekend fraction should be set to default
+  speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then speed.tbl.Fraction else speed.tbl.DefaultFraction) // weekend fraction should be set to default
+  speed.select({"sourceTypeID", "roadTypeID", "hourDayID", "hourID", "dayID", "TOD", "avgSpeedBinID", "AvgSpeedFraction"})
   speed.write_csv(summary_dir + "/speed.csv")
 
   DeleteFile(summary_dir + "/agg_link_table.csv")

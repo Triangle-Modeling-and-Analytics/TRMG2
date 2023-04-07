@@ -1,4 +1,4 @@
-sourcetype,roadTypeID,day,hour,hourvmtfraction
+sourcetypeID,roadTypeID,day,hour,hourvmtfraction
 11,1,2,1,0.0214739
 11,1,2,2,0.0144428
 11,1,2,3,0.0109684
