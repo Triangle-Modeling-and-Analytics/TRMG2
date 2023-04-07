@@ -254,6 +254,9 @@ Macro "MOVES" (Args, region, year)
   speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then speed.tbl.AvgSpeedFraction else speed.tbl.DefaultFraction) // weekend fraction should be set to default
   speed.write_csv(summary_dir + "/speed.csv")
 
+  DeleteFile(summary_dir + "/agg_link_table.csv")
+  DeleteFile(summary_dir + "/link_table.csv")
+  
   return(1)
 
 endmacro

@@ -82,7 +82,7 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     comp_string = s1_name + "_" + s2_name
     
 
-    // Loop through scenarios and run TIA for each scenario
+    // Loop through scenarios and run VMT tool for each scenario
     for dir in scen_Dirs do
         opts = null
         opts.[Scenario Folder] = dir
@@ -90,16 +90,12 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
         opts.TAZs = dir + "\\output\\tazs\\scenario_tazs.dbd"
         opts.[Input SE] = dir + "\\input\\sedata\\scenario_se.bin"
         opts.HBHOV3OccFactors = dir + "\\input\\resident\\tod\\hov3_occ_factors_hb.csv"
-        opts.skim_dir = dir + "\\output\\skims\\roadway"
-        opts.autotrip_dir = dir + "\\output\\_summaries\\resident_hb"
-        opts.reporting_dir = dir + "\\output\\_summaries"
-        opts.output_dir = dir + "\\output\\_summaries\\VMT_TIA"
-        RunMacro("TIA VMT", opts) 
+        RunMacro("Calculate Zone VMT", opts) 
     end
     
     // Join vmt tables
-    s1_vmt_df = CreateObject("df", S1_Dir + "\\output\\_summaries\\VMT_TIA\\TIA_VMT.csv")
-    s2_vmt_df = CreateObject("df", S2_Dir + "\\output\\_summaries\\VMT_TIA\\TIA_VMT.csv")
+    s1_vmt_df = CreateObject("df", S1_Dir + "\\output\\_summaries\\Zonal_VMT_Comparison\\Zone_VMT.csv")
+    s2_vmt_df = CreateObject("df", S2_Dir + "\\output\\_summaries\\Zonal_VMT_Comparison\\Zone_VMT.csv")
     s1_vmt_df.left_join(s2_vmt_df, "TAZ", "TAZ")
     names = s1_vmt_df.colnames()
     for name in names do
@@ -169,8 +165,8 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
     // Configure Legend
     SetLegendDisplayStatus(cTheme, "True")
     RunMacro("G30 create legend", "Theme")
-    title = "Change in VMT Ratio"
-    footnote = "Change in Zonal VMT"
+    title = "Change in Total VMT per Service Population"
+    footnote = comp_string + "_comparison"
     SetLegendSettings (
       GetMap(),
       {
@@ -201,4 +197,178 @@ Macro "Zonal VMT Calculation" (Args, S2_Dir)
 
     Return(1)
 
+endmacro
+
+Macro "Calculate Zone VMT" (Args)
+    dir = Args.[Scenario Folder]
+    TOD_list = Args.Periods
+    taz_file = Args.TAZs
+    se_file = Args.[Input SE]
+    factor_file = Args.HBHOV3OccFactors
+    skim_dir = dir + "\\output\\skims\\roadway"
+    autotrip_dir = dir + "\\output\\_summaries\\resident_hb"
+    reporting_dir = dir + "\\output\\_summaries"
+    output_dir = reporting_dir + "\\Zonal_VMT_Comparison"
+    RunMacro("Create Directory", output_dir)
+    
+    
+    // 0. create output matrix
+    out_file = output_dir + "\\Zone_VMT.mtx"
+    autotrip = autotrip_dir + "\\pa_veh_trips_AM.mtx"
+    CopyFile(autotrip, out_file)
+    out_mtx = CreateObject("Matrix", out_file)
+    out_core_names = out_mtx.GetCoreNames()
+    out_mtx.AddCores({"HB_VMT"})
+    out_mtx.DropCores(out_core_names)
+
+    // 0. Create the output table (first iteration only)
+    vmt_binfile = output_dir + "\\Zone_VMT.bin"
+    if GetFileInfo(vmt_binfile) <> null then do
+        DeleteFile(vmt_binfile)
+        DeleteFile(Substitute(vmt_binfile, ".bin", ".dcb", ))
+    end
+    out_vw = CreateTable("out", vmt_binfile, "FFB", {
+        {"TAZ", "Integer", 10, , , "Zone ID"}
+    })
+    se_vw = OpenTable("se", "FFB", {se_file})
+    taz = GetDataVector(se_vw + "|", "TAZ", )
+    n = GetRecordCount(se_vw, )
+    AddRecords(out_vw, , , {"empty records": n})
+    SetDataVector(out_vw + "|", "TAZ", taz, )
+    CloseView(se_vw)
+    CloseView(out_vw)
+
+    // 1. Calculate home based VMT per resident
+    // 1.1 Loop through TOD to calculate HB VMT
+    field_name = "HB_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+    
+    out_core = out_mtx.GetCore("HB_VMT")
+    mode = {"sov", "hov2", "hov3"}
+    for tod in TOD_list do
+        // set input path
+        trip_file = autotrip_dir + "\\pa_veh_trips_" + tod + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_file)
+        trip_cores = trip_mtx.GetCores()
+
+        skim_sov_file = skim_dir + "\\skim_sov_" + tod + ".mtx"
+        skim_hov_file = skim_dir + "\\skim_hov_" + tod + ".mtx"
+        skim_sov_mtx = CreateObject("Matrix", skim_sov_file)
+        skim_hov_mtx = CreateObject("Matrix", skim_hov_file)
+        skim_sov_core = skim_sov_mtx.GetCore("Length (Skim)")
+        skim_hov_core = skim_hov_mtx.GetCore("Length (Skim)")
+
+        out_core := nz(out_core) + nz(trip_cores.("sov")) * nz(skim_sov_core) + nz(trip_cores.("hov2")) * nz(skim_hov_core) +  nz(trip_cores.("hov3")) * nz(skim_hov_core)
+    end
+    v_hbvmt = out_mtx.GetVector({"Core": "HB_VMT", Marginal: "Row Sum"})
+    v_hbvmt.rowbased = "true"
+    data.(field_name) = nz(v_hbvmt)
+
+    // 2.2 Calculate University VMT
+    field_name = "University_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+
+    out_mtx.AddCores({"University_VMT"})
+    out_core = out_mtx.GetCore("University_VMT")
+
+    univ_dir = dir + "\\output\\university"
+    for tod in TOD_list do
+        // set input path
+        univ_trip = univ_dir + "\\university_pa_modal_trips_" + tod + ".mtx"
+        univ_mtx = CreateObject("Matrix", univ_trip)
+        univ_core = univ_mtx.GetCore("auto")
+
+        skim_file =  skim_dir + "\\skim_sov_" + tod + ".mtx"
+        skim_mtx = CreateObject("Matrix", skim_file)
+        skim_core = skim_sov_mtx.GetCore("Length (Skim)")
+
+        out_core := nz(out_core) + nz(skim_core) * nz(univ_core)      
+    end
+
+    v_univvmt = out_mtx.GetVector({"Core": "University_VMT", Marginal: "Row Sum"})
+    v_univvmt.rowbased = "true"
+    data.(field_name) = nz(v_univvmt)
+
+    // 3. Calculate home base work VMT
+    field_name = "HBW_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+
+    RunMacro("Create HBW PA Vehicle Trip Matrices", Args)
+    out_mtx.AddCores({"HBW_VMT"})
+    out_core = out_mtx.GetCore("HBW_VMT")
+
+    // 3.2 Loop through TOD to calculate HBW VMT
+    mode = {"sov", "hov2", "hov3"}
+    for tod in TOD_list do
+        // set input path
+        trip_file = output_dir + "\\pa_veh_trips_W_HB_W_All_" + tod + ".mtx"
+        trip_mtx = CreateObject("Matrix", trip_file)
+        trip_cores = trip_mtx.GetCores()
+
+        skim_sov_file = skim_dir + "\\skim_sov_" + tod + ".mtx"
+        skim_hov_file = skim_dir + "\\skim_hov_" + tod + ".mtx"
+        skim_sov_mtx = CreateObject("Matrix", skim_sov_file)
+        skim_hov_mtx = CreateObject("Matrix", skim_hov_file)
+        skim_sov_core = skim_sov_mtx.GetCore("Length (Skim)")
+        skim_hov_core = skim_hov_mtx.GetCore("Length (Skim)")
+
+        out_core := nz(out_core) + nz(trip_cores.("sov")) * nz(skim_sov_core) + nz(trip_cores.("hov2")) * nz(skim_hov_core) +  nz(trip_cores.("hov3")) * nz(skim_hov_core)
+    end
+
+    v_hbwvmt = out_mtx.GetVector({"Core": "HBW_VMT", Marginal: "Column Sum"})
+    v_hbwvmt.rowbased = "true"
+    data.(field_name) = nz(v_hbwvmt)
+    
+    // Fill in the raw output table
+    out_vw = OpenTable("out", "FFB", {vmt_binfile})
+    RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
+    SetDataVectors(out_vw + "|", data, )
+    CloseView(out_vw)
+
+    // Join SE data
+    vmt_df = CreateObject("df", vmt_binfile)
+    se_df = CreateObject("df", se_file)
+    vmt_df.left_join(se_df, "TAZ", "TAZ")
+    vmt_df.mutate("Emp", vmt_df.tbl.("Industry") + vmt_df.tbl.("Retail") + vmt_df.tbl.("Service_RateHigh") + vmt_df.tbl.("Service_RateLow") + vmt_df.tbl.("Office"))
+    vmt_df.mutate("Student", vmt_df.tbl.("StudGQ_NCSU") + vmt_df.tbl.("StudGQ_UNC") + vmt_df.tbl.("StudGQ_DUKE") + vmt_df.tbl.("StudGQ_NCCU"))
+    vmt_df.mutate("ServicePopulation", vmt_df.tbl.("HH_POP") + vmt_df.tbl.("Emp") + vmt_df.tbl.("Student"))
+    vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.("HB_VMT") + vmt_df.tbl.("University_VMT"))/vmt_df.tbl.("ServicePopulation"))
+    vmt_df.mutate("HBVMT_perres", vmt_df.tbl.("HB_VMT")/vmt_df.tbl.("HH_POP"))
+    vmt_df.mutate("HBWVMT_peremp", vmt_df.tbl.("HBW_VMT")/vmt_df.tbl.("Emp"))
+    vmt_df.select({"TAZ", "HB_VMT", "University_VMT", "HBW_VMT", "HH_POP", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
+    vmt_df.write_csv(output_dir + "/Zone_VMT.csv")
+
+    Return(1)    
+endmacro
+
+Macro "Create HBW PA Vehicle Trip Matrices" (Args)
+
+    // This section is a slight modification to the "HB Occupancy" macro
+    factor_file = Args.HBHOV3OccFactors
+    periods = Args.periods
+    trip_dir = Args.[Scenario Folder] + "\\output\\resident\\trip_matrices"
+    output_dir = Args.[Scenario Folder] + "\\output\\_summaries\\Zone_VMT"
+
+    fac_vw = OpenTable("factors", "CSV", {factor_file})
+    
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        trip_type = fac_vw.trip_type
+        period = fac_vw.tod
+        if trip_type <> "W_HB_W_All" then goto skip // only do for work trip
+        if periods.position(period) = 0 then goto skip
+        hov3_factor = fac_vw.hov3
+
+        per_mtx_file = trip_dir + "/pa_per_trips_W_HB_W_All_" + period + ".mtx"
+        veh_mtx_file = output_dir + "/pa_veh_trips_W_HB_W_All_" + period + ".mtx"
+        CopyFile(per_mtx_file, veh_mtx_file)
+        mtx = CreateObject("Matrix", veh_mtx_file)
+        cores = mtx.GetCores()
+        cores.hov2 := cores.hov2 / 2
+        cores.hov3 := cores.hov3 / hov3_factor
+
+        skip:
+        rh = GetNextRecord(fac_vw + "|", rh, )
+    end
+    CloseView(fac_vw)
 endmacro

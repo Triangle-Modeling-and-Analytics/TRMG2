@@ -19,7 +19,7 @@ dBox "TIA VMT" (Args) center, center, 60, 10
     enditem
 
     // New Scenario
-    Text 38, 5, 15 Prompt: "New Scenario (selected in scenario list):" Variable: Scen_Name
+    Text 45, 3, 15 Prompt: "Perform analysis for scenario (selected in scenario list):" Variable: Scen_Name
 
     // Quit Button
     button 5, 8, 10 Prompt:"Quit" do
@@ -211,6 +211,28 @@ Macro "TIA VMT" (Args)
     vmt_df.select({"TAZ", "HB_VMT", "IEEI_VMT", "University_VMT", "HBW_VMT", "HH_POP", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
     vmt_df.write_csv(output_dir + "/TIA_VMT.csv")
 
+    // Calculate Min, 85th, and Max for CoR and Create Maps
+    cor = CreateObject("df", "C:\\Work\\CoR_TIA\\TAZ_COR_District\\TAZ.bin")
+    cor.left_join(vmt_df, "ID", "TAZ")
+    cor.filter("CorporateLimit = 1")
+
+    mapvars = {"TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"}
+    for varname in mapvars do
+        v = cor.tbl.(varname)
+        n_pct = VectorStatistic(v, "Percentile", {"Percentile": 85}) 
+        n_min =  VectorStatistic(v, "Min",)
+        n_max =  VectorStatistic(v, "Max",)
+
+        opts = null
+        opts.output_dir = output_dir
+        opts.taz_file = taz_file
+        opts.varname = varname
+        opts.npct = n_pct
+        opts.nmin = n_min
+        opts.nmax = n_max
+        RunMacro("Create Zone VMT Map", opts)
+    end
+
     Return(1)    
 endmacro
 
@@ -251,44 +273,78 @@ Macro "Create HBW PA Vehicle Trip Matrices" (Args)
     end
     CloseView(fac_vw)
 
-    /*
-    // This section is a slight modification to "HB Collapse Trip Types"
-    trip_types = "W_HB_W_All"
-    auto_cores = {"sov", "hov2", "hov3"}
-    
-    // Create the final matrix for the period using the first trip type matrix
-    mtx_file = output_dir + "/pa_veh_trips_W_HB_W_All_daily.mtx"
-    out_file = output_dirc
-    CopyFile(mtx_file, out_file)
-    out_mtx = CreateObject("Matrix", out_file)
-    core_names = out_mtx.GetCoreNames()
-    for core_name in core_names do
-        if auto_cores.position(core_name) = 0 then to_remove = to_remove + {core_name}
+endmacro
+
+Macro "Create Zone VMT Map" (opts)
+    output_dir = opts.output_dir 
+    taz_file = opts.taz_file
+    varname = opts.varname
+    n_pct = opts.npct
+    n_min = opts.nmin
+    n_max = opts.nmax
+
+    // Mapping VMT delta on a taz map
+    vw = OpenTable("vw", "CSV", {output_dir + "/TIA_VMT.CSV"})
+    mapFile = output_dir + "/" + varname + ".map"
+    {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
+    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
+    SetView(jnvw)
+
+    // Create a theme for var
+    numClasses = 2
+    cTheme = CreateTheme("ZonalVMT", jnvw+"." + varname, "Manual" , numClasses, {
+      {"Values",{
+        {n_min, "True", n_pct, "False"},
+        {n_pct, "True", n_max, "True"}
+        }},
+      {"Other", "False"}
+    }
+    )
+
+    // Set theme fill color and style
+    opts = null
+    a_color = {
+        ColorRGB(65535, 65535, 54248),
+        ColorRGB(8738, 24158, 43176)
+    }
+    SetThemeFillColors(cTheme, a_color)
+    str1 = "XXXXXXXX"
+    solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+    for i = 1 to numClasses do
+      a_fillstyles = a_fillstyles + {solid}
     end
-    out_mtx.DropCores(to_remove)
-    to_remove = null
-    out_cores = out_mtx.GetCores()
+    SetThemeFillStyles(cTheme, a_fillstyles)
+    ShowTheme(, cTheme)
 
-    for period in periods do
+    // Modify the border color
+    lightGray = ColorRGB(45000, 45000, 45000)
+    SetLineColor(, lightGray)
 
-        // Add TOD matrices to the output matrix
-        mtx_file = trip_dir + "/pa_veh_trips_W_HB_W_All_" + period + ".mtx"
-        mtx = CreateObject("Matrix", mtx_file)
-        cores = mtx.GetCores()
-        for core_name in auto_cores do
-            if cores.(core_name) = null then continue
-            out_cores.(core_name) := nz(out_cores.(core_name)) + nz(cores.(core_name))
-        end
-
-        // Remove interim files
-        mtx = null
-        cores = null
-        out_mtx = null
-        out_cores = null
-        for trip_type in trip_types do
-            mtx_file = trip_dir + "/pa_veh_trips_W_HB_W_All_" + period + ".mtx"
-            DeleteFile(mtx_file)
-        end
+    cls_labels = GetThemeClassLabels(cTheme)
+    for i = 1 to cls_labels.length do
+      label = cls_labels[i]
     end
-    */
+    SetThemeClassLabels(cTheme, cls_labels)
+
+    // Configure Legend
+    SetLegendDisplayStatus(cTheme, "True")
+    RunMacro("G30 create legend", "Theme")
+    title = "Change in " + varname
+    //footnote = 
+    SetLegendSettings (
+      GetMap(),
+      {
+        "Automatic",
+        {0, 1, 0, 0, 1, 4, 0},
+        {1, 1, 1},
+        {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
+        {title, }
+      }
+    )
+    SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+    RedrawMap(map)
+    SaveMap(map,mapFile)
+    CloseMap(map)
+
 endmacro
