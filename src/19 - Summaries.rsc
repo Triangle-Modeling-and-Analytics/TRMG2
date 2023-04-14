@@ -1293,6 +1293,7 @@ Macro "VMT_Delay Summary" (Args)
   RunMacro("Close All")
 
   // Summarize by different variable
+  group_fields = group_fields + {{"County", "HCMType"}} //add VMT by facility type by county
   for var in group_fields do
     df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
     df.group_by(var)
@@ -1304,8 +1305,56 @@ Macro "VMT_Delay Summary" (Args)
             df.rename(name, new_name)
         end
     end
-    df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
+    if Typeof(var) = "string" then df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
+    else df.write_csv(output_dir + "/VMT_Delay_by_HCMType_by_County.csv")
   end
+
+  // Calculate VMT per capita by MPO/County
+  taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
+  taz = CreateObject("df", taz_bin) // get county info for SE data
+  output = null
+  group_fields = {"County", "MPO"}
+  fields_to_sum = {"HH", "POP"}
+  for var in group_fields do 
+    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
+    df.group_by(var)
+    df.summarize("Total_VMT_Daily", "sum")
+    
+    se = CreateObject("df", se_bin)
+    se.mutate("POP", se.tbl.HH_POP + se.tbl.StudGQ_NCSU + se.tbl.StudGQ_UNC + se.tbl.StudGQ_DUKE + se.tbl.StudGQ_NCCU + se.tbl.CollegeOn)
+    se.left_join(taz, "TAZ", "ID")
+    se.group_by(var)
+    se.summarize(fields_to_sum, "sum")
+  
+    df.left_join(se, var, var)
+    names = df.colnames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            df.rename(name, new_name)
+        end
+        if name = "County" or name = "MPO" then do
+          new_name = "Geography"
+          df.rename(name, new_name)
+        end
+    end
+    df.mutate("VMT_per_HH", df.tbl.Total_VMT_Daily/df.tbl.HH)
+    df.mutate("VMT_per_POP", df.tbl.Total_VMT_Daily/df.tbl.POP)
+
+    if output = null then output = df.copy() // combine outputs into 1 csv file
+    else output.bind_rows(df)
+  end
+  output.write_csv(output_dir + "/VMT_perCapita.csv")
+
+  // Calculate VMT per capita for region
+  Total_VMT_Daily = df.tbl.Total_VMT_Daily.sum()
+  HH = se.tbl.sum_HH.sum()
+  POP = se.tbl.sum_POP.sum()
+  VMT_per_HH = Total_VMT_Daily/HH
+  VMT_per_POP = Total_VMT_Daily/POP
+  line = "Regional," + String(Total_VMT_Daily) + "," + String(HH) + "," + String(POP) + "," + String(VMT_per_HH) + "," + String(VMT_per_POP)
+  RunMacro("Append Line", {file: output_dir + "/VMT_perCapita.csv", line: line}) //add regional results to output file
+
   
 EndMacro
 
