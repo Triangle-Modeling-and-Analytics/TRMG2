@@ -347,7 +347,7 @@ Macro "Create HBW PA Vehicle Trip Matrices" (Args)
     factor_file = Args.HBHOV3OccFactors
     periods = Args.periods
     trip_dir = Args.[Scenario Folder] + "\\output\\resident\\trip_matrices"
-    output_dir = Args.[Scenario Folder] + "\\output\\_summaries\\Zone_VMT"
+    output_dir = Args.[Scenario Folder] + "\\output\\_summaries\\Zonal_VMT_Comparison"
 
     fac_vw = OpenTable("factors", "CSV", {factor_file})
     
