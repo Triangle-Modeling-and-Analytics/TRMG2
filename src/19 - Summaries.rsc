@@ -29,6 +29,7 @@ Macro "Other Reports" (Args)
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
     RunMacro("Create PA Vehicle Trip Matrices", Args)
+    RunMacro("Communities of Concern", Args)
     return(1)
 endmacro
 
@@ -1481,4 +1482,51 @@ Macro "Create PA Vehicle Trip Matrices" (Args)
             DeleteFile(mtx_file)
         end
     end
+endmacro
+
+/*
+Marks the TAZs that meet the various thresholds of communities of concern.
+*/
+
+// TODO: remove
+Macro "test"
+  Args.Households = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2022\\output\\resident\\population_synthesis\\Synthesized_HHs.bin"
+  Args.[Output Folder] = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2022\\output"
+  Runmacro("Communities of Concern", Args)
+endmacro
+
+Macro "Communities of Concern" (Args)
+
+  hh_file = Args.Households
+  summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+
+  tbl = CreateObject("Table", hh_file)
+  tbl.AddField("v0")
+  tbl.AddField("has_seniors")
+  tbl.v0 = if tbl.market_segment = "v0" then 1 else 0
+  tbl.has_seniors = if tbl.HHSeniors > 0 then 1 else 0
+  agg = tbl.Aggregate({
+    GroupBy: "ZoneID",
+    FieldStats: {
+      v0: {"count", "sum"},
+      has_seniors: {"count", "sum"}
+    }
+  })
+  // v0 CoC
+  agg.AddField("v0_pct")
+  v_pct = agg.sum_v0 / agg.count_v0 * 100
+  agg.v0_pct = v_pct
+  cutoff = Percentile(V2A(v_pct), 75)
+  agg.AddField("ZeroCar_CoC")
+  agg.ZeroCar_CoC = if agg.v0_pct > cutoff then 1 else 0
+  // senior CoC
+  agg.AddField("senior_pct")
+  v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
+  agg.senior_pct = v_pct
+  cutoff = Percentile(V2A(v_pct), 75)
+  agg.AddField("Senior_CoC")
+  agg.Senior_CoC = if agg.senior_pct > cutoff then 1 else 0
+
+  if GetDirectoryInfo(summary_dir, "All") = null then CreateDirectory(summary_dir)
+  agg.Export({FileName: summary_dir + "/taz_designation.csv"})
 endmacro
