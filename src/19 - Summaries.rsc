@@ -223,7 +223,9 @@ Macro "Calculate Daily Fields" (Args)
       output.("Total_" + field + "_Daily") = nz(output.("Total_" + field + "_Daily")) + v_output
     end
 
-    fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,,"Daily " + field + " in both directions"}}
+	description = "Daily " + field + " in both directions"
+	if field = "Delay" then description = description + " (hours)"
+    fields_to_add = fields_to_add + {{"Total_" + field + "_Daily", "Real", 10, 2,,,, description}}
   end
 
   // The assignment files don't have total delay by period. Create those.
