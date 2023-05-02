@@ -1490,8 +1490,10 @@ Marks the TAZs that meet the various thresholds of communities of concern.
 
 // TODO: remove
 Macro "test"
-  Args.Households = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2022\\output\\resident\\population_synthesis\\Synthesized_HHs.bin"
-  Args.[Output Folder] = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2022\\output"
+  dir = "C:\\projects\\TRMG2\\TRMG2_repo\\scenarios\\base_2020"
+  Args.Households = dir + "\\output\\resident\\population_synthesis\\Synthesized_HHs.bin"
+  Args.[Output Folder] = dir + "\\output"
+  Args.SE = dir + "\\output\\sedata\\scenario_se.bin"
   Runmacro("Communities of Concern", Args)
 endmacro
 
@@ -1499,6 +1501,7 @@ Macro "Communities of Concern" (Args)
 
   hh_file = Args.Households
   summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+  se_file = Args.SE
 
   tbl = CreateObject("Table", hh_file)
   tbl.AddField("v0")
@@ -1529,4 +1532,38 @@ Macro "Communities of Concern" (Args)
 
   if GetDirectoryInfo(summary_dir, "All") = null then CreateDirectory(summary_dir)
   agg.Export({FileName: summary_dir + "/taz_designation.csv"})
+  agg.RenameField({FieldName: "ZoneID", NewName: "TAZ"})
+  se = CreateObject("Table", se_file)
+  se.AddFields({
+    Fields: {
+      {FieldName: "v0_pct", Description: "Percent of households that are zero-vehicle"},
+      {FieldName: "ZeroCar_CoC", Description: "TAZ designated as a community of concern due to % of v0"},
+      {FieldName: "senior_pct", Description: "Percent of households that have seniors"},
+      {FieldName: "Senior_CoC", Description: "TAZ designated as a community of concern due to % of HHs with seniors"}
+    }
+  })
+
+  // TODO: replace with new Table class method
+  {se_fields, se_specs} = RunMacro("Get Fields", {view_name: se.GetView()})
+  {agg_fields, agg_specs} = RunMacro("Get Fields", {view_name: agg.GetView()})
+  // se_specs = se.GetFieldSpecs({NamedArray: "true"})
+  // agg_specs = agg.GetFieldSpecs({NamedArray: "true"})
+
+  join = se.Join({
+    Table: agg,
+    LeftFields: "TAZ",
+    RightFields: "TAZ"
+  })
+  join.(se_specs.v0_pct) = nz(join.(agg_specs.v0_pct))
+  join.(se_specs.ZeroCar_CoC) = nz(join.(agg_specs.ZeroCar_CoC))
+  join.(se_specs.senior_pct) = nz(join.(agg_specs.senior_pct))
+  join.(se_specs.Senior_CoC) = nz(join.(agg_specs.Senior_CoC))
+endmacro
+
+/*
+
+*/
+
+Macro "COC Skims" (Args)
+
 endmacro
