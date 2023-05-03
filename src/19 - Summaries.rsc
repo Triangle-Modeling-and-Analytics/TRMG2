@@ -1496,19 +1496,44 @@ Macro "Communities of Concern" (Args)
 	hh_file = Args.Households
 	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
 	se_file = Args.SE
+	pov_file = Args.[Input Folder] + "/sedata/poverty_thresholds.csv"
 
+	// Identify which households are zero vehicle and senior
 	tbl = CreateObject("Table", hh_file)
 	tbl.AddField("v0")
 	tbl.AddField("has_seniors")
 	tbl.v0 = if tbl.market_segment = "v0" then 1 else 0
 	tbl.has_seniors = if tbl.HHSeniors > 0 then 1 else 0
+	
+	// Identify which households are below poverty thresholds
+	pov_tbl = CreateObject("Table", pov_file)
+	tbl.AddField("inc_threshold")
+	tbl.AddField("temp_senior")
+	tbl.AddField("temp_kids")
+	tbl.AddField("poverty")
+	tbl.temp_senior = if tbl.HHSize > 2 then 0 else tbl.has_seniors
+	tbl.temp_kids = if tbl.HHKids > 9 then 9 else tbl.HHKids
+	join = tbl.Join({
+		Table: pov_tbl,
+		LeftFields: {"HHSize", "temp_senior", "temp_kids"},
+		RightFields: {"HHSize", "Senior", "Children"}
+	})
+	join.inc_threshold = join.Threshold
+	join = null
+	tbl.DropFields({FieldNames: {"temp_kids", "temp_senior"}})
+	tbl.poverty = if tbl.HHInc < tbl.inc_threshold then 1 else 0
+
+	// Summarize by TAZ
 	agg = tbl.Aggregate({
 		GroupBy: "ZoneID",
 		FieldStats: {
 			v0: {"count", "sum"},
-			has_seniors: {"count", "sum"}
+			has_seniors: {"count", "sum"},
+			poverty: {"count", "sum"}
 		}
 	})
+
+	// Calculate zonal metrics
 	// v0 CoC
 	agg.AddField("v0_pct")
 	v_pct = agg.sum_v0 / agg.count_v0 * 100
@@ -1523,7 +1548,15 @@ Macro "Communities of Concern" (Args)
 	cutoff = Percentile(V2A(v_pct), 75)
 	agg.AddField("Senior_CoC")
 	agg.Senior_CoC = if agg.senior_pct > cutoff then 1 else 0
+	// poverty CoC
+	agg.AddField("poverty_pct")
+	v_pct = agg.sum_poverty / agg.count_poverty * 100
+	agg.poverty_pct = v_pct
+	cutoff = Percentile(V2A(v_pct), 75)
+	agg.AddField("Poverty_CoC")
+	agg.Poverty_CoC = if agg.poverty_pct > cutoff then 1 else 0
 
+	// Attach results to SE Data
 	if GetDirectoryInfo(summary_dir, "All") = null then CreateDirectory(summary_dir)
 	agg.Export({FileName: summary_dir + "/taz_designation.csv"})
 	agg.RenameField({FieldName: "ZoneID", NewName: "TAZ"})
@@ -1533,16 +1566,16 @@ Macro "Communities of Concern" (Args)
 			{FieldName: "v0_pct", Description: "Percent of households that are zero-vehicle"},
 			{FieldName: "ZeroCar_CoC", Description: "TAZ designated as a community of concern due to % of v0"},
 			{FieldName: "senior_pct", Description: "Percent of households that have seniors"},
-			{FieldName: "Senior_CoC", Description: "TAZ designated as a community of concern due to % of HHs with seniors"}
+			{FieldName: "Senior_CoC", Description: "TAZ designated as a community of concern due to % of HHs with seniors"},
+			{FieldName: "poverty_pct", Description: "Percent of households that are below the poverty threshold"},
+			{FieldName: "Poverty_CoC", Description: "TAZ designated as a community of concern due to % of HHs living in poverty"}
 		}
 	})
-
 	// TODO: replace with new Table class method
 	{se_fields, se_specs} = RunMacro("Get Fields", {view_name: se.GetView()})
 	{agg_fields, agg_specs} = RunMacro("Get Fields", {view_name: agg.GetView()})
 	// se_specs = se.GetFieldSpecs({NamedArray: "true"})
 	// agg_specs = agg.GetFieldSpecs({NamedArray: "true"})
-
 	join = se.Join({
 		Table: agg,
 		LeftFields: "TAZ",
@@ -1552,6 +1585,8 @@ Macro "Communities of Concern" (Args)
 	join.(se_specs.ZeroCar_CoC) = nz(join.(agg_specs.ZeroCar_CoC))
 	join.(se_specs.senior_pct) = nz(join.(agg_specs.senior_pct))
 	join.(se_specs.Senior_CoC) = nz(join.(agg_specs.Senior_CoC))
+	join.(se_specs.poverty_pct) = nz(join.(agg_specs.poverty_pct))
+	join.(se_specs.Poverty_CoC) = nz(join.(agg_specs.Poverty_CoC))
 endmacro
 
 /*
@@ -1599,23 +1634,28 @@ Macro "COC Skims" (Args)
 	})
 	ret_value = skim.Run()
 
-	// Add the CoC info from the se file to the skim matrix
-	se = CreateObject("Table", se_file)
-	v = se.ZeroCar_CoC
-	v.rowbased = "false"
+	// Calcualte the two trip cores (HBW and All)
+	mtx = CreateObject("Matrix", out_file)
+	mtx.AddCores({"HBW_Trips", "All_Trips"})
 	trip_mtx_file = mtx_dir + "/pa_per_trips_W_HB_W_All_AM.mtx"
 	trip_mtx = CreateObject("Matrix", trip_mtx_file)
-	mtx = CreateObject("Matrix", out_file)
-	mtx.AddCores({"ZeroCar_CoC", "HBW_Trips", "All_Trips", "HBW_ZeroCar_Delay", "All_ZeroCar_Delay"})
-	mtx.ZeroCar_CoC := v
 	mtx.HBW_Trips := trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
-	mtx.HBW_ZeroCar_Delay := mtx.("Delay (Skim)") * mtx.ZeroCar_CoC * mtx.HBW_Trips
-	// all trips
 	types = RunMacro("Get HB Trip Types", Args)
 	for type in types do
 		trip_mtx_file = mtx_dir + "/pa_per_trips_" + type + "_AM.mtx"
 		trip_mtx = CreateObject("Matrix", trip_mtx_file)
 		mtx.All_Trips := nz(mtx.All_Trips) + trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
 	end
-	mtx.All_ZeroCar_Delay := mtx.("Delay (Skim)") * mtx.ZeroCar_CoC * mtx.All_Trips
+	
+	// Calcualte the weighted delay for each CoC
+	se = CreateObject("Table", se_file)
+	weight_fields = {"ZeroCar_CoC", "Senior_CoC", "Poverty_CoC"}
+	for weight_field in weight_fields do
+		v = se.(weight_field)
+		v.rowbased = "false"
+		mtx.AddCores({weight_field, "HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
+		mtx.(weight_field) := v
+		mtx.("HBW_" + weight_field + "_Delay") := mtx.("Delay (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
+		mtx.("All_" + weight_field + "_Delay") := mtx.("Delay (Skim)") * mtx.(weight_field) * mtx.All_Trips
+	end
 endmacro
