@@ -102,15 +102,9 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         end
 
         //loop through all transit modes under walk access
-        out_trip_core = null
-        out_skim_core = null
-        out_wttime_core = null
         mtx.AddCores({scen_name + "_trips"})
-        out_trip_core = mtx.GetCore(scen_name + "_trips")
         mtx.AddCores({scen_name + "_skims"})        
-        out_skim_core = mtx.GetCore(scen_name + "_skims")
         mtx.AddCores({scen_name + "_wttime"})        
-        out_wttime_core = mtx.GetCore(scen_name + "_wttime")
 
         transit_modes = RunMacro("Get Transit Modes", TransModeTable)
         transit_modes = {"all"} + transit_modes
@@ -120,17 +114,15 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
           trip_Dir = dir + "\\output\\assignment\\transit"
           trip_file = trip_Dir + "/transit_" + TOD + ".mtx"
           trip_mtx = CreateObject("Matrix", trip_file)
-          trip_core = trip_mtx.GetCore("w_" + transit_mode)
-          out_trip_core := nz(out_trip_core) + nz(trip_core)
+          mtx.(scen_name + "_trips") := nz(mtx.(scen_name + "_trips")) + nz(trip_mtx.("w_" + transit_mode))
 
           //Fill output skim core
           trn_skim_file = skim_dir_transit + "/skim_" + TOD + "_w_" + transit_mode + ".mtx"
           skim_mtx = CreateObject("Matrix", trn_skim_file)
-          skim_core = skim_mtx.GetCore("Total Time")
-          out_skim_core := if nz(out_skim_core) = 1 then 1 else if nz(skim_core)> 0 and nz(skim_core)<60 then 1 else 0
+          mtx.(scen_name + "_skims") := if nz(mtx.(scen_name + "_skims")) = 1 then 1 else if nz(skim_mtx.("Total Time"))> 0 and nz(skim_core)<60 then 1 else 0
 
           //Fill output wttime core
-          out_wttime_core := nz(out_wttime_core) + nz(trip_core) * nz(skim_core)
+          mtx.(scen_name + "_wttime") := nz(mtx.(scen_name + "_wttime")) + nz(mtx.(scen_name + "_trips")) * nz(skim_mtx.("Total Time"))
 
         end
 
