@@ -424,6 +424,7 @@ Macro "Import from GTFS" (MacroOpts)
   }})
   // Add back stop attributes from master
   fields = {
+    {FieldName: "shape_stop", Type: "integer"},
     {FieldName: "dwell_on", Type: "real"},
     {FieldName: "dwell_off", Type: "real"},
     {FieldName: "xfer_pen", Type: "real"}
@@ -436,9 +437,17 @@ Macro "Import from GTFS" (MacroOpts)
     LeftFields: "Master_Stop_ID",
     RightFields: "ID"
   })
-  join_tbl.(slyr + ".dwell_on") = join_tbl.(master_slyr + ".dwell_on")
-  join_tbl.(slyr + ".dwell_off") = join_tbl.(master_slyr + ".dwell_off")
-  join_tbl.(slyr + ".xfer_pen") = join_tbl.(master_slyr + ".xfer_pen")
+  fields_to_xfer = {
+    "shape_stop",
+    "dwell_on",
+    "dwell_off",
+    "xfer_pen"
+  }
+  master_fields = master_tbl.GetFieldNames()
+  for field in fields_to_xfer do
+    if master_fields.position(field) = 0 then continue
+    join_tbl.(slyr + "." + field) = join_tbl.(master_slyr + "." + field)
+  end
   join_tbl = null
 endmacro
 
@@ -809,7 +818,7 @@ Macro "Remove Shape Stops" (MacroOpts)
   {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
   stop_tbl = CreateObject("Table", slyr)
   stop_fields = stop_tbl.GetFieldNames()
-  if delete_shape_stops and stop_fields.position("shape_stop") <> 0 then do
+  if stop_fields.position("shape_stop") <> 0 then do
     n = stop_tbl.SelectByQuery({
       SetName: "to remove",
       Query: "shape_stop = 1",
