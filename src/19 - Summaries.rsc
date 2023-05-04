@@ -1608,7 +1608,7 @@ Macro "COC Skims" (Args)
 	net.TimeUnits = "Minutes"
 	net.LengthField = "Length"
 	net.Filter = "D = 1"
-	net.AddLinkField({Name: "Delay", Field: {"AB_Delay_AM", "BA_Delay_AM"}, IsTimeField: true})
+	net.AddLinkField({Name: "FFTime", Field: "FFTime", IsTimeField: true})
 	net.AddLinkField({Name: "CongTime", Field: {"ABAMTime", "BAAMTime"}, IsTimeField: true})
 	net.OutNetworkName = net_file
 	net.Run()
@@ -1626,7 +1626,7 @@ Macro "COC Skims" (Args)
 	skim.Origins = "Centroid = 1"
 	skim.Destinations = "Centroid = 1"
 	skim.Minimize = "CongTime"
-	skim.AddSkimField({"Delay", "All"})
+	skim.AddSkimField({"FFTime", "All"})
 	out_file = summary_dir + "/delay_skim_AM.mtx"
 	skim.OutputMatrix({
 		MatrixFile: out_file, 
@@ -1655,7 +1655,7 @@ Macro "COC Skims" (Args)
 		v.rowbased = "false"
 		mtx.AddCores({weight_field, "HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
 		mtx.(weight_field) := v
-		mtx.("HBW_" + weight_field + "_Delay") := mtx.("Delay (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
-		mtx.("All_" + weight_field + "_Delay") := mtx.("Delay (Skim)") * mtx.(weight_field) * mtx.All_Trips
+		mtx.("HBW_" + weight_field + "_Delay") := (mtx.("CongTime") - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.HBW_Trips / 60
+		mtx.("All_" + weight_field + "_Delay") := (mtx.("CongTime") - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.All_Trips / 60
 	end
 endmacro
