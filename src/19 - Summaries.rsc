@@ -1626,6 +1626,7 @@ Macro "COC Skims" (Args)
 	net.Filter = "D = 1"
 	net.AddLinkField({Name: "FFTime", Field: "FFTime", IsTimeField: true})
 	net.AddLinkField({Name: "CongTime", Field: {"ABAMTime", "BAAMTime"}, IsTimeField: true})
+	net.AddLinkField({Name: "CongLength", Field: {"ABCongLength_AM", "BACongLength_AM"}})
 	net.OutNetworkName = net_file
 	net.Run()
 	net = null
@@ -1643,10 +1644,11 @@ Macro "COC Skims" (Args)
 	skim.Destinations = "Centroid = 1"
 	skim.Minimize = "CongTime"
 	skim.AddSkimField({"FFTime", "All"})
-	out_file = summary_dir + "/delay_skim_AM.mtx"
+	skim.AddSkimField({"CongLength", "All"})
+	out_file = summary_dir + "/coc_skim_AM.mtx"
 	skim.OutputMatrix({
 		MatrixFile: out_file, 
-		Matrix: "Delay skim"
+		Matrix: "CoC Skim"
 	})
 	ret_value = skim.Run()
 
@@ -1663,15 +1665,24 @@ Macro "COC Skims" (Args)
 		mtx.All_Trips := nz(mtx.All_Trips) + trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
 	end
 	
-	// Calcualte the weighted delay for each CoC
+	// Calcualte the weighted metrics for each CoC
 	se = CreateObject("Table", se_file)
 	weight_fields = {"ZeroCar_CoC", "Senior_CoC", "Poverty_CoC"}
 	for weight_field in weight_fields do
+		// Set weight field
 		v = se.(weight_field)
 		v.rowbased = "false"
-		mtx.AddCores({weight_field, "HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
+		mtx.AddCores({weight_field})
 		mtx.(weight_field) := v
+
+		// Calculate delay
+		mtx.AddCores({"HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
 		mtx.("HBW_" + weight_field + "_Delay") := (mtx.("CongTime") - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.HBW_Trips / 60
 		mtx.("All_" + weight_field + "_Delay") := (mtx.("CongTime") - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.All_Trips / 60
+
+		// Calculate congested VMT
+		mtx.AddCores({"HBW_" + weight_field + "_CongVMT", "All_" + weight_field + "_CongVMT"})
+		mtx.("HBW_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
+		mtx.("All_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.All_Trips
 	end
 endmacro
