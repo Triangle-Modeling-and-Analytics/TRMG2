@@ -31,6 +31,7 @@ Macro "Other Reports" (Args)
     RunMacro("Create PA Vehicle Trip Matrices", Args)
     RunMacro("Communities of Concern", Args)
     RunMacro("COC Skims", Args)
+    RunMacro("COC Mapping", Args)
     return(1)
 endmacro
 
@@ -1717,5 +1718,42 @@ Macro "COC Skims" (Args)
 	end
 endmacro
 
+/*
+
+*/
+
+Macro "COC Mapping" (Args)
+
+	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+	se_file = Args.SE
+	taz_file = Args.TAZs
+
+	map_dir = summary_dir + "/maps"
+	if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
+	map = CreateObject("Map", taz_file)
+	tazs = CreateObject("Table", map.GetActiveLayer())
+	se = CreateObject("Table", se_file)
+	join = tazs.Join({
+		Table: se,
+		LeftFields: "ID",
+		RightFields: "TAZ"
+	})
+
+	a_coc = {"ZeroCar", "Senior", "Poverty"}
+	suffixes = {"Jobs", "Jobs_nonauto"}
+	for coc in a_coc do
+		for suffix in suffixes do
+			field = coc + "_CoC_" + suffix
+			map.ColorTheme({
+				ThemeName: field,
+				FieldName: field,
+				Colors: {
+					StartColor: ColorRGB(65535, 65535, 54248),
+					EndColor: ColorRGB(8738, 24158, 43176)
+				}
+			})
+			out_file = map_dir + "/" + field + ".map"
+			map.Save(out_file)
+		end
 	end
 endmacro
