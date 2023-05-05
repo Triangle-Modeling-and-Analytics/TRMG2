@@ -1049,17 +1049,33 @@ Macro "Congested VMT" (Args)
   periods = Args.periods
   out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
 
+  // The V/C ratio that defines the cutoff for congestion.
+  vc_cutoff = .75
+
   // Calculate congested VMT on each link
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
   for period in Args.periods do
-    fields_to_add = fields_to_add + {{"CongestedVMT_" + period, "Real", 10, ,,,, "The VMT in the " + period + " period that is congested"}}
+    fields_to_add = fields_to_add + {
+		{
+			"ABCongLength_" + period, "Real", 10, 2,,,, "The length of link if the " + period +
+		  	" period is congested (v/c > " + String(vc_cutoff) + ")|Used by summary macros to skim congested VMT."
+		},
+		{
+			"BACongLength_" + period, "Real", 10, 2,,,, "The length of link if the " + period +
+		  	" period is congested (v/c > " + String(vc_cutoff) + ")|Used by summary macros to skim congested VMT."
+		},
+		{"CongestedVMT_" + period, "Real", 10, ,,,, "The VMT in the " + period + " period that is congested"}
+	}
     
+    v_length = GetDataVector(llyr + "|", "Length", )
     v_ab_vc = GetDataVector(llyr + "|", "AB_VOCE_" + period, )
     v_ba_vc = GetDataVector(llyr + "|", "BA_VOCE_" + period, )
     v_ab_vmt = GetDataVector(llyr + "|", "AB_VMT_" + period, )
     v_ba_vmt = GetDataVector(llyr + "|", "BA_VMT_" + period, )
-    v_ab_cong_vmt = if v_ab_vc > .75 then v_ab_vmt else 0
-    v_ba_cong_vmt = if v_ba_vc > .75 then v_ba_vmt else 0
+    v_ab_cong_vmt = if v_ab_vc > vc_cutoff then v_ab_vmt else 0
+    v_ba_cong_vmt = if v_ba_vc > vc_cutoff then v_ba_vmt else 0
+    output.("ABCongLength_" + period) = if v_ab_vc > vc_cutoff then v_length else 0
+	output.("BACongLength_" + period) = if v_ba_vc > vc_cutoff then v_length else 0
     output.("CongestedVMT_" + period) = v_ab_cong_vmt + v_ba_cong_vmt
   end
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
