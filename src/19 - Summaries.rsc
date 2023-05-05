@@ -1614,7 +1614,7 @@ Macro "COC Skims" (Args)
 	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
 	net_dir = Args.[Output Folder] + "/networks"
 	mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
-	skim_dir = Args.[Output Folder] + "/skims/transit"
+	skim_dir = Args.[Output Folder] + "/skims"
 	se_file = Args.SE
 
 	// Build a network of AM delay to skim
@@ -1666,11 +1666,13 @@ Macro "COC Skims" (Args)
 		mtx.All_Trips := nz(mtx.All_Trips) + trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
 	end
 
-	// Get transit time which is needed for one of the calculations
-	trans_file = skim_dir + "/skim_AM_w_lb.mtx"
+	// Get transit and walk times which is needed for one of the calculations
+	trans_file = skim_dir + "/transit/skim_AM_w_lb.mtx"
 	transit_mtx = CreateObject("Matrix", trans_file)
-	mtx.AddCores("TransitTime")
-	mtx.TransitTime := transit_mtx.("Total Time")
+	walk_file = skim_dir + "/nonmotorized/walk_skim.mtx"
+	walk_mtx = CreateObject("Matrix", walk_file)
+	mtx.AddCores("NonAutoTime")
+	mtx.NonAutoTime := min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
 	
 	// Calcualte the weighted metrics for each CoC
 	se = CreateObject("Table", se_file)
@@ -1695,19 +1697,25 @@ Macro "COC Skims" (Args)
 		mtx.("HBW_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
 		mtx.("All_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.All_Trips
 
-		// Jobs within 20 minutes (auto and transit). Also fill the SE table with the row sums for mapping.
-		auto_core = weight_field + "_Jobs20"
-		transit_core = weight_field + "_Jobs20_transit"
+		// Jobs within X minutes (auto and transit). Also fill the SE table with the row sums for mapping.
+		time_budget = 30
+		auto_core = weight_field + "_Jobs"
+		transit_core = weight_field + "_Jobs_nonauto"
 		mtx.AddCores({auto_core, transit_core})
-		mtx.(auto_core) := if mtx.CongTime <= 20 and mtx.CongTime <> null then mtx.Employment * mtx.(weight_field)
+		mtx.(auto_core) := if mtx.CongTime <= time_budget and mtx.CongTime <> null then mtx.Employment * mtx.(weight_field)
 		mtx.(auto_core) := if mtx.(auto_core) = 0 then null else mtx.(auto_core)
-		v_jobs20 = mtx.GetVector({Core: auto_core, Marginal: "Row Sum"})
-		se.AddField({FieldName: auto_core, Description: "Jobs within 20 minutes via auto"})
-		se.(auto_core) = if v_jobs20 = 0 then null else v_jobs20
-		mtx.(transit_core) := if mtx.TransitTime <= 20 and mtx.TransitTime <> null then mtx.Employment * mtx.(weight_field)
+		v_jobs = mtx.GetVector({Core: auto_core, Marginal: "Row Sum"})
+		v_jobs.rowbased = "true"
+		se.AddField({FieldName: auto_core, Description: "Jobs within " + String(time_budget) + " minutes via auto"})
+		se.(auto_core) = if se.(weight_field) = 0 then null else v_jobs
+		mtx.(transit_core) := if mtx.NonAutoTime <= 30 and mtx.NonAutoTime <> null then mtx.Employment * mtx.(weight_field)
 		mtx.(transit_core) := if mtx.(transit_core) = 0 then null else mtx.(transit_core)
-		v_jobs20_t = mtx.GetVector({Core: transit_core, Marginal: "Row Sum"})
-		se.AddField({FieldName: transit_core, Description: "Jobs within 20 minutes via transit"})
-		se.(transit_core) = if v_jobs20_t = 0 then null else v_jobs20_t
+		v_jobs_na = mtx.GetVector({Core: transit_core, Marginal: "Row Sum"})
+		v_jobs_na.rowbased = "true"
+		se.AddField({FieldName: transit_core, Description: "Jobs within " + String(time_budget) + " minutes via transit or walking"})
+		se.(transit_core) = if se.(weight_field) = 0 then null else v_jobs_na
+	end
+endmacro
+
 	end
 endmacro
