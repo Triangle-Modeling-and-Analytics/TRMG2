@@ -10,6 +10,7 @@ Macro "Maps" (Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
     // RunMacro("Isochrones", Args)
+	RunMacro("Accessibility Maps", Args)
     return(1)
 endmacro
 
@@ -575,6 +576,78 @@ Macro "Speed Maps" (Args)
     CloseMap(map)
   end
 EndMacro
+
+/*
+
+*/
+
+Macro "Accessibility Maps" (Args)
+	
+	taz_file = Args.TAZs
+	se_file = Args.SE
+	periods = Args.periods
+	output_dir = Args.[Output Folder] + "/_summaries/accessibility"
+	if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+	map = CreateObject("Map", taz_file)
+	tazs = CreateObject("Table", map.GetActiveLayer())
+	se = CreateObject("Table", se_file)
+	join = tazs.Join({
+		Table: se,
+		LeftFields: "ID",
+		RightFields: "TAZ"
+	})
+
+	a_stats = {
+		{field: "access_transit", values: {
+			{0, "true", .81, "false"},
+			{.81, "true", 2.35, "false"},
+			{2.35, "true", 3.49, "false"},
+			{3.49, "true", 4.8, "false"},
+			{4.8, "true", 1000, "false"}
+		}},
+		{field: "access_walk", values: {
+			{0, "true", .4, "false"},
+			{.4, "true", 1.1, "false"},
+			{1.1, "true", 1.76, "false"},
+			{1.76, "true", 2.61, "false"},
+			{2.61, "true", 1000, "false"}
+		}}
+	}
+
+	for stat in a_stats do
+		field = stat.field
+		values = stat.values
+
+		map.ColorTheme({
+			ThemeName: field,
+			FieldName: field,
+			Method: "manual",
+			NumClasses: ArrayLength(values),
+			Options: {
+				Values: values,
+				Other: "false"
+			},
+			Colors: {
+				StartColor: ColorRGB(65535, 65535, 54248),
+				EndColor: ColorRGB(8738, 24158, 43176)
+			},
+			Labels: {
+				"Bad",
+				"Poor",
+				"Fair",
+				"Good",
+				"Excellent"
+			}
+		})
+		map.CreateLegend({
+			DisplayLayers: "false"
+		})
+
+		out_file = output_dir + "/" + field + ".map"
+		map.Save(out_file)
+	end
+endmacro
 
 /*
 Creates isochrone (travel time band) maps
