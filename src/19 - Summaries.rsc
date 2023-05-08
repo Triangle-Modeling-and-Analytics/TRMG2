@@ -32,6 +32,7 @@ Macro "Other Reports" (Args)
     RunMacro("Create PA Vehicle Trip Matrices", Args)
     RunMacro("Communities of Concern", Args)
     RunMacro("COC Skims", Args)
+    RunMacro("COC Mode Shares", Args)
     RunMacro("COC Mapping", Args)
     return(1)
 endmacro
@@ -728,7 +729,17 @@ Creates a table of statistics and writes out
 final tables to CSV.
 
 This macro is also used by the scenario comparison tool to re-summarize for
-a subarea if one is provided. In that case, Args will have an 'index' option.
+a subarea if one is provided. In that case, Args will have extra options as
+shown below:
+
+	* RowIndex and ColIndex
+		* Strings
+		* If provided, the macro will summarize only a subset of the full matrix. Used
+		  by the scenario comparison tool and the CoC summaries.
+	* OutputFolder
+		* String
+		* Where to write out the files.
+		* Default: Args.[Scenario Folder] + "/output/_summaries/resident_hb"
 */
 
 Macro "Summarize HB DC and MC" (Args)
@@ -737,15 +748,24 @@ Macro "Summarize HB DC and MC" (Args)
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   trip_dir = scen_dir + "/output/resident/trip_matrices"
-  output_dir = scen_dir + "/output/_summaries/resident_hb"
+  output_dir = Args.OutputFolder
+  if output_dir = null then output_dir = scen_dir + "/output/_summaries/resident_hb"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   skim_dir = scen_dir + "/output/skims/roadway"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
-  index = Args.index // used by scenario comparison tool
+  row_index = Args.RowIndex
+  col_index = Args.ColIndex
+  if row_index <> null or col_index <> null then do
+  	index = "true"
+	ri = if row_index = null then "All" else row_index
+	ci = if col_index = null then "All" else col_index
+	index_suffix = ri + "_by_" + ci
+  end
 
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
-  df = RunMacro("Matrix Stats", {Matrices: mtx_files, RowIndex: index, ColIndex: index})
+  df = RunMacro("Matrix Stats", {Matrices: mtx_files, RowIndex: row_index, ColIndex: col_index})
   df.mutate("period", Right(df.tbl.matrix, 2))
   df.mutate("matrix", Substitute(df.tbl.matrix, "pa_per_trips_", "", ))
   v = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
@@ -754,8 +774,8 @@ Macro "Summarize HB DC and MC" (Args)
   df.select({"trip_type", "period", "mode", "Sum", "SumDiag", "PctDiag"})
   df.filter("mode contains 'mc_'")
   df.mutate("mode", Substitute(df.tbl.mode, "mc_", "", ))
-  if index <> null
-    then modal_file = output_dir + "/hb_trip_stats_by_modeperiod_" + index + ".csv"
+  if index
+    then modal_file = output_dir + "/hb_trip_stats_by_modeperiod_" + index_suffix + ".csv"
     else modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
@@ -771,13 +791,13 @@ Macro "Summarize HB DC and MC" (Args)
   df_tot.rename("sum_Sum", "total")
   df.left_join(df_tot, "trip_type", "trip_type")
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
-  if index <> null
-    then file = output_dir + "/hb_trip_mode_shares_" + index + ".csv"
+  if index
+    then file = output_dir + "/hb_trip_mode_shares_" + index_suffix + ".csv"
     else file = output_dir + "/hb_trip_mode_shares.csv"
   df.write_csv(file)
 
   // if called by the summary comparison tool, end here
-  if index <> null then return()
+  if index then return()
 
   // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
@@ -1761,6 +1781,11 @@ Macro "COC Skims" (Args)
 		mtx.AddCores({weight_field})
 		mtx.(weight_field) := v
 
+		// Calculate hours of travel
+		mtx.AddCores({"HBW_" + weight_field + "_HoT", "All_" + weight_field + "_HoT"})
+		mtx.("HBW_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.HBW_Trips / 60
+		mtx.("All_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.All_Trips / 60
+
 		// Calculate delay
 		mtx.AddCores({"HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
 		mtx.("HBW_" + weight_field + "_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.HBW_Trips / 60
@@ -1839,5 +1864,40 @@ Macro "COC Mapping" (Args)
 			// TODO: can remove this after updating TC build (map class improvement)
 			DestroyTheme(themename)
 		end
+	end
+endmacro
+
+/*
+
+*/
+
+Macro "COC Mode Shares" (Args)
+
+	se_file = Args.SE
+	trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
+
+	se = CreateObject("Table", se_file)
+
+	types = {"ZeroCar", "Senior", "Poverty"}
+	mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+
+	for type in types do
+		// Add sub area index to the matrices
+		for mtx_file in mtx_files do
+			mtx = CreateObject("Matrix", mtx_file)
+			mtx.AddIndex({
+				IndexName: type,
+				ViewName: se.GetView(),
+				Filter: type + "_CoC = 1",
+				OriginalID: "TAZ",
+				NewID: "TAZ",
+				Dimension: "Both"
+			})
+		end
+
+		// Call G2 summary macro
+		Args.RowIndex = type
+		Args.OutputFolder = Args.[Scenario Folder] + "/output/_summaries/Communities_of_Concern/mode_shares"
+		RunMacro("Summarize HB DC and MC", Args)
 	end
 endmacro
