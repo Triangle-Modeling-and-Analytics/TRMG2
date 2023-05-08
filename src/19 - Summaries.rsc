@@ -745,7 +745,7 @@ Macro "Summarize HB DC and MC" (Args)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
-  df = RunMacro("Matrix Stats", mtx_files, index)
+  df = RunMacro("Matrix Stats", {Matrices: mtx_files, RowIndex: index, ColIndex: index})
   df.mutate("period", Right(df.tbl.matrix, 2))
   df.mutate("matrix", Substitute(df.tbl.matrix, "pa_per_trips_", "", ))
   v = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
@@ -755,7 +755,7 @@ Macro "Summarize HB DC and MC" (Args)
   df.filter("mode contains 'mc_'")
   df.mutate("mode", Substitute(df.tbl.mode, "mc_", "", ))
   if index <> null
-    then modal_file = output_dir + "/hb_trip_stats_by_modeperiod_subarea.csv"
+    then modal_file = output_dir + "/hb_trip_stats_by_modeperiod_" + index + ".csv"
     else modal_file = output_dir + "/hb_trip_stats_by_modeperiod.csv"
   df.write_csv(modal_file)
 
@@ -772,7 +772,7 @@ Macro "Summarize HB DC and MC" (Args)
   df.left_join(df_tot, "trip_type", "trip_type")
   df.mutate("pct", round(df.tbl.Sum / df.tbl.total * 100, 2))
   if index <> null
-    then file = output_dir + "/hb_trip_mode_shares_subarea.csv"
+    then file = output_dir + "/hb_trip_mode_shares_" + index + ".csv"
     else file = output_dir + "/hb_trip_mode_shares.csv"
   df.write_csv(file)
 
@@ -810,7 +810,7 @@ Macro "Summarize HB DC and MC" (Args)
   total_core = null
 
   // Summarize totals matrices
-  df = RunMacro("Matrix Stats", total_files)
+  df = RunMacro("Matrix Stats", {Matrices: total_files})
   df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
   stats_file = output_dir + "/hb_trip_stats_by_type.csv"
   df.write_csv(stats_file)
@@ -906,7 +906,7 @@ Macro "Summarize NHB DC and MC" (Args)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
   // Create table of statistics
-  df = RunMacro("Matrix Stats", mtx_files)
+  df = RunMacro("Matrix Stats", {Matrices: mtx_files})
   df.mutate("period", Right(df.tbl.matrix, 2))
   v_type_orig = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
   v_mode = CopyVector(v_type_orig)
@@ -958,7 +958,7 @@ Macro "Summarize NHB DC and MC" (Args)
   daily_core = null
 
   // Summarize daily matrices
-  df = RunMacro("Matrix Stats", daily_files)
+  df = RunMacro("Matrix Stats", {Matrices: daily_files})
   df.select({"matrix", "core", "Sum", "SumDiag", "PctDiag"})
   stats_file = output_dir + "/nhb_trip_stats_by_type.csv"
   df.write_csv(stats_file)
