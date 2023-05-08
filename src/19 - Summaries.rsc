@@ -1817,16 +1817,27 @@ Macro "COC Mapping" (Args)
 	for coc in a_coc do
 		for suffix in suffixes do
 			field = coc + "_CoC_" + suffix
+			
+			themename = "Jobs within 30"
+			if suffix = "Jobs"
+				then themename = themename + " (Auto)"
+				else themename = themename + " (Transit/Walk)"
 			map.ColorTheme({
-				ThemeName: field,
+				ThemeName: themename,
 				FieldName: field,
 				Colors: {
 					StartColor: ColorRGB(65535, 65535, 54248),
 					EndColor: ColorRGB(8738, 24158, 43176)
 				}
 			})
+			map.CreateLegend({
+				Title: "Communities of Concern (" + coc + ")",
+				DisplayLayers: "false" 
+			})
 			out_file = map_dir + "/" + field + ".map"
 			map.Save(out_file)
+			// TODO: can remove this after updating TC build (map class improvement)
+			DestroyTheme(themename)
 		end
 	end
 endmacro
