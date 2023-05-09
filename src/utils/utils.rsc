@@ -2751,7 +2751,7 @@ Macro "Trip Conservation Snapshot" (dir, out_file)
   
   // Write stats to check trip conservation
   matrices = RunMacro("Catalog Files", {dir: dir, ext: "mtx"})
-  df = RunMacro("Matrix Stats", matrices)
+  df = RunMacro("Matrix Stats", {Matrices: matrices})
   v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
   v_type = Substitute(v_type, "od_per_trips_", "", )
   df.mutate("trip_type", v_type)
