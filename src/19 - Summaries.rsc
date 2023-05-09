@@ -34,6 +34,7 @@ Macro "Other Reports" (Args)
     RunMacro("COC Skims", Args)
     RunMacro("COC Mode Shares", Args)
     RunMacro("COC Mapping", Args)
+    RunMacro("Summarize NM COC", Args)
     return(1)
 endmacro
 
@@ -1404,7 +1405,7 @@ Macro "VMT_Delay Summary" (Args)
   hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
   hwy_df.select(field_out)
   hwy_df.write_csv(output_dir + "/link_VMT_Delay.csv")
-  RunMacro("Close All")
+  CloseMap(map)
 
   // Summarize by different variable
   for var in group_fields do
@@ -1900,4 +1901,78 @@ Macro "COC Mode Shares" (Args)
 		Args.OutputFolder = Args.[Scenario Folder] + "/output/_summaries/Communities_of_Concern/mode_shares"
 		RunMacro("Summarize HB DC and MC", Args)
 	end
+endmacro
+
+/*
+Same basic macro as "Summarize NM", but with extra processing to filter by COC TAZs
+*/
+
+Macro "Summarize NM COC" (Args)
+  
+  out_dir = Args.[Output Folder]
+  se_file = Args.SE
+  
+  per_dir = out_dir + "/resident/population_synthesis"
+  per_file = per_dir + "/Synthesized_Persons.bin"
+  per = CreateObject("Table", per_file)
+  per_vw = per.GetView()
+  nm_dir = out_dir + "/resident/nonmotorized"
+  nm_file = nm_dir + "/_agg_nm_trips_daily.bin"
+  nm = CreateObject("Table", nm_file)
+  nm_vw = nm.GetView()
+  se = CreateObject("Table", se_file)
+
+  // join the se to both per/nm tables to ID CoC communities
+  per_join = per.Join({
+	Table: se,
+	LeftFields: "HHTAZ",
+	RightFields: "TAZ"
+  })
+  nm_join = nm.Join({
+	Table: se,
+	LeftFields: "TAZ",
+	RightFields: "TAZ"
+  })
+
+  trip_types = RunMacro("Get HB Trip Types", Args)
+  coc_types = {"ZeroCar", "Senior", "Poverty"}
+
+  for coc in coc_types do
+	coc_field_name = coc + "_CoC"
+
+	summary_file = out_dir + "/_summaries/Communities_of_Concern/mode_shares/nm_summary_" + coc + ".csv"
+	f = OpenFile(summary_file, "w")
+	WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
+
+	// create selection sets of just CoC people/tazs
+	per_join.SelectByQuery({
+		SetName: "coc",
+		Query: coc_field_name + " = 1"
+	})
+	nm_join.SelectByQuery({
+		SetName: "coc",
+		Query: coc_field_name + " = 1"
+	})
+
+	for trip_type in trip_types do
+		// moto_v = GetDataVector(per_vw + "|", trip_type, )
+		moto_v = per_join.(trip_type)
+		moto_total = VectorStatistic(moto_v, "Sum", )
+		if trip_type = "W_HB_EK12_All" then do
+			moto_share = 100
+			nm_total = 0
+			nm_share = 0
+		end else do
+			// nm_v = GetDataVector(nm_vw + "|", trip_type, )
+			nm_v = nm_join.(trip_type)
+			nm_total = VectorStatistic(nm_v, "Sum", )
+			moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
+			nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
+		end
+
+		WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
+	end
+  end
+
+  CloseFile(f)
 endmacro
