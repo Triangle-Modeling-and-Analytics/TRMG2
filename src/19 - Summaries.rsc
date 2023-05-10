@@ -737,7 +737,7 @@ shown below:
 		* Strings
 		* If provided, the macro will summarize only a subset of the full matrix. Used
 		  by the scenario comparison tool and the CoC summaries.
-	* OutputFolder
+	* OutDir
 		* String
 		* Where to write out the files.
 		* Default: Args.[Scenario Folder] + "/output/_summaries/resident_hb"
@@ -749,7 +749,7 @@ Macro "Summarize HB DC and MC" (Args)
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   trip_dir = scen_dir + "/output/resident/trip_matrices"
-  output_dir = Args.OutputFolder
+  output_dir = Args.OutDir
   if output_dir = null then output_dir = scen_dir + "/output/_summaries/resident_hb"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   skim_dir = scen_dir + "/output/skims/roadway"
@@ -1898,7 +1898,7 @@ Macro "COC Mode Shares" (Args)
 
 		// Call G2 summary macro
 		Args.RowIndex = type
-		Args.OutputFolder = Args.[Scenario Folder] + "/output/_summaries/Communities_of_Concern/mode_shares"
+		Args.OutDir = Args.[Scenario Folder] + "/output/_summaries/Communities_of_Concern/mode_shares"
 		RunMacro("Summarize HB DC and MC", Args)
 	end
 endmacro
