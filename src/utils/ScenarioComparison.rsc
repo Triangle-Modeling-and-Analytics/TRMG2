@@ -134,7 +134,8 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
         // Call G2 summary macro
         Args.TAZs = dbd
         Args.[Scenario Folder] = dir
-        Args.index = "subarea"
+        Args.RowIndex = "subarea"
+        Args.ColIndex = "subarea"
         RunMacro("Summarize HB DC and MC", Args)
     end
 endmacro
