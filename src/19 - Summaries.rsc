@@ -1766,7 +1766,11 @@ Macro "COC Skims" (Args)
 	transit_mtx = CreateObject("Matrix", trans_file)
 	walk_file = skim_dir + "/nonmotorized/walk_skim.mtx"
 	walk_mtx = CreateObject("Matrix", walk_file)
+	mtx.AddCores("TransitTime")
+	mtx.AddCores("WalkTime")
 	mtx.AddCores("NonAutoTime")
+	mtx.TransitTime := transit_mtx.("Total Time")
+	mtx.WalkTime := walk_mtx.WalkTime
 	mtx.NonAutoTime := min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
 	
 	// Calcualte the weighted metrics for each CoC
@@ -1797,23 +1801,28 @@ Macro "COC Skims" (Args)
 		mtx.("HBW_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
 		mtx.("All_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.All_Trips
 
-		// Jobs within X minutes (auto and transit). Also fill the SE table with the row sums for mapping.
+		// Jobs within X minutes (auto, transit, and walk). Also fill the SE table with the row sums for mapping.
 		time_budget = 30
-		auto_core = weight_field + "_Jobs"
-		transit_core = weight_field + "_Jobs_nonauto"
-		mtx.AddCores({auto_core, transit_core})
-		mtx.(auto_core) := if mtx.CongTime <= time_budget and mtx.CongTime <> null then mtx.Employment * mtx.(weight_field)
-		mtx.(auto_core) := if mtx.(auto_core) = 0 then null else mtx.(auto_core)
-		v_jobs = mtx.GetVector({Core: auto_core, Marginal: "Row Sum"})
-		v_jobs.rowbased = "true"
-		se.AddField({FieldName: auto_core, Description: "Jobs within " + String(time_budget) + " minutes via auto"})
-		se.(auto_core) = if se.(weight_field) = 0 then null else v_jobs
-		mtx.(transit_core) := if mtx.NonAutoTime <= 30 and mtx.NonAutoTime <> null then mtx.Employment * mtx.(weight_field)
-		mtx.(transit_core) := if mtx.(transit_core) = 0 then null else mtx.(transit_core)
-		v_jobs_na = mtx.GetVector({Core: transit_core, Marginal: "Row Sum"})
-		v_jobs_na.rowbased = "true"
-		se.AddField({FieldName: transit_core, Description: "Jobs within " + String(time_budget) + " minutes via transit or walking"})
-		se.(transit_core) = if se.(weight_field) = 0 then null else v_jobs_na
+    a_data = {
+      {TimeCore: "CongTime", OutCoreSuffix: "auto", DescSuffix: "auto"},
+      {TimeCore: "WalkTime", OutCoreSuffix: "walk", DescSuffix: "walking"},
+      {TimeCore: "TransitTime", OutCoreSuffix: "transit", DescSuffix: "transit"},
+      {TimeCore: "NonAutoTime", OutCoreSuffix: "nonauto", DescSuffix: "transit or walking"}
+    }
+    for data in a_data do
+      time_core = data.TimeCore
+      out_core_suffix = data.OutCoreSuffix
+      desc_suffix = data.DescSuffix
+
+      out_core = weight_field + "_Jobs_" + out_core_suffix
+      mtx.AddCores({out_core})
+      mtx.(out_core) := if mtx.(time_core) <= time_budget and mtx.(time_core) <> null then mtx.Employment * mtx.(weight_field)
+      mtx.(out_core) := if mtx.(out_core) = 0 then null else mtx.(out_core)
+      v_jobs = mtx.GetVector({Core: out_core, Marginal: "Row Sum"})
+      v_jobs.rowbased = "true"
+      se.AddField({FieldName: out_core, Description: "Jobs within " + String(time_budget) + " minutes via " + desc_suffix})
+		  se.(out_core) = if se.(weight_field) = 0 then null else v_jobs
+    end
 	end
 endmacro
 
@@ -1839,15 +1848,12 @@ Macro "COC Mapping" (Args)
 	})
 
 	a_coc = {"ZeroCar", "Senior", "Poverty"}
-	suffixes = {"Jobs", "Jobs_nonauto"}
+	suffixes = {"auto", "walk", "transit", "nonauto"}
 	for coc in a_coc do
 		for suffix in suffixes do
-			field = coc + "_CoC_" + suffix
+			field = coc + "_CoC_Jobs_" + suffix
 			
-			themename = "Jobs within 30"
-			if suffix = "Jobs"
-				then themename = themename + " (Auto)"
-				else themename = themename + " (Transit/Walk)"
+			themename = "Jobs within 30 mins (" + suffix + ")"
 			map.ColorTheme({
 				ThemeName: themename,
 				FieldName: field,
