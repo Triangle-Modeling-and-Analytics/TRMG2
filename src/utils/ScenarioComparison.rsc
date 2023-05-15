@@ -40,7 +40,7 @@ dBox "scen_comp_tool" center, center, 47, 10 Title: "Scenario Comparison Tool" t
     Button after, same, 5, 1 Prompt: "..." do
         on error, escape goto skip3
         sub_poly = ChooseFile(
-            {{"DBD", "*.dbd"}, {"CDF", "*.cdf"}}, "Choose a polygon layer", 
+            {{"All", "*.*"}, {"CDF", "*.cdf"}}, "Choose a polygon layer", 
             {"Initial Directory": new_scen}
         )
         skip3:
@@ -132,11 +132,17 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
         end
 
         // Call G2 summary macro
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
         Args.TAZs = dbd
         Args.[Scenario Folder] = dir
         Args.RowIndex = "subarea"
         Args.ColIndex = "subarea"
         RunMacro("Summarize HB DC and MC", Args)
+
+        // Call G2 total mc summary macro
+        Args.subarea = "true"
+        RunMacro("Summarize Total Mode Shares", Args)
     end
 endmacro
 

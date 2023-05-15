@@ -1079,15 +1079,19 @@ endmacro
 This macro differs from the other mode summaries in that it combines resident HB/NHB, students, and also
 includes non-motorized trips. In other words, this is the final mode shares for all people living in the
 model region.
+
+Also called by the scenario comparison tool if a subarea is provided.
 */
 
 Macro "Summarize Total Mode Shares" (Args)
 
   taz_file = Args.TAZs
-  out_dir = Args.[Output Folder]
+  scen_dir = Args.[Scenario Folder]
+  out_dir = scen_dir + "/output"
   summary_dir = out_dir + "/_summaries"
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
+  subarea = Args.subarea
   
   // Build an equivalency array that maps modes to summary mode levels
   equiv = {
@@ -1143,6 +1147,7 @@ Macro "Summarize Total Mode Shares" (Args)
   tbl.hov = result.hov
   tbl.transit = result.transit
   tbl.nm = result.nm
+  if subarea then tbl.AddField("subarea")
 
   // Add county info from the TAZ layer
   taz = CreateObject("Table", taz_file)
@@ -1152,7 +1157,16 @@ Macro "Summarize Total Mode Shares" (Args)
     RightFields: "ID"
   })
   join.county_temp = join.County
+  if subarea then join.subarea = join.in_subarea
   join = null
+  // If a subarea is provided, only summarize those TAZs
+  if subarea then do
+    tbl.SelectByQuery({
+      SetName: "subarea",
+      Query: "subarea = 1"
+    })
+    tbl = tbl.Export()
+  end
   tbl.RenameField({FieldName: "county_temp", NewName: "County"})
   tbl = tbl.Aggregate({
     GroupBy: "County",
@@ -1163,7 +1177,9 @@ Macro "Summarize Total Mode Shares" (Args)
       nm: "sum"
     }
   })
-  out_file = summary_dir + "/overall_mode_shares.bin"
+  if subarea
+    then out_file = summary_dir + "/overall_mode_shares_subarea.bin"
+    else out_file = summary_dir + "/overall_mode_shares.bin"
   tbl.Export({FileName: out_file})
 endmacro
 
