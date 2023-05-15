@@ -1154,10 +1154,17 @@ Macro "Summarize Total Mode Shares" (Args)
   join.county_temp = join.County
   join = null
   tbl.RenameField({FieldName: "county_temp", NewName: "County"})
+  tbl = tbl.Aggregate({
+    GroupBy: "County",
+    FieldStats: {
+      sov: "sum",
+      hov: "sum",
+      transit: "sum",
+      nm: "sum"
+    }
+  })
   out_file = summary_dir + "/overall_mode_shares.bin"
   tbl.Export({FileName: out_file})
-
-  // TODO: summarize by county
 endmacro
 
 /*
