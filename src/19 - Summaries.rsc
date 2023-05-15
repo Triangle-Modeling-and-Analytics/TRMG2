@@ -36,6 +36,7 @@ Macro "Other Reports" (Args)
     RunMacro("COC Mode Shares", Args)
     RunMacro("COC Mapping", Args)
     RunMacro("Summarize NM COC", Args)
+    RunMacro("Summarize HH Strata", Args)
     return(1)
 endmacro
 
@@ -2154,4 +2155,49 @@ Macro "Summarize NM COC" (Args)
   end
 
   CloseFile(f)
+endmacro
+
+/*
+
+*/
+
+Macro "Summarize HH Strata" (Args)
+
+  scen_dir = Args.[Scenario Folder]
+  summary_dir = scen_dir + "/output/_summaries"
+  hh_file = Args.Households
+  subarea = Args.subarea
+  taz_file = Args.TAZs
+
+  tbl = CreateObject("Table", hh_file)
+
+  // if doing a subarea filter the table
+  if subarea then do
+    tbl.AddField("subarea")
+    taz = CreateObject("Table", taz_file)
+    join = tbl.Join({
+      Table: taz,
+      LeftFields: "ZoneID",
+      RightFields: "ID"
+    })
+    join.subarea = join.in_subarea
+    join = null
+    tbl.SelectByQuery({
+      SetName: "subarea",
+      Query: "subarea = 1"
+    })
+    tbl = tbl.Export()
+  end
+
+  // aggregate/summarize table
+  agg = tbl.Aggregate({
+    GroupBy: "market_segment",
+    FieldStats: {market_segment: "count"}
+  })
+  agg.RenameField({FieldName: "count_market_segment", NewName: "count"})
+
+  if subarea
+    then out_file = summary_dir + "/hhstrata_subarea.csv"
+    else out_file = summary_dir + "/hhstrata.csv"
+  agg.Export({FileName: out_file})
 endmacro

@@ -131,11 +131,12 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
             })
         end
 
-        // Call G2 summary macro
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
-        Args.TAZs = dbd
         Args.[Scenario Folder] = dir
+        Args.TAZs = dbd
+
+        // Call G2 summary macro
         Args.RowIndex = "subarea"
         Args.ColIndex = "subarea"
         RunMacro("Summarize HB DC and MC", Args)
@@ -143,6 +144,10 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
         // Call G2 total mc summary macro
         Args.subarea = "true"
         RunMacro("Summarize Total Mode Shares", Args)
+
+        // Call G2 total hh strata macro
+        Args.subarea = "true"
+        RunMacro("Summarize HH Strata", Args)
     end
 endmacro
 
@@ -165,14 +170,16 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
         {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
-        {"/output/_summaries/overall_mode_shares.bin", {"County"}, {"sov", "hov", "transit", "nm"}}
+        {"/output/_summaries/overall_mode_shares.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
     }
 
     // If a subarea is provided, also diff those tables
     if sub_poly <> null then tables_to_compare = tables_to_compare + {
         {"/output/_summaries/resident_hb/hb_trip_mode_shares_subarea_by_subarea.csv", {"trip_type", "mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod_subarea_by_subarea.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
-        {"/output/_summaries/overall_mode_shares_subarea.bin", {"County"}, {"sov", "hov", "transit", "nm"}}
+        {"/output/_summaries/overall_mode_shares_subarea.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/hhstrata_subarea.csv", {"market_segment"}, {"count"}}
     }
 
     for i = 1 to tables_to_compare.length do
