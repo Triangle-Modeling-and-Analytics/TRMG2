@@ -1177,6 +1177,10 @@ Macro "Summarize Total Mode Shares" (Args)
       nm: "sum"
     }
   })
+  tbl.RenameField({FieldName: "sum_sov", NewName: "sov"})
+  tbl.RenameField({FieldName: "sum_hov", NewName: "hov"})
+  tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
+  tbl.RenameField({FieldName: "sum_nm", NewName: "nm"})
   if subarea
     then out_file = summary_dir + "/overall_mode_shares_subarea.bin"
     else out_file = summary_dir + "/overall_mode_shares.bin"

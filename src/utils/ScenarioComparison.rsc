@@ -164,8 +164,17 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
-        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
+        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
+        {"/output/_summaries/overall_mode_shares.bin", {"County"}, {"sov", "hov", "transit", "nm"}}
     }
+
+    // If a subarea is provided, also diff those tables
+    if sub_poly <> null then tables_to_compare = tables_to_compare + {
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares_subarea_by_subarea.csv", {"trip_type", "mode"}, {"total", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod_subarea_by_subarea.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
+        {"/output/_summaries/overall_mode_shares_subarea.bin", {"County"}, {"sov", "hov", "transit", "nm"}}
+    }
+
     for i = 1 to tables_to_compare.length do
         table = tables_to_compare[i][1]
         id_cols = tables_to_compare[i][2]
