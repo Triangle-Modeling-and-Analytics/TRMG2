@@ -1,6 +1,6 @@
 master_links
 610
-"ID",I,1,4,0,4,0,,"","",,"Sum",
+"ID",I,1,4,0,10,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "AltName",C,37,32,0,32,0,,"","",,"Copy",
 "NCDOTClass",C,69,17,0,17,0,,"","This field does not affect model output and is only used|for reporting purposes. The NCDOT roadway classification|is a political classification and does not always accurately|reflect the road's operating characteristics.||Interstate|OtherFreeway|PrincipalArterial|MinorArterial|MajorCollector|MinorCollector|Local|NA",,"Copy",

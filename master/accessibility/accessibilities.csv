@@ -21,8 +21,8 @@ Service_RateHigh,5.6,1.2,0,5.6,1,0,
 Office,3,0.5,0,3,1,0,
 Industry,3,0.5,0,3,1,0,
 Hospital,0,0,0,0,0,10,
-wHH,0,0,0.037543,0,0,0,
-wK12,0,0,0.005133,0,0,0,
+wHH,0,0,0.037543,0,0,0,These fields are interactions between the zone's walkability score and the attractor
+wK12,0,0,0.005133,0,0,0,"e.g. ""walkability * K12 enrollment"""
 wStudGQ_NCSU,0,0,0.021174,0,0,0,
 wStudGQ_UNC,0,0,0.021174,0,0,0,
 wStudGQ_DUKE,0,0,0.021174,0,0,0,

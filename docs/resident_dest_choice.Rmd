@@ -13,7 +13,6 @@ options(dplyr.summarise.inform = FALSE)
 options(scipen = 999)
 
 library(tidyverse)
-library(caliperR)
 library(sf)
 library(knitr)
 library(kableExtra)
