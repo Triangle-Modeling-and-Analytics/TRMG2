@@ -1472,6 +1472,7 @@ Macro "VMT_Delay Summary" (Args)
   scen_outdir = Args.[Output Folder]
   hwy_dbd = Args.Links
   taz_dbd = Args.TAZs
+  se_bin = Args.SE
   report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
   output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
   RunMacro("Create Directory", output_dir)
