@@ -43,3 +43,4 @@ utils/MOVES.rsc
 utils/ZonalVMTCalculation.rsc
 utils/concatenate.rsc
 utils/deletefiles.rsc
+utils/trip_aggregation_daily.rsc

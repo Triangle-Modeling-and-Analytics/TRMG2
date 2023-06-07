@@ -1982,6 +1982,7 @@ Macro "Summarize Transit" (MacroOpts)
   onoff.colnames(opts)
   onoff.left_join(rts, "route", "Route_ID")
   onoff.write_csv(output_dir + "/boardings_and_alightings_by_period.csv")
+  
   daily = onoff.copy()
   daily.group_by("route")
   daily.summarize(cols_to_summarize, "sum")
@@ -1994,6 +1995,18 @@ Macro "Summarize Transit" (MacroOpts)
   daily.left_join(rts, "route", "Route_ID")
   daily.select({"route", "Route_Name", "Agency", "access", "mode", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
+
+  // Summarize total ridership (total boardings) by agency, access mode, and transit mode
+  vars = {"agency", "access", "mode"}
+  for var in vars do
+    df = onoff.copy()
+    df.group_by(var)
+    df.summarize(cols_to_summarize, "sum")
+    opts = null
+    opts.new_names = {var} + cols_to_summarize
+    df.colnames(opts)
+    df.write_csv(output_dir + "/boardings_and_alightings_daily_by_" + var + ".csv")
+  end
 
   // aggregate transit flow by link and join to layer
   agg = tables.agg

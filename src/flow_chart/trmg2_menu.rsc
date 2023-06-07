@@ -162,6 +162,12 @@ menu "Matrix Aggregation and Deletion"
         mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
     enditem
 
+    MenuItem "TripAggregation_Daily" text: "Daily Matrix Creation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Daily Matrix Creation Tool Dbox", Args)
+    enditem
+
     MenuItem "Delete Files Tool" text: "Delete Matrix Files" do
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
