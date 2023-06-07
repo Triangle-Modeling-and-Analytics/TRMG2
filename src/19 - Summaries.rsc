@@ -1856,7 +1856,7 @@ Macro "Communities of Concern" (Args)
 	join.inc_threshold = join.Threshold
 	join = null
 	tbl.DropFields({FieldNames: {"temp_kids", "temp_senior"}})
-	tbl.poverty = if tbl.HHInc < tbl.inc_threshold then 1 else 0
+	tbl.poverty = if tbl.HHInc < 1.5 * tbl.inc_threshold then 1 else 0 // if income is lower than 150% of poverty line
 
 	// Summarize by TAZ
 	agg = tbl.Aggregate({
