@@ -2679,18 +2679,24 @@ Takes a matrix (or array of matrices) and generates a CSV table of stats similar
 to the table created by Matrix -> Statistics from the TC drop menu.
 
 Inputs
-  * matrices
+  * Matrices
     * String or array/vector of strings
     * Full paths to matrix files to be summarized.
-  * index
-    * optional string. name of index to use
+  * RowIndex
+    * optional string. name of row index to use
+  * ColIndex
+    * optional string. name of col index to use
 
 Returns
   * Returns a gplyr data frame
 */
 
-Macro "Matrix Stats" (matrices, index)
+Macro "Matrix Stats" (MacroOpts)
   
+  matrices = MacroOpts.Matrices
+  row_index = MacroOpts.RowIndex
+  col_index = MacroOpts.ColIndex
+
   if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
   if TypeOf(matrices) = "vector" then matrices = V2A(matrices)
@@ -2704,7 +2710,7 @@ Macro "Matrix Stats" (matrices, index)
     // get matrix core names and stats
     {drive, folder, name, ext} = SplitPath(mtx_file)
     mtx = OpenMatrix(mtx_file, )
-    if index <> null then SetMatrixIndex(mtx, index, index)
+    SetMatrixIndex(mtx, row_index, col_index)
     a_corenames = GetMatrixCoreNames(mtx)
     a_stats = MatrixStatistics(mtx, )
 
@@ -2745,7 +2751,7 @@ Macro "Trip Conservation Snapshot" (dir, out_file)
   
   // Write stats to check trip conservation
   matrices = RunMacro("Catalog Files", {dir: dir, ext: "mtx"})
-  df = RunMacro("Matrix Stats", matrices)
+  df = RunMacro("Matrix Stats", {Matrices: matrices})
   v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
   v_type = Substitute(v_type, "od_per_trips_", "", )
   df.mutate("trip_type", v_type)

@@ -74,7 +74,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     reporting_dir = S1_Dir + "\\output\\_summaries"
     output_dir = reporting_dir + "\\Transit_Scenario_Comparison"
     tod_dir = output_dir + "\\" + TOD
-    if GetDirectoryInfo(tod_dir, "All") <> null then PutInRecycleBin(output_dir)
+    TransModeTable = Args.TransModeTable
+    if GetDirectoryInfo(output_dir, "All") <> null then PutInRecycleBin(output_dir)
     RunMacro("Create Directory", reporting_dir) //need to create this during create scenario step
     RunMacro("Create Directory", output_dir)
     RunMacro("Create Directory", tod_dir)
@@ -86,117 +87,80 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     for dir in scen_Dirs do
         i = i + 1
         skim_dir_transit = dir + "\\output\\skims\\transit"
-        //skim_dir_walk = dir + "\\output\\skims\\nonmotorized"
         parts = ParseString(dir, "\\")
         scen_name = parts[parts.length]
-        //trn_skim_files = RunMacro("Catalog Files", {dir: skim_dir_transit, ext: "mtx"})
         
+        // Create a matrix to store results (only do this once)
         trn_skim_file = skim_dir_transit + "/skim_" + TOD + "_w_all.mtx"
-        // Create a starting transit matrix to store results (only do this once)
         if i = 1 then do
-            out_file = tod_dir + "/TransitShortestPath_" + scen_name + "_" + TOD + ".mtx"
+            out_file = tod_dir + "/Comparisons_" + "_" + TOD + ".mtx"
             CopyFile(trn_skim_file, out_file)
             mtx = CreateObject("Matrix", out_file)
             core_names = mtx.GetCoreNames()
-            mtx.AddCores({"Temp"})
+            mtx.AddCores({"temp"})
             mtx.DropCores(core_names)
         end
 
-        // Create cores for each scenario to store SP and total trips
-        mtx.AddCores({scen_name + "_w_skim"})
+        //loop through all transit modes under walk access
         mtx.AddCores({scen_name + "_trips"})
-        out_skim_core = mtx.GetCore(scen_name + "_w_skim")
-        out_trip_core = mtx.GetCore(scen_name + "_trips")
-        out_skim_core := 0
-        out_trip_core := 0
-        
-        skim_mtx = CreateObject("Matrix", trn_skim_file)
-        skim_core = skim_mtx.GetCore("Total Time")
-        //out_skim_core := if nz(skim_core)<=60 then nz(skim_core) else 0
-        out_skim_core := nz(skim_core)
+        mtx.AddCores({scen_name + "_skims"})        
+        mtx.AddCores({scen_name + "_wttime"})        
 
-        //Open transit trip mtx and sum up cores to SP mtx to get total trips OD
-        trip_Dir = dir + "\\output\\\assignment\\transit"
-        trip_file = trip_Dir + "/transit_" + TOD + ".mtx"
-        trip_mtx = CreateObject("Matrix", trip_file)
-        trip_core_names = trip_mtx.GetCoreNames()
-        for trip_core_name in trip_core_names do
-            trip_core = trip_mtx.GetCore(trip_core_name)
-            out_trip_core := out_trip_core + nz(trip_core)
+        transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+        transit_modes = {"all"} + transit_modes
+        for transit_mode in transit_modes do
+
+          //Fill output trip core 
+          trip_Dir = dir + "\\output\\assignment\\transit"
+          trip_file = trip_Dir + "/transit_" + TOD + ".mtx"
+          trip_mtx = CreateObject("Matrix", trip_file)
+          mtx.(scen_name + "_trips") := nz(mtx.(scen_name + "_trips")) + nz(trip_mtx.("w_" + transit_mode))
+
+          //Fill output skim core
+          trn_skim_file = skim_dir_transit + "/skim_" + TOD + "_w_" + transit_mode + ".mtx"
+          skim_mtx = CreateObject("Matrix", trn_skim_file)
+          mtx.(scen_name + "_skims") := if nz(mtx.(scen_name + "_skims")) = 1 then 1 else if nz(skim_mtx.("Total Time"))> 0 and nz(skim_core)<60 then 1 else 0
+
+          //Fill output wttime core
+          mtx.(scen_name + "_wttime") := nz(mtx.(scen_name + "_wttime")) + nz(mtx.(scen_name + "_trips")) * nz(skim_mtx.("Total Time"))
+
         end
 
         //build a comp name
         comp_string = scen_name + "_" + comp_string
     end
     
-    sp_binfile = tod_dir + "/Transit_" + TOD + "_SP.bin"
+    comp_binfile = tod_dir + "/" + comp_string + "_" + TOD + "_comparison.bin"
     matrix = OpenMatrix(out_file,)
-    CreateTableFromMatrix(matrix, sp_binfile, "FFB", {{"Complete", "Yes"}})
+    CreateTableFromMatrix(matrix, comp_binfile, "FFB", {{"Complete", "No"}})
   
-    //Open sp bin and filter records to exclude OD pairs without access
-    //Aggregate by origin TAZ
-    sp_vw = OpenTable("sp", "FFB", {sp_binfile})
-    SetView(sp_vw)
-    {fields, } = GetFields(sp_vw,)
-    s1_tt = fields[4]
-    s1_trip = fields[5]
-    s2_tt = fields[6]
-    s2_trip = fields[7]
-    del_set = CreateSet("to_delete")
-    n = SelectByQuery(del_set, "Several", "Select * where " + s1_tt + "=0 and " +  s2_tt + "=0")
-    if n > 0 then DeleteRecordsInSet(del_set)
+    //Open comp bin and Aggregate by origin TAZ
+    df = CreateObject("df", comp_binfile)
+    names = df.colnames()
+    fields_to_sum =  ExcludeArrayElements(names, 1, 3)
+    df.group_by("RCIndex")
+    df.summarize(fields_to_sum, "sum")
     
-    //Calculate delta
-    a_fields =  {
-        {"Delta_Time", "Real", 10, 1,,,, "Change in user transit travel time"},
-        {"Delta_Trips", "Real", 10, ,,,, "Change in user transit trips"},
-        {"Delta_Access", "Real", 10, ,,,, "Change in number of destination TAZs a user can reach by walk_to_transit mode from this orgin TAZ"}
-    }
-    RunMacro("Add Fields", {view: sp_vw, a_fields: a_fields})
-    {v_s1_tt, v_s1_trip, v_s2_tt, v_s2_trip} = GetDataVectors(
-        sp_vw + "|",
-        {
-            s1_tt,
-            s1_trip,
-            s2_tt,
-            s2_trip
-        },
-    )
-
-    //eliminate transit time over 60 minutes (unrealistic)
-    v_s1_tt = if v_s1_tt < 60 then v_s1_tt else if v_s2_tt < 60 and v_s2_tt >0 then v_s1_tt else null
-    v_s2_tt = if v_s2_tt < 60 then v_s2_tt else if v_s1_tt < 60 and v_s1_tt >0 then v_s2_tt else null
-    SetDataVector(sp_vw + "|", s1_tt, v_s1_tt, )
-    SetDataVector(sp_vw + "|", s2_tt, v_s2_tt, )
-    
-    //Calculate delta
-    v_Time = if v_s1_tt > 0 and v_s2_tt > 0 then v_s1_tt - v_s2_tt else null
-    v_Trips = v_s1_trip - v_s2_trip
-    v_Access = if v_s1_tt = 0 and v_s2_tt > 0 then -1 else if v_s1_tt > 0 and v_s2_tt = 0 then 1 else null
-    SetDataVector(sp_vw + "|", "Delta_Time", v_Time, )
-    SetDataVector(sp_vw + "|", "Delta_Trips", v_Trips, )
-    SetDataVector(sp_vw + "|", "Delta_Access", v_Access, )
-    
-    //Aggregate by origin TAZ
-    grouped_vw1 = AggregateTable(
-        "grouped_vw1", sp_vw + "|", "FFB", tod_dir + "/Comparison_" + TOD + ".bin", "RCIndex", 
-        {{"Delta_Time", "AVG", }, {"Delta_Trips", "SUM",}, {"Delta_Access", "SUM",}}, 
-        {"Missing As Zero": "false"}
-    )
-
-    //Remove -0.0
-    vw = OpenTable("vw", "FFB", {tod_dir + "/Comparison_" + TOD + ".bin"})
-    {v1, v2} = GetDataVectors(vw+"|", {"Avg Delta_Time", "Delta_Trips"}, )
-    v1 = Round(v1, 1)
-    v2 = Round(v2,0)
-    SetDataVector(vw + "|", "Avg Delta_Time", v1, )
-    SetDataVector(vw + "|", "Delta_Trips", v2, )
+    names = df.colnames()
+    for name in names do
+      if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            df.rename(name, new_name)
+        end
+    end
+    names = df.colnames()
+    df.mutate("Delta_wttime", df.tbl.(names[7])/df.tbl.(names[5]) - df.tbl.(names[4])/df.tbl.(names[2])) // wttime = E(trips*time)/trips
+    df.mutate("Delta_access", df.tbl.(names[6]) - df.tbl.(names[3]))
+    df.mutate("Delta_trips", df.tbl.(names[5]) - df.tbl.(names[2]))
+    df.rename("RCIndex", "TAZ")
+    df.write_csv(tod_dir + "/" + comp_string + "_" + TOD + "_comparison.csv")
  
     //Mapping TT
     taz_file = Args.TAZs
     mapFile = tod_dir + "/" + comp_string + "Comparison_TravelTime_" + TOD + ".map"
     {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
-    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".RCIndex",)
+    vw = OpenTable("vw", "CSV", {tod_dir + "/" + comp_string + "_" + TOD + "_comparison.csv", })
+    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
     SetView(jnvw)
 
     // Create a theme for the travel time difference
@@ -209,7 +173,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     opts.[Force Value] = 0
     opts.zero = "TRUE"
 
-    cTheme = CreateTheme("Transit Time", jnvw+".Avg Delta_Time", "Equal Steps" , numClasses, opts)
+    cTheme = CreateTheme("Transit Time", jnvw+".Delta_wttime", "Equal Steps" , numClasses, opts)
 
     // Set theme fill color and style
     opts = null
@@ -264,7 +228,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     taz_file = Args.TAZs
     mapFile = tod_dir + "/" + comp_string + "Comparison_Trips_" + TOD + ".map"
     {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
-    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".RCIndex",)
+    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
     SetView(jnvw)
 
     // Create a theme for the travel time difference
@@ -277,7 +241,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     opts.[Force Value] = 0
     opts.zero = "TRUE"
 
-    cTheme = CreateTheme("Transit Time", jnvw+".Delta_Trips", "Equal Steps" , numClasses, opts)
+    cTheme = CreateTheme("Transit Time", jnvw+".Delta_trips", "Equal Steps" , numClasses, opts)
 
     // Set theme fill color and style
     opts = null
@@ -443,8 +407,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     matrix = null
     out_skim_core = null
     out_trip_core = null
-    DeleteFile(out_file)
-    DeleteFile(Substitute(sp_binfile, ".bin", ".DCB",))
-    DeleteFile(sp_binfile)
+    //DeleteFile(out_file)
+    DeleteFile(Substitute(comp_binfile, ".bin", ".DCB",))
+    DeleteFile(comp_binfile)
     Return(1)
 endmacro

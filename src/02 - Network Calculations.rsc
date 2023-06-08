@@ -835,14 +835,19 @@ Macro "Other Attributes" (Args)
     SetDataVectors(llyr + "|", set, )
 
     // Limit the possible KNR nodes to those with bus stops on them that have drive access
+    // Also add drive_node fields for save turns in assignment
     a_fields = {
-        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"}
+        {"KNR", "Integer", 10, , , , , "If node can be considered for KNR|(If a bus stop is at the node)"},
+        {"drive_node", "Integer", 10, , , , , "If node can be considered for driving|(used for save turns)"}
     }
     RunMacro("Add Fields", {view: nlyr, a_fields: a_fields})
     SetLayer(llyr)
     SelectByQuery("drive_links", "several", "Select * where D = 1")
     SetLayer(nlyr)
-    SelectByLinks("drive nodes", "several", "drive_links", )
+    n = SelectByLinks("drive nodes", "several", "drive_links", )
+    v = Vector(n, "Long", {Constant: 1})
+    SetDataVector(nlyr + "|drive nodes", "drive_node", v, )
+
     n = SelectByVicinity ("knr", "several", slyr + "|", 10/5280, {"Source And": "drive nodes"})
     v = Vector(n, "Long", {Constant: 1})
     SetDataVector(nlyr + "|knr", "KNR", v, )
