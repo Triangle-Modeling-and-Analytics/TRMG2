@@ -60,8 +60,7 @@ Macro "Delete Files" (Args)
             filepath = dir + "/" + file
             DeleteFile(filepath)
         end
-        RemoveDirectory(dir)
-
+        if GetDirectoryInfo(dir, "All") <> null then RemoveDirectory(dir)
     end
 
 endmacro

@@ -49,22 +49,22 @@ dBox "Transit Scenario Comparison" (Args) location: center, center, 60, 11
     Return(1)
   enditem
 
-  Button 25, same Prompt: "Help" do
+  Button 40, 9, 10 Prompt: "Help" do
         ShowMessage(
-            "This tool allows you to select two previously-run scenarios to" +
-            "compare their transit performance. The base/old scenario is optional," +
-            "if you leave it blank, the tool will only generate results for the" +
+            "This tool allows you to select two previously-run scenarios to " +
+            "compare their transit performance. The base/old scenario is optional." +
+            "If you leave it blank, the tool will only generate results for the " +
             "new scenario instead of doing comparison."
         )
     enditem
   
   // Run Button
-  button 21, 9, 30 Prompt:"Run" do 
+  button 23, 9, 10 Prompt:"Run" do 
 
     if !RunMacro("TransitScenarioComparison", Args, S2_Dir, TOD) then Throw("Something went wrong")
  
     ShowMessage("Reports have been created successfully.")
-	return(1)
+	  return(1)
 	
     exit:	
     showmessage("Something is wrong")	
@@ -79,12 +79,11 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     // Set working directory
     S1_Dir = Args.[Scenario Folder]
     se_file = Args.[Input SE]
-    TransModeTable = Args.TransModeTable
+    taz_file = Args.TAZs
 
     //Loop through each scenario
     comp_string = null
-    if S2_Dir <> null then do 
-      scen_Dirs = {S1_Dir, S2_Dir}
+    if S2_Dir <> null then scen_Dirs = {S1_Dir, S2_Dir}
     else scen_Dirs = {S1_Dir}
 
     for dir in scen_Dirs do
@@ -124,10 +123,10 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         mtx.DropCores(core_names)
 
         //2. loop through all transit modes under walk access
+        TransModeTable = dir + "\\input\\networks\\transit_mode_table.csv"
         transit_modes = RunMacro("Get Transit Modes", TransModeTable)
         transit_modes = {"all"} + transit_modes
         for transit_mode in transit_modes do
-
             //Fill output trip core 
             trip_Dir = dir + "\\output\\assignment\\transit"
             trip_file = trip_Dir + "/transit_" + TOD + ".mtx"
@@ -144,6 +143,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         end
         
         //3. Calculate row sum 
+        data = null
         v_trips = mtx.GetVector({Core: scen_name + "_trips", Marginal: "Row Sum"})
         v_access = mtx.GetVector({Core: scen_name + "_access", Marginal: "Row Sum"})
         v_wttime = mtx.GetVector({Core: scen_name + "_wttime", Marginal: "Row Sum"})
@@ -170,263 +170,262 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
     // 4. Start comparison if S2<>NULL
     if S2_Dir <> null then do 
       // 4.1 Calculate Delta
-      s1_output_dir = S1_Dir + "\\output\\_summaries\\Transit_Scenario_Comparison"
+      S1_output_dir = S1_Dir + "\\output\\_summaries\\Transit_Scenario_Comparison"
       S1_tod_dir = S1_Dir + "\\output\\_summaries\\Transit_Scenario_Comparison\\" + TOD
-      df_S1 = cCreateObject("df", S1_tod_dir + "\\TransitEval_" + TOD + ".bin")
+      df_S1 = CreateObject("Table", S1_tod_dir + "\\TransitEval_" + TOD + ".bin")
       S2_tod_dir = S2_Dir + "\\output\\_summaries\\Transit_Scenario_Comparison\\" + TOD
-      df_S2 = cCreateObject("df", S2_tod_dir + "\\TransitEval_" + TOD + ".bin")
+      df_S2 = CreateObject("Table", S2_tod_dir + "\\TransitEval_" + TOD + ".bin")
 
-      df_S1 = df_S1.leftjoin(df_S2, "TAZ", "TAZ")
-      names = df.colnames()
-      df_S1.mutate("Delta_avgwttime", df.tbl.(names[8])/df.tbl.(names[6]) - df.tbl.(names[4])/df.tbl.(names[2])) // wttime = E(trips*time)/trips
-      df_S1.mutate("Delta_access", df.tbl.(names[7]) - df.tbl.(names[3]))
-      df_S1.mutate("Delta_trips", df.tbl.(names[6]) - df.tbl.(names[2]))
-      df_S1.write_csv(S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv")
-
-      //4.2 Mapping TT
-      taz_file = Args.TAZs
-      mapFile = S1_tod_dir + "\\" + comp_string + "_Comparison_TravelTime_" + TOD + ".map"
-      {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
-      vw = OpenTable("vw", "CSV", {S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv", })
-      jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
-      SetView(jnvw)
-
-      // Create a theme for the travel time difference
-      numClasses = 4
-      opts = null
-      opts.[Pretty Values] = "True"
-      opts.[Drop Empty Classes] = "True"
-      opts.Title = "On average by origin zone in " + TOD
-      opts.Other = "False"
-      opts.[Force Value] = 0
-      opts.zero = "TRUE"
-
-      cTheme = CreateTheme("Transit Time", jnvw+".Delta_avgwttime", "Equal Steps" , numClasses, opts)
-
-      // Set theme fill color and style
-      opts = null
-      a_color = {
-        ColorRGB(8738, 24158, 43176),
-        ColorRGB(16705, 46774, 50372),
-        ColorRGB(41377, 56026, 46260),
-        ColorRGB(65535, 65535, 54248)
+      fields = {
+        {FieldName: "Diff_avgwttime", Type: "real"},
+        {FieldName: "Diff_access", Type: "real"},
+        {FieldName: "Diff_trips", Type: "real"},
+        {FieldName: "PctDiff_avgwttime", Type: "real"},
+        {FieldName: "PctDiff_access", Type: "real"},
+        {FieldName: "PctDiff_trips", Type: "real"}
       }
-      SetThemeFillColors(cTheme, a_color)
-      str1 = "XXXXXXXX"
-      solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
-      for i = 1 to numClasses do
-        a_fillstyles = a_fillstyles + {solid}
-      end
-      SetThemeFillStyles(cTheme, a_fillstyles)
-      ShowTheme(, cTheme)
-
-      // Modify the border color
-      lightGray = ColorRGB(45000, 45000, 45000)
-      SetLineColor(, lightGray)
-
-      cls_labels = GetThemeClassLabels(cTheme)
-      for i = 1 to cls_labels.length do
-        label = cls_labels[i]
-      end
-      SetThemeClassLabels(cTheme, cls_labels)
-
-      // Configure Legend
-      SetLegendDisplayStatus(cTheme, "True")
-      RunMacro("G30 create legend", "Theme")
-      title = "Average Transit Travel Time Changes"
-      footnote = "Transit travel time capped, see user guide."
-      SetLegendSettings (
-        GetMap(),
-        {
-          "Automatic",
-          {0, 1, 0, 0, 1, 4, 0},
-          {1, 1, 1},
-          {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
-          {title, footnote}
-        }
-      )
-      SetLegendOptions (GetMap(), {{"Background Style", solid}})
-
-      RedrawMap(map)
-      SaveMap(map,mapFile)
-      CloseMap(map)
+      df_S2.AddFields({Fields: fields})
       
-      //Mapping Trips
-      taz_file = Args.TAZs
-      mapFile = S1_tod_dir + "\\" + comp_string + "_Comparison_Trips_" + TOD + ".map"
-      {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
-      jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
-      SetView(jnvw)
+      join = df_S1.Join({
+      Table: df_S2,
+      LeftFields: "TAZ",
+      RightFields: "TAZ"
+      })
 
-      // Create a theme for the travel time difference
-      numClasses = 4
-      opts = null
-      opts.[Pretty Values] = "True"
-      opts.[Drop Empty Classes] = "True"
-      opts.Title = "in total by origin zone in " + TOD
-      opts.Other = "False"
-      opts.[Force Value] = 0
-      opts.zero = "TRUE"
+      names = join.GetFieldNames()
+      join.Diff_avgwttime = join.(names[4])/join.(names[2]) - join.(names[8])/join.(names[6]) // wttime = E(trips*time)/trips
+      join.Diff_access = join.(names[3]) - join.(names[7])
+      join.Diff_trips = join.(names[2]) - join.(names[6])
+      join.PctDiff_avgwttime = join.Diff_avgwttime/join.(names[8])/join.(names[6])
+      join.PctDiff_access = join.Diff_access / join.(names[7])
+      join.PctDiff_trips = join.Diff_trips / join.(names[6])
 
-      cTheme = CreateTheme("Transit Time", jnvw+".Delta_trips", "Equal Steps" , numClasses, opts)
-
-      // Set theme fill color and style
-      opts = null
-      a_color = {
-        ColorRGB(65535, 65535, 54248),
-        ColorRGB(41377, 56026, 46260),
-        ColorRGB(16705, 46774, 50372),
-        ColorRGB(8738, 24158, 43176)
-      }
-      SetThemeFillColors(cTheme, a_color)
-      str1 = "XXXXXXXX"
-      solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
-      for i = 1 to numClasses do
-        a_fillstyles = a_fillstyles + {solid}
-      end
-      SetThemeFillStyles(cTheme, a_fillstyles)
-      ShowTheme(, cTheme)
-
-      // Modify the border color
-      lightGray = ColorRGB(45000, 45000, 45000)
-      SetLineColor(, lightGray)
-
-      cls_labels = GetThemeClassLabels(cTheme)
-      for i = 1 to cls_labels.length do
-        label = cls_labels[i]
-      end
-      SetThemeClassLabels(cTheme, cls_labels)
-
-      // Configure Legend
-      SetLegendDisplayStatus(cTheme, "True")
-      RunMacro("G30 create legend", "Theme")
-      title = "Transit Trips Changes"
-      //footnote = "Transit travel time capped, see user guide."
-      SetLegendSettings (
-        GetMap(),
-        {
-          "Automatic",
-          {0, 1, 0, 0, 1, 4, 0},
-          {1, 1, 1},
-          {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
-          {title, }
-        }
-      )
-      SetLegendOptions (GetMap(), {{"Background Style", solid}})
-
-      RedrawMap(map)
-      SaveMap(map,mapFile)
-      CloseMap(map)
-    
-      //Compare route level difference
-      //Set up file path
+      join.Export({FileName: S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv"})
+      df_S1 = null
+      df_S2 = null
+      join = null
+      
+      //4.2 Compare route level difference
+      //    Set up file path
       s1_routefolder = S1_Dir + "/output/_summaries/transit"
       s2_routefolder = S2_Dir + "/output/_summaries/transit"
       s1_boardingfile = s1_routefolder + "/boardings_and_alightings_by_period.csv"
       s2_boardingfile = s2_routefolder + "/boardings_and_alightings_by_period.csv"
       s1_pmilefile = s1_routefolder + "/passenger_miles_and_hours.csv"
       s2_pmilefile = s2_routefolder + "/passenger_miles_and_hours.csv"
-      scen_rts = Args.[Input Routes]
+      s1_scen_rts = S1_Dir + "\\input\\networks\\scenario_routesR.bin" //The join will base in S1 scenario, so if S2 has route that does not exist in S1, it will lost.
+      s2_scen_rts = S2_Dir + "\\input\\networks\\scenario_routesR.bin" //The join will base in S1 scenario, so if S2 has route that does not exist in S1, it will lost.
     
-      //Get agency name
-      rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
-      df3 = CreateObject("df", rts_bin)
-      df3.select({"Route_ID", "Agency", "Route_Name"})
+      //    Get agency name
+      df_s1_rts = CreateObject("df", s1_scen_rts)
+      df_s1_rts.select({"Route_ID", "Agency", "Route_Name"})
+      df_s2_rts = CreateObject("df", s2_scen_rts)
+      df_s2_rts.select({"Route_ID", "Agency", "Route_Name"})
 
-      //Get scen name
+      //    Get scen name
       parts = ParseString(S1_Dir, "\\")
       s1_name = parts[parts.length]
       parts = ParseString(S2_Dir, "\\")
       s2_name = parts[parts.length]
     
-      //boardings by route/agency and TOD
-      df1 = null 
-      df1 = CreateObject("df", s1_boardingfile)
-      df1.filter("period = '" + TOD + "'")
-      df1.group_by("route")
-      df1.summarize({"On", "Off"}, "sum")
+      //4.2.1 boardings by route/agency and TOD
+      df_S1 = CreateObject("df", s1_boardingfile)
+      df_S1.filter("period = '" + TOD + "'")
+      df_S1.group_by("route")
+      df_S1.summarize({"On", "Off"}, "sum")
+      df_S1.left_join(df_s1_rts, "route", "Route_ID")
 
-      df2 = null 
-      df2 = CreateObject("df", s2_boardingfile)
-      df2. filter("period = '" + TOD + "'")
-      df2.group_by("route")
-      df2.summarize({"On", "Off"}, "sum")
+      df_S2 = null 
+      df_S2 = CreateObject("df", s2_boardingfile)
+      df_S2. filter("period = '" + TOD + "'")
+      df_S2.group_by("route")
+      df_S2.summarize({"On", "Off"}, "sum")
+      df_S2.left_join(df_s2_rts, "route", "Route_ID")
    
-      df1.left_join(df2, "route", "route")
-      df1.mutate("Delta_On", nz(df1.tbl.("sum_On_x")) - nz(df1.tbl.("sum_On_y"))) 
-      df1.mutate("Delta_Off", nz(df1.tbl.("sum_Off_x")) - nz(df1.tbl.("sum_Off_y")))
-      df1.select({"route", "sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"})
+      join = df_S1.copy()
+      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join.mutate("Delta_On", nz(join.tbl.("sum_On_x")) - nz(join.tbl.("sum_On_y"))) 
+      join.mutate("Delta_Off", nz(join.tbl.("sum_Off_x")) - nz(join.tbl.("sum_Off_y")))
+      join.select({"Route_Name", "Agency_x", "sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"})
 
-      //by route
-      df1.group_by("route")
-      df1.summarize({"sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"}, "sum")
-      df1.left_join(df3, "route", "Route_ID")
-      names = df1.colnames()
+      names = join.colnames()
       for name in names do
           if Left(name, 4) = "sum_" then do
               new_name = Substitute(name, "sum_", "", 1)
               new_name = Substitute(new_name, "sum_", "", 1) //some fields start with sum_sum_
               new_name = Substitute(new_name, "x", s1_name, 1)
               new_name = Substitute(new_name, "y", s2_name, 1)
-              df1.rename(name, new_name)
+              join.rename(name, new_name)
           end
       end
       
-      df1.write_csv(S1_tod_dir + "/boardings_alightings_byroute_" + TOD + ".csv")
+      join.write_csv(S1_tod_dir + "/boardings_alightings_byroute_" + TOD + ".csv")
 
       //by agency
-      df1.group_by("Agency")
-      df1.summarize({"On_"+s1_name, "Off_"+s1_name, "On_"+s2_name, "Off_"+s2_name, "Delta_On", "Delta_Off"}, "sum")
-      names = df1.colnames()
+      df_S1.group_by("Agency")
+      df_S1.summarize({"sum_On", "sum_Off"}, "sum")
+      df_S2.group_by("Agency")
+      df_S2.summarize({"sum_On", "sum_Off"}, "sum")
+      join = df_S1.copy()
+      join.left_join(df_S2, "Agency", "Agency")
+      join.mutate("Delta_On", nz(join.tbl.("sum_sum_On_x")) - nz(join.tbl.("sum_sum_On_y"))) 
+      join.mutate("Delta_Off", nz(join.tbl.("sum_sum_Off_x")) - nz(join.tbl.("sum_sum_Off_y")))
+
+      names = join.colnames()
       for name in names do
           if Left(name, 4) = "sum_" then do
               new_name = Substitute(name, "sum_", "", 1)
-              df1.rename(name, new_name)
+              new_name = Substitute(new_name, "sum_", "", 1) //some fields start with sum_sum_
+              new_name = Substitute(new_name, "x", s1_name, 1)
+              new_name = Substitute(new_name, "y", s2_name, 1)
+              join.rename(name, new_name)
           end
       end
-      df1.write_csv(S1_tod_dir + "/boardings_alightings_byagency_" + TOD + ".csv")
+      join.write_csv(S1_tod_dir + "/boardings_alightings_byagency_" + TOD + ".csv")
 
-      //passenger miles and hours by route and agency
-      df1 = null 
-      df1 = CreateObject("df", s1_pmilefile)
-      df1.group_by("route")
-      df1.summarize({"pass_hours", "pass_miles"}, "sum")
+      //4.2.2 passenger miles and hours by route and agency
+      df_S1 = null 
+      df_S1 = CreateObject("df", s1_pmilefile)
+      df_S1.group_by("route")
+      df_S1.summarize({"pass_hours", "pass_miles"}, "sum")
+      df_S1.left_join(df_s1_rts, "route", "Route_ID")
 
-      df2 = null 
-      df2 = CreateObject("df", s2_pmilefile)
-      df2.group_by("route")
-      df2.summarize({"pass_hours", "pass_miles"}, "sum")
+      df_S2 = null 
+      df_S2 = CreateObject("df", s2_pmilefile)
+      df_S2.group_by("route")
+      df_S2.summarize({"pass_hours", "pass_miles"}, "sum")
+      df_S2.left_join(df_s2_rts, "route", "Route_ID")
 
-      df1.left_join(df2, "route", "route")
-      df1.mutate("Delta_hours", nz(df1.tbl.("sum_pass_hours_x")) - nz(df1.tbl.("sum_pass_hours_y")))
-      df1.mutate("Delta_miles", nz(df1.tbl.("sum_pass_miles_x")) - nz(df1.tbl.("sum_pass_miles_y")))
-      names = df1.colnames()
+      join = df_S1.copy()
+      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join.mutate("Delta_hours", nz(join.tbl.("sum_pass_hours_x")) - nz(join.tbl.("sum_pass_hours_y")))
+      join.mutate("Delta_miles", nz(join.tbl.("sum_pass_miles_x")) - nz(join.tbl.("sum_pass_miles_y")))
+      join.select({"Route_Name", "Agency_x", "sum_pass_hours_x", "sum_pass_miles_x", "sum_pass_hours_y", "sum_pass_miles_y", "Delta_hours", "Delta_miles"})
+      
+      names = join.colnames()
       for name in names do
           if Left(name, 4) = "sum_" then do
               new_name = Substitute(name, "sum_", "", 1)
               new_name = Substitute(new_name, "x", s1_name, 1)
               new_name = Substitute(new_name, "y", s2_name, 1)
-              df1.rename(name, new_name)
+              join.rename(name, new_name)
           end
       end
 
       //by route
-      df1.left_join(df3, "route", "Route_ID")
-      df1.write_csv(S1_output_dir + "/passhoursandmiles_byroute_daily.csv")
+      join.write_csv(S1_output_dir + "/passhoursandmiles_byroute_daily.csv")
 
       //by agency
-      df1.group_by("Agency")
-      df1.summarize({"pass_hours_"+s1_name, "pass_miles_"+s1_name, "pass_hours_"+s2_name, "pass_miles_"+s2_name, "Delta_hours", "Delta_miles"}, "sum")
-      names = df1.colnames()
+      df_S1.group_by("Agency")
+      df_S1.summarize({"sum_pass_hours", "sum_pass_miles"}, "sum")
+      
+      df_S2.group_by("Agency")
+      df_S2.summarize({"sum_pass_hours", "sum_pass_miles"}, "sum")
+      
+      join = df_S1.copy()
+      join.left_join(df_S2, "Agency", "Agency")
+      join.mutate("Delta_hours", nz(join.tbl.("sum_sum_pass_hours_x")) - nz(join.tbl.("sum_sum_pass_hours_y"))) 
+      join.mutate("Delta_miles", nz(join.tbl.("sum_sum_pass_miles_x")) - nz(join.tbl.("sum_sum_pass_miles_y")))
+
+      names = join.colnames()
       for name in names do
           if Left(name, 4) = "sum_" then do
-              new_name = Substitute(name, "sum_", "", 1)
-              df1.rename(name, new_name)
+              new_name = Substitute(name, "sum_sum_", "", 1)
+              new_name = Substitute(new_name, "x", s1_name, 1)
+              new_name = Substitute(new_name, "y", s2_name, 1)
+              join.rename(name, new_name)
           end
       end
-      df1.write_csv(S1_output_dir + "/passhoursandmiles_byagency_daily.csv")
+      join.write_csv(S1_output_dir + "/passhoursandmiles_byagency_daily.csv")
+      
+      //4.3 Create maps
+      mapvars = {"Diff_avgwttime", "Diff_access", "Diff_trips", "PctDiff_avgwttime", "PctDiff_access", "PctDiff_trips"}
+      for varname in mapvars do
+          opts = null
+          opts.output_dir = S1_tod_dir
+          opts.taz_file = taz_file
+          opts.varname = varname
+          opts.comp_string = comp_string
+          opts.tod = TOD
+          RunMacro("Create Transit Map", opts)
+      end
       
       RunMacro("Close All")
       Return(1)
   end
+  else Return(1)
+endmacro
+
+Macro "Create Transit Map" (opts)
+    output_dir = opts.output_dir 
+    taz_file = opts.taz_file
+    varname = opts.varname
+    comp_string = opts.comp_string
+    TOD = opts.tod
+
+    // Mapping VMT delta on a taz map
+    {map, {tlyr}} = RunMacro("Create Map", {file: taz_file})
+    vw = OpenTable("vw", "CSV", {output_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv", })
+    mapFile = output_dir + "\\" + comp_string + "_Comparison_" + varname + "_" + TOD + ".map"
+    jnvw = JoinViews("jv", tlyr + ".ID", vw + ".TAZ",)
+    SetView(jnvw)
+
+    // Create a theme for var
+    numClasses = 4
+    opts = null
+    opts.[Pretty Values] = "True"
+    opts.[Drop Empty Classes] = "True"
+    opts.Title = "Change in " + varname + " in " + TOD
+    opts.Other = "False"
+    opts.[Force Value] = 0
+    opts.zero = "TRUE"
+    cTheme = CreateTheme(varname, jnvw + "." + varname, "Equal Steps" , numClasses, opts)
+
+    // Set theme fill color and style
+    opts = null
+    a_color = {
+        ColorRGB(8738, 24158, 43176),
+        ColorRGB(16705, 46774, 50372),
+        ColorRGB(41377, 56026, 46260),
+        ColorRGB(65535, 65535, 54248)
+    }
+    SetThemeFillColors(cTheme, a_color)
+    str1 = "XXXXXXXX"
+    solid = FillStyle({str1, str1, str1, str1, str1, str1, str1, str1})
+    for i = 1 to numClasses do
+      a_fillstyles = a_fillstyles + {solid}
+    end
+    SetThemeFillStyles(cTheme, a_fillstyles)
+    ShowTheme(, cTheme)
+
+    // Modify the border color
+    lightGray = ColorRGB(45000, 45000, 45000)
+    SetLineColor(, lightGray)
+
+    cls_labels = GetThemeClassLabels(cTheme)
+    for i = 1 to cls_labels.length do
+      label = cls_labels[i]
+    end
+    SetThemeClassLabels(cTheme, cls_labels)
+
+    // Configure Legend
+    SetLegendDisplayStatus(cTheme, "True")
+    RunMacro("G30 create legend", "Theme")
+    title = comp_string + " Comparison in " + varname
+    SetLegendSettings (
+      GetMap(),
+      {
+        "Automatic",
+        {0, 1, 0, 0, 1, 4, 0},
+        {1, 1, 1},
+        {"Arial|Bold|14", "Arial|9", "Arial|Bold|12", "Arial|12"},
+        {title, }
+      }
+    )
+    SetLegendOptions (GetMap(), {{"Background Style", solid}})
+
+    RedrawMap(map)
+    SaveMap(map, mapFile)
+    CloseMap(map)
+
 endmacro
