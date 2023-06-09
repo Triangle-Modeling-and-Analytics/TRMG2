@@ -508,6 +508,7 @@ Macro "Update Scenario Attributes" (MacroOpts)
   // Create a map of the scenario RTS
   map = CreateObject("Map", output_rts_file)
   {nlyr, llyr, rlyr, slyr} = map.GetLayerNames()
+  rtbl = CreateObject("Table", rlyr)
 
   SetLayer(rlyr)
 
@@ -531,18 +532,15 @@ Macro "Update Scenario Attributes" (MacroOpts)
         pid = v_pid[i]
         value = v_value[i]
 
-        // Locate the route with this project ID. If not found, throw an error.
-        opts = null
-        opts.Exact = "true"
-        rh = LocateRecord(rlyr + "|", "ProjID", {String(pid)}, opts)
-        if rh = null then do
-          pid_string = if TypeOf(pid) = "string" then pid else String(pid)
-          Throw("ProjID '" + pid_string + "' not found in route layer")
-        end
-
-        // Update the attribute
-        SetRecord(rlyr, rh)
-        rlyr.(field_name) = value
+        if TypeOf(pid) = "string"
+          then pid = pid
+          else pid = String(pid)
+        n = rtbl.SelectByQuery({
+          SetName: "temp",
+          Query: "ProjID = '" + pid + "'"
+        })
+        if n = 0 then Throw("ProjID '" + pid_string + "' not found in route layer")
+        rtbl.(field_name) = value
       end
     end
   end
