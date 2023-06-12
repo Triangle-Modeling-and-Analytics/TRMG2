@@ -63,6 +63,7 @@ Macro "Roadway Project Management" (MacroOpts)
     RunMacro("Clean Project Groups", master_dbd)
     Throw("Project groups fixed. Start the export process again.")
   end
+  missing_projects = RunMacro("Check for Missing Projects", v_projIDs, llyr, hwy_dbd)
 
   // Determine the project groupings and attributes on the link layer.
   // Remove ID from the list of attributes to update.
@@ -70,14 +71,7 @@ Macro "Roadway Project Management" (MacroOpts)
   attrList = RunMacro("Get Project Attributes", llyr)
   attrList = ExcludeArrayElements(attrList, 1, 1)
 
-  // Loop over each project ID
-  num_notfound = 0
-
-  {drive, path, , } = SplitPath(hwy_dbd)
-  error_file = drive + path + "RoadwayBuildingError.csv"
-  file = OpenFile(error_file, "w")
-  WriteLine(file, "Below projects are missing:")
-  
+  // Loop over each project ID  
   for p = v_projIDs.length to 1 step -1 do
     projID = v_projIDs[p]
     type = TypeOf(projID)
@@ -104,7 +98,6 @@ Macro "Roadway Project Management" (MacroOpts)
       qry = qry + " and UpdatedWithP = null"
       n = SelectByQuery("updateLinks", "Several", qry)
       if n > 0 then do
-        proj_found = 1
 
         // Loop over each field to update
         for f = 1 to attrList.length do
@@ -127,20 +120,7 @@ Macro "Roadway Project Management" (MacroOpts)
         SetDataVector(llyr + "|updateLinks", "UpdatedWithP", v_vec, )
       end
     end
-
-    if !proj_found then do
-      num_notfound = num_notfound + 1
-      if type = "string"
-        then WriteLine(file, projID)
-        else WriteLine(file, String(projID))
-    end
   end
-  
-  CloseFile(file)
-  errmsg = "Projects not found in the master network. See error log in the scenario folder."
-  if num_notfound > 0 then Throw(errmsg)
-  //remove error log once scenario created successfully
-  if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.
@@ -174,7 +154,6 @@ Macro "Roadway Project Management" (MacroOpts)
     CopyDatabase(new_dbd, hwy_dbd)
     DeleteDatabase(new_dbd)
   end
-
 EndMacro
 
 /*
@@ -644,7 +623,38 @@ Macro "Export Project Layer" (MacroOpts)
 endmacro
 
 /*
-Flesh out into a general macro for the drop down menu.
+This checks if there are project IDs in the project list that are not
+on the highway link layer.
+*/
+
+Macro "Check for Missing Projects" (v_projIDs, llyr, hwy_dbd)
+ 
+  v_all_ids = RunMacro("Get All Project IDs", llyr)
+  for pid in v_projIDs do
+    if v_all_ids.Position(pid) = 0 then missing = missing + {pid}
+  end
+  
+  {drive, path, , } = SplitPath(hwy_dbd)
+  error_file = drive + path + "_missing_roadway_projects.csv"
+ 
+  if missing <> null then do
+    file = OpenFile(error_file, "w")
+    WriteLine(file, "Below projects are missing:")
+    for id in missing do
+      if TypeOf(id) <> "string" 
+        then string_id = String(id)
+        else string_id = id
+      WriteLine(file, string_id)
+    end
+    CloseFile(file)
+    return("true")
+  end else do
+    if GetFileInfo(error_file) <> null then DeleteFile(error_file)
+  end
+endmacro
+
+/*
+TODO: Flesh out into a general macro for the drop down menu.
 */
 
 Macro "run export project layer"
