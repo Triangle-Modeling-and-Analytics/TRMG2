@@ -1,7 +1,7 @@
 # TRMG2
 The second generation of the Triangle Regional Model.
 
-This repo is the home for the TRMG2 during the development phase. Project stakeholders include:
+Project stakeholders include:
 
 - ITRE
 - CAMPO
@@ -11,12 +11,11 @@ This repo is the home for the TRMG2 during the development phase. Project stakeh
 - Caliper
 - WSP
 
-At the end of development, this repo will be transferred to the Triangle Modeling and Analytics
-GitHub organization:  
-https://github.com/Triangle-Modeling-and-Analytics
+Development documentation can be found here:  
+https://triangle-modeling-and-analytics.github.io/TRMG2/
 
-Draft documentation can be found here:  
-https://caliper-corporation.github.io/TRMG2/
+The user's guide wiki is located here:  
+https://github.com/Triangle-Modeling-and-Analytics/TRMG2/wiki
 
 Client PM: Leta Huntsinger  
 Caliper PM: Vince Bernardin  

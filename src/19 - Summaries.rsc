@@ -1472,6 +1472,7 @@ Macro "VMT_Delay Summary" (Args)
   scen_outdir = Args.[Output Folder]
   hwy_dbd = Args.Links
   taz_dbd = Args.TAZs
+  se_bin = Args.SE
   report_dir = scen_outdir + "\\_summaries" //need to create this dir in argument file 
   output_dir = report_dir + "\\VMT_Delay" //need to create this dir in argument file
   RunMacro("Create Directory", output_dir)
@@ -1855,7 +1856,7 @@ Macro "Communities of Concern" (Args)
 	join.inc_threshold = join.Threshold
 	join = null
 	tbl.DropFields({FieldNames: {"temp_kids", "temp_senior"}})
-	tbl.poverty = if tbl.HHInc < tbl.inc_threshold then 1 else 0
+	tbl.poverty = if tbl.HHInc < 1.5 * tbl.inc_threshold then 1 else 0 // if income is lower than 150% of poverty line
 
 	// Summarize by TAZ
 	agg = tbl.Aggregate({

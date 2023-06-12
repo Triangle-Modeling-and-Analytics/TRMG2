@@ -76,7 +76,7 @@ menu "TRMG2 Menu"
 
     separator
 
-    MenuItem "Utils" text: "Utilities"
+    MenuItem "Utils" text: "Tools"
         menu "TRMG2 Utilities"
     
     MenuItem "Calibrators" text: "Calibrators"
@@ -92,14 +92,14 @@ menu "TRMG2 Utilities"
     MenuItem "Accessibility" text: "Accessibility Analysis"
         menu "Accessibility Analysis"
 
-    MenuItem "Matrix" text: "Matrix Aggregation"
-        menu "Matrix Aggregation"
+    MenuItem "Matrix" text: "Matrix Aggregation and Deletion"
+        menu "Matrix Aggregation and Deletion"
 
-    MenuItem "Comparison" text: "Scenario Comparison Tools"
-        menu "Scenario Comparison Tools"
+    MenuItem "Comparison" text: "Scenario Comparison"
+        menu "Scenario Comparison"
     
-    MenuItem "Input" text: "Input Data Processing Tools"
-        menu "Input Data Processing Tools"
+    MenuItem "Input" text: "Input Data Processing"
+        menu "Input Data Processing"
 
     MenuItem "Performance" text: "Performance Measures"
         menu "Performance Measures"
@@ -146,7 +146,7 @@ menu "Accessibility Analysis"
     enditem
 endMenu
 
-menu "Matrix Aggregation"
+menu "Matrix Aggregation and Deletion"
     init do
     enditem
     
@@ -161,9 +161,22 @@ menu "Matrix Aggregation"
         Args = mr.GetValues()
         mr.RunCode("Open NM Trip Aggregation Tool Dbox", Args)
     enditem
+
+    MenuItem "TripAggregation_Daily" text: "Daily Matrix Creation" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Daily Matrix Creation Tool Dbox", Args)
+    enditem
+
+    MenuItem "Delete Files Tool" text: "Delete Matrix Files" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Delete Files Tool Dbox", Args)
+    enditem
+
 endMenu
 
-menu "Scenario Comparison Tools"
+menu "Scenario Comparison"
     init do
     enditem
 
@@ -185,7 +198,7 @@ menu "Scenario Comparison Tools"
     enditem
 endMenu
 
-menu "Input Data Processing Tools"
+menu "Input Data Processing"
     init do
     enditem
 
