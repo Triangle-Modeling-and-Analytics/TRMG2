@@ -242,8 +242,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.summarize({"On", "Off"}, "sum")
       df_S2.left_join(df_s2_rts, "route", "Route_ID")
    
-      join = df_S1.copy()
-      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join = df_S1.outer_join(df_S2, "Route_Name", "Route_Name")
       join.mutate("Delta_On", nz(join.tbl.("sum_On_x")) - nz(join.tbl.("sum_On_y"))) 
       join.mutate("Delta_Off", nz(join.tbl.("sum_Off_x")) - nz(join.tbl.("sum_Off_y")))
       join.select({"Route_Name", "Agency_x", "sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"})
@@ -252,7 +251,6 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       for name in names do
           if Left(name, 4) = "sum_" then do
               new_name = Substitute(name, "sum_", "", 1)
-              new_name = Substitute(new_name, "sum_", "", 1) //some fields start with sum_sum_
               new_name = Substitute(new_name, "x", s1_name, 1)
               new_name = Substitute(new_name, "y", s2_name, 1)
               join.rename(name, new_name)
@@ -266,8 +264,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S1.summarize({"sum_On", "sum_Off"}, "sum")
       df_S2.group_by("Agency")
       df_S2.summarize({"sum_On", "sum_Off"}, "sum")
-      join = df_S1.copy()
-      join.left_join(df_S2, "Agency", "Agency")
+
+      join = df_S1.outer_join(df_S2, "Agency", "Agency")
       join.mutate("Delta_On", nz(join.tbl.("sum_sum_On_x")) - nz(join.tbl.("sum_sum_On_y"))) 
       join.mutate("Delta_Off", nz(join.tbl.("sum_sum_Off_x")) - nz(join.tbl.("sum_sum_Off_y")))
 
@@ -296,8 +294,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.summarize({"pass_hours", "pass_miles"}, "sum")
       df_S2.left_join(df_s2_rts, "route", "Route_ID")
 
-      join = df_S1.copy()
-      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join = df_S1.outer_join(df_S2, "Route_Name", "Route_Name")
       join.mutate("Delta_hours", nz(join.tbl.("sum_pass_hours_x")) - nz(join.tbl.("sum_pass_hours_y")))
       join.mutate("Delta_miles", nz(join.tbl.("sum_pass_miles_x")) - nz(join.tbl.("sum_pass_miles_y")))
       join.select({"Route_Name", "Agency_x", "sum_pass_hours_x", "sum_pass_miles_x", "sum_pass_hours_y", "sum_pass_miles_y", "Delta_hours", "Delta_miles"})
@@ -322,8 +319,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.group_by("Agency")
       df_S2.summarize({"sum_pass_hours", "sum_pass_miles"}, "sum")
       
-      join = df_S1.copy()
-      join.left_join(df_S2, "Agency", "Agency")
+      join = df_S1.outer_join(df_S2, "Agency", "Agency")
       join.mutate("Delta_hours", nz(join.tbl.("sum_sum_pass_hours_x")) - nz(join.tbl.("sum_sum_pass_hours_y"))) 
       join.mutate("Delta_miles", nz(join.tbl.("sum_sum_pass_miles_x")) - nz(join.tbl.("sum_sum_pass_miles_y")))
 
@@ -429,3 +425,4 @@ Macro "Create Transit Map" (opts)
     CloseMap(map)
 
 endmacro
+
