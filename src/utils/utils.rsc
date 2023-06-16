@@ -1968,17 +1968,16 @@ Macro "Summarize Transit" (MacroOpts)
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
   
-  // Get agency name and route name
+  // Get agency name, route name, and mode name
   rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
   rts = CreateObject("df", rts_bin)
-  rts.select({"Route_ID", "Route_Name", "Agency", "Mode"})
 
-  // Get route mode
   mode_table = CreateObject("df", TransModeTable)
   mode_table.select({"Mode_ID", "Abbr"})
   rts.left_join(mode_table, "Mode", "Mode_ID")
   rts.rename("Abbr", "Mode_abbr")
-
+  rts.select({"Route_ID", "Route_Name", "Agency", "Mode_abbr"})
+  
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
   onoff.group_by({"ROUTE", "access", "mode", "period"})
@@ -2000,6 +1999,8 @@ Macro "Summarize Transit" (MacroOpts)
   daily.left_join(rts, "route", "Route_ID")
   daily.select({"route", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
+
+  
 
   // Summarize total ridership (total boardings) by agency, access mode, and transit mode
   vars = {"agency", "access", "mode"}
