@@ -468,7 +468,7 @@ Macro "Merge Route Systems" (MacroOpts)
   // Create route and stop field arrays to merge attributes
   tbl = CreateObject("Table", rlyr2)
   field_names = tbl.GetFieldNames()
-  dont_include = {"Route_ID", "Agency", "Length"}
+  dont_include = {"Route_ID", "Length"}
   for field_name in field_names do
     if dont_include.position(field_name) > 0 then continue
     route_fields = route_fields + {{field_name, field_name}}
