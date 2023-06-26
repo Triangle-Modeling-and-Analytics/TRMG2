@@ -2088,7 +2088,7 @@ Macro "COC Mapping" (Args)
 				}
 			})
 			map.CreateLegend({
-				Title: "Communities of Concern (" + coc + ")",
+				Title: "Disadvangtaged Communities (" + coc + ")",
 				DisplayLayers: "false" 
 			})
 			out_file = map_dir + "/" + field + ".map"
