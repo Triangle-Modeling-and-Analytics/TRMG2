@@ -2230,4 +2230,59 @@ Class "df" (tbl, desc, groups)
     return(sum)
   EndItem
 
+  /*doc
+  This macro creates a outer join function. 
+  
+  Inputs
+    * `slave_tbl`
+      * Table to be joined
+    * m_id, s_id
+      * string of join fields
+      
+  Returns
+    A new df which contains all records in both dataframes
+  */
+
+  Macro "outer_join" (slave_tbl, m_id, s_id) do
+
+    // Argument check
+    self.check()
+    slave_tbl.check()
+    if s_id = null then s_id = m_id
+
+    // Check that master and slave fields are present in the table
+    colnames = self.colnames()
+    if !self.in(m_id, colnames) then Throw(
+      "left_join: master field '" + field + "' not found in master table"
+      )
+
+    colnames = slave_tbl.colnames()
+    if !self.in(s_id, colnames) then Throw(
+      "left_join: slave field '" + field + "' not found in slave table"
+      )
+
+
+    jv1 = self.copy()
+    jv1.left_join(slave_tbl, m_id, s_id)
+    jv1.select(m_id)
+
+    jv2 = slave_tbl.copy()
+    jv2.left_join(self, m_id, s_id)
+    jv2.select(m_id)
+
+    jv1.bind_rows(jv2)
+    v_id = jv1.get_col(m_id)
+    arr_id = V2A(v_id)
+    new_arr = SortArray(arr_id, {{"Unique","True"}}) 
+    new_df = CreateObject("df")
+    new_df.mutate(m_id, new_arr)
+    
+    new_df.left_join(self, m_id, m_id)
+    new_df.left_join(slave_tbl, m_id, s_id)
+    
+    jv1 = null
+    jv2 = null
+    return(new_df)
+  EndItem
+
 endClass

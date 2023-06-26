@@ -78,7 +78,6 @@ Enddbox
 Macro "TransitScenarioComparison" (Args, S2_Dir, TOD) 
     // Set working directory
     S1_Dir = Args.[Scenario Folder]
-    se_file = Args.[Input SE]
     taz_file = Args.TAZs
 
     //Loop through each scenario
@@ -90,8 +89,10 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         // Set output path and scenario name
         output_dir = dir + "\\output\\_summaries\\Transit_Scenario_Comparison"
         tod_dir  = output_dir + "\\" + TOD
+        se_file = dir + "\\output\\sedata\\scenario_se.bin"
         RunMacro("Create Directory", output_dir)
         RunMacro("Create Directory", tod_dir)
+        data = null
 
         skim_dir_transit = dir + "\\output\\skims\\transit"
         parts = ParseString(dir, "\\")
@@ -117,9 +118,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         mtx = CreateObject("Matrix", out_mtxfile)
         core_names = mtx.GetCoreNames()
 
-        mtx.AddCores({scen_name + "_trips"})
-        mtx.AddCores({scen_name + "_access"})        
-        mtx.AddCores({scen_name + "_wttime"})        
+        mtx.AddCores({scen_name + "_trips", scen_name + "_access", scen_name + "_wttime"})     
         mtx.DropCores(core_names)
 
         //2. loop through all transit modes under walk access
@@ -136,26 +135,49 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
             //Fill output access core
             trn_skim_file = skim_dir_transit + "/skim_" + TOD + "_w_" + transit_mode + ".mtx"
             skim_mtx = CreateObject("Matrix", trn_skim_file)
-            mtx.(scen_name + "_access") := if nz(mtx.(scen_name + "_access")) = 1 then 1 else if nz(skim_mtx.("Total Time"))> 0 and nz(skim_mtx.("Total Time"))<60 then 1 else 0
+            mtx.(scen_name + "_access") := if nz(mtx.(scen_name + "_access")) = 1 then 1 else if nz(skim_mtx.("Total Time"))> 0 and nz(skim_mtx.("Total Time"))<60 then 1 else 0 //if time <60. then count as accessible
 
             //Fill output wttime core
             mtx.(scen_name + "_wttime") := nz(mtx.(scen_name + "_wttime")) + nz(mtx.(scen_name + "_trips")) * nz(skim_mtx.("Total Time"))
         end
+        trip_mtx = null
+        skim_mtx = null
         
-        //3. Calculate row sum 
-        data = null
+        //3. Calculate row sum for trips, access, and wttime
         v_trips = mtx.GetVector({Core: scen_name + "_trips", Marginal: "Row Sum"})
         v_access = mtx.GetVector({Core: scen_name + "_access", Marginal: "Row Sum"})
         v_wttime = mtx.GetVector({Core: scen_name + "_wttime", Marginal: "Row Sum"})
         data.(scen_name + "_trips") = nz(v_trips)
         data.(scen_name + "_access") = nz(v_access)
         data.(scen_name + "_wttime") = nz(v_wttime)
+        
+        //4. Fill population and employment
+        a_fields = {"Job", "Pop"}
+        se = CreateObject("Table", se_file)
+	      v_job = se.TotalEmp
+        v_pop = se.HH_POP
+	      mtx.AddCores(a_fields)
+	      mtx.Job := v_job
+        mtx.Pop := v_pop
 
-        //4. Fill in the raw output table
+        for field in a_fields do
+
+          out_core = scen_name + "_access_" + field
+          mtx.AddCores({out_core})
+          mtx.(out_core) := if mtx.(scen_name + "_access") = 1 then mtx.(field)
+          v = mtx.GetVector({Core: out_core, Marginal: "Row Sum"})
+          v.rowbased = "true"
+
+          data.(out_core) = nz(v)
+        end
+
+        //5. Fill in the raw output table
         out_vw = OpenTable("out", "FFB", {out_binfile})
-        fields_to_add = {{scen_name + "_trips", "Real", 10, 2,,,, "Transit trips originated from this zone"},
+        fields_to_add = { {scen_name + "_trips", "Real", 10, 2,,,, "Transit trips originated from this zone"},
                           {scen_name + "_access", "Real", 10, 2,,,, "Number of zones accessible by this zone via walk to transit under 60 min"},
-                          {scen_name + "_wttime", "Real", 10, 2,,,, "Total transit travel time originated from this zone, weighted by number of transit trips"}}
+                          {scen_name + "_wttime", "Real", 10, 2,,,, "Total transit travel time originated from this zone, weighted by number of transit trips"},
+                          {scen_name + "_access_job", "Real", 10, 2,,,, "Jobs accessible within 60 min"},
+                          {scen_name + "_access_pop", "Real", 10, 2,,,, "Population accessible within 60 min"}}
         RunMacro("Add Fields", {view: out_vw, a_fields: fields_to_add})
         SetDataVectors(out_vw + "|", data, )
         CloseView(out_vw)
@@ -180,9 +202,13 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         {FieldName: "Diff_avgwttime", Type: "real"},
         {FieldName: "Diff_access", Type: "real"},
         {FieldName: "Diff_trips", Type: "real"},
+        {FieldName: "Diff_access_job", Type: "real"},
+        {FieldName: "Diff_access_pop", Type: "real"},
         {FieldName: "PctDiff_avgwttime", Type: "real"},
         {FieldName: "PctDiff_access", Type: "real"},
-        {FieldName: "PctDiff_trips", Type: "real"}
+        {FieldName: "PctDiff_trips", Type: "real"},
+        {FieldName: "PctDiff_access_job", Type: "real"},
+        {FieldName: "PctDiff_access_pop", Type: "real"}
       }
       df_S2.AddFields({Fields: fields})
       
@@ -193,12 +219,17 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       })
 
       names = join.GetFieldNames()
-      join.Diff_avgwttime = join.(names[4])/join.(names[2]) - join.(names[8])/join.(names[6]) // wttime = E(trips*time)/trips
-      join.Diff_access = join.(names[3]) - join.(names[7])
-      join.Diff_trips = join.(names[2]) - join.(names[6])
-      join.PctDiff_avgwttime = join.Diff_avgwttime/join.(names[8])/join.(names[6])
-      join.PctDiff_access = join.Diff_access / join.(names[7])
-      join.PctDiff_trips = join.Diff_trips / join.(names[6])
+      join.Diff_avgwttime = join.(names[4])/join.(names[2]) - join.(names[10])/join.(names[8]) // wttime = E(trips*time)/trips
+      join.Diff_access = join.(names[3]) - join.(names[9])
+      join.Diff_trips = join.(names[2]) - join.(names[8])
+      join.Diff_access_job = join.(names[5]) - join.(names[11])
+      join.Diff_access_pop = join.(names[6]) - join.(names[12])
+
+      join.PctDiff_avgwttime = if join.(names[10])/join.(names[8]) >0 then join.Diff_avgwttime/join.(names[10])/join.(names[8]) else null
+      join.PctDiff_access = if join.(names[9]) >0 then join.Diff_access / join.(names[9]) else null
+      join.PctDiff_trips = if join.(names[8]) > 0 then join.Diff_trips / join.(names[8]) else null
+      join.PctDiff_access_job = if join.(names[11]) > 0 then join.Diff_access_job / join.(names[11]) else null
+      join.PctDiff_access_pop = if join.(names[12])  >0 then join.Diff_access_pop / join.(names[12]) else null
 
       join.Export({FileName: S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv"})
       df_S1 = null
@@ -242,8 +273,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.summarize({"On", "Off"}, "sum")
       df_S2.left_join(df_s2_rts, "route", "Route_ID")
    
-      join = df_S1.copy()
-      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join = df_S1.outer_join(df_S2, "Route_Name", "Route_Name")
       join.mutate("Delta_On", nz(join.tbl.("sum_On_x")) - nz(join.tbl.("sum_On_y"))) 
       join.mutate("Delta_Off", nz(join.tbl.("sum_Off_x")) - nz(join.tbl.("sum_Off_y")))
       join.select({"Route_Name", "Agency_x", "sum_On_x", "sum_Off_x", "sum_On_y", "sum_Off_y", "Delta_On", "Delta_Off"})
@@ -252,7 +282,6 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       for name in names do
           if Left(name, 4) = "sum_" then do
               new_name = Substitute(name, "sum_", "", 1)
-              new_name = Substitute(new_name, "sum_", "", 1) //some fields start with sum_sum_
               new_name = Substitute(new_name, "x", s1_name, 1)
               new_name = Substitute(new_name, "y", s2_name, 1)
               join.rename(name, new_name)
@@ -266,8 +295,8 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S1.summarize({"sum_On", "sum_Off"}, "sum")
       df_S2.group_by("Agency")
       df_S2.summarize({"sum_On", "sum_Off"}, "sum")
-      join = df_S1.copy()
-      join.left_join(df_S2, "Agency", "Agency")
+
+      join = df_S1.outer_join(df_S2, "Agency", "Agency")
       join.mutate("Delta_On", nz(join.tbl.("sum_sum_On_x")) - nz(join.tbl.("sum_sum_On_y"))) 
       join.mutate("Delta_Off", nz(join.tbl.("sum_sum_Off_x")) - nz(join.tbl.("sum_sum_Off_y")))
 
@@ -296,8 +325,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.summarize({"pass_hours", "pass_miles"}, "sum")
       df_S2.left_join(df_s2_rts, "route", "Route_ID")
 
-      join = df_S1.copy()
-      join.left_join(df_S2, "Route_Name", "Route_Name")
+      join = df_S1.outer_join(df_S2, "Route_Name", "Route_Name")
       join.mutate("Delta_hours", nz(join.tbl.("sum_pass_hours_x")) - nz(join.tbl.("sum_pass_hours_y")))
       join.mutate("Delta_miles", nz(join.tbl.("sum_pass_miles_x")) - nz(join.tbl.("sum_pass_miles_y")))
       join.select({"Route_Name", "Agency_x", "sum_pass_hours_x", "sum_pass_miles_x", "sum_pass_hours_y", "sum_pass_miles_y", "Delta_hours", "Delta_miles"})
@@ -322,8 +350,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       df_S2.group_by("Agency")
       df_S2.summarize({"sum_pass_hours", "sum_pass_miles"}, "sum")
       
-      join = df_S1.copy()
-      join.left_join(df_S2, "Agency", "Agency")
+      join = df_S1.outer_join(df_S2, "Agency", "Agency")
       join.mutate("Delta_hours", nz(join.tbl.("sum_sum_pass_hours_x")) - nz(join.tbl.("sum_sum_pass_hours_y"))) 
       join.mutate("Delta_miles", nz(join.tbl.("sum_sum_pass_miles_x")) - nz(join.tbl.("sum_sum_pass_miles_y")))
 
@@ -339,7 +366,7 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       join.write_csv(S1_output_dir + "/passhoursandmiles_byagency_daily.csv")
       
       //4.3 Create maps
-      mapvars = {"Diff_avgwttime", "Diff_access", "Diff_trips", "PctDiff_avgwttime", "PctDiff_access", "PctDiff_trips"}
+      mapvars = {"Diff_avgwttime", "Diff_access", "Diff_trips", "Diff_access_job", "PctDiff_avgwttime", "PctDiff_access", "PctDiff_trips", "PctDiff_access_job"}
       for varname in mapvars do
           opts = null
           opts.output_dir = S1_tod_dir
@@ -429,3 +456,4 @@ Macro "Create Transit Map" (opts)
     CloseMap(map)
 
 endmacro
+
