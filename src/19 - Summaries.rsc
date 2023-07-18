@@ -1396,12 +1396,13 @@ Summarizes transit assignment.
 Macro "Transit Summary" (Args)
   
   scen_dir = Args.[Scenario Folder]
-  out_dir  =Args.[Output Folder]
+  out_dir  = Args.[Output Folder]
   assn_dir = out_dir + "/assignment/transit"
   
   opts = null
   RunMacro("Summarize Transit", {
     transit_asn_dir: assn_dir,
+    TransModeTable: Args.TransModeTable,
     output_dir: out_dir + "/_summaries/transit",
     loaded_network: Args.Links,
     scen_rts: Args.Routes
@@ -2094,7 +2095,7 @@ Macro "COC Mapping" (Args)
 				}
 			})
 			map.CreateLegend({
-				Title: "Communities of Concern (" + coc + ")",
+				Title: "Disadvangtaged Communities (" + coc + ")",
 				DisplayLayers: "false" 
 			})
 			out_file = map_dir + "/" + field + ".map"
