@@ -1997,6 +1997,7 @@ Macro "COC Skims" (Args)
 	mtx.TransitTime := transit_mtx.("Total Time")
 	mtx.WalkTime := walk_mtx.WalkTime
 	mtx.NonAutoTime := min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
+  mtx.NonAutoTime := if transit_mtx.("Total Time") = null then walk_mtx.WalkTime
 	
 	// Calcualte the weighted metrics for each CoC
 	se = CreateObject("Table", se_file)
@@ -2010,6 +2011,12 @@ Macro "COC Skims" (Args)
 		v.rowbased = "false"
 		mtx.AddCores({weight_field})
 		mtx.(weight_field) := v
+
+    // Calculate times for just CoC. This can be used to get the average travel times between zones
+    // using matrix statistics.
+    mtx.AddCores({weight_field + "_CongTime", weight_field + "_TransitTime"})
+    mtx.(weight_field + "_CongTime") := mtx.CongTime * mtx.(weight_field)
+    mtx.(weight_field + "_TransitTime") := mtx.TransitTime * mtx.(weight_field)
 
 		// Calculate hours of travel
 		mtx.AddCores({"HBW_" + weight_field + "_HoT", "All_" + weight_field + "_HoT"})

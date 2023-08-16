@@ -1,24 +1,21 @@
 # TRMG2
 The second generation of the Triangle Regional Model.
 
-This repo is the home for the TRMG2 during the development phase. Project stakeholders include:
+Development documentation:  
+https://triangle-modeling-and-analytics.github.io/TRMG2/
 
-- ITRE
-- CAMPO
-- DCHC
-- NCDOT
-- GoTriangle
-- Caliper
-- WSP
+User's guide:  
+https://github.com/Triangle-Modeling-and-Analytics/TRMG2/wiki
 
-At the end of development, this repo will be transferred to the Triangle Modeling and Analytics
-GitHub organization:  
-https://github.com/Triangle-Modeling-and-Analytics
+Official model releases:
+https://github.com/Triangle-Modeling-and-Analytics/TRMG2/releases
 
-Draft documentation can be found here:  
-https://caliper-corporation.github.io/TRMG2/
+Project stakeholders:
+ITRE, CAMPO, DCHC, NCDOT, GoTriangle
+
+Model developers:
+Caliper & WSP
 
 Client PM: Leta Huntsinger  
 Caliper PM: Vince Bernardin  
-Caliper DPM: Kyle Ward  
-  
+Caliper DPM: Kyle Ward
