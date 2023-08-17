@@ -1168,6 +1168,11 @@ Macro "Summarize Total Mode Shares" (Args)
     })
     tbl = tbl.Export()
   end
+  if subarea
+    then out_file = summary_dir + "/overall_mode_shares_subarea_bytaz.bin"
+    else out_file = summary_dir + "/overall_mode_shares_bytaz.bin"
+  tbl.Export({FileName: out_file})
+
   tbl.RenameField({FieldName: "county_temp", NewName: "County"})
   tbl = tbl.Aggregate({
     GroupBy: "County",
@@ -1183,8 +1188,8 @@ Macro "Summarize Total Mode Shares" (Args)
   tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
   tbl.RenameField({FieldName: "sum_nm", NewName: "nm"})
   if subarea
-    then out_file = summary_dir + "/overall_mode_shares_subarea.bin"
-    else out_file = summary_dir + "/overall_mode_shares.bin"
+    then out_file = summary_dir + "/overall_mode_shares_subarea_bycounty.bin"
+    else out_file = summary_dir + "/overall_mode_shares_bycounty.bin"
   tbl.Export({FileName: out_file})
 endmacro
 
@@ -1635,7 +1640,7 @@ Macro "VMT_Delay Summary" (Args)
     if output = null then output = df.copy() // combine outputs into 1 csv file
     else output.bind_rows(df)
   end
-  output.write_csv(output_dir + "/VMT_perCapita.csv")
+  output.write_csv(output_dir + "/VMT_perCapita_andHH.csv")
 
   // Calculate VMT per capita for region
   Total_VMT_Daily = df.tbl.Total_VMT_Daily.sum()
@@ -1644,7 +1649,7 @@ Macro "VMT_Delay Summary" (Args)
   VMT_per_HH = Total_VMT_Daily/HH
   VMT_per_POP = Total_VMT_Daily/POP
   line = "Regional," + String(Total_VMT_Daily) + "," + String(HH) + "," + String(POP) + "," + String(VMT_per_HH) + "," + String(VMT_per_POP)
-  RunMacro("Append Line", {file: output_dir + "/VMT_perCapita.csv", line: line}) //add regional results to output file
+  RunMacro("Append Line", {file: output_dir + "/VMT_perCapita_andHH.csv", line: line}) //add regional results to output file
 
   
 EndMacro
