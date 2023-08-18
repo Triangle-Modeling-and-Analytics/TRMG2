@@ -31,11 +31,11 @@ Macro "Other Reports" (Args)
     RunMacro("VMT_Delay Summary", Args)
     RunMacro("Congestion Cost Summary", Args)
     RunMacro("Create PA Vehicle Trip Matrices", Args)
-    RunMacro("Communities of Concern", Args)
-    RunMacro("COC Skims", Args)
-    RunMacro("COC Mode Shares", Args)
-    RunMacro("COC Mapping", Args)
-    RunMacro("Summarize NM COC", Args)
+    RunMacro("Equity", Args)
+    RunMacro("Disadvantage Community Skims", Args)
+    RunMacro("Disadvantage Community Mode Shares", Args)
+    RunMacro("Disadvantage Community Mapping", Args)
+    RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
     return(1)
 endmacro
@@ -738,7 +738,7 @@ shown below:
 	* RowIndex and ColIndex
 		* Strings
 		* If provided, the macro will summarize only a subset of the full matrix. Used
-		  by the scenario comparison tool and the CoC summaries.
+		  by the scenario comparison tool and the disadvantage community (dc) summaries.
 	* OutDir
 		* String
 		* Where to write out the files.
@@ -1824,13 +1824,14 @@ Macro "Create PA Vehicle Trip Matrices" (Args)
 endmacro
 
 /*
-Marks the TAZs that meet the various thresholds of communities of concern.
+Marks the TAZs that meet the various thresholds of disadvantage community. All "coc" below are referring to disadvantage community (dc). 
+It's different from how MPOs define coc (communities of concerns).
 */
 
-Macro "Communities of Concern" (Args)
+Macro "Equity" (Args)
 
 	hh_file = Args.Households
-	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+	summary_dir = Args.[Output Folder] + "/_summaries/equity"
 	se_file = Args.SE
 	pov_file = Args.[Input Folder] + "/sedata/poverty_thresholds.csv"
 
@@ -1875,22 +1876,22 @@ Macro "Communities of Concern" (Args)
 	v_pct = agg.sum_v0 / agg.count_v0 * 100
 	agg.v0_pct = v_pct
 	cutoff = Percentile(V2A(v_pct), 75)
-	agg.AddField("ZeroCar_CoC")
-	agg.ZeroCar_CoC = if agg.v0_pct > cutoff then 1 else 0
+	agg.AddField("ZeroCar_dc")
+	agg.ZeroCar_dc = if agg.v0_pct > cutoff then 1 else 0
 	// senior CoC
 	agg.AddField("senior_pct")
 	v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
 	agg.senior_pct = v_pct
 	cutoff = Percentile(V2A(v_pct), 75)
-	agg.AddField("Senior_CoC")
-	agg.Senior_CoC = if agg.senior_pct > cutoff then 1 else 0
+	agg.AddField("Senior_dc")
+	agg.Senior_dc = if agg.senior_pct > cutoff then 1 else 0
 	// poverty CoC
 	agg.AddField("poverty_pct")
 	v_pct = agg.sum_poverty / agg.count_poverty * 100
 	agg.poverty_pct = v_pct
 	cutoff = Percentile(V2A(v_pct), 75)
-	agg.AddField("Poverty_CoC")
-	agg.Poverty_CoC = if agg.poverty_pct > cutoff then 1 else 0
+	agg.AddField("Poverty_dc")
+	agg.Poverty_dc = if agg.poverty_pct > cutoff then 1 else 0
 
 	// Attach results to SE Data
 	if GetDirectoryInfo(summary_dir, "All") = null then CreateDirectory(summary_dir)
@@ -1900,11 +1901,11 @@ Macro "Communities of Concern" (Args)
 	se.AddFields({
 		Fields: {
 			{FieldName: "v0_pct", Description: "Percent of households that are zero-vehicle"},
-			{FieldName: "ZeroCar_CoC", Description: "TAZ designated as a community of concern due to % of v0"},
+			{FieldName: "ZeroCar_dc", Description: "TAZ designated as a disadvantage community due to % of v0"},
 			{FieldName: "senior_pct", Description: "Percent of households that have seniors"},
-			{FieldName: "Senior_CoC", Description: "TAZ designated as a community of concern due to % of HHs with seniors"},
+			{FieldName: "Senior_dc", Description: "TAZ designated as a disadvantage community due to % of HHs with seniors"},
 			{FieldName: "poverty_pct", Description: "Percent of households that are below the poverty threshold"},
-			{FieldName: "Poverty_CoC", Description: "TAZ designated as a community of concern due to % of HHs living in poverty"}
+			{FieldName: "Poverty_dc", Description: "TAZ designated as a disadvantage community due to % of HHs living in poverty"}
 		}
 	})
 	// TODO: replace with new Table class method
@@ -1918,20 +1919,20 @@ Macro "Communities of Concern" (Args)
 		RightFields: "TAZ"
 	})
 	join.(se_specs.v0_pct) = nz(join.(agg_specs.v0_pct))
-	join.(se_specs.ZeroCar_CoC) = nz(join.(agg_specs.ZeroCar_CoC))
+	join.(se_specs.ZeroCar_dc) = nz(join.(agg_specs.ZeroCar_dc))
 	join.(se_specs.senior_pct) = nz(join.(agg_specs.senior_pct))
-	join.(se_specs.Senior_CoC) = nz(join.(agg_specs.Senior_CoC))
+	join.(se_specs.Senior_dc) = nz(join.(agg_specs.Senior_dc))
 	join.(se_specs.poverty_pct) = nz(join.(agg_specs.poverty_pct))
-	join.(se_specs.Poverty_CoC) = nz(join.(agg_specs.Poverty_CoC))
+	join.(se_specs.Poverty_dc) = nz(join.(agg_specs.Poverty_dc))
 endmacro
 
 /*
 
 */
 
-Macro "COC Skims" (Args)
+Macro "Disadvantage Community Skims" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+	summary_dir = Args.[Output Folder] + "/_summaries/equity"
 	net_dir = Args.[Output Folder] + "/networks"
 	mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
 	skim_dir = Args.[Output Folder] + "/skims"
@@ -1966,10 +1967,10 @@ Macro "COC Skims" (Args)
 	skim.Minimize = "CongTime"
 	skim.AddSkimField({"FFTime", "All"})
 	skim.AddSkimField({"CongLength", "All"})
-	out_file = summary_dir + "/coc_skim_AM.mtx"
+	out_file = summary_dir + "/dc_skim_AM.mtx"
 	skim.OutputMatrix({
 		MatrixFile: out_file, 
-		Matrix: "CoC Skim"
+		Matrix: "dc skim"
 	})
 	ret_value = skim.Run()
 
@@ -2004,7 +2005,7 @@ Macro "COC Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"ZeroCar_CoC", "Senior_CoC", "Poverty_CoC"}
+	weight_fields = {"ZeroCar_dc", "Senior_dc", "Poverty_dc"}
 	for weight_field in weight_fields do
 		// Set weight field
 		v = se.(weight_field)
@@ -2062,9 +2063,9 @@ endmacro
 
 */
 
-Macro "COC Mapping" (Args)
+Macro "Disadvantage Community Mapping" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/Communities_of_Concern"
+	summary_dir = Args.[Output Folder] + "/_summaries/equity"
 	se_file = Args.SE
 	taz_file = Args.TAZs
 
@@ -2079,11 +2080,11 @@ Macro "COC Mapping" (Args)
 		RightFields: "TAZ"
 	})
 
-	a_coc = {"ZeroCar", "Senior", "Poverty"}
+	a_dc = {"ZeroCar", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
-	for coc in a_coc do
+	for dc in a_dc do
 		for suffix in suffixes do
-			field = coc + "_CoC_Jobs_" + suffix
+			field = dc + "_dc_Jobs_" + suffix
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
 			map.ColorTheme({
@@ -2095,7 +2096,7 @@ Macro "COC Mapping" (Args)
 				}
 			})
 			map.CreateLegend({
-				Title: "Disadvangtaged Communities (" + coc + ")",
+				Title: "Disadvantage Community (" + dc + ")",
 				DisplayLayers: "false" 
 			})
 			out_file = map_dir + "/" + field + ".map"
@@ -2110,7 +2111,7 @@ endmacro
 
 */
 
-Macro "COC Mode Shares" (Args)
+Macro "Disadvantage Community Mode Shares" (Args)
 
 	se_file = Args.SE
 	trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
@@ -2127,7 +2128,7 @@ Macro "COC Mode Shares" (Args)
 			mtx.AddIndex({
 				IndexName: type,
 				ViewName: se.GetView(),
-				Filter: type + "_CoC = 1",
+				Filter: type + "_dc = 1",
 				OriginalID: "TAZ",
 				NewID: "TAZ",
 				Dimension: "Both"
@@ -2136,7 +2137,7 @@ Macro "COC Mode Shares" (Args)
 
 		// Call G2 summary macro
 		Args.RowIndex = type
-		Args.OutDir = Args.[Scenario Folder] + "/output/_summaries/Communities_of_Concern/mode_shares"
+		Args.OutDir = Args.[Scenario Folder] + "/output/_summaries/equity/mode_shares"
 		RunMacro("Summarize HB DC and MC", Args)
 	end
 endmacro
@@ -2145,7 +2146,7 @@ endmacro
 Same basic macro as "Summarize NM", but with extra processing to filter by COC TAZs
 */
 
-Macro "Summarize NM COC" (Args)
+Macro "Summarize NM Disadvantage Community" (Args)
   
   out_dir = Args.[Output Folder]
   se_file = Args.SE
@@ -2173,23 +2174,23 @@ Macro "Summarize NM COC" (Args)
   })
 
   trip_types = RunMacro("Get HB Trip Types", Args)
-  coc_types = {"ZeroCar", "Senior", "Poverty"}
+  dc_types = {"ZeroCar", "Senior", "Poverty"}
 
-  for coc in coc_types do
-	coc_field_name = coc + "_CoC"
+  for dc in dc_types do
+	dc_field_name = dc + "_dc"
 
-	summary_file = out_dir + "/_summaries/Communities_of_Concern/mode_shares/nm_summary_" + coc + ".csv"
+	summary_file = out_dir + "/_summaries/equity/mode_shares/nm_summary_" + dc + ".csv"
 	f = OpenFile(summary_file, "w")
 	WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
 	// create selection sets of just CoC people/tazs
 	per_join.SelectByQuery({
-		SetName: "coc",
-		Query: coc_field_name + " = 1"
+		SetName: "dc",
+		Query: dc_field_name + " = 1"
 	})
 	nm_join.SelectByQuery({
-		SetName: "coc",
-		Query: coc_field_name + " = 1"
+		SetName: "dc",
+		Query: dc_field_name + " = 1"
 	})
 
 	for trip_type in trip_types do
