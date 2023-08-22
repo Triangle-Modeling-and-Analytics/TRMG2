@@ -1,6 +1,6 @@
 master_links
 16
-"ID",I,1,4,0,10,0,,"","",,"Sum",
+"new_id",I,1,4,0,4,0,,"","",,"Sum",
 "Centroid",I,5,4,0,8,0,,"","Nodes on the network where travel can begin/end.|||1: the node is a centroid|0: not a centroid",,"Blank",
 "External",I,9,4,0,8,0,,"","1: the node is an external centroid/station|0: is not||All external stations are centroids. Not all centroids|are external stations.",,"Blank",
 "PNR",I,13,4,0,8,0,,"","",,"Sum",
