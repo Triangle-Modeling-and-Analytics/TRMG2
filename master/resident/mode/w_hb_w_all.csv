@@ -113,7 +113,10 @@ knr_eb,knr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_eb,knr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 knr_eb,knr_eb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
 knr_brt,Constant,,1.044,Constant
-knr_brt,Constant,,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+knr_brt,Constant,ilvi,0.084,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+knr_brt,Constant,ihvi,0.084,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+knr_brt,Constant,ilvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+knr_brt,Constant,ihvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
 knr_brt,knr_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
 knr_brt,knr_brt_skim.Fare,,-0.1132,Transit fare
 knr_brt,knr_brt_skim.[Access Walk Time],,-0.1138,Access walk time
