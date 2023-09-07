@@ -718,7 +718,7 @@ Macro "Convert ProjID to RouteID" (MacroOpts)
 
   CloseFile(file)
   if num_notfound > 0 then Throw(
-    "Projects not found in the master route system. See error log in the scenario folder."
+    "Projects not found in the master route system. See error log (TransitBuildingError.csv) in the scenario input>networks folder."
   )
   //remove error log once scenario created successfully
   if num_notfound = 0 and GetFileInfo(error_file) <> null then DeleteFile(error_file)
