@@ -154,6 +154,9 @@ Macro "Roadway Project Management" (MacroOpts)
     CopyDatabase(new_dbd, hwy_dbd)
     DeleteDatabase(new_dbd)
   end
+
+  if missing_projects <> null then ShowMessage("Projects not found in the master network. See RoadwayBuildingError.csv in the input/networks folder. A draft version of the scenario network was built, however the project errors must be resolved before a final scenario is built.")
+
 EndMacro
 
 /*
