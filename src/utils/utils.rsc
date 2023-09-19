@@ -1951,6 +1951,7 @@ Macro "Summarize Transit" (MacroOpts)
   // Argument extraction
   transit_asn_dir = MacroOpts.transit_asn_dir
   output_dir = MacroOpts.output_dir
+  TransModeTable = MacroOpts.TransModeTable
   loaded_network = MacroOpts.loaded_network
   scen_rts =  MacroOpts.scen_rts
   
@@ -1967,11 +1968,16 @@ Macro "Summarize Transit" (MacroOpts)
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
   
-  // Get agency name and route name
+  // Get agency name, route name, and mode name
   rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
   rts = CreateObject("df", rts_bin)
-  rts.select({"Route_ID", "Route_Name", "Agency"})
 
+  mode_table = CreateObject("df", TransModeTable)
+  mode_table.select({"Mode_ID", "Abbr"})
+  rts.left_join(mode_table, "Mode", "Mode_ID")
+  rts.rename("Abbr", "Mode_abbr")
+  rts.select({"Route_ID", "Route_Name", "Agency", "Mode_abbr"})
+  
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
   onoff.group_by({"ROUTE", "access", "mode", "period"})
@@ -1982,18 +1988,31 @@ Macro "Summarize Transit" (MacroOpts)
   onoff.colnames(opts)
   onoff.left_join(rts, "route", "Route_ID")
   onoff.write_csv(output_dir + "/boardings_and_alightings_by_period.csv")
+  
   daily = onoff.copy()
   daily.group_by("route")
   daily.summarize(cols_to_summarize, "sum")
   opts = null
   opts.new_names = {"route"} + cols_to_summarize
   daily.colnames(opts)
-  daily.mutate("access", "All")
-  daily.mutate("mode", "All")
   daily.mutate("period", "Daily")
   daily.left_join(rts, "route", "Route_ID")
-  daily.select({"route", "Route_Name", "Agency", "access", "mode", "period"} + cols_to_summarize)
+  daily.select({"route", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
+
+  
+
+  // Summarize total ridership (total boardings) by agency, access mode, and transit mode
+  vars = {"agency", "access", "mode"}
+  for var in vars do
+    df = onoff.copy()
+    df.group_by(var)
+    df.summarize(cols_to_summarize, "sum")
+    opts = null
+    opts.new_names = {var} + cols_to_summarize
+    df.colnames(opts)
+    df.write_csv(output_dir + "/boardings_and_alightings_daily_by_" + var + ".csv")
+  end
 
   // aggregate transit flow by link and join to layer
   agg = tables.agg
@@ -2679,18 +2698,24 @@ Takes a matrix (or array of matrices) and generates a CSV table of stats similar
 to the table created by Matrix -> Statistics from the TC drop menu.
 
 Inputs
-  * matrices
+  * Matrices
     * String or array/vector of strings
     * Full paths to matrix files to be summarized.
-  * index
-    * optional string. name of index to use
+  * RowIndex
+    * optional string. name of row index to use
+  * ColIndex
+    * optional string. name of col index to use
 
 Returns
   * Returns a gplyr data frame
 */
 
-Macro "Matrix Stats" (matrices, index)
+Macro "Matrix Stats" (MacroOpts)
   
+  matrices = MacroOpts.Matrices
+  row_index = MacroOpts.RowIndex
+  col_index = MacroOpts.ColIndex
+
   if matrices = null then Throw("Matrix Statistics: 'matrices' is null")
   if TypeOf(matrices) = "string" then matrices = {matrices}
   if TypeOf(matrices) = "vector" then matrices = V2A(matrices)
@@ -2704,7 +2729,7 @@ Macro "Matrix Stats" (matrices, index)
     // get matrix core names and stats
     {drive, folder, name, ext} = SplitPath(mtx_file)
     mtx = OpenMatrix(mtx_file, )
-    if index <> null then SetMatrixIndex(mtx, index, index)
+    SetMatrixIndex(mtx, row_index, col_index)
     a_corenames = GetMatrixCoreNames(mtx)
     a_stats = MatrixStatistics(mtx, )
 
@@ -2745,7 +2770,7 @@ Macro "Trip Conservation Snapshot" (dir, out_file)
   
   // Write stats to check trip conservation
   matrices = RunMacro("Catalog Files", {dir: dir, ext: "mtx"})
-  df = RunMacro("Matrix Stats", matrices)
+  df = RunMacro("Matrix Stats", {Matrices: matrices})
   v_type = Substring(df.tbl.matrix, 1, StringLength(df.tbl.matrix) - 3)
   v_type = Substitute(v_type, "od_per_trips_", "", )
   df.mutate("trip_type", v_type)

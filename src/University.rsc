@@ -722,7 +722,6 @@ Macro "University Directionality" (Args)
 
         mtx = null
         t_mtx = null
-        DeleteFile(pa_matrix_file)
         DeleteFile(od_transpose_matrix_file)
     end
 endmacro

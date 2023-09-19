@@ -93,18 +93,6 @@
       "Repository": "CRAN",
       "Hash": "e031418365a7f7a766181ab5a41a5716"
     },
-    "RDCOMClient": {
-      "Package": "RDCOMClient",
-      "Version": "0.95-0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "RDCOMClient",
-      "RemoteUsername": "dkyleward",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "8ce0463a1ae27541f38b9fd877c2c87770575921",
-      "Hash": "a67b840fe7f5b8865aa238ae8b32ec86"
-    },
     "Rcpp": {
       "Package": "Rcpp",
       "Version": "1.0.5",
@@ -168,6 +156,20 @@
       "Repository": "CRAN",
       "Hash": "9addc7e2c5954eca5719928131fed98c"
     },
+    "bookdown": {
+      "Package": "bookdown",
+      "Version": "0.24",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3837766a1e1b527af25fa3e2d12a2800"
+    },
+    "boot": {
+      "Package": "boot",
+      "Version": "1.3-25",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bd51734a754b6c2baf28b2d1ebc11e91"
+    },
     "brio": {
       "Package": "brio",
       "Version": "1.1.0",
@@ -188,13 +190,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "34d90fa5845004236b9eacafc51d07b2"
-    },
-    "caliperR": {
-      "Package": "caliperR",
-      "Version": "1.0.0",
-      "Source": "unknown",
-      "Remotes": "Caliper-Corporation/RDCOMClient",
-      "Hash": "841acc24eda79bcc3428ad472ba7e7f6"
     },
     "callr": {
       "Package": "callr",
@@ -957,6 +952,13 @@
       "Repository": "CRAN",
       "Hash": "320017b52d05a943981272b295750388"
     },
+    "rmdformats": {
+      "Package": "rmdformats",
+      "Version": "1.0.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "eff584cded25f9016463e0087436498a"
+    },
     "rpart": {
       "Package": "rpart",
       "Version": "4.1-15",
@@ -1026,6 +1028,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "e0485290545c0e768c2b50390114da1f"
+    },
+    "spatial": {
+      "Package": "spatial",
+      "Version": "7.3-12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "58a02ce0150652b96c044bc67a0df2e5"
     },
     "stringi": {
       "Package": "stringi",

@@ -10,7 +10,7 @@ endmacro
 A tool for looking at changes between two link layers.
 */
 
-dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" toolbox
+dBox "scen_comp_tool" center, center, 47, 10 Title: "Scenario Comparison Tool" toolbox
 
     init do
         static ref_scen, new_scen, sub_poly
@@ -40,11 +40,14 @@ dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" t
     Button after, same, 5, 1 Prompt: "..." do
         on error, escape goto skip3
         sub_poly = ChooseFile(
-            {{"polygon layer", "*.dbd"}}, "Choose a polygon layer", 
+            {{"All", "*.*"}, {"CDF", "*.cdf"}}, "Choose a polygon layer", 
             {"Initial Directory": new_scen}
         )
         skip3:
         on error default
+    enditem
+    Button after, same, 5, 1 Prompt: "X" do
+        sub_poly = null
     enditem
 
     Button 2, 8 Prompt: "Compare Scenarios" do
@@ -60,7 +63,11 @@ dBox "scen_comp_tool" center, center, 40, 10 Title: "Scenario Comparison Tool" t
     enditem
     Button 28, same Prompt: "Help" do
         ShowMessage(
-            "placeholder"
+            "This tool allows you to select two previously-run scenarios and " +
+            "creates comparison tables and maps. Optionally, you can include " +
+            "a polygon file to only compare a subarea.\n\n" +
+            "Find the output in the 'comparison_outputs' folder, which will " +
+            "be created in the 'New Scenario' directory."
         )
     enditem
 enddbox
@@ -124,11 +131,23 @@ Macro "Run MC/DC Summaries for Subarea" (MacroOpts)
             })
         end
 
-        // Call G2 summary macro
-        Args.TAZs = dbd
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
         Args.[Scenario Folder] = dir
-        Args.index = "subarea"
+        Args.TAZs = dbd
+
+        // Call G2 summary macro
+        Args.RowIndex = "subarea"
+        Args.ColIndex = "subarea"
         RunMacro("Summarize HB DC and MC", Args)
+
+        // Call G2 total mc summary macro
+        Args.subarea = "true"
+        RunMacro("Summarize Total Mode Shares", Args)
+
+        // Call G2 total hh strata macro
+        Args.subarea = "true"
+        RunMacro("Summarize HH Strata", Args)
     end
 endmacro
 
@@ -144,15 +163,26 @@ Macro "Compare Summary Tables" (MacroOpts)
     comp_dir = new_scen + "/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
-        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"mode"}, {"Trips", "pct"}},
-        {"/output/_summaries/resident_hb/hb_trip_purpmode_shares.csv", {"trip_type", "mode"}, {"Sum", "total", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
-        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
+        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
+        {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
     }
+
+    // If a subarea is provided, also diff those tables
+    if sub_poly <> null then tables_to_compare = tables_to_compare + {
+        {"/output/_summaries/resident_hb/hb_trip_mode_shares_subarea_by_subarea.csv", {"trip_type", "mode"}, {"total", "pct"}},
+        {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod_subarea_by_subarea.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
+        {"/output/_summaries/overall_mode_shares_subarea.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/hhstrata_subarea.csv", {"market_segment"}, {"count"}}
+    }
+
     for i = 1 to tables_to_compare.length do
         table = tables_to_compare[i][1]
         id_cols = tables_to_compare[i][2]
@@ -201,8 +231,8 @@ Macro "Diff Tables" (MacroOpts)
     tbl2 = CreateObject("Table", table2)
     tbl2 = tbl2.Export({FieldNames: id_cols + cols_to_diff})
     for col in cols_to_diff do
-        tbl1.RenameField({FieldName: col, NewName: col + "_ref"})
-        tbl2.RenameField({FieldName: col, NewName: col + "_new"})
+        tbl1.ChangeField({FieldName: col, NewName: col + "_ref", Type: "real"})
+        tbl2.ChangeField({FieldName: col, NewName: col + "_new", Type: "real"})
         tbl2.AddField(col + "_diff")
     end
     
@@ -267,7 +297,7 @@ Macro "Compare Zonal Data" (MacroOpts)
             SearchLayer: sub_layer
         })
         join_tbl.ChangeSet("subarea")
-        join_tbl.in_subarea = 1
+        join_tbl.[se.in_subarea] = 1
         map.DropSet("subarea")
         map.RenameLayer({
             LayerName: sub_layer,
@@ -292,6 +322,9 @@ Macro "Compare Zonal Data" (MacroOpts)
                 StartColor: "blue",
                 MidColor: "white",
                 EndColor: "red"
+            },
+            Options: {
+                "Pretty Values": "true"
             }
         })
         map.CreateLegend()
@@ -358,7 +391,19 @@ Macro "Compare Link Data" (MacroOpts)
     }
     map.SetLayer(link_lyr)
 
+    // Create a selection set of links to hide
+    query = "D = 0 or HCMType = 'CC'"
+    map.SelectByQuery({
+        SetName: "to_hide",
+        Query: query
+    })
+    map.ModifySetStyle({
+        Setname: "to_hide",
+        DisplayStatus: "Invisible"
+    })
+
     for field in fields_to_map do
+        map.SetLayer(link_lyr)
         expr = CreateExpression(jv, "abs_" + field + "_diff", "abs(" + field + "_diff)", )
         map.SizeTheme({
             ThemeName: "Absolute Difference",
@@ -374,6 +419,9 @@ Macro "Compare Link Data" (MacroOpts)
                 StartColor: "blue",
                 MidColor: "white",
                 EndColor: "red"
+            },
+            Options: {
+                "Pretty Values": "true"
             }
         })
         map.CreateLegend()

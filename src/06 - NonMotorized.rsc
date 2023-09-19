@@ -49,7 +49,7 @@ Macro "Create NonMotorized Features" (Args)
     v_vpa = v_autos / v_adult
     SetDataVector(hh_vw + "|", "veh_per_adult", v_vpa, )
     v_ipc = v_inc / v_size
-    SetDataVector(hh_vw + "|", "inc_per_capita", v_vpa, )
+    SetDataVector(hh_vw + "|", "inc_per_capita", v_ipc, )
     v_age = GetDataVector(per_vw + "|", "Age", )
     v_age_flag = if v_age >= 16 and v_age <= 18 then 1 else 0
     SetDataVector(per_vw + "|", "age_16_18", v_age_flag, )

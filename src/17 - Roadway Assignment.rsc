@@ -106,6 +106,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
     hov_exists = Args.hov_exists
     vot_params = Args.vot_params
     sl_query = Args.sl_query
+    saveturns = Args.SaveTurns
 
     // If this macro is called without the pre-assignment step, then fill in
     // these variables.
@@ -176,6 +177,15 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             if period = "AM" or period = "PM"
                 then pkop = "pk"
                 else pkop = "op"
+
+            if saveturns = 1 then do
+                if period = "AM" or period = "PM" then do
+                    o.TurnMovements({
+                        Filter: "drive_node = 1",
+                        FileName: assn_dir + "\\roadway_assignment_" + period + "_turns.bin"
+                    })
+                end
+            end
 
             // sov
             voi = vot_params.calib_factor * vot_params.(pkop + "_auto") / 60 // ($/min)

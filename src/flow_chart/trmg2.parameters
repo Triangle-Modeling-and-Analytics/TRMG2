@@ -134,3 +134,7 @@
         Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
         Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }
+
+    Section = "Assignment"
+
+        Args.SaveTurns = {"Type":"int" , "Value":0, "Caption":"If want to save turns for AM/PM assignment, value = 1. Default value = 0." }

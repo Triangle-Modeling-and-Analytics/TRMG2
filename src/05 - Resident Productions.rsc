@@ -25,6 +25,7 @@ Macro "Create Production Features" (Args)
     per_vw = OpenTable("per", "FFB", {per_file})
     se_vw = OpenTable("per", "FFB", {se_file})
     per_fields =  {
+        {"HHTAZ", "Integer", 10, ,,,, "Home TAZ"},
         {"is_senior", "Integer", 10, ,,,, "Is the person a senior (>= 65)?"},
         {"is_child", "Integer", 10, ,,,, "Is the person a child (< 18)?"},
         {"is_worker", "Integer", 10, ,,,, "Is the person a worker?"},
@@ -49,8 +50,9 @@ Macro "Create Production Features" (Args)
     {, temp_specs} = RunMacro("Get Fields", {view_name: temp_vw})
     jv = JoinViews("per+hh+se", temp_specs.ZoneID, se_specs.TAZ, )
     CloseView(temp_vw)
-    {v_size, v_workers, v_inc, v_kids, v_seniors, v_workers,  
+    {v_taz, v_size, v_workers, v_inc, v_kids, v_seniors, v_workers,  
     v_emp_status, v_age, v_ga, v_na, v_ea, v_wa} = GetDataVectors(jv + "|", {
+        hh_specs.ZoneID,
         hh_specs.HHSize,
         hh_specs.NumberWorkers,
         hh_specs.HHInc,
@@ -65,6 +67,7 @@ Macro "Create Production Features" (Args)
         se_specs.access_walk
     },)
 
+    data.(per_specs.HHTAZ) = v_taz
     data.(per_specs.is_senior) = if v_age >= 65 then 1 else 0
     data.(per_specs.is_child) = if v_age < 18 then 1 else 0
     data.(per_specs.is_worker) = if v_emp_status = 1 or v_emp_status = 2 or v_emp_status = 4 or v_emp_status = 5
