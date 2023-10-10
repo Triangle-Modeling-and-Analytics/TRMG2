@@ -37,6 +37,7 @@ Macro "Other Reports" (Args)
     RunMacro("Disadvantage Community Mapping", Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
+    RunMacro("Aggregate Transit Flow by Route", Args)
     return(1)
 endmacro
 
@@ -2264,4 +2265,88 @@ Macro "Summarize HH Strata" (Args)
     then out_file = summary_dir + "/hhstrata_subarea.csv"
     else out_file = summary_dir + "/hhstrata.csv"
   agg.Export({FileName: out_file})
+endmacro
+
+Macro "Aggregate Transit Flow by Route" (Args)
+  scen_dir = Args.[Scenario Folder]
+  out_dir  = Args.[Output Folder]
+  assn_dir = out_dir + "/assignment/transit"
+  output_dir = out_dir + "/assignment/transit/aggregate"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+  access_modes = Args.access_modes
+  mode_table = Args.TransModeTable
+  periods = RunMacro("Get Unconverged Periods", Args)
+  orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
+
+  // Loop through transit assn bin files
+  // By daily
+  for access_mode in access_modes do
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes 
+
+    for transit_mode in transit_modes do
+      for period in periods do 
+        filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+        df = CreateObject("df", filename)
+        df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+        if daily = null then daily = df.copy()
+        else do 
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove("TransitFlow_y")
+          end
+      end
+      daily.write_bin(output_dir + "/daily_"+ access_mode + "_" + transit_mode + ".bin")
+      daily = null
+    end
+  end
+
+  // By daily and access mode
+  for transit_mode in transit_modes do
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes
+
+    for period in periods do
+      for access_mode in access_modes do 
+        filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+        df = CreateObject("df", filename)
+        df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+        if daily = null then daily = df.copy()
+        else do 
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove("TransitFlow_y")
+          end
+      end
+    end
+    daily.write_bin(output_dir + "/daily_" + transit_mode + ".bin")
+    daily = null
+  end
+
+  // By daily and transit mode
+  for access_mode in access_modes do 
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes
+    
+    for transit_mode in transit_modes do
+      for period in periods do
+        
+          filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+          df = CreateObject("df", filename)
+          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+          if daily = null then daily = df.copy()
+          else do 
+            daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+            daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+            daily.rename("TransitFlow_x", "TransitFlow")
+            daily.remove("TransitFlow_y")
+            end
+        end
+      end
+      daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
+      daily = null
+  end
+
 endmacro
