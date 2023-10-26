@@ -1,6 +1,6 @@
-Final_TRMNG_TAZ
+TRMG2v2_TAZ
 101
-"ID",I,1,4,0,4,0,,"","",,"Sum",
+"ID",I,1,4,0,10,0,,"","",,"Sum",
 "MPO",C,5,16,0,16,0,,"","",,"Copy",
 "District",I,21,4,0,8,0,,"","41-district system",,"Copy",
 "District2",I,25,4,0,8,0,,"","21-district system",,"Copy",
