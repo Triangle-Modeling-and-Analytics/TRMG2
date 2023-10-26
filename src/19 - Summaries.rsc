@@ -9,8 +9,8 @@ Macro "Maps" (Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    // RunMacro("Isochrones", Args)
-	RunMacro("Accessibility Maps", Args)
+    //RunMacro("Isochrones", Args)
+	  RunMacro("Accessibility Maps", Args)
     return(1)
 endmacro
 
@@ -2288,11 +2288,12 @@ Macro "Aggregate Transit Flow by Route" (Args)
       for period in periods do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
-        df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+        df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
         if daily = null then daily = df.copy()
-        else do 
+        else do
+          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"}) 
           daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
           daily.rename("TransitFlow_x", "TransitFlow")
           daily.remove("TransitFlow_y")
           end
@@ -2311,11 +2312,12 @@ Macro "Aggregate Transit Flow by Route" (Args)
       for access_mode in access_modes do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
-        df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+        df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
         if daily = null then daily = df.copy()
         else do 
+          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
           daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
           daily.rename("TransitFlow_x", "TransitFlow")
           daily.remove("TransitFlow_y")
           end
@@ -2335,11 +2337,12 @@ Macro "Aggregate Transit Flow by Route" (Args)
         
           filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
           df = CreateObject("df", filename)
-          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+          df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
           if daily = null then daily = df.copy()
           else do 
+            df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
             daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-            daily.tbl.("TransitFlow_x") = daily.tbl.("TransitFlow_x") + daily.tbl.("TransitFlow_y")
+            daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
             daily.rename("TransitFlow_x", "TransitFlow")
             daily.remove("TransitFlow_y")
             end
