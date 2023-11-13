@@ -38,6 +38,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
+    RunMacro("Validation Reports", Args)
     return(1)
 endmacro
 
@@ -2351,5 +2352,60 @@ Macro "Aggregate Transit Flow by Route" (Args)
       daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
       daily = null
   end
+
+endmacro
+
+Macro "Validation Reports" (Args)
+  root_dir = Args.[Base Folder]
+  scen_dir = Args.[Scenario Folder]
+  summary_dir = scen_dir + "/output/_summaries"
+  validation_dir = summary_dir + "/validation"
+  if GetDirectoryInfo(validation_dir, "All") = null then CreateDirectory(validation_dir)
+
+  // 1. NM trips
+  obs_data = root_dir + "/docs/data/output/nonmotorized/calibration_targets.csv"
+  est_data = summary_dir + "/nm_summary.csv"
+  
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.DropFields({FieldNames: {"moto_total", "moto_share"}})
+  est_tbl.RenameField({FieldName: "nm_total", NewName: "est_nm_trips"})
+  est_tbl.RenameField({FieldName: "nm_share", NewName: "est_nm_share"})
+  
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
+
+	join = obs_tbl.Join({
+		Table: est_tbl,
+		LeftFields: "trip_type",
+		RightFields: "trip_type"
+	})
+  //join.DropFields("trip_type")
+  join.Export({FileName: validation_dir + "/nonmotorized.csv"})
+
+  // 2. Auto ownership
+  obs_data = root_dir + "/docs/data/output/auto_ownership/ao_calib_targets.csv"
+  est_data = scen_dir + "/output/resident/population_synthesis/Synthesized_HHs.bin"
+
+  est_tbl = CreateObject("Table", est_data)
+  agg_est_tbl = est_tbl.Aggregate({
+    GroupBy: "Autos",
+    FieldStats: {WEIGHT: "sum"}
+  })
+  agg_est_tbl.RenameField({FieldName: "sum_WEIGHT", NewName: "est_weight"})
+  agg_est_tbl.AddField("est_share")
+	sum_est_weight = VectorStatistic(agg_est_tbl.est_weight, "Sum", )
+  v_est_share = agg_est_tbl.est_weight / sum_est_weight
+	agg_est_tbl.est_share = v_est_share
+  
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
+  obs_tbl.RenameField({FieldName: "pct", NewName: "obs_share"})
+  join = obs_tbl.Join({
+		Table: agg_est_tbl,
+		LeftFields: "autos",
+		RightFields: "Autos"
+	})
+  //join.DropFields("Autos")
+  join.Export({FileName: validation_dir + "/ao_ownership.csv"})
 
 endmacro
