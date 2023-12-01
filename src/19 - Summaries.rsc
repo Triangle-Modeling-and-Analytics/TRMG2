@@ -4,6 +4,7 @@ and tables.
 */
 
 Macro "Maps" (Args)
+    /*
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
@@ -11,15 +12,19 @@ Macro "Maps" (Args)
     RunMacro("Speed Maps", Args)
     //RunMacro("Isochrones", Args)
 	  RunMacro("Accessibility Maps", Args)
+    */
     return(1)
 endmacro
 
 Macro "Calibration Reports" (Args)
+    /*
     RunMacro("Count PRMSEs", Args)
+    */
     return(1)
 endmacro
 
 Macro "Other Reports" (Args)
+    /*
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -38,6 +43,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
+    */
     RunMacro("Validation Reports", Args)
     return(1)
 endmacro
@@ -2358,19 +2364,22 @@ endmacro
 Macro "Validation Reports" (Args)
   root_dir = Args.[Base Folder]
   scen_dir = Args.[Scenario Folder]
+  skim_dir = Args.[Output Folder] + "\\skims\\roadway"
+  obs_dir = root_dir + "/other/_reportingtool/validation_obs_data"
   summary_dir = scen_dir + "/output/_summaries"
   validation_dir = summary_dir + "/validation"
   if GetDirectoryInfo(validation_dir, "All") = null then CreateDirectory(validation_dir)
 
   // 1. NM trips
-  obs_data = root_dir + "/docs/data/output/nonmotorized/calibration_targets.csv"
+  obs_data = obs_dir + "/nm_calibration_targets.csv"
   est_data = summary_dir + "/nm_summary.csv"
   
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.DropFields({FieldNames: {"moto_total", "moto_share"}})
+  est_tbl.RenameField({FieldName: "moto_total", NewName: "est_moto_trips"})
+  est_tbl.RenameField({FieldName: "moto_share", NewName: "est_moto_share"})
   est_tbl.RenameField({FieldName: "nm_total", NewName: "est_nm_trips"})
   est_tbl.RenameField({FieldName: "nm_share", NewName: "est_nm_share"})
-  
+
   obs_tbl = CreateObject("Table", obs_data)
   obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
 
@@ -2379,11 +2388,19 @@ Macro "Validation Reports" (Args)
 		LeftFields: "trip_type",
 		RightFields: "trip_type"
 	})
-  //join.DropFields("trip_type")
+  join.Export({FileName: validation_dir + "/nonmotorized.bin"})
+
+  join = CreateObject("Table", validation_dir + "/nonmotorized.bin")
+  join.AddField({FieldName: "pct_diff_nm_share", Type: "real"})
+  join.pct_diff_nm_share = (join.est_nm_share - join.obs_nm_share)/join.obs_nm_share
   join.Export({FileName: validation_dir + "/nonmotorized.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/nonmotorized.bin")
+  DeleteFile(validation_dir + "/nonmotorized.dcb")
 
   // 2. Auto ownership
-  obs_data = root_dir + "/docs/data/output/auto_ownership/ao_calib_targets.csv"
+  obs_data = obs_dir + "/ao_calib_targets.csv"
   est_data = scen_dir + "/output/resident/population_synthesis/Synthesized_HHs.bin"
 
   est_tbl = CreateObject("Table", est_data)
@@ -2396,16 +2413,70 @@ Macro "Validation Reports" (Args)
 	sum_est_weight = VectorStatistic(agg_est_tbl.est_weight, "Sum", )
   v_est_share = agg_est_tbl.est_weight / sum_est_weight
 	agg_est_tbl.est_share = v_est_share
+  agg_est_tbl.AddField("pct_diff_share")
   
   obs_tbl = CreateObject("Table", obs_data)
   obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
   obs_tbl.RenameField({FieldName: "pct", NewName: "obs_share"})
+  
   join = obs_tbl.Join({
 		Table: agg_est_tbl,
 		LeftFields: "autos",
 		RightFields: "Autos"
 	})
-  //join.DropFields("Autos")
+	join.pct_diff_share = (join.est_share - join.obs_share)/join.obs_share
   join.Export({FileName: validation_dir + "/ao_ownership.csv"})
+
+
+  //3. Destination Choice
+  obs_data = obs_dir + "/hb_trip_stats_by_type_obs.csv"
+  est_data = summary_dir + "/resident_hb/hb_trip_stats_by_type.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "avg_length_mi", NewName: "obs_avg_length_mi"})
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.RenameField({FieldName: "avg_length_mi", NewName: "est_avg_length_mi"})
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: "matrix",
+      RightFields: "matrix"
+    })
+  join.Export({FileName: validation_dir + "/destinationchoice.bin"})
+
+  join = CreateObject("Table", validation_dir + "/destinationchoice.bin")
+  join.AddField("pct_diff_length_mi")
+  join.pct_diff_length_mi = (join.est_avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
+  join.Export({FileName: validation_dir + "/destinationchoice.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/destinationchoice.bin")
+  DeleteFile(validation_dir + "/destinationchoice.dcb")
+
+  //4. Mode Choice
+  obs_data = root_dir + "/master/resident/mode/Target_HB_MCShares.csv"
+  est_data = summary_dir + "/resident_hb/hb_trip_mode_shares.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+  agg_obs_tbl = obs_tbl.Aggregate({
+    GroupBy: "Purpose",
+    FieldStats: {
+      sov: "sum",
+      hov2: "sum",
+      hov3: "sum",
+      transit: "sum",
+      auto_pay: "sum",
+      other_auto: "sum",
+      school_bus: "sum"
+    }
+  })
+  agg_obs_tbl.RenameField({FieldName: "sum_sov", NewName: "sov"})
+  agg_obs_tbl.RenameField({FieldName: "sum_hov2", NewName: "hov2"})
+  agg_obs_tbl.RenameField({FieldName: "sum_hov3", NewName: "hov3"})
+  agg_obs_tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
+  agg_obs_tbl.RenameField({FieldName: "sum_auto_pay", NewName: "auto_pay"})
+  agg_obs_tbl.RenameField({FieldName: "sum_other_auto", NewName: "other_auto"})
+  agg_obs_tbl.RenameField({FieldName: "sum_school_bus", NewName: "school_bus"})
+
 
 endmacro
