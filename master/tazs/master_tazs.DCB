@@ -1,12 +1,15 @@
-Final_TRMNG_TAZ
-101
-"ID",I,1,4,0,4,0,,"","",,"Sum",
-"MPO",C,5,16,0,16,0,,"","",,"Copy",
-"District",I,21,4,0,8,0,,"","41-district system",,"Copy",
-"District2",I,25,4,0,8,0,,"","21-district system",,"Copy",
-"Cluster",I,29,4,0,8,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
-"ClusterName",C,33,16,0,16,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
-"County",C,49,20,0,20,0,,"","",,"Copy",
-"PUMA",C,69,8,0,8,0,,"","",,"Copy",
-"Tract",C,77,12,0,12,0,,"","",,"Copy",
-"BG",C,89,13,0,13,0,,"","",,"Copy",
+TRMG2v2_TAZ
+122
+"ID",I,1,4,0,10,0,,"","",,"Sum",
+"ID_Interim",I,5,4,0,10,0,,"","TRMG2v1 ID or |interim ID for modified TAZs",,"Sum",
+"MPO",C,9,16,0,16,0,,"","",,"Copy",
+"District",I,25,4,0,8,0,,"","41-district system",,"Copy",
+"District2",I,29,4,0,8,0,,"","21-district system",,"Copy",
+"Cluster",I,33,4,0,8,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
+"ClusterName",C,37,16,0,16,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
+"County",C,53,20,0,20,0,,"","",,"Copy",
+"PUMA",C,73,8,0,8,0,,"","",,"Copy",
+"Tract",C,81,12,0,12,0,,"","",,"Copy",
+"BG",C,93,13,0,13,0,,"","",,"Copy",
+"v1_v2_change",C,106,13,0,13,0,,"","Merged - 2 or more TAZs combined|Modified - TAZ boundaries edited|Split - TAZ split into 2+ pieces|Unchanged - no edits",,"Copy",
+"ID_G2v1",I,119,4,0,10,0,,"","CHECK if TAZ changed;|TRMG2v1 ID or|9998 = expansion|9999 = merged TAZs",,"Sum",
