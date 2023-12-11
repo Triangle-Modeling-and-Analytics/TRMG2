@@ -2393,6 +2393,7 @@ Macro "Validation Reports" (Args)
   join = CreateObject("Table", validation_dir + "/nonmotorized.bin")
   join.AddField({FieldName: "pct_diff_nm_share", Type: "real"})
   join.pct_diff_nm_share = (join.est_nm_share - join.obs_nm_share)/join.obs_nm_share
+  join.DropFields({FieldNames: {"trip_type:1",	"est_nm_trips"}})
   join.Export({FileName: validation_dir + "/nonmotorized.csv"})
   join = null
 
@@ -2425,6 +2426,7 @@ Macro "Validation Reports" (Args)
 		RightFields: "Autos"
 	})
 	join.pct_diff_share = (join.est_share - join.obs_share)/join.obs_share
+  //join.DropFields({FieldNames: {"Autos:1"}})
   join.Export({FileName: validation_dir + "/ao_ownership.csv"})
 
 
@@ -2447,6 +2449,7 @@ Macro "Validation Reports" (Args)
   join = CreateObject("Table", validation_dir + "/destinationchoice.bin")
   join.AddField("pct_diff_length_mi")
   join.pct_diff_length_mi = (join.est_avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
+  join.DropFields({FieldNames: {"core",	"Sum",	"SumDiag",	"PctDiag", "avg_time_min", "matrix:1",	"core:1",	"Sum:1",	"SumDiag:1",	"PctDiag:1", "avg_time_min:1"}})
   join.Export({FileName: validation_dir + "/destinationchoice.csv"})
   join = null
 
@@ -2454,29 +2457,56 @@ Macro "Validation Reports" (Args)
   DeleteFile(validation_dir + "/destinationchoice.dcb")
 
   //4. Mode Choice
-  obs_data = root_dir + "/master/resident/mode/Target_HB_MCShares.csv"
+  obs_data = root_dir + "/other/_reportingtool/validation_obs_data/Target_HB_MCShares_agg.csv"
   est_data = summary_dir + "/resident_hb/hb_trip_mode_shares.csv"
 
   obs_tbl = CreateObject("Table", obs_data)
-  agg_obs_tbl = obs_tbl.Aggregate({
-    GroupBy: "Purpose",
-    FieldStats: {
-      sov: "sum",
-      hov2: "sum",
-      hov3: "sum",
-      transit: "sum",
-      auto_pay: "sum",
-      other_auto: "sum",
-      school_bus: "sum"
-    }
-  })
-  agg_obs_tbl.RenameField({FieldName: "sum_sov", NewName: "sov"})
-  agg_obs_tbl.RenameField({FieldName: "sum_hov2", NewName: "hov2"})
-  agg_obs_tbl.RenameField({FieldName: "sum_hov3", NewName: "hov3"})
-  agg_obs_tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
-  agg_obs_tbl.RenameField({FieldName: "sum_auto_pay", NewName: "auto_pay"})
-  agg_obs_tbl.RenameField({FieldName: "sum_other_auto", NewName: "other_auto"})
-  agg_obs_tbl.RenameField({FieldName: "sum_school_bus", NewName: "school_bus"})
+
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.RenameField({FieldName: "pct", NewName: "est_share"})
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: {"trip_type", "mode"},
+      RightFields: {"trip_type", "mode"}
+    })
+  join.Export({FileName: validation_dir + "/modechoice.bin"})
+
+  join = CreateObject("Table", validation_dir + "/modechoice.bin")
+  join.AddField("pct_diff_share")
+  join.pct_diff_share = (join.est_share - join.obs_share)/join.obs_share
+  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total"}})
+  join.Export({FileName: validation_dir + "/modechoice.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/modechoice.bin")
+  DeleteFile(validation_dir + "/modechoice.dcb")
+
+  //5. Transit assignment
+  obs_data = root_dir + "/other/_reportingtool/validation_obs_data/transit_ridership.csv"
+  est_data = summary_dir + "/transit/boardings_and_alightings_daily_by_agency.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership"})
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: "Agency",
+      RightFields: "agency"
+    })
+  join.Export({FileName: validation_dir + "/transitassignment.bin"})
+
+  join = CreateObject("Table", validation_dir + "/transitassignment.bin")
+  join.AddField("pct_diff_ridership")
+  join.pct_diff_ridership = (join.est_ridership - join.obs_ridership)/join.obs_ridership
+  join.DropFields({FieldNames: {"agency:1", "Off",	"DriveAccessOn",	"WalkAccessOn",	"DirectTransferOn",	"WalkTransferOn",	"DirectTransferOff",	"WalkTransferOff",	"EgressOff"}})
+  join.Export({FileName: validation_dir + "/transitassignment.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/transitassignment.bin")
+  DeleteFile(validation_dir + "/transitassignment.dcb")
 
 
 endmacro
