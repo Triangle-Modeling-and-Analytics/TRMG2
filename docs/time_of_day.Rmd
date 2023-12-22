@@ -270,14 +270,15 @@ plot_ly(
 #If desired, manually override the final period definitions in the variables
 #below. Use chron(times. = c("15:30:00")) to specify 3:30pm
 
-am_peak_from <- am_min_from
+# am_peak_from <- am_min_from
+am_peak_from <- chron(times. = c("6:00:00"))
 # am_peak_to <- am_max_to
 am_peak_to <- chron(times. = c("9:00:00"))
 
 # pm_peak_from <- pm_min_from
 # pm_peak_to <- pm_max_to
 pm_peak_from <- chron(times. = c("15:30:00"))
-pm_peak_to <- chron(times. = c("18:15:00"))
+pm_peak_to <- chron(times. = c("18:30:00"))
 ```
 
 ## Final Period Definitions {#final_defs}
