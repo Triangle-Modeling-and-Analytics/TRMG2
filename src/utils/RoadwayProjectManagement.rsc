@@ -71,6 +71,22 @@ Macro "Roadway Project Management" (MacroOpts)
   attrList = RunMacro("Get Project Attributes", llyr)
   attrList = ExcludeArrayElements(attrList, 1, 1)
 
+  // Add fields that tell project positions in the project list
+  RunMacro("Add Project Position", llyr, proj_list, projGroups)
+tbl = CreateObject("Table", llyr)
+tbl.View()
+Throw()
+
+  // Build a named array of vectors to work with
+  for p in {""} + projGroups do
+    temp = V2A(p + A2V(attrList))
+    fields = fields + temp
+  end
+  data = GetDataVectors(llyr + "|", fields, {OptArray: "True"})
+
+
+
+
   // Loop over each project ID  
   for p = v_projIDs.length to 1 step -1 do
     projID = v_projIDs[p]
@@ -210,6 +226,38 @@ Macro "Get Project Attributes" (llyr)
 
   return(attr)
 EndMacro
+
+/*
+This repeatedly joins the project list to the link layer for each project
+group and adds a field showing project position. This is used to determine
+project priority for overlapping projects.
+*/
+
+Macro "Add Project Position" (llyr, proj_list, projGroups)
+
+  // Export the proj_list csv to a bin file
+  {drive, folder, name, ext} = SplitPath(proj_list)
+  bin_file = drive + folder + name + ".bin"
+  tbl = CreateObject("Table", proj_list)
+  bin_tbl = tbl.Export({FileName: bin_file})
+
+  bin_tbl.AddField({FieldName: "proj_pos", Type: "Integer"})
+  nrows = bin_tbl.GetRecordCount()
+  v = Vector(nrows, "Integer", {{"Sequence", 1, 1}})
+  bin_tbl.proj_pos = v
+
+  llyr = CreateObject("Table", llyr)
+  for p in projGroups do
+    llyr.AddField({FieldName: p + "position", Type: "Integer"})
+    join = llyr.Join({Table: bin_tbl, LeftFields: p + "ID", RightFields: "ProjID"})
+    join.(p + "position") = join.proj_pos
+    join = null
+  end
+
+  bin_tbl = null
+  DeleteFile(bin_file)
+  DeleteFile(Substitute(bin_file, ".bin", ".DCB"))
+endmacro
 
 /*
 Given a single project ID, returns which group the project is in
