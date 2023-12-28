@@ -69,74 +69,57 @@ Macro "Roadway Project Management" (MacroOpts)
   // Remove ID from the list of attributes to update.
   projGroups = RunMacro("Get Project Groups", llyr)
   attrList = RunMacro("Get Project Attributes", llyr)
-  attrList = ExcludeArrayElements(attrList, 1, 1)
+  // Add the 'position' field, which does not exist on the link layer but will
+  // be created an tracked in this macro.
+  attrList = attrList + {"position"}
 
   // Add fields that tell project positions in the project list
   RunMacro("Add Project Position", llyr, proj_list, projGroups)
-tbl = CreateObject("Table", llyr)
-tbl.View()
-Throw()
 
   // Build a named array of vectors to work with
   for p in {""} + projGroups do
     temp = V2A(p + A2V(attrList))
     fields = fields + temp
   end
+  // Exclude 'position', which won't exist on the link layer
+  pos = fields.position("position")
+  fields = ExcludeArrayElements(fields, pos, 1)
   data = GetDataVectors(llyr + "|", fields, {OptArray: "True"})
 
+  // Loop over each project group and overwrite the lower group attributes
+  // with higher only if the higher group's project position is higher.
+  // At the end of this loop, the p1 vectors will reflect all project attributes
+  // that need to go into the base fields.
+  for p = projGroups.length to 2 step -1 do
+    pgroup = projGroups[p]
+    pgroup2 = projGroups[p - 1]
 
+    pos = nz(data.(pgroup + "position"))
+    pos2 = nz(data.(pgroup2 + "position"))
 
+    // Loop over each project attribute
+    for a = 1 to attrList.length do
+      attr = attrList[a]
 
-  // Loop over each project ID  
-  for p = v_projIDs.length to 1 step -1 do
-    projID = v_projIDs[p]
-    type = TypeOf(projID)
-    proj_found = 0
-
-    // Add "UpdatedWithP" field
-    if p = v_projIDs.length then do
-      type2 = if CompareStrings(type, "string", ) then "Character" else "Integer"
-      a_fields = {{"UpdatedWithP", type2, 16, }}
-      RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-    end
-
-    // Loop over each project group (group of project fields)
-    for g = 1 to projGroups.length do
-      pgroup = projGroups[g]
-
-      // Search for the ID in the current group.  Update attributes if found.
-      // Do not update if the UpdatedWithP field is already marked with a 1.
-      SetLayer(llyr)
-      // Handle possibility of string or integer IDs
-      if TypeOf(projID) <> "string" then
-        qry = "Select * where " + pgroup + "ID = " + String(projID)
-        else qry = "Select * where " + pgroup + "ID = '" + projID + "'"
-      qry = qry + " and UpdatedWithP = null"
-      n = SelectByQuery("updateLinks", "Several", qry)
-      if n > 0 then do
-
-        // Loop over each field to update
-        for f = 1 to attrList.length do
-          baseField = attrList[f]
-          projField = pgroup + attrList[f]
-
-          v_vec = GetDataVector(llyr + "|updateLinks", projField, )
-          SetDataVector(llyr + "|updateLinks", baseField, v_vec, )
-        end
-
-        // Mark the UpdatedWithP field to prevent these links from being
-        // updated again in subsequent loops.
-        opts = null
-        opts.Constant = projID
-        if TypeOf(projID) = "string" then do
-          v_vec = Vector(v_vec.length, "String", opts)
-        end else do
-          v_vec = Vector(v_vec.length, "Long", opts)
-        end
-        SetDataVector(llyr + "|updateLinks", "UpdatedWithP", v_vec, )
-      end
+      data.(pgroup2 + attr) = if (pos > pos2) then data.(pgroup + attr) else data.(pgroup2 + attr)
     end
   end
+
+  // Update base attributes with p1 attributes where p1position is not null
+  for attr in attrList do
+    if attr = "position" then continue
+    if attr = "ID" then continue
+    final.(attr) = if data.p1position <> null then data.("p1" + attr) else data.(attr)
+  end
+  SetDataVectors(llyr + "|", final, )
+  tbl = CreateObject("Table", llyr)
+  tbl.AddField({
+    FieldName: "UpdatedWithP", Type: "String",
+    Description: "Project ID that updated the base attributes"
+  })
+  v = if data.p1position <> null then data.p1ID else null
+  tbl.UpdatedWithP = v
+  tbl = null
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.
@@ -144,6 +127,9 @@ Throw()
   SetLayer(llyr)
   for f = 1 to attrList.length do
     field = attrList[f]
+    if field = "position" then continue
+    if field = "ID" then continue
+
     if f = 1 then qtype = "several" else qtype = "more"
 
     spec = llyr_f_specs.(field)
@@ -248,7 +234,10 @@ Macro "Add Project Position" (llyr, proj_list, projGroups)
 
   llyr = CreateObject("Table", llyr)
   for p in projGroups do
-    llyr.AddField({FieldName: p + "position", Type: "Integer"})
+    llyr.AddField({
+      FieldName: p + "position", Type: "Integer", 
+      Description: "Row number of " + p + "ID in the project list csv"
+    })
     join = llyr.Join({Table: bin_tbl, LeftFields: p + "ID", RightFields: "ProjID"})
     join.(p + "position") = join.proj_pos
     join = null
@@ -256,7 +245,7 @@ Macro "Add Project Position" (llyr, proj_list, projGroups)
 
   bin_tbl = null
   DeleteFile(bin_file)
-  DeleteFile(Substitute(bin_file, ".bin", ".DCB"))
+  DeleteFile(Substitute(bin_file, ".bin", ".DCB", ))
 endmacro
 
 /*
