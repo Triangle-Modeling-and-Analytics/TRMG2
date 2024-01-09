@@ -17,9 +17,9 @@ Macro "Maps" (Args)
 endmacro
 
 Macro "Calibration Reports" (Args)
-    /*
+    
     RunMacro("Count PRMSEs", Args)
-    */
+    
     return(1)
 endmacro
 
@@ -315,7 +315,7 @@ Macro "Count PRMSEs" (Args)
   opts.median_field = "HCMMedian"
   opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
-  opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  opts.out_dir = Args.[Output Folder] + "/_summaries/validation"
   RunMacro("Roadway Count Comparison Tables", opts)
 
   // Rename screenline to cutline
@@ -2375,10 +2375,6 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/nm_summary.csv"
   
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "moto_total", NewName: "est_moto_trips"})
-  est_tbl.RenameField({FieldName: "moto_share", NewName: "est_moto_share"})
-  est_tbl.RenameField({FieldName: "nm_total", NewName: "est_nm_trips"})
-  est_tbl.RenameField({FieldName: "nm_share", NewName: "est_nm_share"})
 
   obs_tbl = CreateObject("Table", obs_data)
   obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
@@ -2391,9 +2387,15 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/nonmotorized.bin"})
 
   join = CreateObject("Table", validation_dir + "/nonmotorized.bin")
-  join.AddField({FieldName: "pct_diff_nm_share", Type: "real"})
-  join.pct_diff_nm_share = (join.est_nm_share - join.obs_nm_share)/join.obs_nm_share
-  join.DropFields({FieldNames: {"trip_type:1",	"est_nm_trips"}})
+  join.AddField({FieldName: "est_nm_share", Type: "string"})
+  join.AddField({FieldName: "pcfdiff_nm_share", Type: "string"})
+  v1 = join.nm_share/100
+  join.est_nm_share = Format(v1, "*.000")
+  v2 = (join.nm_share - join.obs_nm_share)/join.obs_nm_share
+  //v = if v = null then 0 else v
+  join.pcfdiff_nm_share = Format(v2, "*.00")
+  join.DropFields({FieldNames:{"trip_type:1", "moto_total", "moto_share", "nm_total", "nm_share"}})
+
   join.Export({FileName: validation_dir + "/nonmotorized.csv"})
   join = null
 
@@ -2409,12 +2411,14 @@ Macro "Validation Reports" (Args)
     GroupBy: "Autos",
     FieldStats: {WEIGHT: "sum"}
   })
-  agg_est_tbl.RenameField({FieldName: "sum_WEIGHT", NewName: "est_weight"})
-  agg_est_tbl.AddField("est_share")
-	sum_est_weight = VectorStatistic(agg_est_tbl.est_weight, "Sum", )
-  v_est_share = agg_est_tbl.est_weight / sum_est_weight
-	agg_est_tbl.est_share = v_est_share
-  agg_est_tbl.AddField("pct_diff_share")
+	sum_est_weight = VectorStatistic(agg_est_tbl.sum_WEIGHT, "Sum", )
+  v_est_share = agg_est_tbl.sum_WEIGHT / sum_est_weight
+  agg_est_tbl.AddField({FieldName: "est_weight", Type: "string"})
+  agg_est_tbl.AddField({FieldName: "est_share_temp", Type: "real"})
+  agg_est_tbl.AddField({FieldName: "est_share", Type: "string"})
+  agg_est_tbl.AddField({FieldName: "pcfdiff_share", Type: "string"})
+  agg_est_tbl.est_weight = Format(agg_est_tbl.sum_WEIGHT, ",*0.")
+  agg_est_tbl.est_share_temp = v_est_share
   
   obs_tbl = CreateObject("Table", obs_data)
   obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
@@ -2425,10 +2429,18 @@ Macro "Validation Reports" (Args)
 		LeftFields: "autos",
 		RightFields: "Autos"
 	})
-	join.pct_diff_share = (join.est_share - join.obs_share)/join.obs_share
-  //join.DropFields({FieldNames: {"Autos:1"}})
-  join.Export({FileName: validation_dir + "/ao_ownership.csv"})
+  join.Export({FileName: validation_dir + "/ao.bin"})
 
+  join = CreateObject("Table", validation_dir + "/ao.bin")
+	v = (join.est_share_temp - join.obs_share)/join.obs_share
+  join.pcfdiff_share = Format(v, "*.00")
+  join.est_share = Format(join.est_share_temp, ",*.00")
+  join.DropFields({FieldNames:{"sum_WEIGHT", "est_share_temp"}})
+  join.Export({FileName: validation_dir + "/ao_ownership.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/ao.bin")
+  DeleteFile(validation_dir + "/ao.dcb")
 
   //3. Destination Choice
   obs_data = obs_dir + "/hb_trip_stats_by_type_obs.csv"
@@ -2437,7 +2449,6 @@ Macro "Validation Reports" (Args)
   obs_tbl = CreateObject("Table", obs_data)
   obs_tbl.RenameField({FieldName: "avg_length_mi", NewName: "obs_avg_length_mi"})
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "avg_length_mi", NewName: "est_avg_length_mi"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2447,9 +2458,12 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/destinationchoice.bin"})
 
   join = CreateObject("Table", validation_dir + "/destinationchoice.bin")
-  join.AddField("pct_diff_length_mi")
-  join.pct_diff_length_mi = (join.est_avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
-  join.DropFields({FieldNames: {"core",	"Sum",	"SumDiag",	"PctDiag", "avg_time_min", "matrix:1",	"core:1",	"Sum:1",	"SumDiag:1",	"PctDiag:1", "avg_time_min:1"}})
+  join.AddField({FieldName: "est_avg_length_mi", Type: "string"})
+  join.est_avg_length_mi = Format(join.avg_length_mi, "*.00")
+  join.AddField({FieldName: "pcfdiff_length_mi", Type: "string"})
+  v = (join.avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
+  join.pcfdiff_length_mi = Format(v, "*.00")
+  join.DropFields({FieldNames: {"core",	"Sum",	"SumDiag",	"PctDiag", "avg_length_mi", "avg_time_min", "matrix:1",	"core:1",	"Sum:1",	"SumDiag:1",	"PctDiag:1", "avg_time_min:1"}})
   join.Export({FileName: validation_dir + "/destinationchoice.csv"})
   join = null
 
@@ -2473,8 +2487,9 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/modechoice.bin"})
 
   join = CreateObject("Table", validation_dir + "/modechoice.bin")
-  join.AddField("pct_diff_share")
-  join.pct_diff_share = (join.est_share - join.obs_share)/join.obs_share
+  join.AddField({FieldName: "pcfdiff_share", Type: "string"})
+  v = (join.est_share - join.obs_share)/join.obs_share
+  join.pcfdiff_share = Format(v, "*.00")
   join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total"}})
   join.Export({FileName: validation_dir + "/modechoice.csv"})
   join = null
@@ -2487,9 +2502,9 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/transit/boardings_and_alightings_daily_by_agency.csv"
 
   obs_tbl = CreateObject("Table", obs_data)
-
+  obs_tbl.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership"})
+  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2499,14 +2514,28 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/transitassignment.bin"})
 
   join = CreateObject("Table", validation_dir + "/transitassignment.bin")
-  join.AddField("pct_diff_ridership")
-  join.pct_diff_ridership = (join.est_ridership - join.obs_ridership)/join.obs_ridership
-  join.DropFields({FieldNames: {"agency:1", "Off",	"DriveAccessOn",	"WalkAccessOn",	"DirectTransferOn",	"WalkTransferOn",	"DirectTransferOff",	"WalkTransferOff",	"EgressOff"}})
+  join.AddField({FieldName: "obs_ridership", Type: "string"})
+  join.obs_ridership = Format(join.obs_ridership_temp, "*,.")
+  join.AddField({FieldName: "est_ridership", Type: "string"})
+  join.est_ridership = Format(join.est_ridership_temp, "*,.")
+  join.AddField({FieldName: "pcfdiff_ridership", Type: "string"})
+  v = (join.est_ridership_temp - join.obs_ridership_temp)/join.obs_ridership_temp
+  join.pcfdiff_ridership = Format(v, "*.00")
+  join.DropFields({FieldNames: {"obs_ridership_temp", "agency:1", "est_ridership_temp","Off",	"DriveAccessOn",	"WalkAccessOn",	"DirectTransferOn",	"WalkTransferOn",	"DirectTransferOff",	"WalkTransferOff",	"EgressOff"}})
   join.Export({FileName: validation_dir + "/transitassignment.csv"})
   join = null
 
   DeleteFile(validation_dir + "/transitassignment.bin")
   DeleteFile(validation_dir + "/transitassignment.dcb")
 
+  //6. R-square for Regionwide Estimated Volumes vs. Traffic Counts
 
+  //7. Concatenate reports
+  opts = null
+  opts.model_dir = Args.[Base Folder]
+  opts.scen_dir = Args.[Scenario Folder]
+  opts.inputtable_file = opts.model_dir + "\\other\\_reportingtool\\validation_tablenames.csv"
+  opts.output_file = opts.scen_dir + "\\output\\_summaries\\validation\\validation_summary.csv"
+  RunMacro("Concatenate Files", opts)
+  
 endmacro

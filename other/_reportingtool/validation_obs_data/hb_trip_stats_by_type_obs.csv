@@ -1,9 +1,9 @@
-"matrix","core","Sum","SumDiag","PctDiag","avg_length_mi","avg_time_min"
-"N_HB_K12_All","trip_weight",210608.83,4879.27,2.31675,6.08397,8.69448
-"N_HB_OD_Long","trip_weight",226032.60,17301.77,7.65455,5.89351,8.29963
-"N_HB_OD_Short","trip_weight",226032.60,17301.77,7.65455,5.89351,8.29963
-"N_HB_OMED_All","trip_weight",64425.22,364.695,0.566075,10.3561,13.9789
-"N_HB_OME_All","trip_weight",552691.55,18290.68,3.30938,5.72655,8.01208
-"W_HB_EK12_All","trip_weight",54386.27,624.053,1.14745,5.96125,8.46662
-"W_HB_O_All","trip_weight",289949.46,9648.32,3.32759,7.45216,10.0336
-"W_HB_W_All","trip_weight",368966.30,3588.58,0.972604,12.5176,16.5139
+matrix,core,Sum,SumDiag,PctDiag,avg_length_mi,avg_time_min
+N_HB_K12_All,trip_weight," 210,609 "," 4,879 ",2.32,6.08,8.69
+N_HB_OD_Long,trip_weight," 226,033 "," 17,302 ",7.65,5.89,8.30
+N_HB_OD_Short,trip_weight," 226,033 "," 17,302 ",7.65,5.89,8.30
+N_HB_OMED_All,trip_weight," 64,425 ", 365 ,0.57,10.36,13.98
+N_HB_OME_All,trip_weight," 552,692 "," 18,291 ",3.31,5.73,8.01
+W_HB_EK12_All,trip_weight," 54,386 ", 624 ,1.15,5.96,8.47
+W_HB_O_All,trip_weight," 289,949 "," 9,648 ",3.33,7.45,10.03
+W_HB_W_All,trip_weight," 368,966 "," 3,589 ",0.97,12.52,16.51
