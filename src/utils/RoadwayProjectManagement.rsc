@@ -86,7 +86,7 @@ Macro "Roadway Project Management" (MacroOpts)
   attrList = attrList + {"position"}
 
   // Add fields that tell project positions in the project list
-  RunMacro("Add Project Position", llyr, proj_list, projGroups)
+  RunMacro("Add Project Position", llyr, output_proj_list, projGroups)
 
   // Build a named array of vectors to work with
   for p in {""} + projGroups do
