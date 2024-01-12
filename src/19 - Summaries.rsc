@@ -4,7 +4,7 @@ and tables.
 */
 
 Macro "Maps" (Args)
-    /*
+    
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
@@ -12,7 +12,7 @@ Macro "Maps" (Args)
     RunMacro("Speed Maps", Args)
     //RunMacro("Isochrones", Args)
 	  RunMacro("Accessibility Maps", Args)
-    */
+    
     return(1)
 endmacro
 
@@ -24,7 +24,7 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-    /*
+    
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -43,7 +43,6 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
-    */
     RunMacro("Validation Reports", Args)
     return(1)
 endmacro
