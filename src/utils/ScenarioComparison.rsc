@@ -170,7 +170,8 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
         {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
-        {"/output/_summaries/overall_mode_shares.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
         {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
     }
 
@@ -178,7 +179,7 @@ Macro "Compare Summary Tables" (MacroOpts)
     if sub_poly <> null then tables_to_compare = tables_to_compare + {
         {"/output/_summaries/resident_hb/hb_trip_mode_shares_subarea_by_subarea.csv", {"trip_type", "mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod_subarea_by_subarea.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
-        {"/output/_summaries/overall_mode_shares_subarea.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_subarea_bytaz.bin", {"TAZ"}, {"sov", "hov", "transit", "nm"}},
         {"/output/_summaries/hhstrata_subarea.csv", {"market_segment"}, {"count"}}
     }
 
@@ -230,8 +231,8 @@ Macro "Diff Tables" (MacroOpts)
     tbl2 = CreateObject("Table", table2)
     tbl2 = tbl2.Export({FieldNames: id_cols + cols_to_diff})
     for col in cols_to_diff do
-        tbl1.RenameField({FieldName: col, NewName: col + "_ref"})
-        tbl2.RenameField({FieldName: col, NewName: col + "_new"})
+        tbl1.ChangeField({FieldName: col, NewName: col + "_ref", Type: "real"})
+        tbl2.ChangeField({FieldName: col, NewName: col + "_new", Type: "real"})
         tbl2.AddField(col + "_diff")
     end
     

@@ -44,12 +44,19 @@ dBox "Prepare MOVES Input" (Args) location: center, center, 46, 7
   enditem
 
   // Quit Button
-  button 5, 5, 10 Prompt:"Quit" do
+  button 4, 5, 10 Prompt:"Quit" do
     Return(1)
   enditem
 
+  // Help Button
+  button 32, 5, 8 Prompt:"Help" do
+    ShowMessage(
+        "This tool is to prepare inputs for MOVES air quality analysis. Please select the corresponding year from the drop down list based on your selected scenario."
+     )
+  enditem
+
   // Run Button
-  button 21, 5, 20 Prompt:"Generate Results" do 
+  button 19, 5, 8 Prompt:"Run" do 
 
     if !RunMacro("MOVES", Args, region, year) then Throw("Something went wrong")
  

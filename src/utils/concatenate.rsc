@@ -29,8 +29,11 @@ dBox "Concatenate Files" (Args) center, center, 60, 6
 
     // Run Button
     button 18, 4, 20 Prompt:"Generate Results" do 
-
-        if !RunMacro("Concatenate Files", Args) then Throw("Something went wrong")
+        opts.model_dir = Args.[Base Folder]
+        opts.scen_dir = Args.[Scenario Folder]
+        opts.inputtable_file = opts.model_dir + "\\other\\_reportingtool\\Concatenate_tablenames.csv"
+        opts.output_file = opts.scen_dir + "\\output\\_summaries\\concatenate_summary.csv"
+        if !RunMacro("Concatenate Files", opts) then Throw("Something went wrong")
  
         ShowMessage("Reports have been created successfully.")
 	return(1)
@@ -49,11 +52,10 @@ enddbox
 
 
 Macro "Concatenate Files" (Args)
-    model_dir = Args.[Base Folder]
-    scen_dir = Args.[Scenario Folder]
-    summary_dir = Args.[Summary Folder]
-    inputtable_file = model_dir + "\\other\\_reportingtool\\Concatenate_tablenames.csv"
-    output_file = summary_dir + "\\concatenate_summary.csv"
+    scen_dir = Args.scen_dir
+    summary_dir = scen_dir + "\\output\\_summaries"
+    inputtable_file = Args.inputtable_file
+    output_file = Args.output_file
     if GetFileInfo(output_file) <> null then deleteFile(output_file)
     
     input_vw = OpenTable("inputtable", "CSV", {inputtable_file})  
