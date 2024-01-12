@@ -1179,7 +1179,10 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
-      v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+      v_row = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+      v_col = mtx.GetVector({Core: core_name, Marginal: "Column Sum"})
+      v_col.rowbased = "False"
+      v = v_row + v_col
       if counter = 1
         then result = nz(v)
         else result = result + nz(v)
