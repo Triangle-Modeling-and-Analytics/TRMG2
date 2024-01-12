@@ -731,8 +731,8 @@ Macro "Other Attributes" (Args)
         {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"},
         {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
         {"Beta", "Real", 10, 2, , , , "VDF beta value"},
-        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
-        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph"},
+        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph|Unless overriden by WalkSpeed field"},
+        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph|Unless overriden by BikeSpeed field"},
         {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"},
         {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
         {"FFTime", "Real", 10, 2, , , , "Free flow travel time"}
@@ -758,12 +758,14 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
+            llyr + ".WalkSpeed",
+            llyr + ".BikeSpeed",
             llyr + ".TollType",
             llyr + ".TollCostT",
             llyr + ".TollCostNT",
@@ -774,8 +776,10 @@ Macro "Other Attributes" (Args)
         )
     v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
-    v_wt = v_len / 3 * 60
-    v_bt = v_len / 15 * 60
+    v_walkspeed = if v_walkspeed = null then 3 else v_walkspeed
+    v_wt = v_len / v_walkspeed * 60
+    v_bikespeed = if v_bikespeed = null then 15 else v_bikespeed
+    v_bt = v_len / v_bikespeed * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     // Determine weighted average toll cost based on transponder usage
     v_tollcost_auto = v_tollcost_t * trans_ratio_auto + v_tollcost_nt * (1 - trans_ratio_auto)

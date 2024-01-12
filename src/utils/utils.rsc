@@ -2117,6 +2117,10 @@ Macro "Gravity" (MacroOpts)
   param_file = MacroOpts.param_file
   output_matrix = MacroOpts.output_matrix
 
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
+
   // Create the gravity object
   obj = CreateObject("Distribution.Gravity")
   obj.DataSource = {TableName: se_file}
@@ -2171,6 +2175,10 @@ Macro "Gravity2" (MacroOpts)
   param_file = MacroOpts.param_file
   output_matrix = MacroOpts.output_matrix
   set_data = MacroOpts.set_data
+
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
 
   param_vw = OpenTable("params", "CSV", {param_file})
   {names, specs} = GetFields(param_vw, "All")
