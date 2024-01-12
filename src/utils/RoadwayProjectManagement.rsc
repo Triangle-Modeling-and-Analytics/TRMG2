@@ -53,15 +53,16 @@ Macro "Roadway Project Management" (MacroOpts)
   df = CreateObject("df", proj_list_CAMPO)
   output = df.copy()
   df = CreateObject("df", proj_list_DCHC)
-  output.bind_rows(df)
-  output.write_csv(output_proj_list)
+  if df.tbl.length >0 then output.bind_rows(df)
+  if output.tbl.length >0 then output.write_csv(output_proj_list)
+      else CopyFile(proj_list_CAMPO, output_proj_list)
   
   // Get vector of project IDs from the project list file
   // gplyr's read functions won't work here until it can handle empty files.
   csv_tbl = OpenTable("tbl", "CSV", {output_proj_list, })
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
   CloseView(csv_tbl)
-  DeleteFile(Substitute(proj_list, ".csv", ".DCC", ))
+  DeleteFile(Substitute(output_proj_list, ".csv", ".DCC", ))
 
   // Open the roadway dbd
   {nlyr, llyr} = GetDBLayers(hwy_dbd)
