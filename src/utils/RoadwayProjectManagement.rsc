@@ -50,6 +50,8 @@ Macro "Roadway Project Management" (MacroOpts)
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
   CloseView(csv_tbl)
   DeleteFile(Substitute(proj_list, ".csv", ".DCC", ))
+  // Return if no projects in the project list
+  if TypeOf(v_projIDs) = "null" then return()
 
   // Open the roadway dbd
   {nlyr, llyr} = GetDBLayers(hwy_dbd)
