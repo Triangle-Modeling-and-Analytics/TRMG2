@@ -1077,77 +1077,41 @@ Macro "Summarize NM" (Args, trip_types)
 endmacro
 
 /*
-This macro differs from the other mode summaries in that it combines resident HB/NHB, students, and also
-includes non-motorized trips. In other words, this is the final mode shares for all people living in the
-model region.
-
+Combines all travel markets (resident, univ, trucks, etc) into total mode share in the model.
 Also called by the scenario comparison tool if a subarea is provided.
 */
 
 Macro "Summarize Total Mode Shares" (Args)
-
+  
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   out_dir = scen_dir + "/output"
   summary_dir = out_dir + "/_summaries"
-  access_modes = Args.access_modes
-  mode_table = Args.TransModeTable
-  subarea = Args.subarea
-  
-  // Build an equivalency array that maps modes to summary mode levels
-  equiv = {
-    sov: "sov",
-    auto: "sov",
-    hov2: "hov",
-    hov3: "hov",
-    walk: "nm",
-    bike: "nm",
-    walkbike: "nm",
-    transit: "nm"
-  }
-  transit_modes = RunMacro("Get Transit Modes", mode_table)
-  for access_mode in access_modes do
-    for transit_mode in transit_modes do
-      name = access_mode + "_" + transit_mode
-      equiv.(name) = "transit"
-    end
-  end
+  periods = Args.periods
 
-  // Resident HB trips
-  trip_dir = out_dir + "/resident/trip_matrices"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir})
-  // University trips
-  trip_dir = out_dir + "/university"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir, result: result})
-  // NHB trips
-  trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir, result: result})
+  v_auto = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/roadway"})
+  v_transit = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/transit"})
+  v_nm = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/resident/nonmotorized"})
   
   // Get a vector of IDs from one of the matrices
-  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
   mtx = CreateObject("Matrix", mtx_files[1])
   core_names = mtx.GetCoreNames()
   v_id = mtx.GetVector({Core: core_names[1], Index: "Row"})
 
-
   // create a table to store results
-  table_data.ID = v_id
-  table_data = table_data + {result}
-  
   tbl = CreateObject("Table", {Fields: {
     {FieldName: "TAZ", Type: "Integer"},
     {FieldName: "county_temp", Type: "String"},
-    {FieldName: "sov"},
-    {FieldName: "hov"},
+    {FieldName: "auto"},
     {FieldName: "transit"},
     {FieldName: "nm"}
   }})
   tbl.AddRows({EmptyRows: v_id.length})
   tbl.TAZ = v_id
-  tbl.sov = result.sov
-  tbl.hov = result.hov
-  tbl.transit = result.transit
-  tbl.nm = result.nm
+  tbl.auto = v_auto
+  tbl.transit = v_transit
+  tbl.nm = v_nm
   if subarea then tbl.AddField("subarea")
 
   // Add county info from the TAZ layer
@@ -1177,14 +1141,12 @@ Macro "Summarize Total Mode Shares" (Args)
   tbl = tbl.Aggregate({
     GroupBy: "County",
     FieldStats: {
-      sov: "sum",
-      hov: "sum",
+      auto: "sum",
       transit: "sum",
       nm: "sum"
     }
   })
-  tbl.RenameField({FieldName: "sum_sov", NewName: "sov"})
-  tbl.RenameField({FieldName: "sum_hov", NewName: "hov"})
+  tbl.RenameField({FieldName: "sum_auto", NewName: "auto"})
   tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
   tbl.RenameField({FieldName: "sum_nm", NewName: "nm"})
   if subarea
@@ -1195,21 +1157,14 @@ endmacro
 
 /*
 Helper macro to 'Sumamrize Total Mode Shares'. Summarize row sums of matrices
-and returns a named array of totals vectors.
+and returns a vector.
 
 Inputs
-  * equiv
-    * Named array
-    * An array that maps core names to output mode names. e.g. {hov2: "hov"} means
-      that row sums for any core named "hov2" will be aggregated into the "hov" item
-      in 'result'
   * trip_dir
     * String
     * The directory holding the matrices to summarize
   * result
-    * Optional named array
-    * After calling this macro the first time, the resulting array can be fed back in
-      to continue aggregating matrices from a different 'trip_dir'
+    * Vector of summed row totals
 */
 
 Macro "Summarize Matrix RowSums" (MacroOpts)
@@ -1219,35 +1174,16 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
   result = MacroOpts.result
 
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  counter = 1
   for mtx_file in mtx_files do
-
-    // NHB matrices require special handling. The mode is in the file name not core.
-    // The auto_pay matrices do have modal cores and can be handled the same as HB/Univ
-    {, , name, } = SplitPath(mtx_file)
-    parts = ParseString(Lower(name), "_")
-    if parts[1] = "nhb" and parts[3] <> "auto" then do
-      if parts[2] = "transit" or parts[2] = "walkbike"
-        then mode = parts[2]
-        else mode = parts[3]
-        out_name = equiv.(mode)
-        v = mtx.GetVector({Core: "Total", Marginal: "Row Sum"})
-
-        if TypeOf(result.(out_name)) = "null"
-          then result.(out_name) = v
-          else result.(out_name) = result.(out_name) + v
-    end
-
-    // Other matrices (HB and Univ)
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
-      if equiv.(core_name) = null then continue
-      out_name = equiv.(core_name)
       v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
-
-      if TypeOf(result.(out_name)) = "null"
-        then result.(out_name) = v
-        else result.(out_name) = result.(out_name) + v
+      if counter = 1
+        then result = nz(v)
+        else result = result + nz(v)
+      counter = counter + 1
     end
   end
   return(result)
