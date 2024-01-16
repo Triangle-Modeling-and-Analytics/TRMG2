@@ -1,0 +1,9 @@
+matrix,core,Sum,SumDiag,PctDiag,avg_length_mi,avg_time_min
+N_HB_K12_All,trip_weight," 210,609 "," 4,879 ",2.32,6.08,8.69
+N_HB_OD_Long,trip_weight," 226,033 "," 17,302 ",7.65,5.89,8.30
+N_HB_OD_Short,trip_weight," 226,033 "," 17,302 ",7.65,5.89,8.30
+N_HB_OMED_All,trip_weight," 64,425 ", 365 ,0.57,10.36,13.98
+N_HB_OME_All,trip_weight," 552,692 "," 18,291 ",3.31,5.73,8.01
+W_HB_EK12_All,trip_weight," 54,386 ", 624 ,1.15,5.96,8.47
+W_HB_O_All,trip_weight," 289,949 "," 9,648 ",3.33,7.45,10.03
+W_HB_W_All,trip_weight," 368,966 "," 3,589 ",0.97,12.52,16.51

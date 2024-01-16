@@ -1,4 +1,4 @@
 
-0 header
+0 Header
 "trip_type",C,1,15,0,15,0
-"nonmotorized",R,2,15,0,15,4
+"obs_nm_share",R,2,15,0,15,4

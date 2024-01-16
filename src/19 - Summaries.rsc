@@ -4,22 +4,27 @@ and tables.
 */
 
 Macro "Maps" (Args)
+    
     RunMacro("Load Link Layer", Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
-    // RunMacro("Isochrones", Args)
-	RunMacro("Accessibility Maps", Args)
+    //RunMacro("Isochrones", Args)
+	  RunMacro("Accessibility Maps", Args)
+    
     return(1)
 endmacro
 
 Macro "Calibration Reports" (Args)
+    
     RunMacro("Count PRMSEs", Args)
+    
     return(1)
 endmacro
 
 Macro "Other Reports" (Args)
+    
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -37,6 +42,8 @@ Macro "Other Reports" (Args)
     RunMacro("Disadvantage Community Mapping", Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
+    RunMacro("Aggregate Transit Flow by Route", Args)
+    RunMacro("Validation Reports", Args)
     return(1)
 endmacro
 
@@ -307,7 +314,7 @@ Macro "Count PRMSEs" (Args)
   opts.median_field = "HCMMedian"
   opts.screenline_field = "Cutline"
   opts.volume_breaks = {10000, 25000, 50000, 100000}
-  opts.out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  opts.out_dir = Args.[Output Folder] + "/_summaries/validation"
   RunMacro("Roadway Count Comparison Tables", opts)
 
   // Rename screenline to cutline
@@ -1077,77 +1084,41 @@ Macro "Summarize NM" (Args, trip_types)
 endmacro
 
 /*
-This macro differs from the other mode summaries in that it combines resident HB/NHB, students, and also
-includes non-motorized trips. In other words, this is the final mode shares for all people living in the
-model region.
-
+Combines all travel markets (resident, univ, trucks, etc) into total mode share in the model.
 Also called by the scenario comparison tool if a subarea is provided.
 */
 
 Macro "Summarize Total Mode Shares" (Args)
-
+  
   taz_file = Args.TAZs
   scen_dir = Args.[Scenario Folder]
   out_dir = scen_dir + "/output"
   summary_dir = out_dir + "/_summaries"
-  access_modes = Args.access_modes
-  mode_table = Args.TransModeTable
-  subarea = Args.subarea
-  
-  // Build an equivalency array that maps modes to summary mode levels
-  equiv = {
-    sov: "sov",
-    auto: "sov",
-    hov2: "hov",
-    hov3: "hov",
-    walk: "nm",
-    bike: "nm",
-    walkbike: "nm",
-    transit: "nm"
-  }
-  transit_modes = RunMacro("Get Transit Modes", mode_table)
-  for access_mode in access_modes do
-    for transit_mode in transit_modes do
-      name = access_mode + "_" + transit_mode
-      equiv.(name) = "transit"
-    end
-  end
+  periods = Args.periods
 
-  // Resident HB trips
-  trip_dir = out_dir + "/resident/trip_matrices"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir})
-  // University trips
-  trip_dir = out_dir + "/university"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir, result: result})
-  // NHB trips
-  trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
-  result = RunMacro("Summarize Matrix RowSums", {equiv: equiv, trip_dir: trip_dir, result: result})
+  v_auto = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/roadway"})
+  v_transit = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/transit"})
+  v_nm = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/resident/nonmotorized"})
   
   // Get a vector of IDs from one of the matrices
-  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
   mtx = CreateObject("Matrix", mtx_files[1])
   core_names = mtx.GetCoreNames()
   v_id = mtx.GetVector({Core: core_names[1], Index: "Row"})
 
-
   // create a table to store results
-  table_data.ID = v_id
-  table_data = table_data + {result}
-  
   tbl = CreateObject("Table", {Fields: {
     {FieldName: "TAZ", Type: "Integer"},
     {FieldName: "county_temp", Type: "String"},
-    {FieldName: "sov"},
-    {FieldName: "hov"},
+    {FieldName: "auto"},
     {FieldName: "transit"},
     {FieldName: "nm"}
   }})
   tbl.AddRows({EmptyRows: v_id.length})
   tbl.TAZ = v_id
-  tbl.sov = result.sov
-  tbl.hov = result.hov
-  tbl.transit = result.transit
-  tbl.nm = result.nm
+  tbl.auto = v_auto
+  tbl.transit = v_transit
+  tbl.nm = v_nm
   if subarea then tbl.AddField("subarea")
 
   // Add county info from the TAZ layer
@@ -1177,14 +1148,12 @@ Macro "Summarize Total Mode Shares" (Args)
   tbl = tbl.Aggregate({
     GroupBy: "County",
     FieldStats: {
-      sov: "sum",
-      hov: "sum",
+      auto: "sum",
       transit: "sum",
       nm: "sum"
     }
   })
-  tbl.RenameField({FieldName: "sum_sov", NewName: "sov"})
-  tbl.RenameField({FieldName: "sum_hov", NewName: "hov"})
+  tbl.RenameField({FieldName: "sum_auto", NewName: "auto"})
   tbl.RenameField({FieldName: "sum_transit", NewName: "transit"})
   tbl.RenameField({FieldName: "sum_nm", NewName: "nm"})
   if subarea
@@ -1195,21 +1164,14 @@ endmacro
 
 /*
 Helper macro to 'Sumamrize Total Mode Shares'. Summarize row sums of matrices
-and returns a named array of totals vectors.
+and returns a vector.
 
 Inputs
-  * equiv
-    * Named array
-    * An array that maps core names to output mode names. e.g. {hov2: "hov"} means
-      that row sums for any core named "hov2" will be aggregated into the "hov" item
-      in 'result'
   * trip_dir
     * String
     * The directory holding the matrices to summarize
   * result
-    * Optional named array
-    * After calling this macro the first time, the resulting array can be fed back in
-      to continue aggregating matrices from a different 'trip_dir'
+    * Vector of summed row totals
 */
 
 Macro "Summarize Matrix RowSums" (MacroOpts)
@@ -1219,35 +1181,19 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
   result = MacroOpts.result
 
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  counter = 1
   for mtx_file in mtx_files do
-
-    // NHB matrices require special handling. The mode is in the file name not core.
-    // The auto_pay matrices do have modal cores and can be handled the same as HB/Univ
-    {, , name, } = SplitPath(mtx_file)
-    parts = ParseString(Lower(name), "_")
-    if parts[1] = "nhb" and parts[3] <> "auto" then do
-      if parts[2] = "transit" or parts[2] = "walkbike"
-        then mode = parts[2]
-        else mode = parts[3]
-        out_name = equiv.(mode)
-        v = mtx.GetVector({Core: "Total", Marginal: "Row Sum"})
-
-        if TypeOf(result.(out_name)) = "null"
-          then result.(out_name) = v
-          else result.(out_name) = result.(out_name) + v
-    end
-
-    // Other matrices (HB and Univ)
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
-      if equiv.(core_name) = null then continue
-      out_name = equiv.(core_name)
-      v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
-
-      if TypeOf(result.(out_name)) = "null"
-        then result.(out_name) = v
-        else result.(out_name) = result.(out_name) + v
+      v_row = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+      v_col = mtx.GetVector({Core: core_name, Marginal: "Column Sum"})
+      v_col.rowbased = "False"
+      v = v_row + v_col
+      if counter = 1
+        then result = nz(v)
+        else result = result + nz(v)
+      counter = counter + 1
     end
   end
   return(result)
@@ -2264,4 +2210,270 @@ Macro "Summarize HH Strata" (Args)
     then out_file = summary_dir + "/hhstrata_subarea.csv"
     else out_file = summary_dir + "/hhstrata.csv"
   agg.Export({FileName: out_file})
+endmacro
+
+Macro "Aggregate Transit Flow by Route" (Args)
+  scen_dir = Args.[Scenario Folder]
+  out_dir  = Args.[Output Folder]
+  assn_dir = out_dir + "/assignment/transit"
+  output_dir = out_dir + "/assignment/transit/aggregate"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+  access_modes = Args.access_modes
+  mode_table = Args.TransModeTable
+  periods = RunMacro("Get Unconverged Periods", Args)
+  orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
+
+  // Loop through transit assn bin files
+  // By daily
+  for access_mode in access_modes do
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes 
+
+    for transit_mode in transit_modes do
+      for period in periods do 
+        filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+        df = CreateObject("df", filename)
+        df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
+        if daily = null then daily = df.copy()
+        else do
+          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"}) 
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove("TransitFlow_y")
+          end
+      end
+      daily.write_bin(output_dir + "/daily_"+ access_mode + "_" + transit_mode + ".bin")
+      daily = null
+    end
+  end
+
+  // By daily and access mode
+  for transit_mode in transit_modes do
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes
+
+    for period in periods do
+      for access_mode in access_modes do 
+        filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+        df = CreateObject("df", filename)
+        df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
+        if daily = null then daily = df.copy()
+        else do 
+          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove("TransitFlow_y")
+          end
+      end
+    end
+    daily.write_bin(output_dir + "/daily_" + transit_mode + ".bin")
+    daily = null
+  end
+
+  // By daily and transit mode
+  for access_mode in access_modes do 
+    if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
+    else transit_modes = orig_transit_modes
+    
+    for transit_mode in transit_modes do
+      for period in periods do
+        
+          filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
+          df = CreateObject("df", filename)
+          df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
+          if daily = null then daily = df.copy()
+          else do 
+            df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
+            daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+            daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+            daily.rename("TransitFlow_x", "TransitFlow")
+            daily.remove("TransitFlow_y")
+            end
+        end
+      end
+      daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
+      daily = null
+  end
+
+endmacro
+
+Macro "Validation Reports" (Args)
+  root_dir = Args.[Base Folder]
+  scen_dir = Args.[Scenario Folder]
+  skim_dir = Args.[Output Folder] + "\\skims\\roadway"
+  obs_dir = root_dir + "/other/_reportingtool/validation_obs_data"
+  summary_dir = scen_dir + "/output/_summaries"
+  validation_dir = summary_dir + "/validation"
+  if GetDirectoryInfo(validation_dir, "All") = null then CreateDirectory(validation_dir)
+
+  // 1. NM trips
+  obs_data = obs_dir + "/nm_calibration_targets.csv"
+  est_data = summary_dir + "/nm_summary.csv"
+  
+  est_tbl = CreateObject("Table", est_data)
+
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
+
+	join = obs_tbl.Join({
+		Table: est_tbl,
+		LeftFields: "trip_type",
+		RightFields: "trip_type"
+	})
+  join.Export({FileName: validation_dir + "/nonmotorized.bin"})
+
+  join = CreateObject("Table", validation_dir + "/nonmotorized.bin")
+  join.AddField({FieldName: "est_nm_share", Type: "string"})
+  join.AddField({FieldName: "pcfdiff_nm_share", Type: "string"})
+  v1 = join.nm_share/100
+  join.est_nm_share = Format(v1, "*.000")
+  v2 = (join.nm_share - join.obs_nm_share)/join.obs_nm_share
+  //v = if v = null then 0 else v
+  join.pcfdiff_nm_share = Format(v2, "*.00")
+  join.DropFields({FieldNames:{"trip_type:1", "moto_total", "moto_share", "nm_total", "nm_share"}})
+
+  join.Export({FileName: validation_dir + "/nonmotorized.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/nonmotorized.bin")
+  DeleteFile(validation_dir + "/nonmotorized.dcb")
+
+  // 2. Auto ownership
+  obs_data = obs_dir + "/ao_calib_targets.csv"
+  est_data = scen_dir + "/output/resident/population_synthesis/Synthesized_HHs.bin"
+
+  est_tbl = CreateObject("Table", est_data)
+  agg_est_tbl = est_tbl.Aggregate({
+    GroupBy: "Autos",
+    FieldStats: {WEIGHT: "sum"}
+  })
+	sum_est_weight = VectorStatistic(agg_est_tbl.sum_WEIGHT, "Sum", )
+  v_est_share = agg_est_tbl.sum_WEIGHT / sum_est_weight
+  agg_est_tbl.AddField({FieldName: "est_weight", Type: "string"})
+  agg_est_tbl.AddField({FieldName: "est_share_temp", Type: "real"})
+  agg_est_tbl.AddField({FieldName: "est_share", Type: "string"})
+  agg_est_tbl.AddField({FieldName: "pcfdiff_share", Type: "string"})
+  agg_est_tbl.est_weight = Format(agg_est_tbl.sum_WEIGHT, ",*0.")
+  agg_est_tbl.est_share_temp = v_est_share
+  
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
+  obs_tbl.RenameField({FieldName: "pct", NewName: "obs_share"})
+  
+  join = obs_tbl.Join({
+		Table: agg_est_tbl,
+		LeftFields: "autos",
+		RightFields: "Autos"
+	})
+  join.Export({FileName: validation_dir + "/ao.bin"})
+
+  join = CreateObject("Table", validation_dir + "/ao.bin")
+	v = (join.est_share_temp - join.obs_share)/join.obs_share
+  join.pcfdiff_share = Format(v, "*.00")
+  join.est_share = Format(join.est_share_temp, ",*.00")
+  join.DropFields({FieldNames:{"sum_WEIGHT", "est_share_temp"}})
+  join.Export({FileName: validation_dir + "/ao_ownership.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/ao.bin")
+  DeleteFile(validation_dir + "/ao.dcb")
+
+  //3. Destination Choice
+  obs_data = obs_dir + "/hb_trip_stats_by_type_obs.csv"
+  est_data = summary_dir + "/resident_hb/hb_trip_stats_by_type.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "avg_length_mi", NewName: "obs_avg_length_mi"})
+  est_tbl = CreateObject("Table", est_data)
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: "matrix",
+      RightFields: "matrix"
+    })
+  join.Export({FileName: validation_dir + "/destinationchoice.bin"})
+
+  join = CreateObject("Table", validation_dir + "/destinationchoice.bin")
+  join.AddField({FieldName: "est_avg_length_mi", Type: "string"})
+  join.est_avg_length_mi = Format(join.avg_length_mi, "*.00")
+  join.AddField({FieldName: "pcfdiff_length_mi", Type: "string"})
+  v = (join.avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
+  join.pcfdiff_length_mi = Format(v, "*.00")
+  join.DropFields({FieldNames: {"core",	"Sum",	"SumDiag",	"PctDiag", "avg_length_mi", "avg_time_min", "matrix:1",	"core:1",	"Sum:1",	"SumDiag:1",	"PctDiag:1", "avg_time_min:1"}})
+  join.Export({FileName: validation_dir + "/destinationchoice.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/destinationchoice.bin")
+  DeleteFile(validation_dir + "/destinationchoice.dcb")
+
+  //4. Mode Choice
+  obs_data = root_dir + "/other/_reportingtool/validation_obs_data/Target_HB_MCShares_agg.csv"
+  est_data = summary_dir + "/resident_hb/hb_trip_mode_shares.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.RenameField({FieldName: "pct", NewName: "est_share"})
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: {"trip_type", "mode"},
+      RightFields: {"trip_type", "mode"}
+    })
+  join.Export({FileName: validation_dir + "/modechoice.bin"})
+
+  join = CreateObject("Table", validation_dir + "/modechoice.bin")
+  join.AddField({FieldName: "pcfdiff_share", Type: "string"})
+  v = (join.est_share - join.obs_share)/join.obs_share
+  join.pcfdiff_share = Format(v, "*.00")
+  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total"}})
+  join.Export({FileName: validation_dir + "/modechoice.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/modechoice.bin")
+  DeleteFile(validation_dir + "/modechoice.dcb")
+
+  //5. Transit assignment
+  obs_data = root_dir + "/other/_reportingtool/validation_obs_data/transit_ridership.csv"
+  est_data = summary_dir + "/transit/boardings_and_alightings_daily_by_agency.csv"
+
+  obs_tbl = CreateObject("Table", obs_data)
+  obs_tbl.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
+  est_tbl = CreateObject("Table", est_data)
+  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
+
+  join = obs_tbl.Join({
+      Table: est_tbl,
+      LeftFields: "Agency",
+      RightFields: "agency"
+    })
+  join.Export({FileName: validation_dir + "/transitassignment.bin"})
+
+  join = CreateObject("Table", validation_dir + "/transitassignment.bin")
+  join.AddField({FieldName: "obs_ridership", Type: "string"})
+  join.obs_ridership = Format(join.obs_ridership_temp, "*,.")
+  join.AddField({FieldName: "est_ridership", Type: "string"})
+  join.est_ridership = Format(join.est_ridership_temp, "*,.")
+  join.AddField({FieldName: "pcfdiff_ridership", Type: "string"})
+  v = (join.est_ridership_temp - join.obs_ridership_temp)/join.obs_ridership_temp
+  join.pcfdiff_ridership = Format(v, "*.00")
+  join.DropFields({FieldNames: {"obs_ridership_temp", "agency:1", "est_ridership_temp","Off",	"DriveAccessOn",	"WalkAccessOn",	"DirectTransferOn",	"WalkTransferOn",	"DirectTransferOff",	"WalkTransferOff",	"EgressOff"}})
+  join.Export({FileName: validation_dir + "/transitassignment.csv"})
+  join = null
+
+  DeleteFile(validation_dir + "/transitassignment.bin")
+  DeleteFile(validation_dir + "/transitassignment.dcb")
+
+  //6. R-square for Regionwide Estimated Volumes vs. Traffic Counts
+
+  //7. Concatenate reports
+  opts = null
+  opts.model_dir = Args.[Base Folder]
+  opts.scen_dir = Args.[Scenario Folder]
+  opts.inputtable_file = opts.model_dir + "\\other\\_reportingtool\\validation_tablenames.csv"
+  opts.output_file = opts.scen_dir + "\\output\\_summaries\\validation\\validation_summary.csv"
+  RunMacro("Concatenate Files", opts)
+  
 endmacro

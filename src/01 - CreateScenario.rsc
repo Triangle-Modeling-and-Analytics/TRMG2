@@ -46,8 +46,11 @@ Macro "Check for Creation Files" (Args)
     "Scenario Directory: \n" +
     scen_dir
   )
-  else if GetFileInfo(scen_dir + "/RoadwayProjectList.csv") = null then Throw(
-    "The scenario directory is missing RoadwayProjectList.csv"
+  else if GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") = null then Throw(
+    "The scenario directory is missing RoadwayProjectList_CAMPO.csv"
+  )
+  else if GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") = null then Throw(
+    "The scenario directory is missing RoadwaRoadwayProjectList_DCHCyProjectList.csv"
   )
   else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
     "The scenario directory is missing TransitProjectList.csv"
@@ -183,7 +186,8 @@ Macro "Create Scenario Roadway" (Args)
   // Update the network using the project manager
   opts = null
   opts.hwy_dbd = scen_hwy
-  opts.proj_list = Args.[Scenario Folder] + "/RoadwayProjectList.csv"
+  opts.proj_list_CAMPO = Args.[Scenario Folder] + "/RoadwayProjectList_CAMPO.csv"
+  opts.proj_list_DCHC = Args.[Scenario Folder] + "/RoadwayProjectList_DCHC.csv"
   opts.master_dbd = master_hwy
   RunMacro("Roadway Project Management", opts)
 

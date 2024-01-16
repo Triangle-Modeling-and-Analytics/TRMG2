@@ -1,0 +1,15 @@
+trip_type,obs_nm_share
+W_HB_EK12_All,0.008
+W_HB_O_All,0.026
+W_HB_W_All,0.029
+W_NH_EK12_All,0.013
+W_NH_O_All,0.124
+W_NH_WR_All,0.123
+N_HB_K12_All,0.029
+N_HB_OD_Long,0.074
+N_HB_OD_Short,0.258
+N_HB_OME_All,0.054
+N_HB_OMED_All,0.004
+N_NH_K12_All,0.069
+N_NH_O_All,0.122
+N_NH_OME_All,0.055

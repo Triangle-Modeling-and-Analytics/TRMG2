@@ -2117,6 +2117,10 @@ Macro "Gravity" (MacroOpts)
   param_file = MacroOpts.param_file
   output_matrix = MacroOpts.output_matrix
 
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
+
   // Create the gravity object
   obj = CreateObject("Distribution.Gravity")
   obj.DataSource = {TableName: se_file}
@@ -2171,6 +2175,10 @@ Macro "Gravity2" (MacroOpts)
   param_file = MacroOpts.param_file
   output_matrix = MacroOpts.output_matrix
   set_data = MacroOpts.set_data
+
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
 
   param_vw = OpenTable("params", "CSV", {param_file})
   {names, specs} = GetFields(param_vw, "All")
@@ -2525,6 +2533,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
   {, total_prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
   total_prmse = round(total_prmse, 2)
+  total_volume = round(total_volume, 0)
   total_line = {
     "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
@@ -2533,6 +2542,12 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     "All,All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
   }
+
+  // Regional table
+  file = out_dir + "/count_comparison_regional.csv"
+  lines = {"Region,N,TotalCount,TotalVolume,PctDiff,PRMSE"}
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
 
   // Facility type table
   lines = null
@@ -2549,6 +2564,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     lines = lines + {
       class_name + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)
@@ -2578,6 +2594,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
         pct_diff = round((total_volume - total_count) / total_count * 100, 2)
         {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
         prmse = round(prmse, 2)
+        total_volume = round(total_volume, 0)
         lines = lines + {
           class_name + "," + area + "," + String(n) + "," + String(total_count) + "," +
           String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
@@ -2613,6 +2630,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
           pct_diff = round((total_volume - total_count) / total_count * 100, 2)
           {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
           prmse = round(prmse, 2)
+          total_volume = round(total_volume, 0)
           lines = lines + {
             class_name + "," + area + "," + med + "," + String(n) + "," + String(total_count) + "," +
             String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
@@ -2643,6 +2661,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     if i = volume_breaks.length
       then label = String(low_vol) + "+"
       else label = String(high_vol)
@@ -2672,6 +2691,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     lines = lines + {
       String(screenline) + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)
