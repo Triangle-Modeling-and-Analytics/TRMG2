@@ -36,22 +36,36 @@ the project attributes.
 Macro "Roadway Project Management" (MacroOpts)
 
   hwy_dbd = MacroOpts.hwy_dbd
-  proj_list = MacroOpts.proj_list
+  proj_list_CAMPO = MacroOpts.proj_list_CAMPO
+  proj_list_DCHC = MacroOpts.proj_list_DCHC
   master_dbd = MacroOpts.master_dbd
 
   // Argument check
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
-  if proj_list = null then Throw("'proj_list' not provided")
+  if proj_list_CAMPO = null then Throw("'proj_list_CAMPO' not provided")
+  if proj_list_DCHC = null then Throw("'proj_list_DCHC' not provided")
   if master_dbd = null then Throw("'master_dbd' not provided")
 
+  // Combine two project lists into one
+  {drive, path, name, ext} = SplitPath(proj_list_CAMPO)
+  output_proj_list = drive + path + "RoadwayProjectList.csv"
+
+  df = CreateObject("df", proj_list_CAMPO)
+  output = df.copy()
+  df = CreateObject("df", proj_list_DCHC)
+  if df.tbl.length >0 then output.bind_rows(df)
+  if output.tbl.length >0 then output.write_csv(output_proj_list)
+      else CopyFile(proj_list_CAMPO, output_proj_list)
+  
   // Get vector of project IDs from the project list file
   // gplyr's read functions won't work here until it can handle empty files.
-  csv_tbl = OpenTable("tbl", "CSV", {proj_list, })
+  csv_tbl = OpenTable("tbl", "CSV", {output_proj_list, })
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
   CloseView(csv_tbl)
-  DeleteFile(Substitute(proj_list, ".csv", ".DCC", ))
   // Return if no projects in the project list
   if TypeOf(v_projIDs) = "null" then return()
+  DeleteFile(Substitute(output_proj_list, ".csv", ".DCC", ))
+
 
   // Open the roadway dbd
   {nlyr, llyr} = GetDBLayers(hwy_dbd)
@@ -76,7 +90,7 @@ Macro "Roadway Project Management" (MacroOpts)
   attrList = attrList + {"position"}
 
   // Add fields that tell project positions in the project list
-  RunMacro("Add Project Position", llyr, proj_list, projGroups)
+  RunMacro("Add Project Position", llyr, output_proj_list, projGroups)
 
   // Build a named array of vectors to work with
   for p in {""} + projGroups do
