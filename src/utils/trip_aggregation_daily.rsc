@@ -52,6 +52,11 @@ Macro "Create matrix" (Args)
         daily_mtx = CreateObject("Matrix", out_file_daily)
         core_names = daily_mtx.GetCoreNames()
 
+        for core_name in core_names do
+            daily_mtx.(core_name) := 0 //reset everything to 0
+        end 
+        
+        
         for period in periods do        
             if market = "university" then
                 mtx_file = dir + "\\" + market + "_trips_" + period + ".mtx"
