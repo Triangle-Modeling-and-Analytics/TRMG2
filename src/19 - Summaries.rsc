@@ -1056,7 +1056,7 @@ Macro "Summarize NM" (Args, trip_types)
   nm_file = nm_dir + "/_agg_nm_trips_daily.bin"
   nm_vw = OpenTable("nm", "FFB", {nm_file})
 
-  summary_file = out_dir + "/_summaries/nm_summary.csv"
+  summary_file = out_dir + "/_summaries/resident_hb/hb_nm_summary.csv"
   f = OpenFile(summary_file, "w")
   WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
@@ -2130,7 +2130,7 @@ Macro "Summarize NM Disadvantage Community" (Args)
   for dc in dc_types do
 	dc_field_name = dc + "_dc"
 
-	summary_file = out_dir + "/_summaries/equity/mode_shares/nm_summary_" + dc + ".csv"
+	summary_file = out_dir + "/_summaries/equity/mode_shares/hb_nm_summary_" + dc + ".csv"
 	f = OpenFile(summary_file, "w")
 	WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
@@ -2310,7 +2310,7 @@ Macro "Validation Reports" (Args)
 
   // 1. NM trips
   obs_data = obs_dir + "/nm_calibration_targets.csv"
-  est_data = summary_dir + "/nm_summary.csv"
+  est_data = summary_dir + "/resident_hb/hb_nm_summary.csv"
   
   est_tbl = CreateObject("Table", est_data)
 
