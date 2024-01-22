@@ -62,8 +62,6 @@ Macro "Roadway Project Management" (MacroOpts)
   csv_tbl = OpenTable("tbl", "CSV", {output_proj_list, })
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
   CloseView(csv_tbl)
-  // Return if no projects in the project list
-  if TypeOf(v_projIDs) = "null" then return()
   DeleteFile(Substitute(output_proj_list, ".csv", ".DCC", ))
 
 
@@ -89,53 +87,56 @@ Macro "Roadway Project Management" (MacroOpts)
   // be created an tracked in this macro.
   attrList = attrList + {"position"}
 
-  // Add fields that tell project positions in the project list
-  RunMacro("Add Project Position", llyr, output_proj_list, projGroups)
+  // If there are projects in the project list, then update the base attributes
+  if TypeOf(v_projIDs) <> "null" then do
+    // Add fields that tell project positions in the project list
+    RunMacro("Add Project Position", llyr, output_proj_list, projGroups)
 
-  // Build a named array of vectors to work with
-  for p in {""} + projGroups do
-    temp = V2A(p + A2V(attrList))
-    fields = fields + temp
-  end
-  // Exclude 'position', which won't exist on the link layer
-  pos = fields.position("position")
-  fields = ExcludeArrayElements(fields, pos, 1)
-  data = GetDataVectors(llyr + "|", fields, {OptArray: "True"})
-
-  // Loop over each project group and overwrite the lower group attributes
-  // with higher only if the higher group's project position is higher.
-  // At the end of this loop, the p1 vectors will reflect all project attributes
-  // that need to go into the base fields.
-  for p = projGroups.length to 2 step -1 do
-    pgroup = projGroups[p]
-    pgroup2 = projGroups[p - 1]
-
-    pos = nz(data.(pgroup + "position"))
-    pos2 = nz(data.(pgroup2 + "position"))
-
-    // Loop over each project attribute
-    for a = 1 to attrList.length do
-      attr = attrList[a]
-
-      data.(pgroup2 + attr) = if (pos > pos2) then data.(pgroup + attr) else data.(pgroup2 + attr)
+    // Build a named array of vectors to work with
+    for p in {""} + projGroups do
+      temp = V2A(p + A2V(attrList))
+      fields = fields + temp
     end
-  end
+    // Exclude 'position', which won't exist on the link layer
+    pos = fields.position("position")
+    fields = ExcludeArrayElements(fields, pos, 1)
+    data = GetDataVectors(llyr + "|", fields, {OptArray: "True"})
 
-  // Update base attributes with p1 attributes where p1position is not null
-  for attr in attrList do
-    if attr = "position" then continue
-    if attr = "ID" then continue
-    final.(attr) = if data.p1position <> null then data.("p1" + attr) else data.(attr)
+    // Loop over each project group and overwrite the lower group attributes
+    // with higher only if the higher group's project position is higher.
+    // At the end of this loop, the p1 vectors will reflect all project attributes
+    // that need to go into the base fields.
+    for p = projGroups.length to 2 step -1 do
+      pgroup = projGroups[p]
+      pgroup2 = projGroups[p - 1]
+
+      pos = nz(data.(pgroup + "position"))
+      pos2 = nz(data.(pgroup2 + "position"))
+
+      // Loop over each project attribute
+      for a = 1 to attrList.length do
+        attr = attrList[a]
+
+        data.(pgroup2 + attr) = if (pos > pos2) then data.(pgroup + attr) else data.(pgroup2 + attr)
+      end
+    end
+
+    // Update base attributes with p1 attributes where p1position is not null
+    for attr in attrList do
+      if attr = "position" then continue
+      if attr = "ID" then continue
+      final.(attr) = if data.p1position <> null then data.("p1" + attr) else data.(attr)
+    end
+    SetDataVectors(llyr + "|", final, )
+    tbl = CreateObject("Table", llyr)
+    tbl.AddField({
+      FieldName: "UpdatedWithP", Type: "String",
+      Description: "Project ID that updated the base attributes"
+    })
+    v = if data.p1position <> null then data.p1ID else null
+    tbl.UpdatedWithP = v
+    tbl = null
   end
-  SetDataVectors(llyr + "|", final, )
-  tbl = CreateObject("Table", llyr)
-  tbl.AddField({
-    FieldName: "UpdatedWithP", Type: "String",
-    Description: "Project ID that updated the base attributes"
-  })
-  v = if data.p1position <> null then data.p1ID else null
-  tbl.UpdatedWithP = v
-  tbl = null
 
   // Delete links with -99 in any project-related attribute.
   // DeleteRecordsInSet() and DeleteLink() are both slow.
