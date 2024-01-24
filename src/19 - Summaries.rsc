@@ -2221,7 +2221,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
-  periods = RunMacro("Get Unconverged Periods", Args)
+  periods = Args.periods
   orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
 
   // Loop through transit assn bin files
