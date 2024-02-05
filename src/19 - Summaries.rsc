@@ -24,7 +24,7 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-    
+/*    
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -42,7 +42,7 @@ Macro "Other Reports" (Args)
     RunMacro("Disadvantage Community Mapping", Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
     RunMacro("Summarize HH Strata", Args)
-    RunMacro("Aggregate Transit Flow by Route", Args)
+    RunMacro("Aggregate Transit Flow by Route", Args)*/
     RunMacro("Validation Reports", Args)
     return(1)
 endmacro
@@ -2316,7 +2316,6 @@ Macro "Validation Reports" (Args)
   est_tbl = CreateObject("Table", est_data)
 
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
 
 	join = obs_tbl.Join({
 		Table: est_tbl,
@@ -2329,9 +2328,8 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_nm_share", Type: "string"})
   join.AddField({FieldName: "pcfdiff_nm_share", Type: "string"})
   v1 = join.nm_share/100
+  v2 = (v1 - join.obs_nm_share)/join.obs_nm_share*100
   join.est_nm_share = Format(v1, "*.000")
-  v2 = (join.nm_share - join.obs_nm_share)/join.obs_nm_share
-  //v = if v = null then 0 else v
   join.pcfdiff_nm_share = Format(v2, "*.00")
   join.DropFields({FieldNames:{"trip_type:1", "moto_total", "moto_share", "nm_total", "nm_share"}})
 
@@ -2371,7 +2369,7 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/ao.bin"})
 
   join = CreateObject("Table", validation_dir + "/ao.bin")
-	v = (join.est_share_temp - join.obs_share)/join.obs_share
+	v = (join.est_share_temp - join.obs_share)/join.obs_share*100
   join.pcfdiff_share = Format(v, "*.00")
   join.est_share = Format(join.est_share_temp, ",*.00")
   join.DropFields({FieldNames:{"sum_WEIGHT", "est_share_temp"}})
@@ -2400,7 +2398,7 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_avg_length_mi", Type: "string"})
   join.est_avg_length_mi = Format(join.avg_length_mi, "*.00")
   join.AddField({FieldName: "pcfdiff_length_mi", Type: "string"})
-  v = (join.avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi
+  v = (join.avg_length_mi - join.obs_avg_length_mi)/join.obs_avg_length_mi*100
   join.pcfdiff_length_mi = Format(v, "*.00")
   join.DropFields({FieldNames: {"core",	"Sum",	"SumDiag",	"PctDiag", "avg_length_mi", "avg_time_min", "matrix:1",	"core:1",	"Sum:1",	"SumDiag:1",	"PctDiag:1", "avg_time_min:1"}})
   join.Export({FileName: validation_dir + "/destinationchoice.csv"})
@@ -2428,7 +2426,7 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_share", Type: "real"})
   join.est_share = join.pct/100
   join.AddField({FieldName: "pcfdiff_share", Type: "string"})
-  v = (join.est_share - join.obs_share)/join.obs_share
+  v = (join.est_share - join.obs_share)/join.obs_share*100
   join.pcfdiff_share = Format(v, "*.00")
   join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total", "pct"}})
   join.Export({FileName: validation_dir + "/modechoice.csv"})
@@ -2459,7 +2457,7 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_ridership", Type: "string"})
   join.est_ridership = Format(join.est_ridership_temp, "*,.")
   join.AddField({FieldName: "pcfdiff_ridership", Type: "string"})
-  v = (join.est_ridership_temp - join.obs_ridership_temp)/join.obs_ridership_temp
+  v = (join.est_ridership_temp - join.obs_ridership_temp)/join.obs_ridership_temp*100
   join.pcfdiff_ridership = Format(v, "*.00")
   join.DropFields({FieldNames: {"obs_ridership_temp", "agency:1", "est_ridership_temp","Off",	"DriveAccessOn",	"WalkAccessOn",	"DirectTransferOn",	"WalkTransferOn",	"DirectTransferOff",	"WalkTransferOff",	"EgressOff"}})
   join.Export({FileName: validation_dir + "/transitassignment.csv"})
