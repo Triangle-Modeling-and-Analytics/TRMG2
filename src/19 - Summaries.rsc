@@ -2416,7 +2416,6 @@ Macro "Validation Reports" (Args)
   obs_tbl = CreateObject("Table", obs_data)
 
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "pct", NewName: "est_share"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2426,10 +2425,12 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/modechoice.bin"})
 
   join = CreateObject("Table", validation_dir + "/modechoice.bin")
+  join.AddField({FieldName: "est_share", Type: "real"})
+  join.est_share = join.pct/100
   join.AddField({FieldName: "pcfdiff_share", Type: "string"})
   v = (join.est_share - join.obs_share)/join.obs_share
   join.pcfdiff_share = Format(v, "*.00")
-  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total"}})
+  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total", "pct"}})
   join.Export({FileName: validation_dir + "/modechoice.csv"})
   join = null
 
