@@ -2314,9 +2314,7 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/resident_hb/hb_nm_summary.csv"
   
   est_tbl = CreateObject("Table", est_data)
-
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
 
 	join = obs_tbl.Join({
 		Table: est_tbl,
@@ -2329,9 +2327,8 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_nm_share", Type: "string"})
   join.AddField({FieldName: "pcfdiff_nm_share", Type: "string"})
   v1 = join.nm_share/100
+  v2 = (v1 - join.obs_nm_share)/join.obs_nm_share
   join.est_nm_share = Format(v1, "*.000")
-  v2 = (join.nm_share - join.obs_nm_share)/join.obs_nm_share
-  //v = if v = null then 0 else v
   join.pcfdiff_nm_share = Format(v2, "*.00")
   join.DropFields({FieldNames:{"trip_type:1", "moto_total", "moto_share", "nm_total", "nm_share"}})
 
