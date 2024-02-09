@@ -70,6 +70,17 @@ w_lr,w_lr_skim.[Access Walk Time],,-0.1461,Access walk time
 w_lr,w_lr_skim.[Initial Wait Time],,-0.123,Initial wait time
 w_lr,w_lr_skim.[Egress Walk Time],,-0.1972,Egress walk time
 w_lr,w_lr_skim.[Number of Transfers] > 2,,-1.4619,High transfers
+w_cr,Constant,,8.507,Constant
+w_cr,Constant,v0,3.789,Zero-vehicle households
+w_cr,Constant,vi,3.789,Vehicle insufficient households
+w_cr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+w_cr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+w_cr,w_eb_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+w_cr,w_eb_skim.Fare,,-0.232,Fare
+w_cr,w_eb_skim.[Access Walk Time],,-0.1461,Access walk time
+w_cr,w_eb_skim.[Initial Wait Time],,-0.123,Initial wait time
+w_cr,w_eb_skim.[Egress Walk Time],,-0.1972,Egress walk time
+w_cr,w_eb_skim.[Number of Transfers] > 1,,-1.4619,High transfers
 auto_pay,Constant,v0,0.92578,Additional Calibration Constant
 other_auto,Constant,v0,1.77795,Additional Calibration Constant
 sov,Constant,vi,6.200475,Additional Calibration Constant
