@@ -1787,11 +1787,13 @@ Macro "Equity" (Args)
 	se_file = Args.SE
 	pov_file = Args.[Input Folder] + "/sedata/poverty_thresholds.csv"
 
-	// Identify which households are zero vehicle and senior
+	// Identify which households are zero vehicle, insufficient, and senior
 	tbl = CreateObject("Table", hh_file)
 	tbl.AddField("v0")
+  tbl.AddField("vi")
 	tbl.AddField("has_seniors")
 	tbl.v0 = if tbl.market_segment = "v0" then 1 else 0
+  tbl.vi = if Position(tbl.market_segment, "vi") <> 0 then 1 else 0
 	tbl.has_seniors = if tbl.HHSeniors > 0 then 1 else 0
 	
 	// Identify which households are below poverty thresholds
@@ -1817,6 +1819,7 @@ Macro "Equity" (Args)
 		GroupBy: "ZoneID",
 		FieldStats: {
 			v0: {"count", "sum"},
+      vi: {"count", "sum"},
 			has_seniors: {"count", "sum"},
 			poverty: {"count", "sum"}
 		}
@@ -1830,6 +1833,13 @@ Macro "Equity" (Args)
 	cutoff = Percentile(V2A(v_pct), 75)
 	agg.AddField("ZeroCar_dc")
 	agg.ZeroCar_dc = if agg.v0_pct > cutoff then 1 else 0
+	// vi CoC
+	agg.AddField("vi_pct")
+	v_pct = agg.sum_vi / agg.count_vi * 100
+	agg.vi_pct = v_pct
+	cutoff = Percentile(V2A(v_pct), 75)
+	agg.AddField("VehInsuff_dc")
+	agg.VehInsuff_dc = if agg.v0_pct > cutoff then 1 else 0
 	// senior CoC
 	agg.AddField("senior_pct")
 	v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
@@ -1854,6 +1864,8 @@ Macro "Equity" (Args)
 		Fields: {
 			{FieldName: "v0_pct", Description: "Percent of households that are zero-vehicle"},
 			{FieldName: "ZeroCar_dc", Description: "TAZ designated as a disadvantage community due to % of v0"},
+      {FieldName: "vi_pct", Description: "Percent of households that are vehicle insufficient"},
+			{FieldName: "VehInsuff_dc", Description: "TAZ designated as a disadvantage community due to % of vi"},
 			{FieldName: "senior_pct", Description: "Percent of households that have seniors"},
 			{FieldName: "Senior_dc", Description: "TAZ designated as a disadvantage community due to % of HHs with seniors"},
 			{FieldName: "poverty_pct", Description: "Percent of households that are below the poverty threshold"},
@@ -1872,6 +1884,8 @@ Macro "Equity" (Args)
 	})
 	join.(se_specs.v0_pct) = nz(join.(agg_specs.v0_pct))
 	join.(se_specs.ZeroCar_dc) = nz(join.(agg_specs.ZeroCar_dc))
+  join.(se_specs.vi_pct) = nz(join.(agg_specs.vi_pct))
+	join.(se_specs.VehInsuff_dc) = nz(join.(agg_specs.VehInsuff_dc))
 	join.(se_specs.senior_pct) = nz(join.(agg_specs.senior_pct))
 	join.(se_specs.Senior_dc) = nz(join.(agg_specs.Senior_dc))
 	join.(se_specs.poverty_pct) = nz(join.(agg_specs.poverty_pct))
@@ -1957,8 +1971,8 @@ Macro "Disadvantage Community Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"v0_pct", "senior_pct", "poverty_pct"}
-	names = {"ZeroCar", "Senior", "Poverty"}
+	weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+	names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	for i = 1 to weight_fields.length do
     weight_field = weight_fields[i]
     name = names[i]
@@ -2064,7 +2078,7 @@ Macro "Disadvantage Community Mapping" (Args)
     }
   }
 
-	a_dc = {"ZeroCar", "Senior", "Poverty"}
+	a_dc = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
 	for dc in a_dc do
 		for suffix in suffixes do
@@ -2106,7 +2120,7 @@ Macro "Disadvantage Community Mode Shares" (Args)
 
 	se = CreateObject("Table", se_file)
 
-	types = {"ZeroCar", "Senior", "Poverty"}
+	types = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
 	for type in types do
