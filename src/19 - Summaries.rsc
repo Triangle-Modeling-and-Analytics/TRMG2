@@ -25,23 +25,22 @@ endmacro
 
 Macro "Other Reports" (Args)
     
-    // RunMacro("Summarize HB DC and MC", Args)
-    // RunMacro("Summarize NHB DC and MC", Args)
-    // RunMacro("Summarize NM", Args)
-    // RunMacro("Summarize Total Mode Shares", Args)
-    // RunMacro("Summarize Links", Args)
-    // RunMacro("Congested VMT", Args)
-    // RunMacro("Summarize Parking", Args)
-    // RunMacro("Transit Summary", Args)
-    // RunMacro("VMT_Delay Summary", Args)
-    // RunMacro("Congestion Cost Summary", Args)
-    // RunMacro("Create PA Vehicle Trip Matrices", Args)
+    RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
+    RunMacro("Summarize NM", Args)
+    RunMacro("Summarize Total Mode Shares", Args)
+    RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
+    RunMacro("Summarize Parking", Args)
+    RunMacro("Transit Summary", Args)
+    RunMacro("VMT_Delay Summary", Args)
+    RunMacro("Congestion Cost Summary", Args)
+    RunMacro("Create PA Vehicle Trip Matrices", Args)
     RunMacro("Equity", Args)
     RunMacro("Disadvantage Community Skims", Args)
     RunMacro("Disadvantage Community Mode Shares", Args)
     RunMacro("Disadvantage Community Mapping", Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
-    Throw()
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
     RunMacro("Validation Reports", Args)
@@ -1958,35 +1957,32 @@ Macro "Disadvantage Community Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	// weight_fields = {"ZeroCar_dc", "Senior_dc", "Poverty_dc"}
 	weight_fields = {"v0_pct", "senior_pct", "poverty_pct"}
-	for weight_field in weight_fields do
+	names = {"ZeroCar", "Senior", "Poverty"}
+	for i = 1 to weight_fields.length do
+    weight_field = weight_fields[i]
+    name = names[i]
+  
 		// Set weight field
 		v = se.(weight_field)
 		v.rowbased = "false"
 		mtx.AddCores({weight_field})
 		mtx.(weight_field) := v
 
-    // Calculate times for just CoC. This can be used to get the average travel times between zones
-    // using matrix statistics.
-    mtx.AddCores({weight_field + "_CongTime", weight_field + "_TransitTime"})
-    mtx.(weight_field + "_CongTime") := mtx.CongTime * mtx.(weight_field)
-    mtx.(weight_field + "_TransitTime") := mtx.TransitTime * mtx.(weight_field)
-
 		// Calculate hours of travel
-		mtx.AddCores({"HBW_" + weight_field + "_HoT", "All_" + weight_field + "_HoT"})
-		mtx.("HBW_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.HBW_Trips / 60
-		mtx.("All_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.All_Trips / 60
+		mtx.AddCores({name + "_HBW_HoT", name + "_All_HoT"})
+		mtx.(name + "_HBW_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
+		mtx.(name + "_All_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
 
 		// Calculate delay
-		mtx.AddCores({"HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
-		mtx.("HBW_" + weight_field + "_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.HBW_Trips / 60
-		mtx.("All_" + weight_field + "_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.All_Trips / 60
+		mtx.AddCores({name + "_HBW_Delay", name + "_All_Delay"})
+		mtx.(name + "_HBW_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
+		mtx.(name + "_All_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
 
 		// Calculate congested VMT
-		mtx.AddCores({"HBW_" + weight_field + "_CongVMT", "All_" + weight_field + "_CongVMT"})
-		mtx.("HBW_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
-		mtx.("All_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.All_Trips
+		mtx.AddCores({name + "_HBW_CongVMT", name + "_All_CongVMT"})
+		mtx.(name + "_HBW_CongVMT") := mtx.("CongLength (Skim)") * (mtx.(weight_field) / 100) * mtx.HBW_Trips
+		mtx.(name + "_All_CongVMT") := mtx.("CongLength (Skim)") * (mtx.(weight_field) / 100) * mtx.All_Trips
 
 		// Jobs within X minutes (auto, transit, and walk). Also fill the SE table with the row sums for mapping.
 		time_budget = 30
@@ -2001,14 +1997,14 @@ Macro "Disadvantage Community Skims" (Args)
       out_core_suffix = data.OutCoreSuffix
       desc_suffix = data.DescSuffix
 
-      out_core = weight_field + "_Jobs_" + out_core_suffix
+      out_core = name + "_Jobs_" + out_core_suffix
       mtx.AddCores({out_core})
-      mtx.(out_core) := if mtx.(time_core) <= time_budget and mtx.(time_core) <> null then mtx.Employment * mtx.(weight_field)
+      mtx.(out_core) := if mtx.(time_core) <= time_budget and mtx.(time_core) <> null then mtx.Employment //* mtx.(weight_field)
       mtx.(out_core) := if mtx.(out_core) = 0 then null else mtx.(out_core)
       v_jobs = mtx.GetVector({Core: out_core, Marginal: "Row Sum"})
       v_jobs.rowbased = "true"
       se.AddField({FieldName: out_core, Description: "Jobs within " + String(time_budget) + " minutes via " + desc_suffix})
-		  se.(out_core) = if se.(weight_field) = 0 then null else v_jobs
+		  se.(out_core) = if se.(name + "_dc") = 0 then null else v_jobs
     end
 	end
 endmacro
@@ -2072,7 +2068,7 @@ Macro "Disadvantage Community Mapping" (Args)
 	suffixes = {"auto", "walk", "transit", "nonauto"}
 	for dc in a_dc do
 		for suffix in suffixes do
-			field = dc + "_dc_Jobs_" + suffix
+			field = dc + "_Jobs_" + suffix
       values = if suffix = "nonauto" then breaks.transit else breaks.(suffix)
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
