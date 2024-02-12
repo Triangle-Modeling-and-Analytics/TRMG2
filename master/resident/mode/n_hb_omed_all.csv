@@ -75,12 +75,78 @@ w_cr,Constant,v0,3.789,Zero-vehicle households
 w_cr,Constant,vi,3.789,Vehicle insufficient households
 w_cr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
 w_cr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
-w_cr,w_eb_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
-w_cr,w_eb_skim.Fare,,-0.232,Fare
-w_cr,w_eb_skim.[Access Walk Time],,-0.1461,Access walk time
-w_cr,w_eb_skim.[Initial Wait Time],,-0.123,Initial wait time
-w_cr,w_eb_skim.[Egress Walk Time],,-0.1972,Egress walk time
-w_cr,w_eb_skim.[Number of Transfers] > 1,,-1.4619,High transfers
+w_cr,w_cr_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+w_cr,w_cr_skim.Fare,,-0.232,Fare
+w_cr,w_cr_skim.[Access Walk Time],,-0.1461,Access walk time
+w_cr,w_cr_skim.[Initial Wait Time],,-0.123,Initial wait time
+w_cr,w_cr_skim.[Egress Walk Time],,-0.1972,Egress walk time
+w_cr,w_cr_skim.[Number of Transfers] > 1,,-1.4619,High transfers
+knr_brt,Constant,,9.577,Constant
+knr_brt,Constant,v0,3.789,Zero-vehicle households
+knr_brt,Constant,vi,3.789,Vehicle insufficient households
+knr_brt,Constant,vi,0.173,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+knr_brt,Constant,vs,0.259,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+knr_brt,knr_brt_skim.[In-Vehicle Time] *.95,,-0.046,IVTT (discounted)
+knr_brt,knr_brt_skim.Fare,,-0.232,Fare
+knr_brt,knr_brt_skim.[Access Walk Time] + knr_brt_skim.[Access Drive Time],,-0.1461,Access time
+knr_brt,knr_brt_skim.[Initial Wait Time],,-0.123,Initial wait time
+knr_brt,knr_brt_skim.[Egress Walk Time],,-0.1972,Egress walk time
+knr_brt,knr_brt_skim.[Number of Transfers] > 2,,-1.4619,High transfers
+knr_lr,Constant,,9.577,Constant
+knr_lr,Constant,v0,3.789,Zero-vehicle households
+knr_lr,Constant,vi,3.789,Vehicle insufficient households
+knr_lr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+knr_lr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+knr_lr,knr_lr_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+knr_lr,knr_lr_skim.Fare,,-0.232,Fare
+knr_lr,knr_lr_skim.[Access Walk Time] + knr_lr_skim.[Access Drive Time],,-0.1461,Access time
+knr_lr,knr_lr_skim.[Initial Wait Time],,-0.123,Initial wait time
+knr_lr,knr_lr_skim.[Egress Walk Time],,-0.1972,Egress walk time
+knr_lr,knr_lr_skim.[Number of Transfers] > 2,,-1.4619,High transfers
+knr_cr,Constant,,8.507,Constant
+knr_cr,Constant,v0,3.789,Zero-vehicle households
+knr_cr,Constant,vi,3.789,Vehicle insufficient households
+knr_cr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+knr_cr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+knr_cr,knr_cr_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+knr_cr,knr_cr_skim.Fare,,-0.232,Fare
+knr_cr,knr_cr_skim.[Access Walk Time] + knr_cr_skim.[Access Drive Time],,-0.1461,Access time
+knr_cr,knr_cr_skim.[Initial Wait Time],,-0.123,Initial wait time
+knr_cr,knr_cr_skim.[Egress Walk Time],,-0.1972,Egress walk time
+knr_cr,knr_cr_skim.[Number of Transfers] > 1,,-1.4619,High transfers
+pnr_brt,Constant,,9.577,Constant
+pnr_brt,Constant,v0,3.789,Zero-vehicle households
+pnr_brt,Constant,vi,3.789,Vehicle insufficient households
+pnr_brt,Constant,vi,0.173,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
+pnr_brt,Constant,vs,0.259,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
+pnr_brt,pnr_brt_skim.[In-Vehicle Time] *.95,,-0.046,IVTT (discounted)
+pnr_brt,pnr_brt_skim.Fare,,-0.232,Fare
+pnr_brt,pnr_brt_skim.[Access Walk Time] + pnr_brt_skim.[Access Drive Time],,-0.1461,Access time
+pnr_brt,pnr_brt_skim.[Initial Wait Time],,-0.123,Initial wait time
+pnr_brt,pnr_brt_skim.[Egress Walk Time],,-0.1972,Egress walk time
+pnr_brt,pnr_brt_skim.[Number of Transfers] > 2,,-1.4619,High transfers
+pnr_lr,Constant,,9.577,Constant
+pnr_lr,Constant,v0,3.789,Zero-vehicle households
+pnr_lr,Constant,vi,3.789,Vehicle insufficient households
+pnr_lr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+pnr_lr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+pnr_lr,pnr_lr_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+pnr_lr,pnr_lr_skim.Fare,,-0.232,Fare
+pnr_lr,pnr_lr_skim.[Access Walk Time] + pnr_lr_skim.[Access Drive Time],,-0.1461,Access time
+pnr_lr,pnr_lr_skim.[Initial Wait Time],,-0.123,Initial wait time
+pnr_lr,pnr_lr_skim.[Egress Walk Time],,-0.1972,Egress walk time
+pnr_lr,pnr_lr_skim.[Number of Transfers] > 2,,-1.4619,High transfers
+pnr_cr,Constant,,8.507,Constant
+pnr_cr,Constant,v0,3.789,Zero-vehicle households
+pnr_cr,Constant,vi,3.789,Vehicle insufficient households
+pnr_cr,Constant,vi,0.345,Path type constant = -.5 (visibility) * 15 (mins) * IVTTcoef
+pnr_cr,Constant,vs,0.518,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
+pnr_cr,pnr_cr_skim.[In-Vehicle Time] * .9,,-0.046,IVTT (discounted)
+pnr_cr,pnr_cr_skim.Fare,,-0.232,Fare
+pnr_cr,pnr_cr_skim.[Access Walk Time] + pnr_cr_skim.[Access Drive Time],,-0.1461,Access time
+pnr_cr,pnr_cr_skim.[Initial Wait Time],,-0.123,Initial wait time
+pnr_cr,pnr_cr_skim.[Egress Walk Time],,-0.1972,Egress walk time
+pnr_cr,pnr_cr_skim.[Number of Transfers] > 1,,-1.4619,High transfers
 auto_pay,Constant,v0,0.92578,Additional Calibration Constant
 other_auto,Constant,v0,1.77795,Additional Calibration Constant
 sov,Constant,vi,6.200475,Additional Calibration Constant
