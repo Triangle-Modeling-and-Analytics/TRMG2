@@ -1957,7 +1957,8 @@ Macro "Disadvantage Community Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"ZeroCar_dc", "Senior_dc", "Poverty_dc"}
+	// weight_fields = {"ZeroCar_dc", "Senior_dc", "Poverty_dc"}
+	weight_fields = {"v0_pct", "senior_pct", "poverty_pct"}
 	for weight_field in weight_fields do
 		// Set weight field
 		v = se.(weight_field)
@@ -2032,16 +2033,54 @@ Macro "Disadvantage Community Mapping" (Args)
 		RightFields: "TAZ"
 	})
 
+  // Used fixed scales for the maps depending on mode
+  breaks = {
+    auto: {
+      {0, "true", 140000, "false"},
+			{140000, "true", 330000, "false"},
+			{330000, "true", 460000, "false"},
+			{460000, "true", 570000, "false"},
+			{570000, "true", 700000, "false"},
+			{700000, "true", 800000, "false"},
+			{800000, "true", 900000, "false"},
+			{900000, "true", 2000000, "false"}
+    }.
+    transit: {
+      {0, "true", 3000, "false"},
+			{3000, "true", 10000, "false"},
+			{10000, "true", 17000, "false"},
+			{17000, "true", 25000, "false"},
+			{25000, "true", 34000, "false"},
+			{34000, "true", 43000, "false"},
+			{43000, "true", 54000, "false"},
+			{54000, "true", 2000000, "false"}
+    },
+    walk: {
+      {0, "true", 2000, "false"},
+			{2000, "true", 5000, "false"},
+			{5000, "true", 10000, "false"},
+			{10000, "true", 18000, "false"},
+			{18000, "true", 25000, "false"},
+			{25000, "true", 34000, "false"},
+			{34000, "true", 44000, "false"},
+			{44000, "true", 2000000, "false"}
+    }
+  }
+
 	a_dc = {"ZeroCar", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
 	for dc in a_dc do
 		for suffix in suffixes do
 			field = dc + "_dc_Jobs_" + suffix
+      values = if suffix = "nonauto" then breaks.transit else breaks.(suffix)
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
 			map.ColorTheme({
 				ThemeName: themename,
 				FieldName: field,
+        Method: "manual",
+        NumClasses: ArrayLength(values),
+        Options: {Values: values},
 				Colors: {
 					StartColor: ColorRGB(65535, 65535, 54248),
 					EndColor: ColorRGB(8738, 24158, 43176)
