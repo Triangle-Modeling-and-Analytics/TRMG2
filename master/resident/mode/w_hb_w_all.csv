@@ -100,14 +100,14 @@ w_cr,w_cr_skim.[Number of Transfers] > 2,,-0.3324,High transfers
 knr_lb,Constant,,1.044,Constant
 knr_lb,knr_lb_skim.[In-Vehicle Time],,-0.022449,IVTT
 knr_lb,knr_lb_skim.Fare,,-0.1132,Transit fare
-knr_lb,knr_lb_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_lb,knr_lb_skim.[Access Walk Time] + knr_lb_skim.[Access Drive Time],,-0.1138,Access time
 knr_lb,knr_lb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_lb,knr_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_lb,knr_lb_skim.[Egress Walk Time],,-0.051437,Egress walk time
 knr_lb,knr_lb_skim.[Number of Transfers] > 1,,-0.3324,High transfers
 knr_eb,knr_eb_skim.[In-Vehicle Time],,-0.022449,IVTT
 knr_eb,knr_eb_skim.Fare,,-0.1132,Transit fare
-knr_eb,knr_eb_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_eb,knr_eb_skim.[Access Walk Time] + knr_eb_skim.[Access Drive Time],,-0.1138,Access time
 knr_eb,knr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_eb,knr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_eb,knr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -119,7 +119,7 @@ knr_brt,Constant,ilvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins)
 knr_brt,Constant,ihvs,0.126,Path type constant = -.25 (visibility) * 22.5 (mins) * IVTTcoef
 knr_brt,knr_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
 knr_brt,knr_brt_skim.Fare,,-0.1132,Transit fare
-knr_brt,knr_brt_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_brt,knr_brt_skim.[Access Walk Time] + knr_brt_skim.[Access Drive Time],,-0.1138,Access time
 knr_brt,knr_brt_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_brt,knr_brt_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_brt,knr_brt_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -131,7 +131,7 @@ knr_lr,Constant,ilvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) *
 knr_lr,Constant,ihvs,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
 knr_lr,knr_lr_skim.[In-Vehicle Time] * .9,,-0.022449,IVTT (discounted)
 knr_lr,knr_lr_skim.Fare,,-0.1132,Transit fare
-knr_lr,knr_lr_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_lr,knr_lr_skim.[Access Walk Time] + knr_lr_skim.[Access Drive Time],,-0.1138,Access time
 knr_lr,knr_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_lr,knr_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_lr,knr_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -143,7 +143,7 @@ knr_cr,Constant,ilvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * 
 knr_cr,Constant,ihvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
 knr_cr,knr_cr_skim.[In-Vehicle Time] * .8,,-0.022449,IVTT (discounted)
 knr_cr,knr_cr_skim.Fare,,-0.1132,Transit fare
-knr_cr,knr_cr_skim.[Access Walk Time],,-0.1138,Access walk time
+knr_cr,knr_cr_skim.[Access Walk Time] + knr_cr_skim.[Access Drive Time],,-0.1138,Access time
 knr_cr,knr_cr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_cr,knr_cr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_cr,knr_cr_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -154,7 +154,7 @@ pnr_lb,Constant,ilvi,-2.037,Vehicle insufficient households
 pnr_lb,Constant,ihvi,-2.037,Vehicle insufficient households
 pnr_lb,pnr_lb_skim.[In-Vehicle Time],,-0.022449,IVTT
 pnr_lb,pnr_lb_skim.Fare,,-0.1132,Transit fare
-pnr_lb,pnr_lb_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_lb,pnr_lb_skim.[Access Walk Time] + pnr_lb_skim.[Access Drive Time],,-0.1138,Access time
 pnr_lb,pnr_lb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_lb,pnr_lb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_lb,pnr_lb_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -165,7 +165,7 @@ pnr_eb,Constant,ilvi,-2.037,Vehicle insufficient households
 pnr_eb,Constant,ihvi,-2.037,Vehicle insufficient households
 pnr_eb,pnr_eb_skim.[In-Vehicle Time],,-0.022449,IVTT
 pnr_eb,pnr_eb_skim.Fare,,-0.1132,Transit fare
-pnr_eb,pnr_eb_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_eb,pnr_eb_skim.[Access Walk Time] + pnr_eb_skim.[Access Drive Time],,-0.1138,Access time
 pnr_eb,pnr_eb_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_eb,pnr_eb_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_eb,pnr_eb_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -177,7 +177,7 @@ pnr_brt,Constant,ihvi,-2.037,Vehicle insufficient households
 pnr_brt,Constant,,0.126,Path type constant = -.25 (visibility) * 15 (mins) * IVTTcoef
 pnr_brt,pnr_brt_skim.[In-Vehicle Time] * .95,,-0.022449,IVTT (discounted)
 pnr_brt,pnr_brt_skim.Fare,,-0.1132,Transit fare
-pnr_brt,pnr_brt_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_brt,pnr_brt_skim.[Access Walk Time] + pnr_brt_skim.[Access Drive Time],,-0.1138,Access time
 pnr_brt,pnr_brt_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_brt,pnr_brt_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_brt,pnr_brt_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -189,7 +189,7 @@ pnr_lr,Constant,ihvi,-2.037,Vehicle insufficient households
 pnr_lr,Constant,,0.253,Path type constant = -.5 (visibility) * 22.5 (mins) * IVTTcoef
 pnr_lr,pnr_lr_skim.[In-Vehicle Time] * .9,,-0.022449,IVTT (discounted)
 pnr_lr,pnr_lr_skim.Fare,,-0.1132,Transit fare
-pnr_lr,pnr_lr_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_lr,pnr_lr_skim.[Access Walk Time] + pnr_lr_skim.[Access Drive Time],,-0.1138,Access time
 pnr_lr,pnr_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_lr,pnr_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_lr,pnr_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
@@ -201,7 +201,7 @@ pnr_cr,Constant,ihvi,-2.037,Vehicle insufficient households
 pnr_cr,Constant,,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
 pnr_cr,pnr_cr_skim.[In-Vehicle Time] * .8,,-0.022449,IVTT (discounted)
 pnr_cr,pnr_cr_skim.Fare,,-0.1132,Transit fare
-pnr_cr,pnr_cr_skim.[Access Walk Time],,-0.1138,Access walk time
+pnr_cr,pnr_cr_skim.[Access Walk Time] + pnr_cr_skim.[Access Drive Time],,-0.1138,Access time
 pnr_cr,pnr_cr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 pnr_cr,pnr_cr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 pnr_cr,pnr_cr_skim.[Egress Walk Time],,-0.051437,Egress walk time
