@@ -25,22 +25,23 @@ endmacro
 
 Macro "Other Reports" (Args)
     
-    RunMacro("Summarize HB DC and MC", Args)
-    RunMacro("Summarize NHB DC and MC", Args)
-    RunMacro("Summarize NM", Args)
-    RunMacro("Summarize Total Mode Shares", Args)
-    RunMacro("Summarize Links", Args)
-    RunMacro("Congested VMT", Args)
-    RunMacro("Summarize Parking", Args)
-    RunMacro("Transit Summary", Args)
-    RunMacro("VMT_Delay Summary", Args)
-    RunMacro("Congestion Cost Summary", Args)
-    RunMacro("Create PA Vehicle Trip Matrices", Args)
+    // RunMacro("Summarize HB DC and MC", Args)
+    // RunMacro("Summarize NHB DC and MC", Args)
+    // RunMacro("Summarize NM", Args)
+    // RunMacro("Summarize Total Mode Shares", Args)
+    // RunMacro("Summarize Links", Args)
+    // RunMacro("Congested VMT", Args)
+    // RunMacro("Summarize Parking", Args)
+    // RunMacro("Transit Summary", Args)
+    // RunMacro("VMT_Delay Summary", Args)
+    // RunMacro("Congestion Cost Summary", Args)
+    // RunMacro("Create PA Vehicle Trip Matrices", Args)
     RunMacro("Equity", Args)
     RunMacro("Disadvantage Community Skims", Args)
     RunMacro("Disadvantage Community Mode Shares", Args)
     RunMacro("Disadvantage Community Mapping", Args)
     RunMacro("Summarize NM Disadvantage Community", Args)
+    Throw()
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
     RunMacro("Validation Reports", Args)
@@ -2044,7 +2045,7 @@ Macro "Disadvantage Community Mapping" (Args)
 			{700000, "true", 800000, "false"},
 			{800000, "true", 900000, "false"},
 			{900000, "true", 2000000, "false"}
-    }.
+    },
     transit: {
       {0, "true", 3000, "false"},
 			{3000, "true", 10000, "false"},
