@@ -104,6 +104,9 @@ menu "TRMG2 Utilities"
     MenuItem "Performance" text: "Performance Measures"
         menu "Performance Measures"
     
+    MenuItem "TIA" text: "TIA Site Analysis"
+        menu "TIA Site Analysis"
+    
 endMenu
 
 menu "Highway Analysis"
@@ -237,6 +240,21 @@ menu "Performance Measures"
     enditem
 
 endMenu
+
+menu "TIA Site Analysis"
+    init do
+    enditem
+
+    MenuItem "Zone" text: "Zone VMT Metrics" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open TIA Zone VMT Dbox", Args)
+    enditem
+
+    MenuItem "Link" text: "Link VMT Metric"
+        menu "Link VMT Metric"
+endMenu
+
 menu "TRMG2 Calibrators"
     init do
     enditem
@@ -260,5 +278,21 @@ menu "TRMG2 Calibrators"
     enditem
 endMenu
 
+menu "Link VMT Metric"
+    init do
+    enditem
+
+    MenuItem "SL" text: "Select Link Analysis" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Select Link Dbox", Args)
+    enditem
+
+    MenuItem "LinkVMT" text: "Calculate Link VMT" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open TIA Link VMT Dbox", Args)
+    enditem
+endMenu
 
 
