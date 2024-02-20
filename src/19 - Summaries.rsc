@@ -2357,8 +2357,6 @@ Macro "Validation Reports" (Args)
   agg_est_tbl.est_share_temp = v_est_share
   
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
-  obs_tbl.RenameField({FieldName: "pct", NewName: "obs_share"})
   
   join = obs_tbl.Join({
 		Table: agg_est_tbl,
@@ -2383,7 +2381,6 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/resident_hb/hb_trip_stats_by_type.csv"
 
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "avg_length_mi", NewName: "obs_avg_length_mi"})
   est_tbl = CreateObject("Table", est_data)
 
   join = obs_tbl.Join({
@@ -2438,10 +2435,8 @@ Macro "Validation Reports" (Args)
   obs_data = root_dir + "/other/_reportingtool/validation_obs_data/transit_ridership.csv"
   est_data = summary_dir + "/transit/boardings_and_alightings_daily_by_agency.csv"
 
-  obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
+  obs_tbl = CreateObject("Table", obs_data)  
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2451,6 +2446,8 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/transitassignment.bin"})
 
   join = CreateObject("Table", validation_dir + "/transitassignment.bin")
+  join.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
+  join.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
   join.AddField({FieldName: "obs_ridership", Type: "string"})
   join.obs_ridership = Format(join.obs_ridership_temp, "*,.")
   join.AddField({FieldName: "est_ridership", Type: "string"})
