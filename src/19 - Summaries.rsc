@@ -1234,7 +1234,8 @@ Macro "Summarize Links" (Args)
   CloseMap(map)
 
   opts.hwy_dbd = hwy_dbd
-  out_dir = Args.[Output Folder]
+  out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
+  if GetDirectoryInfo(out_dir, "All") = null then CreateDirectory(out_dir)
   for period in periods do
     
     if period = "Daily"
@@ -1245,7 +1246,7 @@ Macro "Summarize Links" (Args)
     opts.summary_fields = {total + "_Flow_" + period, total + "_VMT_" + period, total + "_VHT_" + period, total + "_Delay_" + period}
     grouping_fields = {"AreaType", "MPO", "County"}
     for grouping_field in grouping_fields do
-      opts.output_csv = out_dir + "/_summaries/roadway_tables/Link_Summary_by_FT_and_" + grouping_field + "_" + period + ".csv"
+      opts.output_csv = out_dir + "/Link_Summary_by_FT_and_" + grouping_field + "_" + period + ".csv"
       opts.grouping_fields = {"HCMType", grouping_field}
       RunMacro("Link Summary", opts)
       // Calculate space-mean-speed
