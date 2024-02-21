@@ -1095,6 +1095,7 @@ Macro "Summarize Total Mode Shares" (Args)
   out_dir = scen_dir + "/output"
   summary_dir = out_dir + "/_summaries"
   periods = Args.periods
+  subarea = Args.subarea
 
   v_auto = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/roadway"})
   v_transit = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/transit"})
@@ -2221,7 +2222,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
-  periods = RunMacro("Get Unconverged Periods", Args)
+  periods = Args.periods
   orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
 
   // Loop through transit assn bin files

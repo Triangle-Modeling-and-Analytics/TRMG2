@@ -170,8 +170,8 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
         {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
-        {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"sov", "hov", "transit", "nm"}},
-        {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"auto", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
     }
 
@@ -179,7 +179,7 @@ Macro "Compare Summary Tables" (MacroOpts)
     if sub_poly <> null then tables_to_compare = tables_to_compare + {
         {"/output/_summaries/resident_hb/hb_trip_mode_shares_subarea_by_subarea.csv", {"trip_type", "mode"}, {"total", "pct"}},
         {"/output/_summaries/resident_hb/hb_trip_stats_by_modeperiod_subarea_by_subarea.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
-        {"/output/_summaries/overall_mode_shares_subarea_bytaz.bin", {"TAZ"}, {"sov", "hov", "transit", "nm"}},
+        {"/output/_summaries/overall_mode_shares_subarea_bytaz.bin", {"TAZ"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/hhstrata_subarea.csv", {"market_segment"}, {"count"}}
     }
 
@@ -246,13 +246,14 @@ Macro "Diff Tables" (MacroOpts)
         tbl3.(col + "_diff") = tbl3.(col + "_new") - tbl3.(col + "_ref")
     end
     tbl3.Export({FileName: out_file})
-
+    /*
     // Clean up id name columns
     tbl4 = CreateObject("Table", out_file)
     for col in id_cols do
         tbl4.RenameField({FieldName: "Table_2." + col, NewName: col})
         tbl4.DropFields("Table_3." + col)
     end
+    */
 endmacro
 
 /*
