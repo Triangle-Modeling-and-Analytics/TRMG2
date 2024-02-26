@@ -210,8 +210,7 @@ Macro "Calculate Zone VMT" (Args)
     reporting_dir = dir + "\\output\\_summaries"
     output_dir = reporting_dir + "\\Zonal_VMT_Comparison"
     RunMacro("Create Directory", output_dir)
-    
-    
+
     // 0. create output matrix
     out_file = output_dir + "\\Zone_VMT.mtx"
     autotrip = autotrip_dir + "\\pa_veh_trips_AM.mtx"
@@ -264,6 +263,32 @@ Macro "Calculate Zone VMT" (Args)
     v_hbvmt.rowbased = "true"
     data.(field_name) = nz(v_hbvmt)
 
+    // 2. Calculate total VMT per service population
+    // 2.1 Calculate IEEI VMT
+    field_name = "IEEI_VMT"
+    fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
+
+    out_mtx.AddCores({"IEEI_VMT"})
+    out_core = out_mtx.GetCore("IEEI_VMT")
+
+    IEEI_dir = dir + "\\output\\external"
+    IEEI_trip = IEEI_dir + "\\ie_od_trips.mtx"
+    trip_mtx = CreateObject("Matrix", IEEI_trip)
+    trip_cores = trip_mtx.GetCores()
+    core_names = trip_mtx.GetCoreNames()
+      
+    skim_file = skim_dir + "\\accessibility_sov_AM.mtx"
+    skim_mtx = CreateObject("Matrix", skim_file)
+    skim_core = skim_sov_mtx.GetCore("Length (Skim)")
+
+    for core_name in core_names do
+        out_core := nz(out_core) + nz(skim_core) * nz(trip_cores.(core_name))
+    end
+
+    v_ieeivmt = out_mtx.GetVector({"Core": "IEEI_VMT", Marginal: "Row Sum"})
+    v_ieeivmt.rowbased = "true"
+    data.(field_name) = nz(v_ieeivmt)
+
     // 2.2 Calculate University VMT
     field_name = "University_VMT"
     fields_to_add = fields_to_add + {{field_name, "Real", 10, 2,,,, desc}}
@@ -313,6 +338,8 @@ Macro "Calculate Zone VMT" (Args)
         skim_hov_core = skim_hov_mtx.GetCore("Length (Skim)")
 
         out_core := nz(out_core) + nz(trip_cores.("sov")) * nz(skim_sov_core) + nz(trip_cores.("hov2")) * nz(skim_hov_core) +  nz(trip_cores.("hov3")) * nz(skim_hov_core)
+        trip_mtx = null
+        trip_cores = null
     end
 
     v_hbwvmt = out_mtx.GetVector({"Core": "HBW_VMT", Marginal: "Column Sum"})
@@ -332,11 +359,22 @@ Macro "Calculate Zone VMT" (Args)
     vmt_df.mutate("Emp", vmt_df.tbl.("Industry") + vmt_df.tbl.("Retail") + vmt_df.tbl.("Service_RateHigh") + vmt_df.tbl.("Service_RateLow") + vmt_df.tbl.("Office"))
     vmt_df.mutate("Student", vmt_df.tbl.("StudGQ_NCSU") + vmt_df.tbl.("StudGQ_UNC") + vmt_df.tbl.("StudGQ_DUKE") + vmt_df.tbl.("StudGQ_NCCU"))
     vmt_df.mutate("ServicePopulation", vmt_df.tbl.("HH_POP") + vmt_df.tbl.("Emp") + vmt_df.tbl.("Student"))
-    vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.("HB_VMT") + vmt_df.tbl.("University_VMT"))/vmt_df.tbl.("ServicePopulation"))
+    vmt_df.mutate("TotalVMT_perser", (vmt_df.tbl.("HB_VMT")  + vmt_df.tbl.("IEEI_VMT") + vmt_df.tbl.("University_VMT"))/vmt_df.tbl.("ServicePopulation"))
     vmt_df.mutate("HBVMT_perres", vmt_df.tbl.("HB_VMT")/vmt_df.tbl.("HH_POP"))
     vmt_df.mutate("HBWVMT_peremp", vmt_df.tbl.("HBW_VMT")/vmt_df.tbl.("Emp"))
-    vmt_df.select({"TAZ", "HB_VMT", "University_VMT", "HBW_VMT", "HH_POP", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
+    vmt_df.rename("HH_POP", "Res")
+    vmt_df.select({"TAZ", "HB_VMT", "University_VMT", "IEEI_VMT", "HBW_VMT", "Res", "Emp", "Student", "ServicePopulation", "TotalVMT_perser", "HBVMT_perres", "HBWVMT_peremp"})
     vmt_df.write_csv(output_dir + "/Zone_VMT.csv")
+
+        // Delete interim files
+    DeleteFile(vmt_binfile)
+    DeleteFile(Substitute(vmt_binfile, ".bin", ".dcb",))
+    for tod in TOD_list do
+        // set input path
+        trip_file = output_dir + "\\pa_veh_trips_W_HB_W_All_" + tod + ".mtx"
+        DeleteFile(trip_file)
+    end
+    Return(1)  
 
     Return(1)    
 endmacro
