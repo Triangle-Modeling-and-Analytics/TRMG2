@@ -7,26 +7,11 @@ Scenario "base_2020"
     InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2020.bin"
 EndScenario
     
-Scenario "2030"
     
-    [Master SE] = "%Master Folder%\\sedata\\se_2030.bin"
-    [Scenario Folder] = "%Scenarios Folder%\\2030"
-    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2030.bin"
-EndScenario
-    
-    
-Scenario "2040"
-    
-    [Master SE] = "%Master Folder%\\sedata\\se_2040.bin"
-    [Scenario Folder] = "%Scenarios Folder%\\2040"
-    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2040.bin"
-EndScenario
-    
-    
-Scenario "2050"
+Scenario "2055"
     
     [Master SE] = "%Master Folder%\\sedata\\se_2050.bin"
-    [Scenario Folder] = "%Scenarios Folder%\\2050"
+    [Scenario Folder] = "%Scenarios Folder%\\2055"
     InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2050.bin"
 EndScenario
     
