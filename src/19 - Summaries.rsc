@@ -2021,6 +2021,36 @@ Macro "Disadvantage Community Skims" (Args)
 		  se.(out_core) = if se.(name + "_dc") = 0 then null else v_jobs
     end
 	end
+
+  // Calculate per-capita stats
+  per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
+  file = OpenFile(per_capita_file, "w")
+  WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
+  v_pop = se.HH_POP
+  stats = MatrixStatistics(mtx.GetMatrixHandle(), )
+  for i = 1 to weight_fields.length do
+    weight_field = weight_fields[i]
+    name = names[i]
+    
+    // Calculate disadvantaced population
+    v_weight = se.(weight_field)
+    v_dc_pop = v_pop * v_weight / 100
+    tot_dc_pop = v_dc_pop.sum()
+
+    // HoT
+    total_hot = stats.(name + "_All_HoT").Sum
+    hot_per_capita = total_hot / tot_dc_pop
+
+    // Delay
+    total_delay = stats.(name + "_All_Delay").Sum
+    delay_per_capita = total_delay / tot_dc_pop
+
+    WriteLine(
+      file, name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," +
+      String(total_delay) + "," + String(delay_per_capita)
+    )
+  end
+  CloseFile(file)
 endmacro
 
 /*
