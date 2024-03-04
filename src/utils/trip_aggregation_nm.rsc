@@ -98,7 +98,7 @@ Macro "Aggregate matrix" (Args)
             end
         end
 
-        //uhb trip
+        //nhb trip
         nhb_trip_file = nhb_dir + "/NHB_walkbike_" + period + ".mtx"
         trip_mtx = CreateObject("Matrix", nhb_trip_file)
         trip_core = trip_mtx.GetCore("Total")

@@ -2301,7 +2301,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
-  periods = RunMacro("Get Unconverged Periods", Args)
+  periods = Args.periods
   orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
 
   // Loop through transit assn bin files
@@ -2394,9 +2394,7 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/resident_hb/hb_nm_summary.csv"
   
   est_tbl = CreateObject("Table", est_data)
-
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "nonmotorized", NewName: "obs_nm_share"})
 
 	join = obs_tbl.Join({
 		Table: est_tbl,
@@ -2409,9 +2407,8 @@ Macro "Validation Reports" (Args)
   join.AddField({FieldName: "est_nm_share", Type: "string"})
   join.AddField({FieldName: "pcfdiff_nm_share", Type: "string"})
   v1 = join.nm_share/100
+  v2 = (v1 - join.obs_nm_share)/join.obs_nm_share
   join.est_nm_share = Format(v1, "*.000")
-  v2 = (join.nm_share - join.obs_nm_share)/join.obs_nm_share
-  //v = if v = null then 0 else v
   join.pcfdiff_nm_share = Format(v2, "*.00")
   join.DropFields({FieldNames:{"trip_type:1", "moto_total", "moto_share", "nm_total", "nm_share"}})
 
@@ -2440,8 +2437,6 @@ Macro "Validation Reports" (Args)
   agg_est_tbl.est_share_temp = v_est_share
   
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "weight", NewName: "obs_weight"})
-  obs_tbl.RenameField({FieldName: "pct", NewName: "obs_share"})
   
   join = obs_tbl.Join({
 		Table: agg_est_tbl,
@@ -2466,7 +2461,6 @@ Macro "Validation Reports" (Args)
   est_data = summary_dir + "/resident_hb/hb_trip_stats_by_type.csv"
 
   obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "avg_length_mi", NewName: "obs_avg_length_mi"})
   est_tbl = CreateObject("Table", est_data)
 
   join = obs_tbl.Join({
@@ -2496,7 +2490,6 @@ Macro "Validation Reports" (Args)
   obs_tbl = CreateObject("Table", obs_data)
 
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "pct", NewName: "est_share"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2506,10 +2499,12 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/modechoice.bin"})
 
   join = CreateObject("Table", validation_dir + "/modechoice.bin")
+  join.AddField({FieldName: "est_share", Type: "real"})
+  join.est_share = join.pct/100
   join.AddField({FieldName: "pcfdiff_share", Type: "string"})
   v = (join.est_share - join.obs_share)/join.obs_share
   join.pcfdiff_share = Format(v, "*.00")
-  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total"}})
+  join.DropFields({FieldNames: {"trip_type:1",	"mode:1",	"Sum",	"total", "pct"}})
   join.Export({FileName: validation_dir + "/modechoice.csv"})
   join = null
 
@@ -2520,10 +2515,8 @@ Macro "Validation Reports" (Args)
   obs_data = root_dir + "/other/_reportingtool/validation_obs_data/transit_ridership.csv"
   est_data = summary_dir + "/transit/boardings_and_alightings_daily_by_agency.csv"
 
-  obs_tbl = CreateObject("Table", obs_data)
-  obs_tbl.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
+  obs_tbl = CreateObject("Table", obs_data)  
   est_tbl = CreateObject("Table", est_data)
-  est_tbl.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
 
   join = obs_tbl.Join({
       Table: est_tbl,
@@ -2533,6 +2526,8 @@ Macro "Validation Reports" (Args)
   join.Export({FileName: validation_dir + "/transitassignment.bin"})
 
   join = CreateObject("Table", validation_dir + "/transitassignment.bin")
+  join.RenameField({FieldName: "obs_ridership", NewName: "obs_ridership_temp"})
+  join.RenameField({FieldName: "On", NewName: "est_ridership_temp"})
   join.AddField({FieldName: "obs_ridership", Type: "string"})
   join.obs_ridership = Format(join.obs_ridership_temp, "*,.")
   join.AddField({FieldName: "est_ridership", Type: "string"})
