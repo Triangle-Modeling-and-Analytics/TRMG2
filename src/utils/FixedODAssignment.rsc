@@ -90,6 +90,7 @@ Macro "Fixed OD Assignment" (MacroOpts)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
     RunMacro("Summarize Links", Args)
+    RunMacro("VMT_Delay Summary", Args)
 endmacro
 
 /*
