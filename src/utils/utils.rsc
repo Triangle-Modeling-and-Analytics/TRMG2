@@ -1976,7 +1976,7 @@ Macro "Summarize Transit" (MacroOpts)
   mode_table.select({"Mode_ID", "Abbr"})
   rts.left_join(mode_table, "Mode", "Mode_ID")
   rts.rename("Abbr", "Mode_abbr")
-  rts.select({"Route_ID", "Route_Name", "Agency", "Mode_abbr"})
+  rts.select({"Route_ID", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr"})
   
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
@@ -1997,7 +1997,7 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("period", "Daily")
   daily.left_join(rts, "route", "Route_ID")
-  daily.select({"route", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
+  daily.select({"route", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
 
   
