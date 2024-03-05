@@ -2014,6 +2014,14 @@ Macro "Summarize Transit" (MacroOpts)
     df.write_csv(output_dir + "/boardings_and_alightings_daily_by_" + var + ".csv")
   end
 
+  df = onoff.copy()
+  df.group_by({"agency", "mode"})
+  df.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"agency", "mode"} + cols_to_summarize
+  df.colnames(opts)
+  df.write_csv(output_dir + "/boardings_and_alightings_daily_by_mode_by_agency.csv")
+
   // aggregate transit flow by link and join to layer
   agg = tables.agg
   agg.group_by("ID1")
