@@ -94,6 +94,7 @@
     
         Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
         Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
+        Args.DirectionFactorsTrans = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors_transit.csv", "Description":"Transit time of day factor file." }
         Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
         Args.HBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_hb.csv", "Description":"Resident hov3 HB vehicle occupancy factor file." }
         Args.NHBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_nhb.csv", "Description":"Resident hov3 NHB vehicle occupancy factor file." }
