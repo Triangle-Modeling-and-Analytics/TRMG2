@@ -56,6 +56,7 @@
     Section = "Network Calculations|Transit"
         
         Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
+        Args.PMParkingLotUsed = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLot.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period." }
     
     Section = "Accessibilities"
     
