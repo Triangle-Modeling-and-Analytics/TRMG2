@@ -224,6 +224,15 @@ Macro "Create Transit Skims" (Args, overrides)
 
             for access in access_mode_subset do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
+                setopts = {TNWFile: net_file,
+                           AccessMode: access,
+                           RouteFile: rts_file,
+                           Period: period,
+                           ModeTable: TransModeTable,
+                           Mode: mode
+                           }
+                ok = RunMacro("Set Route Network", Args, setopts)
+
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
                 obj = CreateObject("Network.TransitSkims")
                 obj.Method = "PF"
@@ -263,9 +272,20 @@ Macro "Create Transit Skims" (Args, overrides)
                     MatrixLabel : label, 
                     Compression: true, ColumnMajor: false
                 })
+                if access = "pnr" and period = "AM" then do // for AM pnr skimming report out parking lot used
+                    tmpAMmtx = GetTempFileName("*.mtx")
+                    obj.ReportAccessParkMatrix({MatrixFile: tmpAMmtx})
+                end
                 obj.Run()
                 obj = null
-
+                if access = "pnr" and period = "AM" then do // for AM pnr skimming, open the parking lot matrix and transpose
+                    m = CreateObject("Matrix", tmpAMmtx)
+                    tmpAM2 = GetTempFileName("*.mtx")
+                    mT = m.Transpose({OutputFile: tmpAM2})
+                    mT2 = OpenMatrix(tmpAM2,)
+                    tmat = FlipMatrix(mT2, {"File Name": Args.PMParkingLotUsed, Label: "ParkingMatrix"})
+                    mT2 = null
+                end
                 // Flip to AP format in the PM period
                 if period = "PM" then do
                     label = label + " transposed to AP"
