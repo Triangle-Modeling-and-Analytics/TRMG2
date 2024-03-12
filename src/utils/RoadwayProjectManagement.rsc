@@ -61,6 +61,7 @@ Macro "Roadway Project Management" (MacroOpts)
   // gplyr's read functions won't work here until it can handle empty files.
   csv_tbl = OpenTable("tbl", "CSV", {output_proj_list, })
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
+  v_projIDs = String(v_projIDs)
   CloseView(csv_tbl)
   DeleteFile(Substitute(output_proj_list, ".csv", ".DCC", ))
 
