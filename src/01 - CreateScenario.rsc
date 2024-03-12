@@ -26,6 +26,7 @@ Macro "Create Scenario" (Args)
     RunMacro("Copy TAZ", Args)
     RunMacro("Create Scenario SE", Args)
     RunMacro("Create Scenario Roadway", Args)
+    RunMacro("Check Scenario Roadway", Args)
     RunMacro("Create Scenario Transit", Args)
   end
 
@@ -193,6 +194,45 @@ Macro "Create Scenario Roadway" (Args)
 
   RunMacro("Close All")
 EndMacro
+
+/*
+Runs some checks on the highway network. A more robust check is done
+on the network right after all network calculations (like capacity/ffspeed)
+are done, but these checks can catch some errors early.
+
+You can easily add more checks by adding queries to the check_queries array.
+*/
+
+Macro "Check Scenario Roadway" (Args)
+  scen_hwy = Args.[Input Links]
+
+  map = CreateObject("Map", scen_hwy)
+  {nlyr, llyr} = map.GetLayerNames()
+
+  tbl = CreateObject("Table", llyr)
+  check_queries = {
+    "Dir = 1 and nz(ABLanes) = 0",
+    "Dir = -1 and nz(BALanes) = 0",
+    "Dir = 0 and (nz(ABLanes) = 0 or nz(BALanes) = 0)"
+  }
+  for query in check_queries do
+    RunMacro("G30 create set", "error")
+    n = tbl.SelectByQuery({
+      SetName: "error",
+      Query: query
+    })
+    if n > 0 then do
+      tbl = null
+      map.View()
+      Throw(
+        "Some links have improper attributes.\n" +
+        "See the 'error' selection set for the erroneous links.\n" + 
+        "Query: " + query
+      )
+    end
+  end
+
+endmacro
 
 /*
 - copies the master route system into the scenario directory
