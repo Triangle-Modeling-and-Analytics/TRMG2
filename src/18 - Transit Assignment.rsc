@@ -4,7 +4,7 @@
 
 Macro "Create Transit Matrices" (Args)
     RunMacro("Create Transit Matrices2", Args)
-    RunMacro("Flip Transit Matrices", Args)
+    RunMacro("Transit PA2OD", Args)
     return(1)
 endmacro
 
@@ -166,46 +166,39 @@ Macro "Create Transit Matrices2" (Args)
 endmacro
 
 /*
-Applies rough directionality to transit by time period.
-
-AM: stays in PA format
-PM: flips to AP format
-MD/NT: (PA + AP) / 2
+Applies pa-2-od factors
 */
 
-Macro "Flip Transit Matrices" (Args)
+Macro "Transit PA2OD" (Args)
     
     trn_dir = Args.[Output Folder] + "/assignment/transit"
-    periods = Args.periods
+    dir_factor_file = Args.DirectionFactorsTrans
+    assn_dir = trn_dir
+    periods = RunMacro("Get Unconverged Periods", Args)
 
-    for period in periods do
+    fac_vw = OpenTable("dir", "CSV", {dir_factor_file})
+    rh = GetFirstRecord(fac_vw + "|", )
+    while rh <> null do
+        period = fac_vw.tod
+        pa_factor = fac_vw.pa_fac
+
+        if periods.position(period) = 0 then goto skip
+
+        trn_mtx_file = trn_dir + "/transit_" + period + ".mtx"
+        mtx = CreateObject("Matrix", trn_mtx_file)
+        core_names = mtx.GetCoreNames()
+        cores = mtx.GetCores()
+        t_mtx = mtx.Transpose()
+        t_cores = t_mtx.GetCores()
         
-        // Don't modify the AM period
-        if period = "AM" then continue
-
-        out_file = trn_dir + "/transit_" + period + ".mtx"
+        for core_name in core_names do
+            cores.(core_name) := cores.(core_name) * pa_factor + t_cores.(core_name) * (1 - pa_factor)
+        end
         
-        if period = "PM" then do
-            RunMacro("Transpose Matrix", out_file, "PM transit trips flipped to AP")
-        end
-
-        if period = "MD" or period = "NT" then do
-            t_file = Substitute(out_file, ".mtx", "_t.mtx", )
-            CopyFile(out_file, t_file)
-            RunMacro("Transpose Matrix", t_file, "temp transposed matrix")
-            out_mtx = CreateObject("Matrix", out_file)
-            core_names = out_mtx.GetCoreNames()
-            t_mtx = CreateObject("Matrix", t_file)
-            for core_name in core_names do
-                out_core = out_mtx.GetCore(core_name)
-                t_core = t_mtx.GetCore(core_name)
-                out_core := (out_core + t_core) / 2
-            end
-            t_core = null
-            t_mtx = null
-            DeleteFile(t_file)
-        end
+        skip:
+        rh = GetNextRecord(fac_vw + "|", rh, )
     end
+    CloseView(fac_vw)
 endmacro
 
 /*

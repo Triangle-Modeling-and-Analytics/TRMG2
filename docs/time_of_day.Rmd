@@ -581,6 +581,22 @@ direction_tbl %>%
   rename(`Trip Type` = trip_type) %>%
   kable(digits = 2) %>%
   kable_styling(full_width = FALSE)
+
+# For transit factors, just use all trips to ensure balance.
+# Transit only trips don't balance exactly out-vs-in in the survey because people
+# can take other modes to get home.
+trns_dir_tbl <- tripTbl %>%
+  filter(homebased == "HB", tour_type != "H") %>%
+  group_by(tod, pa_flag) %>%
+  summarize(trips = sum(trip_weight_combined)) %>%
+  mutate(
+    pct = trips / sum(trips),
+    tod = factor(tod, levels = c("AM", "MD", "PM", "NT"), ordered = TRUE)
+  ) %>%
+  filter(pa_flag == 1) %>%
+  select(-trips, -pa_flag) %>%
+  rename(pa_fac = pct) %>%
+  arrange(tod)
 ```
 
 By definition, non-home-based trips are the same in either format;
@@ -1028,6 +1044,7 @@ write_csv(tod_factors, "data/output/tod/time_of_day_factors.csv")
 
 # Directionality factors
 write_csv(direction_tbl , "data/output/tod/directionality_factors.csv")
+write_csv(trns_dir_tbl , "data/output/tod/directionality_factors_transit.csv")
 
 # Occupancy factors/shares
 write_csv(hb_hov3_tbl , "data/output/tod/hov3_occ_factors_hb.csv")
