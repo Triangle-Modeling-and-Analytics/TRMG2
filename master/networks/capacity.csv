@@ -20,15 +20,15 @@ MajorArterial,Downtown,NonRestrictive,1309,1178
 MajorArterial,Downtown,Restrictive,1537,1383
 MajorArterial,Rural,None,1086,977
 MajorArterial,Rural,NonRestrictive,1492,1343
-MajorArterial,Rural,Restrictive,1774,1597
+MajorArterial,Rural,Restrictive,1680,1512
 MajorArterial,Suburban,None,1086,977
 MajorArterial,Suburban,NonRestrictive,1440,1296
-MajorArterial,Suburban,Restrictive,1300,1170
+MajorArterial,Suburban,Restrictive,1455,1310
 MajorArterial,Urban,None,1128,1015
 MajorArterial,Urban,NonRestrictive,1440,1296
 MajorArterial,Urban,Restrictive,1467,1320
 Arterial,Downtown,None,917,825
-Arterial,Downtown,NonRestrictive,903,813
+Arterial,Downtown,NonRestrictive,917,825
 Arterial,Downtown,Restrictive,1367,1230
 Arterial,Rural,None,948,853
 Arterial,Rural,NonRestrictive,1210,1089
@@ -72,7 +72,7 @@ Local,Rural,Restrictive,1208,1087
 Local,Suburban,None,780,702
 Local,Suburban,NonRestrictive,890,801
 Local,Suburban,Restrictive,912,821
-Local,Urban,None,715,644
+Local,Urban,None,650,585
 Local,Urban,NonRestrictive,800,720
 Local,Urban,Restrictive,900,810
 CC,Downtown,None,10000,9000
