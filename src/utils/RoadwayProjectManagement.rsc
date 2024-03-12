@@ -52,9 +52,13 @@ Macro "Roadway Project Management" (MacroOpts)
 
   df = CreateObject("df", proj_list_CAMPO)
   output = df.copy()
-  df = CreateObject("df", proj_list_DCHC)
-  if df.tbl.length >0 then output.bind_rows(df)
-  if output.tbl.length >0 then output.write_csv(output_proj_list)
+  if output.tbl = null
+    then output = CreateObject("df", proj_list_DCHC)
+    else do
+      df = CreateObject("df", proj_list_DCHC)
+      if df.tbl.ProjID > 0 then output.bind_rows(df)
+    end
+  if output.tbl.ProjID > 0 then output.write_csv(output_proj_list)
       else CopyFile(proj_list_CAMPO, output_proj_list)
   
   // Get vector of project IDs from the project list file
