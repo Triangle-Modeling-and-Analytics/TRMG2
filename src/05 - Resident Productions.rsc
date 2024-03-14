@@ -144,6 +144,7 @@ Macro "Apply Rates with Queries" (MacroOpts)
         else expression = expression + " else if (" + query + ") then " + String(rate)
         
         if i = v_type.length or type <> v_type[i + 1] then do
+            VerifyExpression(view, expression)
             e_field = CreateExpression(view, "expr", expression, {Type: "Real"})
             data.(type) = GetDataVector(view + "|", e_field, )
             e_spec = GetFieldFullSpec(view, e_field)
