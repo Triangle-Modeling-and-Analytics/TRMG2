@@ -56,7 +56,11 @@
     Section = "Network Calculations|Transit"
         
         Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
-        Args.PMParkingLotUsed = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLot.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period." }
+        Args.ReturnParkingLotUsedlb = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLB.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LB." }
+        Args.ReturnParkingLotUsedeb = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotEB.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period EB." }
+        Args.ReturnParkingLotUsedbrt = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotBRT.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period BRT." }
+        Args.ReturnParkingLotUsedcr = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotCR.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period CR." }
+        Args.ReturnParkingLotUsedlr = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLR.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LR." }
     
     Section = "Accessibilities"
     

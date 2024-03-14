@@ -283,7 +283,7 @@ Macro "Create Transit Skims" (Args, overrides)
                     tmpAM2 = GetTempFileName("*.mtx")
                     mT = m.Transpose({OutputFile: tmpAM2})
                     mT2 = OpenMatrix(tmpAM2,)
-                    tmat = FlipMatrix(mT2, {"File Name": Args.PMParkingLotUsed, Label: "ParkingMatrix"})
+                    tmat = FlipMatrix(mT2, {"File Name": Args.("ReturnParkingLotUsed"+mode), Label: "ParkingMatrix"+mode})
                     mT2 = null
                 end
                 // Flip to AP format in the PM period
