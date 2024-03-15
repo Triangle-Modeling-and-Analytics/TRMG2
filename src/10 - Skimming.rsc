@@ -286,8 +286,8 @@ Macro "Create Transit Skims" (Args, overrides)
                     tmat = FlipMatrix(mT2, {"File Name": Args.("ReturnParkingLotUsed"+mode), Label: "ParkingMatrix"+mode})
                     mT2 = null
                 end
-                // Flip to AP format in the PM period
-                if period = "PM" then do
+                // Flip to AP format in the PM and NT period
+                if period = "PM" or period = "NT" then do
                     label = label + " transposed to AP"
                     RunMacro("Transpose Matrix", out_file, label)
                 end
