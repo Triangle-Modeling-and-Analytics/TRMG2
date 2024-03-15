@@ -1247,9 +1247,9 @@ Macro "Set Route Network" (Args, opts)
         if access_mode = "knr" 
             then opts.ParkingNodes = "KNR = 1"
             else opts.ParkingNodes = "PNR = 1"
-        if period = "PM" and access_mode = "pnr" then do
-            if GetFileInfo(Args.PMParkingLotUsed) <> null then do
-                opts.ParkingUsage = {{MatrixFile: Args.PMParkingLotUsed, MatrixCore: "Parking Nodes"}}
+        if (period = "PM" or period = "NT") and access_mode = "pnr" then do
+            if GetFileInfo(Args.("ReturnParkingLotUsed"+transit_mode)) <> null then do
+                opts.ParkingUsage = {{MatrixFile: Args.("ReturnParkingLotUsed"+transit_mode), MatrixCore: "Parking Nodes"}}
             end
             o.DriveEgress(opts)
         end
