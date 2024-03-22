@@ -2025,6 +2025,26 @@ Macro "Summarize Transit" (MacroOpts)
   agg_file = output_dir + "/transit_flow_by_link.csv"
   agg.write_csv(agg_file)
   RunMacro("Join Table To Layer", loaded_network, "ID", agg_file, "ID1")
+  // Add transit field descriptions
+  bin_file = Substitute(loaded_network, ".dbd", ".bin", 1)
+  tbl = CreateObject("Table", bin_file)
+  tbl.ChangeField({FieldName: "AB_TransitFlow", Description: "AB transit flow for all transit modes"})
+  tbl.ChangeField({FieldName: "BA_TransitFlow", Description: "BA transit flow for all transit modes"})
+  tbl.ChangeField({FieldName: "AB_NonTransitFlow", Description: "Access, transfer and egress components of transit trips (Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow +_Drive_Flow)"})
+  tbl.ChangeField({FieldName: "BA_NonTransitFlow", Description: "Access, transfer and egress components of transit trips (Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow +_Drive_Flow)"})
+  tbl.ChangeField({FieldName: "AB_Total_TransitFlow", Description: "All components of transit trips (TransitFlow + Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow + Drive_Flow)"})
+  tbl.ChangeField({FieldName: "BA_Total_TransitFlow", Description: "All components of transit trips (TransitFlow + Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow + Drive_Flow)"})
+  tbl.ChangeField({FieldName: "AB_Access_Walk_Flow", Description: "AB flow for transit passengers that walked to their initial transit stop"})
+  tbl.ChangeField({FieldName: "BA_Access_Walk_Flow", Description: "BA flow for transit passengers that walked to their initial transit stop"})
+  tbl.ChangeField({FieldName: "AB_Xfer_Walk_Flow", Description: "AB flow for transit passengers that walked from one transit stop to another on a given trip"})
+  tbl.ChangeField({FieldName: "BA_Xfer_Walk_Flow", Description: "BA flow for transit passengers that walked from one transit stop to another on a given trip"})
+  tbl.ChangeField({FieldName: "AB_Egress_Walk_Flow", Description: "AB flow for transit passengers that walked from a transit stop to their given destination"})
+  tbl.ChangeField({FieldName: "BA_Egress_Walk_Flow", Description: "BA flow for transit passengers that walked from a transit stop to their given destination"})
+  tbl.ChangeField({FieldName: "AB_Walk_Flow", Description: "AB walk flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "BA_Walk_Flow", Description: "BA walk flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "AB_Drive_Flow", Description: "AB drive flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "BA_Drive_Flow", Description: "BA drive flow ONLY for transit passengers that drove to transit"})
+  tbl = null
   
   // Passenger miles and hours
   flow = tables.flow
