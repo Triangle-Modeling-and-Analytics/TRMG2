@@ -213,7 +213,7 @@ Macro "Check Scenario Roadway" (Args)
   check_queries = {
     "Dir = 1 and nz(ABLanes) = 0",
     "Dir = -1 and nz(BALanes) = 0",
-    "Dir = 0 and (nz(ABLanes) = 0 or nz(BALanes) = 0)"
+    "Dir = 0 and DTWB contains 'D' and DTWB contains 'T' and (nz(ABLanes) = 0 or nz(BALanes) = 0)"
   }
   for query in check_queries do
     RunMacro("G30 create set", "error")
