@@ -1168,7 +1168,7 @@ Macro "Set Route Network" (Args, opts)
     o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
     o.UserClasses = {"Class1"}
     o.CentroidFilter = "Centroid = 1"
-    // o.LinkImpedance = "IVTT"
+    o.LinkImpedance = "LBTime" // required, but fields specified in mode table have priority
     o.Parameters({
         MaxTripCost : 240,
         MaxTransfers : 1,
