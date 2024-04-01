@@ -302,7 +302,7 @@ Macro "Create Accessibility Skims" (Args)
         access_modes: {"w"},
         transit_modes: {"all"}
     }
-    RunMacro("Transit Skims", Args, overrides)
+    RunMacro("Create Transit Skims", Args, overrides)
 
     // intrazonals
     obj = CreateObject("Distribution.Intrazonal")
