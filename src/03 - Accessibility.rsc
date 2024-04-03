@@ -305,6 +305,7 @@ Macro "Create Accessibility Skims" (Args)
     RunMacro("Create Transit Skims", Args, overrides)
 
     // intrazonals
+    obj = null
     obj = CreateObject("Distribution.Intrazonal")
     obj.OperationType = "Replace"
     obj.TreatMissingAsZero = false
