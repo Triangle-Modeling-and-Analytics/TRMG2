@@ -264,7 +264,7 @@ Macro "Update DC Totals"(Args, Opts)
     // Create output DC totals matrix
     dcFile = GetTempPath() + "DCTrips_" + name + ".mtx"
     mP = dc_dir + "/probabilities/probability_" + name + "_AM_zone.mtx"
-    o = CreateObject("Matrix")
+    o = CreateObject("Matrix", {Empty: True})
     cores = null
     for period in periods do
         cores = cores + {name + "_" + period}
@@ -410,7 +410,7 @@ Macro "Get Mode Shares"(Args, Opts, altNames)
 
     // Create temporary output matrix (In-Memory) and initialize to 0
     mP = mc_dir + "/probabilities/probability_" + name + "_AM.mtx"
-    o = CreateObject("Matrix")
+    o = CreateObject("Matrix", {Empty: True})
     
     mOut = o.CloneMatrixStructure({MatrixLabel: "MCTrips", CloneSource: {mP}, MemoryOnly: true, Matrices: altNames})
     mMCObj = CreateObject("Matrix", mOut)

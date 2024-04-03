@@ -708,8 +708,7 @@ Macro "University Directionality" (Args)
         mtx = CreateObject("Matrix", od_matrix_file)
         mtx_core_names = mtx.GetCoreNames()
 
-        t_mtx = CreateObject("Matrix")
-        t_mtx.LoadMatrix(od_transpose_matrix_file)
+        t_mtx = CreateObject("Matrix", od_transpose_matrix_file)
 
         pa_factor = dir_factors.(period)
 
