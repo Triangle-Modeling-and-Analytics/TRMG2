@@ -1438,11 +1438,7 @@ Macro "VMT_Delay Summary" (Args)
   
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
 
-  hwy_df = CreateObject("df") //Consider only reading hwy link (DTWB=D) to improve efficiency
-  opts = null
-  opts.view = llyr
-  opts.fields = field_names
-  hwy_df.read_view(opts)
+  hwy_df = CreateObject("Table", llyr)
 
   // Caculate flow, VMT, and delay by direction, period, and vehicle class
   outfield_totcgvmtdailysum = "Total_CgVMT_Daily" // Calculate this total field as it is not included in hwy dbd
@@ -1470,52 +1466,61 @@ Macro "VMT_Delay Summary" (Args)
 
       for dir in a_dirs do
         input_field = dir + "_Flow_" + veh_class + "_" + period
-        v_vol = hwy_df.get_col(input_field)
+        v_vol = hwy_df.(input_field)
 
         //flow
         v_totflow = nz(v_totflow) + nz(v_vol)
 
         //VMT and cgVMT
-        length = hwy_df.get_col("length")
-        voc = hwy_df.get_col(dir + "_VOCD_" + period)
+        length = hwy_df.length
+        voc = hwy_df.(dir + "_VOCD_" + period)
         cg_length = if voc >1 then length else 0
         v_totvmt = nz(v_totvmt) + nz(v_vol)*length
         v_totcgvmt = nz(v_totcgvmt) + nz(v_vol)*cg_length
 
         //delay
-        v_fft = hwy_df.get_col("FFTime")
-        v_ct = hwy_df.get_col(dir + "_Time_" + period)
+        v_fft = hwy_df.FFTime
+        v_ct = hwy_df.(dir + "_Time_" + period)
         v_delay = (v_ct - v_fft) * v_vol / 60
         v_delay = max(v_delay, 0)
         v_totdelay = nz(v_totdelay) + nz(v_delay)
       end
 
       //flow
-      hwy_df.mutate(outfield_totflow, v_totflow)
+      hwy_df.AddField(outfield_totflow)
+      hwy_df.(outfield_totflow) = v_totflow
       v_totflowdaily = v_totflow + nz(v_totflowdaily)
 
       //VMT and cgVMT
-      hwy_df.mutate(outfield_totvmt, v_totvmt)
-      hwy_df.mutate(outfield_totcgvmt, v_totcgvmt)
+      hwy_df.AddField(outfield_totvmt)
+      hwy_df.(outfield_totvmt) = v_totvmt
+      hwy_df.AddField(outfield_totcgvmt)
+      hwy_df.(outfield_totcgvmt) = v_totcgvmt
       v_totvmtdaily = nz(v_totvmtdaily) + nz(v_totvmt)
       v_totcgvmtdaily = nz(v_totcgvmtdaily) + nz(v_totcgvmt)
 
       //delay
-      hwy_df.mutate(outfield_totdelay, v_totdelay)
+      hwy_df.AddField(outfield_totdelay)
+      hwy_df.(outfield_totdelay) = v_totdelay
       v_totdelaydaily = nz(v_totdelaydaily) + nz(v_totdelay)
     end
     //flow
-    hwy_df.mutate(outfield_totflowdaily, v_totflowdaily)
+    hwy_df.AddField(outfield_totflowdaily)
+    hwy_df.(outfield_totflowdaily) = v_totflowdaily
 
     //VMT and cgVMT
-    hwy_df.mutate(outfield_totvmtdaily, v_totvmtdaily)
-    hwy_df.mutate(outfield_totcgvmtdaily, v_totcgvmtdaily)
+    hwy_df.AddField(outfield_totvmtdaily)
+    hwy_df.(outfield_totvmtdaily) = v_totvmtdaily
+    hwy_df.AddField(outfield_totcgvmtdaily)
+    hwy_df.(outfield_totcgvmtdaily) = v_totcgvmtdaily
     v_totcgvmtdailysum = nz(v_totcgvmtdailysum) + nz(v_totcgvmtdaily)
 
     //delay
-    hwy_df.mutate(outfield_totdelaydaily, v_totflowdaily)
+    hwy_df.AddField(outfield_totdelaydaily)
+    hwy_df.(outfield_totdelaydaily) = v_totflowdaily
   end
-  hwy_df.mutate(outfield_totcgvmtdailysum, v_totcgvmtdailysum)
+  hwy_df.AddField(outfield_totcgvmtdailysum)
+  hwy_df.(outfield_totcgvmtdailysum) = v_totcgvmtdailysum
 
   // Build summary fields
   periods = periods + {"Daily"}
@@ -1530,73 +1535,131 @@ Macro "VMT_Delay Summary" (Args)
 
   fields_to_sum = fields_to_sum + {"Total_Flow_Daily", "Total_VMT_Daily", "Total_CgVMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}
   field_out = {"ID"} + group_fields + fields_to_sum
-  hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
-  hwy_df.select(field_out)
-  hwy_df.write_csv(output_dir + "/link_VMT_Delay.csv")
+  hwy_df.SelectByQuery({
+    SetName: "to_export",
+    Query: "HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'"
+  })
+  hwy_df.Export({FileName: output_dir + "/link_VMT_Delay.csv", FieldNames: field_out})
   CloseMap(map)
 
   // Summarize by different variable
   group_fields = group_fields + {{"County", "HCMType"}} //add VMT by facility type by county
+  FieldStats = null
+  for field in fields_to_sum do
+    FieldStats.(field) = {"sum", "count"}
+  end
   for var in group_fields do
-    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
-    df.group_by(var)
-    df.summarize(fields_to_sum, {"sum", "count"})
-    names = df.colnames()
+    df = CreateObject("Table", output_dir + "/link_VMT_Delay.csv")
+    df = df.Aggregate({
+      GroupBy: var,
+      FieldStats: FieldStats
+    })
+    names = df.GetFieldNames()
     for name in names do
         if Left(name, 4) = "sum_" then do
             new_name = Substitute(name, "sum_", "", 1)
-            df.rename(name, new_name)
+            df.RenameField({FieldName: name, NewName: new_name})
         end
     end
-    if Typeof(var) = "string" then df.write_csv(output_dir + "/VMT_Delay_by_" + var +".csv")
-    else df.write_csv(output_dir + "/VMT_Delay_by_HCMType_by_County.csv")
+    if Typeof(var) = "string" then df.Export({FileName: output_dir + "/VMT_Delay_by_" + var +".csv"})
+    else df.Export({FileName: output_dir + "/VMT_Delay_by_HCMType_by_County.csv"})
   end
 
   // Calculate VMT per capita by MPO/County
   taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
-  taz = CreateObject("df", taz_bin) // get county info for SE data
-  output = null
+  taz = CreateObject("Table", taz_bin) // get county info for SE data
+  taz_specs = taz.GetFieldSpecs({NamedArray: true})
+  se = CreateObject("Table", se_bin)
+  se.AddField("POP")
+  se.AddField({FieldName: "County", Type: "string"})
+  se.AddField({FieldName: "MPO", Type: "string"})
+  se_specs = se.GetFieldSpecs({NamedArray: true})
+  se.POP = se.HH_POP + se.StudGQ_NCSU + se.StudGQ_UNC + se.StudGQ_DUKE + se.StudGQ_NCCU + se.CollegeOn
+  join = se.Join({
+    Table: taz,
+    LeftFields: "TAZ",
+    RightFields: "ID"
+  })
+  join.(se_specs.County) = join.(taz_specs.County)
+  join.(se_specs.MPO) = join.(taz_specs.MPO)
+  join = null
+  taz = null
+  se = null
   group_fields = {"County", "MPO"}
   fields_to_sum = {"HH", "POP"}
   for var in group_fields do 
-    df = CreateObject("df", output_dir + "/link_VMT_Delay.csv")
-    df.group_by(var)
-    df.summarize("Total_VMT_Daily", "sum")
-    
-    se = CreateObject("df", se_bin)
-    se.mutate("POP", se.tbl.HH_POP + se.tbl.StudGQ_NCSU + se.tbl.StudGQ_UNC + se.tbl.StudGQ_DUKE + se.tbl.StudGQ_NCCU + se.tbl.CollegeOn)
-    se.left_join(taz, "TAZ", "ID")
-    se.group_by(var)
-    se.summarize(fields_to_sum, "sum")
-  
-    df.left_join(se, var, var)
-    names = df.colnames()
+    df = CreateObject("Table", output_dir + "/link_VMT_Delay.csv")
+    df = df.Aggregate({
+      GroupBy: var,
+      FieldStats: {Total_VMT_Daily: "sum"}
+    })
+    names = df.GetFieldNames()
     for name in names do
         if Left(name, 4) = "sum_" then do
             new_name = Substitute(name, "sum_", "", 1)
-            df.rename(name, new_name)
+            df.RenameField({FieldName: name, NewName: new_name})
+        end
+    end
+    se = CreateObject("Table", se_bin)
+    se = se.Aggregate({
+      GroupBy: var,
+      FieldStats: {HH: "sum", POP: "sum"}
+    })
+    names = se.GetFieldNames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            se.RenameField({FieldName: name, NewName: new_name})
         end
         if name = "County" or name = "MPO" then do
           new_name = "Geography"
-          df.rename(name, new_name)
+          se.RenameField({FieldName: name, NewName: new_name})
         end
     end
-    df.mutate("VMT_per_HH", df.tbl.Total_VMT_Daily/df.tbl.HH)
-    df.mutate("VMT_per_POP", df.tbl.Total_VMT_Daily/df.tbl.POP)
+  
+    df.AddField("HH")
+    df.AddField("POP")
+    df.AddField("VMT_per_HH")
+    df.AddField("VMT_per_POP")
+    df_specs = df.GetFieldSpecs({NamedArray: true})
+    se_specs = se.GetFieldSpecs({NamedArray: true})
+    join = df.Join({
+      Table: se,
+      LeftFields: var,
+      RightFields: "Geography"
+    })
+    join.(df_specs.HH) = join.(se_specs.HH)
+    join.(df_specs.POP) = join.(se_specs.POP)
+    join = null
+    df.VMT_per_HH =  df.Total_VMT_Daily/df.HH
+    df.VMT_per_POP =  df.Total_VMT_Daily/df.POP
 
-    if output = null then output = df.copy() // combine outputs into 1 csv file
-    else output.bind_rows(df)
+    file_name = GetTempFileName("*.bin")
+    df.Export({FileName: file_name})
+    to_concat = to_concat + {file_name}
+    df = null
+    se = null
   end
-  output.write_csv(output_dir + "/VMT_perCapita_andHH.csv")
+  out_file = output_dir + "/VMT_perCapita_andHH.bin"
+  ConcatenateFiles(to_concat, out_file)
+  CopyFile(Substitute(file_name, ".bin", ".dcb",), output_dir + "/VMT_perCapita_andHH.dcb")
+  temp = CreateObject("Table", out_file)
+  out_file = Substitute(out_file, ".bin", ".csv",)
+  temp.Export({FileName: out_file})
+  temp = null
+  df = CreateObject("Table", out_file)
+  names = df.GetFieldNames()
 
   // Calculate VMT per capita for region
-  Total_VMT_Daily = df.tbl.Total_VMT_Daily.sum()
-  HH = se.tbl.sum_HH.sum()
-  POP = se.tbl.sum_POP.sum()
+  Total_VMT_Daily = df.Total_VMT_Daily.sum()
+  df = null
+  se = CreateObject("Table", se_bin)
+  HH = se.HH.sum()
+  POP = se.POP.sum()
   VMT_per_HH = Total_VMT_Daily/HH
   VMT_per_POP = Total_VMT_Daily/POP
   line = "Regional," + String(Total_VMT_Daily) + "," + String(HH) + "," + String(POP) + "," + String(VMT_per_HH) + "," + String(VMT_per_POP)
-  RunMacro("Append Line", {file: output_dir + "/VMT_perCapita_andHH.csv", line: line}) //add regional results to output file
+  RunMacro("Append Line", {file: out_file, line: line}) //add regional results to output file
 
   
 EndMacro
