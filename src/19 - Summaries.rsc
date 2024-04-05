@@ -1684,11 +1684,7 @@ Macro "Congestion Cost Summary" (Args)
 	{nLayer, llyr} = GetDBLayers(hwy_dbd)
 	llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
 
-	hwy_df = CreateObject("df")
-	opts = null
-	opts.view = llyr
-	opts.fields = field_names
-	hwy_df.read_view(opts)
+  hwy_df = CreateObject("Table", llyr)
 
 	// Calculate CgCost
 	for veh_class in veh_classes do
@@ -1708,9 +1704,9 @@ Macro "Congestion Cost Summary" (Args)
 
 		for dir in a_dirs do
 			// Get data vectors
-			v_fft = nz(hwy_df.get_col("FFTime"))
-			v_ct = nz(hwy_df.get_col(dir + "_Time_" + period))
-			v_vol = nz(hwy_df.get_col(dir + "_Flow_" + veh_class + "_" + period))
+			v_fft = nz(hwy_df.FFTime)
+			v_ct = nz(hwy_df.(dir + "_Time_" + period))
+			v_vol = nz(hwy_df.(dir + "_Flow_" + veh_class + "_" + period))
 
 			// Calculate delay
 			v_delay = (v_ct - v_fft) * v_vol / 60
@@ -1721,9 +1717,11 @@ Macro "Congestion Cost Summary" (Args)
 		end  
 
 		v_output_daily = v_output + nz(v_output_daily)
-		hwy_df.mutate(outfield, v_output)
+    hwy_df.AddField(outfield)
+		hwy_df.(outfield) = v_output
 		end
-		hwy_df.mutate(outfield_daily, v_output_daily)
+    hwy_df.AddField(outfield_daily)
+		hwy_df.(outfield_daily) = v_output_daily
 	end
 
 	// Build summary fields
@@ -1736,23 +1734,32 @@ Macro "Congestion Cost Summary" (Args)
 	end
 
 	field_out = {"ID"} + group_fields + fields_to_sum
-	hwy_df.filter("HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
-	hwy_df.select(field_out)
-	hwy_df.write_csv(output_dir + "/LinkCongestionCost.csv")
+  hwy_df.SelectByQuery({
+    SetName: "to_export",
+    Query: "HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'"
+  })
+  hwy_df.Export({FileName: output_dir + "/LinkCongestionCost.csv", FieldNames: field_out})
 
 	// Summarize by different variable  
+  FieldStats = null
+  for field in fields_to_sum do
+    FieldStats.(field) = {"sum", "count"}
+  end
 	for var in group_fields do
-		cg_df = CreateObject("df", output_dir + "/LinkCongestionCost.csv")
-		cg_df.group_by(var)
-		cg_df.summarize(fields_to_sum, {"sum", "count"})
-		names = cg_df.colnames()
+    cg_df = CreateObject("Table", output_dir + "/LinkCongestionCost.csv")
+    cg_df = cg_df.Export({ViewName: "temp"})
+    cg_df = cg_df.Aggregate({
+      GroupBy: var,
+      FieldStats: FieldStats
+    })
+		names = cg_df.GetFieldNames()
 		for name in names do
 			if Left(name, 4) = "sum_" then do
 				new_name = Substitute(name, "sum_", "", 1)
-				cg_df.rename(name, new_name)
+        cg_df.RenameField({FieldName: name, NewName: new_name})
 			end
 		end
-		cg_df.write_csv(output_dir + "/CongestionCost_summary_by_" + var +".csv")
+    cg_df.Export({FileName: output_dir + "/CongestionCost_summary_by_" + var +".csv"})
 	end
 	CloseView(llyr)
 EndMacro
