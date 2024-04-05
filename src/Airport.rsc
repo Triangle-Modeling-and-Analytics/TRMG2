@@ -60,8 +60,7 @@ Macro "Airport Productions" (Args)
     
     // get distance to airport zone
     skim_mat = skim_dir + "/accessibility_sov_AM.mtx"
-    mat = CreateObject("Matrix")
-    mat.LoadMatrix(skim_mat)
+    mat = CreateObject("Matrix", skim_mat)
     cores = mat.GetCores()
     distance_array = GetMatrixValues(cores.[Length (Skim)], V2A(taz_vec), {airport_zone})
     cores = null
@@ -132,7 +131,7 @@ Macro "Airport Distribution" (Args)
     n = SelectByQuery("centroids", "several", qry)
     centroid_ids = GetDataVector(nlyr + "|centroids", "ID", {{"Sort Order", {{"ID", "Ascending"}}}})
     
-    obj = CreateObject("Matrix")
+    obj = CreateObject("Matrix", {Empty: True})
     obj.SetMatrixOptions({
         FileName: airport_matrix,
         MatrixLabel: "Airport Trips",
@@ -182,8 +181,7 @@ Macro "Airport TOD" (Args)
         period_mtx_file = Substitute(airport_mtx_file, ".mtx", "_" + period + ".mtx", )
         CopyFile(airport_mtx_file, period_mtx_file)
         
-        mat = CreateObject("Matrix")
-        mat.LoadMatrix(period_mtx_file)
+        mat = CreateObject("Matrix", period_mtx_file)
         cores = mat.GetCores()
         
         cores.("Trips") := Nz(cores.("Trips")) * factor
@@ -213,17 +211,14 @@ Macro "Airport Mode Choice" (Args)
         if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
         
         CopyFile(mc_mtx_file, out_mtx_file)
-        out_mtx = CreateObject("Matrix")
-        out_mtx.LoadMatrix(out_mtx_file)
+        out_mtx = CreateObject("Matrix", out_mtx_file)
         out_cores = out_mtx.GetCores()
         
-        mc_mtx = CreateObject("Matrix")
-        mc_mtx.LoadMatrix(mc_mtx_file)
+        mc_mtx = CreateObject("Matrix", mc_mtx_file)
         mc_cores = mc_mtx.GetCores()
         mode_names = mc_mtx.GetCoreNames()
         
-        airport_mtx = CreateObject("Matrix")
-        airport_mtx.LoadMatrix(airport_mtx_file)
+        airport_mtx = CreateObject("Matrix", airport_mtx_file)
         airport_cores = airport_mtx.GetCores()
         
         for mode in mode_names do
@@ -256,8 +251,7 @@ Macro "Airport Separate Auto and Transit" (Args)
         auto_mtx_file = trips_dir + "/airport_pa_auto_trips_" + period + ".mtx"
         transit_mtx_file = trips_dir + "/airport_transit_trips_" + period + ".mtx"
         
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(pa_mtx_file) 
+        mtx = CreateObject("Matrix", pa_mtx_file)
         mtx_cores = mtx.GetCores()
         all_modes = mtx.GetCoreNames()	   
         
@@ -266,8 +260,7 @@ Macro "Airport Separate Auto and Transit" (Args)
         matOpts = {{"File Name", transit_mtx_file}, {"Label", "Airport Transit Trips"}, {"File Based", "Yes"}, {"Tables", transit_modes}}
         CopyMatrixStructure({mtx_cores[1][2]}, matOpts)
         
-        transit_mtx = CreateObject("Matrix")
-        transit_mtx.LoadMatrix(transit_mtx_file)
+        transit_mtx = CreateObject("Matrix", transit_mtx_file)
         transit_cores = transit_mtx.GetCores()
         
         for transit_mode in transit_modes do
@@ -281,8 +274,7 @@ Macro "Airport Separate Auto and Transit" (Args)
         
         CopyFile(pa_mtx_file, auto_mtx_file)
         
-        auto_mtx = CreateObject("Matrix")
-        auto_mtx.LoadMatrix(auto_mtx_file) 
+        auto_mtx = CreateObject("Matrix", auto_mtx_file)
         auto_mtx.DropCores(transit_modes)
         auto_mtx.Pack()
         auto_mtx = null
@@ -323,13 +315,11 @@ Macro "Airport Directionality" (Args)
         mat = null
         tmat = null
         
-        mtx = CreateObject("Matrix")
-        mtx.LoadMatrix(od_mtx_file)  
+        mtx = CreateObject("Matrix", od_mtx_file)
         mtx_core_names = mtx.GetCoreNames()
         cores = mtx.GetCores()
         
-        t_mtx = CreateObject("Matrix")
-        t_mtx.LoadMatrix(od_transpose_mtx_file)
+        t_mtx = CreateObject("Matrix", od_transpose_mtx_file)
         t_cores = t_mtx.GetCores()
         
         pa_factor = dir_factors.(period)

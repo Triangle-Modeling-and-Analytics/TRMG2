@@ -2365,7 +2365,7 @@ Macro "Create Intra Cluster Matrix"(Args)
 
   outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
   // Create empty matrix
-  obj = CreateObject("Matrix") 
+  obj = CreateObject("Matrix", {Empty: True}) 
   obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
   opts.RowIds = v2a(vTAZ) 
   opts.ColIds = v2a(vTAZ)
