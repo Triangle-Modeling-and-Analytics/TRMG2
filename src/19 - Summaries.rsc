@@ -1942,11 +1942,8 @@ Macro "Equity" (Args)
 			{FieldName: "Poverty_dc", Description: "TAZ designated as a disadvantage community due to % of HHs living in poverty"}
 		}
 	})
-	// TODO: replace with new Table class method
-	{se_fields, se_specs} = RunMacro("Get Fields", {view_name: se.GetView()})
-	{agg_fields, agg_specs} = RunMacro("Get Fields", {view_name: agg.GetView()})
-	// se_specs = se.GetFieldSpecs({NamedArray: "true"})
-	// agg_specs = agg.GetFieldSpecs({NamedArray: "true"})
+	se_specs = se.GetFieldSpecs({NamedArray: "true"})
+	agg_specs = agg.GetFieldSpecs({NamedArray: "true"})
 	join = se.Join({
 		Table: agg,
 		LeftFields: "TAZ",
