@@ -74,6 +74,9 @@ Macro "Diff Line Layers" (MacroOpts)
   new_dbd = MacroOpts.new_dbd
 	set_line_width = 1.5
 
+  if GetFileInfo(old_dbd) = null then Throw("Diff Line Layers: old_dbd file not found")
+  if GetFileInfo(new_dbd) = null then Throw("Diff Line Layers: new_dbd file not found")
+
   // Create separate maps for both dbds
   {new_map, {new_nlyr, new_llyr}} = RunMacro("Create Map", {file: new_dbd, map_name: "new layer"})
   {old_map, {old_nlyr, old_llyr}} = RunMacro("Create Map", {file: old_dbd, map_name: "old layer"})
