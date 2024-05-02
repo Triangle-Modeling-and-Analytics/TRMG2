@@ -6,31 +6,14 @@ Macro "Create Scenario" (Args)
 
   pbar = CreateObject("G30 Progress Bar", "Scenario Creation", "False", )
 
-  scen_dir = Args.[Scenario Folder]
-  // Check if anything has already been created in the scenario directory
-  dir = Args.[Input Folder] + "/*"
-  if GetDirectoryInfo(dir, "All") <> null then do
-    opts = null
-    opts.Buttons = "YesNo"
-    opts.Caption = "Note"
-    str = "The input folder already contains information.\n" +
-      "Continuing will overwrite any manual changes made.\n" +
-      "(The output folder will not be modified.)\n" +
-      "Are you sure you want to continue?"
-    yesno = MessageBox(str, opts)
-  end
+  RunMacro("Check for Creation Files", Args)
+  RunMacro("Create Folder Structure", Args)
+  RunMacro("Copy TAZ", Args)
+  RunMacro("Create Scenario SE", Args)
+  RunMacro("Create Scenario Roadway", Args)
+  RunMacro("Check Scenario Roadway", Args)
+  RunMacro("Create Scenario Transit", Args)
 
-  if yesno = "Yes" or yesno = null then do
-    RunMacro("Check for Creation Files", Args)
-    RunMacro("Create Folder Structure", Args)
-    RunMacro("Copy TAZ", Args)
-    RunMacro("Create Scenario SE", Args)
-    RunMacro("Create Scenario Roadway", Args)
-    RunMacro("Check Scenario Roadway", Args)
-    RunMacro("Create Scenario Transit", Args)
-  end
-
-  ShowMessage("Scenario Created")
 EndMacro
 
 /*

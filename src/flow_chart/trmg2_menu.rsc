@@ -70,7 +70,22 @@ menu "TRMG2 Menu"
             return()
         end
 
-        mr.RunCode("Create Scenario", Args)
+        // Check if anything has already been created in the scenario directory
+        dir = Args.[Input Folder] + "/*"
+        if GetDirectoryInfo(dir, "All") <> null then do
+            opts = null
+            opts.Buttons = "YesNo"
+            opts.Caption = "Note"
+            str = "The input folder already contains information.\n" +
+            "Continuing will overwrite any manual changes made.\n" +
+            "(The output folder will not be modified.)\n" +
+            "Are you sure you want to continue?"
+            yesno = MessageBox(str, opts)
+        end
+        if yesno = "Yes" or yesno = null then do
+            mr.RunCode("Create Scenario", Args)
+            ShowMessage("Scenario Created")
+        end
         return(1)
     enditem
 
