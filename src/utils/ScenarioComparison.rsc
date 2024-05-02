@@ -393,7 +393,8 @@ Macro "Compare Link Data" (MacroOpts)
 
     jv = join_tbl.GetView()
     fields_to_map = {
-        "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"
+        "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily",
+        "AB_TransitFlow"
     }
     map.SetLayer(link_lyr)
 
