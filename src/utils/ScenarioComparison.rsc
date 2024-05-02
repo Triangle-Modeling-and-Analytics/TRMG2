@@ -343,6 +343,12 @@ Macro "Compare Link Data" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly
 
+    // Call the link layer Diff tool on both highway layers
+    RunMacro("Diff Line Layers", {
+        old_dbd: ref_scen + "/input/networks/scenario_links.dbd",
+        new_dbd: new_scen + "/input/networks/scenario_links.dbd"
+    })
+
     comp_dir = new_scen + "/comparison_outputs"
     map_dir = comp_dir + "/maps"
     RunMacro("Create Directory", map_dir)
@@ -387,7 +393,8 @@ Macro "Compare Link Data" (MacroOpts)
 
     jv = join_tbl.GetView()
     fields_to_map = {
-        "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"
+        "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily",
+        "AB_TransitFlow"
     }
     map.SetLayer(link_lyr)
 

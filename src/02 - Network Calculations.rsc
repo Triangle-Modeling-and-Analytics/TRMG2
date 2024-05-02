@@ -131,7 +131,7 @@ Macro "Filter Transit Modes" (Args)
     DeleteRecordsInSet(del_set)
     ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
     CloseView(mode_vw)
-    DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
+    // DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
     
     // Remove modes from MC parameter files
     RunMacro("Filter Resident HB Transit Modes", Args)
@@ -1168,7 +1168,7 @@ Macro "Set Route Network" (Args, opts)
     o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
     o.UserClasses = {"Class1"}
     o.CentroidFilter = "Centroid = 1"
-    // o.LinkImpedance = "IVTT"
+    o.LinkImpedance = "LBTime" // required, but fields specified in mode table have priority
     o.Parameters({
         MaxTripCost : 240,
         MaxTransfers : 1,
@@ -1249,7 +1249,7 @@ Macro "Set Route Network" (Args, opts)
             else opts.ParkingNodes = "PNR = 1"
         if (period = "PM" or period = "NT") and access_mode = "pnr" then do
             if GetFileInfo(Args.("ReturnParkingLotUsed"+transit_mode)) <> null then do
-                opts.ParkingUsage = {{MatrixFile: Args.("ReturnParkingLotUsed"+transit_mode), MatrixCore: "Parking Nodes"}}
+                opts.ParkingUsage = {MatrixFile: Args.("ReturnParkingLotUsed"+transit_mode), MatrixCore: "Parking Nodes"}
             end
             o.DriveEgress(opts)
         end
