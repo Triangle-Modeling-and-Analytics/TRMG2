@@ -9,6 +9,7 @@ Macro "Maps" (Args)
     RunMacro("Calculate Daily Fields", Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
+    RunMacro("Transit Maps", Args)
     RunMacro("Speed Maps", Args)
     //RunMacro("Isochrones", Args)
 	  RunMacro("Accessibility Maps", Args)
@@ -464,6 +465,27 @@ Macro "VOC Maps" (Args)
     end
   end
 EndMacro
+
+/*
+Creates a map showing transit flow
+*/
+
+Macro "Transit Maps" (Args)
+  
+  hwy_dbd = Args.Links
+  output_dir = Args.[Output Folder] + "/_summaries/maps"
+  if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
+
+  map = CreateObject("Map", hwy_dbd)
+  {nlyr, llyr} = map.GetLayerNames()
+  map.SetLayer(llyr)
+  map.SizeTheme({
+    FieldName: "AB_TransitFlow"
+  })
+  map.HideLayer(nlyr)
+  map.Save(output_dir + "/transit_flow.map")
+
+endmacro
 
 /*
 Creates a map showing speed reductions (similar to Google) for each period
