@@ -6,31 +6,14 @@ Macro "Create Scenario" (Args)
 
   pbar = CreateObject("G30 Progress Bar", "Scenario Creation", "False", )
 
-  scen_dir = Args.[Scenario Folder]
-  // Check if anything has already been created in the scenario directory
-  dir = Args.[Input Folder] + "/*"
-  if GetDirectoryInfo(dir, "All") <> null then do
-    opts = null
-    opts.Buttons = "YesNo"
-    opts.Caption = "Note"
-    str = "The input folder already contains information.\n" +
-      "Continuing will overwrite any manual changes made.\n" +
-      "(The output folder will not be modified.)\n" +
-      "Are you sure you want to continue?"
-    yesno = MessageBox(str, opts)
-  end
+  RunMacro("Check for Creation Files", Args)
+  RunMacro("Create Folder Structure", Args)
+  RunMacro("Copy TAZ", Args)
+  RunMacro("Create Scenario SE", Args)
+  RunMacro("Create Scenario Roadway", Args)
+  RunMacro("Check Scenario Roadway", Args)
+  RunMacro("Create Scenario Transit", Args)
 
-  if yesno = "Yes" or yesno = null then do
-    RunMacro("Check for Creation Files", Args)
-    RunMacro("Create Folder Structure", Args)
-    RunMacro("Copy TAZ", Args)
-    RunMacro("Create Scenario SE", Args)
-    RunMacro("Create Scenario Roadway", Args)
-    RunMacro("Check Scenario Roadway", Args)
-    RunMacro("Create Scenario Transit", Args)
-  end
-
-  ShowMessage("Scenario Created")
 EndMacro
 
 /*
@@ -41,16 +24,21 @@ Macro "Check for Creation Files" (Args)
 
   scen_dir = Args.[Scenario Folder]
 
+  // check to see which roadway project csv are present
+  campo_list = GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") <> null
+  dchc_list = GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") <> null
+  final_list = GetFileInfo(scen_dir + "/RoadwayProjectList.csv") <> null
+
   // Ensure the minimum files are present
   if GetDirectoryInfo(scen_dir, "All") = null then Throw(
     "The scenario directory does not exist.\n" +
     "Scenario Directory: \n" +
     scen_dir
   )
-  else if GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") = null then Throw(
+  else if !campo_list and !final_list then Throw(
     "The scenario directory is missing RoadwayProjectList_CAMPO.csv"
   )
-  else if GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") = null then Throw(
+  else if !dchc_list and !final_list then Throw(
     "The scenario directory is missing RoadwaRoadwayProjectList_DCHCyProjectList.csv"
   )
   else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
@@ -184,11 +172,35 @@ Macro "Create Scenario Roadway" (Args)
   if GetFileInfo(scen_hwy) <> null then DeleteFile(scen_hwy)
   CopyDatabase(master_hwy, scen_hwy)
 
+  // check to see which roadway project csv are present
+  scen_dir = Args.[Scenario Folder]
+  campo_list = GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") <> null
+  dchc_list = GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") <> null
+  final_list = GetFileInfo(scen_dir + "/RoadwayProjectList.csv") <> null
+
+  // Combine two project lists into one (if both are present)
+  if campo_list and dchc_list then do
+    output_proj_list = scen_dir + "/RoadwayProjectList.csv"
+    proj_list_CAMPO = scen_dir + "/RoadwayProjectList_CAMPO.csv"
+    proj_list_DCHC = scen_dir + "/RoadwayProjectList_DCHC.csv"
+    df = CreateObject("df", proj_list_CAMPO)
+    output = df.copy()
+    if output.tbl = null
+      then output = CreateObject("df", proj_list_DCHC)
+      else do
+        df = CreateObject("df", proj_list_DCHC)
+        if df.tbl.ProjID > 0 then output.bind_rows(df)
+      end
+    if output.tbl.ProjID > 0 then output.write_csv(output_proj_list)
+        else CopyFile(proj_list_CAMPO, output_proj_list)
+  end else if !final_list then Throw(
+    "The scenario directory is missing RoadwayProjectList.csv"
+  )
+
   // Update the network using the project manager
   opts = null
   opts.hwy_dbd = scen_hwy
-  opts.proj_list_CAMPO = Args.[Scenario Folder] + "/RoadwayProjectList_CAMPO.csv"
-  opts.proj_list_DCHC = Args.[Scenario Folder] + "/RoadwayProjectList_DCHC.csv"
+  opts.proj_list = scen_dir + "/RoadwayProjectList.csv"
   opts.master_dbd = master_hwy
   RunMacro("Roadway Project Management", opts)
 
