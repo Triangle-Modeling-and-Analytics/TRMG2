@@ -36,36 +36,18 @@ the project attributes.
 Macro "Roadway Project Management" (MacroOpts)
 
   hwy_dbd = MacroOpts.hwy_dbd
-  proj_list_CAMPO = MacroOpts.proj_list_CAMPO
-  proj_list_DCHC = MacroOpts.proj_list_DCHC
+  proj_list = MacroOpts.proj_list
   master_dbd = MacroOpts.master_dbd
 
   // Argument check
   if hwy_dbd = null then Throw("'hwy_dbd' not provided")
-  if proj_list_CAMPO = null then Throw("'proj_list_CAMPO' not provided")
-  if proj_list_DCHC = null then Throw("'proj_list_DCHC' not provided")
+  if proj_list = null then Throw("'proj_list' not provided")
   if master_dbd = null then Throw("'master_dbd' not provided")
 
-  // Combine two project lists into one
-  {drive, path, name, ext} = SplitPath(proj_list_CAMPO)
-  output_proj_list = drive + path + "RoadwayProjectList.csv"
-
-  df = CreateObject("df", proj_list_CAMPO)
-  output = df.copy()
-  if output.tbl = null
-    then output = CreateObject("df", proj_list_DCHC)
-    else do
-      df = CreateObject("df", proj_list_DCHC)
-      if df.tbl.ProjID > 0 then output.bind_rows(df)
-    end
-  if output.tbl.ProjID > 0 then output.write_csv(output_proj_list)
-      else CopyFile(proj_list_CAMPO, output_proj_list)
-  
-  // Get vector of project IDs from the project list file
-  // gplyr's read functions won't work here until it can handle empty files.
+  output_proj_list = proj_list
   csv_tbl = OpenTable("tbl", "CSV", {output_proj_list, })
   v_projIDs = GetDataVector(csv_tbl + "|", "ProjID", )
-  v_projIDs = String(v_projIDs)
+  if v_projIDs.type <> "string" then v_projIDs = String(v_projIDs)
   CloseView(csv_tbl)
   DeleteFile(Substitute(output_proj_list, ".csv", ".DCC", ))
 
