@@ -124,6 +124,13 @@ menu "Highway Analysis"
         Args = mr.GetValues()
         mr.RunCode("Open Fixed OD Dbox", Args)
     enditem
+
+    MenuItem "fixed_od_multi" text: "FixedOD Multiple Projects" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open FixedOD Multiple Projects Dbox", Args)
+    enditem
+
 endMenu
 
 menu "Accessibility Analysis"
