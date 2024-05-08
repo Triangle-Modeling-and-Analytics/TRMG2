@@ -1943,7 +1943,8 @@ Inputs (all in a named array)
 
 Returns
   * Nothing. Creates `boardings_and_alightings`, `transit_flow_by_link`,
-    and `passenger_miles_and_hours` csv tables.
+    and `passenger_miles_and_hours` csv tables. Also loads transit flow
+    data onto loaded_network.
 */
 
 Macro "Summarize Transit" (MacroOpts)
