@@ -189,9 +189,9 @@ Macro "Create Scenario Roadway" (Args)
       then output = CreateObject("df", proj_list_DCHC)
       else do
         df = CreateObject("df", proj_list_DCHC)
-        if df.tbl.ProjID > 0 then output.bind_rows(df)
+        if df.tbl.ProjID.length > 0 then output.bind_rows(df)
       end
-    if output.tbl.ProjID > 0 then output.write_csv(output_proj_list)
+    if output.tbl.ProjID.length > 0 then output.write_csv(output_proj_list)
         else CopyFile(proj_list_CAMPO, output_proj_list)
   end else if !final_list then Throw(
     "The scenario directory is missing RoadwayProjectList.csv"
