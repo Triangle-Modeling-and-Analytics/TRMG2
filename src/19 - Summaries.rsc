@@ -45,6 +45,7 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
     RunMacro("Validation Reports", Args)
+    RunMacro("Export Highway Shapefile", Args)
     return(1)
 endmacro
 
@@ -2561,4 +2562,100 @@ Macro "Validation Reports" (Args)
   opts.output_file = opts.scen_dir + "\\output\\_summaries\\validation\\validation_summary.csv"
   RunMacro("Concatenate Files", opts)
   
+endmacro
+
+/*
+
+*/
+
+Macro "Export Highway Shapefile" (Args)
+  
+  hwy_dbd = Args.Links
+
+  {drive, folder, name, ext} = SplitPath(hwy_dbd)
+  out_dir = drive + folder + "shapefile"
+  if GetDirectoryInfo(out_dir, "All") = null then CreateDirectory(out_dir)
+  map = CreateObject("Map", hwy_dbd)
+  {nlyr, llyr} = map.GetLayerNames()
+  out_file = out_dir + "\\scenario_links.shp"
+  ExportArcViewShape(llyr + "|", out_file, {
+    Fields: {
+      "ID",
+      "Dir",
+      "Length",
+      "RoadName",
+      "AltName",
+      "NCDOTClass",
+      "HCMType",
+      "ABLanes",
+      "BALanes",
+      "PostedSpeed",
+      "HCMMedian",
+      "DTWB",
+      "HOV",
+      "BOSSS",
+      "TollType",
+      "TollCostT",
+      "TollCostNT",
+      "FFSpeed",
+      "FFTime",
+      "ABAMTime",
+      "BAAMTime",
+      "ABMDTime",
+      "BAMDTime",
+      "ABPMTime",
+      "BAPMTime",
+      "ABNTTime",
+      "BANTTime",
+      "Max_Time_AM",
+      "Max_VOC_AM",
+      "Tot_VMT_AM",
+      "Tot_VHT_AM",
+      "AB_Speed_AM",
+      "BA_Speed_AM",
+      "AB_Flow_AM",
+      "BA_Flow_AM",
+      "Tot_Flow_AM",
+      "Max_Time_MD",
+      "Max_VOC_MD",
+      "Tot_VMT_MD",
+      "Tot_VHT_MD",
+      "AB_Speed_MD",
+      "BA_Speed_MD",
+      "AB_Flow_MD",
+      "BA_Flow_MD",
+      "Tot_Flow_MD",
+      "Max_Time_PM",
+      "Max_VOC_PM",
+      "Tot_VMT_PM",
+      "Tot_VHT_PM",
+      "AB_Speed_PM",
+      "BA_Speed_PM",
+      "AB_Flow_PM",
+      "BA_Flow_PM",
+      "Tot_Flow_PM",
+      "Max_Time_NT",
+      "Max_VOC_NT",
+      "Tot_VMT_NT",
+      "Tot_VHT_NT",
+      "AB_Speed_NT",
+      "BA_Speed_NT",
+      "AB_Flow_NT",
+      "BA_Flow_NT",
+      "Tot_Flow_NT",
+      "AB_Flow_Daily",
+      "BA_Flow_Daily",
+      "Total_Flow_Daily",
+      "Total_CV_Flow_Daily",
+      "Total_SUT_Flow_Daily",
+      "Total_MUT_Flow_Daily",
+      "Total_VMT_Daily",
+      "Total_VHT_Daily",
+      "Total_Delay_Daily",
+      "Tot_Delay_AM",
+      "Tot_Delay_MD",
+      "Tot_Delay_PM",
+      "Tot_Delay_NT"
+    }
+  })
 endmacro
