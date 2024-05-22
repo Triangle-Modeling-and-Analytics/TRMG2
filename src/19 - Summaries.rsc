@@ -27,25 +27,25 @@ endmacro
 
 Macro "Other Reports" (Args)
     
-    RunMacro("Summarize HB DC and MC", Args)
-    RunMacro("Summarize NHB DC and MC", Args)
-    RunMacro("Summarize NM", Args)
-    RunMacro("Summarize Total Mode Shares", Args)
-    RunMacro("Summarize Links", Args)
-    RunMacro("Congested VMT", Args)
-    RunMacro("Summarize Parking", Args)
-    RunMacro("VMT_Delay Summary", Args)
-    RunMacro("Congestion Cost Summary", Args)
-    RunMacro("Create PA Vehicle Trip Matrices", Args)
-    RunMacro("Equity", Args)
-    RunMacro("Disadvantage Community Skims", Args)
-    RunMacro("Disadvantage Community Mode Shares", Args)
-    RunMacro("Disadvantage Community Mapping", Args)
-    RunMacro("Summarize NM Disadvantage Community", Args)
-    RunMacro("Summarize HH Strata", Args)
-    RunMacro("Aggregate Transit Flow by Route", Args)
-    RunMacro("Validation Reports", Args)
-    RunMacro("Export Highway Shapefile", Args)
+    // RunMacro("Summarize HB DC and MC", Args)
+    // RunMacro("Summarize NHB DC and MC", Args)
+    // RunMacro("Summarize NM", Args)
+    // RunMacro("Summarize Total Mode Shares", Args)
+    // RunMacro("Summarize Links", Args)
+    // RunMacro("Congested VMT", Args)
+    // RunMacro("Summarize Parking", Args)
+    // RunMacro("VMT_Delay Summary", Args)
+    // RunMacro("Congestion Cost Summary", Args)
+    // RunMacro("Create PA Vehicle Trip Matrices", Args)
+    // RunMacro("Equity", Args)
+    // RunMacro("Disadvantage Community Skims", Args)
+    // RunMacro("Disadvantage Community Mode Shares", Args)
+    // RunMacro("Disadvantage Community Mapping", Args)
+    // RunMacro("Summarize NM Disadvantage Community", Args)
+    // RunMacro("Summarize HH Strata", Args)
+    // RunMacro("Aggregate Transit Flow by Route", Args)
+    // RunMacro("Validation Reports", Args)
+    RunMacro("Export Highway Geodatabase", Args)
     return(1)
 endmacro
 
@@ -2648,18 +2648,22 @@ endmacro
 
 */
 
-Macro "Export Highway Shapefile" (Args)
+Macro "Export Highway Geodatabase" (Args)
   
   hwy_dbd = Args.Links
 
+  // Writing the GDB needs an existing folder that gets converted
+  // to a .gdb file. So we need to create the folder first.
   {drive, folder, name, ext} = SplitPath(hwy_dbd)
-  out_dir = drive + folder + "shapefile"
+  out_dir = drive + folder + name
   if GetDirectoryInfo(out_dir, "All") = null then CreateDirectory(out_dir)
+  
+  // Create a map and export the link layer
   map = CreateObject("Map", hwy_dbd)
   {nlyr, llyr} = map.GetLayerNames()
-  out_file = out_dir + "\\scenario_links.shp"
-  ExportArcViewShape(llyr + "|", out_file, {
-    Fields: {
+  opts = null
+  opts.[Layer Name] = llyr
+  opts.Fields = {
       "ID",
       "Dir",
       "Length",
@@ -2737,5 +2741,7 @@ Macro "Export Highway Shapefile" (Args)
       "Tot_Delay_PM",
       "Tot_Delay_NT"
     }
-  })
+  opts.ID = "ID"
+  opts.[EPSG Datum] = 4269 // North America
+  ExportGdalVector(llyr + "|", out_dir, "FileGDB", opts)
 endmacro
