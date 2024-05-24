@@ -5,6 +5,11 @@
 Macro "Time of Day Split" (Args)
 
     RunMacro("Resident HB TOD", Args)
+
+    // For the disaggregate approach, create trip tables for each trip type.
+    // Then, run disaggregate TOD to determine the period of each trip.
+    RunMacro("Create Trip Tables", Args)
+    // RunMacro("Resident HB TOD Disaggregate", Args)
     return(1)
 endmacro
 
@@ -47,4 +52,66 @@ Macro "Resident HB TOD" (Args)
     SetDataVectors(se_vw + "|", data, )    
     CloseView(se_vw)
     CloseView(fac_vw)
+endmacro
+
+/*
+Expand the trip rates from the synthetic person table into trip tables for each 
+trip type.
+*/
+
+Macro "Create Trip Tables" (Args)
+    
+    per_file = Args.Persons
+    out_dir = Args.[Output Folder] + "/resident/trip_tables"
+
+    if GetDirectoryInfo(out_dir, "All") = null then CreateDirectory(out_dir)
+
+    {drive, folder, name, ext} = SplitPath(per_file)
+    trip_file = drive + folder + "/temp.bin"
+    CopyFile(per_file, trip_file)
+    CopyFile(
+        Substitute(per_file, ".bin", ".dcb", ), 
+        Substitute(trip_file, ".bin", ".dcb", )
+    )
+    trips = CreateObject("Table", trip_file)
+
+    // Integerize Trips
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    field_names = trips.GetFieldNames()
+    SetRandomSeed(199999)
+    // for field in field_names do
+    for trip_type in trip_types do
+        
+        // The original trip type field (e.g. W_HB_EK12_All) is split into two
+        // additional fields: motorized ("_m") and non-motorized ("_nm"). Drop 
+        // the original and non-motorized fields.
+        fields_to_drop = fields_to_drop + {trip_type, trip_type + "_nm"}
+
+        // The trips will look like 1.5. Integerize them by rounding down
+        // and then randomly adding 1 based on the decimal value.
+        field = trip_type + "_m"
+        v = trips.(field)
+        v_floor = floor(v)
+        v_mod = mod(v, 1)
+        v_rand = RandomSamples(v_mod.length, "Uniform")
+        v_extra_trip = if v_rand < v_mod then 1 else 0
+        v_trips = v_floor + v_extra_trip
+        field_data.(field) = v_trips
+    end
+    trips.DropFields({FieldNames: fields_to_drop})
+    trips.SetDataVectors({FieldData: field_data})
+
+    // Export a trip table for each trip type
+    for trip_type in trip_types do
+        field = trip_type + "_m"
+        exp_tbl = trips.Expand({
+            FrequencyField: field,
+            OutputFile: out_dir + "/" + trip_type + ".bin"
+        })
+    end
+
+    // Delete the temporary trip file
+    trips = null
+    DeleteFile(trip_file)
+    DeleteFile(Substitute(trip_file, ".bin", ".dcb", ))
 endmacro
