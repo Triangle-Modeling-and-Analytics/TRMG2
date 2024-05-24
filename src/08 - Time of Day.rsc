@@ -9,7 +9,7 @@ Macro "Time of Day Split" (Args)
     // For the disaggregate approach, create trip tables for each trip type.
     // Then, run disaggregate TOD to determine the period of each trip.
     RunMacro("Create Trip Tables", Args)
-    // RunMacro("Resident HB TOD Disaggregate", Args)
+    RunMacro("Resident HB TOD Disaggregate", Args)
     return(1)
 endmacro
 
@@ -114,4 +114,42 @@ Macro "Create Trip Tables" (Args)
     trips = null
     DeleteFile(trip_file)
     DeleteFile(Substitute(trip_file, ".bin", ".dcb", ))
+endmacro
+
+/*
+Disaggregate approach for determining the time of day of each trip.
+*/
+
+Macro "Resident HB TOD Disaggregate" (Args)
+
+    tod_file = Args.ResTODFactors
+    trip_dir = Args.[Output Folder] + "/resident/trip_tables"
+
+    fac = CreateObject("Table", tod_file)
+    trip_types = fac.trip_type
+    trip_types = SortVector(trip_types, {Unique: true})
+
+
+    for trip_type in trip_types do
+        
+        // Get factors only for this trip type
+        fac.SelectByQuery({
+            SetName: "selection",
+            Filter: "trip_type = '" + trip_type + "'"
+        })
+        v_tod = fac.tod
+        v_fac = fac.factor
+
+        // Open the trip table for this trip type and assign TOD values
+        trips = CreateObject("Table", trip_dir + "/" + trip_type + ".bin")
+        trips.AddField({FieldName: "TOD", Type: "String", Description: "Time of Day"})
+        n = trips.GetRecordCount()
+        tods = RandSamples(n, "Discrete", {
+            Population: v_tod,
+            Weight: v_fac
+        })
+        trips.TOD = tods
+        trips = null
+    end
+
 endmacro
