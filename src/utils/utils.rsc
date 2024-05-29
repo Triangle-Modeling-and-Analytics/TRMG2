@@ -2057,7 +2057,7 @@ Macro "Summarize Transit" (MacroOpts)
   
   // Passenger miles and hours
   flow = tables.flow
-  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT / 60)
   flow.mutate(
     "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
   flow.group_by("Route")
