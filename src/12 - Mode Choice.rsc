@@ -160,7 +160,8 @@ Macro "Post Process Logsum" (Args)
             else segments = {"v0", "vi", "vs"}
         for period in periods do
             for segment in segments do
-                mtx_file = ls_dir + "/logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"
+                tag = trip_type + "_" + segment + "_" + period
+                mtx_file = ls_dir + "/logsum_" + tag + ".mtx"
                 mtx = CreateObject("Matrix", mtx_file)
                 core_names = mtx._GetCoreNames()
                 if ArrayPosition(core_names, {"nonhh_auto"},) > 0 then do
@@ -175,6 +176,7 @@ Macro "Post Process Logsum" (Args)
                     mtx.AddCores({"AutoComposite"})
                     mtx.AutoComposite := log(1 + nz(exp(mtx.auto)))
                 end
+                RenameMatrix(mtx.GetMatrixHandle(), "Logsum_" + tag)
                 mtx = null
             end
         end
