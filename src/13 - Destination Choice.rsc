@@ -9,8 +9,11 @@ Macro "Destination Probabilities" (Args)
         RunMacro("DC Attractions", Args)
         RunMacro("DC Size Terms", Args)
     end
-    RunMacro("HBW DC", Args)
-    RunMacro("Other HB DC", Args)
+    //RunMacro("HBW DC", Args)
+    //RunMacro("Other HB DC", Args)
+
+    RunMacro("HBW Disagg DC", Args)
+    //RunMacro("Other HB Disagg DC", Args)
     return(1)
 endmacro
 
@@ -175,6 +178,22 @@ Macro "HBW DC" (Args)
     end
 endmacro
 
+
+Macro "HBW Disagg DC" (Args)
+    if Args.FeedbackIteration = 1 then RunMacro("Create Intra Cluster Matrix", Args)
+    
+    trip_types = {"W_HB_W_All"}
+    max_iters = 3
+    for i = 1 to max_iters do
+        RunMacro("Calculate Disagg Destination Choice", Args, trip_types)
+        if i < max_iters then prmse = RunMacro("Update Disagg Shadow Price", Args)
+
+        // If the %RMSE is <2, then stop early. For the base year, the starting shadow
+        // prices will be close enough to not need repeated runs.
+        if abs(prmse) < 10 then break
+    end
+endmacro
+
 /*
 Remaining trip types are not doubly constrained
 */
@@ -186,10 +205,17 @@ Macro "Other HB DC" (Args)
     RunMacro("Calculate Destination Choice", Args, trip_types)
 endmacro
 
+
+Macro "Other HB Disagg DC" (Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    pos = trip_types.position("W_HB_W_All")
+    trip_types = ExcludeArrayElements(trip_types, pos, 1)
+    RunMacro("Calculate Disagg Destination Choice", Args, trip_types)
+endmacro
+
 /*
 
 */
-
 Macro "Calculate Destination Choice" (Args, trip_types)
 
     scen_dir = Args.[Scenario Folder]
@@ -262,6 +288,123 @@ Macro "Calculate Destination Choice" (Args, trip_types)
     // monitor.CloseStatusDbox()
 endmacro
 
+
+Macro "Calculate Disagg Destination Choice" (Args, trip_types)
+    scen_dir = Args.[Scenario Folder]
+    skims_dir = scen_dir + "\\output\\skims\\"
+    input_dir = Args.[Input Folder]
+    input_dc_dir = input_dir + "/resident/dc"
+    output_dir = Args.[Output Folder] + "/resident/dc"
+    periods = RunMacro("Get Unconverged Periods", Args)
+    sp_file = Args.ShadowPrices
+    se_file = scen_dir + "/output/sedata/scenario_se.bin"
+
+    opts = null
+    opts.output_dir = output_dir
+    opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
+    opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
+
+    pbar = CreateObject("G30 Progress Bar", "Disaggregate DC Model by purpose and period", false, trip_types.length*periods.length)
+    for trip_type in trip_types do
+        if Lower(trip_type) = "w_hb_w_all" then do
+            segMap = {v0: 1, ilvi: 2, ihvi: 3, ilvs: 4, ihvs: 5}
+            segments = {"v0", "ilvi", "ihvi", "ilvs", "ihvs"}
+        end
+        else do 
+            segMap = {v0: 1, ilvi: 2, ihvi: 2, ilvs: 3, ihvs: 3}
+            segments = {"v0", "vi", "vs"}
+        end
+
+        trip_file = Args.[Output Folder] + "/resident/trip_tables/" + trip_type + ".bin"
+
+        // Add choice field and sequence field to trip file
+        tObj = CreateObject("Table", trip_file)
+        fields =    {{FieldName: "MarketSegmentCode", Type: "short"},
+                    {FieldName: "TripID", Type: "integer"}, // short, real (default), integer, string
+                    {FieldName: "DestTAZ", Type: "integer"}}
+        tObj.AddFields({Fields: fields})
+
+        // Fill TripID and MarketSegment Code field
+        v = tObj.TripID
+        v = Vector(v.length, "Long", {{"Sequence", 1, 1}})
+        tObj.TripID = v
+        arrCode = v2a(tObj.market_segment).Map(do (f) return(segMap.(f)) end)
+        tObj.MarketSegmentCode = a2v(arrCode)
+        tObj = null
+
+        opts.trip_type = trip_type
+        opts.zone_utils = input_dc_dir + "/" + Lower(trip_type) + "_zone_disagg.csv"
+        opts.cluster_data = input_dc_dir + "/" + Lower(trip_type) + "_cluster.csv"
+        
+        for period in periods do
+            opts.period = period
+            opts.primary_spec = {Name: "trips", Filter: "TOD = '" + period + "'", OField: "HHTAZ"}
+            
+            // Determine which sov skim to use
+            if period = "MD" or period = "NT" then do
+                tour_type = "All"
+                homebased = "All"
+            end else do
+                tour_type = Upper(Left(trip_type, 1))
+                homebased = "HB"
+            end
+            sov_skim = skims_dir + "roadway/avg_skim_" + period + "_" + tour_type + "_" + homebased + "_sov.mtx"
+            
+            // Set table sources
+            opts.tables = {
+                se: {File: se_file, IDField: "TAZ"},
+                parking: {File: scen_dir + "/output/resident/parking/ParkingLogsums.bin", IDField: "TAZ"},
+                sp: {File: sp_file, IDField: "TAZ"},
+                trips: {File: trip_file, IDField: "TripID"}
+            }
+            
+            // Set matrix sources
+            opts.matrices = {
+                intra_cluster: {File: skims_dir + "/IntraCluster.mtx"},
+                sov_skim: {File: sov_skim}
+            }
+            for segment in segments do
+                opts.matrices.("mc_logsums_" + segment) = {File: scen_dir + "/output/resident/mode/logsums/" + "logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"}
+            end
+
+            // if Lower(trip_type) = "w_hb_w_all" then // Perform shadow pricing with max of three iterations
+            //     opts.shadow_price_spec = {attractions_source: 'se', attractions_field: 'w_hbw_a',
+            //                                 sp_source: 'sp', sp_field: 'hbw',
+            //                                 iterations: 3, rmse_tolerance: 2}      
+
+            // RunMacro("Parallel.SetMaxEngines", 3)
+            // task = CreateObject("Parallel.Task", "DC Runner", GetInterface())
+            // task.Run(opts)
+            // tasks = tasks + {task}
+            
+            // To run this code in series (and not in parallel), comment out the "task"
+            // and "monitor" lines of code. Uncomment the two lines below. This can be
+            // helpful for debugging.
+            obj = CreateObject("NestedDC", opts)
+            obj.Run()
+
+            // Copy (and add) choices field
+            outputFile = output_dir + "/choices/" + trip_type + "_" + period + "_DC_Choices.bin"
+            fopts = {TripsFile: trip_file,
+                     ChoicesFile: outputFile,
+                     IDField: "[_PersonID]",
+                     ChoiceField: "[_DestZoneID]"
+                    }
+            RunMacro("Copy DC Choices", fopts)
+            pbar.Step()
+        end
+    end
+    pbar.Destroy()
+
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
+endmacro
+
+
+
 Macro "DC Runner" (opts)
     obj = CreateObject("NestedDC", opts)
     obj.Run()
@@ -328,6 +471,41 @@ Macro "Update Shadow Price" (Args)
     prmse = stats.RelRMSE
     return(prmse)
 endmacro
+
+
+
+Macro "Update Disagg Shadow Price" (Args)
+    trip_file = Args.[Output Folder] + "/resident/trip_tables/W_HB_W_All.bin"
+    tripsObj = CreateObject("Table", trip_file)
+    seObj = CreateObject("Table", Args.SE)
+    seObj.Sort({FieldArray: {"TAZ": "ascending"}})
+    spObj = CreateObject("Table", Args.ShadowPrices)
+    v_sp = spObj.hbw
+    v_attrs = seObj.w_hbw_a
+
+    aggrObj = tripsObj.Aggregate({GroupBy: "DestTAZ", FieldStats: {"DestTAZ": "count"}})
+    joinObj = seObj.Join({Table: aggrObj, LeftFields: {"TAZ"}, RightFields: {"DestTAZ"}})
+    joinObj.Sort({FieldArray: {"TAZ": "ascending"}})
+    v_total_trips = joinObj.count_DestTAZ
+    joinObj = null
+    aggrObj = null
+    seObj = null
+
+    // Calculate constant adjustmente. avoid Log(0) = -inf
+    delta = if v_attrs = 0 or v_total_trips = 0
+                then 0
+                else nz(Log(v_attrs/v_total_trips)) * .75
+    v_sp_new = nz(v_sp) + delta
+    spObj.hbw = v_sp_new
+    spObj = null
+
+    // return the %RMSE
+    o = CreateObject("Model.Statistics")
+    stats = o.rmse({Method: "vectors", Predicted: v_total_trips, Observed: v_attrs})
+    prmse = stats.RelRMSE
+    return(prmse)
+endmacro
+
 
 /*
 With DC and MC probabilities calculated, resident trip productions can be 
@@ -424,3 +602,17 @@ Macro "Apportion Resident HB Trips" (Args)
         end
     end
 endmacro
+
+
+/*
+    Copy choices file from the choices table written by Nested DC to the trips file
+*/
+Macro "Copy DC Choices"(opts)
+    objC = CreateObject("Table", opts.ChoicesFile)
+    objP = CreateObject("Table", opts.TripsFile)
+    objJ = objC.Join({Table: objP, LeftFields: {"[_PersonID]"}, RightFields: {"TripID"}})
+    objJ.DestTAZ = objJ.[_DestZoneID]
+    objJ = null
+    objP = null
+    objC = null
+endMacro
