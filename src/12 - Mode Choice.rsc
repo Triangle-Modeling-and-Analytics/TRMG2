@@ -276,6 +276,7 @@ Macro "Calculate Disagg MC" (Args)
 
             opts.output_dir = output_dir
             opts.choice_field = "Mode"
+            opts.random_seed = 999*trip_types.position(trip_type) + 99*periods.position(period)
             
             // RunMacro("Parallel.SetMaxEngines", 3)
             // task = CreateObject("Parallel.Task", "MC", GetInterface())

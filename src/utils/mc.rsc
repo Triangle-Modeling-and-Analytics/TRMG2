@@ -209,6 +209,7 @@ Macro "Disagg MC" (MacroOpts)
     primary_spec = MacroOpts.primary_spec
     tables = MacroOpts.tables
     matrices = MacroOpts.matrices
+    seed = MacroOpts.random_seed
 
     if output_dir = null then Throw("MC: 'output_dir' is null")
     if trip_type = null then Throw("MC: 'trip_type' is null")
@@ -238,6 +239,7 @@ Macro "Disagg MC" (MacroOpts)
     // Set up and run model
     obj = CreateObject("PMEChoiceModel", {ModelName: tag})
     obj.OutputModelFile = mdl_dir + "\\" + tag + ".mdl"
+    obj.RandomSeed = seed
 
     // Add sources
     for i = 1 to tables.length do

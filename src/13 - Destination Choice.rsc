@@ -392,6 +392,7 @@ Macro "Calculate Disagg Destination Choice" (Args, trip_types)
             // To run this code in series (and not in parallel), comment out the "task"
             // and "monitor" lines of code. Uncomment the two lines below. This can be
             // helpful for debugging.
+            opts.random_seed = 999*trip_types.position(trip_type) + 99*periods.position(period)
             obj = CreateObject("NestedDC", opts)
             obj.Run()
 
