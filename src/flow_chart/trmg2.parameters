@@ -116,6 +116,7 @@
         Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
         Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates (for work double constraint)" }
         Args.ShadowPrices = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\shadow_prices.bin", "Caption":"Resident DC shadow prices (for work double constraint)" }
+        Args.DisaggShadowPrices = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\shadow_prices_disagg.bin", "Caption":"Resident shadow prices for disaggregate DC models" }
 
     Section = "Parking Model|Coefficients"
     

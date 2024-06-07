@@ -1,0 +1,19 @@
+Expression,Filter,Coefficient,Description
+se.w_hbw_size_H.D,trips.MarketSegmentCode = 3,0.676,Size term for high income workers (ihvi)
+se.w_hbw_size_H.D,trips.MarketSegmentCode = 5,0.676,Size term for high income workers (ihvs)
+se.w_hbw_size_L.D,trips.MarketSegmentCode = 2,0.676,Size term for low income workers (ilvi)
+se.w_hbw_size_L.D,trips.MarketSegmentCode = 4,0.676,Size term for low income workers (ilvs)
+se.w_hbw_size_L.D,trips.MarketSegmentCode = 1,0.676,Size term for low income workers (v0)
+nz(mc_logsums_ihvi.TransitComposite),trips.MarketSegmentCode = 3,0.0601,MC Transit Logsum (ihvi)
+nz(mc_logsums_ihvs.TransitComposite),trips.MarketSegmentCode = 5,0.0601,MC Transit Logsum (ihvs)
+nz(mc_logsums_ilvi.TransitComposite),trips.MarketSegmentCode = 2,0.0601,MC Transit Logsum (ilvi)
+nz(mc_logsums_ilvs.TransitComposite),trips.MarketSegmentCode = 4,0.0601,MC Transit Logsum (ilvs)
+nz(mc_logsums_v0.TransitComposite),trips.MarketSegmentCode = 1,0.0601,MC Transit Logsum (v0)
+intra_cluster.IZ,,0.815,
+sov_skim.CongTime,,-0.0965,
+se.access_hospital_sov.D,,0.195,
+se.access_transit.D,,0.0322,
+se.access_walk.D,trips.MarketSegmentCode = 1,0.353,Only for v0
+sp.hbw.D,,1,Shadow price
+intra_cluster.IZ,,0.6,Adjustment
+sov_skim.CongTime > 60,,-99,Cutoff

@@ -1,0 +1,15 @@
+Expression,Filter,Coefficient,Description
+se.n_hbods_size.D,,0.586,Size term
+nz(mc_logsums_v0.NonHHAutoComposite),trips.MarketSegmentCode = 1,0.392,NonAuto MC Logsum: v0 Segment
+nz(mc_logsums_vi.NonHHAutoComposite),trips.MarketSegmentCode = 2,0.392,NonAuto MC Logsum: vi Segment
+nz(mc_logsums_vs.NonHHAutoComposite),trips.MarketSegmentCode = 3,0.392,NonAuto MC Logsum: vs Segment
+nz(mc_logsums_v0.TransitComposite),trips.MarketSegmentCode = 1,0.202,Transit MC Logsum: v0 Segment
+nz(mc_logsums_vi.TransitComposite),trips.MarketSegmentCode = 2,0.202,Transit MC Logsum: vi Segment
+nz(mc_logsums_vs.TransitComposite),trips.MarketSegmentCode = 3,0.202,Transit MC Logsum: vs Segment
+nz(mc_logsums_vi.AutoComposite),trips.MarketSegmentCode = 2,0.0438,Auto MC Logsum: vi Segment
+nz(mc_logsums_vs.AutoComposite),trips.MarketSegmentCode = 3,0.0438,Auto MC Logsum: vs Segment
+intra_cluster.IZ,,0.965,
+sov_skim.CongTime,,-0.169,
+"max(0, sov_skim.CongTime - 20)",,0.0525,
+intra_cluster.IZ,,0.05,Adjustment
+sov_skim.CongTime > 55,,-99,Cutoff

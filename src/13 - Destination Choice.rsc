@@ -1,26 +1,38 @@
 /*
-
+    Aggregate destination choice models
 */
 
 Macro "Destination Probabilities" (Args)
-
     if Args.FeedbackIteration = 1 then do
         RunMacro("Split Employment by Earnings", Args)
         RunMacro("DC Attractions", Args)
         RunMacro("DC Size Terms", Args)
     end
-    //RunMacro("HBW DC", Args)
-    //RunMacro("Other HB DC", Args)
-
-    RunMacro("HBW Disagg DC", Args)
-    //RunMacro("Other HB Disagg DC", Args)
+    RunMacro("HBW DC", Args)
+    RunMacro("Other HB DC", Args)
     return(1)
 endmacro
+
 
 Macro "Application of Probabilities" (Args)
     RunMacro("Apportion Resident HB Trips", Args)
     return(1)
 endmacro
+
+
+/*
+    Disaggregate nested destination choice models
+*/
+Macro "Destination Choices" (Args)
+    if Args.FeedbackIteration = 1 then do
+        RunMacro("Split Employment by Earnings", Args)
+        RunMacro("DC Attractions", Args)
+        RunMacro("DC Size Terms", Args)
+    end
+    RunMacro("HBW Disagg DC", Args)
+    RunMacro("Other HB Disagg DC", Args)
+    return(1)
+endMacro
 
 /*
 The resident DC model needs the low-earning fields for the attraction models.
@@ -167,7 +179,7 @@ Macro "HBW DC" (Args)
     if Args.FeedbackIteration = 1 then RunMacro("Create Intra Cluster Matrix", Args)
 
     trip_types = {"W_HB_W_All"}
-    max_iters = 3
+    max_iters = 1
     for i = 1 to max_iters do
         RunMacro("Calculate Destination Choice", Args, trip_types)
         if i < max_iters then prmse = RunMacro("Update Shadow Price", Args, trip_types)
@@ -183,7 +195,7 @@ Macro "HBW Disagg DC" (Args)
     if Args.FeedbackIteration = 1 then RunMacro("Create Intra Cluster Matrix", Args)
     
     trip_types = {"W_HB_W_All"}
-    max_iters = 3
+    max_iters = 1
     for i = 1 to max_iters do
         RunMacro("Calculate Disagg Destination Choice", Args, trip_types)
         if i < max_iters then prmse = RunMacro("Update Disagg Shadow Price", Args)
@@ -296,7 +308,7 @@ Macro "Calculate Disagg Destination Choice" (Args, trip_types)
     input_dc_dir = input_dir + "/resident/dc"
     output_dir = Args.[Output Folder] + "/resident/dc"
     periods = RunMacro("Get Unconverged Periods", Args)
-    sp_file = Args.ShadowPrices
+    sp_file = Args.DisaggShadowPrices
     se_file = scen_dir + "/output/sedata/scenario_se.bin"
 
     opts = null
@@ -479,7 +491,7 @@ Macro "Update Disagg Shadow Price" (Args)
     tripsObj = CreateObject("Table", trip_file)
     seObj = CreateObject("Table", Args.SE)
     seObj.Sort({FieldArray: {"TAZ": "ascending"}})
-    spObj = CreateObject("Table", Args.ShadowPrices)
+    spObj = CreateObject("Table", Args.DisaggShadowPrices)
     v_sp = spObj.hbw
     v_attrs = seObj.w_hbw_a
 

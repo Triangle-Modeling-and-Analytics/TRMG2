@@ -132,7 +132,7 @@ EndMacro
 Macro "Destination Probabilities" (Args,Result)
     Attributes = {
         {"Class", {"GISDK"}},
-        {"MacroNames", {"Destination Probabilities"}},
+        {"MacroNames", {"Destination Probabilities", "Destination Choices"}},
         {"Picture", "bmp\\planmodesplit_v3.bmp"}
     }
 Data:
@@ -702,7 +702,7 @@ EndMacro
 Macro "Application of Probabilities" (Args,Result)
     Attributes = {
         {"Class", {"GISDK"}},
-        {"MacroNames", {"Application of Probabilities"}},
+        {"MacroNames", {"Application of Probabilities", "Mode Choices"}},
         {"Picture", "bmp/planmodesplit_v3.bmp"}
     }
 EndMacro
