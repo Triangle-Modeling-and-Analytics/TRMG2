@@ -1,0 +1,56 @@
+﻿Alternative,Expression,Filter,Coefficient,Description
+sov,trips.One,,4.516,
+sov,trips.One,trips.MarketSegmentCode = 1,-99,Auto Availability
+sov,sov_skim.CongTime,,-0.1965,Travel time
+sov,sov_skim.[TollCostSOV (Skim)],,-0.990923,Toll cost
+hov2,trips.One,,4.467,Constant
+hov2,trips.One,trips.MarketSegmentCode = 1,-99,Auto Availability
+hov2,hov_skim.CongTime,,-0.1965,Travel time
+hov2,hov_skim.[TollCostHOV (Skim)],,-0.990923,Toll cost
+hov2,se.HHSize1Pct.O,,-0.4996,Percent of 1-person HHs
+hov3,trips.One,,4.44,
+hov3,trips.One,trips.MarketSegmentCode = 1,-99,Auto Availability
+hov3,hov_skim.CongTime,,-0.1965,Travel time
+hov3,hov_skim.[TollCostHOV (Skim)],,-0.990923,Toll cost
+hov3,se.HHSize1Pct.O,,-0.4996,Percent of 1-person HHs
+other_auto,trips.One,,-4.305,Constant
+other_auto,sov_skim.CongTime,,-0.1614,Travel time
+other_auto,sov_skim.[TollCostSOV (Skim)],,-0.813918,Toll cost
+other_auto,parking.MC_LS_NonWork.D,,0.3945,Parking
+auto_pay,trips.One,,-0.4568,Constant
+auto_pay,hov_skim.CongTime,,-0.08114,Travel time
+auto_pay,se.PKTNCWait.O,,-0.08114,Auto wait time
+auto_pay,hov_skim.auto_pay_fare,,-0.409178,Auto fare
+auto_pay,trips.One,trips.MarketSegmentCode = 1,0.17863,Additional Calibration Constant
+other_auto,trips.One,trips.MarketSegmentCode = 1,0.385983,Additional Calibration Constant
+sov,trips.One,trips.MarketSegmentCode = 2,0.95722,Additional Calibration Constant
+hov2,trips.One,trips.MarketSegmentCode = 2,0.802299,Additional Calibration Constant
+hov3,trips.One,trips.MarketSegmentCode = 2,0.689767,Additional Calibration Constant
+auto_pay,trips.One,trips.MarketSegmentCode = 2,0.763756,Additional Calibration Constant
+other_auto,trips.One,trips.MarketSegmentCode = 2,0.337986,Additional Calibration Constant
+sov,trips.One,trips.MarketSegmentCode = 3,-0.946527,Additional Calibration Constant
+hov2,trips.One,trips.MarketSegmentCode = 3,-1.03229,Additional Calibration Constant
+hov3,trips.One,trips.MarketSegmentCode = 3,-0.996232,Additional Calibration Constant
+auto_pay,trips.One,trips.MarketSegmentCode = 3,-3.70887,Additional Calibration Constant
+other_auto,trips.One,trips.MarketSegmentCode = 3,-0.852998,Additional Calibration Constant
+w_lb,trips.One,,2.165,Constant
+w_lb,trips.One,trips.MarketSegmentCode = 1,1.1173,Zero-vehicle households
+w_lb,trips.One,trips.MarketSegmentCode = 2,0.5373,Vehicle Insufficient households
+w_lb,w_lb_skim.[In-Vehicle Time],,-0.02129,IVTT
+w_lb,w_lb_skim.Fare,,-0.107363,Fare
+w_lb,w_lb_skim.[Access Walk Time],,-0.09,Access walk time
+w_lb,w_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
+w_lb,w_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
+w_lb,w_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
+w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
+w_lb,se.HiIncomePct.O,,-0.8481,High income household percentage
+w_eb,trips.One,trips.MarketSegmentCode = 1,1.1173,Zero-vehicle households
+w_eb,trips.One,trips.MarketSegmentCode = 2,0.5373,Vehicle Insufficient households
+w_eb,w_eb_skim.[In-Vehicle Time],,-0.02129,IVTT
+w_eb,w_eb_skim.Fare,,-0.107363,Fare
+w_eb,w_eb_skim.[Access Walk Time],,-0.09,Access walk time
+w_eb,w_eb_skim.[Initial Wait Time],,-0.0826,Initial wait time
+w_eb,w_eb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
+w_eb,w_eb_skim.[Egress Walk Time],,-0.062,Egress walk time
+w_eb,w_eb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
+w_eb,se.HiIncomePct.O,,-0.8481,High income household percentage

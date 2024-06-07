@@ -1,0 +1,36 @@
+﻿Alternative,Expression,Filter,Coefficient,Description
+sov,trips.One,,-0.1064,Constant
+sov,trips.One,trips.MarketSegmentCode = 1,-99,Auto Availability
+sov,sov_skim.CongTime,,-0.1478,Travel time
+hov2,trips.One,,-0.2817,Constant
+hov2,hov_skim.CongTime,,-0.1478,Travel time
+hov2,se.LargeHHPct.O,,0.4896,Large household percentage
+hov3,trips.One,,-0.02895,Constant
+hov3,hov_skim.CongTime,,-0.1478,Travel time
+hov3,se.LargeHHPct.O,,0.4896,Large household percentage
+other_auto,trips.One,,-1.248,Constant
+other_auto,sov_skim.CongTime,,-0.1693,Travel time
+school_bus,trips.One,,0.4661,Constant
+school_bus,trips.One,trips.MarketSegmentCode = 1,0.1219,Zero-vehicle households
+school_bus,sov_skim.CongTime,,-0.2014,Travel time
+other_auto,trips.One,trips.MarketSegmentCode = 1,-1.48763,Additional Calibration Constant
+school_bus,trips.One,trips.MarketSegmentCode = 1,-1.00192,Additional Calibration Constant
+sov,trips.One,trips.MarketSegmentCode = 2,-2.01531,Additional Calibration Constant
+hov2,trips.One,trips.MarketSegmentCode = 2,-1.69591,Additional Calibration Constant
+hov3,trips.One,trips.MarketSegmentCode = 2,-1.50576,Additional Calibration Constant
+other_auto,trips.One,trips.MarketSegmentCode = 2,-1.58757,Additional Calibration Constant
+school_bus,trips.One,trips.MarketSegmentCode = 2,-1.48508,Additional Calibration Constant
+sov,trips.One,trips.MarketSegmentCode = 3,-0.191632,Additional Calibration Constant
+hov2,trips.One,trips.MarketSegmentCode = 3,0.06579,Additional Calibration Constant
+hov3,trips.One,trips.MarketSegmentCode = 3,0.053911,Additional Calibration Constant
+other_auto,trips.One,trips.MarketSegmentCode = 3,-0.204953,Additional Calibration Constant
+school_bus,trips.One,trips.MarketSegmentCode = 3,-0.211202,Additional Calibration Constant
+w_lb,trips.One,trips.MarketSegmentCode = 1,0.58,Zero-vehicle households
+w_lb,se.HiIncomePct.O,,-2.443,High income household percentage
+w_lb,w_lb_skim.[In-Vehicle Time],,-0.02129,IVTT
+w_lb,w_lb_skim.Fare,,-0.1074,Fare
+w_lb,w_lb_skim.[Access Walk Time],,-0.09,Access walk time
+w_lb,w_lb_skim.[Initial Wait Time],,-0.0826,Initial wait time
+w_lb,w_lb_skim.[Transfer Wait Time],,-0.0631,Transfer wait time
+w_lb,w_lb_skim.[Egress Walk Time],,-0.062,Egress walk time
+w_lb,w_lb_skim.[Number of Transfers] > 1,,-0.3018,High transfers
