@@ -23,7 +23,7 @@ endmacro
 /*
     Disaggregate nested destination choice models
 */
-Macro "Destination Choices" (Args)
+Macro "Destination Choices Disagg" (Args)
     if Args.FeedbackIteration = 1 then do
         RunMacro("Split Employment by Earnings", Args)
         RunMacro("DC Attractions", Args)
@@ -272,7 +272,7 @@ Macro "Calculate Destination Choice" (Args, trip_types)
             opts.cluster_equiv_spec = {File: se_file, ZoneIDField: "TAZ", ClusterIDField: "Cluster"}
             opts.dc_spec = {DestinationsSource: "sov_skim", DestinationsIndex: "Destination"}
             for segment in segments do
-                opts.segments = {segment}
+                opts.segment = segment
                 opts.matrices = {
                     intra_cluster: {File: skims_dir + "/IntraCluster.mtx"},
                     sov_skim: {File: sov_skim},

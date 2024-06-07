@@ -16,7 +16,7 @@ endmacro
 Calculates disaggregate mode choices
 */
 
-Macro "Mode Choices" (Args)
+Macro "Mode Choices Disagg" (Args)
     if Args.FeedbackIteration = 1 then 
         RunMacro("Create MC Features", Args)
 
