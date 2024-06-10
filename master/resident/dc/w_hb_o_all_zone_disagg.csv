@@ -1,0 +1,13 @@
+Expression,Filter,Coefficient,Description
+se.w_hbo_size.D,,0.612,Size term
+nz(mc_logsums_v0.TransitComposite),trips.MarketSegmentCode = 1,0.0705,Transit MC Logsum: v0 Segment
+nz(mc_logsums_vi.TransitComposite),trips.MarketSegmentCode = 2,0.0705,Transit MC Logsum: vi Segment
+nz(mc_logsums_vs.TransitComposite),trips.MarketSegmentCode = 3,0.0705,Transit MC Logsum: vs Segment
+nz(mc_logsums_v0.NonHHAutoComposite),trips.MarketSegmentCode = 1,0.459,NonAuto MC Logsum: v0 Segment
+nz(mc_logsums_vi.NonHHAutoComposite),trips.MarketSegmentCode = 2,0.459,NonAuto MC Logsum: vi Segment
+nz(mc_logsums_vs.NonHHAutoComposite),trips.MarketSegmentCode = 3,0.459,NonAuto MC Logsum: vs Segment
+intra_cluster.IZ,,0.647,
+sov_skim.CongTime,,-0.193,
+"max(0, sov_skim.CongTime - 30)",,0.131,
+intra_cluster.IZ,,0.45,Adjustment
+sov_skim.CongTime > 50,,-99,Cutoff

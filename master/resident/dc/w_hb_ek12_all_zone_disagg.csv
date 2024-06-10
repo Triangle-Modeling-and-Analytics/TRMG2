@@ -1,0 +1,6 @@
+Expression,Filter,Coefficient,Description
+se.w_hbek12_size.D,,0.237,Size term
+sov_skim.CongTime,,-0.272,
+"max(0, sov_skim.CongTime - 30)",,0.187,
+intra_cluster.IZ,,-0.825,Adjustment
+sov_skim.CongTime > 30,,-99,Cutoff

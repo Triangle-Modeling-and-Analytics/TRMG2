@@ -3,10 +3,24 @@ Calculates aggregate mode choice probabilities between zonal ij pairs
 */
 
 Macro "Mode Probabilities" (Args)
-
-    if Args.FeedbackIteration = 1 then RunMacro("Create MC Features", Args)
+    if Args.FeedbackIteration = 1 then 
+        RunMacro("Create MC Features", Args)
+    
     RunMacro("Calculate MC", Args)
     RunMacro("Post Process Logsum", Args)
+    return(1)
+endmacro
+
+
+/*
+Calculates disaggregate mode choices
+*/
+
+Macro "Mode Choices Disagg" (Args)
+    if Args.FeedbackIteration = 1 then 
+        RunMacro("Create MC Features", Args)
+
+    RunMacro("Calculate Disagg MC", Args)
     return(1)
 endmacro
 
@@ -160,7 +174,8 @@ Macro "Post Process Logsum" (Args)
             else segments = {"v0", "vi", "vs"}
         for period in periods do
             for segment in segments do
-                mtx_file = ls_dir + "/logsum_" + trip_type + "_" + segment + "_" + period + ".mtx"
+                tag = trip_type + "_" + segment + "_" + period
+                mtx_file = ls_dir + "/logsum_" + tag + ".mtx"
                 mtx = CreateObject("Matrix", mtx_file)
                 core_names = mtx._GetCoreNames()
                 if ArrayPosition(core_names, {"nonhh_auto"},) > 0 then do
@@ -175,8 +190,109 @@ Macro "Post Process Logsum" (Args)
                     mtx.AddCores({"AutoComposite"})
                     mtx.AutoComposite := log(1 + nz(exp(mtx.auto)))
                 end
+                RenameMatrix(mtx.GetMatrixHandle(), "Logsum_" + tag)
                 mtx = null
             end
         end
     end
+endmacro
+
+
+/*
+Loops over purposes and preps options for the "MC" macro
+*/
+
+Macro "Calculate Disagg MC" (Args)
+
+    scen_dir = Args.[Scenario Folder]
+    skims_dir = scen_dir + "\\output\\skims\\"
+    input_dir = Args.[Input Folder]
+    input_mc_dir = input_dir + "/resident/mode"
+    output_dir = Args.[Output Folder] + "/resident/mode"
+    periods = RunMacro("Get Unconverged Periods", Args)
+    mode_table = Args.TransModeTable
+    transit_modes = RunMacro("Get Transit Modes", mode_table)
+    access_modes = Args.access_modes
+
+    // Determine trip purposes
+    prod_rate_file = input_dir + "/resident/generation/production_rates.csv"
+    rate_vw = OpenTable("rate_vw", "CSV", {prod_rate_file})
+    trip_types = GetDataVector(rate_vw + "|", "trip_type", )
+    trip_types = SortVector(trip_types, {Unique: "true"})
+    CloseView(rate_vw)
+
+    opts = null
+    pbar = CreateObject("G30 Progress Bar", "Disaggregate MC Model by purpose and period", false, trip_types.length*periods.length)
+    for trip_type in trip_types do
+        opts.trip_type = trip_type
+        opts.util_file = input_mc_dir + "/" + trip_type + "_disagg.csv"
+        nest_file = input_mc_dir + "/" + trip_type + "_nest.csv"
+        if GetFileInfo(nest_file) <> null then opts.nest_file = nest_file
+
+        trip_file = Args.[Output Folder] + "/resident/trip_tables/" + trip_type + ".bin"
+        // Add choice field to trip file
+        tObj = CreateObject("Table", trip_file)
+        fields = {{FieldName: "Mode", Type: "string"},
+                  {FieldName: "One", Type: "short"}}
+        tObj.AddFields({Fields: fields})
+        tObj.One = 1
+        vwTrips = ExportView(tObj.GetView() + "|", "MEM", "Trips",,)
+        tObj = null
+
+        for period in periods do
+            opts.period = period
+            opts.primary_spec = {Name: "trips", Filter: "TOD = '" + period + "'", OField: "HHTAZ", DField: "DestTAZ"}
+            
+            // Determine which sov & hov skim to use
+            if period = "MD" or period = "NT" then do
+                tour_type = "All"
+                homebased = "All"
+            end else do
+                tour_type = Upper(Left(trip_type, 1))
+                homebased = "HB"
+            end
+            sov_skim = skims_dir + "roadway\\avg_skim_" + period + "_" + tour_type + "_" + homebased + "_sov.mtx"
+            hov_skim = skims_dir + "roadway\\avg_skim_" + period + "_" + tour_type + "_" + homebased + "_hov.mtx"
+            
+            // Set sources
+            opts.tables = {
+                se: {File: scen_dir + "\\output\\sedata\\scenario_se.bin", IDField: "TAZ"},
+                parking: {File: scen_dir + "\\output\\resident\\parking\\ParkingLogsums.bin", IDField: "TAZ"},
+                //trips: {File: trip_file, IDField: "TripID"}
+                trips: {View: vwTrips, IDField: "TripID"}
+            }
+            opts.matrices = {
+                sov_skim: {File: sov_skim},
+                hov_skim: {File: hov_skim}
+            }
+            // Transit skims depend on which modes are present in the scenario
+            for transit_mode in transit_modes do
+                for access_mode in access_modes do
+                    source_name = access_mode + "_" + transit_mode + "_skim"
+                    file_name = skims_dir + "transit\\skim_" + period + "_" + access_mode + "_" + transit_mode + ".mtx"
+                    if GetFileInfo(file_name) <> null then opts.matrices.(source_name) = {File: file_name}
+                end
+            end
+
+            opts.output_dir = output_dir
+            opts.choice_field = "Mode"
+            opts.random_seed = 999*trip_types.position(trip_type) + 99*periods.position(period)
+            
+            // RunMacro("Parallel.SetMaxEngines", 3)
+            // task = CreateObject("Parallel.Task", "MC", GetInterface())
+            // task.Run(opts)
+            // tasks = tasks + {task}
+            // If running in series use the following and comment out the task/monitor lines
+            RunMacro("Disagg MC", opts)
+            pbar.Step()
+        end
+        CloseView(vwTrips)
+    end
+    pbar.Destroy()
+
+    // monitor = CreateObject("Parallel.TaskMonitor", tasks)
+    // monitor.DisplayStatus()
+    // monitor.WaitForAll()
+    // if monitor.IsFailed then Throw("MC Failed")
+    // monitor.CloseStatusDbox()
 endmacro
