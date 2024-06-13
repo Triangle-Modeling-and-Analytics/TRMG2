@@ -286,6 +286,7 @@ Macro "Calculate Disagg MC" (Args)
             RunMacro("Disagg MC", opts)
             pbar.Step()
         end
+        ExportView(vwTrips + "|", "FFB", trip_file,,)
         CloseView(vwTrips)
     end
     pbar.Destroy()
