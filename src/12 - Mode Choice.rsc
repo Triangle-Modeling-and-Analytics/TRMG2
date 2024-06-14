@@ -21,6 +21,7 @@ Macro "Mode Choices Disagg" (Args)
         RunMacro("Create MC Features", Args)
 
     RunMacro("Calculate Disagg MC", Args)
+    RunMacro("Disagg Directionality", Args)
     RunMacro("Aggregate HB Trip Tables", Args)
     return(1)
 endmacro
@@ -299,6 +300,57 @@ Macro "Calculate Disagg MC" (Args)
     // monitor.CloseStatusDbox()
 endmacro
 
+/*
+Apply directional factors to the trip table directly and use
+monte carlo to determine whether or not to flip a trip. This approach
+(instead of doing directionality after aggregation) maintains integer trip
+matrices.
+*/
+
+Macro "Disagg Directionality" (Args)
+    
+    trip_tbl_dir = Args.[Output Folder] + "/resident/trip_tables"
+    dir_file = Args.DirectionFactors
+    trip_types = RunMacro("Get HB Trip Types", Args)
+    periods = RunMacro("Get Unconverged Periods", Args)
+
+    dir_tbl = CreateObject("Table", dir_file)
+
+    for trip_type in trip_types do
+        trip_tbl = CreateObject("Table", trip_tbl_dir + "/" + trip_type + ".bin")
+        trip_tbl.AddFields({Fields: {
+            {FieldName: "PA", Description: "If the trip will remain in the PA direction"},
+            {FieldName: "o_taz", Type: "integer", Description: "Origin TAZ (after accounting for directionality)"},
+            {FieldName: "d_taz", Type: "integer", Description: "Destination TAZ (after accounting for directionality)"}
+        }})
+        dir_tbl.SelectByQuery({
+            SetName: "trip_type",
+            Query: "trip_type = '" + trip_type + "'"
+        })
+        sub_tbl = dir_tbl.Export({
+            ViewName: "sub_tbl",
+            FieldNames: {"tod", "pa_fac"}
+        })
+        join = trip_tbl.Join({
+            Table: sub_tbl,
+            LeftFields: "TOD",
+            RightFields: "tod"
+        })
+        data = join.GetDataVectors({
+            FieldNames: {"pa_fac", "HHTAZ", "DestTAZ"}
+        })
+        v_rand = RandSamples(data.pa_fac.length, "Uniform", )
+        set = null
+        set.PA = if v_rand < data.pa_fac then 1 else 0
+        set.o_taz = if set.PA = 1 then data.HHTAZ else data.DestTAZ
+        set.d_taz = if set.PA = 1 then data.DestTAZ else data.HHTAZ
+        join.SetDataVectors({FieldData: set})
+        
+        join = null
+        sub_tbl = null
+        trip_tbl = null
+    end
+endmacro
 
 /*
 
@@ -318,8 +370,6 @@ Macro "Aggregate HB Trip Tables" (Args)
         // for UpdateMatrixFromView().
         trip_tbl_file = trip_tbl_dir + "/" + trip_type + ".bin"
         trip_tbl = CreateObject("Table", trip_tbl_file)
-        // modes = trip_tbl.Mode
-        // modes = V2A(SortVector(modes, {Unique: "true"}))
 
         for period in periods do
             // Create a set of trips in the current period
@@ -329,7 +379,7 @@ Macro "Aggregate HB Trip Tables" (Args)
             })
 
             // Create matrix to update
-            out_mtx_file = trip_mtx_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            out_mtx_file = trip_mtx_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
             mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_v0_" + period + ".mtx"
             CopyFile(mc_mtx_file, out_mtx_file)
             mtx = CreateObject("Matrix", out_mtx_file)
@@ -343,9 +393,10 @@ Macro "Aggregate HB Trip Tables" (Args)
             end
 
             // Update matrix from the person table
+            // TODO: use Matrix.UpdateFromTable() when we move to latest TC 10
             viewset = trip_tbl.GetView() + "|period"
             UpdateMatrixFromView(
-                mh, viewset, "HHTAZ", "DestTAZ", "Mode", {"One"}, "Add", 
+                mh, viewset, "o_taz", "d_taz", "Mode", {"One"}, "Add", 
                 {"Missing is zero": "true"}
             )
         end
