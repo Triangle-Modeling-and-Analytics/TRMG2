@@ -21,6 +21,7 @@ Macro "Mode Choices Disagg" (Args)
         RunMacro("Create MC Features", Args)
 
     RunMacro("Calculate Disagg MC", Args)
+    RunMacro("Aggregate HB Trip Tables", Args)
     return(1)
 endmacro
 
@@ -296,4 +297,57 @@ Macro "Calculate Disagg MC" (Args)
     // monitor.WaitForAll()
     // if monitor.IsFailed then Throw("MC Failed")
     // monitor.CloseStatusDbox()
+endmacro
+
+
+/*
+
+*/
+
+Macro "Aggregate HB Trip Tables" (Args)
+    trip_tbl_dir = Args.[Output Folder] + "/resident/trip_tables"
+    trip_mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
+    mc_dir = Args.[Output Folder] + "/resident/mode"
+    periods = RunMacro("Get Unconverged Periods", Args)
+    trip_types = RunMacro("Get HB Trip Types", Args)
+
+
+    for trip_type in trip_types do
+
+        // Get the unique modes in the table and create the `cols` argument
+        // for UpdateMatrixFromView().
+        trip_tbl_file = trip_tbl_dir + "/" + trip_type + ".bin"
+        trip_tbl = CreateObject("Table", trip_tbl_file)
+        // modes = trip_tbl.Mode
+        // modes = V2A(SortVector(modes, {Unique: "true"}))
+
+        for period in periods do
+            // Create a set of trips in the current period
+            trip_tbl.SelectByQuery({
+                SetName: "period",
+                Query: "TOD = '" + period + "'"
+            })
+
+            // Create matrix to update
+            out_mtx_file = trip_mtx_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
+            mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_v0_" + period + ".mtx"
+            CopyFile(mc_mtx_file, out_mtx_file)
+            mtx = CreateObject("Matrix", out_mtx_file)
+            mh = mtx.GetMatrixHandle()
+            RenameMatrix(mh, "PA Per Trips " + trip_type + " " + period)
+
+            // Zero out all cores
+            core_names = mtx.GetCoreNames()
+            for core in core_names do
+                mtx.(core) := 0
+            end
+
+            // Update matrix from the person table
+            viewset = trip_tbl.GetView() + "|period"
+            UpdateMatrixFromView(
+                mh, viewset, "HHTAZ", "DestTAZ", "Mode", {"One"}, "Add", 
+                {"Missing is zero": "true"}
+            )
+        end
+    end
 endmacro
