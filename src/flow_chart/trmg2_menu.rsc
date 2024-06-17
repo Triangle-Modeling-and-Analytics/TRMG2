@@ -92,8 +92,8 @@ menu "TRMG2 Utilities"
     MenuItem "Accessibility" text: "Accessibility Analysis"
         menu "Accessibility Analysis"
 
-    MenuItem "Matrix" text: "Matrix Aggregation and Deletion"
-        menu "Matrix Aggregation and Deletion"
+    MenuItem "Matrix" text: "Matrix Aggregation"
+        menu "Matrix Aggregation"
 
     MenuItem "Comparison" text: "Scenario Comparison"
         menu "Scenario Comparison"
@@ -104,6 +104,9 @@ menu "TRMG2 Utilities"
     MenuItem "Performance" text: "Performance Measures"
         menu "Performance Measures"
     
+    MenuItem "FManagement" text: "File Management"
+        menu "File Management"
+
     MenuItem "TIA" text: "TIA Site Analysis"
         menu "TIA Site Analysis"
     
@@ -156,7 +159,7 @@ menu "Accessibility Analysis"
     enditem
 endMenu
 
-menu "Matrix Aggregation and Deletion"
+menu "Matrix Aggregation"
     init do
     enditem
     
@@ -176,12 +179,6 @@ menu "Matrix Aggregation and Deletion"
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCode("Open Daily Matrix Creation Tool Dbox", Args)
-    enditem
-
-    MenuItem "Delete Files Tool" text: "Delete Matrix Files" do
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        mr.RunCode("Open Delete Files Tool Dbox", Args)
     enditem
 
 endMenu
@@ -244,6 +241,18 @@ menu "Performance Measures"
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCode("Open Concatenate Files Dbox", Args)
+    enditem
+
+endMenu
+
+menu "File Management"
+    init do
+    enditem
+
+    MenuItem "Delete Files Tool" text: "Delete Files" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Delete Files Tool Dbox", Args)
     enditem
 
 endMenu
