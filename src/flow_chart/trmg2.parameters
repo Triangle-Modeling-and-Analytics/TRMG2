@@ -1,147 +1,480 @@
-    Section = "Master Files"
-    
-        Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
-        Args.[Master Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
-        Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
-        Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
-        Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2020.bin", "Description":"Master SE data bin file" }
-    
-    Section = "Main Scenario Inputs"
-    
-        Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
-        Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2020", "Description":"Scenario folder" }
-        Args.[Input Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder" }
-        Args.[Input Links] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_links.dbd", "Description":"Scenario input roadway links. Created during scenario creation." }
-        Args.[Input Routes] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario input routes. Created during scenario creation." }
-        Args.[Input TAZs] = { "Type":"File" , "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Input SE] = { "Type":"File" , "Value":"%Input Folder%\\sedata\\scenario_se.bin", "Description":"Scenario input se data. Created during scenario creation." }
-    
-    Section = "Main Scenario Outputs"
-    
-        Args.[Output Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\output", "Description":"Scenario output folder" }
-        Args.[Network Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\networks", "Description":"Folder containing networks" }
-        Args.[Summary Folder] = { "Type":"Folder" , "Value":"%Output Folder%\\_summaries", "Description":"Folder containing summary info" }
-        Args.Links = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_links.dbd", "Description":"Scenario output roadway links. Modified during model run." }
-        Args.Routes = { "Type":"File" , "Value":"%Output Folder%\\networks\\scenario_routes.rts", "Description":"Scenario output routes. Modified during model run." }
-        Args.SE = { "Type":"File" , "Value":"%Output Folder%\\sedata\\scenario_se.bin", "Description":"Scenario output se data. Modified during model run." }
-        Args.TAZs = { "Type":"File" , "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd", "Description":"Scenario output TAZs. Modified during model run." }
-    
-    Section = "Network Calculations|Area Type"
-    
-        Args.AreaTypes = { "Type":"array" , "Value":{{"Rural",0,0},
-                                                     {"Suburban",1000,0.5},
-                                                     {"Urban",10000,0.5},
-                                                     {"Downtown",25000,0.25}}, "Caption":"Area Type Densities Definitions", "Style":"AreaType" }
-    Section = "Network Calculations|Capacities"
-
-        Args.Capacity = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity.csv", "Description":"Capacity lookup table." }
-        Args.CapacityFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\capacity_period_factors.csv", "Description":"Hours of capacity per period." }
-
-    Section = "Network Calculations|Speeds & Tolls"
-
-        Args.CCSpeeds = { "Type":"array" , "Value":{{"Rural",45},
-                                                    {"Suburban",35},
-                                                    {"Urban",30},
-                                                    {"Downtown",20}}, "Caption":"Centroid Connector Speeds", "Style":"CCSpeed" }
-        Args.SpeedFactors = { "Type":"File" , "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv", "Description":"FFS adjustment and alpha values." }    
-        Args.InitCongTimes = { "Type":"File" , "Value":"%Input Folder%\\networks\\init_cong_time_2020.bin", "Description":"Initial travel time estimates" }    
-        Args.TurnProhibitions = { "Type":"File" , "Value":"%Input Folder%\\networks\\turn_prohibitions.bin", "Description":"Turn prohibition table" }
-        Args.TransponderRatioAuto = { "Type":"double" , "Value":0.72, "Description":"Ratio of autos with a toll transponder (0-1)" }
-        Args.TransponderRatioSUT = { "Type":"double" , "Value":0.70, "Description":"Ratio of SUTs with a toll transponder (0-1)" }
-        Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
-        Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
-        Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
-        
-    Section = "Network Calculations|Transit"
-        
-        Args.TransModeTable = { "Type":"File" , "Value":"%Input Folder%\\networks\\transit_mode_table.csv", "Description":"Table that defines mode-specific attributes." }
-        Args.ReturnParkingLotUsedlb = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLB.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LB." }
-        Args.ReturnParkingLotUsedeb = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotEB.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period EB." }
-        Args.ReturnParkingLotUsedbrt = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotBRT.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period BRT." }
-        Args.ReturnParkingLotUsedcr = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotCR.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period CR." }
-        Args.ReturnParkingLotUsedlr = { "Type":"File" , "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLR.mtx", "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LR." }
-    
-    Section = "Accessibilities"
-    
-        Args.[Access Attr Rates] = { "Type":"File" , "Value":"%Input Folder%\\accessibility\\attraction_rates.csv", "Description":"Attraction rates used for accessibility calculations." }
-    
-    Section = "Population Synthesis|Input"
-    
-        Args.[PUMS HH Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin", "Description":"PUMS household seed table." }
-        Args.[PUMS Person Seed] = { "Type":"File" , "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin", "Description":"PUMS person seed table." }
-        Args.IncomeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv", "Description":"Disaggregate income curves." }
-        Args.SizeCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv", "Description":"Disaggregate household size curves." }
-        Args.WorkerCurves = { "Type":"File" , "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv", "Description":"Disaggregate worker curves." }
-        Args.RegionalMedianIncome = { "Type":"int" , "Value":65317, "Description":"Median income of the TRM region" }
-    
-    Section = "Population Synthesis|Output"
-    
-        Args.SEDMarginals = { "Type":"File" , "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin", "Description":"Table of output marginals from the disagg model." }
-        Args.Households = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin", "Description":"Output synthetic household table." }
-        Args.Persons = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin", "Description":"Output synthetic person table." }
-        Args.[Synthesized Tabulations] = { "Type":"File" , "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin", "Description":"Summary tabulations of the synthetic population." }
-    
-    Section = "Auto Ownership"
-
-        Args.AOCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\auto_ownership\\ao_coefficients.csv", "Description":"Auto ownership choice coefficients." }
-
-    Section = "Resident Productions"
-    
-        Args.ProdRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\production_rates.csv", "Description":"Resident production rate file." }
-        Args.ProdCalibFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv", "Description":"Resident production calibration factors." }
-    
-    Section = "NonMotorized"
-
-        Args.NMInputFolder = { "Type":"Folder" , "Value":"%Input Folder%\\resident\\nonmotorized", "Description":"Folder containing NM input parameters" }
-
-    Section = "Time of Day"
-    
-        Args.ResTODFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv", "Description":"Resident time of day factor file." }
-        Args.DirectionFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv", "Description":"Resident time of day factor file." }
-        Args.DirectionFactorsTrans = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_factors_transit.csv", "Description":"Transit time of day factor file." }
-        Args.DirectionFactorsSkims = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv", "Description":"Resident time of day factor file." }
-        Args.HBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_hb.csv", "Description":"Resident hov3 HB vehicle occupancy factor file." }
-        Args.NHBHOV3OccFactors = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_nhb.csv", "Description":"Resident hov3 NHB vehicle occupancy factor file." }
-        Args.HBOtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares_hb.csv", "Description":"Shares of auto_pay and other_auto HB trips that are sov, hov2, and hov3." }
-        Args.NHBOtherShares = { "Type":"File" , "Value":"%Input Folder%\\resident\\tod\\other_shares_nhb.csv", "Description":"Shares of auto_pay NHB trips that are sov, hov2, and hov3." }
-    
-    Section = "Commercial Vehicles/Trucks"
-
-        Args.[CV Trip Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_generation.csv", "Description":"CV trip rates" }
-        Args.[CV TOD Rates] = { "Type":"File" , "Value":"%Input Folder%\\cv\\cv_tod.csv", "Description":"CV tod factors" }
-
-    Section = "Destination Choice"
-
-        Args.ResDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv", "Caption":"Resident DC Size Coefficients" }
-        Args.ResDCAttrRates = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv", "Caption":"Resident DC Attraction Rates (for work double constraint)" }
-        Args.ShadowPrices = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\shadow_prices.bin", "Caption":"Resident DC shadow prices (for work double constraint)" }
-        Args.DisaggShadowPrices = { "Type":"File" , "Value":"%Input Folder%\\resident\\dc\\shadow_prices_disagg.bin", "Caption":"Resident shadow prices for disaggregate DC models" }
-
-    Section = "Parking Model|Coefficients"
-    
-        Args.ParkMCCoeffs = { "Type":"array" , "Value":{{"ASC",-2.600,-2.600,-3.000,-3.000}}, "Caption":"Mode Choice ASCs for 'Park and Shuttle'", "Style":"ParkingCoeffs" }
-
-    Section = "Parking Model|Output"
-    
-        Args.[Parking DC Util Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCUtility.mtx", "Caption":"Parking Destination Choice Utility Matrix" }
-        Args.[Parking DC Prob Matrix] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx", "Caption":"Parking Destination Choice Probability Matrix" }
-        Args.[Parking Logsums Table] = { "Type":"File" , "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin", "Caption":"Parking Logsums Table" }
-
-    Section = "NonHomeBased"
-
-        Args.NHBTODFacs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv", "Caption":"Calibration factors for NHB generation models" }
-        Args.NHBDCSizeCoeffs = { "Type":"File" , "Value":"%Input Folder%\\resident\\nhb\\dc\\nhb_dc_size_terms.csv", "Caption":"Resident NHB DC Size Coefficients" }
-
-    Section = "Numeric Parameters"
-    
-        Args.FeedbackConvergence = { "Type":"double" , "Value":.1, "Description":"%RMSE between skims. .1 = 0.1%" }
-        Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
-        Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
-        Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
-        Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
-        Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }
-
-    Section = "Assignment"
-
-        Args.SaveTurns = {"Type":"int" , "Value":0, "Caption":"If want to save turns for AM/PM assignment, value = 1. Default value = 0." }
+	Section = "Master Files"
+	
+        Args.[Base Folder] = {
+            "Type":"Folder",
+            "Description":"Root model folder",
+            "Value":"%Model Folder%"
+        }
+        Args.[Master Folder] = {
+            "Type":"Folder",
+            "Description":"Master folder",
+            "Value":"%Base Folder%\\master"
+        }
+        Args.[Master Links] = {
+            "Type":"File",
+            "Description":"Master roadway line layer",
+            "Value":"%Master Folder%\\networks\\master_links.dbd"
+        }
+        Args.[Master Routes] = {
+            "Type":"File",
+            "Description":"Master transit routes",
+            "Value":"%Master Folder%\\networks\\master_routes.rts"
+        }
+        Args.[Master TAZs] = {
+            "Type":"File",
+            "Description":"Master TAZs",
+            "Value":"%Master Folder%\\tazs\\master_tazs.dbd"
+        }
+        Args.[Master SE] = {
+            "Type":"File",
+            "Description":"Master SE data bin file",
+            "Value":"%Master Folder%\\sedata\\se_2020.bin"
+        }
+	
+	Section = "Main Scenario Inputs"
+	
+        Args.[Scenarios Folder] = {
+            "Type":"Folder",
+            "Description":"Directory that holds all scenario folders",
+            "Value":"%Base Folder%\\scenarios"
+        }
+        Args.[Scenario Folder] = {
+            "Type":"Folder",
+            "Description":"Scenario folder",
+            "Value":"%Scenarios Folder%\\base_2020"
+        }
+        Args.[Input Folder] = {
+            "Type":"Folder",
+            "Description":"Scenario input folder",
+            "Value":"%Scenario Folder%\\input"
+        }
+        Args.[Input Links] = {
+            "Type":"File",
+            "Description":"Scenario input roadway links. Created during scenario creation.",
+            "Value":"%Input Folder%\\networks\\scenario_links.dbd"
+        }
+        Args.[Input Routes] = {
+            "Type":"File",
+            "Description":"Scenario input routes. Created during scenario creation.",
+            "Value":"%Input Folder%\\networks\\scenario_routes.rts"
+        }
+        Args.[Input TAZs] = {
+            "Type":"File",
+            "Description":"Master TAZs",
+            "Value":"%Input Folder%\\tazs\\scenario_tazs.dbd"
+        }
+        Args.[Input SE] = {
+            "Type":"File",
+            "Description":"Scenario input se data. Created during scenario creation.",
+            "Value":"%Input Folder%\\sedata\\scenario_se.bin"
+        }
+	
+	Section = "Main Scenario Outputs"
+	
+        Args.[Output Folder] = {
+            "Type":"Folder",
+            "Description":"Scenario output folder",
+            "Value":"%Scenario Folder%\\output"
+        }
+        Args.[Network Folder] = {
+            "Type":"Folder",
+            "Description":"Folder containing networks",
+            "Value":"%Output Folder%\\networks"
+        }
+        Args.[Summary Folder] = {
+            "Type":"Folder",
+            "Description":"Folder containing summary info",
+            "Value":"%Output Folder%\\_summaries"
+        }
+        Args.Links = {
+            "Type":"File",
+            "Description":"Scenario output roadway links. Modified during model run.",
+            "Value":"%Output Folder%\\networks\\scenario_links.dbd"
+        }
+        Args.Routes = {
+            "Type":"File",
+            "Description":"Scenario output routes. Modified during model run.",
+            "Value":"%Output Folder%\\networks\\scenario_routes.rts"
+        }
+        Args.SE = {
+            "Type":"File",
+            "Description":"Scenario output se data. Modified during model run.",
+            "Value":"%Output Folder%\\sedata\\scenario_se.bin"
+        }
+        Args.TAZs = {
+            "Type":"File",
+            "Description":"Scenario output TAZs. Modified during model run.",
+            "Value":"%Output Folder%\\tazs\\scenario_tazs.dbd"
+        }
+	
+	Section = "Network Calculations|Area Type"
+	
+        Args.AreaTypes = {
+            "Type":"array",
+            "Caption":"Area Type Densities Definitions",
+            "Style":"AreaType",
+            "Value":{
+                {"Rural",0,0},
+                {"Suburban",1000,0.5},
+                {"Urban",10000,0.5},
+                {"Downtown",25000,0.25}}
+        }
+	
+	Section = "Network Calculations|Capacities"
+	
+        Args.Capacity = {
+            "Type":"File",
+            "Description":"Capacity lookup table.",
+            "Value":"%Input Folder%\\networks\\capacity.csv"
+        }
+        Args.CapacityFactors = {
+            "Type":"File",
+            "Description":"Hours of capacity per period.",
+            "Value":"%Input Folder%\\networks\\capacity_period_factors.csv"
+        }
+	
+	Section = "Network Calculations|Speeds & Tolls"
+	
+        Args.CCSpeeds = {
+            "Type":"array",
+            "Caption":"Centroid Connector Speeds",
+            "Style":"CCSpeed",
+            "Value":{
+                {"Rural",45},
+                {"Suburban",35},
+                {"Urban",30},
+                {"Downtown",20}}
+        }
+        Args.SpeedFactors = {
+            "Type":"File",
+            "Description":"FFS adjustment and alpha values.",
+            "Value":"%Input Folder%\\networks\\ff_speed_alpha_beta.csv"
+        }
+        Args.InitCongTimes = {
+            "Type":"File",
+            "Description":"Initial travel time estimates",
+            "Value":"%Input Folder%\\networks\\init_cong_time_2020.bin"
+        }
+        Args.TurnProhibitions = {
+            "Type":"File",
+            "Description":"Turn prohibition table",
+            "Value":"%Input Folder%\\networks\\turn_prohibitions.bin"
+        }
+        Args.TransponderRatioAuto = {
+            "Type":"double",
+            "Description":"Ratio of autos with a toll transponder (0-1)",
+            "Value":0.72
+        }
+        Args.TransponderRatioSUT = {
+            "Type":"double",
+            "Description":"Ratio of SUTs with a toll transponder (0-1)",
+            "Value":0.7
+        }
+        Args.TransponderRatioMUT = {
+            "Type":"double",
+            "Description":"Ratio of MUTs with a toll transponder (0-1)",
+            "Value":0.76
+        }
+        Args.periods = {
+            "Type":"hidden",
+            "Description":"List of time periods in the model.",
+            "Value":
+            {"AM","MD","PM","NT"}
+        }
+        Args.access_modes = {
+            "Type":"hidden",
+            "Value":
+            {"w","knr","pnr"}
+        }
+	
+	Section = "Network Calculations|Transit"
+	
+        Args.TransModeTable = {
+            "Type":"File",
+            "Description":"Table that defines mode-specific attributes.",
+            "Value":"%Input Folder%\\networks\\transit_mode_table.csv"
+        }
+        Args.ReturnParkingLotUsedlb = {
+            "Type":"File",
+            "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LB.",
+            "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLB.mtx"
+        }
+        Args.ReturnParkingLotUsedeb = {
+            "Type":"File",
+            "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period EB.",
+            "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotEB.mtx"
+        }
+        Args.ReturnParkingLotUsedbrt = {
+            "Type":"File",
+            "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period BRT.",
+            "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotBRT.mtx"
+        }
+        Args.ReturnParkingLotUsedcr = {
+            "Type":"File",
+            "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period CR.",
+            "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotCR.mtx"
+        }
+        Args.ReturnParkingLotUsedlr = {
+            "Type":"File",
+            "Description":"Matrix that describes parking lot used for PNR drive egress in the PM period LR.",
+            "Value":"%Output Folder%\\skims\\transit\\PNRTransitParkingLotLR.mtx"
+        }
+	
+	Section = "Accessibilities"
+	
+        Args.[Access Attr Rates] = {
+            "Type":"File",
+            "Description":"Attraction rates used for accessibility calculations.",
+            "Value":"%Input Folder%\\accessibility\\attraction_rates.csv"
+        }
+	
+	Section = "Population Synthesis|Input"
+	
+        Args.[PUMS HH Seed] = {
+            "Type":"File",
+            "Description":"PUMS household seed table.",
+            "Value":"%Input Folder%\\resident\\population_synthesis\\HHSeed_PUMS_TRM.bin"
+        }
+        Args.[PUMS Person Seed] = {
+            "Type":"File",
+            "Description":"PUMS person seed table.",
+            "Value":"%Input Folder%\\resident\\population_synthesis\\PersonSeed_PUMS_TRM.bin"
+        }
+        Args.IncomeCurves = {
+            "Type":"File",
+            "Description":"Disaggregate income curves.",
+            "Value":"%Input Folder%\\resident\\disagg_model\\income_curves.csv"
+        }
+        Args.SizeCurves = {
+            "Type":"File",
+            "Description":"Disaggregate household size curves.",
+            "Value":"%Input Folder%\\resident\\disagg_model\\size_curves.csv"
+        }
+        Args.WorkerCurves = {
+            "Type":"File",
+            "Description":"Disaggregate worker curves.",
+            "Value":"%Input Folder%\\resident\\disagg_model\\worker_curves.csv"
+        }
+        Args.RegionalMedianIncome = {
+            "Type":"int",
+            "Description":"Median income of the TRM region",
+            "Value":65317
+        }
+	
+	Section = "Population Synthesis|Output"
+	
+        Args.SEDMarginals = {
+            "Type":"File",
+            "Description":"Table of output marginals from the disagg model.",
+            "Value":"%Output Folder%\\resident\\disagg_model\\SEDMarginals.bin"
+        }
+        Args.Households = {
+            "Type":"File",
+            "Description":"Output synthetic household table.",
+            "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_HHs.bin"
+        }
+        Args.Persons = {
+            "Type":"File",
+            "Description":"Output synthetic person table.",
+            "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Persons.bin"
+        }
+        Args.[Synthesized Tabulations] = {
+            "Type":"File",
+            "Description":"Summary tabulations of the synthetic population.",
+            "Value":"%Output Folder%\\resident\\population_synthesis\\Synthesized_Tabulations.bin"
+        }
+	
+	Section = "Auto Ownership"
+	
+        Args.AOCoeffs = {
+            "Type":"File",
+            "Description":"Auto ownership choice coefficients.",
+            "Value":"%Input Folder%\\resident\\auto_ownership\\ao_coefficients.csv"
+        }
+	
+	Section = "Resident Productions"
+	
+        Args.ProdRates = {
+            "Type":"File",
+            "Description":"Resident production rate file.",
+            "Value":"%Input Folder%\\resident\\generation\\production_rates.csv"
+        }
+        Args.ProdCalibFactors = {
+            "Type":"File",
+            "Description":"Resident production calibration factors.",
+            "Value":"%Input Folder%\\resident\\generation\\calibration_factors.csv"
+        }
+	
+	Section = "NonMotorized"
+	
+        Args.NMInputFolder = {
+            "Type":"Folder",
+            "Description":"Folder containing NM input parameters",
+            "Value":"%Input Folder%\\resident\\nonmotorized"
+        }
+	
+	Section = "Time of Day"
+	
+        Args.ResTODFactors = {
+            "Type":"File",
+            "Description":"Resident time of day factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\time_of_day_factors.csv"
+        }
+        Args.DirectionFactors = {
+            "Type":"File",
+            "Description":"Resident time of day factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\directionality_factors.csv"
+        }
+        Args.DirectionFactorsTrans = {
+            "Type":"File",
+            "Description":"Transit time of day factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\directionality_factors_transit.csv"
+        }
+        Args.DirectionFactorsSkims = {
+            "Type":"File",
+            "Description":"Resident time of day factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\directionality_skim_factors.csv"
+        }
+        Args.HBHOV3OccFactors = {
+            "Type":"File",
+            "Description":"Resident hov3 HB vehicle occupancy factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_hb.csv"
+        }
+        Args.NHBHOV3OccFactors = {
+            "Type":"File",
+            "Description":"Resident hov3 NHB vehicle occupancy factor file.",
+            "Value":"%Input Folder%\\resident\\tod\\hov3_occ_factors_nhb.csv"
+        }
+        Args.HBOtherShares = {
+            "Type":"File",
+            "Description":"Shares of auto_pay and other_auto HB trips that are sov, hov2, and hov3.",
+            "Value":"%Input Folder%\\resident\\tod\\other_shares_hb.csv"
+        }
+        Args.NHBOtherShares = {
+            "Type":"File",
+            "Description":"Shares of auto_pay NHB trips that are sov, hov2, and hov3.",
+            "Value":"%Input Folder%\\resident\\tod\\other_shares_nhb.csv"
+        }
+	
+	Section = "Commercial Vehicles/Trucks"
+	
+        Args.[CV Trip Rates] = {
+            "Type":"File",
+            "Description":"CV trip rates",
+            "Value":"%Input Folder%\\cv\\cv_generation.csv"
+        }
+        Args.[CV TOD Rates] = {
+            "Type":"File",
+            "Description":"CV tod factors",
+            "Value":"%Input Folder%\\cv\\cv_tod.csv"
+        }
+	
+	Section = "Destination Choice"
+	
+        Args.ResDCSizeCoeffs = {
+            "Type":"File",
+            "Caption":"Resident DC Size Coefficients",
+            "Value":"%Input Folder%\\resident\\dc\\dc_size_terms.csv"
+        }
+        Args.ResDCAttrRates = {
+            "Type":"File",
+            "Caption":"Resident DC Attraction Rates (for work double constraint)",
+            "Value":"%Input Folder%\\resident\\dc\\dc_attr_rates.csv"
+        }
+        Args.ShadowPrices = {
+            "Type":"File",
+            "Caption":"Resident DC shadow prices (for work double constraint)",
+            "Value":"%Input Folder%\\resident\\dc\\shadow_prices.bin"
+        }
+        Args.DisaggShadowPrices = {
+            "Type":"File",
+            "Caption":"Resident shadow prices for disaggregate DC models",
+            "Value":"%Input Folder%\\resident\\dc\\shadow_prices_disagg.bin"
+        }
+	
+	Section = "Parking Model|Coefficients"
+	
+        Args.ParkMCCoeffs = {
+            "Type":"array",
+            "Caption":"Mode Choice ASCs for 'Park and Shuttle'",
+            "Style":"ParkingCoeffs",
+            "Value":{
+                {"ASC",-2.6,-2.6,-3,-3}}
+        }
+	
+	Section = "Parking Model|Output"
+	
+        Args.[Parking DC Util Matrix] = {
+            "Type":"File",
+            "Caption":"Parking Destination Choice Utility Matrix",
+            "Value":"%Output Folder%\\resident\\parking\\ParkingDCUtility.mtx"
+        }
+        Args.[Parking DC Prob Matrix] = {
+            "Type":"File",
+            "Caption":"Parking Destination Choice Probability Matrix",
+            "Value":"%Output Folder%\\resident\\parking\\ParkingDCProbability.mtx"
+        }
+        Args.[Parking Logsums Table] = {
+            "Type":"File",
+            "Caption":"Parking Logsums Table",
+            "Value":"%Output Folder%\\resident\\parking\\ParkingLogsums.bin"
+        }
+	
+	Section = "NonHomeBased"
+	
+        Args.NHBTODFacs = {
+            "Type":"File",
+            "Caption":"Calibration factors for NHB generation models",
+            "Value":"%Input Folder%\\resident\\nhb\\generation\\nhb_calibration_factors.csv"
+        }
+        Args.NHBDCSizeCoeffs = {
+            "Type":"File",
+            "Caption":"Resident NHB DC Size Coefficients",
+            "Value":"%Input Folder%\\resident\\nhb\\dc\\nhb_dc_size_terms.csv"
+        }
+        Args.SimulateNHBDCTrips = {
+            "Type":"boolean",
+            "Caption":"Simulate integer NHB DC matrices using matrix Monte Carlo",
+            "Value":True
+        }
+	
+	Section = "Numeric Parameters"
+	
+        Args.FeedbackConvergence = {
+            "Type":"double",
+            "Description":"%RMSE between skims. .1 = 0.1%",
+            "Value":0.1
+        }
+        Args.FeedbackIterations = {
+            "Type":"int",
+            "Description":"Max number of feedback iterations",
+            "Value":5
+        }
+        Args.FeedbackIteration = {
+            "Type":"hidden",
+            "Description":"Starting feedback iteration number.|Should be 1 unless debugging.",
+            "Value":1
+        }
+        Args.AssignIterations = {
+            "Type":"int",
+            "Description":"Max number of assignment iterations",
+            "Value":500
+        }
+        Args.AssignConvergence = {
+            "Type":"double",
+            "Description":"Assignment Convergence (%RMSE)",
+            "Value":0.00001
+        }
+        Args.sl_query = {
+            "Type":"File",
+            "Caption":"Optional select link query file",
+            "Value":null
+        }
+	
+	Section = "Assignment"
+	
+        Args.SaveTurns = {
+            "Type":"int",
+            "Caption":"If want to save turns for AM/PM assignment, value = 1. Default value = 0.",
+            "Value":0
+        }

@@ -259,6 +259,8 @@ Macro "Evaluate NHB DC"(Args, Spec)
     // Run DC Loop over categories and time periods
     periods = RunMacro("Get Unconverged Periods", Args)
     categories = Spec.SubModels
+    
+    pbar = CreateObject("G30 Progress Bar", "Running NHB DC models by purpose and period...", false, categories.length * periods.length)
     for category in categories do
         {mainMode, subMode} = RunMacro("Get Mode Info", category)
         
@@ -300,17 +302,33 @@ Macro "Evaluate NHB DC"(Args, Spec)
             // Add utility
             obj.AddUtility({UtilityFunction: util})
             
-            // Add PA for applied totals
-            obj.AddTotalsSpec({Name: "PA", ZonalField: tag})
-
-            // Add output spec
-            outputSpec = {"Probability": prob_folder + "Prob_" + tag + ".mtx",
-                          "Totals": trips_folder + tag + ".mtx"}
+            // Add output and or totals spec
+            prob_file = prob_folder + "Prob_" + tag + ".mtx"
+            outputSpec = {"Probability": prob_file}
+            if !Args.SimulateNHBDCTrips then do
+                obj.AddTotalsSpec({Name: "PA", ZonalField: tag}) // Add PA for applied totals
+                outputSpec.Totals = trips_folder + tag + ".mtx"
+            end
             obj.AddOutputSpec(outputSpec)
             
             ret = obj.Evaluate()
             if !ret then
                 Throw("Running '" + tag + "' destination choice model failed.")
+
+            // Do Matrix Monte Carlo if required
+            if Args.SimulateNHBDCTrips then do
+                objP = CreateObject("Table", pa_file)
+                objM = CreateObject("Matrix", prob_file)
+                RunMacro("Matrix MonteCarlo", {
+                    ProbabilityMatrixCurrency: objM.Total,
+                    OutputMatrixFile: trips_folder + tag + ".mtx",
+                    OutputMatrixLabel: "DC Totals",
+                    TripsVector: objP.(tag),
+                    RandomSeed: 99999*categories.position(category) + 999*periods.position(period)
+                })
+                objM = null
+                objP = null
+            end
 
             // Convert any nulls to zero in the resulting trip matrix
             mtx = CreateObject("Matrix", trips_folder + tag + ".mtx")
@@ -319,8 +337,10 @@ Macro "Evaluate NHB DC"(Args, Spec)
                 core = mtx.GetCore(core_name)
                 core := nz(core)
             end
+            pbar.Step()
         end
     end
+    pbar.Destroy()
 endMacro
 
 Macro "Get Mode Info"(category)
@@ -345,4 +365,65 @@ Macro "Get Mode Info"(category)
             subMode = "auto_pay"
     end
     Return({mainMode, subMode})    
+endMacro
+
+
+Macro "Matrix MonteCarlo"(spec)
+    mcp = spec.ProbabilityMatrixCurrency
+    mOpts = {"File Name": spec.OutputMatrixFile, Label: spec.OutputMatrixLabel, Tables: {"Total"}}
+    m = CopyMatrixStructure({mcp}, mOpts)
+    mInfo = GetMatrixInfo(m)
+    v = spec.TripsVector
+    if v.length <> mInfo[5][1] then
+        Throw("Matrix MonteCarlo: Trips vector length does not match matrix row size")
+    v = Round(v,0)
+    nTotalTrips = r2i(v.Sum())
+    if nTotalTrips = 0 then do  // Simply return with an empty matrix
+        m = null
+        Return()
+    end
+
+    // Create empty table with Row, Col and One
+    opts.Fields = {{FieldName:"Row", Type: "integer"},
+                    {FieldName:"Col", Type: "integer"},
+                    {FieldName:"One", Type: "short"}}
+    objT = CreateObject("Table", opts)
+    objT.AddRows(nTotalTrips)
+    objT.One = Vector(nTotalTrips, "short", {{"Constant", 1}})
+
+    vRowIDs = GetMatrixVector(mcp, {Index: "Row"})
+    vColIDs = GetMatrixVector(mcp, {Index: "Column"})
+    
+    SetRandomSeed(spec.RandomSeed)
+    c = 1
+    pbar = CreateObject("G30 Progress Bar", "Processing Rows...", false, v.length)
+    dim arrOrig[nTotalTrips]
+    dim arrDest[nTotalTrips]
+    for i = 1 to vRowIDs.length do
+        rowID = vRowIDs[i]
+        nTrips = r2i(v[i])
+        if nz(nTrips) <= 0 then 
+            continue
+        
+        vProb = GetMatrixVector(mcp, {Row: rowID})
+        if vProb.Sum() = 0 then
+            continue
+
+        vSamples = RandSamples(nTrips, "Discrete", {weight: vProb})      // Returns indices of chosen columns
+        vChosen = v2a(vSamples).Map(do (f) Return(vColIDs[f]) end)       // Converts to col IDs
+
+        for j = c to c + nTrips - 1 do
+            arrOrig[j] = rowID
+            arrDest[j] = vChosen[j - c + 1]
+        end
+        c = c + nTrips
+        pbar.Step()
+    end
+    objT.Row = a2v(arrOrig)
+    objT.Col = a2v(arrDest) 
+    vw = objT.GetView()
+    UpdateMatrixFromView(m, vw + "|", "Row", "Col",, {"One"}, "Add", {"Missing is zero": "Yes"})
+    pbar.Destroy()
+    m = null
+    objT = null
 endMacro
