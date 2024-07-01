@@ -1141,9 +1141,18 @@ Macro "Summarize Total Mode Shares" (Args)
   periods = Args.periods
   subarea = Args.subarea
 
-  v_auto = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/roadway"})
-  v_transit = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/transit"})
-  v_nm = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/resident/nonmotorized"})
+  v_auto = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/assignment/roadway", 
+    periods: periods
+  })
+  v_transit = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/assignment/transit", 
+    periods: periods
+  })
+  v_nm = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/resident/nonmotorized", 
+    periods: periods
+  })
   
   // Get a vector of IDs from one of the matrices
   mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
