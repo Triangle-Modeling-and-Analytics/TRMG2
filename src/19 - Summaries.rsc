@@ -1118,9 +1118,18 @@ Macro "Summarize Total Mode Shares" (Args)
   summary_dir = out_dir + "/_summaries"
   periods = Args.periods
 
-  v_auto = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/roadway"})
-  v_transit = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/assignment/transit"})
-  v_nm = RunMacro("Summarize Matrix RowSums", {trip_dir: out_dir + "/resident/nonmotorized"})
+  v_auto = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/assignment/roadway", 
+    periods: periods
+  })
+  v_transit = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/assignment/transit", 
+    periods: periods
+  })
+  v_nm = RunMacro("Summarize Matrix RowSums", {
+    trip_dir: out_dir + "/resident/nonmotorized", 
+    periods: periods
+  })
   
   // Get a vector of IDs from one of the matrices
   mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
@@ -1205,16 +1214,16 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
   counter = 1
   for mtx_file in mtx_files do
+    // when summarizing highway matrices, don't include any peak hour matrices,
+    // which are already included in the peak period matrices.
+    if Right(mtx_file, 8) = "PKHR.mtx" then continue
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
       v_row = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
-      v_col = mtx.GetVector({Core: core_name, Marginal: "Column Sum"})
-      v_col.rowbased = "False"
-      v = v_row + v_col
       if counter = 1
-        then result = nz(v)
-        else result = result + nz(v)
+        then result = nz(v_row)
+        else result = result + nz(v_row)
       counter = counter + 1
     end
   end
