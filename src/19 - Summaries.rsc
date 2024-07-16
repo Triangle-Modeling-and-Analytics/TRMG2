@@ -2722,14 +2722,14 @@ Macro "Performance Measures Reports" (Args)
     // Build an equivalency array that maps modes to summary mode levels
     equiv = {
       sov: "sov",
-      auto: "sov",
+      auto: "sov", //university auto mode is set to sov
       hov2: "hov",
       hov3: "hov",
       walk: "nm",
       bike: "nm",
       walkbike: "nm",
-      auto: "hov",
-      transit: "alltransit"
+      auto_pay: "hov", //NHB auto pay mode is set to hov
+      transit: "nhballtransit"
     }
     transit_modes = RunMacro("Get Transit Modes", mode_table)
     for access_mode in access_modes do
@@ -2764,12 +2764,12 @@ Macro "Performance Measures Reports" (Args)
       result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
 
       // Resident HB nm trips
-      trip_dir = out_dir + "/resident/nonmotorized"
-      result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+      trip_mtx = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
+      result = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result})
 
       // University trips
       trip_dir = out_dir + "/university/mode"
-      result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+      if group <> "W_HB_W" then result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
 
       // NHB trips
       trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
@@ -2798,21 +2798,12 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
   for mtx_file in mtx_files do
     if group = "PM" and position(mtx_file, group) = 0 then continue
-    if group = "W_HB_W" and position(mtx_file, group) = 0  and right(mtx_file, 14) <> "nm_gravity.mtx" then continue
+    if group = "W_HB_W" and position(mtx_file, group) = 0 then continue
 
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
-      // hb nm matrices need special handling, core name does not have mode info
-      if right(mtx_file, 14) = "nm_gravity.mtx" then do 
-        equiv.(core_name) = "nm" 
-        parts = ParseString(core_name, "_")
-        if group = "Daily" and ArrayLength(parts) > 4 then continue
-          else if group = "PM" and parts[5] <> "PM" then continue
-          else if group = "W_HB_W" and position(core_name, group) = null then continue
-      end
-
-      // hb motorized and univ can be handled below
+      // hb motorized and univ can be handled below, core names have mode info
       if equiv.(core_name) = null then continue
       out_name = equiv.(core_name) + "_" + group
       v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
@@ -2822,6 +2813,32 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
         else result.(out_name) = result.(out_name) + nz(v)
     end
   end
+  return(result)
+endmacro
+
+Macro "Summarize HB NM RowSums" (MacroOpts)
+  
+  // hb nm matrix needs special handling, core names do not have mode info
+  trip_mtx = MacroOpts.trip_mtx
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  mtx = CreateObject("Matrix", mtx_file)
+  core_names = mtx.GetCoreNames()
+  for core_name in core_names do
+    parts = ParseString(core_name, "_")
+    if group = "Daily" and ArrayLength(parts) <> 4 then continue
+      else if group = "PM" and parts[5] <> "PM" then continue
+      else if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
+    end
+
+    out_name = "nm_" + group
+    v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+
+    if TypeOf(result.(out_name)) = "null"
+      then result.(out_name) = nz(v)
+      else result.(out_name) = result.(out_name) + nz(v)
+
   return(result)
 endmacro
 
@@ -2836,7 +2853,8 @@ Macro "Summarize NHB" (MacroOpts)
   flds = nhb.GetFieldNames()
   for fld in flds do
     parts = ParseString(fld, "_")
-    if ArrayLength(parts) = 3 then mode = parts[2] else if ArrayLength(parts) = 4 then mode = parts[3] else mode = "TAZ"// set mode
+    mode = "default"
+    if ArrayLength(parts) = 3 then mode = parts[2] else if ArrayLength(parts) = 4 then mode = parts[3] else if ArrayLength(parts) = 5 then mode = "auto_pay"// set mode
     if equiv.(mode) = null then continue // if fld is not trip fields
     if group = "PM" and right(fld, 2) <> "PM" then continue // if group = PM then only add PM flds
     
@@ -2846,7 +2864,6 @@ Macro "Summarize NHB" (MacroOpts)
     if TypeOf(result.(out_name)) = "null"
         then result.(out_name) = nz(v)
         else result.(out_name) = result.(out_name) + nz(v)
-
   end
   return(result)
 
