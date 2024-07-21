@@ -2823,14 +2823,13 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
   group = MacroOpts.group
   result = MacroOpts.result
 
-  mtx = CreateObject("Matrix", mtx_file)
+  mtx = CreateObject("Matrix", trip_mtx)
   core_names = mtx.GetCoreNames()
   for core_name in core_names do
     parts = ParseString(core_name, "_")
     if group = "Daily" and ArrayLength(parts) <> 4 then continue
-      else if group = "PM" and parts[5] <> "PM" then continue
-      else if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
-    end
+    if group = "PM" and right(core_name, 2) <> "PM" then continue
+    if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
 
     out_name = "nm_" + group
     v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
@@ -2838,7 +2837,7 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
     if TypeOf(result.(out_name)) = "null"
       then result.(out_name) = nz(v)
       else result.(out_name) = result.(out_name) + nz(v)
-
+  end
   return(result)
 endmacro
 
