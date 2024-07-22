@@ -8,10 +8,10 @@ dBox "Daily Matrix Creation Tool" (Args) center, center, 40, 8 Title: "Daily Tri
         return()
     enditem
 
-    Button 6, 4 Prompt: "Run" do
+    Button 6, 4 Prompt: "Run" do  
         RunMacro("Create matrix", Args)
         ShowMessage("Daily trip matrices have been created successfully.")
-	return(1)
+	    return(1)
     enditem
     Button 20, same Prompt: "Quit" do
         Return()
@@ -48,10 +48,17 @@ Macro "Create matrix" (Args)
         //Create output matrix  
         out_file_daily = output_dir + "\\" + market + "_daily.mtx"
         examples = RunMacro("Catalog Files", {dir: dir, ext: "mtx"}) 
-        CopyFile(examples[1], out_file_daily)
+        template = examples[1]
+        if Position(template, "critical") then template =  dir + "\\od_veh_trips_AM.mtx"
+        CopyFile(template, out_file_daily)
         daily_mtx = CreateObject("Matrix", out_file_daily)
         core_names = daily_mtx.GetCoreNames()
 
+        for core_name in core_names do
+            daily_mtx.(core_name) := 0 //reset everything to 0
+        end 
+        
+        
         for period in periods do        
             if market = "university" then
                 mtx_file = dir + "\\" + market + "_trips_" + period + ".mtx"

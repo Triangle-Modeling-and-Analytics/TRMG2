@@ -131,7 +131,7 @@ Macro "Filter Transit Modes" (Args)
     DeleteRecordsInSet(del_set)
     ExportView(mode_vw + "|", "CSV", Args.TransModeTable, , {"CSV Header": "true"})
     CloseView(mode_vw)
-    DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
+    // DeleteFile(Substitute(Args.TransModeTable, ".csv", ".dcc", ))
     
     // Remove modes from MC parameter files
     RunMacro("Filter Resident HB Transit Modes", Args)
@@ -731,8 +731,8 @@ Macro "Other Attributes" (Args)
         {"B", "Integer", 10, , , , , "If bike mode is allowed (from DTWB column)"},
         {"Alpha", "Real", 10, 2, , , , "VDF alpha value"},
         {"Beta", "Real", 10, 2, , , , "VDF beta value"},
-        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph"},
-        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph"},
+        {"WalkTime", "Real", 10, 2, , , , "Length / 3 mph|Unless overriden by WalkSpeed field"},
+        {"BikeTime", "Real", 10, 2, , , , "Length / 15 mph|Unless overriden by BikeSpeed field"},
         {"Mode", "Integer", 10, , , , , "Marks all links with a 1 (nontransit mode)"},
         {"FFSpeed", "Integer", 10, , , , , "Free flow travel speed"},
         {"FFTime", "Real", 10, 2, , , , "Free flow travel time"}
@@ -758,12 +758,14 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
             llyr + ".Length",
             llyr + ".PostedSpeed",
+            llyr + ".WalkSpeed",
+            llyr + ".BikeSpeed",
             llyr + ".TollType",
             llyr + ".TollCostT",
             llyr + ".TollCostNT",
@@ -774,8 +776,10 @@ Macro "Other Attributes" (Args)
         )
     v_ffs = v_ps + v_mod
     v_fft = v_len / v_ffs * 60
-    v_wt = v_len / 3 * 60
-    v_bt = v_len / 15 * 60
+    v_walkspeed = if v_walkspeed = null then 3 else v_walkspeed
+    v_wt = v_len / v_walkspeed * 60
+    v_bikespeed = if v_bikespeed = null then 15 else v_bikespeed
+    v_bt = v_len / v_bikespeed * 60
     v_mode = Vector(v_wt.length, "Integer", {Constant: 1})
     // Determine weighted average toll cost based on transponder usage
     v_tollcost_auto = v_tollcost_t * trans_ratio_auto + v_tollcost_nt * (1 - trans_ratio_auto)
@@ -1057,7 +1061,6 @@ endmacro
 /*
 
 */
-
 Macro "Create Route Networks" (Args)
 
     link_dbd = Args.Links
@@ -1138,96 +1141,126 @@ Macro "Create Route Networks" (Args)
                 end
                 o.Run()
 
-                // Set transit network settings
-                o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
-                o.UserClasses = {"Class1"}
-                o.CentroidFilter = "Centroid = 1"
-                // o.LinkImpedance = "IVTT"
-                o.Parameters({
-                    MaxTripCost : 240,
-                    MaxTransfers : 1,
-                    VOT : 0.1984 // $/min (40% of the median wage)
-                })
-                o.AccessControl({
-                    PermitWalkOnly: false,
-                    MaxWalkAccessPaths: 10
-                })
-                o.Combination({CombinationFactor: .1})
-                o.StopTimeFields({
-                    InitialPenalty: null,
-                    //TransferPenalty: "xfer_pen",
-                    DwellOn: "dwell_on",
-                    DwellOff: "dwell_off"
-                })
-                o.TimeGlobals({
-                    // Headway: 14,
-                    InitialPenalty: 0,
-                    TransferPenalty: 5,
-                    MaxInitialWait: 30,
-                    MaxTransferWait: 10,
-                    MinInitialWait: 2,
-                    MinTransferWait: 5,
-                    Layover: 5, 
-                    MaxAccessWalk: 45,
-                    MaxEgressWalk: 45,
-                    MaxModalTotal: 120
-                })
-                o.RouteTimeFields({Headway: period + "Headway"})
-                o.ModeTable({
-                    TableName: TransModeTable,
-                    // A field in the mode table that contains a list of
-                    // link network field names. These network field names
-                    // in turn point to the AB/BA fields on the link layer.
-                    TimeByMode: "IVTT",
-                    ModesUsedField: transit_mode,
-                    OnlyCombineSameMode: true,
-                    FreeTransfers: 0
-                })
-                o.RouteWeights({
-                    Fare: null,
-                    Time: null,
-                    InitialPenalty: null,
-                    TransferPenalty: null,
-                    InitialWait: null,
-                    TransferWeight: null,
-                    Dwelling: null
-                })
-                o.GlobalWeights({
-                    Fare: 1,
-                    Time: 1,
-                    InitialPenalty: 1,
-                    TransferPenalty: 3,
-                    InitialWait: 3,
-                    TransferWait: 3,
-                    Dwelling: 2,
-                    WalkTimeFactor: 3,
-                    DriveTimeFactor: 1
-                })
-                o.Fare({
-                    Type: "Flat",
-                    RouteFareField: "Fare",
-                    RouteXFareField: "Fare",
-                    FareValue: 0,
-                    TransferFareValue: 0
-                })
-
-                // Drive attributes for network settings
-                if access_mode = "knr" or access_mode = "pnr" then do
-                    o.DriveTime = "DriveTime"
-                    opts = null
-                    opts.InUse = true
-                    opts.PermitAllWalk = false
-                    opts.AllowWalkAccess = false
-                    if access_mode = "knr" 
-                        then opts.ParkingNodes = "KNR = 1"
-                        else opts.ParkingNodes = "PNR = 1"
-                    if period = "PM" 
-                        then o.DriveEgress(opts)
-                        else o.DriveAccess(opts)
-                end
-                ok = o.Run()
-                o = null
+                setopts = {TNWFile: file_name,
+                           AccessMode: access_mode,
+                           RouteFile: rts_file,
+                           Period: period,
+                           ModeTable: TransModeTable,
+                           Mode: transit_mode
+                           }
+                ok = RunMacro("Set Route Network", Args, setopts)
             end
         end
     end
+
+EndMacro
+
+
+Macro "Set Route Network" (Args, opts)
+    rts_file = opts.RouteFile
+    file_name = opts.TNWFile
+    period = opts.Period
+    TransModeTable = opts.ModeTable
+    transit_mode = opts.Mode
+    access_mode = opts.AccessMode
+
+    // Set transit network settings
+    o = CreateObject("Network.SetPublicPathFinder", {RS: rts_file, NetworkName: file_name})
+    o.UserClasses = {"Class1"}
+    o.CentroidFilter = "Centroid = 1"
+    o.LinkImpedance = "LBTime" // required, but fields specified in mode table have priority
+    o.Parameters({
+        MaxTripCost : 240,
+        MaxTransfers : 1,
+        VOT : 0.1984 // $/min (40% of the median wage)
+    })
+    o.AccessControl({
+        PermitWalkOnly: false,
+        MaxWalkAccessPaths: 10
+    })
+    o.Combination({CombinationFactor: .1})
+    o.StopTimeFields({
+        InitialPenalty: null,
+        //TransferPenalty: "xfer_pen",
+        DwellOn: "dwell_on",
+        DwellOff: "dwell_off"
+    })
+    o.TimeGlobals({
+        // Headway: 14,
+        InitialPenalty: 0,
+        TransferPenalty: 5,
+        MaxInitialWait: 30,
+        MaxTransferWait: 10,
+        MinInitialWait: 2,
+        MinTransferWait: 5,
+        Layover: 5, 
+        MaxAccessWalk: 45,
+        MaxEgressWalk: 45,
+        MaxModalTotal: 120
+    })
+    o.RouteTimeFields({Headway: period + "Headway"})
+    o.ModeTable({
+        TableName: TransModeTable,
+        // A field in the mode table that contains a list of
+        // link network field names. These network field names
+        // in turn point to the AB/BA fields on the link layer.
+        TimeByMode: "IVTT",
+        ModesUsedField: transit_mode,
+        OnlyCombineSameMode: true,
+        FreeTransfers: 0
+    })
+    o.RouteWeights({
+        Fare: null,
+        Time: null,
+        InitialPenalty: null,
+        TransferPenalty: null,
+        InitialWait: null,
+        TransferWeight: null,
+        Dwelling: null
+    })
+    o.GlobalWeights({
+        Fare: 1,
+        Time: 1,
+        InitialPenalty: 1,
+        TransferPenalty: 3,
+        InitialWait: 3,
+        TransferWait: 3,
+        Dwelling: 2,
+        WalkTimeFactor: 3,
+        DriveTimeFactor: 1
+    })
+    o.Fare({
+        Type: "Flat",
+        RouteFareField: "Fare",
+        RouteXFareField: "Fare",
+        FareValue: 0,
+        TransferFareValue: 0
+    })
+
+    // Drive attributes for network settings
+    if access_mode = "knr" or access_mode = "pnr" then do
+        o.DriveTime = "DriveTime"
+        opts = null
+        opts.InUse = true
+        opts.PermitAllWalk = false
+        opts.AllowWalkAccess = false
+        if access_mode = "knr" 
+            then opts.ParkingNodes = "KNR = 1"
+            else opts.ParkingNodes = "PNR = 1"
+        if (period = "PM" or period = "NT") and access_mode = "pnr" then do
+            if GetFileInfo(Args.("ReturnParkingLotUsed"+transit_mode)) <> null then do
+                opts.ParkingUsage = Args.("ReturnParkingLotUsed"+transit_mode)
+            end
+            // In the PM and NT, since the PNR is fixed for the day, we need to
+            // make sure the parking lot can be used for the return trip.
+            opts.MaxDriveTime = 999
+            o.DriveEgress(opts)
+        end
+        else 
+            o.DriveAccess(opts)
+        
+    end
+    ok = o.Run()
+    o = null
+    Return(ok)
 endmacro

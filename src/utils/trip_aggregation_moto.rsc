@@ -103,7 +103,7 @@ Macro "Aggregate matrix" (Args)
             end
         end
 
-        //uhb trip
+        //nhb trip
         nhb_trip_files = RunMacro("Catalog Files", {dir: nhb_dir, ext: "mtx"})
         for trip_file in nhb_trip_files do
             {, , name, } = SplitPath(trip_file)

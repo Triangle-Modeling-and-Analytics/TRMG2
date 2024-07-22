@@ -635,7 +635,7 @@ Macro "University Combine Matrices" (Args)
     trip_types = {"UHC_ON", "UHC_OFF", "UHO_ON", "UHO_OFF", "UCO", "UCC", "UC1", "UOO"}
 
     for period in periods do
-        out_mtx_file = trips_dir + "university_pa_modal_trips_" + period + ".mtx"
+        out_mtx_file = trips_dir + "\\mode\\university_pa_modal_trips_" + period + ".mtx"
         if GetFileInfo(out_mtx_file) <> null then DeleteFile(out_mtx_file)
 
         for t = 1 to trip_types.length do
@@ -689,7 +689,7 @@ Macro "University Directionality" (Args)
     })
 
     for period in periods do
-        pa_matrix_file = trips_dir + "university_pa_modal_trips_" + period + ".mtx"
+        pa_matrix_file = trips_dir + "\\mode\\university_pa_modal_trips_" + period + ".mtx"
         od_matrix_file = trips_dir + "university_trips_" + period + ".mtx"
         od_transpose_matrix_file = trips_dir + "university_transpose_trips_" + period + ".mtx"
 
@@ -708,8 +708,7 @@ Macro "University Directionality" (Args)
         mtx = CreateObject("Matrix", od_matrix_file)
         mtx_core_names = mtx.GetCoreNames()
 
-        t_mtx = CreateObject("Matrix")
-        t_mtx.LoadMatrix(od_transpose_matrix_file)
+        t_mtx = CreateObject("Matrix", od_transpose_matrix_file)
 
         pa_factor = dir_factors.(period)
 

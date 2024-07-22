@@ -83,6 +83,7 @@ Class "NestedDC" (ClassOpts)
         // Run zone-level DC
         self.util_file = self.ClassOpts.zone_utils
         self.zone_level = "true"
+        self.dc_spec = self.ClassOpts.dc_spec
         self.RunChoiceModels(zone_opts)
         
         // Build cluster-level choice data
@@ -114,7 +115,7 @@ Class "NestedDC" (ClassOpts)
         
         util_file = self.util_file
         zone_level = self.zone_level
-        dc_spec = self.ClassOpts.dc_spec
+        dc_spec = self.dc_spec
         trip_type = self.ClassOpts.trip_type
         segments = self.ClassOpts.segments
         period = self.ClassOpts.period

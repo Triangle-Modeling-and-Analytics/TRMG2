@@ -78,7 +78,7 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
     v_area = GetDataVector(tlyr + "|", "Area", {{"Sort Order",{{"ID","Ascending"}}}})
     //       {diagonal of a square } / 3  * {30 mph = 2 minutes per mile}
     v_time = (sqrt(v_area) * sqrt(2) / 3) * (60 / 30) 
-    // Create a vector of the correct length
+    // Create a vector of the correct length (including external centroids)
     se_vw = OpenTable("se", "FFB", {se_file})
     n = GetRecordCount(se_vw, )
     CloseView(se_vw)
@@ -89,6 +89,7 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
 
     for period in periods do
         for mode in modes do
+            obj = null
             obj = CreateObject("Network.Skims")
             obj.Network = net_dir + "/net_" + period + "_" + mode + ".net"
             obj.LayerDB = link_dbd
@@ -108,6 +109,7 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
             ret_value = obj.Run()
 
             // intrazonals
+            obj = null
             obj = CreateObject("Distribution.Intrazonal")
             obj.OperationType = "Replace"
             obj.TreatMissingAsZero = false
@@ -115,10 +117,12 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
             obj.Factor = .75
             m = CreateObject("Matrix", out_file)
             corenames = m.GetCoreNames()
+            m = null
             for core in corenames do
                 obj.SetMatrix({MatrixFile: out_file, Matrix: core})
                 ok = obj.Run()
             end
+            m = CreateObject("Matrix", out_file)
             m.SetVector({Core: corenames[1], Vector: v_iz, Diagonal: "true"})
 
             // Auto pay fare
@@ -224,6 +228,15 @@ Macro "Create Transit Skims" (Args, overrides)
 
             for access in access_mode_subset do
                 net_file = net_dir + "/tnet_" + period + "_" + access + "_" + mode + ".tnw"
+                setopts = {TNWFile: net_file,
+                           AccessMode: access,
+                           RouteFile: rts_file,
+                           Period: period,
+                           ModeTable: TransModeTable,
+                           Mode: mode
+                           }
+                ok = RunMacro("Set Route Network", Args, setopts)
+
                 out_file = out_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
                 obj = CreateObject("Network.TransitSkims")
                 obj.Method = "PF"
@@ -263,11 +276,29 @@ Macro "Create Transit Skims" (Args, overrides)
                     MatrixLabel : label, 
                     Compression: true, ColumnMajor: false
                 })
-                obj.Run()
-                obj = null
+                if access = "pnr" and period = "AM" then do // for AM pnr skimming report out parking lot used
+                    tmpAMmtx = GetTempFileName("*.mtx")
+                    obj.ReportAccessParkMatrix({MatrixFile: tmpAMmtx})
+                end
 
-                // Flip to AP format in the PM period
-                if period = "PM" then do
+                // // To avoid hyperthreading issues leading to slight differences
+                // // only use one thread for the skim calculation for PM and NT.
+                // if (period = "PM" or period = "NT") and access = "pnr" then do
+                //     SetNumThreads(1)
+                // end
+                obj.Run()
+                // SetNumThreads(GetMaxNumThreads())
+                obj = null
+                if access = "pnr" and period = "AM" then do // for AM pnr skimming, open the parking lot matrix and transpose
+                    m = CreateObject("Matrix", tmpAMmtx)
+                    tmpAM2 = GetTempFileName("*.mtx")
+                    mT = m.Transpose({OutputFile: tmpAM2})
+                    mT2 = OpenMatrix(tmpAM2,)
+                    tmat = FlipMatrix(mT2, {"File Name": Args.("ReturnParkingLotUsed"+mode), Label: "ParkingMatrix"+mode})
+                    mT2 = null
+                end
+                // Flip to AP format in the PM and NT period
+                if period = "PM" or period = "NT" then do
                     label = label + " transposed to AP"
                     RunMacro("Transpose Matrix", out_file, label)
                 end

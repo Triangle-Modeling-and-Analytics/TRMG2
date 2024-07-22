@@ -70,7 +70,22 @@ menu "TRMG2 Menu"
             return()
         end
 
-        mr.RunCode("Create Scenario", Args)
+        // Check if anything has already been created in the scenario directory
+        dir = Args.[Input Folder] + "/*"
+        if GetDirectoryInfo(dir, "All") <> null then do
+            opts = null
+            opts.Buttons = "YesNo"
+            opts.Caption = "Note"
+            str = "The input folder already contains information.\n" +
+            "Continuing will overwrite any manual changes made.\n" +
+            "(The output folder will not be modified.)\n" +
+            "Are you sure you want to continue?"
+            yesno = MessageBox(str, opts)
+        end
+        if yesno = "Yes" or yesno = null then do
+            mr.RunCode("Create Scenario", Args)
+            ShowMessage("Scenario Created")
+        end
         return(1)
     enditem
 
@@ -92,8 +107,8 @@ menu "TRMG2 Utilities"
     MenuItem "Accessibility" text: "Accessibility Analysis"
         menu "Accessibility Analysis"
 
-    MenuItem "Matrix" text: "Matrix Aggregation and Deletion"
-        menu "Matrix Aggregation and Deletion"
+    MenuItem "Matrix" text: "Matrix Aggregation"
+        menu "Matrix Aggregation"
 
     MenuItem "Comparison" text: "Scenario Comparison"
         menu "Scenario Comparison"
@@ -103,6 +118,12 @@ menu "TRMG2 Utilities"
 
     MenuItem "Performance" text: "Performance Measures"
         menu "Performance Measures"
+    
+    MenuItem "FManagement" text: "File Management"
+        menu "File Management"
+
+    MenuItem "TIA" text: "TIA Site Analysis"
+        menu "TIA Site Analysis"
     
 endMenu
 
@@ -121,6 +142,13 @@ menu "Highway Analysis"
         Args = mr.GetValues()
         mr.RunCode("Open Fixed OD Dbox", Args)
     enditem
+
+    MenuItem "fixed_od_multi" text: "FixedOD Multiple Projects" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open FixedOD Multiple Projects Dbox", Args)
+    enditem
+
 endMenu
 
 menu "Accessibility Analysis"
@@ -146,7 +174,7 @@ menu "Accessibility Analysis"
     enditem
 endMenu
 
-menu "Matrix Aggregation and Deletion"
+menu "Matrix Aggregation"
     init do
     enditem
     
@@ -166,12 +194,6 @@ menu "Matrix Aggregation and Deletion"
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
         mr.RunCode("Open Daily Matrix Creation Tool Dbox", Args)
-    enditem
-
-    MenuItem "Delete Files Tool" text: "Delete Matrix Files" do
-        mr = CreateObject("Model.Runtime")
-        Args = mr.GetValues()
-        mr.RunCode("Open Delete Files Tool Dbox", Args)
     enditem
 
 endMenu
@@ -237,6 +259,33 @@ menu "Performance Measures"
     enditem
 
 endMenu
+
+menu "File Management"
+    init do
+    enditem
+
+    MenuItem "Delete Files Tool" text: "Delete Files" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Delete Files Tool Dbox", Args)
+    enditem
+
+endMenu
+
+menu "TIA Site Analysis"
+    init do
+    enditem
+
+    MenuItem "Zone" text: "Zone VMT Metrics" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open TIA Zone VMT Dbox", Args)
+    enditem
+
+    MenuItem "Link" text: "Link VMT Metric"
+        menu "Link VMT Metric"
+endMenu
+
 menu "TRMG2 Calibrators"
     init do
     enditem
@@ -260,5 +309,21 @@ menu "TRMG2 Calibrators"
     enditem
 endMenu
 
+menu "Link VMT Metric"
+    init do
+    enditem
+
+    MenuItem "SL" text: "Select Link Analysis" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Select Link Dbox", Args)
+    enditem
+
+    MenuItem "LinkVMT" text: "Calculate Link VMT" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open TIA Link VMT Dbox", Args)
+    enditem
+endMenu
 
 

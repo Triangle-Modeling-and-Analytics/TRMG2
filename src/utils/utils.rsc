@@ -1617,7 +1617,7 @@ Macro "Count Difference Map" (macro_opts)
   )
 
   // Set color theme line styles and colors
-  line_colors =	{
+  line_colors = {
     ColorRGB(17733,30069,46260),
     ColorRGB(29812,44461,53713),
     ColorRGB(43947,55769,59881),
@@ -1943,7 +1943,8 @@ Inputs (all in a named array)
 
 Returns
   * Nothing. Creates `boardings_and_alightings`, `transit_flow_by_link`,
-    and `passenger_miles_and_hours` csv tables.
+    and `passenger_miles_and_hours` csv tables. Also loads transit flow
+    data onto loaded_network.
 */
 
 Macro "Summarize Transit" (MacroOpts)
@@ -1976,7 +1977,7 @@ Macro "Summarize Transit" (MacroOpts)
   mode_table.select({"Mode_ID", "Abbr"})
   rts.left_join(mode_table, "Mode", "Mode_ID")
   rts.rename("Abbr", "Mode_abbr")
-  rts.select({"Route_ID", "Route_Name", "Agency", "Mode_abbr"})
+  rts.select({"Route_ID", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr"})
   
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
@@ -1997,7 +1998,7 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("period", "Daily")
   daily.left_join(rts, "route", "Route_ID")
-  daily.select({"route", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
+  daily.select({"route", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
 
   
@@ -2014,6 +2015,14 @@ Macro "Summarize Transit" (MacroOpts)
     df.write_csv(output_dir + "/boardings_and_alightings_daily_by_" + var + ".csv")
   end
 
+  df = onoff.copy()
+  df.group_by({"agency", "mode"})
+  df.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"agency", "mode"} + cols_to_summarize
+  df.colnames(opts)
+  df.write_csv(output_dir + "/boardings_and_alightings_daily_by_mode_by_agency.csv")
+
   // aggregate transit flow by link and join to layer
   agg = tables.agg
   agg.group_by("ID1")
@@ -2025,10 +2034,30 @@ Macro "Summarize Transit" (MacroOpts)
   agg_file = output_dir + "/transit_flow_by_link.csv"
   agg.write_csv(agg_file)
   RunMacro("Join Table To Layer", loaded_network, "ID", agg_file, "ID1")
+  // Add transit field descriptions
+  bin_file = Substitute(loaded_network, ".dbd", ".bin", 1)
+  tbl = CreateObject("Table", bin_file)
+  tbl.ChangeField({FieldName: "AB_TransitFlow", Description: "AB transit flow for all transit modes"})
+  tbl.ChangeField({FieldName: "BA_TransitFlow", Description: "BA transit flow for all transit modes"})
+  tbl.ChangeField({FieldName: "AB_NonTransitFlow", Description: "Access, transfer and egress components of transit trips (Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow +_Drive_Flow)"})
+  tbl.ChangeField({FieldName: "BA_NonTransitFlow", Description: "Access, transfer and egress components of transit trips (Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow +_Drive_Flow)"})
+  tbl.ChangeField({FieldName: "AB_TotalFlow", NewName: "AB_TotalFlow_t", Description: "All components of transit trips (TransitFlow + Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow + Drive_Flow)"})
+  tbl.ChangeField({FieldName: "BA_TotalFlow", NewName: "BA_TotalFlow_t", Description: "All components of transit trips (TransitFlow + Access_Walk_Flow + Xfer_Walk_Flow + Egress_Walk_Flow + Drive_Flow)"})
+  tbl.ChangeField({FieldName: "AB_Access_Walk_Flow", Description: "AB flow for transit passengers that walked to their initial transit stop"})
+  tbl.ChangeField({FieldName: "BA_Access_Walk_Flow", Description: "BA flow for transit passengers that walked to their initial transit stop"})
+  tbl.ChangeField({FieldName: "AB_Xfer_Walk_Flow", Description: "AB flow for transit passengers that walked from one transit stop to another on a given trip"})
+  tbl.ChangeField({FieldName: "BA_Xfer_Walk_Flow", Description: "BA flow for transit passengers that walked from one transit stop to another on a given trip"})
+  tbl.ChangeField({FieldName: "AB_Egress_Walk_Flow", Description: "AB flow for transit passengers that walked from a transit stop to their given destination"})
+  tbl.ChangeField({FieldName: "BA_Egress_Walk_Flow", Description: "BA flow for transit passengers that walked from a transit stop to their given destination"})
+  tbl.ChangeField({FieldName: "AB_Walk_Flow", Description: "AB walk flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "BA_Walk_Flow", Description: "BA walk flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "AB_Drive_Flow", Description: "AB drive flow ONLY for transit passengers that drove to transit"})
+  tbl.ChangeField({FieldName: "BA_Drive_Flow", Description: "BA drive flow ONLY for transit passengers that drove to transit"})
+  tbl = null
   
   // Passenger miles and hours
   flow = tables.flow
-  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT / 60)
   flow.mutate(
     "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
   flow.group_by("Route")
@@ -2117,6 +2146,10 @@ Macro "Gravity" (MacroOpts)
   param_file = MacroOpts.param_file
   output_matrix = MacroOpts.output_matrix
 
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
+
   // Create the gravity object
   obj = CreateObject("Distribution.Gravity")
   obj.DataSource = {TableName: se_file}
@@ -2172,6 +2205,10 @@ Macro "Gravity2" (MacroOpts)
   output_matrix = MacroOpts.output_matrix
   set_data = MacroOpts.set_data
 
+  // Create output folder if it doesn't exist
+  {drive, folder, name, ext} = SplitPath(output_matrix)
+  RunMacro("Create Directory", drive + folder)
+
   param_vw = OpenTable("params", "CSV", {param_file})
   {names, specs} = GetFields(param_vw, "All")
   if names.position("filter") = 0 then queries = {null}
@@ -2209,12 +2246,13 @@ Macro "Gravity2" (MacroOpts)
     SetDataVectors(se_vw + "|sel", data, )
 
     // Create the gravity object
-    temp_mtx = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
-    temp_mtxs = temp_mtxs + {temp_mtx}
+//    temp_mtx2 = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
+    temp_mtx2 = GetTempFileName("*.mtx")
+    temp_mtxs = temp_mtxs + {temp_mtx2}
     obj = CreateObject("Distribution.Gravity")
     obj.DataSource = {TableName: se_file}
     obj.OutputMatrix({
-      MatrixFile: temp_mtx,
+      MatrixFile: temp_mtx2,
       MatrixLabel: "Gravity Matrix",
       Compression: "true",
       ColumnMajor: "false"
@@ -2274,7 +2312,7 @@ Macro "Gravity2" (MacroOpts)
 
       temp_mtx = null
       temp_core = null
-      DeleteFile(temp_mtx_file)
+//      DeleteFile(temp_mtx_file)
     end
   end
 
@@ -2337,7 +2375,7 @@ Macro "Create Intra Cluster Matrix"(Args)
 
   outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
   // Create empty matrix
-  obj = CreateObject("Matrix") 
+  obj = CreateObject("Matrix", {Empty: True}) 
   obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
   opts.RowIds = v2a(vTAZ) 
   opts.ColIds = v2a(vTAZ)
@@ -2525,6 +2563,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
   total_pct_diff = round((total_volume - total_count) / total_count * 100, 2)
   {, total_prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
   total_prmse = round(total_prmse, 2)
+  total_volume = round(total_volume, 0)
   total_line = {
     "All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
@@ -2533,6 +2572,12 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     "All,All," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
     "," + String(total_pct_diff) + "," + String(total_prmse)
   }
+
+  // Regional table
+  file = out_dir + "/count_comparison_regional.csv"
+  lines = {"Region,N,TotalCount,TotalVolume,PctDiff,PRMSE"}
+  lines = lines + total_line
+  RunMacro("Write CSV by Line", file, lines)
 
   // Facility type table
   lines = null
@@ -2549,6 +2594,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     lines = lines + {
       class_name + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)
@@ -2578,6 +2624,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
         pct_diff = round((total_volume - total_count) / total_count * 100, 2)
         {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
         prmse = round(prmse, 2)
+        total_volume = round(total_volume, 0)
         lines = lines + {
           class_name + "," + area + "," + String(n) + "," + String(total_count) + "," +
           String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
@@ -2613,6 +2660,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
           pct_diff = round((total_volume - total_count) / total_count * 100, 2)
           {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
           prmse = round(prmse, 2)
+          total_volume = round(total_volume, 0)
           lines = lines + {
             class_name + "," + area + "," + med + "," + String(n) + "," + String(total_count) + "," +
             String(total_volume) + "," + String(pct_diff) + "," + String(prmse)
@@ -2643,6 +2691,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     if i = volume_breaks.length
       then label = String(low_vol) + "+"
       else label = String(high_vol)
@@ -2672,6 +2721,7 @@ Macro "Roadway Count Comparison Tables" (MacroOpts)
     pct_diff = round((total_volume - total_count) / total_count * 100, 2)
     {rmse, prmse} = RunMacro("Calculate Vector RMSE", v_count, v_volume)
     prmse = round(prmse, 2)
+    total_volume = round(total_volume, 0)
     lines = lines + {
       String(screenline) + "," + String(n) + "," + String(total_count) + "," + String(total_volume) + 
       "," + String(pct_diff) + "," + String(prmse)

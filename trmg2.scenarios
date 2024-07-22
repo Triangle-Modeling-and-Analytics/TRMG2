@@ -1,0 +1,17 @@
+    
+    
+Scenario "base_2020"
+    
+    [Scenario Folder] = "%Scenarios Folder%\\base_2020"
+    [Master SE] = "%Master Folder%\\sedata\\se_2020.bin"
+    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2020.bin"
+EndScenario
+    
+    
+Scenario "2055"
+    
+    [Master SE] = "%Master Folder%\\sedata\\se_2055.bin"
+    [Scenario Folder] = "%Scenarios Folder%\\2055"
+    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2050.bin"
+EndScenario
+    
