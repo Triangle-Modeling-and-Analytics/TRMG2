@@ -21,7 +21,7 @@ Macro "Model.Attributes" (Args,Result)
         {"Requires",
 {{"Program", "TransCAD"},
 {"Version", 10},
-{"Build", 40585}}},
+{"Build", 40595}}},
 {"RunParallel", 0},
 {"Shape", "Rectangle"},
 {"ShowTaskMonitor", 1},

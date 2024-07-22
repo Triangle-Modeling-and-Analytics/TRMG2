@@ -185,13 +185,13 @@ Macro "Poverty_HH_Estimator_Route" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir,
     SE = OpenTable("SE","FFB",{se_file,})
     jn_vw1 = JoinViews("Buffer_Poverty", TAZ_Buffer+".AREA_1", TAZ_Poverty + ".AREA_1",)
     jn_vw2 = JoinViews("SE_Buffer_Poverty", SE + ".TAZ", jn_vw1 + "." + TAZ_Buffer + ".AREA_1",)
-    jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", )
-    CreateExpression(jn_vw3, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
-    CreateExpression(jn_vw3, "Total_HH", "HH * PERCENT_1",)
-    CreateExpression(jn_vw3, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
-    CreateExpression(jn_vw3, "Poverty_Pct", "Poverty_HH/HH",)
+    //jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", ) //The equity summary will add MPO and county info to the SE table so no need to use TAZ layer
+    CreateExpression(jn_vw2, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
+    CreateExpression(jn_vw2, "Total_HH", "HH * PERCENT_1",)
+    CreateExpression(jn_vw2, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
+    CreateExpression(jn_vw2, "Poverty_Pct", "Poverty_HH/HH",)
     output_name1 = output_dir + "/" + TOD + "_Route_" + mode +"_PovertyReachedin" + R2S(RouteBuffer) + "Mi.csv"
-    ExportView(jn_vw3 + "|", "CSV", output_name1, 
+    ExportView(jn_vw2 + "|", "CSV", output_name1, 
               {"TAZ", "MPO", "County", "Total_HH", "Poverty_Pct", "Poverty_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"TAZ", "Ascending"}} }})
 
@@ -321,13 +321,13 @@ Macro "Poverty_HH_Estimator_Stop" (Args, BG_Layer_CDF, Census_Poverty_Data_Dir, 
     SE = OpenTable("SE","FFB",{se_file,})
     jn_vw1 = JoinViews("Buffer_Poverty", TAZ_Buffer+".AREA_1", TAZ_Poverty + ".AREA_1",)
     jn_vw2 = JoinViews("SE_Buffer_Poverty", SE + ".TAZ", jn_vw1 + "." + TAZ_Buffer + ".AREA_1",)
-    jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", )
-    CreateExpression(jn_vw3, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
-    CreateExpression(jn_vw3, "Total_HH", "HH * PERCENT_1",)
-    CreateExpression(jn_vw3, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
-    CreateExpression(jn_vw3, "Poverty_Pct", "Poverty_HH/HH",)
+    //jn_vw3= JoinViews("TAZ_SE_Buffer_Poverty", tlyr + ".ID", jn_vw2 + "." + SE + ".TAZ", )
+    CreateExpression(jn_vw2, "BGPoverty_Pct", "if BG_TotHH > 0 then BG_PovertyHH/BG_TotHH else 0",)
+    CreateExpression(jn_vw2, "Total_HH", "HH * PERCENT_1",)
+    CreateExpression(jn_vw2, "Poverty_HH", "BGPoverty_Pct * HH * PERCENT_1",)
+    CreateExpression(jn_vw2, "Poverty_Pct", "Poverty_HH/HH",)
     output_name1 = output_dir + "/" + TOD + "_Stop_" + mode +"_PovertyReachedin" + R2S(StopBuffer) + "Mi.csv"
-    ExportView(jn_vw3 + "|", "CSV", output_name1, 
+    ExportView(jn_vw2 + "|", "CSV", output_name1, 
               {"TAZ", "MPO", "County", "Total_HH", "Poverty_Pct", "Poverty_HH"}, 
               {{"CSV Header", "True"}, { "Row Order", {{"TAZ", "Ascending"}} }})
 
