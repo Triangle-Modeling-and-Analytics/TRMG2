@@ -27,25 +27,26 @@ endmacro
 
 Macro "Other Reports" (Args)
     
-    // RunMacro("Summarize HB DC and MC", Args)
-    // RunMacro("Summarize NHB DC and MC", Args)
-    // RunMacro("Summarize NM", Args)
-    // RunMacro("Summarize Total Mode Shares", Args)
-    // RunMacro("Summarize Links", Args)
-    // RunMacro("Congested VMT", Args)
-    // RunMacro("Summarize Parking", Args)
-    // RunMacro("VMT_Delay Summary", Args)
-    // RunMacro("Congestion Cost Summary", Args)
-    // RunMacro("Create PA Vehicle Trip Matrices", Args)
-    // RunMacro("Equity", Args)
-    // RunMacro("Disadvantage Community Skims", Args)
-    // RunMacro("Disadvantage Community Mode Shares", Args)
-    // RunMacro("Disadvantage Community Mapping", Args)
-    // RunMacro("Summarize NM Disadvantage Community", Args)
-    // RunMacro("Summarize HH Strata", Args)
-    // RunMacro("Aggregate Transit Flow by Route", Args)
-    // RunMacro("Validation Reports", Args)
+    RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
+    RunMacro("Summarize NM", Args)
+    RunMacro("Summarize Total Mode Shares", Args)
+    RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
+    RunMacro("Summarize Parking", Args)
+    RunMacro("VMT_Delay Summary", Args)
+    RunMacro("Congestion Cost Summary", Args)
+    RunMacro("Create PA Vehicle Trip Matrices", Args)
+    RunMacro("Equity", Args)
+    RunMacro("Disadvantage Community Skims", Args)
+    RunMacro("Disadvantage Community Mode Shares", Args)
+    RunMacro("Disadvantage Community Mapping", Args)
+    RunMacro("Summarize NM Disadvantage Community", Args)
+    RunMacro("Summarize HH Strata", Args)
+    RunMacro("Aggregate Transit Flow by Route", Args)
+    RunMacro("Validation Reports", Args)
     RunMacro("Export Highway Geodatabase", Args)
+    RunMacro("Performance Measures Reports", Args)
     return(1)
 endmacro
 
@@ -1206,16 +1207,16 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
   counter = 1
   for mtx_file in mtx_files do
+    // when summarizing highway matrices, don't include any peak hour matrices,
+    // which are already included in the peak period matrices.
+    if Right(mtx_file, 8) = "PKHR.mtx" then continue
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
       v_row = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
-      v_col = mtx.GetVector({Core: core_name, Marginal: "Column Sum"})
-      v_col.rowbased = "False"
-      v = v_row + v_col
       if counter = 1
-        then result = nz(v)
-        else result = result + nz(v)
+        then result = nz(v_row)
+        else result = result + nz(v_row)
       counter = counter + 1
     end
   end
@@ -2749,4 +2750,233 @@ Macro "Export Highway Geodatabase" (Args)
   opts.ID = fx[1]
   opts.[EPSG Datum] = 4269 // North America
   ExportGdalVector(llyr + "|", out_file, "FileGDB", opts)
+endmacro
+
+/*
+
+*/
+
+Macro "Performance Measures Reports" (Args)
+  //Set input file path
+  root_dir = Args.[Base Folder]
+  scen_dir = Args.[Scenario Folder]
+  taz_file = Args.TAZs
+  periods = Args.periods
+  out_dir = scen_dir + "/output"
+  summary_dir = scen_dir + "/output/_summaries"
+  pm_dir = summary_dir + "/performance_measures"
+  if GetDirectoryInfo(pm_dir, "All") = null then CreateDirectory(pm_dir)
+	hwy_dbd = Args.Links
+  mode_table = Args.TransModeTable
+  access_modes = Args.access_modes
+	region_fields = {"Region", "MPO", "County"}
+
+  /*
+  out_file = pm_dir + "/pm.csv"
+	f = OpenFile(out_file, "w")
+	WriteLine(f, "Region, CAMPO, DCHC, None, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+
+	//1. Highway performance measures
+  {nLayer, llyr} = GetDBLayers(hwy_dbd)
+	llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
+  hwy_df = CreateObject("Table", llyr)
+  hwy_df.SelectByQuery({
+    SetName: "to_export",
+    Query: "HCMType <> 'CC'"
+  })
+  hwy_nocc_df = hwy_df.Export()
+
+      //1.1 Daily VMT
+      Total_VMT_Daily = hwy_df.Total_VMT_Daily.sum()
+      Total_VMT_Daily_nocc = hwy_nocc_df.Total_VMT_Daily.sum()
+      
+      line = "All Facility + C Connectors," + String(Total_VMT_Daily)
+      RunMacro("Append Line", {file: out_file, line: line}) 
+      line = "All Facility (no C Connectors)," + String(Total_VMT_Daily_nocc)
+      RunMacro("Append Line", {file: out_file, line: line})
+
+      //1.2 Daily VHT
+      Total_VHT_Daily = hwy_df.Total_VHT_Daily.sum()
+      Total_VHT_Daily_nocc = hwy_nocc_df.Total_VHT_Daily.sum()
+      
+      line = "All Facility + C Connectors," + String(Total_VHT_Daily)
+      RunMacro("Append Line", {file: out_file, line: line}) 
+      line = "All Facility (no C Connectors)," + String(Total_VHT_Daily_nocc)
+      RunMacro("Append Line", {file: out_file, line: line})
+
+  group_fields = {"MPO", "County"}
+  fields_to_sum = {"Total_VMT_Daily", "Total_VMT_Daily_nocc", "Total_VHT_Daily", "Total_VHT_Daily_nocc"}
+  for var in group_fields do 
+    if var = "Regional" then do
+
+    
+    end  
+  end
+  //1.3 Average speed by facility
+  
+  group_fields = {"County", "MPO"}
+  fields_to_sum = {"HH", "POP"}
+  for var in group_fields do 
+    df = CreateObject("Table", output_dir + "/link_VMT_Delay.csv")
+    df = df.Aggregate({
+      GroupBy: var,
+      FieldStats: {Total_VMT_Daily: "sum"}
+    })
+    names = df.GetFieldNames()
+    for name in names do
+        if Left(name, 4) = "sum_" then do
+            new_name = Substitute(name, "sum_", "", 1)
+            df.RenameField({FieldName: name, NewName: new_name})
+        end
+    end
+    */
+
+    //6. TAZ Measures
+    // Build an equivalency array that maps modes to summary mode levels
+    equiv = {
+      sov: "sov",
+      auto: "sov", //university auto mode is set to sov
+      hov2: "hov",
+      hov3: "hov",
+      walk: "nm",
+      bike: "nm",
+      walkbike: "nm",
+      auto_pay: "hov", //NHB auto pay mode is set to hov
+      transit: "nhballtransit"
+    }
+    transit_modes = RunMacro("Get Transit Modes", mode_table)
+    for access_mode in access_modes do
+      for transit_mode in transit_modes do
+        name = access_mode + "_" + transit_mode
+        if transit_mode = "lb" or transit_mode = "eb" then
+          equiv.(name) = "bus" else
+          equiv.(name) = transit_mode
+      end
+    end
+  
+    // Get a vector of IDs from one of the matrices
+    mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
+    mtx = CreateObject("Matrix", mtx_files[1])
+    core_names = mtx.GetCoreNames()
+    v_id = mtx.GetVector({Core: core_names[1], Index: "Row"})
+
+    // create a table to store results
+    tbl = CreateObject("Table", {Fields: {
+      {FieldName: "TAZ", Type: "Integer"}
+    }})
+    tbl.AddRows({EmptyRows: v_id.length})
+    tbl.TAZ = v_id
+
+    // Loop through each group
+    groups = {"Daily", "PM", "W_HB_W"}
+
+    for group in groups do
+
+      // Resident HB motorized trips
+      trip_dir = out_dir + "/resident/trip_matrices"
+      result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+
+      // Resident HB nm trips
+      trip_mtx = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
+      result = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result})
+
+      // University trips
+      trip_dir = out_dir + "/university/mode"
+      if group <> "W_HB_W" then result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+
+      // NHB trips
+      trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
+      if group <> "W_HB_W" then result = RunMacro("Summarize NHB", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
+      
+    end
+        
+    // Save results to the output table and add county info from the TAZ layer
+    for i = 1 to result.length do
+      field_name = result[i][1]
+      tbl.AddField(field_name)
+      tbl.(field_name) = result.(field_name)
+    end
+    out_file = pm_dir + "/taz_measures.bin"
+    tbl.Export({FileName: out_file})
+
+endmacro
+
+Macro "Summarize HB Univ RowSums" (MacroOpts)
+  
+  equiv = MacroOpts.equiv
+  trip_dir = MacroOpts.trip_dir
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  for mtx_file in mtx_files do
+    if group = "PM" and position(mtx_file, group) = 0 then continue
+    if group = "W_HB_W" and position(mtx_file, group) = 0 then continue
+
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    for core_name in core_names do
+      // hb motorized and univ can be handled below, core names have mode info
+      if equiv.(core_name) = null then continue
+      out_name = equiv.(core_name) + "_" + group
+      v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+
+      if TypeOf(result.(out_name)) = "null"
+        then result.(out_name) = nz(v)
+        else result.(out_name) = result.(out_name) + nz(v)
+    end
+  end
+  return(result)
+endmacro
+
+Macro "Summarize HB NM RowSums" (MacroOpts)
+  
+  // hb nm matrix needs special handling, core names do not have mode info
+  trip_mtx = MacroOpts.trip_mtx
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  mtx = CreateObject("Matrix", trip_mtx)
+  core_names = mtx.GetCoreNames()
+  for core_name in core_names do
+    parts = ParseString(core_name, "_")
+    if group = "Daily" and ArrayLength(parts) <> 4 then continue
+    if group = "PM" and right(core_name, 2) <> "PM" then continue
+    if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
+
+    out_name = "nm_" + group
+    v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+
+    if TypeOf(result.(out_name)) = "null"
+      then result.(out_name) = nz(v)
+      else result.(out_name) = result.(out_name) + nz(v)
+  end
+  return(result)
+endmacro
+
+Macro "Summarize NHB" (MacroOpts)
+  
+  equiv = MacroOpts.equiv
+  trip_bin = MacroOpts.trip_bin
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  nhb = CreateObject("Table", trip_bin)
+  flds = nhb.GetFieldNames()
+  for fld in flds do
+    parts = ParseString(fld, "_")
+    mode = "default"
+    if ArrayLength(parts) = 3 then mode = parts[2] else if ArrayLength(parts) = 4 then mode = parts[3] else if ArrayLength(parts) = 5 then mode = "auto_pay"// set mode
+    if equiv.(mode) = null then continue // if fld is not trip fields
+    if group = "PM" and right(fld, 2) <> "PM" then continue // if group = PM then only add PM flds
+    
+    out_name = equiv.(mode) + "_" + group
+    v = nhb.(fld)
+    v.rowbased = "false"
+    if TypeOf(result.(out_name)) = "null"
+        then result.(out_name) = nz(v)
+        else result.(out_name) = result.(out_name) + nz(v)
+  end
+  return(result)
+
 endmacro

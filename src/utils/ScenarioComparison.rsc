@@ -169,7 +169,7 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
-        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}},
+        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily", "AB_TransitFlow"}},
         {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
@@ -226,21 +226,32 @@ Macro "Diff Tables" (MacroOpts)
     end
 
     // Create tables and rename/add fields
+    // Rename all columns as sometimes TC uses random names like Table_21 instead of Table 1
+    out_fields = id_cols + cols_to_diff
     tbl1 = CreateObject("Table", {FileName: table1})
-    tbl1 = tbl1.Export({FieldNames: id_cols + cols_to_diff})
+    tbl1 = tbl1.Export({FieldNames: out_fields})
     tbl2 = CreateObject("Table", table2)
-    tbl2 = tbl2.Export({FieldNames: id_cols + cols_to_diff})
-    for col in cols_to_diff do
+    tbl2 = tbl2.Export({FieldNames: out_fields})
+    
+    for col in out_fields do
         tbl1.ChangeField({FieldName: col, NewName: col + "_ref", Type: "real"})
         tbl2.ChangeField({FieldName: col, NewName: col + "_new", Type: "real"})
         tbl2.AddField(col + "_diff")
+    end
+
+    // Rebuild join fields
+    left_id_cols = null
+    right_id_cols = null
+    for field in id_cols do
+        left_id_cols = left_id_cols + {field + "_ref"}
+        right_id_cols = right_id_cols + {field + "_new"}
     end
     
     // Calculate differences
     tbl3 = tbl1.Join({
         Table: tbl2,
-        LeftFields: id_cols,
-        RightFields: id_cols
+        LeftFields: left_id_cols,
+        RightFields: right_id_cols
     })
     for col in cols_to_diff do
         tbl3.(col + "_diff") = tbl3.(col + "_new") - tbl3.(col + "_ref")
@@ -250,8 +261,8 @@ Macro "Diff Tables" (MacroOpts)
     // Clean up id name columns
     tbl4 = CreateObject("Table", out_file)
     for col in id_cols do
-        tbl4.RenameField({FieldName: "Table_2." + col, NewName: col})
-        tbl4.DropFields("Table_3." + col)
+        tbl4.RenameField({FieldName: col + "_ref", NewName: col})
+        tbl4.DropFields(col + "_new")
     end
 endmacro
 
@@ -341,13 +352,7 @@ Macro "Compare Link Data" (MacroOpts)
     
     ref_scen = MacroOpts.ref_scen
     new_scen = MacroOpts.new_scen
-    sub_poly = MacroOpts.sub_poly
-
-    // Call the link layer Diff tool on both highway layers
-    RunMacro("Diff Line Layers", {
-        old_dbd: ref_scen + "/input/networks/scenario_links.dbd",
-        new_dbd: new_scen + "/input/networks/scenario_links.dbd"
-    })
+    sub_poly = MacroOpts.sub_poly    
 
     comp_dir = new_scen + "/comparison_outputs"
     map_dir = comp_dir + "/maps"
@@ -434,6 +439,13 @@ Macro "Compare Link Data" (MacroOpts)
         map.CreateLegend()
         map.Save(map_dir + "/" + field + " Differences.map")
     end
+
+    // Call the link layer Diff tool on both highway layers
+    RunMacro("Diff Line Layers", {
+        old_dbd: ref_scen + "/input/networks/scenario_links.dbd",
+        new_dbd: new_scen + "/input/networks/scenario_links.dbd"
+    })
+
 endmacro
 
 /*

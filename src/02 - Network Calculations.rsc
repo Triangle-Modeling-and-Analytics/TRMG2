@@ -1251,6 +1251,9 @@ Macro "Set Route Network" (Args, opts)
             if GetFileInfo(Args.("ReturnParkingLotUsed"+transit_mode)) <> null then do
                 opts.ParkingUsage = Args.("ReturnParkingLotUsed"+transit_mode)
             end
+            // In the PM and NT, since the PNR is fixed for the day, we need to
+            // make sure the parking lot can be used for the return trip.
+            opts.MaxDriveTime = 999
             o.DriveEgress(opts)
         end
         else 

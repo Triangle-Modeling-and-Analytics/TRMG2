@@ -1617,7 +1617,7 @@ Macro "Count Difference Map" (macro_opts)
   )
 
   // Set color theme line styles and colors
-  line_colors =	{
+  line_colors = {
     ColorRGB(17733,30069,46260),
     ColorRGB(29812,44461,53713),
     ColorRGB(43947,55769,59881),
@@ -1977,7 +1977,7 @@ Macro "Summarize Transit" (MacroOpts)
   mode_table.select({"Mode_ID", "Abbr"})
   rts.left_join(mode_table, "Mode", "Mode_ID")
   rts.rename("Abbr", "Mode_abbr")
-  rts.select({"Route_ID", "Route_Name", "Agency", "Mode_abbr"})
+  rts.select({"Route_ID", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr"})
   
   // Summarize total ridership (total boardings)
   onoff = tables.onoff
@@ -1998,7 +1998,7 @@ Macro "Summarize Transit" (MacroOpts)
   daily.colnames(opts)
   daily.mutate("period", "Daily")
   daily.left_join(rts, "route", "Route_ID")
-  daily.select({"route", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
+  daily.select({"route", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
 
   
@@ -2014,6 +2014,14 @@ Macro "Summarize Transit" (MacroOpts)
     df.colnames(opts)
     df.write_csv(output_dir + "/boardings_and_alightings_daily_by_" + var + ".csv")
   end
+
+  df = onoff.copy()
+  df.group_by({"agency", "mode"})
+  df.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"agency", "mode"} + cols_to_summarize
+  df.colnames(opts)
+  df.write_csv(output_dir + "/boardings_and_alightings_daily_by_mode_by_agency.csv")
 
   // aggregate transit flow by link and join to layer
   agg = tables.agg
@@ -2049,7 +2057,7 @@ Macro "Summarize Transit" (MacroOpts)
   
   // Passenger miles and hours
   flow = tables.flow
-  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT)
+  flow.mutate("pass_hours", flow.tbl.TransitFlow * flow.tbl.BaseIVTT / 60)
   flow.mutate(
     "pass_miles", flow.tbl.TransitFlow * (flow.tbl.To_MP - flow.tbl.From_MP))
   flow.group_by("Route")
@@ -2238,12 +2246,13 @@ Macro "Gravity2" (MacroOpts)
     SetDataVectors(se_vw + "|sel", data, )
 
     // Create the gravity object
-    temp_mtx = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
-    temp_mtxs = temp_mtxs + {temp_mtx}
+//    temp_mtx2 = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
+    temp_mtx2 = GetTempFileName("*.mtx")
+    temp_mtxs = temp_mtxs + {temp_mtx2}
     obj = CreateObject("Distribution.Gravity")
     obj.DataSource = {TableName: se_file}
     obj.OutputMatrix({
-      MatrixFile: temp_mtx,
+      MatrixFile: temp_mtx2,
       MatrixLabel: "Gravity Matrix",
       Compression: "true",
       ColumnMajor: "false"
@@ -2303,7 +2312,7 @@ Macro "Gravity2" (MacroOpts)
 
       temp_mtx = null
       temp_core = null
-      DeleteFile(temp_mtx_file)
+//      DeleteFile(temp_mtx_file)
     end
   end
 

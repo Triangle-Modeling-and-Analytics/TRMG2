@@ -280,7 +280,14 @@ Macro "Create Transit Skims" (Args, overrides)
                     tmpAMmtx = GetTempFileName("*.mtx")
                     obj.ReportAccessParkMatrix({MatrixFile: tmpAMmtx})
                 end
+
+                // // To avoid hyperthreading issues leading to slight differences
+                // // only use one thread for the skim calculation for PM and NT.
+                // if (period = "PM" or period = "NT") and access = "pnr" then do
+                //     SetNumThreads(1)
+                // end
                 obj.Run()
+                // SetNumThreads(GetMaxNumThreads())
                 obj = null
                 if access = "pnr" and period = "AM" then do // for AM pnr skimming, open the parking lot matrix and transpose
                     m = CreateObject("Matrix", tmpAMmtx)

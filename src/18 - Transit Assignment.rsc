@@ -220,6 +220,7 @@ Macro "Transit Assignment" (Args)
         for core_name in core_names do
             net_file = net_dir + "/tnet_" + period + "_" + core_name + ".tnw"
 
+            o = null
             o = CreateObject(
                 "Network.PublicTransportAssignment",
                 {RS: rts_file, NetworkName: net_file}

@@ -90,6 +90,7 @@ Macro "Fixed OD Assignment" (MacroOpts)
     RunMacro("VOC Maps", Args)
     RunMacro("Speed Maps", Args)
     RunMacro("Summarize Links", Args)
+    RunMacro("VMT_Delay Summary", Args)
 endmacro
 
 /*
@@ -212,22 +213,26 @@ Macro "FixedOD Multiple Projects" (MacroOpts)
     mr = null
 
     proj_tbl = CreateObject("Table", proj_list)
-    proj_ids = proj_tbl.ProjID
-    if proj_ids.type <> "string" then proj_ids = String(proj_ids)
-
-    for proj_id in proj_ids do
-      MacroOpts.proj_id = proj_id
+    data = proj_tbl.GetDataVectors()
+    // for each row in the project list
+    for i = 1 to data[1][2].length do
+      // create an array of all project IDs in that row
+      for j = 1 to data.length do
+        proj_id = data[j][2][i]
+        if TypeOf(proj_id) = "null" then continue
+        if TypeOf(proj_id) <> "string" then proj_id = String(proj_id)
+        proj_ids = proj_ids + {proj_id}
+      end
+      
+      MacroOpts.proj_ids = proj_ids
       RunMacro("Create FixedOD Project Scenario", MacroOpts)
       RunMacro("Fixed OD Assignment", MacroOpts)
-
       // Remove the scenario from the flowchart
       mr = CreateObject("Model.Runtime")
       {, new_scen_name} = mr.GetScenario()
-      // mr.SetScenario(new_scen_name)
       mr.DeleteScenario(new_scen_name)
       mr.SetScenario(ref_scen_name)
     end
-
 endmacro
 
 /*
@@ -238,14 +243,26 @@ Macro "Create FixedOD Project Scenario" (MacroOpts)
 
     ref_scen_dir = MacroOpts.ref_scen_dir
     ref_scen_name = MacroOpts.ref_scen_name
-    proj_list = MacroOpts.proj_list
-    proj_id = MacroOpts.proj_id
+    proj_ids = MacroOpts.proj_ids
     add_or_remove = MacroOpts.add_or_remove
     
     // create the directory and copy project lists over
+    scen_name_suffix = proj_ids[1]
     if add_or_remove = "add"
-      then new_scen_dir = ref_scen_dir + "_plus_" + proj_id
-      else new_scen_dir = ref_scen_dir + "_minus_" + proj_id
+      then new_scen_dir = ref_scen_dir + "_plus_" + scen_name_suffix
+      else new_scen_dir = ref_scen_dir + "_minus_" + scen_name_suffix
+    // Multiple rows could start with the same project ID and include
+    // different projects. If the directory already exists, add a number
+    // to the end of the directory name to make it unique. 
+    if GetDirectoryInfo(new_scen_dir, "All") <> null then do
+      for i = 1 to 1000 do
+        temp = new_scen_dir + "_" + String(i)
+        if GetDirectoryInfo(temp, "All") = null then do
+          new_scen_dir = temp
+          break
+        end
+      end
+    end
     RunMacro("Create Directory", new_scen_dir)
     parts = ParseString(new_scen_dir, "\\")
     new_scen_name = parts[parts.length]
@@ -258,36 +275,42 @@ Macro "Create FixedOD Project Scenario" (MacroOpts)
       new_scen_dir + "\\TransitProjectList.csv"
     )
 
-    file = new_scen_dir + "\\RoadwayProjectList.csv"
+    csv_file = new_scen_dir + "\\RoadwayProjectList.csv"
+    tbl = CreateObject("Table", csv_file)
+    ids = tbl.ProjID
+    if TypeOf(ids) <> "null" and TypeOf(ids[1]) <> "string" then ids = String(ids)
+    tbl = null
     if add_or_remove = "add" then do
-      // Check if this project ID is already in the list
-      tbl = CreateObject("Table", file)
-      if tbl.ProjID.position(proj_id) > 0 then Throw(
-        "Project ID to add ('" + proj_id + "') is already in the project list" + 
-        " and so is in the original scenario."
-      )
-      tbl = null
+      for proj_id in proj_ids do
+        // Check if this project ID is already in the list
+        if ids.position(proj_id) > 0 then Throw(
+          "Project ID to add ('" + proj_id + "') is already in the project list" + 
+          " and so is in the original scenario."
+        )
+        tbl = null
 
-      // Add this project ID to the end of the roadway project list
-      file = OpenFile(file, "a")
-      WriteLine(file, proj_id)
-      CloseFile(file)
+        // Add this project ID to the end of the roadway project list
+        file = OpenFile(csv_file, "a")
+        WriteLine(file, proj_id)
+        CloseFile(file)
+      end
     end else do
       // Remove the project ID
-      tbl = CreateObject("Table", file)
-      ids = tbl.ProjID
-      tbl = null
-      file = OpenFile(file, "w")
+      // tbl = CreateObject("Table", file)
+      // ids = tbl.ProjID
+      // tbl = null
+      for proj_id in proj_ids do
+        if ids.position(proj_id) = 0 then Throw(
+          "Project ID to remove ('" + proj_id + "') not found in project list\n" +
+          "(and so isn't in original scenario)."
+        )
+      end
+      file = OpenFile(csv_file, "w")
       WriteLine(file, "ProjID")
       for id in ids do
-        if id = proj_id then project_found = true
-        if id <> proj_id then WriteLine(file, id)
+        if proj_ids.position(id) = 0 then WriteLine(file, id)
       end
-      // Throw an error if the project ID wasn't found
-      if !project_found then Throw(
-        "Project ID to remove ('" + proj_id + "') not found in project list\n" +
-        "(and so isn't in original scenario)."
-      )
+      CloseFile(file)
     end
 
     // Create the scenario in the flowchart
