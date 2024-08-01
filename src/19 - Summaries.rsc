@@ -831,11 +831,27 @@ Macro "Summarize HB DC and MC" (Args)
   // if called by the summary comparison tool, end here
   if index then return()
 
+  // Create a daily/PM matrix for all HB trips
+  total_allhb_file = output_dir + "/AllHBTrips.mtx"
+  
   // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
     total_file = output_dir + "/" + trip_type + ".mtx"
     total_files = total_files + {total_file}
+
+    if trip_type = trip_types[1] then do
+      in_file = trip_dir + "/pa_per_trips_" + trip_type + "_AM.mtx"
+      CopyFile(in_file, total_allhb_file)
+      total_allhb_mtx = CreateObject("Matrix", total_allhb_file)
+      to_drop = total_allhb_mtx.GetCoreNames()
+      total_allhb_mtx.AddCores({"total", "PM"})
+      total_allhb_mtx.DropCores(to_drop)
+      total_allhb_core = total_allhb_mtx.GetCore("total")
+      total_allhb_core := 0
+      pm_allhb_core = total_allhb_mtx.GetCore("PM")
+      pm_allhb_core := 0
+    end
 
     for period in periods do
       in_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -855,11 +871,16 @@ Macro "Summarize HB DC and MC" (Args)
         if Left(core_name, 3) <> "dc_" then continue // only summarize the dc matrices
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
+        total_allhb_core := total_allhb_core + nz(in_core)
+        if period = "PM" then pm_allhb_core := pm_allhb_core + nz(in_core)
       end
     end
   end
   total_mtx = null
   total_core = null
+  total_allhb_mtx = null
+  total_allhb_core = null
+  pm_allhb_core = null
 
   // Summarize totals matrices
   df = RunMacro("Matrix Stats", {Matrices: total_files})
@@ -2656,70 +2677,266 @@ Macro "Performance Measures Reports" (Args)
 	hwy_dbd = Args.Links
   mode_table = Args.TransModeTable
   access_modes = Args.access_modes
-	region_fields = {"Region", "MPO", "County"}
-
-  /*
-  out_file = pm_dir + "/pm.csv"
-	f = OpenFile(out_file, "w")
-	WriteLine(f, "Region, CAMPO, DCHC, None, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+  group_fields = {"Region", "MPO", "County"}
 
 	//1. Highway performance measures
+  //Read highway link layer
   {nLayer, llyr} = GetDBLayers(hwy_dbd)
 	llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
-  hwy_df = CreateObject("Table", llyr)
-  hwy_df.SelectByQuery({
+  hwy_tbl = CreateObject("Table", llyr)
+  hwy_tbl.SelectByQuery({
     SetName: "to_export",
     Query: "HCMType <> 'CC'"
   })
-  hwy_nocc_df = hwy_df.Export()
+  tbl = hwy_tbl.Export()
 
-      //1.1 Daily VMT
-      Total_VMT_Daily = hwy_df.Total_VMT_Daily.sum()
-      Total_VMT_Daily_nocc = hwy_nocc_df.Total_VMT_Daily.sum()
-      
-      line = "All Facility + C Connectors," + String(Total_VMT_Daily)
-      RunMacro("Append Line", {file: out_file, line: line}) 
-      line = "All Facility (no C Connectors)," + String(Total_VMT_Daily_nocc)
-      RunMacro("Append Line", {file: out_file, line: line})
+  //1.1 Daily VMT 1.2 Daily VHT
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "VMT_and_VHT", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 2})
+  out_tbl.VMT_and_VHT = {"Total VMT (no CC)", "Total VHT (no CC)"}
 
-      //1.2 Daily VHT
-      Total_VHT_Daily = hwy_df.Total_VHT_Daily.sum()
-      Total_VHT_Daily_nocc = hwy_nocc_df.Total_VHT_Daily.sum()
-      
-      line = "All Facility + C Connectors," + String(Total_VHT_Daily)
-      RunMacro("Append Line", {file: out_file, line: line}) 
-      line = "All Facility (no C Connectors)," + String(Total_VHT_Daily_nocc)
-      RunMacro("Append Line", {file: out_file, line: line})
+  Total_VMT_Daily = tbl.Total_VMT_Daily.sum()
+  Total_VHT_Daily = tbl.Total_VHT_Daily.sum()
+  Total_VMT_AM = tbl.Tot_VMT_AM.sum()
+  Total_VHT_AM = tbl.Tot_VHT_AM.sum()
+  Total_VMT_PM = tbl.Tot_VMT_PM.sum()
+  Total_VHT_PM = tbl.Tot_VHT_PM.sum()
+  a_region = {Total_VMT_Daily, Total_VHT_Daily}  
+  out_tbl.Region = A2V(a_region)
+  out_tbl.Export({FileName: pm_dir + "/VMTVHT.csv"})
 
-  group_fields = {"MPO", "County"}
-  fields_to_sum = {"Total_VMT_Daily", "Total_VMT_Daily_nocc", "Total_VHT_Daily", "Total_VHT_Daily_nocc"}
-  for var in group_fields do 
-    if var = "Regional" then do
-
-    
-    end  
-  end
-  //1.3 Average speed by facility
-  
-  group_fields = {"County", "MPO"}
-  fields_to_sum = {"HH", "POP"}
-  for var in group_fields do 
-    df = CreateObject("Table", output_dir + "/link_VMT_Delay.csv")
-    df = df.Aggregate({
-      GroupBy: var,
-      FieldStats: {Total_VMT_Daily: "sum"}
+  fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum"}
+  for group_field in group_fields do 
+    if group_field = "Region" then continue
+    out_file = pm_dir + "/VMTVHT_by" + group_field + ".csv"
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
     })
-    names = df.GetFieldNames()
-    for name in names do
-        if Left(name, 4) = "sum_" then do
-            new_name = Substitute(name, "sum_", "", 1)
-            df.RenameField({FieldName: name, NewName: new_name})
-        end
-    end
-    */
+    agg.Export({FileName: out_file})
+  end
 
-    //6. TAZ Measures
-    // Build an equivalency array that maps modes to summary mode levels
+  //1.3 1.4 Daily and peak average speed by facility
+  // Calculate all facility region
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedDaily", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedDaily = {"AllFacility"}
+  out_tbl.Region = Total_VMT_Daily/Total_VHT_Daily
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_daily.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedAM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedAM = {"AllFacility"}
+  out_tbl.Region = Total_VMT_AM/Total_VHT_AM
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_AM.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedPM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedPM = {"AllFacility"}
+  out_tbl.Region = Total_VMT_PM/Total_VHT_PM
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_PM.csv"})
+  
+  // Calculate by facility by MPO/County
+  fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum", Tot_VMT_AM: "sum", Tot_VHT_AM: "sum", Tot_VMT_PM: "sum", Tot_VHT_PM: "sum"}
+  outfields = {
+    {FieldName: "AvgSpeed_Daily", Type: "real"},
+    {FieldName: "AvgSpeed_AM", Type: "real"},
+    {FieldName: "AvgSpeed_PM", Type: "real"}
+  }
+
+  for group_field in group_fields do 
+    out_file = pm_dir + "/AvgSpeed_byfacility_by" + group_field + ".csv"
+    if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.AvgSpeed_Daily = agg.sum_Total_VMT_Daily/agg.sum_Total_VHT_Daily
+    agg.AvgSpeed_AM = agg.sum_Tot_VMT_AM/agg.sum_Tot_VHT_AM
+    agg.AvgSpeed_PM = agg.sum_Tot_VMT_PM/agg.sum_Tot_VHT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_Total_VHT_Daily", "sum_Tot_VMT_AM", "sum_Tot_VHT_AM", "sum_Tot_VMT_PM", "sum_Tot_VHT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+  
+  // Calculate all facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/AvgSpeed_by" + group_field + ".csv"
+    if group_field = "Region" then continue
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.AvgSpeed_Daily = agg.sum_Total_VMT_Daily/agg.sum_Total_VHT_Daily
+    agg.AvgSpeed_AM = agg.sum_Tot_VMT_AM/agg.sum_Tot_VHT_AM
+    agg.AvgSpeed_PM = agg.sum_Tot_VMT_PM/agg.sum_Tot_VHT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_Total_VHT_Daily", "sum_Tot_VMT_AM", "sum_Tot_VHT_AM", "sum_Tot_VMT_PM", "sum_Tot_VHT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+
+  /*
+  //1.5 Daily Average Travel Length - All HB Trips
+  daily_mtx_file = summary_dir + "/resident_hb/AllHBTrips.mtx"
+  hbw_mtx_file = summary_dir + "/resident_hb/W_HB_W_All.mtx"
+
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
+  
+  for mtx_file in total_files do
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("total")
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreD
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlft.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
+  end
+  mtx = null
+  trip_core = null
+  */
+
+  //1.10 Hours of delay
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "Delay", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 2})
+  out_tbl.Delay = {"Total hours of delay", "Truck hours of delay"}
+
+  delayvmt_table = summary_dir + "/VMT_Delay/link_VMT_Delay.csv"
+  tbl2 = CreateObject("Table", delayvmt_table)
+  region_delay = tbl2.Total_Delay_Daily.sum()
+  region_truckdelay = tbl2.Delay_SUT_Daily.sum() + tbl2.Delay_MUT_Daily.sum()
+  a_region = {region_delay, region_truckdelay}
+  out_tbl.Region = A2V(a_region)
+  out_tbl.Export({FileName: pm_dir + "/delay.csv"})
+  
+  for group_field in group_fields do 
+    if group_field = "Region" then continue
+    agg = tbl2.Aggregate({
+      GroupBy: group_field,
+      FieldStats: {
+        Total_Delay_Daily: "sum",
+        Delay_SUT_Daily: "sum",
+        Delay_MUT_Daily: "sum"
+      }
+    })
+    agg.AddField("Total_Truck_Delay_Daily")
+    agg.Total_Truck_Delay_Daily = agg.sum_Delay_SUT_Daily + agg.sum_Delay_MUT_Daily
+    out_file = pm_dir + "/Delay_by_" + group_field + ".csv"
+    agg.Export({FileName: out_file})  
+  end
+
+  //1.11 1.12 Percent of VMT experiencing congestion - All Day and Peak
+  tbl.AddField("CongestedVMT_Daily")
+  tbl.CongestedVMT_Daily = tbl.CongestedVMT_AM + tbl.CongestedVMT_MD + tbl.CongestedVMT_PM + tbl.CongestedVMT_NT
+
+  // Calculate all facility region
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionDaily", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionDaily = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_Daily.sum()/tbl.Total_VMT_Daily.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_daily.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionAM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionAM = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_AM.sum()/tbl.Tot_VMT_AM.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_AM.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionPM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionPM = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_PM.sum()/tbl.Tot_VMT_PM.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_PM.csv"})
+
+  // Define field specs
+  fields_to_sum = {Total_VMT_Daily: "sum", CongestedVMT_Daily:"sum", Tot_VMT_AM: "sum", CongestedVMT_AM: "sum", Tot_VMT_PM: "sum", CongestedVMT_PM: "sum"}
+  outfields = {
+    {FieldName: "PctCongestion_Daily", Type: "real"},
+    {FieldName: "PctCongestion_AM", Type: "real"},
+    {FieldName: "PctCongestion_PM", Type: "real"}
+  }
+  
+  // Calculate by facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/CgVMTpct_byfacility_by" + group_field + ".csv"
+    if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.PctCongestion_Daily = agg.sum_CongestedVMT_Daily/agg.sum_Total_VMT_Daily
+    agg.PctCongestion_AM = agg.sum_CongestedVMT_AM/agg.sum_Tot_VMT_AM
+    agg.PctCongestion_PM = agg.sum_CongestedVMT_PM/agg.sum_Tot_VMT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_CongestedVMT_Daily", "sum_Tot_VMT_AM", "sum_CongestedVMT_AM", "sum_Tot_VMT_PM", "sum_CongestedVMT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+  
+  // Calculate all facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/CgVMTpct_by" + group_field + ".csv"
+    if group_field = "Region" then continue
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.PctCongestion_Daily = agg.sum_CongestedVMT_Daily/agg.sum_Total_VMT_Daily
+    agg.PctCongestion_AM = agg.sum_CongestedVMT_AM/agg.sum_Tot_VMT_AM
+    agg.PctCongestion_PM = agg.sum_CongestedVMT_PM/agg.sum_Tot_VMT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_CongestedVMT_Daily", "sum_Tot_VMT_AM", "sum_CongestedVMT_AM", "sum_Tot_VMT_PM", "sum_CongestedVMT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+
+  
+
+  //6. TAZ Measures
+  // Build an equivalency array that maps modes to summary mode levels
     equiv = {
       sov: "sov",
       auto: "sov", //university auto mode is set to sov
