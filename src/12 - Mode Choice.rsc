@@ -362,7 +362,7 @@ Macro "Aggregate HB Trip Tables" (Args)
     mc_dir = Args.[Output Folder] + "/resident/mode"
     periods = RunMacro("Get Unconverged Periods", Args)
     trip_types = RunMacro("Get HB Trip Types", Args)
-
+    mtx_types = {'pa', 'od'}
 
     for trip_type in trip_types do
 
@@ -378,27 +378,58 @@ Macro "Aggregate HB Trip Tables" (Args)
                 Query: "TOD = '" + period + "'"
             })
 
-            // Create matrix to update
-            out_mtx_file = trip_mtx_dir + "/od_per_trips_" + trip_type + "_" + period + ".mtx"
-            mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_v0_" + period + ".mtx"
-            CopyFile(mc_mtx_file, out_mtx_file)
-            mtx = CreateObject("Matrix", out_mtx_file)
-            mh = mtx.GetMatrixHandle()
-            RenameMatrix(mh, "PA Per Trips " + trip_type + " " + period)
+            for type in mtx_types do // Generate both PA and OD matrices, the former used for NHB models
+                if type = 'pa' then do
+                    oTAZ = 'HHTAZ'
+                    dTAZ = 'DestTAZ'
+                end 
+                else do
+                    oTAZ = 'o_taz'
+                    dTAZ = 'd_taz'
+                end
 
-            // Zero out all cores
-            core_names = mtx.GetCoreNames()
-            for core in core_names do
-                mtx.(core) := 0
+                // Create matrix to update
+                out_mtx_file = trip_mtx_dir + "/" + type + "_per_trips_" + trip_type + "_" + period + ".mtx"
+                mc_mtx_file = mc_dir + "/probabilities/probability_" + trip_type + "_v0_" + period + ".mtx"
+                CopyFile(mc_mtx_file, out_mtx_file)
+                mtx = CreateObject("Matrix", out_mtx_file)
+                mh = mtx.GetMatrixHandle()
+                RenameMatrix(mh, Upper(type) + " Per Trips " + trip_type + " " + period)
+
+                // Zero out all cores
+                core_names = mtx.GetCoreNames()
+                for core in core_names do
+                    mtx.(core) := 0
+                end
+
+                // Update matrix from the person table
+                // TODO: use Matrix.UpdateFromTable() when we move to latest TC 10
+                viewset = trip_tbl.GetView() + "|period"
+                UpdateMatrixFromView(
+                    mh, viewset, oTAZ, dTAZ, "Mode", {"One"}, "Add", 
+                    {"Missing is zero": "true"}
+                )
+
+                // Create an extra core the combines all transit modes together
+                // This is not assigned, but is used in the NHB trip generation
+                // model. Needed only for PA matrices.
+                if type = 'pa' then do
+                    access_modes = Args.access_modes
+                    core_names = mtx.GetCoreNames()
+                    mtx.AddCores({"all_transit"})
+                    cores = mtx.GetCores()
+                    cores.all_transit := 0
+                    for core_name in core_names do
+                        parts = ParseString(core_name, "_")
+                        access_mode = parts[1]
+                        // skip non-transit cores
+                        if access_modes.position(access_mode) = 0 then continue
+                        cores.all_transit := nz(cores.all_transit) + nz(cores.(core_name))
+                    end
+                    cores.all_transit := if cores.all_transit = 0 then null else cores.all_transit
+                end
             end
 
-            // Update matrix from the person table
-            // TODO: use Matrix.UpdateFromTable() when we move to latest TC 10
-            viewset = trip_tbl.GetView() + "|period"
-            UpdateMatrixFromView(
-                mh, viewset, "o_taz", "d_taz", "Mode", {"One"}, "Add", 
-                {"Missing is zero": "true"}
-            )
         end
     end
 endmacro
