@@ -39,7 +39,7 @@ Macro "Check for Creation Files" (Args)
     "The scenario directory is missing RoadwayProjectList_CAMPO.csv"
   )
   else if !dchc_list and !final_list then Throw(
-    "The scenario directory is missing RoadwaRoadwayProjectList_DCHCyProjectList.csv"
+    "The scenario directory is missing RoadwayProjectList_DCHC.csv"
   )
   else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
     "The scenario directory is missing TransitProjectList.csv"
