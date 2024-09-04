@@ -12,7 +12,7 @@ Macro "Maps" (Args)
     RunMacro("VOC Maps", Args)
     RunMacro("Transit Maps", Args)
     RunMacro("Speed Maps", Args)
-    //RunMacro("Isochrones", Args)
+    RunMacro("Isochrones", Args)
 	  RunMacro("Accessibility Maps", Args)
     
     return(1)
@@ -710,23 +710,23 @@ Macro "Isochrones" (Args)
     "RDU"
   }
   
-  //Create a new, blank map
-  {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd, minimized: "false"})
-  SetLayerVisibility(map + "|" + nlyr, "false")
-  SetLayer(llyr)
 
   for period in periods do
     for i = 1 to nodes.length do
       node_id = nodes[i]
       name = names[i]
 
-      SetLayer(nlyr)
-      cord = GetPoint(node_id)
-      SetLayer(llyr)
-
       for dir in dirs do
         map_file = map_dir + "\\iso_" + name + "_" + dir + "_" + period + ".map"
         net_file = net_dir + "\\net_" + period + "_sov.net"
+
+        //Create a new, blank map
+        {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd, minimized: "false"})
+        SetLayerVisibility(map + "|" + nlyr, "false")
+        SetLayer(llyr)
+        SetLayer(nlyr)
+        cord = GetPoint(node_id)
+        SetLayer(llyr)
 
         nh = ReadNetwork(net_file)
 
@@ -750,12 +750,11 @@ Macro "Isochrones" (Args)
         })
 
         RedrawMap(map)
-        SaveMap(map_file)
+        SaveMap(map, map_file)
+        CloseMap(map)
       end
     end
   end
-
-  CloseMap()
 endmacro
 
 /*
