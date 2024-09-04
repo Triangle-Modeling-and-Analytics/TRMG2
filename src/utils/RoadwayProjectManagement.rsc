@@ -92,13 +92,19 @@ Macro "Roadway Project Management" (MacroOpts)
     // Loop over each project group and overwrite the lower group attributes
     // with higher only if the higher group's project position is higher.
     // At the end of this loop, the p1 vectors will reflect all project attributes
-    // that need to go into the base fields.
+    // that need to go into the base fields. Keep track of overlapping projects.
+    v_overlap = Vector(data[1][2].length, "Long", {Constant: 0})
     for p = projGroups.length to 2 step -1 do
       pgroup = projGroups[p]
       pgroup2 = projGroups[p - 1]
 
       pos = nz(data.(pgroup + "position"))
       pos2 = nz(data.(pgroup2 + "position"))
+
+      // check for overlapping projects
+      v_overlap = if pos > 0 and pos2 > 0 
+        then 1
+        else v_overlap
 
       // Loop over each project attribute
       for a = 1 to attrList.length do
@@ -120,8 +126,13 @@ Macro "Roadway Project Management" (MacroOpts)
       FieldName: "UpdatedWithP", Type: "String",
       Description: "Project ID that updated the base attributes"
     })
+    tbl.AddField({
+      FieldName: "Overlap", Type: "Integer",
+      Description: "If two projects in this scenario overlapped on a link"
+    })
     v = if data.p1position <> null then data.p1ID else null
     tbl.UpdatedWithP = v
+    tbl.Overlap = v_overlap
     tbl = null
   end
 
