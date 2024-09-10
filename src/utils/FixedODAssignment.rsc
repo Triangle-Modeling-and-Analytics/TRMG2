@@ -216,6 +216,8 @@ Macro "FixedOD Multiple Projects" (MacroOpts)
     data = proj_tbl.GetDataVectors()
     // for each row in the project list
     for i = 1 to data[1][2].length do
+      proj_ids = null
+      
       // create an array of all project IDs in that row
       for j = 1 to data.length do
         proj_id = data[j][2][i]
