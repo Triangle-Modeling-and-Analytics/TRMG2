@@ -1617,7 +1617,7 @@ Macro "Count Difference Map" (macro_opts)
   )
 
   // Set color theme line styles and colors
-  line_colors =	{
+  line_colors = {
     ColorRGB(17733,30069,46260),
     ColorRGB(29812,44461,53713),
     ColorRGB(43947,55769,59881),
@@ -2246,12 +2246,13 @@ Macro "Gravity2" (MacroOpts)
     SetDataVectors(se_vw + "|sel", data, )
 
     // Create the gravity object
-    temp_mtx = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
-    temp_mtxs = temp_mtxs + {temp_mtx}
+//    temp_mtx2 = Substitute(output_matrix, ".mtx", String(i) + ".mtx", )
+    temp_mtx2 = GetTempFileName("*.mtx")
+    temp_mtxs = temp_mtxs + {temp_mtx2}
     obj = CreateObject("Distribution.Gravity")
     obj.DataSource = {TableName: se_file}
     obj.OutputMatrix({
-      MatrixFile: temp_mtx,
+      MatrixFile: temp_mtx2,
       MatrixLabel: "Gravity Matrix",
       Compression: "true",
       ColumnMajor: "false"
@@ -2311,7 +2312,7 @@ Macro "Gravity2" (MacroOpts)
 
       temp_mtx = null
       temp_core = null
-      DeleteFile(temp_mtx_file)
+//      DeleteFile(temp_mtx_file)
     end
   end
 
