@@ -211,11 +211,12 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
         {FieldName: "PctDiff_access_pop", Type: "real"}
       }
       df_S2.AddFields({Fields: fields})
+      df_S2.RenameField({FieldName:"TAZ", NewName: "TAZ_todelete"})
       
       join = df_S1.Join({
       Table: df_S2,
       LeftFields: "TAZ",
-      RightFields: "TAZ"
+      RightFields: "TAZ_todelete"
       })
 
       names = join.GetFieldNames()
@@ -231,11 +232,17 @@ Macro "TransitScenarioComparison" (Args, S2_Dir, TOD)
       join.PctDiff_access_job = if join.(names[11]) > 0 then join.Diff_access_job / join.(names[11]) else null
       join.PctDiff_access_pop = if join.(names[12])  >0 then join.Diff_access_pop / join.(names[12]) else null
 
-      join.Export({FileName: S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv"})
+      join.Export({FileName: S1_tod_dir + "\\temp.csv"})
       df_S1 = null
       df_S2 = null
       join = null
-      
+      df = CreateObject("Table", S1_tod_dir + "\\temp.csv")
+      df.DropFields("TAZ_todelete")
+      df.Export({FileName: S1_tod_dir + "\\" + comp_string + "_" + TOD + "_comparison.csv"})
+      df = null
+      DeleteFile(S1_tod_dir + "\\temp.csv")
+      DeleteFile(S1_tod_dir + "\\temp.dcc")
+
       //4.2 Compare route level difference
       //    Set up file path
       s1_routefolder = S1_Dir + "/output/_summaries/transit"
