@@ -124,6 +124,12 @@ menu "TRMG2 Utilities"
 
     MenuItem "TIA" text: "TIA Site Analysis"
         menu "TIA Site Analysis"
+
+    MenuItem "CocTool" text: "CoC Tool" do 
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open CoC Dbox", Args)
+    enditem
     
 endMenu
 

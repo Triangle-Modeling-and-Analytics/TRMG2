@@ -2004,16 +2004,33 @@ Macro "Equity" (Args)
 endmacro
 
 /*
+When called during a normal model run, the following weight fields
+and names are used:
 
+weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
+
+However, when called from the CoC dialog box, these variables are passed in
+via the Args variables.
+
+Args.summary_dir
+Args.weight_fields
+Args.names
 */
 
 Macro "Disadvantage Community Skims" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/equity"
 	net_dir = Args.[Output Folder] + "/networks"
 	mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
 	skim_dir = Args.[Output Folder] + "/skims"
 	se_file = Args.SE
+  summary_dir = Args.summary_dir
+  weight_fields = Args.weight_fields
+  names = Args.names
+
+  if summary_dir = null then	summary_dir = Args.[Output Folder] + "/_summaries/equity"
+  if weight_fields = null then weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 
 	// Build a network of AM delay to skim
 	net_file = summary_dir + "//net_am.net"
@@ -2051,7 +2068,7 @@ Macro "Disadvantage Community Skims" (Args)
 	})
 	ret_value = skim.Run()
 
-	// Calcualte the two trip cores (HBW and All)
+	// Calculate the two trip cores (HBW and All)
 	mtx = CreateObject("Matrix", out_file)
 	mtx.AddCores({"HBW_Trips", "All_Trips"})
 	trip_mtx_file = mtx_dir + "/pa_per_trips_W_HB_W_All_AM.mtx"
@@ -2082,8 +2099,6 @@ Macro "Disadvantage Community Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
-	names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	for i = 1 to weight_fields.length do
     weight_field = weight_fields[i]
     name = names[i]
@@ -2170,9 +2185,13 @@ endmacro
 
 Macro "Disadvantage Community Mapping" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/equity"
+	summary_dir = Args.summary_dir
 	se_file = Args.SE
 	taz_file = Args.TAZs
+  names = Args.names
+
+  if summary_dir = null then summary_dir = Args.[Output Folder] + "/_summaries/equity"
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 
 	map_dir = summary_dir + "/maps"
 	if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
@@ -2219,11 +2238,10 @@ Macro "Disadvantage Community Mapping" (Args)
     }
   }
 
-	a_dc = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
-	for dc in a_dc do
+	for name in names do
 		for suffix in suffixes do
-			field = dc + "_Jobs_" + suffix
+			field = name + "_Jobs_" + suffix
       values = if suffix = "nonauto" then breaks.transit else breaks.(suffix)
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
@@ -2239,7 +2257,7 @@ Macro "Disadvantage Community Mapping" (Args)
 				}
 			})
 			map.CreateLegend({
-				Title: "Disadvantage Community (" + dc + ")",
+				Title: "Disadvantage Community (" + name + ")",
 				DisplayLayers: "false" 
 			})
 			out_file = map_dir + "/" + field + ".map"
@@ -2258,20 +2276,23 @@ Macro "Disadvantage Community Mode Shares" (Args)
 
 	se_file = Args.SE
 	trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  names = Args.names
+  summary_dir = Args.summary_dir
+
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
+  if summary_dir = null then summary_dir = Args.[Scenario Folder] + "/output/_summaries/equity/mode_shares"
 
 	se = CreateObject("Table", se_file)
 
-	types = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
-
-	for type in types do
+	for name in names do
 		// Add sub area index to the matrices
 		for mtx_file in mtx_files do
 			mtx = CreateObject("Matrix", mtx_file)
 			mtx.AddIndex({
-				IndexName: type,
+				IndexName: name,
 				ViewName: se.GetView(),
-				Filter: type + "_dc = 1",
+				Filter: name + "_dc = 1",
 				OriginalID: "TAZ",
 				NewID: "TAZ",
 				Dimension: "Both"
@@ -2279,8 +2300,8 @@ Macro "Disadvantage Community Mode Shares" (Args)
 		end
 
 		// Call G2 summary macro
-		Args.RowIndex = type
-		Args.OutDir = Args.[Scenario Folder] + "/output/_summaries/equity/mode_shares"
+		Args.RowIndex = name
+		Args.OutDir = summary_dir
 		RunMacro("Summarize HB DC and MC", Args)
 	end
 endmacro
@@ -2293,6 +2314,11 @@ Macro "Summarize NM Disadvantage Community" (Args)
   
   out_dir = Args.[Output Folder]
   se_file = Args.SE
+  names = Args.names
+  summary_dir = Args.summary_dir
+
+  if names = null then names = {"ZeroCar", "Senior", "Poverty"}
+  if summary_dir = null then summary_dir = out_dir + "/_summaries/equity/mode_shares"
   
   per_dir = out_dir + "/resident/population_synthesis"
   per_file = per_dir + "/Synthesized_Persons.bin"
@@ -2317,43 +2343,42 @@ Macro "Summarize NM Disadvantage Community" (Args)
   })
 
   trip_types = RunMacro("Get HB Trip Types", Args)
-  dc_types = {"ZeroCar", "Senior", "Poverty"}
 
-  for dc in dc_types do
-	dc_field_name = dc + "_dc"
+  for name in names do
+    dc_field_name = name + "_dc"
 
-	summary_file = out_dir + "/_summaries/equity/mode_shares/hb_nm_summary_" + dc + ".csv"
-	f = OpenFile(summary_file, "w")
-	WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
+    summary_file = summary_dir + "/hb_nm_summary_" + name + ".csv"
+    f = OpenFile(summary_file, "w")
+    WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
-	// create selection sets of just CoC people/tazs
-	per_join.SelectByQuery({
-		SetName: "dc",
-		Query: dc_field_name + " = 1"
-	})
-	nm_join.SelectByQuery({
-		SetName: "dc",
-		Query: dc_field_name + " = 1"
-	})
+    // create selection sets of just CoC people/tazs
+    per_join.SelectByQuery({
+      SetName: "dc",
+      Query: dc_field_name + " = 1"
+    })
+    nm_join.SelectByQuery({
+      SetName: "dc",
+      Query: dc_field_name + " = 1"
+    })
 
-	for trip_type in trip_types do
-		// moto_v = GetDataVector(per_vw + "|", trip_type, )
-		moto_v = per_join.(trip_type)
-		moto_total = VectorStatistic(moto_v, "Sum", )
-		if trip_type = "W_HB_EK12_All" then do
-			moto_share = 100
-			nm_total = 0
-			nm_share = 0
-		end else do
-			// nm_v = GetDataVector(nm_vw + "|", trip_type, )
-			nm_v = nm_join.(trip_type)
-			nm_total = VectorStatistic(nm_v, "Sum", )
-			moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
-			nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
-		end
+    for trip_type in trip_types do
+      // moto_v = GetDataVector(per_vw + "|", trip_type, )
+      moto_v = per_join.(trip_type)
+      moto_total = VectorStatistic(moto_v, "Sum", )
+      if trip_type = "W_HB_EK12_All" then do
+        moto_share = 100
+        nm_total = 0
+        nm_share = 0
+      end else do
+        // nm_v = GetDataVector(nm_vw + "|", trip_type, )
+        nm_v = nm_join.(trip_type)
+        nm_total = VectorStatistic(nm_v, "Sum", )
+        moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
+        nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
+      end
 
-		WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
-	end
+      WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
+    end
   end
 
   CloseFile(f)
