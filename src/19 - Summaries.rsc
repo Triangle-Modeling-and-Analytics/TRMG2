@@ -27,25 +27,26 @@ endmacro
 
 Macro "Other Reports" (Args)
     
-    // RunMacro("Summarize HB DC and MC", Args)
-    // RunMacro("Summarize NHB DC and MC", Args)
-    // RunMacro("Summarize NM", Args)
-    // RunMacro("Summarize Total Mode Shares", Args)
-    // RunMacro("Summarize Links", Args)
-    // RunMacro("Congested VMT", Args)
-    // RunMacro("Summarize Parking", Args)
-    // RunMacro("VMT_Delay Summary", Args)
-    // RunMacro("Congestion Cost Summary", Args)
-    // RunMacro("Create PA Vehicle Trip Matrices", Args)
-    // RunMacro("Equity", Args)
-    // RunMacro("Disadvantage Community Skims", Args)
-    // RunMacro("Disadvantage Community Mode Shares", Args)
-    // RunMacro("Disadvantage Community Mapping", Args)
-    // RunMacro("Summarize NM Disadvantage Community", Args)
-    // RunMacro("Summarize HH Strata", Args)
-    // RunMacro("Aggregate Transit Flow by Route", Args)
-    // RunMacro("Validation Reports", Args)
+    RunMacro("Summarize HB DC and MC", Args)
+    RunMacro("Summarize NHB DC and MC", Args)
+    RunMacro("Summarize NM", Args)
+    RunMacro("Summarize Total Mode Shares", Args)
+    RunMacro("Summarize Links", Args)
+    RunMacro("Congested VMT", Args)
+    RunMacro("Summarize Parking", Args)
+    RunMacro("VMT_Delay Summary", Args)
+    RunMacro("Congestion Cost Summary", Args)
+    RunMacro("Create PA Vehicle Trip Matrices", Args)
+    RunMacro("Equity", Args)
+    RunMacro("Disadvantage Community Skims", Args)
+    RunMacro("Disadvantage Community Mode Shares", Args)
+    RunMacro("Disadvantage Community Mapping", Args)
+    RunMacro("Summarize NM Disadvantage Community", Args)
+    RunMacro("Summarize HH Strata", Args)
+    RunMacro("Aggregate Transit Flow by Route", Args)
+    RunMacro("Validation Reports", Args)
     RunMacro("Export Highway Geodatabase", Args)
+    RunMacro("Performance Measures Reports", Args)
     return(1)
 endmacro
 
@@ -831,11 +832,27 @@ Macro "Summarize HB DC and MC" (Args)
   // if called by the summary comparison tool, end here
   if index then return()
 
+  // Create a daily/PM matrix for all HB trips
+  total_allhb_file = output_dir + "/AllHBTrips.mtx"
+  
   // Create a daily matrix for each trip type
   trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
     total_file = output_dir + "/" + trip_type + ".mtx"
     total_files = total_files + {total_file}
+
+    if trip_type = trip_types[1] then do
+      in_file = trip_dir + "/pa_per_trips_" + trip_type + "_AM.mtx"
+      CopyFile(in_file, total_allhb_file)
+      total_allhb_mtx = CreateObject("Matrix", total_allhb_file)
+      to_drop = total_allhb_mtx.GetCoreNames()
+      total_allhb_mtx.AddCores({"total", "PM"})
+      total_allhb_mtx.DropCores(to_drop)
+      total_allhb_core = total_allhb_mtx.GetCore("total")
+      total_allhb_core := 0
+      pm_allhb_core = total_allhb_mtx.GetCore("PM")
+      pm_allhb_core := 0
+    end
 
     for period in periods do
       in_file = trip_dir + "/pa_per_trips_" + trip_type + "_" + period + ".mtx"
@@ -855,11 +872,16 @@ Macro "Summarize HB DC and MC" (Args)
         if Left(core_name, 3) <> "dc_" then continue // only summarize the dc matrices
         in_core = in_mtx.GetCore(core_name)
         total_core := total_core + nz(in_core)
+        total_allhb_core := total_allhb_core + nz(in_core)
+        if period = "PM" then pm_allhb_core := pm_allhb_core + nz(in_core)
       end
     end
   end
   total_mtx = null
   total_core = null
+  total_allhb_mtx = null
+  total_allhb_core = null
+  pm_allhb_core = null
 
   // Summarize totals matrices
   df = RunMacro("Matrix Stats", {Matrices: total_files})
@@ -1206,16 +1228,16 @@ Macro "Summarize Matrix RowSums" (MacroOpts)
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
   counter = 1
   for mtx_file in mtx_files do
+    // when summarizing highway matrices, don't include any peak hour matrices,
+    // which are already included in the peak period matrices.
+    if Right(mtx_file, 8) = "PKHR.mtx" then continue
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
     for core_name in core_names do
       v_row = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
-      v_col = mtx.GetVector({Core: core_name, Marginal: "Column Sum"})
-      v_col.rowbased = "False"
-      v = v_row + v_col
       if counter = 1
-        then result = nz(v)
-        else result = result + nz(v)
+        then result = nz(v_row)
+        else result = result + nz(v_row)
       counter = counter + 1
     end
   end
@@ -1880,11 +1902,13 @@ Macro "Equity" (Args)
 	se_file = Args.SE
 	pov_file = Args.[Input Folder] + "/sedata/poverty_thresholds.csv"
 
-	// Identify which households are zero vehicle and senior
+	// Identify which households are zero vehicle, insufficient, and senior
 	tbl = CreateObject("Table", hh_file)
 	tbl.AddField("v0")
+  tbl.AddField("vi")
 	tbl.AddField("has_seniors")
 	tbl.v0 = if tbl.market_segment = "v0" then 1 else 0
+  tbl.vi = if Position(tbl.market_segment, "vi") <> 0 then 1 else 0
 	tbl.has_seniors = if tbl.HHSeniors > 0 then 1 else 0
 	
 	// Identify which households are below poverty thresholds
@@ -1910,6 +1934,7 @@ Macro "Equity" (Args)
 		GroupBy: "ZoneID",
 		FieldStats: {
 			v0: {"count", "sum"},
+      vi: {"count", "sum"},
 			has_seniors: {"count", "sum"},
 			poverty: {"count", "sum"}
 		}
@@ -1923,6 +1948,13 @@ Macro "Equity" (Args)
 	cutoff = Percentile(V2A(v_pct), 75)
 	agg.AddField("ZeroCar_dc")
 	agg.ZeroCar_dc = if agg.v0_pct > cutoff then 1 else 0
+	// vi CoC
+	agg.AddField("vi_pct")
+	v_pct = agg.sum_vi / agg.count_vi * 100
+	agg.vi_pct = v_pct
+	cutoff = Percentile(V2A(v_pct), 75)
+	agg.AddField("VehInsuff_dc")
+	agg.VehInsuff_dc = if agg.v0_pct > cutoff then 1 else 0
 	// senior CoC
 	agg.AddField("senior_pct")
 	v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
@@ -1947,6 +1979,8 @@ Macro "Equity" (Args)
 		Fields: {
 			{FieldName: "v0_pct", Description: "Percent of households that are zero-vehicle"},
 			{FieldName: "ZeroCar_dc", Description: "TAZ designated as a disadvantage community due to % of v0"},
+      {FieldName: "vi_pct", Description: "Percent of households that are vehicle insufficient"},
+			{FieldName: "VehInsuff_dc", Description: "TAZ designated as a disadvantage community due to % of vi"},
 			{FieldName: "senior_pct", Description: "Percent of households that have seniors"},
 			{FieldName: "Senior_dc", Description: "TAZ designated as a disadvantage community due to % of HHs with seniors"},
 			{FieldName: "poverty_pct", Description: "Percent of households that are below the poverty threshold"},
@@ -1962,6 +1996,8 @@ Macro "Equity" (Args)
 	})
 	join.(se_specs.v0_pct) = nz(join.(agg_specs.v0_pct))
 	join.(se_specs.ZeroCar_dc) = nz(join.(agg_specs.ZeroCar_dc))
+  join.(se_specs.vi_pct) = nz(join.(agg_specs.vi_pct))
+	join.(se_specs.VehInsuff_dc) = nz(join.(agg_specs.VehInsuff_dc))
 	join.(se_specs.senior_pct) = nz(join.(agg_specs.senior_pct))
 	join.(se_specs.Senior_dc) = nz(join.(agg_specs.Senior_dc))
 	join.(se_specs.poverty_pct) = nz(join.(agg_specs.poverty_pct))
@@ -2047,34 +2083,32 @@ Macro "Disadvantage Community Skims" (Args)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"ZeroCar_dc", "Senior_dc", "Poverty_dc"}
-	for weight_field in weight_fields do
+	weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+	names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
+	for i = 1 to weight_fields.length do
+    weight_field = weight_fields[i]
+    name = names[i]
+  
 		// Set weight field
 		v = se.(weight_field)
 		v.rowbased = "false"
 		mtx.AddCores({weight_field})
 		mtx.(weight_field) := v
 
-    // Calculate times for just CoC. This can be used to get the average travel times between zones
-    // using matrix statistics.
-    mtx.AddCores({weight_field + "_CongTime", weight_field + "_TransitTime"})
-    mtx.(weight_field + "_CongTime") := mtx.CongTime * mtx.(weight_field)
-    mtx.(weight_field + "_TransitTime") := mtx.TransitTime * mtx.(weight_field)
-
 		// Calculate hours of travel
-		mtx.AddCores({"HBW_" + weight_field + "_HoT", "All_" + weight_field + "_HoT"})
-		mtx.("HBW_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.HBW_Trips / 60
-		mtx.("All_" + weight_field + "_HoT") := mtx.CongTime * mtx.(weight_field) * mtx.All_Trips / 60
+		mtx.AddCores({name + "_HBW_HoT", name + "_All_HoT"})
+		mtx.(name + "_HBW_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
+		mtx.(name + "_All_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
 
 		// Calculate delay
-		mtx.AddCores({"HBW_" + weight_field + "_Delay", "All_" + weight_field + "_Delay"})
-		mtx.("HBW_" + weight_field + "_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.HBW_Trips / 60
-		mtx.("All_" + weight_field + "_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * mtx.(weight_field) * mtx.All_Trips / 60
+		mtx.AddCores({name + "_HBW_Delay", name + "_All_Delay"})
+		mtx.(name + "_HBW_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
+		mtx.(name + "_All_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
 
 		// Calculate congested VMT
-		mtx.AddCores({"HBW_" + weight_field + "_CongVMT", "All_" + weight_field + "_CongVMT"})
-		mtx.("HBW_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.HBW_Trips
-		mtx.("All_" + weight_field + "_CongVMT") := mtx.("CongLength (Skim)") * mtx.(weight_field) * mtx.All_Trips
+		mtx.AddCores({name + "_HBW_CongVMT", name + "_All_CongVMT"})
+		mtx.(name + "_HBW_CongVMT") := mtx.("CongLength (Skim)") * (mtx.(weight_field) / 100) * mtx.HBW_Trips
+		mtx.(name + "_All_CongVMT") := mtx.("CongLength (Skim)") * (mtx.(weight_field) / 100) * mtx.All_Trips
 
 		// Jobs within X minutes (auto, transit, and walk). Also fill the SE table with the row sums for mapping.
 		time_budget = 30
@@ -2089,16 +2123,46 @@ Macro "Disadvantage Community Skims" (Args)
       out_core_suffix = data.OutCoreSuffix
       desc_suffix = data.DescSuffix
 
-      out_core = weight_field + "_Jobs_" + out_core_suffix
+      out_core = name + "_Jobs_" + out_core_suffix
       mtx.AddCores({out_core})
-      mtx.(out_core) := if mtx.(time_core) <= time_budget and mtx.(time_core) <> null then mtx.Employment * mtx.(weight_field)
+      mtx.(out_core) := if mtx.(time_core) <= time_budget and mtx.(time_core) <> null then mtx.Employment //* mtx.(weight_field)
       mtx.(out_core) := if mtx.(out_core) = 0 then null else mtx.(out_core)
       v_jobs = mtx.GetVector({Core: out_core, Marginal: "Row Sum"})
       v_jobs.rowbased = "true"
       se.AddField({FieldName: out_core, Description: "Jobs within " + String(time_budget) + " minutes via " + desc_suffix})
-		  se.(out_core) = if se.(weight_field) = 0 then null else v_jobs
+		  se.(out_core) = if se.(name + "_dc") = 0 then null else v_jobs
     end
 	end
+
+  // Calculate per-capita stats
+  per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
+  file = OpenFile(per_capita_file, "w")
+  WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
+  v_pop = se.HH_POP
+  stats = MatrixStatistics(mtx.GetMatrixHandle(), )
+  for i = 1 to weight_fields.length do
+    weight_field = weight_fields[i]
+    name = names[i]
+    
+    // Calculate disadvantaced population
+    v_weight = se.(weight_field)
+    v_dc_pop = v_pop * v_weight / 100
+    tot_dc_pop = v_dc_pop.sum()
+
+    // HoT
+    total_hot = stats.(name + "_All_HoT").Sum
+    hot_per_capita = total_hot / tot_dc_pop
+
+    // Delay
+    total_delay = stats.(name + "_All_Delay").Sum
+    delay_per_capita = total_delay / tot_dc_pop
+
+    WriteLine(
+      file, name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," +
+      String(total_delay) + "," + String(delay_per_capita)
+    )
+  end
+  CloseFile(file)
 endmacro
 
 /*
@@ -2122,16 +2186,54 @@ Macro "Disadvantage Community Mapping" (Args)
 		RightFields: "TAZ"
 	})
 
-	a_dc = {"ZeroCar", "Senior", "Poverty"}
+  // Used fixed scales for the maps depending on mode
+  breaks = {
+    auto: {
+      {0, "true", 140000, "false"},
+			{140000, "true", 330000, "false"},
+			{330000, "true", 460000, "false"},
+			{460000, "true", 570000, "false"},
+			{570000, "true", 700000, "false"},
+			{700000, "true", 800000, "false"},
+			{800000, "true", 900000, "false"},
+			{900000, "true", 2000000, "false"}
+    },
+    transit: {
+      {0, "true", 3000, "false"},
+			{3000, "true", 10000, "false"},
+			{10000, "true", 17000, "false"},
+			{17000, "true", 25000, "false"},
+			{25000, "true", 34000, "false"},
+			{34000, "true", 43000, "false"},
+			{43000, "true", 54000, "false"},
+			{54000, "true", 2000000, "false"}
+    },
+    walk: {
+      {0, "true", 2000, "false"},
+			{2000, "true", 5000, "false"},
+			{5000, "true", 10000, "false"},
+			{10000, "true", 18000, "false"},
+			{18000, "true", 25000, "false"},
+			{25000, "true", 34000, "false"},
+			{34000, "true", 44000, "false"},
+			{44000, "true", 2000000, "false"}
+    }
+  }
+
+	a_dc = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
 	for dc in a_dc do
 		for suffix in suffixes do
-			field = dc + "_dc_Jobs_" + suffix
+			field = dc + "_Jobs_" + suffix
+      values = if suffix = "nonauto" then breaks.transit else breaks.(suffix)
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
 			map.ColorTheme({
 				ThemeName: themename,
 				FieldName: field,
+        Method: "manual",
+        NumClasses: ArrayLength(values),
+        Options: {Values: values},
 				Colors: {
 					StartColor: ColorRGB(65535, 65535, 54248),
 					EndColor: ColorRGB(8738, 24158, 43176)
@@ -2160,7 +2262,7 @@ Macro "Disadvantage Community Mode Shares" (Args)
 
 	se = CreateObject("Table", se_file)
 
-	types = {"ZeroCar", "Senior", "Poverty"}
+	types = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
 
 	for type in types do
@@ -2572,96 +2674,526 @@ Macro "Export Highway Geodatabase" (Args)
   
   hwy_dbd = Args.Links
 
-  // Writing the GDB needs an existing folder that gets converted
-  // to a .gdb file. So we need to create the folder first.
   {drive, folder, name, ext} = SplitPath(hwy_dbd)
-  out_dir = drive + folder + name
-  if GetDirectoryInfo(out_dir, "All") = null then CreateDirectory(out_dir)
+  out_file = drive + folder + "scenario_links.gdb"
+  // TC is unable to delete the existing GDB, so we need to delete it manually
+  // if you want to recreate it.
+  if GetFileInfo(out_file) <> null then return()
   
   // Create a map and export the link layer
   map = CreateObject("Map", hwy_dbd)
   {nlyr, llyr} = map.GetLayerNames()
+  
+  SetLayer(llyr)
+  cur = CreateObject("Utils.Currency")
+
   opts = null
   opts.[Layer Name] = llyr
+  {f,fx} = GetFields(llyr, "All")
   opts.Fields = {
-      "ID",
-      "Dir",
-      "Length",
-      "RoadName",
-      "AltName",
-      "NCDOTClass",
-      "HCMType",
-      "ABLanes",
-      "BALanes",
-      "PostedSpeed",
-      "HCMMedian",
-      "DTWB",
-      "HOV",
-      "BOSSS",
-      "TollType",
-      "TollCostT",
-      "TollCostNT",
-      "FFSpeed",
-      "FFTime",
-      "ABAMTime",
-      "BAAMTime",
-      "ABMDTime",
-      "BAMDTime",
-      "ABPMTime",
-      "BAPMTime",
-      "ABNTTime",
-      "BANTTime",
-      "Max_Time_AM",
-      "Max_VOC_AM",
-      "Tot_VMT_AM",
-      "Tot_VHT_AM",
-      "AB_Speed_AM",
-      "BA_Speed_AM",
-      "AB_Flow_AM",
-      "BA_Flow_AM",
-      "Tot_Flow_AM",
-      "Max_Time_MD",
-      "Max_VOC_MD",
-      "Tot_VMT_MD",
-      "Tot_VHT_MD",
-      "AB_Speed_MD",
-      "BA_Speed_MD",
-      "AB_Flow_MD",
-      "BA_Flow_MD",
-      "Tot_Flow_MD",
-      "Max_Time_PM",
-      "Max_VOC_PM",
-      "Tot_VMT_PM",
-      "Tot_VHT_PM",
-      "AB_Speed_PM",
-      "BA_Speed_PM",
-      "AB_Flow_PM",
-      "BA_Flow_PM",
-      "Tot_Flow_PM",
-      "Max_Time_NT",
-      "Max_VOC_NT",
-      "Tot_VMT_NT",
-      "Tot_VHT_NT",
-      "AB_Speed_NT",
-      "BA_Speed_NT",
-      "AB_Flow_NT",
-      "BA_Flow_NT",
-      "Tot_Flow_NT",
-      "AB_Flow_Daily",
-      "BA_Flow_Daily",
-      "Total_Flow_Daily",
-      "Total_CV_Flow_Daily",
-      "Total_SUT_Flow_Daily",
-      "Total_MUT_Flow_Daily",
-      "Total_VMT_Daily",
-      "Total_VHT_Daily",
-      "Total_Delay_Daily",
-      "Tot_Delay_AM",
-      "Tot_Delay_MD",
-      "Tot_Delay_PM",
-      "Tot_Delay_NT"
+      llyr + ".ID",
+      llyr + ".Dir",
+      llyr + ".Length",
+      llyr + ".RoadName",
+      llyr + ".AltName",
+      llyr + ".NCDOTClass",
+      llyr + ".HCMType",
+      llyr + ".ABLanes",
+      llyr + ".BALanes",
+      llyr + ".PostedSpeed",
+      llyr + ".HCMMedian",
+      llyr + ".DTWB",
+      llyr + ".HOV",
+      llyr + ".BOSSS",
+      llyr + ".TollType",
+      llyr + ".TollCostT",
+      llyr + ".TollCostNT",
+      llyr + ".FFSpeed",
+      llyr + ".FFTime",
+      llyr + ".ABAMTime",
+      llyr + ".BAAMTime",
+      llyr + ".ABMDTime",
+      llyr + ".BAMDTime",
+      llyr + ".ABPMTime",
+      llyr + ".BAPMTime",
+      llyr + ".ABNTTime",
+      llyr + ".BANTTime",
+      llyr + ".Max_Time_AM",
+      llyr + ".Max_VOC_AM",
+      llyr + ".Tot_VMT_AM",
+      llyr + ".Tot_VHT_AM",
+      llyr + ".AB_Speed_AM",
+      llyr + ".BA_Speed_AM",
+      llyr + ".AB_Flow_AM",
+      llyr + ".BA_Flow_AM",
+      llyr + ".Tot_Flow_AM",
+      llyr + ".Max_Time_MD",
+      llyr + ".Max_VOC_MD",
+      llyr + ".Tot_VMT_MD",
+      llyr + ".Tot_VHT_MD",
+      llyr + ".AB_Speed_MD",
+      llyr + ".BA_Speed_MD",
+      llyr + ".AB_Flow_MD",
+      llyr + ".BA_Flow_MD",
+      llyr + ".Tot_Flow_MD",
+      llyr + ".Max_Time_PM",
+      llyr + ".Max_VOC_PM",
+      llyr + ".Tot_VMT_PM",
+      llyr + ".Tot_VHT_PM",
+      llyr + ".AB_Speed_PM",
+      llyr + ".BA_Speed_PM",
+      llyr + ".AB_Flow_PM",
+      llyr + ".BA_Flow_PM",
+      llyr + ".Tot_Flow_PM",
+      llyr + ".Max_Time_NT",
+      llyr + ".Max_VOC_NT",
+      llyr + ".Tot_VMT_NT",
+      llyr + ".Tot_VHT_NT",
+      llyr + ".AB_Speed_NT",
+      llyr + ".BA_Speed_NT",
+      llyr + ".AB_Flow_NT",
+      llyr + ".BA_Flow_NT",
+      llyr + ".Tot_Flow_NT",
+      llyr + ".AB_Flow_Daily",
+      llyr + ".BA_Flow_Daily",
+      llyr + ".Total_Flow_Daily",
+      llyr + ".Total_CV_Flow_Daily",
+      llyr + ".Total_SUT_Flow_Daily",
+      llyr + ".Total_MUT_Flow_Daily",
+      llyr + ".Total_VMT_Daily",
+      llyr + ".Total_VHT_Daily",
+      llyr + ".Total_Delay_Daily",
+      llyr + ".Tot_Delay_AM",
+      llyr + ".Tot_Delay_MD",
+      llyr + ".Tot_Delay_PM",
+      llyr + ".Tot_Delay_NT"
     }
-  opts.ID = "ID"
+  opts.ID = fx[1]
   opts.[EPSG Datum] = 4269 // North America
-  ExportGdalVector(llyr + "|", out_dir, "FileGDB", opts)
+  ExportGdalVector(llyr + "|", out_file, "FileGDB", opts)
+endmacro
+
+/*
+
+*/
+
+Macro "Performance Measures Reports" (Args)
+  //Set input file path
+  root_dir = Args.[Base Folder]
+  scen_dir = Args.[Scenario Folder]
+  taz_file = Args.TAZs
+  periods = Args.periods
+  out_dir = scen_dir + "/output"
+  summary_dir = scen_dir + "/output/_summaries"
+  pm_dir = summary_dir + "/performance_measures"
+  if GetDirectoryInfo(pm_dir, "All") = null then CreateDirectory(pm_dir)
+	hwy_dbd = Args.Links
+  mode_table = Args.TransModeTable
+  access_modes = Args.access_modes
+  group_fields = {"Region", "MPO", "County"}
+
+	//1. Highway performance measures
+  //Read highway link layer
+  {nLayer, llyr} = GetDBLayers(hwy_dbd)
+	llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
+  hwy_tbl = CreateObject("Table", llyr)
+  hwy_tbl.SelectByQuery({
+    SetName: "to_export",
+    Query: "HCMType <> 'CC'"
+  })
+  tbl = hwy_tbl.Export()
+
+  //1.1 Daily VMT 1.2 Daily VHT
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "VMT_and_VHT", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 2})
+  out_tbl.VMT_and_VHT = {"Total VMT (no CC)", "Total VHT (no CC)"}
+
+  Total_VMT_Daily = tbl.Total_VMT_Daily.sum()
+  Total_VHT_Daily = tbl.Total_VHT_Daily.sum()
+  Total_VMT_AM = tbl.Tot_VMT_AM.sum()
+  Total_VHT_AM = tbl.Tot_VHT_AM.sum()
+  Total_VMT_PM = tbl.Tot_VMT_PM.sum()
+  Total_VHT_PM = tbl.Tot_VHT_PM.sum()
+  a_region = {Total_VMT_Daily, Total_VHT_Daily}  
+  out_tbl.Region = A2V(a_region)
+  out_tbl.Export({FileName: pm_dir + "/VMTVHT.csv"})
+
+  fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum"}
+  for group_field in group_fields do 
+    if group_field = "Region" then continue
+    out_file = pm_dir + "/VMTVHT_by" + group_field + ".csv"
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.Export({FileName: out_file})
+  end
+
+  //1.3 1.4 Daily and peak average speed by facility
+  // Calculate all facility region
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedDaily", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedDaily = {"AllFacility"}
+  out_tbl.Region = Total_VMT_Daily/Total_VHT_Daily
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_daily.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedAM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedAM = {"AllFacility"}
+  out_tbl.Region = Total_VMT_AM/Total_VHT_AM
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_AM.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "AvgSpeedPM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.AvgSpeedPM = {"AllFacility"}
+  out_tbl.Region = Total_VMT_PM/Total_VHT_PM
+  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_PM.csv"})
+  
+  // Calculate by facility by MPO/County
+  fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum", Tot_VMT_AM: "sum", Tot_VHT_AM: "sum", Tot_VMT_PM: "sum", Tot_VHT_PM: "sum"}
+  outfields = {
+    {FieldName: "AvgSpeed_Daily", Type: "real"},
+    {FieldName: "AvgSpeed_AM", Type: "real"},
+    {FieldName: "AvgSpeed_PM", Type: "real"}
+  }
+
+  for group_field in group_fields do 
+    out_file = pm_dir + "/AvgSpeed_byfacility_by" + group_field + ".csv"
+    if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.AvgSpeed_Daily = agg.sum_Total_VMT_Daily/agg.sum_Total_VHT_Daily
+    agg.AvgSpeed_AM = agg.sum_Tot_VMT_AM/agg.sum_Tot_VHT_AM
+    agg.AvgSpeed_PM = agg.sum_Tot_VMT_PM/agg.sum_Tot_VHT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_Total_VHT_Daily", "sum_Tot_VMT_AM", "sum_Tot_VHT_AM", "sum_Tot_VMT_PM", "sum_Tot_VHT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+  
+  // Calculate all facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/AvgSpeed_by" + group_field + ".csv"
+    if group_field = "Region" then continue
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.AvgSpeed_Daily = agg.sum_Total_VMT_Daily/agg.sum_Total_VHT_Daily
+    agg.AvgSpeed_AM = agg.sum_Tot_VMT_AM/agg.sum_Tot_VHT_AM
+    agg.AvgSpeed_PM = agg.sum_Tot_VMT_PM/agg.sum_Tot_VHT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_Total_VHT_Daily", "sum_Tot_VMT_AM", "sum_Tot_VHT_AM", "sum_Tot_VMT_PM", "sum_Tot_VHT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+
+  /*
+  //1.5 Daily Average Travel Length - All HB Trips
+  daily_mtx_file = summary_dir + "/resident_hb/AllHBTrips.mtx"
+  hbw_mtx_file = summary_dir + "/resident_hb/W_HB_W_All.mtx"
+
+  skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
+  skim_mtx = CreateObject("Matrix", skim_mtx_file)
+  skim_coreD = skim_mtx.GetCore("Length (Skim)")
+  skim_coreT = skim_mtx.GetCore("CongTime")
+  
+  for mtx_file in total_files do
+    mtx = CreateObject("Matrix", mtx_file)
+    trip_core = mtx.GetCore("total")
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlfd.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreD
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_length = res.Data.AvTripLength
+    trip_lengths = trip_lengths + {avg_length}
+
+    out_mtx_file = Substitute(mtx_file, ".mtx", "_tlft.mtx", )
+    tld = CreateObject("Distribution.TLD")
+    tld.StartValue = 0
+    tld.BinSize = 1
+    tld.TripMatrix = trip_core
+    tld.ImpedanceMatrix = skim_coreT
+    tld.OutputMatrix(out_mtx_file)
+    tld.Run()
+    res = tld.GetResults()
+    avg_time = res.Data.AvTripLength
+    trip_times = trip_times + {avg_time}
+  end
+  mtx = null
+  trip_core = null
+  */
+
+  //1.10 Hours of delay
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "Delay", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 2})
+  out_tbl.Delay = {"Total hours of delay", "Truck hours of delay"}
+
+  delayvmt_table = summary_dir + "/VMT_Delay/link_VMT_Delay.csv"
+  tbl2 = CreateObject("Table", delayvmt_table)
+  region_delay = tbl2.Total_Delay_Daily.sum()
+  region_truckdelay = tbl2.Delay_SUT_Daily.sum() + tbl2.Delay_MUT_Daily.sum()
+  a_region = {region_delay, region_truckdelay}
+  out_tbl.Region = A2V(a_region)
+  out_tbl.Export({FileName: pm_dir + "/delay.csv"})
+  
+  for group_field in group_fields do 
+    if group_field = "Region" then continue
+    agg = tbl2.Aggregate({
+      GroupBy: group_field,
+      FieldStats: {
+        Total_Delay_Daily: "sum",
+        Delay_SUT_Daily: "sum",
+        Delay_MUT_Daily: "sum"
+      }
+    })
+    agg.AddField("Total_Truck_Delay_Daily")
+    agg.Total_Truck_Delay_Daily = agg.sum_Delay_SUT_Daily + agg.sum_Delay_MUT_Daily
+    out_file = pm_dir + "/Delay_by_" + group_field + ".csv"
+    agg.Export({FileName: out_file})  
+  end
+
+  //1.11 1.12 Percent of VMT experiencing congestion - All Day and Peak
+  tbl.AddField("CongestedVMT_Daily")
+  tbl.CongestedVMT_Daily = tbl.CongestedVMT_AM + tbl.CongestedVMT_MD + tbl.CongestedVMT_PM + tbl.CongestedVMT_NT
+
+  // Calculate all facility region
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionDaily", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionDaily = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_Daily.sum()/tbl.Total_VMT_Daily.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_daily.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionAM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionAM = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_AM.sum()/tbl.Tot_VMT_AM.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_AM.csv"})
+
+  out_tbl = CreateObject("Table", {Fields: {
+      {FieldName: "PctCongestionPM", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_tbl.AddRows({EmptyRows: 1})
+  out_tbl.PctCongestionPM = {"AllFacility"}
+  out_tbl.Region = tbl.CongestedVMT_PM.sum()/tbl.Tot_VMT_PM.sum()
+  out_tbl.Export({FileName: pm_dir + "/PctCongestion_byregion_PM.csv"})
+
+  // Define field specs
+  fields_to_sum = {Total_VMT_Daily: "sum", CongestedVMT_Daily:"sum", Tot_VMT_AM: "sum", CongestedVMT_AM: "sum", Tot_VMT_PM: "sum", CongestedVMT_PM: "sum"}
+  outfields = {
+    {FieldName: "PctCongestion_Daily", Type: "real"},
+    {FieldName: "PctCongestion_AM", Type: "real"},
+    {FieldName: "PctCongestion_PM", Type: "real"}
+  }
+  
+  // Calculate by facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/CgVMTpct_byfacility_by" + group_field + ".csv"
+    if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.PctCongestion_Daily = agg.sum_CongestedVMT_Daily/agg.sum_Total_VMT_Daily
+    agg.PctCongestion_AM = agg.sum_CongestedVMT_AM/agg.sum_Tot_VMT_AM
+    agg.PctCongestion_PM = agg.sum_CongestedVMT_PM/agg.sum_Tot_VMT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_CongestedVMT_Daily", "sum_Tot_VMT_AM", "sum_CongestedVMT_AM", "sum_Tot_VMT_PM", "sum_CongestedVMT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+  
+  // Calculate all facility by MPO/County
+  for group_field in group_fields do 
+    out_file = pm_dir + "/CgVMTpct_by" + group_field + ".csv"
+    if group_field = "Region" then continue
+    agg = tbl.Aggregate({
+      GroupBy: group_field,
+      FieldStats: fields_to_sum
+    })
+    agg.AddFields({Fields: outfields})
+    agg.PctCongestion_Daily = agg.sum_CongestedVMT_Daily/agg.sum_Total_VMT_Daily
+    agg.PctCongestion_AM = agg.sum_CongestedVMT_AM/agg.sum_Tot_VMT_AM
+    agg.PctCongestion_PM = agg.sum_CongestedVMT_PM/agg.sum_Tot_VMT_PM
+    agg.DropFields({FieldNames:{"sum_Total_VMT_Daily", "sum_CongestedVMT_Daily", "sum_Tot_VMT_AM", "sum_CongestedVMT_AM", "sum_Tot_VMT_PM", "sum_CongestedVMT_PM"}})
+    agg.Export({FileName: out_file})
+  end
+
+  
+
+  //6. TAZ Measures
+  // Build an equivalency array that maps modes to summary mode levels
+    equiv = {
+      sov: "sov",
+      auto: "sov", //university auto mode is set to sov
+      hov2: "hov",
+      hov3: "hov",
+      walk: "nm",
+      bike: "nm",
+      walkbike: "nm",
+      auto_pay: "hov", //NHB auto pay mode is set to hov
+      transit: "nhballtransit"
+    }
+    transit_modes = RunMacro("Get Transit Modes", mode_table)
+    for access_mode in access_modes do
+      for transit_mode in transit_modes do
+        name = access_mode + "_" + transit_mode
+        if transit_mode = "lb" or transit_mode = "eb" then
+          equiv.(name) = "bus" else
+          equiv.(name) = transit_mode
+      end
+    end
+  
+    // Get a vector of IDs from one of the matrices
+    mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
+    mtx = CreateObject("Matrix", mtx_files[1])
+    core_names = mtx.GetCoreNames()
+    v_id = mtx.GetVector({Core: core_names[1], Index: "Row"})
+
+    // create a table to store results
+    tbl = CreateObject("Table", {Fields: {
+      {FieldName: "TAZ", Type: "Integer"}
+    }})
+    tbl.AddRows({EmptyRows: v_id.length})
+    tbl.TAZ = v_id
+
+    // Loop through each group
+    groups = {"Daily", "PM", "W_HB_W"}
+
+    for group in groups do
+
+      // Resident HB motorized trips
+      trip_dir = out_dir + "/resident/trip_matrices"
+      result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+
+      // Resident HB nm trips
+      trip_mtx = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
+      result = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result})
+
+      // University trips
+      trip_dir = out_dir + "/university/mode"
+      if group <> "W_HB_W" then result = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result})
+
+      // NHB trips
+      trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
+      if group <> "W_HB_W" then result = RunMacro("Summarize NHB", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
+      
+    end
+        
+    // Save results to the output table and add county info from the TAZ layer
+    for i = 1 to result.length do
+      field_name = result[i][1]
+      tbl.AddField(field_name)
+      tbl.(field_name) = result.(field_name)
+    end
+    out_file = pm_dir + "/taz_measures.bin"
+    tbl.Export({FileName: out_file})
+
+endmacro
+
+Macro "Summarize HB Univ RowSums" (MacroOpts)
+  
+  equiv = MacroOpts.equiv
+  trip_dir = MacroOpts.trip_dir
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  for mtx_file in mtx_files do
+    if group = "PM" and position(mtx_file, group) = 0 then continue
+    if group = "W_HB_W" and position(mtx_file, group) = 0 then continue
+
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    for core_name in core_names do
+      // hb motorized and univ can be handled below, core names have mode info
+      if equiv.(core_name) = null then continue
+      out_name = equiv.(core_name) + "_" + group
+      v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+
+      if TypeOf(result.(out_name)) = "null"
+        then result.(out_name) = nz(v)
+        else result.(out_name) = result.(out_name) + nz(v)
+    end
+  end
+  return(result)
+endmacro
+
+Macro "Summarize HB NM RowSums" (MacroOpts)
+  
+  // hb nm matrix needs special handling, core names do not have mode info
+  trip_mtx = MacroOpts.trip_mtx
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  mtx = CreateObject("Matrix", trip_mtx)
+  core_names = mtx.GetCoreNames()
+  for core_name in core_names do
+    parts = ParseString(core_name, "_")
+    if group = "Daily" and ArrayLength(parts) <> 4 then continue
+    if group = "PM" and right(core_name, 2) <> "PM" then continue
+    if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
+
+    out_name = "nm_" + group
+    v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
+
+    if TypeOf(result.(out_name)) = "null"
+      then result.(out_name) = nz(v)
+      else result.(out_name) = result.(out_name) + nz(v)
+  end
+  return(result)
+endmacro
+
+Macro "Summarize NHB" (MacroOpts)
+  
+  equiv = MacroOpts.equiv
+  trip_bin = MacroOpts.trip_bin
+  group = MacroOpts.group
+  result = MacroOpts.result
+
+  nhb = CreateObject("Table", trip_bin)
+  flds = nhb.GetFieldNames()
+  for fld in flds do
+    parts = ParseString(fld, "_")
+    mode = "default"
+    if ArrayLength(parts) = 3 then mode = parts[2] else if ArrayLength(parts) = 4 then mode = parts[3] else if ArrayLength(parts) = 5 then mode = "auto_pay"// set mode
+    if equiv.(mode) = null then continue // if fld is not trip fields
+    if group = "PM" and right(fld, 2) <> "PM" then continue // if group = PM then only add PM flds
+    
+    out_name = equiv.(mode) + "_" + group
+    v = nhb.(fld)
+    v.rowbased = "false"
+    if TypeOf(result.(out_name)) = "null"
+        then result.(out_name) = nz(v)
+        else result.(out_name) = result.(out_name) + nz(v)
+  end
+  return(result)
+
 endmacro
