@@ -233,7 +233,12 @@ Macro "Diff Tables" (MacroOpts)
     tbl2 = CreateObject("Table", table2)
     tbl2 = tbl2.Export({FieldNames: out_fields})
     
-    for col in out_fields do
+    for col in id_cols do
+        tbl1.RenameField({FieldName: col, NewName: col + "_ref"})
+        tbl2.RenameField({FieldName: col, NewName: col + "_new"})
+    end
+    
+    for col in cols_to_diff do
         tbl1.ChangeField({FieldName: col, NewName: col + "_ref", Type: "real"})
         tbl2.ChangeField({FieldName: col, NewName: col + "_new", Type: "real"})
         tbl2.AddField(col + "_diff")
@@ -257,14 +262,13 @@ Macro "Diff Tables" (MacroOpts)
         tbl3.(col + "_diff") = tbl3.(col + "_new") - tbl3.(col + "_ref")
     end
     tbl3.Export({FileName: out_file})
-    /*
+
     // Clean up id name columns
     tbl4 = CreateObject("Table", out_file)
     for col in id_cols do
         tbl4.RenameField({FieldName: col + "_ref", NewName: col})
         tbl4.DropFields(col + "_new")
     end
-    */
 endmacro
 
 /*
