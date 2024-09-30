@@ -45,7 +45,6 @@ Macro "Other Reports" (Args)
     RunMacro("Summarize HH Strata", Args)
     RunMacro("Aggregate Transit Flow by Route", Args)
     RunMacro("Validation Reports", Args)
-    RunMacro("Export Highway Geodatabase", Args)
     RunMacro("Performance Measures Reports", Args)
     return(1)
 endmacro
