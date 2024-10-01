@@ -2311,7 +2311,7 @@ Macro "Gravity2" (MacroOpts)
 
       temp_mtx = null
       temp_core = null
-      DeleteFile(temp_mtx_file)
+      // DeleteFile(temp_mtx_file)
     end
   end
 
