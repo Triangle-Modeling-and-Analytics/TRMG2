@@ -2780,7 +2780,7 @@ Macro "Performance Measures Reports" (Args)
       {FieldName: "Region", Type: "real"}
     }})
   out_tbl.AddRows({EmptyRows: 2})
-  out_tbl.VMT_and_VHT = {"Total VMT (no CC)", "Total VHT (no CC)"}
+  out_tbl.VMT_and_VHT = {"Total_VMT", "Total_VHT"}
 
   Total_VMT_Daily = tbl.Total_VMT_Daily.sum()
   Total_VHT_Daily = tbl.Total_VHT_Daily.sum()
@@ -2790,17 +2790,22 @@ Macro "Performance Measures Reports" (Args)
   Total_VHT_PM = tbl.Tot_VHT_PM.sum()
   a_region = {Total_VMT_Daily, Total_VHT_Daily}  
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/VMTVHT.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.1 1.2 VMTVHT.csv"})
 
   fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum"}
   for group_field in group_fields do 
     if group_field = "Region" then continue
-    out_file = pm_dir + "/VMTVHT_by" + group_field + ".csv"
+    out_file = pm_dir + "/1.1 1.2 VMTVHT_by" + group_field + ".csv"
     agg = tbl.Aggregate({
       GroupBy: group_field,
       FieldStats: fields_to_sum
     })
-    agg.Export({FileName: out_file})
+    
+    agg.RenameField({FieldName: "sum_Total_VMT_Daily", NewName: "Total_VMT"})
+    agg.RenameField({FieldName: "sum_Total_VHT_Daily", NewName: "Total_VHT"})
+    pivot = agg.PivotLonger({Fields: {"Total_VMT", "Total_VHT"}, NamesTo: "Metric", ValuesTo: "Value"})
+    pivot2 = pivot.PivotWider({NamesFrom: "Metric", ValuesFrom: "Value"})
+    pivot2.Export({FileName: out_file})
   end
 
   //1.3 1.4 Daily and peak average speed by facility
@@ -2811,7 +2816,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = Total_VMT_Daily/Total_VHT_Daily
-  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_daily.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.3 AvgSpeed_byregion_daily.csv"})
 
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "AvgSpeedAM", Type: "String"},
@@ -2819,7 +2824,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = Total_VMT_AM/Total_VHT_AM
-  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_AM.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.4 AvgSpeed_byregion_AM.csv"})
 
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "AvgSpeedPM", Type: "String"},
@@ -2827,7 +2832,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = Total_VMT_PM/Total_VHT_PM
-  out_tbl.Export({FileName: pm_dir + "/AvgSpeed_byregion_PM.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.4 AvgSpeed_byregion_PM.csv"})
   
   // Calculate by facility by MPO/County
   fields_to_sum = {Total_VMT_Daily: "sum", Total_VHT_Daily:"sum", Tot_VMT_AM: "sum", Tot_VHT_AM: "sum", Tot_VMT_PM: "sum", Tot_VHT_PM: "sum"}
@@ -2838,7 +2843,7 @@ Macro "Performance Measures Reports" (Args)
   }
 
   for group_field in group_fields do 
-    out_file = pm_dir + "/AvgSpeed_byfacility_by" + group_field + ".csv"
+    out_file = pm_dir + "/1.3 1.4 AvgSpeed_byfacility_by" + group_field + ".csv"
     if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
     agg = tbl.Aggregate({
       GroupBy: group_field,
@@ -2854,7 +2859,7 @@ Macro "Performance Measures Reports" (Args)
   
   // Calculate all facility by MPO/County
   for group_field in group_fields do 
-    out_file = pm_dir + "/AvgSpeed_by" + group_field + ".csv"
+    out_file = pm_dir + "/1.3 1.4 AvgSpeed_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = tbl.Aggregate({
       GroupBy: group_field,
@@ -2882,7 +2887,7 @@ Macro "Performance Measures Reports" (Args)
   region_truckdelay = tbl2.Delay_SUT_Daily.sum() + tbl2.Delay_MUT_Daily.sum()
   a_region = {region_delay, region_truckdelay}
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/delay.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.10 Delay.csv"})
   
   for group_field in group_fields do 
     if group_field = "Region" then continue
@@ -2896,7 +2901,7 @@ Macro "Performance Measures Reports" (Args)
     })
     agg.AddField("Total_Truck_Delay_Daily")
     agg.Total_Truck_Delay_Daily = agg.sum_Delay_SUT_Daily + agg.sum_Delay_MUT_Daily
-    out_file = pm_dir + "/Delay_by_" + group_field + ".csv"
+    out_file = pm_dir + "/1.10 Delay_by_" + group_field + ".csv"
     agg.Export({FileName: out_file})  
   end
 
@@ -2911,7 +2916,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = tbl.CongestedVMT_Daily.sum()/tbl.Total_VMT_Daily.sum()
-  out_tbl.Export({FileName: pm_dir + "/CgVMTpct_byregion_daily.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.11 CgVMTpct_byregion_daily.csv"})
 
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "PctCongestionAM", Type: "String"},
@@ -2919,7 +2924,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = tbl.CongestedVMT_AM.sum()/tbl.Tot_VMT_AM.sum()
-  out_tbl.Export({FileName: pm_dir + "/CgVMTpct_byregion_AM.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.12 CgVMTpct_byregion_AM.csv"})
 
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "PctCongestionPM", Type: "String"},
@@ -2927,7 +2932,7 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = tbl.CongestedVMT_PM.sum()/tbl.Tot_VMT_PM.sum()
-  out_tbl.Export({FileName: pm_dir + "/CgVMTpct_byregion_PM.csv"})
+  out_tbl.Export({FileName: pm_dir + "/1.12 CgVMTpct_byregion_PM.csv"})
 
   // Define field specs
   fields_to_sum = {Total_VMT_Daily: "sum", CongestedVMT_Daily:"sum", Tot_VMT_AM: "sum", CongestedVMT_AM: "sum", Tot_VMT_PM: "sum", CongestedVMT_PM: "sum"}
@@ -2939,7 +2944,7 @@ Macro "Performance Measures Reports" (Args)
   
   // Calculate by facility by MPO/County
   for group_field in group_fields do 
-    out_file = pm_dir + "/CgVMTpct_byfacility_by" + group_field + ".csv"
+    out_file = pm_dir + "/1.11 1.12 CgVMTpct_byfacility_by" + group_field + ".csv"
     if group_field = "Region" then group_field = "HCMType" else group_field = {group_field} + {"HCMType"}
     agg = tbl.Aggregate({
       GroupBy: group_field,
@@ -2955,7 +2960,7 @@ Macro "Performance Measures Reports" (Args)
   
   // Calculate all facility by MPO/County
   for group_field in group_fields do 
-    out_file = pm_dir + "/CgVMTpct_by" + group_field + ".csv"
+    out_file = pm_dir + "/1.11 1.12 CgVMTpct_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = tbl.Aggregate({
       GroupBy: group_field,
@@ -3000,11 +3005,11 @@ Macro "Performance Measures Reports" (Args)
   cv_daily_mtx = null
   
   //Summarize
-  mtx_list = {{allperson_mtx_file,"daily_total", "Daily Average Travel Length - All Person Trips.csv"}, 
-    {hbw_mtx_file, "total", "Daily Average Travel Length - Work Trips.csv"}, 
-    {allperson_mtx_file, "pm_total", "Peak Average Travel Length - All Peason Trips.csv"}, 
-    {cv_daily_file, "CV_daily", "Daily Average Travel Length - All CV Trips.csv"}, 
-    {cv_daily_file, "Truck_daily", "Daily Average Travel Length - Truck Trips.csv"}} 
+  mtx_list = {{allperson_mtx_file,"daily_total", "1.5 Daily Average Travel Length - All Person Trips.csv"}, 
+    {hbw_mtx_file, "total", "1.6 Daily Average Travel Length - Work Trips.csv"}, 
+    {allperson_mtx_file, "pm_total", "1.7 Peak Average Travel Length - All Peason Trips.csv"}, 
+    {cv_daily_file, "CV_daily", "1.8 Daily Average Travel Length - All CV Trips.csv"}, 
+    {cv_daily_file, "Truck_daily", "1.9 Daily Average Travel Length - Truck Trips.csv"}} 
   geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
   se = CreateObject("Table", se_file)
 
@@ -3045,10 +3050,9 @@ Macro "Performance Measures Reports" (Args)
     WriteLine(f, result_len)
     WriteLine(f, result_time)
     CloseFile(f)
+    mtx = null
 	end
   se = null
-  DeleteFile(allperson_mtx_file)
-  DeleteFile(cv_daily_file)
   
   //2. Mode Share Measures
   //2.1 All trips - daily
@@ -3072,7 +3076,7 @@ Macro "Performance Measures Reports" (Args)
   })
   
   for group_field in group_fields do 
-    out_file = pm_dir + "/modeshare_by" + group_field + ".csv"
+    out_file = pm_dir + "/2.1 modeshare_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = join.Aggregate({
       GroupBy: group_field,
@@ -3096,7 +3100,7 @@ Macro "Performance Measures Reports" (Args)
     a_region = a_region + {fld_sum}
   end
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/modeshare_byRegion.csv"})
+  out_tbl.Export({FileName: pm_dir + "/2.1 modeshare_byRegion.csv"})
   join = null
 
   //3. Demographic Measures
@@ -3118,11 +3122,11 @@ Macro "Performance Measures Reports" (Args)
   a_region = {sum_pop, sum_emp}
 
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/demographic_byRegion.csv"})
+  out_tbl.Export({FileName: pm_dir + "/3.1 3.2 Demographic_byRegion.csv"})
 
   //Calculate by MPO/County
   for group_field in group_fields do 
-    out_file = pm_dir + "/demographic_by" + group_field + ".csv"
+    out_file = pm_dir + "/3.1 3.2 Demographic_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = se.Aggregate({
       GroupBy: group_field,
@@ -3142,8 +3146,8 @@ Macro "Performance Measures Reports" (Args)
 	})
 
   for fld in flds do
-    if right(fld, 6) = "_Daily" then trip_tbl.Total_Daily = trip_tbl.Total_Daily + trip_tbl.(fld)
-    if right(fld, 7) = "_W_HB_W" then trip_tbl.Total_W_HB_W = trip_tbl.Total_W_HB_W + trip_tbl.(fld)
+    if right(fld, 6) = "_Daily" then trip_tbl.Total_Daily = nz(trip_tbl.Total_Daily) + nz(trip_tbl.(fld))
+    if right(fld, 7) = "_W_HB_W" then trip_tbl.Total_W_HB_W = nz(trip_tbl.Total_W_HB_W) + nz(trip_tbl.(fld))
   end
 
   //Calculate by MPO/County
@@ -3154,7 +3158,7 @@ Macro "Performance Measures Reports" (Args)
   })
   
   for group_field in group_fields do 
-    out_file = pm_dir + "/persontrip_by" + group_field + ".csv"
+    out_file = pm_dir + "/3.3 Persontrip_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = join.Aggregate({
       GroupBy: group_field,
@@ -3175,7 +3179,7 @@ Macro "Performance Measures Reports" (Args)
   sum_W_HB_W = trip_tbl.Total_W_HB_W.sum()
   a_region = {sum_daily, sum_W_HB_W}
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/persontrip_byRegion.csv"})
+  out_tbl.Export({FileName: pm_dir + "/3.3 Persontrip_byRegion.csv"})
 
   //3.4 Total CV and truck trips
   // create a table to store results
@@ -3214,7 +3218,7 @@ Macro "Performance Measures Reports" (Args)
     RightFields: "ID"
   })
   for group_field in group_fields do 
-    out_file = pm_dir + "/cv_by" + group_field + ".csv"
+    out_file = pm_dir + "/3.4 cv_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = join.Aggregate({
       GroupBy: group_field,
@@ -3235,7 +3239,7 @@ Macro "Performance Measures Reports" (Args)
   sum_Truck = cv_tbl.Truck.sum()
   a_region = {sum_CV, sum_Truck}
   out_tbl.Region = A2V(a_region)
-  out_tbl.Export({FileName: pm_dir + "/cv_byRegion.csv"})
+  out_tbl.Export({FileName: pm_dir + "/3.4 cv_byRegion.csv"})
 
   //4.1 Lane Miles
   tbl = hwy_tbl.Export()
@@ -3249,11 +3253,11 @@ Macro "Performance Measures Reports" (Args)
     }})
   out_tbl.AddRows({EmptyRows: 1})
   out_tbl.Region = tbl.LaneMiles.sum()
-  out_tbl.Export({FileName: pm_dir + "/LaneMiles_byregion.csv"})
+  out_tbl.Export({FileName: pm_dir + "/4.1 LaneMiles_byregion.csv"})
 
   // Calculate by MPO/County
   for group_field in group_fields do 
-    out_file = pm_dir + "/LaneMiles_by" + group_field + ".csv"
+    out_file = pm_dir + "/4.1 LaneMiles_by" + group_field + ".csv"
     if group_field = "Region" then continue
     agg = tbl.Aggregate({
       GroupBy: group_field,
@@ -3270,14 +3274,14 @@ Macro "Performance Measures Reports" (Args)
   tbl.AddField({FieldName: "PKOP", Type: "string"})
   tbl.PKOP = if tbl.period = "AM" or tbl.period = "PM" then "PK" else "OP"
   
-  out_file = pm_dir + "/Ridership_byagency_PKOP.csv"
+  out_file = pm_dir + "/5.1 Ridership_byagency_PKOP.csv"
   agg = tbl.Aggregate({
       GroupBy: {"Agency", "PKOP"},
       FieldStats: {Ridership: "sum"}
   })
   agg.Export({FileName: out_file})
   
-  out_file = pm_dir + "/Ridership_byagency_total.csv"
+  out_file = pm_dir + "/5.1 Ridership_byagency_total.csv"
   agg = tbl.Aggregate({
       GroupBy: "Agency",
       FieldStats: {Ridership: "sum"}
@@ -3299,14 +3303,14 @@ Macro "Performance Measures Reports" (Args)
     tbl.AddField({FieldName: "PKOP", Type: "string"})
     tbl.PKOP = if tbl.period = "AM" or tbl.period = "PM" then "PK" else "OP"
  
-    out_file = pm_dir + "/RailRidership_byPKOP.csv"
+    out_file = pm_dir + "/5.3 RailRidership_byPKOP.csv"
     agg = tbl.Aggregate({
         GroupBy: {"mode", "PKOP"},
         FieldStats: {Ridership: "sum"}
     })
     agg.Export({FileName: out_file})
   
-    out_file = pm_dir + "/Ridership_total.csv"
+    out_file = pm_dir + "/5.3 RailRidership_total.csv"
     agg = tbl.Aggregate({
         GroupBy: "mode",
         FieldStats: {Ridership: "sum"}
@@ -3326,7 +3330,7 @@ Macro "Performance Measures Reports" (Args)
     out_tbl.PK = 0
     out_tbl.OP = 0
     out_tbl.Total = 0
-    out_tbl.Export({FileName: pm_dir + "/RailRidership.csv"})
+    out_tbl.Export({FileName: pm_dir + "/5.3 RailRidership.csv"})
   end
 
   //5.4 Service mile
@@ -3350,7 +3354,7 @@ Macro "Performance Measures Reports" (Args)
   tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.Len else 0
   tbl.ServiceMile = tbl.SerMile_AM + tbl.SerMile_MD + tbl.SerMile_PM + tbl.SerMile_NT
 
-  out_file = pm_dir + "/ServiceMile_byagency.csv"
+  out_file = pm_dir + "/5.4 ServiceMile_byagency.csv"
   agg = tbl.Aggregate({
       GroupBy: "Agency",
       FieldStats: {ServiceMile: "sum"}
@@ -3365,7 +3369,7 @@ Macro "Performance Measures Reports" (Args)
   rail_tbl = tbl.Export()
 
   if rail_tbl.GetRecordCount()>0 then do // in case there is rail service 
-    out_file = pm_dir + "/RailServiceMile.csv"
+    out_file = pm_dir + "/5.4 RailServiceMile.csv"
     agg = rail_tbl.Aggregate({
         GroupBy: "Agency",
         FieldStats: {ServiceMile: "sum"}
@@ -3379,9 +3383,8 @@ Macro "Performance Measures Reports" (Args)
     }})
     out_tbl.AddRows({EmptyRows: 1})
     out_tbl.Total = 0
-    out_tbl.Export({FileName: pm_dir + "/RailServiceMile.csv"})
+    out_tbl.Export({FileName: pm_dir + "/5.4 RailServiceMile.csv"})
   end
-
 endmacro
 
 Macro "Summarize HB Univ RowSums" (MacroOpts)
