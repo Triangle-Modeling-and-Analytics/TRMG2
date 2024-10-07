@@ -180,6 +180,9 @@ Macro "NHB DC"(Args)
 
     // Step 2: Run DC
     RunMacro("Evaluate NHB DC", Args, Spec)
+
+    // Step 3: Save a copy of NHB person trips
+    RunMacro("Save NHB Person Trips", Args)
 endMacro
 
 
@@ -345,4 +348,17 @@ Macro "Get Mode Info"(category)
             subMode = "auto_pay"
     end
     Return({mainMode, subMode})    
+endMacro
+
+Macro "Save NHB Person Trips" (Args)
+    // Folders
+    in_folder = Args.[Output Folder] + "/resident/nhb/dc/trip_matrices"
+    out_folder = Args.[Output Folder] + "/resident/nhb/dc/trip_matrices_percopy"
+    if GetDirectoryInfo(out_folder, "All") = null then CreateDirectory(out_folder)
+
+    nhb_mtxs = RunMacro("Catalog Files", {dir: in_folder, ext: "mtx"})
+    for nhb_mtx_file in nhb_mtxs do
+        out_mtx = Substitute(nhb_mtx_file, "/trip_matrices", "/trip_matrices_percopy",)
+        CopyFile(nhb_mtx_file, out_mtx)
+    end
 endMacro
