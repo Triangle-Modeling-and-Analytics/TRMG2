@@ -2914,7 +2914,10 @@ Macro "Performance Measures Reports" (Args)
     agg.RenameField({FieldName: "sum_Total_VMT_Daily", NewName: "Total_VMT"})
     agg.RenameField({FieldName: "sum_Total_VHT_Daily", NewName: "Total_VHT"})
     pivot = agg.PivotLonger({Fields: {"Total_VMT", "Total_VHT"}, NamesTo: "Metric", ValuesTo: "Value"})
-    pivot2 = pivot.PivotWider({NamesFrom: "Metric", ValuesFrom: "Value"})
+    pivot.AddField({FieldName: "tempid", Type: "Integer"})
+    pivot.tempid = 1
+    pivot2 = pivot.PivotWider({NamesFrom: group_field, ValuesFrom: "Value"})
+    pivot2.DropFields("tempid")
     pivot2.Export({FileName: out_file})
   end
 
