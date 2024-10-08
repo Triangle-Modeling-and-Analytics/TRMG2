@@ -159,9 +159,9 @@ Macro "get_coc_defs" (coc_csv)
         coc_categories = coc_categories + {field_name}
     end
     mpo_options = def_tbl.MPO
-    mpo_options = V2A(SortVector(mpo_options, {Unique: true}))
+    mpo_options = V2A(SortVector(mpo_options, {Unique: "true"}))
     county_options = def_tbl.COUNTY
-    county_options = V2A(SortVector(county_options, {Unique: true}))
+    county_options = V2A(SortVector(county_options, {Unique: "true"}))
 
     coc_defs.coc_categories = coc_categories
     coc_defs.mpo_options = mpo_options
@@ -262,7 +262,7 @@ Macro "CoC" (Args)
     se_tbl = null
     coc_def = null
 
-    Args.weight_fields = {"CoC"}
+    Args.weight_fields = {"CoC_dc"}
     Args.names = {"CoC"}
     Args.summary_dir = Args.[Scenario Folder] + "/output/_summaries/coc/" + folder_name
     if GetDirectoryInfo(Args.summary_dir, "All") = null then CreateDirectory(Args.summary_dir)
