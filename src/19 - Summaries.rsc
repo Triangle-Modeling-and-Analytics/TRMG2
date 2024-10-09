@@ -10,7 +10,8 @@ Macro "Maps" (Args)
     RunMacro("Transit Summary", Args)
     RunMacro("Create Count Difference Map", Args)
     RunMacro("VOC Maps", Args)
-    RunMacro("Transit Maps", Args)
+    RunMacro("Transit Flow Maps", Args)
+    RunMacro("Transit PNR Maps", Args)
     RunMacro("Speed Maps", Args)
     RunMacro("Isochrones", Args)
 	  RunMacro("Accessibility Maps", Args)
@@ -472,7 +473,7 @@ EndMacro
 Creates a map showing transit flow
 */
 
-Macro "Transit Maps" (Args)
+Macro "Transit Flow Maps" (Args)
   
   hwy_dbd = Args.Links
   output_dir = Args.[Output Folder] + "/_summaries/maps"
@@ -486,6 +487,111 @@ Macro "Transit Maps" (Args)
   })
   map.HideLayer(nlyr)
   map.Save(output_dir + "/transit_flow.map")
+
+endmacro
+
+/*
+Creates two maps. One showing the PNR trip productions and the other showing
+the PNR trip destinations.
+*/
+
+Macro "Transit PNR Maps" (Args)
+
+  periods = Args.periods
+  out_dir = Args.[Output Folder] + "/_summaries/maps"
+  assn_dir = Args.[Output Folder] + "/assignment/transit/"
+  taz_file = Args.TAZs
+  rts_file = Args.Routes
+
+  // Summarize the productions and destinations
+  for period in periods do
+    mtx_file = assn_dir + "transit_" + period + ".mtx"
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    
+    // Add up all pnr matrix cores
+    mtx.AddCores("total_pnr")
+    for core_name in core_names do
+      if !(core_name contains "pnr") then continue
+      mtx.total_pnr := nz(mtx.total_pnr) + nz(mtx.(core_name))
+    end
+
+    // Create an internal taz index
+    mtx.AddIndex({
+      IndexName: "internal",
+      TableName: taz_file,
+      Dimension: "Both",
+      OriginalID: "ID",
+      NewID: "ID"
+    })
+    mtx.SetIndex("internal")
+
+    // Add marginals to running totals
+    v_prods = mtx.GetVector({
+      Core: "total_pnr",
+      Marginal: "Row Sum"
+    })
+    v_total_prods = nz(v_total_prods) + v_prods
+    v_dests = mtx.GetVector({
+      Core: "total_pnr",
+      Marginal: "Column Sum"
+    })
+    v_total_dests = nz(v_total_dests) + v_dests
+
+    mtx = null
+  end
+
+  // Create a map and add totals to the taz file
+  map = CreateObject("Map", rts_file)
+  map.AddLayer({FileName: taz_file})
+  layer_names = map.GetLayerNames()
+  taz_layer = layer_names[layer_names.length]
+  map.SetLayer(taz_layer)
+  SetLayerPosition(map.GetMapName(), taz_layer, 1)
+  taz_tbl = CreateObject("Table", taz_layer)
+  taz_tbl.AddField({FieldName: "TotalPNRProds"})
+  taz_tbl.AddField({FieldName: "TotalPNRDest"})
+  taz_tbl.Sort({FieldArray: {{"ID", "Ascending"}}})
+  v_total_prods.rowbased = "true"
+  taz_tbl.TotalPNRProds = v_total_prods
+  v_total_dests.rowbased = "true"
+  taz_tbl.TotalPNRDest = v_total_dests
+
+  // Hide non-pnr nodes
+  node_layer = layer_names[1]
+  link_layer = layer_names[2]
+  map.SetLayer(node_layer)
+  map.HideLayer({LayerName: link_layer})
+  node_tbl = CreateObject("Table", node_layer)
+  node_tbl.SelectByQuery({
+    SetName: "not_pnr",
+    Query: "PNR <> 1"
+  })
+  map.ModifySetStyle({
+    SetName: "not_pnr",
+    DisplayStatus: "Invisible"
+  })
+  SetIconColor(node_layer + "|", ColorRGB(15000, 15000, 15000))
+  SetIconSize(node_layer + "|", 10)
+
+  // Create color theme for productions
+  map.SetLayer(taz_layer)
+  map.ColorTheme({
+    FieldName: "TotalPNRProds",
+    Colors: {
+      EndColor: ColorRGB(15677, 36494, 12593) // green
+    }
+  })
+  map.Save(out_dir + "/pnr_productions.map")
+
+  // Create color theme for destinations
+  map.ColorTheme({
+    FieldName: "TotalPNRDest",
+    Colors: {
+      EndColor: ColorRGB(0, 16448, 32896) // blue
+    }
+  })
+  map.Save(out_dir + "/pnr_destinations.map")
 
 endmacro
 
