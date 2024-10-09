@@ -432,14 +432,14 @@
             "Caption":"Resident NHB DC Size Coefficients",
             "Value":"%Input Folder%\\resident\\nhb\\dc\\nhb_dc_size_terms.csv"
         }
-        Args.SimulateNHBDCTrips = {
-            "Type":"boolean",
-            "Caption":"Simulate integer NHB DC matrices using matrix Monte Carlo",
-            "Value":True
-        }
 	
 	Section = "Numeric Parameters"
 	
+        Args.DisaggregateRun = {
+            "Type":"boolean",
+            "Caption":"Select to run disaggregate models for residents",
+            "Value":True
+        }
         Args.FeedbackConvergence = {
             "Type":"double",
             "Description":"%RMSE between skims. .1 = 0.1%",

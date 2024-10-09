@@ -120,19 +120,19 @@ Data:
 EndMacro
 
 
-Macro "Mode Probabilities" (Args,Result)
+Macro "Mode Logsums" (Args,Result)
     Attributes = {
         {"Class", {"GISDK"}},
-        {"MacroNames", {"Mode Probabilities"}},
+        {"MacroNames", {"Mode Logsums"}},
         {"Picture", "bmp\\planmodesplit_v3.bmp"}
     }
 EndMacro
 
 
-Macro "Destination Probabilities" (Args,Result)
+Macro "Destination Choices" (Args,Result)
     Attributes = {
         {"Class", {"GISDK"}},
-        {"MacroNames", {"Destination Probabilities", "Destination Choices Disagg"}},
+        {"MacroNames", {"Destination Choices"}},
         {"Picture", "bmp\\planmodesplit_v3.bmp"}
     }
 Data:
@@ -699,10 +699,10 @@ Body:
 EndMacro
 
 
-Macro "Application of Probabilities" (Args,Result)
+Macro "Mode Choices" (Args,Result)
     Attributes = {
         {"Class", {"GISDK"}},
-        {"MacroNames", {"Application of Probabilities", "Mode Choices Disagg"}},
+        {"MacroNames", {"Mode Choices"}},
         {"Picture", "bmp/planmodesplit_v3.bmp"}
     }
 EndMacro
@@ -722,17 +722,17 @@ Body:
     // FlowChartNode(model,NodeName,MacroName,UI,Description)
     //
     FlowChartNode(model,"Parking Probabilities",,,)
-    FlowChartNode(model,"Mode Probabilities",,,)
-    FlowChartNode(model,"Destination Probabilities",,,)
-    FlowChartNode(model,"Application of Probabilities",,,)
+    FlowChartNode(model,"Mode Logsums",,,)
+    FlowChartNode(model,"Destination Choices",,,)
+    FlowChartNode(model,"Mode Choices",,,)
     //
     // Links
     //
     // FlowChartLink(model , FromNode , ToNode , Condition , Description , IsFeedbackLoop)
     //
-    FlowChartLink(model,"Parking Probabilities","Mode Probabilities",True,,)
-    FlowChartLink(model,"Mode Probabilities","Destination Probabilities",True,,)
-    FlowChartLink(model,"Destination Probabilities","Application of Probabilities",True,,)
+    FlowChartLink(model,"Parking Probabilities","Mode Logsums",True,,)
+    FlowChartLink(model,"Mode Logsums","Destination Choices",True,,)
+    FlowChartLink(model,"Destination Choices","Mode Choices",True,,)
     Return(model)
 EndMacro
 

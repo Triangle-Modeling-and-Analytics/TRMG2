@@ -1,8 +1,9 @@
 /*
-Calculates aggregate mode choice probabilities between zonal ij pairs
+Calculates aggregate mode choice logsums/probabilities between zonal ij pairs
+Probability matrices will be used in 'Mode Choices' if the model run is aggregate
 */
 
-Macro "Mode Probabilities" (Args)
+Macro "Mode Logsums" (Args)
     if Args.FeedbackIteration = 1 then 
         RunMacro("Create MC Features", Args)
     
@@ -13,13 +14,25 @@ endmacro
 
 
 /*
+Call aggregate or disaggregate mode choice models based on model flag
+If aggregate, simply apply probabilities (like the regualr model)
+If disaggregate, calculate choices
+*/
+Macro "Mode Choices"(Args)
+    if Args.DisaggregateRun = 1 then
+        RunMacro("Mode Choices Disagg", Args)
+    else
+        RunMacro("Application of Probabilities", Args)
+    
+    return(1)
+endMacro
+
+
+/*
 Calculates disaggregate mode choices
 */
 
 Macro "Mode Choices Disagg" (Args)
-    if Args.FeedbackIteration = 1 then 
-        RunMacro("Create MC Features", Args)
-
     RunMacro("Calculate Disagg MC", Args)
     RunMacro("Disagg Directionality", Args)
     RunMacro("Aggregate HB Trip Tables", Args)

@@ -1,4 +1,16 @@
 /*
+Call aggregate or disaggregate destination choice models based on model flag
+*/
+Macro "Destination Choices"(Args)
+    if Args.DisaggregateRun = 1 then
+        RunMacro("Destination Choices Disagg", Args)
+    else
+        RunMacro("Destination Probabilities", Args)
+    
+    return(1)
+endMacro
+
+/*
     Aggregate destination choice models
 */
 

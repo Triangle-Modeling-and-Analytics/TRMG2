@@ -305,7 +305,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
             // Add output and or totals spec
             prob_file = prob_folder + "Prob_" + tag + ".mtx"
             outputSpec = {"Probability": prob_file}
-            if !Args.SimulateNHBDCTrips then do
+            if !Args.DisaggregateRun then do
                 obj.AddTotalsSpec({Name: "PA", ZonalField: tag}) // Add PA for applied totals
                 outputSpec.Totals = trips_folder + tag + ".mtx"
             end
@@ -316,7 +316,7 @@ Macro "Evaluate NHB DC"(Args, Spec)
                 Throw("Running '" + tag + "' destination choice model failed.")
 
             // Do Matrix Monte Carlo if required
-            if Args.SimulateNHBDCTrips then do
+            if Args.DisaggregateRun then do
                 objP = CreateObject("Table", pa_file)
                 objM = CreateObject("Matrix", prob_file)
                 RunMacro("Matrix MonteCarlo", {
