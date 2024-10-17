@@ -585,6 +585,7 @@ Macro "Transit PNR Maps" (Args)
   map.Save(out_dir + "/pnr_productions.map")
 
   // Create color theme for destinations
+  map.SetLayer(taz_layer)
   map.ColorTheme({
     FieldName: "TotalPNRDest",
     Colors: {
