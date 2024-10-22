@@ -1668,7 +1668,7 @@ Macro "VMT_Delay Summary" (Args)
 
     //delay
     hwy_df.AddField(outfield_totdelaydaily)
-    hwy_df.(outfield_totdelaydaily) = v_totflowdaily
+    hwy_df.(outfield_totdelaydaily) = v_totdelaydaily
   end
   hwy_df.AddField(outfield_totcgvmtdailysum)
   hwy_df.(outfield_totcgvmtdailysum) = v_totcgvmtdailysum
