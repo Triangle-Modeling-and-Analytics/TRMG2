@@ -585,6 +585,7 @@ Macro "Transit PNR Maps" (Args)
   map.Save(out_dir + "/pnr_productions.map")
 
   // Create color theme for destinations
+  map.SetLayer(taz_layer)
   map.ColorTheme({
     FieldName: "TotalPNRDest",
     Colors: {
@@ -1667,7 +1668,7 @@ Macro "VMT_Delay Summary" (Args)
 
     //delay
     hwy_df.AddField(outfield_totdelaydaily)
-    hwy_df.(outfield_totdelaydaily) = v_totflowdaily
+    hwy_df.(outfield_totdelaydaily) = v_totdelaydaily
   end
   hwy_df.AddField(outfield_totcgvmtdailysum)
   hwy_df.(outfield_totcgvmtdailysum) = v_totcgvmtdailysum
