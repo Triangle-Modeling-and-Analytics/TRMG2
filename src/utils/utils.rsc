@@ -2376,22 +2376,20 @@ Macro "Create Intra Cluster Matrix"(Args)
   outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
   // Create empty matrix
   obj = CreateObject("Matrix", {Empty: True}) 
-  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+  newMatOpts = {Compressed: 1, DataType: "short", FileName: outMtx, MatrixLabel: "IntraCluster"}
+  opts.NewMatrixInfo = newMatOpts
   opts.RowIds = v2a(vTAZ) 
   opts.ColIds = v2a(vTAZ)
   opts.MatrixNames = {"IC", "IZ"}
   opts.RowIndexName = "All Zones"
   opts.ColIndexName = "All Zones"
-  mat = obj.CreateFromArrays(opts)
+  mtx = obj.CreateFromArrays(opts)
   obj = null
   
   // Intialize IC and IZ cores
-  mtx = CreateObject("Matrix", mat)
-  mc = mtx.GetCore("IC")
-  mc := 0
-  
+  mtx.IC := 0
+  mtx.IZ := 0
   mc = mtx.GetCore("IZ")
-  mc := 0
   v = Vector(nTAZ, "Short", {{"Constant", 1}})
   SetMatrixVector(mc, v, {{"Diagonal"}})
   
