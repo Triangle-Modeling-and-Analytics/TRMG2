@@ -1315,7 +1315,7 @@ Macro "Congested VMT" (Args)
   out_dir = Args.[Output Folder] + "/_summaries/roadway_tables"
 
   // The V/C ratio that defines the cutoff for congestion.
-  vc_cutoff = .75
+  vc_cutoff = 1
 
   // Calculate congested VMT on each link
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
@@ -1517,7 +1517,7 @@ Macro "VMT_Delay Summary" (Args)
 
         //VMT and cgVMT
         length = hwy_df.length
-        voc = hwy_df.(dir + "_VOCD_" + period)
+        voc = hwy_df.(dir + "_VOCE_" + period)
         cg_length = if voc >1 then length else 0
         v_totvmt = nz(v_totvmt) + nz(v_vol)*length
         v_totcgvmt = nz(v_totcgvmt) + nz(v_vol)*cg_length
