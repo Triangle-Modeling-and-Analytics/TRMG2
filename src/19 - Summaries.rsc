@@ -1695,7 +1695,7 @@ Macro "VMT_Delay Summary" (Args)
   names = df.GetFieldNames()
 
   // Calculate VMT per capita for region
-  Total_VMT_Daily = df.Total_VMT_Daily.sum()
+  Total_VMT_Daily = df.Total_VMT_Daily.sum()/2
   df = null
   se = CreateObject("Table", se_bin)
   HH = se.HH.sum()
