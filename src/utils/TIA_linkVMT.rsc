@@ -102,7 +102,7 @@ Macro "TIA Link VMT" (Args, loc_thresh, ext_thresh, full_scen_dir)
             else null
 
         if thresh <> null then do //for local and extended, use select by location to determine market
-            query = "Select * where HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC' and Total_Flow_Query1 >=" + i2s(thresh)
+            query = "Select * where HCMType <> null and HCMType <> 'CC' and Total_Flow_Query1 >=" + i2s(thresh)
             n1 = SelectByQuery(market, "several", query)
             
             SetLayer(taz_lyr)
@@ -112,10 +112,10 @@ Macro "TIA Link VMT" (Args, loc_thresh, ext_thresh, full_scen_dir)
 
             SetLayer(link_lyr)
             n3 = SelectByVicinity(market + "_links", "several", taz_lyr + "|" + market + "_taz", 0,)
-            n4 = SelectByQuery(market + "_links", "subset", "Select * where HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
+            n4 = SelectByQuery(market + "_links", "subset", "Select * where HCMType <> null and HCMType <> 'CC'")
         end
         else //for regional, no need to create market
-            n = SelectByQuery(market + "_links", "several", "Select * where HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'")
+            n = SelectByQuery(market + "_links", "several", "Select * where HCMType <> null and HCMType <> 'CC'")
     end
     
     // 3. Create output
