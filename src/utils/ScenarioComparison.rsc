@@ -158,10 +158,16 @@ Macro "Compare Summary Tables" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly
 
+    // Get scenario names 
+    parts = ParseString(ref_scen, "\\")
+    ref_name = parts[parts.length] 
+    parts = ParseString(new_scen, "\\")
+    new_name = parts[parts.length]
+
     // Manually specify which tables to compare here with relative
     // paths. Each table has the file path, id columns, and diff columns
     // specified.
-    comp_dir = new_scen + "/comparison_outputs"
+    comp_dir = new_scen + "/output/_summaries/comparison_outputs"
     RunMacro("Create Directory", comp_dir)
     tables_to_compare = {
         {"/output/_summaries/resident_hb/hb_trip_mode_shares.csv", {"trip_type", "mode"}, {"total", "pct"}},
@@ -198,7 +204,9 @@ Macro "Compare Summary Tables" (MacroOpts)
             Table2: new_scen + table,
             OutputFile: comp_file,
             IDColumns: id_cols,
-            ColumnsToDiff: diff_cols
+            ColumnsToDiff: diff_cols,
+            S1_name: ref_name,
+            S2_name: new_name
         })
     end
 endmacro
@@ -215,6 +223,8 @@ Macro "Diff Tables" (MacroOpts)
     id_cols = MacroOpts.IDColumns
     cols_to_diff = MacroOpts.ColumnsToDiff
     out_file = MacroOpts.OutputFile
+    ref_name = MacroOpts.S1_name
+    new_name = MacroOpts.S2_name
 
     if out_file = null then out_file = Substitute(table2, ".", "_diff.", )
     if cols_to_diff = null then do
@@ -235,13 +245,13 @@ Macro "Diff Tables" (MacroOpts)
     tbl2 = tbl2.Export({FieldNames: out_fields})
     
     for col in id_cols do
-        tbl1.RenameField({FieldName: col, NewName: col + "_ref"})
-        tbl2.RenameField({FieldName: col, NewName: col + "_new"})
+        tbl1.RenameField({FieldName: col, NewName: col + "_" + ref_name})
+        tbl2.RenameField({FieldName: col, NewName: col + "_" + new_name})
     end
     
     for col in cols_to_diff do
-        tbl1.ChangeField({FieldName: col, NewName: col + "_ref", Type: "real"})
-        tbl2.ChangeField({FieldName: col, NewName: col + "_new", Type: "real"})
+        tbl1.ChangeField({FieldName: col, NewName: col + "_" + ref_name, Type: "real"})
+        tbl2.ChangeField({FieldName: col, NewName: col + "_" + new_name, Type: "real"})
         tbl2.AddField(col + "_diff")
     end
 
@@ -249,8 +259,8 @@ Macro "Diff Tables" (MacroOpts)
     left_id_cols = null
     right_id_cols = null
     for field in id_cols do
-        left_id_cols = left_id_cols + {field + "_ref"}
-        right_id_cols = right_id_cols + {field + "_new"}
+        left_id_cols = left_id_cols + {field + "_" + ref_name}
+        right_id_cols = right_id_cols + {field + "_" + new_name}
     end
     
     // Calculate differences
@@ -260,15 +270,15 @@ Macro "Diff Tables" (MacroOpts)
         RightFields: right_id_cols
     })
     for col in cols_to_diff do
-        tbl3.(col + "_diff") = tbl3.(col + "_new") - tbl3.(col + "_ref")
+        tbl3.(col + "_diff") = tbl3.(col + "_" + new_name) - tbl3.(col + "_" + ref_name)
     end
     tbl3.Export({FileName: out_file})
 
     // Clean up id name columns
     tbl4 = CreateObject("Table", out_file)
     for col in id_cols do
-        tbl4.RenameField({FieldName: col + "_ref", NewName: col})
-        tbl4.DropFields(col + "_new")
+        tbl4.RenameField({FieldName: col + "_" + ref_name, NewName: col})
+        tbl4.DropFields(col + "_" + new_name)
     end
 endmacro
 
@@ -282,7 +292,7 @@ Macro "Compare Zonal Data" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly
 
-    comp_dir = new_scen + "/comparison_outputs"
+    comp_dir = new_scen + "/output/_summaries/comparison_outputs"
     map_dir = comp_dir + "/maps"
     RunMacro("Create Directory", map_dir)
 
@@ -356,9 +366,13 @@ endmacro
 Macro "Compute Link Pct Diff Data" (MacroOpts)
     ref_scen = MacroOpts.ref_scen
     new_scen = MacroOpts.new_scen
-    sub_poly = MacroOpts.sub_poly    
+    sub_poly = MacroOpts.sub_poly
+    
+    // Get scenario names 
+    parts = ParseString(ref_scen, "\\")
+    ref_name = parts[parts.length] 
 
-    comp_dir = new_scen + "/comparison_outputs"
+    comp_dir = new_scen + "/output/_summaries/comparison_outputs"
 
     diff_tbl = CreateObject("Table", {FileName: comp_dir + "/output/networks/scenario_links.bin", View: "diff"})
 
@@ -368,8 +382,8 @@ Macro "Compute Link Pct Diff Data" (MacroOpts)
 			{FieldName: "pct_Total_VHT_Daily_diff", Type: "real"}
 		}
 	})
-    diff_tbl.pct_Total_VMT_Daily_diff = diff_tbl.Total_VMT_Daily_diff/diff_tbl.Total_VMT_Daily_ref
-    diff_tbl.pct_Total_VHT_Daily_diff = diff_tbl.Total_VHT_Daily_diff/diff_tbl.Total_VHT_Daily_ref
+    diff_tbl.pct_Total_VMT_Daily_diff = diff_tbl.Total_VMT_Daily_diff/diff_tbl.("Total_VMT_Daily_" + ref_name)
+    diff_tbl.pct_Total_VHT_Daily_diff = diff_tbl.Total_VHT_Daily_diff/diff_tbl.("Total_VHT_Daily_" + ref_name)
 
 endmacro
 
@@ -379,7 +393,7 @@ Macro "Compare Link Data" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly    
 
-    comp_dir = new_scen + "/comparison_outputs"
+    comp_dir = new_scen + "/output/_summaries/comparison_outputs"
     map_dir = comp_dir + "/maps"
     RunMacro("Create Directory", map_dir)
 
@@ -483,7 +497,7 @@ Macro "Aggregate SE and Link Data" (MacroOpts)
     new_scen = MacroOpts.new_scen
     sub_poly = MacroOpts.sub_poly
 
-    comp_dir = new_scen + "/comparison_outputs"
+    comp_dir = new_scen + "/output/_summaries/comparison_outputs"
     tables_to_compare = {
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
         {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily"}}
