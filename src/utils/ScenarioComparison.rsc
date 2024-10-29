@@ -79,6 +79,7 @@ Macro "Compare Scenarios" (MacroOpts)
     if sub_poly <> null then RunMacro("Run MC/DC Summaries for Subarea", MacroOpts)
     RunMacro("Compare Summary Tables", MacroOpts)
     RunMacro("Compare Zonal Data", MacroOpts)
+    RunMacro("Compute Link Pct Diff Data", MacroOpts)
     RunMacro("Compare Link Data", MacroOpts)
     RunMacro("Aggregate SE and Link Data", MacroOpts)
 endmacro
@@ -352,6 +353,25 @@ endmacro
 /*
 
 */
+Macro "Compute Link Pct Diff Data" (MacroOpts)
+    ref_scen = MacroOpts.ref_scen
+    new_scen = MacroOpts.new_scen
+    sub_poly = MacroOpts.sub_poly    
+
+    comp_dir = new_scen + "/comparison_outputs"
+
+    diff_tbl = CreateObject("Table", {FileName: comp_dir + "/output/networks/scenario_links.bin", View: "diff"})
+
+    diff_tbl.AddFields({
+		Fields: {
+			{FieldName: "pct_Total_VMT_Daily_diff", Type: "real"},
+			{FieldName: "pct_Total_VHT_Daily_diff", Type: "real"}
+		}
+	})
+    diff_tbl.pct_Total_VMT_Daily_diff = diff_tbl.Total_VMT_Daily_diff/diff_tbl.Total_VMT_Daily_ref
+    diff_tbl.pct_Total_VHT_Daily_diff = diff_tbl.Total_VHT_Daily_diff/diff_tbl.Total_VHT_Daily_ref
+
+endmacro
 
 Macro "Compare Link Data" (MacroOpts)
     
@@ -404,7 +424,7 @@ Macro "Compare Link Data" (MacroOpts)
     jv = join_tbl.GetView()
     fields_to_map = {
         "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily",
-        "AB_TransitFlow"
+        "AB_TransitFlow", "pct_Total_VMT_Daily", "pct_Total_VHT_Daily"
     }
     map.SetLayer(link_lyr)
 
