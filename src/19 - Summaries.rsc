@@ -1802,7 +1802,7 @@ Macro "VMT_Delay Summary" (Args)
   names = df.GetFieldNames()
 
   // Calculate VMT per capita for region
-  Total_VMT_Daily = df.Total_VMT_Daily.sum()
+  Total_VMT_Daily = df.Total_VMT_Daily.sum()/2
   df = null
   se = CreateObject("Table", se_bin)
   HH = se.HH.sum()
@@ -3310,7 +3310,8 @@ Macro "Performance Measures Reports" (Args)
       {FieldName: "ModeShare", Type: "String"},
       {FieldName: "Region", Type: "real"}
     }})
-  out_tbl.AddRows({EmptyRows: 14})
+  n_row = fields_arr.length
+  out_tbl.AddRows({EmptyRows: n_row})
   out_tbl.ModeShare = fields_arr
   
   a_region = null
