@@ -2091,8 +2091,9 @@ Macro "Disadvantage Community Skims" (Args)
 	mtx.AddCores("NonAutoTime")
 	mtx.TransitTime := transit_mtx.("Total Time")
 	mtx.WalkTime := walk_mtx.WalkTime
-	mtx.NonAutoTime := min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
-  mtx.NonAutoTime := if transit_mtx.("Total Time") = null then walk_mtx.WalkTime
+  mtx.NonAutoTime := if transit_mtx.("Total Time") = null 
+      then walk_mtx.WalkTime
+      else min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
 	
 	// Calcualte the weighted metrics for each CoC
 	se = CreateObject("Table", se_file)
