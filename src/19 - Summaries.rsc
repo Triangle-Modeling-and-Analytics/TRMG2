@@ -2026,7 +2026,11 @@ Macro "Disadvantage Community Skims" (Args)
 	se_file = Args.SE
   summary_dir = Args.summary_dir
   weight_fields = Args.weight_fields
+  mpo_field = Args.mpo_field
   names = Args.names
+
+  // flag if this macro was called from the CoC tool
+  called_from_coc = if mpo_field <> null then true else false
 
   if summary_dir = null then	summary_dir = Args.[Output Folder] + "/_summaries/equity"
   if weight_fields = null then weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
@@ -2105,15 +2109,48 @@ Macro "Disadvantage Community Skims" (Args)
     name = names[i]
   
 		// Set weight field
-		v = se.(weight_field)
-		v.rowbased = "false"
+		v_weight = se.(weight_field)
+		v_weight.rowbased = "false"
 		mtx.AddCores({weight_field})
-		mtx.(weight_field) := v
+		mtx.(weight_field) := v_weight
 
 		// Calculate hours of travel
+		mtx.AddCores({name + "_HBW_Trips", name + "_All_Trips"})
+    mtx.(name + "_HBW_Trips") := (mtx.(weight_field) / 100) * mtx.HBW_Trips
+		mtx.(name + "_All_Trips") := (mtx.(weight_field) / 100) * mtx.All_Trips
 		mtx.AddCores({name + "_HBW_HoT", name + "_All_HoT"})
-		mtx.(name + "_HBW_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
-		mtx.(name + "_All_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
+		mtx.(name + "_HBW_HoT") := mtx.CongTime * mtx.(name + "_HBW_Trips") / 60
+		mtx.(name + "_All_HoT") := mtx.CongTime * mtx.(name + "_All_Trips") / 60
+
+    // If called from the CoC tool, calculate hours of travel for 
+    // all zones in the selected region/MPO
+    if called_from_coc then do
+    		// Set MPO field
+        v_mpo = se.(mpo_field)
+        v_mpo.rowbased = "false"
+        mtx.AddCores({mpo_field})
+        mtx.(mpo_field) := v_mpo
+        // Calculate hours of travel for all zones in the MPO(s)
+        mtx.AddCores({name + "_HBW_MPO_Trips"})
+        mtx.(name + "_HBW_MPO_Trips") := (mtx.(mpo_field) / 100) * mtx.HBW_Trips
+        mtx.AddCores({name + "_HBW_MPO_HoT"})
+        mtx.(name + "_HBW_MPO_HoT") := mtx.CongTime * mtx.(name + "_HBW_MPO_Trips") / 60
+
+        // Get the average travel time (mins) for all zones in the MPO(s)
+        stats = MatrixStatistics(mtx.GetMatrixHandle(), )
+        avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+
+        // Calculate the average HBW travel time for each CoC zone and flag
+        // those less than the average.
+        v_trips = mtx.GetVector({Core: name + "_HBW_Trips", Marginal: "Row Sum"})
+        v_trips = if v_weight = 0 then null else v_trips
+        v_hot = mtx.GetVector({Core: name + "_HBW_HoT", Marginal: "Row Sum"})
+        v_hot = if v_weight = 0 then null else v_hot
+        v_avg_mins = v_hot / v_trips * 60
+        v_lt_avg = if v_avg_mins < avg_mins then 1 else 0
+        tazs_with_lt_avg = v_lt_avg.sum()
+        coc_tazs_in_mpo = v_weight.sum() / 100
+    end
 
 		// Calculate delay
 		mtx.AddCores({name + "_HBW_Delay", name + "_All_Delay"})
@@ -2152,7 +2189,9 @@ Macro "Disadvantage Community Skims" (Args)
   // Calculate per-capita stats
   per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
   file = OpenFile(per_capita_file, "w")
-  WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
+  if called_from_coc 
+    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg")
+    else WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
   v_pop = se.HH_POP
   stats = MatrixStatistics(mtx.GetMatrixHandle(), )
   for i = 1 to weight_fields.length do
@@ -2172,12 +2211,14 @@ Macro "Disadvantage Community Skims" (Args)
     total_delay = stats.(name + "_All_Delay").Sum
     delay_per_capita = total_delay / tot_dc_pop
 
-    WriteLine(
-      file, name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," +
-      String(total_delay) + "," + String(delay_per_capita)
-    )
+    if called_from_coc
+      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg)
+      else line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita)
+
+    WriteLine(file, line)
   end
   CloseFile(file)
+  Throw()
 endmacro
 
 /*
