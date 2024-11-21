@@ -192,6 +192,11 @@ Macro "CoC" (Args)
         Type: "integer", 
         Description: "Community of Concern dummy variable"
     })
+    se_tbl.AddField({
+        FieldName: "CoC_MPO", 
+        Type: "integer", 
+        Description: "Community of Concern: if the TAZ is in the selected MPO(s)"
+    })
     joined = se_tbl.Join({
         Table: coc_def,
         LeftFields: "TAZ",
@@ -256,13 +261,20 @@ Macro "CoC" (Args)
         return()
     end
 
+    // Convert the 1/0 vector to be 100/0 for the SE file. This is because
+    // the metric calculations assume that the CoC field is a percentage.
+    v_combined_cat = v_combined_cat * 100
+    v_combined_mpo = v_combined_mpo * 100
+
     // set the CoC field in the SE file
     se_tbl.CoC_dc = v_combined_cat
+    se_tbl.CoC_MPO = v_combined_mpo
     joined = null
     se_tbl = null
     coc_def = null
 
     Args.weight_fields = {"CoC_dc"}
+    Args.mpo_field = "CoC_MPO"
     Args.names = {"CoC"}
     Args.summary_dir = Args.[Scenario Folder] + "/output/_summaries/coc/" + folder_name
     if GetDirectoryInfo(Args.summary_dir, "All") = null then CreateDirectory(Args.summary_dir)
