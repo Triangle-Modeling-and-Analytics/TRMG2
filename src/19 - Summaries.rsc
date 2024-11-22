@@ -1688,7 +1688,7 @@ Macro "VMT_Delay Summary" (Args)
   field_out = {"ID"} + group_fields + fields_to_sum
   hwy_df.SelectByQuery({
     SetName: "to_export",
-    Query: "HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'"
+    Query: "HCMType <> null and HCMType <> 'CC'"
   })
   hwy_df.Export({FileName: output_dir + "/link_VMT_Delay.csv", FieldNames: field_out})
   CloseMap(map)
@@ -1887,7 +1887,7 @@ Macro "Congestion Cost Summary" (Args)
 	field_out = {"ID"} + group_fields + fields_to_sum
   hwy_df.SelectByQuery({
     SetName: "to_export",
-    Query: "HCMType <> 'TransitOnly' and HCMType <> null and HCMType <> 'CC'"
+    Query: "HCMType <> null and HCMType <> 'CC'"
   })
   hwy_df.Export({FileName: output_dir + "/LinkCongestionCost.csv", FieldNames: field_out})
 
