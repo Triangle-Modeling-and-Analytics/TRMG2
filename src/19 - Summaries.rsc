@@ -2156,6 +2156,11 @@ Macro "Disadvantage Community Skims" (Args)
 		mtx.AddCores({name + "_HBW_Delay", name + "_All_Delay"})
 		mtx.(name + "_HBW_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
 		mtx.(name + "_All_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
+    if called_from_coc then do
+      // Calculate delay for all zones in the MPO(s)
+      mtx.AddCores({name + "_All_MPO_Delay"})
+      mtx.(name + "_All_MPO_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(mpo_field) / 100) * mtx.All_Trips / 60
+    end
 
 		// Calculate congested VMT
 		mtx.AddCores({name + "_HBW_CongVMT", name + "_All_CongVMT"})
@@ -2190,7 +2195,7 @@ Macro "Disadvantage Community Skims" (Args)
   per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
   file = OpenFile(per_capita_file, "w")
   if called_from_coc 
-    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg")
+    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
     else WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
   v_pop = se.HH_POP
   stats = MatrixStatistics(mtx.GetMatrixHandle(), )
@@ -2211,8 +2216,22 @@ Macro "Disadvantage Community Skims" (Args)
     total_delay = stats.(name + "_All_Delay").Sum
     delay_per_capita = total_delay / tot_dc_pop
 
+    // Count CoC tazs with less than average delay per capita
+    if called_from_coc then do
+      v_mpo_delay = mtx.GetVector({Core: name + "_All_MPO_Delay", Marginal: "Row Sum"})
+      v_pop.rowbased = "false"
+      v_mpo_pop = v_pop * (v_mpo / 100)
+      mpo_avg_delay_per_capita = v_mpo_delay.sum() / v_mpo_pop.sum()
+
+      v_dpc = v_mpo_delay / v_mpo_pop
+      v_lt_avg_dpc = if v_dpc < mpo_avg_delay_per_capita then 1 else 0
+      v_weight.rowbased = "false"
+      v_lt_avg_dpc = if v_weight = 0 then 0 else v_lt_avg_dpc
+      tazs_with_lt_avg_dpc = v_lt_avg_dpc.sum()
+    end
+
     if called_from_coc
-      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg)
+      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
       else line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita)
 
     WriteLine(file, line)
