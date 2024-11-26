@@ -258,7 +258,7 @@ Macro "MOVES" (Args, region, year)
   speed = Createobject("df", speed_file)
   speed.rename("avgSpeedFraction", "DefaultFraction")
   speed.left_join(df1, {"TOD", "roadTypeID", "avgSpeedBinID"}, {"TOD", "roadTypeID", "bin"})
-  speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then speed.tbl.Fraction else speed.tbl.DefaultFraction) // weekend fraction should be set to default
+  speed.mutate("AvgSpeedFraction", if speed.tbl.dayID <>2 then nz(speed.tbl.Fractionz) else nz(speed.tbl.DefaultFraction)) // weekend fraction should be set to default
   speed.select({"sourceTypeID", "roadTypeID", "hourDayID", "hourID", "dayID", "TOD", "avgSpeedBinID", "AvgSpeedFraction"})
   speed.write_csv(summary_dir + "/speed.csv")
 
