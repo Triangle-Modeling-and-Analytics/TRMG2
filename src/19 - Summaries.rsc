@@ -1367,13 +1367,15 @@ Macro "Summarize Links" (Args)
   tlyr = AddLayer(map, tlyr, taz_dbd, tlyr)
   a_fields =  {
       {"MPO", "Character", 10, ,,,, "The MPO this link is located in"},
-      {"County", "Character", 10, ,,,, "The county this link is located in"}
+      {"County", "Character", 10, ,,,, "The county this link is located in"},
+      {"TAZ", "Integer", 8, ,,,, "The TAZ this link is located in"}
   }
   RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
   TagLayer("Value", llyr + "|", llyr + ".MPO", tlyr + "|", tlyr + ".MPO")
   TagLayer("Value", llyr + "|", llyr + ".County", tlyr + "|", tlyr + ".County")
+  TagLayer("Value", llyr + "|", llyr + ".TAZ", tlyr + "|", tlyr + ".ID")
   SetLayer(llyr)
-  fields = {"MPO", "County"}
+  fields = {"MPO", "County", "TAZ"}
   for field in fields do
     query = "Select * where " + field + " = null"
     n = SelectByQuery("missing", "several", query)
@@ -1830,7 +1832,7 @@ Macro "Congestion Cost Summary" (Args)
 	a_dirs = {"AB", "BA"}
 	veh_classes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
 	auto_classes = {"sov", "hov2", "hov3", "CV"}
-	group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO"}
+	group_fields = {"HCMType", "AreaType", "NCDOTClass", "County", "MPO", "TAZ"}
 
 	{nLayer, llyr} = GetDBLayers(hwy_dbd)
 	llyr = AddLayerToWorkspace(llyr, hwy_dbd, llyr)
