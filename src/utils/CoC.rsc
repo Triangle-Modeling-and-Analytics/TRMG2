@@ -202,7 +202,7 @@ Macro "CoC" (Args)
         LeftFields: "TAZ",
         RightFields: "TAZ"
     })
-    fields = all_coc_categories + {"MPO"}
+    fields = all_coc_categories + {coc_def.GetView() + ".MPO"}
     data = joined.GetDataVectors({FieldNames: fields, NamedArray: true})
 
     // If the user picked categories from the list
