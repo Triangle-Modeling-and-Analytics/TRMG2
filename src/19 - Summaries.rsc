@@ -2237,7 +2237,6 @@ Macro "Disadvantage Community Skims" (Args)
     WriteLine(file, line)
   end
   CloseFile(file)
-  Throw()
 endmacro
 
 /*
@@ -2353,7 +2352,7 @@ Macro "Disadvantage Community Mode Shares" (Args)
 			mtx.AddIndex({
 				IndexName: name,
 				ViewName: se.GetView(),
-				Filter: name + "_dc = 1",
+				Filter: name + "_dc > 0",
 				OriginalID: "TAZ",
 				NewID: "TAZ",
 				Dimension: "Both"
@@ -2393,14 +2392,14 @@ Macro "Summarize NM Disadvantage Community" (Args)
 
   // join the se to both per/nm tables to ID CoC communities
   per_join = per.Join({
-	Table: se,
-	LeftFields: "HHTAZ",
-	RightFields: "TAZ"
+    Table: se,
+    LeftFields: "HHTAZ",
+    RightFields: "TAZ"
   })
   nm_join = nm.Join({
-	Table: se,
-	LeftFields: "TAZ",
-	RightFields: "TAZ"
+    Table: se,
+    LeftFields: "TAZ",
+    RightFields: "TAZ"
   })
 
   trip_types = RunMacro("Get HB Trip Types", Args)
@@ -2415,11 +2414,11 @@ Macro "Summarize NM Disadvantage Community" (Args)
     // create selection sets of just CoC people/tazs
     per_join.SelectByQuery({
       SetName: "dc",
-      Query: dc_field_name + " = 1"
+      Query: dc_field_name + " > 0"
     })
     nm_join.SelectByQuery({
       SetName: "dc",
-      Query: dc_field_name + " = 1"
+      Query: dc_field_name + " > 0"
     })
 
     for trip_type in trip_types do
