@@ -224,6 +224,9 @@ Macro "CoC" (Args)
                 v_combined_cat = v_combined_cat + data.(cat)
             end
         end
+        // Because "AllZones" is one of the categories, all zones will have at least 1.
+        // Subtract 1 from all zones.
+        v_combined_cat = v_combined_cat - 1
         v_combined_cat = if moreless = "or more" then v_combined_cat >= num_cats else
                         if moreless = "exactly" then v_combined_cat = num_cats else
                         if moreless = "or less" then v_combined_cat <= num_cats
