@@ -2364,7 +2364,15 @@ Macro "Disadvantage Community Mapping" (Args)
 	if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
 	map = CreateObject("Map", taz_file)
 	tazs = CreateObject("Table", map.GetActiveLayer())
-	se = CreateObject("Table", se_file)
+	// Create a copy of the SE file in the summary directory. This is because this macro
+  // can be called multiple times by the CoC tool, and each set of CoC fields gets
+  // overwritten.
+  {drive, folder, name, ext} = SplitPath(se_file)
+  output_se = summary_dir + "\\" + name + ext
+  CopyFile(se_file, output_se)
+  CopyFile(Substitute(se_file, ".bin", ".dcb", ), Substitute(output_se, ".bin", ".dcb", ))
+  se_file = output_se
+  se = CreateObject("Table", se_file)
 	join = tazs.Join({
 		Table: se,
 		LeftFields: "ID",
