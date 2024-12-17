@@ -101,12 +101,7 @@ dBox "CoC" (Args) location: x, y, 82, 25
     enditem
 
     // Scroll list for MPOs
-    Scroll List 50, 16, 15, 4 Prompt: "MPO Filter" List: coc_defs.mpo_options Multiple Variables: mpo_index do
-        mpo_options = null
-        for index in mpo_index do
-            mpo_options = mpo_options + {coc_defs.mpo_options[index]}
-        end
-    enditem
+    Scroll List 50, 16, 15, 4 Prompt: "MPO Filter" List: mpo_options Multiple Variables: mpo_index
 
     // Run/Quit/Help buttons
     Button 22, 22 Prompt: "Run" do
@@ -153,19 +148,13 @@ Macro "get_coc_defs" (coc_csv)
 
     def_tbl = CreateObject("Table", coc_csv)
     field_names = def_tbl.GetFieldNames()
-    to_skip = {"TAZ", "MPO", "COUNTY"}
+    to_skip = {"TAZ"}
     for field_name in field_names do
         if to_skip.position(field_name) > 0 then continue
         coc_categories = coc_categories + {field_name}
     end
-    mpo_options = def_tbl.MPO
-    mpo_options = V2A(SortVector(mpo_options, {Unique: "true"}))
-    county_options = def_tbl.COUNTY
-    county_options = V2A(SortVector(county_options, {Unique: "true"}))
 
     coc_defs.coc_categories = coc_categories
-    coc_defs.mpo_options = mpo_options
-    coc_defs.county_options = county_options
     return(coc_defs)
 endmacro
 
