@@ -82,6 +82,7 @@ dBox "CoC" (Args) location: x, y, 82, 25
 
     // Scroll list and radio buttons for CoC categories
     Scroll List "coc_list" 11, 5, 15, 10 Prompt: "CoC Categories" List: cat_list Multiple Variables: coc_cat_index do
+        coc_categories = null
         for index in coc_cat_index do
             coc_categories = coc_categories + {cat_list[index]}
         end
