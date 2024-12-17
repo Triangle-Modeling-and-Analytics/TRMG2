@@ -21,7 +21,7 @@ dBox "CoC" (Args) location: x, y, 82, 25
         if andor_index = null then andor_index = 2
         if andor = null then andor = "or"
         mpo_index = {1, 2}
-        mpo_options = {"CAMPO", "DCHC"}
+        mpo_options = {"CAMPO", "DCHC", "None"}
         how_index = 1
         how = "selection"
         moreless_list = {"or more", "exactly", "or less"}
@@ -101,7 +101,12 @@ dBox "CoC" (Args) location: x, y, 82, 25
     enditem
 
     // Scroll list for MPOs
-    Scroll List 50, 16, 15, 4 Prompt: "MPO Filter" List: mpo_options Multiple Variables: mpo_index
+    Scroll List 50, 16, 15, 4 Prompt: "MPO Filter" List: mpo_options Multiple Variables: mpo_index do
+        selected_mpos = null
+        for index in mpo_index do
+            selected_mpos = selected_mpos + {mpo_options[index]}
+        end
+    enditem
 
     // Run/Quit/Help buttons
     Button 22, 22 Prompt: "Run" do
@@ -120,7 +125,7 @@ dBox "CoC" (Args) location: x, y, 82, 25
             Args.andor = andor
             Args.num_cats = S2I(num_cats)
             Args.moreless = moreless            
-            Args.mpo_options = mpo_options
+            Args.mpo_options = selected_mpos
             Args.coc_csv = coc_csv
             RunMacro("CoC", Args)
             ShowMessage("Done!")
