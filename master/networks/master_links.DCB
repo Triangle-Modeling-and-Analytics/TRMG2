@@ -1,5 +1,5 @@
 master_links
-641,codepage=1252
+613,codepage=1252
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "AltName",C,37,32,0,32,0,,"","",,"Copy",
@@ -73,7 +73,3 @@ master_links
 "p4HOV",C,602,4,0,4,0,,"","",,"Copy",
 "p4BOSSS",I,606,4,0,8,0,,"","",,"Copy",
 "p4TollType",C,610,4,0,4,0,,"","",,"Copy",
-"diff_fields",C,614,16,0,16,0,,"","Marks the start of fields added|by the diff tool",,"Copy",
-"diff_new",I,630,4,0,10,0,,"","New links marked with a 1",,"Sum",
-"diff_modified",I,634,4,0,10,0,,"","Links with spatial modifications|marked with a 1",,"Sum",
-"diff_att_mod",I,638,4,0,10,0,,"","Links with attribute modifications|marked with a 1",,"Sum",
