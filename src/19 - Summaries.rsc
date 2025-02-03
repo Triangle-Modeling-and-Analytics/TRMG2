@@ -3229,7 +3229,7 @@ Macro "Performance Measures Reports" (Args)
   //Summarize
   mtx_list = {{allperson_mtx_file,"daily_total", "1.5 Daily Average Travel Length - All Person Trips.csv"}, 
     {hbw_mtx_file, "total", "1.6 Daily Average Travel Length - Work Trips.csv"}, 
-    {allperson_mtx_file, "pm_total", "1.7 Peak Average Travel Length - All Peason Trips.csv"}, 
+    {allperson_mtx_file, "pm_total", "1.7 Peak Average Travel Length - All Person Trips.csv"}, 
     {cv_daily_file, "CV_daily", "1.8 Daily Average Travel Length - All CV Trips.csv"}, 
     {cv_daily_file, "Truck_daily", "1.9 Daily Average Travel Length - Truck Trips.csv"}} 
   geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
@@ -3467,7 +3467,7 @@ Macro "Performance Measures Reports" (Args)
   //4.1 Lane Miles
   tbl = hwy_tbl.Export()
   tbl.AddField("LaneMiles")
-  tbl.LaneMiles = (nz(tbl.ABLanes) + nz(tbl.BALanes)) * tbl.Length 
+  tbl.LaneMiles =  (nz(tbl.ABLanes) + nz(tbl.BALanes)) * tbl.Length
 
   // Calculate by region
   out_tbl = CreateObject("Table", {Fields: {
@@ -3481,11 +3481,17 @@ Macro "Performance Measures Reports" (Args)
   // Calculate by MPO/County
   for group_field in group_fields do 
     out_file = pm_dir + "/4.1 LaneMiles_by" + group_field + ".csv"
-    if group_field = "Region" then continue
-    agg = tbl.Aggregate({
-      GroupBy: group_field,
+    if group_field = "Region" then do
+      agg = tbl.Aggregate({
+      GroupBy: "HCMType",
       FieldStats: {LaneMiles: "sum"}
-    })
+      })
+    end else do
+      agg = tbl.Aggregate({
+        GroupBy: {group_field, "HCMType"},
+        FieldStats: {LaneMiles: "sum"}
+      })
+    end
     agg.Export({FileName: out_file})
   end
 
