@@ -11,7 +11,7 @@ dBox "Delete Files Tool" (Args) center, center, 40, 6 Title: "Delete Files Tool"
     init do
         static action_list, action_index
 
-        action_list = {"Only probability and logsum matrices", "Everything except assignment"}
+        action_list = {"Only probability and logsum matrices", "Everything except loaded network, SE, TAZ, and summaries"}
 
         EnableItem("Select Files to be Deleted")
     enditem
@@ -32,8 +32,8 @@ dBox "Delete Files Tool" (Args) center, center, 40, 6 Title: "Delete Files Tool"
 
     Button 28, same Prompt: "Help" do
         ShowMessage(
-        "This tool is used to create a slim version of output folder by deleting unnecessary files. You" +
-         "can choose to either deleting probability and logsum matrices only or everything except assignment folder." +
+        "This tool is used to create a slim version of output folder by deleting unnecessary files. You can choose to" +
+         "either deleting probability and logsum matrices only or everything except network, SE, TAZ, and summary folder" +
          "Doing such helps reduce scenario folder size by 40-80 GB. Note that after running this tool, other utility" +
          "tools may no longer work. Please run desired utility tools first and then delete unnecessary files.\n\n"
      )
@@ -69,7 +69,7 @@ Macro "Delete Folder and Files" (Args, action_index)
         arr_dirs = GetDirectoryInfo(scen_dir + "\\output\\*.*", "Folder")
         for arr_dir in arr_dirs do
             dirname = arr_dir[1]
-            if dirname <> "networks" and dirname <> "assignment" then dir_deletelist = dir_deletelist + {scen_dir + "\\output\\" + dirname}
+            if dirname <> "networks" and dirname <> "sedata" and dirname <> "tazs" and dirname <> "_summaries" then dir_deletelist = dir_deletelist + {scen_dir + "\\output\\" + dirname}
         end
 
     end

@@ -2973,13 +2973,34 @@ Macro "Performance Measures Reports" (Args)
       
     end
         
-    // Save results to the output table and add county info from the TAZ layer
+    // Save results to the output table and add MPO/county info from the TAZ layer
     for i = 1 to result.length do
       field_name = result[i][1]
       tbl.AddField(field_name)
       tbl.(field_name) = result.(field_name)
     end
+    
+    tbl.AddFields({
+      Fields: {
+      {FieldName: "MPO", Type: "string"},
+      {FieldName: "County", Type: "string"}
+    } })
+    taz = CreateObject("Table", taz_file)
+    taz_specs = taz.GetFieldSpecs({NamedArray: true})
+    tbl_specs = tbl.GetFieldSpecs({NamedArray: true})
+    join = tbl.Join({
+      Table: taz,
+      LeftFields: "TAZ",
+      RightFields: "ID"
+    })
+    join.(tbl_specs.County) = join.(taz_specs.County)
+    join.(tbl_specs.MPO) = join.(taz_specs.MPO)
+    join = null
+    taz = null
+    
     out_file = pm_dir + "/taz_measures.bin"
+    tbl.Export({FileName: out_file})
+    out_file = pm_dir + "/taz_measures.csv"
     tbl.Export({FileName: out_file})
   
   //1. Highway performance measures
@@ -3285,22 +3306,15 @@ Macro "Performance Measures Reports" (Args)
   fields_to_sum = null
   flds = trip_tbl.GetFieldNames()
   for fld in flds do
-    if fld = "TAZ" then continue
+    if fld = "TAZ" or fld = "MPO" or fld = "County" then continue
     fields_to_sum = fields_to_sum + {{fld, "sum"}}
     fields_arr = fields_arr + {fld}
   end
-
-  //Calculate by MPO/County
-  join = trip_tbl.Join({
-    Table: taz,
-    LeftFields: "TAZ",
-    RightFields: "ID"
-  })
   
   for group_field in group_fields do 
     out_file = pm_dir + "/2.1 modeshare_by" + group_field + ".csv"
     if group_field = "Region" then continue
-    agg = join.Aggregate({
+    agg = trip_tbl.Aggregate({
       GroupBy: group_field,
       FieldStats: fields_to_sum
     })
@@ -3318,7 +3332,7 @@ Macro "Performance Measures Reports" (Args)
   
   a_region = null
   for fld in flds do
-    if fld = "TAZ" then continue
+    if fld = "TAZ" or fld = "MPO" or fld = "County" then continue
     fld_sum = trip_tbl.(fld).sum()
     a_region = a_region + {fld_sum}
   end
@@ -3330,6 +3344,8 @@ Macro "Performance Measures Reports" (Args)
   //3.1 3.2 Population and employment
   se = CreateObject("Table", se_file)
   se.AddField("Emp")
+  se.AddField("StudGQ")
+  se.StudGQ = se.StudGQ_NCSU + se.StudGQ_UNC + se.StudGQ_Duke + se.StudGQ_NCCU
   se.Emp = se.Industry + se.Office + se.Service_RateLow + se.Service_RateHigh + se.Retail
 
   //Calculate region
@@ -3337,12 +3353,13 @@ Macro "Performance Measures Reports" (Args)
       {FieldName: "Demographic", Type: "String"},
       {FieldName: "Region", Type: "real"}
     }})
-  out_tbl.AddRows({EmptyRows: 2})
-  out_tbl.Demographic = {"Population", "Employment"}
+  out_tbl.AddRows({EmptyRows: 3})
+  out_tbl.Demographic = {"Population", "Employment", "StudGQ"}
   
   sum_pop = se.HH_POP.sum()
   sum_emp = se.Emp.sum()
-  a_region = {sum_pop, sum_emp}
+  sum_studGQ = se.StudGQ.sum()
+  a_region = {sum_pop, sum_emp, sum_studGQ}
 
   out_tbl.Region = A2V(a_region)
   out_tbl.Export({FileName: pm_dir + "/3.1 3.2 Demographic_byRegion.csv"})
@@ -3353,7 +3370,7 @@ Macro "Performance Measures Reports" (Args)
     if group_field = "Region" then continue
     agg = se.Aggregate({
       GroupBy: group_field,
-      FieldStats: {HH_POP: "sum", Emp: "sum"}
+      FieldStats: {HH_POP: "sum", Emp: "sum", StudGQ: "sum"}
     })
     agg.Export({FileName: out_file})
   end
@@ -3372,18 +3389,11 @@ Macro "Performance Measures Reports" (Args)
     if right(fld, 6) = "_Daily" then trip_tbl.Total_Daily = nz(trip_tbl.Total_Daily) + nz(trip_tbl.(fld))
     if right(fld, 7) = "_W_HB_W" then trip_tbl.Total_W_HB_W = nz(trip_tbl.Total_W_HB_W) + nz(trip_tbl.(fld))
   end
-
-  //Calculate by MPO/County
-  join = trip_tbl.Join({
-    Table: taz,
-    LeftFields: "TAZ",
-    RightFields: "ID"
-  })
   
   for group_field in group_fields do 
     out_file = pm_dir + "/3.3 Persontrip_by" + group_field + ".csv"
     if group_field = "Region" then continue
-    agg = join.Aggregate({
+    agg = trip_tbl.Aggregate({
       GroupBy: group_field,
       FieldStats: {Total_Daily: "sum", Total_W_HB_W: "sum"}
     })
@@ -3566,7 +3576,17 @@ Macro "Performance Measures Reports" (Args)
   scen_rts = Args.Routes
   rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
   rts = CreateObject("Table", rts_bin)
-
+  len_file = Args.[Input Folder] + "/networks/_rts_creation_results.csv"
+  len_tbl = CreateObject("Table", len_file)
+  
+  joined = rts.Join({
+    Table: len_tbl,
+    LeftFields: "Route_ID",
+    RightFields: "scenario_route_id"
+  })
+  joined.len = joined.scenario_length
+  joined = null
+  
   tbl = rts.Export()
   tbl.AddFields({
 		Fields: {
@@ -3577,18 +3597,21 @@ Macro "Performance Measures Reports" (Args)
       {FieldName: "ServiceMile", Type: "real"}
 		}
 	})
-  tbl.SerMile_AM = if tbl.AMHeadway >0 then 3*60/tbl.AMHeadway*tbl.Len else 0
-  tbl.SerMile_MD = if tbl.MDHeadway >0 then 6.5*60/tbl.MDHeadway*tbl.Len else 0
-  tbl.SerMile_PM = if tbl.PMHeadway >0 then 3*60/tbl.PMHeadway*tbl.Len else 0
-  tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.Len else 0
+  tbl.SerMile_AM = if tbl.AMHeadway >0 then 3*60/tbl.AMHeadway*tbl.len else 0
+  tbl.SerMile_MD = if tbl.MDHeadway >0 then 6.5*60/tbl.MDHeadway*tbl.len else 0
+  tbl.SerMile_PM = if tbl.PMHeadway >0 then 3*60/tbl.PMHeadway*tbl.len else 0
+  tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.len else 0
   tbl.ServiceMile = tbl.SerMile_AM + tbl.SerMile_MD + tbl.SerMile_PM + tbl.SerMile_NT
-
-  out_file = pm_dir + "/5.4 ServiceMile_byagency.csv"
-  agg = tbl.Aggregate({
-      GroupBy: "Agency",
-      FieldStats: {ServiceMile: "sum"}
-  })
-  agg.Export({FileName: out_file})
+  
+  group_fields = {"Agency", "Mode"}
+  for group_field in group_fields do
+    out_file = pm_dir + "/5.4 ServiceMile_by" + group_field + ".csv"
+    agg = tbl.Aggregate({
+        GroupBy: group_field,
+        FieldStats: {ServiceMile: "sum"}
+    })
+    agg.Export({FileName: out_file})
+  end
 
   //5.5 Rail service mile
   tbl.SelectByQuery({
