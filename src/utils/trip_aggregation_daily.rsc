@@ -52,6 +52,7 @@ Macro "Create matrix" (Args)
         if Position(template, "critical") then template =  dir + "\\od_veh_trips_AM.mtx"
         CopyFile(template, out_file_daily)
         daily_mtx = CreateObject("Matrix", out_file_daily)
+        daily_mtx.Rename("Daily Matrix")
         core_names = daily_mtx.GetCoreNames()
 
         for core_name in core_names do
