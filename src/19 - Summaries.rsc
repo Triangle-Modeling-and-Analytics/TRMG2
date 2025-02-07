@@ -2111,16 +2111,37 @@ Macro "Equity" (Args)
 endmacro
 
 /*
+When called during a normal model run, the following weight fields
+and names are used:
 
+weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
+
+However, when called from the CoC dialog box, these variables are passed in
+via the Args variables.
+
+Args.summary_dir
+Args.weight_fields
+Args.names
 */
 
 Macro "Disadvantage Community Skims" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/equity"
 	net_dir = Args.[Output Folder] + "/networks"
 	mtx_dir = Args.[Output Folder] + "/resident/trip_matrices"
 	skim_dir = Args.[Output Folder] + "/skims"
 	se_file = Args.SE
+  summary_dir = Args.summary_dir
+  weight_fields = Args.weight_fields
+  mpo_field = Args.mpo_field
+  names = Args.names
+
+  // flag if this macro was called from the CoC tool
+  called_from_coc = if mpo_field <> null then true else false
+
+  if summary_dir = null then	summary_dir = Args.[Output Folder] + "/_summaries/equity"
+  if weight_fields = null then weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 
 	// Build a network of AM delay to skim
 	net_file = summary_dir + "//net_am.net"
@@ -2158,7 +2179,7 @@ Macro "Disadvantage Community Skims" (Args)
 	})
 	ret_value = skim.Run()
 
-	// Calcualte the two trip cores (HBW and All)
+	// Calculate the two trip cores (HBW and All)
 	mtx = CreateObject("Matrix", out_file)
 	mtx.AddCores({"HBW_Trips", "All_Trips"})
 	trip_mtx_file = mtx_dir + "/pa_per_trips_W_HB_W_All_AM.mtx"
@@ -2181,35 +2202,72 @@ Macro "Disadvantage Community Skims" (Args)
 	mtx.AddCores("NonAutoTime")
 	mtx.TransitTime := transit_mtx.("Total Time")
 	mtx.WalkTime := walk_mtx.WalkTime
-	mtx.NonAutoTime := min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
-  mtx.NonAutoTime := if transit_mtx.("Total Time") = null then walk_mtx.WalkTime
+  mtx.NonAutoTime := if transit_mtx.("Total Time") = null 
+      then walk_mtx.WalkTime
+      else min(transit_mtx.("Total Time"), walk_mtx.WalkTime)
 	
 	// Calcualte the weighted metrics for each CoC
 	se = CreateObject("Table", se_file)
 	v_emp = se.TotalEmp
 	mtx.AddCores({"Employment"})
 	mtx.Employment := v_emp
-	weight_fields = {"v0_pct", "vi_pct", "senior_pct", "poverty_pct"}
-	names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	for i = 1 to weight_fields.length do
     weight_field = weight_fields[i]
     name = names[i]
   
 		// Set weight field
-		v = se.(weight_field)
-		v.rowbased = "false"
+		v_weight = se.(weight_field)
+		v_weight.rowbased = "false"
 		mtx.AddCores({weight_field})
-		mtx.(weight_field) := v
+		mtx.(weight_field) := v_weight
 
 		// Calculate hours of travel
+		mtx.AddCores({name + "_HBW_Trips", name + "_All_Trips"})
+    mtx.(name + "_HBW_Trips") := (mtx.(weight_field) / 100) * mtx.HBW_Trips
+		mtx.(name + "_All_Trips") := (mtx.(weight_field) / 100) * mtx.All_Trips
 		mtx.AddCores({name + "_HBW_HoT", name + "_All_HoT"})
-		mtx.(name + "_HBW_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
-		mtx.(name + "_All_HoT") := mtx.CongTime * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
+		mtx.(name + "_HBW_HoT") := mtx.CongTime * mtx.(name + "_HBW_Trips") / 60
+		mtx.(name + "_All_HoT") := mtx.CongTime * mtx.(name + "_All_Trips") / 60
+
+    // If called from the CoC tool, calculate hours of travel for 
+    // all zones in the selected region/MPO
+    if called_from_coc then do
+    		// Set MPO field
+        v_mpo = se.(mpo_field)
+        v_mpo.rowbased = "false"
+        mtx.AddCores({mpo_field})
+        mtx.(mpo_field) := v_mpo
+        // Calculate hours of travel for all zones in the MPO(s)
+        mtx.AddCores({name + "_HBW_MPO_Trips"})
+        mtx.(name + "_HBW_MPO_Trips") := (mtx.(mpo_field) / 100) * mtx.HBW_Trips
+        mtx.AddCores({name + "_HBW_MPO_HoT"})
+        mtx.(name + "_HBW_MPO_HoT") := mtx.CongTime * mtx.(name + "_HBW_MPO_Trips") / 60
+
+        // Get the average travel time (mins) for all zones in the MPO(s)
+        stats = MatrixStatistics(mtx.GetMatrixHandle(), )
+        avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+
+        // Calculate the average HBW travel time for each CoC zone and flag
+        // those less than the average.
+        v_trips = mtx.GetVector({Core: name + "_HBW_Trips", Marginal: "Row Sum"})
+        v_trips = if v_weight = 0 then null else v_trips
+        v_hot = mtx.GetVector({Core: name + "_HBW_HoT", Marginal: "Row Sum"})
+        v_hot = if v_weight = 0 then null else v_hot
+        v_avg_mins = v_hot / v_trips * 60
+        v_lt_avg = if v_avg_mins < avg_mins then 1 else 0
+        tazs_with_lt_avg = v_lt_avg.sum()
+        coc_tazs_in_mpo = v_weight.sum() / 100
+    end
 
 		// Calculate delay
 		mtx.AddCores({name + "_HBW_Delay", name + "_All_Delay"})
 		mtx.(name + "_HBW_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.HBW_Trips / 60
 		mtx.(name + "_All_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(weight_field) / 100) * mtx.All_Trips / 60
+    if called_from_coc then do
+      // Calculate delay for all zones in the MPO(s)
+      mtx.AddCores({name + "_All_MPO_Delay"})
+      mtx.(name + "_All_MPO_Delay") := (mtx.CongTime - mtx.("FFTime (Skim)")) * (mtx.(mpo_field) / 100) * mtx.All_Trips / 60
+    end
 
 		// Calculate congested VMT
 		mtx.AddCores({name + "_HBW_CongVMT", name + "_All_CongVMT"})
@@ -2243,7 +2301,9 @@ Macro "Disadvantage Community Skims" (Args)
   // Calculate per-capita stats
   per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
   file = OpenFile(per_capita_file, "w")
-  WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
+  if called_from_coc 
+    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
+    else WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
   v_pop = se.HH_POP
   stats = MatrixStatistics(mtx.GetMatrixHandle(), )
   for i = 1 to weight_fields.length do
@@ -2263,10 +2323,25 @@ Macro "Disadvantage Community Skims" (Args)
     total_delay = stats.(name + "_All_Delay").Sum
     delay_per_capita = total_delay / tot_dc_pop
 
-    WriteLine(
-      file, name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," +
-      String(total_delay) + "," + String(delay_per_capita)
-    )
+    // Count CoC tazs with less than average delay per capita
+    if called_from_coc then do
+      v_mpo_delay = mtx.GetVector({Core: name + "_All_MPO_Delay", Marginal: "Row Sum"})
+      v_pop.rowbased = "false"
+      v_mpo_pop = v_pop * (v_mpo / 100)
+      mpo_avg_delay_per_capita = v_mpo_delay.sum() / v_mpo_pop.sum()
+
+      v_dpc = v_mpo_delay / v_mpo_pop
+      v_lt_avg_dpc = if v_dpc < mpo_avg_delay_per_capita then 1 else 0
+      v_weight.rowbased = "false"
+      v_lt_avg_dpc = if v_weight = 0 then 0 else v_lt_avg_dpc
+      tazs_with_lt_avg_dpc = v_lt_avg_dpc.sum()
+    end
+
+    if called_from_coc
+      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
+      else line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita)
+
+    WriteLine(file, line)
   end
   CloseFile(file)
 endmacro
@@ -2277,15 +2352,27 @@ endmacro
 
 Macro "Disadvantage Community Mapping" (Args)
 
-	summary_dir = Args.[Output Folder] + "/_summaries/equity"
+	summary_dir = Args.summary_dir
 	se_file = Args.SE
 	taz_file = Args.TAZs
+  names = Args.names
+
+  if summary_dir = null then summary_dir = Args.[Output Folder] + "/_summaries/equity"
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 
 	map_dir = summary_dir + "/maps"
 	if GetDirectoryInfo(map_dir, "All") = null then CreateDirectory(map_dir)
 	map = CreateObject("Map", taz_file)
 	tazs = CreateObject("Table", map.GetActiveLayer())
-	se = CreateObject("Table", se_file)
+	// Create a copy of the SE file in the summary directory. This is because this macro
+  // can be called multiple times by the CoC tool, and each set of CoC fields gets
+  // overwritten.
+  {drive, folder, name, ext} = SplitPath(se_file)
+  output_se = summary_dir + "\\" + name + ext
+  CopyFile(se_file, output_se)
+  CopyFile(Substitute(se_file, ".bin", ".dcb", ), Substitute(output_se, ".bin", ".dcb", ))
+  se_file = output_se
+  se = CreateObject("Table", se_file)
 	join = tazs.Join({
 		Table: se,
 		LeftFields: "ID",
@@ -2326,11 +2413,10 @@ Macro "Disadvantage Community Mapping" (Args)
     }
   }
 
-	a_dc = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	suffixes = {"auto", "walk", "transit", "nonauto"}
-	for dc in a_dc do
+	for name in names do
 		for suffix in suffixes do
-			field = dc + "_Jobs_" + suffix
+			field = name + "_Jobs_" + suffix
       values = if suffix = "nonauto" then breaks.transit else breaks.(suffix)
 			
 			themename = "Jobs within 30 mins (" + suffix + ")"
@@ -2346,7 +2432,7 @@ Macro "Disadvantage Community Mapping" (Args)
 				}
 			})
 			map.CreateLegend({
-				Title: "Disadvantage Community (" + dc + ")",
+				Title: "Disadvantage Community (" + name + ")",
 				DisplayLayers: "false" 
 			})
 			out_file = map_dir + "/" + field + ".map"
@@ -2365,20 +2451,23 @@ Macro "Disadvantage Community Mode Shares" (Args)
 
 	se_file = Args.SE
 	trip_dir = Args.[Output Folder] + "/resident/trip_matrices"
+  names = Args.names
+  summary_dir = Args.summary_dir
+
+  if names = null then names = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
+  if summary_dir = null then summary_dir = Args.[Scenario Folder] + "/output/_summaries/equity/mode_shares"
 
 	se = CreateObject("Table", se_file)
 
-	types = {"ZeroCar", "VehInsuff", "Senior", "Poverty"}
 	mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
-
-	for type in types do
+	for name in names do
 		// Add sub area index to the matrices
 		for mtx_file in mtx_files do
 			mtx = CreateObject("Matrix", mtx_file)
 			mtx.AddIndex({
-				IndexName: type,
+				IndexName: name,
 				ViewName: se.GetView(),
-				Filter: type + "_dc = 1",
+				Filter: name + "_dc > 0",
 				OriginalID: "TAZ",
 				NewID: "TAZ",
 				Dimension: "Both"
@@ -2386,8 +2475,8 @@ Macro "Disadvantage Community Mode Shares" (Args)
 		end
 
 		// Call G2 summary macro
-		Args.RowIndex = type
-		Args.OutDir = Args.[Scenario Folder] + "/output/_summaries/equity/mode_shares"
+		Args.RowIndex = name
+		Args.OutDir = summary_dir
 		RunMacro("Summarize HB DC and MC", Args)
 	end
 endmacro
@@ -2400,6 +2489,11 @@ Macro "Summarize NM Disadvantage Community" (Args)
   
   out_dir = Args.[Output Folder]
   se_file = Args.SE
+  names = Args.names
+  summary_dir = Args.summary_dir
+
+  if names = null then names = {"ZeroCar", "Senior", "Poverty"}
+  if summary_dir = null then summary_dir = out_dir + "/_summaries/equity/mode_shares"
   
   per_dir = out_dir + "/resident/population_synthesis"
   per_file = per_dir + "/Synthesized_Persons.bin"
@@ -2413,54 +2507,53 @@ Macro "Summarize NM Disadvantage Community" (Args)
 
   // join the se to both per/nm tables to ID CoC communities
   per_join = per.Join({
-	Table: se,
-	LeftFields: "HHTAZ",
-	RightFields: "TAZ"
+    Table: se,
+    LeftFields: "HHTAZ",
+    RightFields: "TAZ"
   })
   nm_join = nm.Join({
-	Table: se,
-	LeftFields: "TAZ",
-	RightFields: "TAZ"
+    Table: se,
+    LeftFields: "TAZ",
+    RightFields: "TAZ"
   })
 
   trip_types = RunMacro("Get HB Trip Types", Args)
-  dc_types = {"ZeroCar", "Senior", "Poverty"}
 
-  for dc in dc_types do
-	dc_field_name = dc + "_dc"
+  for name in names do
+    dc_field_name = name + "_dc"
 
-	summary_file = out_dir + "/_summaries/equity/mode_shares/hb_nm_summary_" + dc + ".csv"
-	f = OpenFile(summary_file, "w")
-	WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
+    summary_file = summary_dir + "/hb_nm_summary_" + name + ".csv"
+    f = OpenFile(summary_file, "w")
+    WriteLine(f, "trip_type,moto_total,moto_share,nm_total,nm_share")
 
-	// create selection sets of just CoC people/tazs
-	per_join.SelectByQuery({
-		SetName: "dc",
-		Query: dc_field_name + " = 1"
-	})
-	nm_join.SelectByQuery({
-		SetName: "dc",
-		Query: dc_field_name + " = 1"
-	})
+    // create selection sets of just CoC people/tazs
+    per_join.SelectByQuery({
+      SetName: "dc",
+      Query: dc_field_name + " > 0"
+    })
+    nm_join.SelectByQuery({
+      SetName: "dc",
+      Query: dc_field_name + " > 0"
+    })
 
-	for trip_type in trip_types do
-		// moto_v = GetDataVector(per_vw + "|", trip_type, )
-		moto_v = per_join.(trip_type)
-		moto_total = VectorStatistic(moto_v, "Sum", )
-		if trip_type = "W_HB_EK12_All" then do
-			moto_share = 100
-			nm_total = 0
-			nm_share = 0
-		end else do
-			// nm_v = GetDataVector(nm_vw + "|", trip_type, )
-			nm_v = nm_join.(trip_type)
-			nm_total = VectorStatistic(nm_v, "Sum", )
-			moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
-			nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
-		end
+    for trip_type in trip_types do
+      // moto_v = GetDataVector(per_vw + "|", trip_type, )
+      moto_v = per_join.(trip_type)
+      moto_total = VectorStatistic(moto_v, "Sum", )
+      if trip_type = "W_HB_EK12_All" then do
+        moto_share = 100
+        nm_total = 0
+        nm_share = 0
+      end else do
+        // nm_v = GetDataVector(nm_vw + "|", trip_type, )
+        nm_v = nm_join.(trip_type)
+        nm_total = VectorStatistic(nm_v, "Sum", )
+        moto_share = round(moto_total / (moto_total + nm_total) * 100, 2)
+        nm_share = round(nm_total / (moto_total + nm_total) * 100, 2)
+      end
 
-		WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
-	end
+      WriteLine(f, trip_type + "," + String(moto_total) + "," + String(moto_share) + "," + String(nm_total) + "," + String(nm_share))
+    end
   end
 
   CloseFile(f)
