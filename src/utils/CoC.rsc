@@ -21,7 +21,7 @@ dBox "CoC" (Args) location: x, y, 82, 25
         if andor_index = null then andor_index = 2
         if andor = null then andor = "or"
         mpo_index = {1, 2}
-        mpo_options = {"CAMPO", "DCHC", "None"}
+        mpo_options = {"CAMPO", "TWTPO", "None"}
         how_index = 1
         how = "selection"
         moreless_list = {"or more", "exactly", "or less"}
