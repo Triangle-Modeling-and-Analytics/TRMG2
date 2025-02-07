@@ -1,5 +1,5 @@
 master_links
-613
+613,codepage=1252
 "ID",I,1,4,0,4,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "AltName",C,37,32,0,32,0,,"","",,"Copy",
