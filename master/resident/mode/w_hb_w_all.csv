@@ -136,7 +136,6 @@ knr_lr,knr_lr_skim.[Initial Wait Time],,-0.0437,Initial wait time
 knr_lr,knr_lr_skim.[Transfer Wait Time],,-0.03,Transfer wait time
 knr_lr,knr_lr_skim.[Egress Walk Time],,-0.051437,Egress walk time
 knr_lr,knr_lr_skim.[Number of Transfers] > 2,,-0.3324,High transfers
-knr_cr,Constant,,1.044,Constant
 knr_cr,Constant,ilvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
 knr_cr,Constant,ihvi,0.337,Path type constant = -1 (visibility) * 15 (mins) * IVTTcoef
 knr_cr,Constant,ilvs,0.505,Path type constant = -1 (visibility) * 22.5 (mins) * IVTTcoef
