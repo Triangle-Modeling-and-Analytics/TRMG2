@@ -141,6 +141,10 @@ Macro "Calculate Daily Fields" (Args)
   loaded_dbd = Args.Links
   a_dir = {"AB", "BA"}
   modes = {"sov", "hov2", "hov3", "CV", "SUT", "MUT"}
+  Kfrwy = 0.09
+  KNonfrwy = 0.09
+  adjfrwy = 0.907
+  adjnonfrwy = 0.891
 
   // Add link layer to workspace
   {nlyr, llyr} = GetDBLayers(loaded_dbd)
@@ -152,10 +156,16 @@ Macro "Calculate Daily Fields" (Args)
     {"BA_Speed_Daily", "Real", 10, 2,,,, "Slowest speed throughout day"},
     {"AB_Time_Daily", "Real", 10, 2,,,, "Highest time throughout day"},
     {"BA_Time_Daily", "Real", 10, 2,,,, "Highest time throughout day"},
-    {"AB_VOCE_Daily", "Real", 10, 2,,,, "Highest LOS E v/c throughout day"},
-    {"BA_VOCE_Daily", "Real", 10, 2,,,, "Highest LOS E v/c throughout day"},
-    {"AB_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"},
-    {"BA_VOCD_Daily", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"}
+    {"AB_VOCE_DailyMax", "Real", 10, 2,,,, "Highest LOS E v/c throughout day"},
+    {"BA_VOCE_DailyMax", "Real", 10, 2,,,, "Highest LOS E v/c throughout day"},
+    {"AB_VOCD_DailyMax", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"},
+    {"BA_VOCD_DailyMax", "Real", 10, 2,,,, "Highest LOS D v/c throughout day"},
+    {"AB_Flow_PCE_Daily", "Real", 10, 2,,,, "Daily PCE Flow"},
+    {"BA_Flow_PCE_Daily", "Real", 10, 2,,,, "Daily PCE Flow"},
+    {"AB_VOCE_DailyFactored", "Real", 10, 2,,,, "Daily LOS E v/c using daily capacity based on K factor"},
+    {"BA_VOCE_DailyFactored", "Real", 10, 2,,,, "Daily LOS E v/c using daily capacity based on K factor"},
+    {"AB_VOCD_DailyFactored", "Real", 10, 2,,,, "Daily LOS D v/c using daily capacity based on K factor"},
+    {"BA_VOCD_DailyFactored", "Real", 10, 2,,,, "Daily LOS D v/c using daily capacity based on K factor"}
   }
   RunMacro("Add Fields", {view: llyr, a_fields: fields_to_add})
   fields_to_add = null
@@ -167,10 +177,11 @@ Macro "Calculate Daily Fields" (Args)
     v_min_speed = if (v_min_speed = null) then 9999 else v_min_speed
     v_max_time = GetDataVector(llyr + "|", dir + "_Time_Daily", )
     v_max_time = if (v_max_time = null) then 0 else v_max_time
+    v_pce_daily = null
     // LOS E v/c
-    v_max_voce = nz(GetDataVector(llyr + "|", dir + "_VOCE_Daily", ))
+    v_max_voce = nz(GetDataVector(llyr + "|", dir + "_VOCE_DailyMax", ))
     // LOS D v/c
-    v_max_vocd = nz(GetDataVector(llyr + "|", dir + "_VOCD_Daily", ))
+    v_max_vocd = nz(GetDataVector(llyr + "|", dir + "_VOCD_DailyMax", ))
 
     for p = 1 to a_periods.length do
       period = a_periods[p]
@@ -180,6 +191,10 @@ Macro "Calculate Daily Fields" (Args)
       v_voce = GetDataVector(llyr + "|", dir + "_VOCE_" + period, )
       v_vocd = GetDataVector(llyr + "|", dir + "_VOCD_" + period, )
 
+      // Extract and add daily PCE volumes (AWDT)
+      v_pce = GetDataVector(llyr + "|", dir + "_Flow_PCE_" + period, )
+      v_pce_daily = nz(v_pce_daily) + v_pce
+      
       v_min_speed = min(v_min_speed, v_speed)
       v_max_time = max(v_max_time, v_time)
       v_max_voce = max(v_max_voce, v_voce)
@@ -188,8 +203,24 @@ Macro "Calculate Daily Fields" (Args)
 
     SetDataVector(llyr + "|", dir + "_Speed_Daily", v_min_speed, )
     SetDataVector(llyr + "|", dir + "_Time_Daily", v_max_time, )
-    SetDataVector(llyr + "|", dir + "_VOCE_Daily", v_max_voce, )
-    SetDataVector(llyr + "|", dir + "_VOCD_Daily", v_max_vocd, )
+    SetDataVector(llyr + "|", dir + "_Flow_PCE_Daily", v_pce_daily, )
+    SetDataVector(llyr + "|", dir + "_VOCE_DailyMax", v_max_voce, )
+    SetDataVector(llyr + "|", dir + "_VOCD_DailyMax", v_max_vocd, )
+
+    //Calculate daily factored V/C using K factor
+    hcm_type = GetDataVector(llyr + "|", "HCMType", )
+    v_hr_cape = GetDataVector(llyr + "|", dir + "AMCapE_h", )
+    v_hr_capd = GetDataVector(llyr + "|", dir + "AMCapD_h", )
+    v_lanes = GetDataVector(llyr + "|", dir + "Lanes", )
+
+    if hcm_type = "Freeway" then v_flow_aadt = v_pce_daily * adjfrwy else v_flow_aadt = v_pce_daily * adjnonfrwy
+    if hcm_type = "Freeway" then v_dailycape = v_hr_cape*v_lanes/Kfrwy else v_dailycape = v_hr_cape*v_lanes/KNonfrwy
+    if hcm_type = "Freeway" then v_dailycapd = v_hr_capd*v_lanes/Kfrwy else v_dailycapd = v_hr_capd*v_lanes/KNonfrwy
+    v_factor_voce = v_flow_aadt/v_dailycape
+    v_factor_vocd = v_flow_aadt/v_dailycapd
+
+    SetDataVector(llyr + "|", dir + "_VOCE_DailyFactored", v_factor_voce, )
+    SetDataVector(llyr + "|", dir + "_VOCD_DailyFactored", v_factor_vocd, )
   end
 
   // Sum up the flow fields
@@ -339,7 +370,7 @@ Creates V/C maps for each time period and LOS (D and E)
 Macro "VOC Maps" (Args)
 
   hwy_dbd = Args.Links
-  periods = Args.periods + {"Daily"}
+  periods = Args.periods + {"DailyMax", "DailyFactored"}
   output_dir = Args.[Output Folder] + "/_summaries/maps"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   levels = {"D", "E"}
@@ -377,9 +408,10 @@ Macro "VOC Maps" (Args)
         SetLayer(llyr)
 
         // Dualized Scaled Symbol Theme
-        flds = {llyr+".AB_Flow_" + period}
+        if period = "DailyMax" or period =  "DailyFactored" then field = "Daily" else field = period
+        flds = {llyr+".AB_Flow_" + field}
         opts = null
-        opts.Title = period + " Flow"
+        opts.Title = field + " Flow"
         opts.[Data Source] = "All"
         opts.[Minimum Size] = 1
         opts.[Maximum Size] = 10
@@ -395,22 +427,24 @@ Macro "VOC Maps" (Args)
 
         // Apply color theme based on the V/C
         num_classes = 4
-        theme_title = if period = "Daily"
+        theme_title = if period = "DailyMax"
           then "Max V/C (LOS " + los + ")"
+          else if period = "DailyFactored"
+          then "Daily VOC Calculated Using K Factor"
           else period + " V/C (LOS " + los + ")"
         cTheme = CreateTheme(
           theme_title, llyr+".AB_VOC" + los + "_" + period, "Manual",
           num_classes,
-          {
-            {"Values",{
-              {0.0,"True",0.6,"False"},
-              {0.6,"True",0.75,"False"},
-              {0.75,"True",0.9,"False"},
-              {0.9,"True",100,"False"}
-              }},
-            {"Other", "False"}
-          }
-        )
+            {
+              {"Values",{
+                {0.0,"True",0.6,"False"},
+                {0.6,"True",0.75,"False"},
+                {0.75,"True",0.9,"False"},
+                {0.9,"True",100,"False"}
+                }},
+              {"Other", "False"}
+            }
+          )
 
         dualline = LineStyle({{{2, -1, 0},{0,0,1},{0,0,-1}}})
 
@@ -440,8 +474,9 @@ Macro "VOC Maps" (Args)
         // Configure Legend
         SetLegendDisplayStatus(llyr + "|", "False")
         RunMacro("G30 create legend", "Theme")
-        subtitle = if period = "Daily"
+        subtitle = if period = "DailyMax"
           then "Daily Flow + Max V/C"
+          else if period = "DailyFactored" then "Daily Flow + V/C Calculated Using K Factor"
           else period + " Period"
         SetLegendSettings (
           GetMap(),
@@ -1213,7 +1248,7 @@ Macro "Summarize NM" (Args, trip_types)
 
   if trip_types = null then trip_types = RunMacro("Get HB Trip Types", Args)
   for trip_type in trip_types do
-    moto_v = GetDataVector(per_vw + "|", trip_type, )
+    moto_v = GetDataVector(per_vw + "|", trip_type + "_m", )
     moto_total = VectorStatistic(moto_v, "Sum", )
     if trip_type = "W_HB_EK12_All" then do
       moto_share = 100
