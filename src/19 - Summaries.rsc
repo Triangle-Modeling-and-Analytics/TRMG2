@@ -177,7 +177,7 @@ Macro "Calculate Daily Fields" (Args)
     v_min_speed = if (v_min_speed = null) then 9999 else v_min_speed
     v_max_time = GetDataVector(llyr + "|", dir + "_Time_Daily", )
     v_max_time = if (v_max_time = null) then 0 else v_max_time
-    v_pce_daily = GetDataVector(llyr + "|", dir + "_Flow_PCE_Daily", )
+    v_pce_daily = null
     // LOS E v/c
     v_max_voce = nz(GetDataVector(llyr + "|", dir + "_VOCE_DailyMax", ))
     // LOS D v/c
