@@ -2097,7 +2097,7 @@ Macro "Equity" (Args)
 	agg.vi_pct = v_pct
 	cutoff = Percentile(V2A(v_pct), 75)
 	agg.AddField("VehInsuff_dc")
-	agg.VehInsuff_dc = if agg.v0_pct > cutoff then 1 else 0
+	agg.VehInsuff_dc = if agg.vi_pct > cutoff then 1 else 0
 	// senior CoC
 	agg.AddField("senior_pct")
 	v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
