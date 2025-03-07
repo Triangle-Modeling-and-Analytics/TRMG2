@@ -264,6 +264,12 @@ menu "Performance Measures"
         mr.RunCode("Open Concatenate Files Dbox", Args)
     enditem
 
+    MenuItem "Payback" text: "Payback Period Tool" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Payback Period Tool Dbox", Args)
+    enditem
+
 endMenu
 
 menu "File Management"
