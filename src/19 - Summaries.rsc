@@ -2226,7 +2226,7 @@ Macro "Disadvantage Community Skims" (Args)
 	for type in types do
 		trip_mtx_file = mtx_dir + "/pa_per_trips_" + type + "_AM.mtx"
 		trip_mtx = CreateObject("Matrix", trip_mtx_file)
-		mtx.All_Trips := nz(mtx.All_Trips) + trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
+		mtx.All_Trips := nz(mtx.All_Trips) + nz(trip_mtx.sov) + nz(trip_mtx.hov2) + nz(trip_mtx.hov3)
 	end
 
 	// Get transit and walk times which is needed for one of the calculations
