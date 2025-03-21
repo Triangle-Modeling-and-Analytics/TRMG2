@@ -19,7 +19,7 @@ Body:
     //
     FlowChartNode(model,"Convergence",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
-    FlowChartNode(model,"Initial Processsing",,,)
+    FlowChartNode(model,"Initial Processing",,,)
     FlowChartNode(model,"Generation Models",,,)
     FlowChartNode(model,"NonMotorized Models",,,)
     FlowChartNode(model,"Time of Day",,,)
