@@ -3066,8 +3066,9 @@ Macro "Performance Measures Reports" (Args)
     tbl.AddRows({EmptyRows: v_id.length})
     tbl.TAZ = v_id
 
-    // Create a matrix to store all person trips
-    result_mtx_file = pm_dir + "/all_person_trips.mtx"
+    // Create a matrix to store all person motorized trips
+    // All person trips including NM trips will be stored in the TAZ_measure bin file
+    result_mtx_file = pm_dir + "/all_person_mototrips.mtx"
     CopyFile(mtx_files[1], result_mtx_file)
     result_mtx = CreateObject("Matrix", result_mtx_file)
     to_drop = result_mtx.GetCoreNames()
@@ -3085,7 +3086,7 @@ Macro "Performance Measures Reports" (Args)
 
       // Resident HB nm trips
       trip_mtx = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
-      {result, result_mtx} = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result, result_mtx: result_mtx})
+      result = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result})
 
       // University trips
       trip_dir = out_dir + "/university/mode"
@@ -3347,7 +3348,7 @@ Macro "Performance Measures Reports" (Args)
   
   //1.5 - 1.9 Daily Average Travel Length
   //Set input path
-  allperson_mtx_file = pm_dir + "/all_person_trips.mtx"
+  allperson_mtx_file = pm_dir + "/all_person_mototrips.mtx"
   hbw_mtx_file = summary_dir + "/resident_hb/W_HB_W_All.mtx"
 
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
@@ -3792,13 +3793,15 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
         then result.(out_name) = nz(v)
         else result.(out_name) = result.(out_name) + nz(v)
 
-      add_core = mtx.GetCore(core_name)
-      if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
-      else if group = "PM" then result_core = result_mtx.GetCore("pm_total")
-      if result_core <> null then result_core := nz(add_core) + nz(result_core)
+      if equiv.(core_name) <> "nm" then do  //only add motorized trip to the matrix
+        add_core = mtx.GetCore(core_name)
+        if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
+        else if group = "PM" then result_core = result_mtx.GetCore("pm_total")
+        if result_core <> null then result_core := nz(add_core) + nz(result_core)
       
-      add_core = null
-      result_core = null
+        add_core = null
+        result_core = null
+      end
     end
   end
 
@@ -3811,7 +3814,6 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
   trip_mtx = MacroOpts.trip_mtx
   group = MacroOpts.group
   result = MacroOpts.result
-  result_mtx = MacroOpts.result_mtx
 
   mtx = CreateObject("Matrix", trip_mtx)
   core_names = mtx.GetCoreNames()
@@ -3827,17 +3829,10 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
     if TypeOf(result.(out_name)) = "null"
       then result.(out_name) = nz(v)
       else result.(out_name) = result.(out_name) + nz(v)
-    
-    add_core = mtx.GetCore(core_name)
-    if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
-    else if group = "PM" then result_core = result_mtx.GetCore("PM_total")
-    if result_core <> null then result_core := nz(add_core) + nz(result_core)
 
-    add_core = null
-    result_core = null
   end
 
-  return({result, result_mtx})
+  return(result)
 endmacro
 
 Macro "Summarize NHB RowSums" (MacroOpts)
