@@ -2230,7 +2230,7 @@ Macro "Disadvantage Community Skims" (Args)
 	end
 
 	// Get transit and walk times which is needed for one of the calculations
-	trans_file = skim_dir + "/transit/skim_AM_w_lb.mtx"
+	trans_file = skim_dir + "/transit/skim_AM_w_all.mtx"
 	transit_mtx = CreateObject("Matrix", trans_file)
 	walk_file = skim_dir + "/nonmotorized/walk_skim.mtx"
 	walk_mtx = CreateObject("Matrix", walk_file)
