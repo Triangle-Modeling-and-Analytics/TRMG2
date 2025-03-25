@@ -3096,7 +3096,7 @@ Macro "Performance Measures Reports" (Args)
       if group <> "W_HB_W" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
 
       // NHB trips (matrix)
-      trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+      trip_dir = out_dir + "/resident/nhb/dc/trip_matrices_percopy"
       if group <> "W_HB_W" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
       
     end
