@@ -3076,7 +3076,7 @@ Macro "Performance Measures Reports" (Args)
     result_mtx.DropCores(to_drop)
 
     // Loop through each group
-    groups = {"Daily", "PM", "W_HB_W"}
+    groups = {"Daily", "PM", "W_HB_W", "HB"}
 
     for group in groups do
 
@@ -3090,15 +3090,15 @@ Macro "Performance Measures Reports" (Args)
 
       // University trips
       trip_dir = out_dir + "/university/mode"
-      if group <> "W_HB_W" then {result, result_mtx} = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
+      if group <> "W_HB_W" and group <> "HB" then {result, result_mtx} = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
 
       // NHB trips (rowsums)
       trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
-      if group <> "W_HB_W" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
+      if group <> "W_HB_W" and group <> "HB" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
 
       // NHB trips (matrix)
       trip_dir = out_dir + "/resident/nhb/dc/trip_matrices_percopy"
-      if group <> "W_HB_W" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
+      if group <> "W_HB_W" and group <> "HB" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
       
     end
         
@@ -3780,6 +3780,7 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
   for mtx_file in mtx_files do
     if group = "PM" and position(mtx_file, group) = 0 then continue
     if group = "W_HB_W" and position(mtx_file, group) = 0 then continue
+    if group = "HB" and position(mtx_file, group) = 0 then continue
 
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
@@ -3822,6 +3823,7 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
     if group = "Daily" and ArrayLength(parts) <> 4 then continue
     if group = "PM" and right(core_name, 2) <> "PM" then continue
     if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
+    if group = "HB" and ArrayLength(parts) <> 4 then continue
 
     out_name = "nm_" + group
     v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
