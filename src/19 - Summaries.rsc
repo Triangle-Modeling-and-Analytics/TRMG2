@@ -2652,6 +2652,33 @@ Macro "Aggregate Transit Flow by Route" (Args)
   periods = Args.periods
   orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
 
+  // Build master milepost table first
+  for period in periods do 
+    filename = assn_dir + "/" + period + "_w_all.bin"
+    df = CreateObject("df", filename)
+    df.select({"Route", "From_Stop", "To_Stop"})
+    df.mutate("key", df.tbl.Route + "_" + df.tbl.From_Stop + "_" + df.tbl.To_Stop)
+    v_key_period = df.tbl.key
+    if v_key <> null then ConcatenateVectors({v_key,v_key_period}) else v_key = v_key_period
+  end
+  v_key_unique = SortVector(v_key, {Unique: "true"})
+
+  tbl = CreateObject("Table", {Fields: {
+    {FieldName: "Route", Type: "Integer"},
+    {FieldName: "From_Stop", Type: "Integer"},
+    {FieldName: "To_Stop", Type: "Integer"},
+    {FieldName: "From_MP", Type: "Real"},
+    {FieldName: "To_MP", Type: "Real"},
+    {FieldName: "TransitFlow", Type: "Real"}
+  }})
+  tbl.AddRows({EmptyRows: v_key_unique.length})
+  parts = ParseString(v_key_unique, "_")
+  tbl.Route = s2i(parts[1])
+  tbl.From_Stop = s2i(parts[2])
+  tbl.To_Stop = s2i(parts[3])
+  tbl.Export({FileName: output_dir + "/key.bin"})
+  tbl = null
+
   // Loop through transit assn bin files
   // By daily
   for access_mode in access_modes do
@@ -2659,18 +2686,21 @@ Macro "Aggregate Transit Flow by Route" (Args)
     else transit_modes = orig_transit_modes 
 
     for transit_mode in transit_modes do
+
+      df = CreateObject("df", output_dir + "/key.bin")
+      daily = df.copy()
       for period in periods do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
         df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-        if daily = null then daily = df.copy()
-        else do
-          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"}) 
-          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-          daily.rename("TransitFlow_x", "TransitFlow")
-          daily.remove("TransitFlow_y")
-          end
+        daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+        daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+        daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+        daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+        daily.rename("From_MP_x", "From_MP")
+        daily.rename("To_MP_x", "To_MP")
+        daily.rename("TransitFlow_x", "TransitFlow")
+        daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
       end
       daily.write_bin(output_dir + "/daily_"+ access_mode + "_" + transit_mode + ".bin")
       daily = null
@@ -2681,20 +2711,22 @@ Macro "Aggregate Transit Flow by Route" (Args)
   for transit_mode in transit_modes do
     if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
     else transit_modes = orig_transit_modes
-
+    
+    df = CreateObject("df", output_dir + "/key.bin")
+    daily = df.copy()
     for period in periods do
       for access_mode in access_modes do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
         df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-        if daily = null then daily = df.copy()
-        else do 
-          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
-          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-          daily.rename("TransitFlow_x", "TransitFlow")
-          daily.remove("TransitFlow_y")
-          end
+        daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+        daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+        daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+        daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+        daily.rename("From_MP_x", "From_MP")
+        daily.rename("To_MP_x", "To_MP")
+        daily.rename("TransitFlow_x", "TransitFlow")
+        daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
       end
     end
     daily.write_bin(output_dir + "/daily_" + transit_mode + ".bin")
@@ -2706,20 +2738,22 @@ Macro "Aggregate Transit Flow by Route" (Args)
     if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
     else transit_modes = orig_transit_modes
     
+    df = CreateObject("df", output_dir + "/key.bin")
+    daily = df.copy()
     for transit_mode in transit_modes do
       for period in periods do
         
           filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
           df = CreateObject("df", filename)
           df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-          if daily = null then daily = df.copy()
-          else do 
-            df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
-            daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-            daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-            daily.rename("TransitFlow_x", "TransitFlow")
-            daily.remove("TransitFlow_y")
-            end
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+          daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+          daily.rename("From_MP_x", "From_MP")
+          daily.rename("To_MP_x", "To_MP")
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
         end
       end
       daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
