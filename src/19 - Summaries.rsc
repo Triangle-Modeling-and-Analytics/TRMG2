@@ -27,7 +27,7 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-    
+
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -2657,13 +2657,14 @@ Macro "Aggregate Transit Flow by Route" (Args)
     filename = assn_dir + "/" + period + "_w_all.bin"
     df = CreateObject("df", filename)
     df.select({"Route", "From_Stop", "To_Stop"})
-    df.mutate("key", df.tbl.Route + "_" + df.tbl.From_Stop + "_" + df.tbl.To_Stop)
+    df.mutate("key", i2s(df.tbl.Route) + "_" + i2s(df.tbl.From_Stop) + "_" + i2s(df.tbl.To_Stop))
     v_key_period = df.tbl.key
-    if v_key <> null then ConcatenateVectors({v_key,v_key_period}) else v_key = v_key_period
+    if v_key <> null then v_key = ConcatenateVectors({v_key,v_key_period}) else v_key = v_key_period
   end
   v_key_unique = SortVector(v_key, {Unique: "true"})
 
   tbl = CreateObject("Table", {Fields: {
+    {FieldName: "Key", Type: "String"},
     {FieldName: "Route", Type: "Integer"},
     {FieldName: "From_Stop", Type: "Integer"},
     {FieldName: "To_Stop", Type: "Integer"},
@@ -2672,10 +2673,8 @@ Macro "Aggregate Transit Flow by Route" (Args)
     {FieldName: "TransitFlow", Type: "Real"}
   }})
   tbl.AddRows({EmptyRows: v_key_unique.length})
-  parts = ParseString(v_key_unique, "_")
-  tbl.Route = s2i(parts[1])
-  tbl.From_Stop = s2i(parts[2])
-  tbl.To_Stop = s2i(parts[3])
+  tbl.Key = v_key_unique
+  tbl.Separate({FieldName:"Key", NewFieldNames :{"Route", "From_Stop", "To_Stop"}, Separator: "_"})
   tbl.Export({FileName: output_dir + "/key.bin"})
   tbl = null
 
@@ -2700,7 +2699,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
         daily.rename("From_MP_x", "From_MP")
         daily.rename("To_MP_x", "To_MP")
         daily.rename("TransitFlow_x", "TransitFlow")
-        daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
+        daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
       end
       daily.write_bin(output_dir + "/daily_"+ access_mode + "_" + transit_mode + ".bin")
       daily = null
@@ -2726,7 +2725,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
         daily.rename("From_MP_x", "From_MP")
         daily.rename("To_MP_x", "To_MP")
         daily.rename("TransitFlow_x", "TransitFlow")
-        daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
+        daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
       end
     end
     daily.write_bin(output_dir + "/daily_" + transit_mode + ".bin")
@@ -2753,7 +2752,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
           daily.rename("From_MP_x", "From_MP")
           daily.rename("To_MP_x", "To_MP")
           daily.rename("TransitFlow_x", "TransitFlow")
-          daily.remove("TransitFlow_y", "From_MP_y", "To_MP_y")
+          daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
         end
       end
       daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
