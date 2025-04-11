@@ -27,7 +27,7 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-
+    
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -2645,7 +2645,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
   scen_dir = Args.[Scenario Folder]
   out_dir  = Args.[Output Folder]
   assn_dir = out_dir + "/assignment/transit"
-  output_dir = out_dir + "/assignment/transit/aggregate"
+  output_dir = out_dir + "/_summaries/aggregate_transitflow"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
@@ -2759,6 +2759,60 @@ Macro "Aggregate Transit Flow by Route" (Args)
       daily = null
   end
 
+  //Aggregate by stop
+  // First create an output table
+  transit_modes = orig_transit_modes + {"w_all"}
+  tbl = CreateObject("Table", output_dir + "/key.bin")
+  v_From_Stop_unique = SortVector(tbl.From_Stop, {Unique: "true"})
+  out_tbl = CreateObject("Table", {Fields: {
+    {FieldName: "From_Stop", Type: "Integer"}
+  }})
+  out_tbl.AddRows({EmptyRows: v_From_Stop_unique.length})
+  out_tbl.From_Stop = v_From_Stop_unique
+  for access_mode in access_modes do 
+    out_tbl.AddField("TransitFlow_" + access_mode + "access")
+  end
+  for transit_mode in transit_modes do
+    out_tbl.AddField("TransitFlow_" + transit_mode)
+  end
+
+  // aggregate by access mode
+  for access_mode in access_modes do 
+    filename = output_dir + "/daily_" + access_mode + ".bin"
+    tbl = CreateObject("Table", filename)
+    agg = tbl.Aggregate({
+      GroupBy: "From_Stop",
+      FieldStats: {TransitFlow: "sum"}
+    })
+    
+    join = out_tbl.Join({
+      Table: agg,
+      LeftFields: "From_Stop",
+      RightFields: "From_Stop"
+    })
+    join.("TransitFlow_" + access_mode + "access") = join.sum_TransitFlow
+    join = null
+  end
+
+  // aggregate by transit mode
+  
+  for transit_mode in transit_modes do
+    filename = output_dir + "/daily_" + transit_mode + ".bin"
+    tbl = CreateObject("Table", filename)
+    agg = tbl.Aggregate({
+      GroupBy: "From_Stop",
+      FieldStats: {TransitFlow: "sum"}
+    })
+
+    join = out_tbl.Join({
+      Table: agg,
+      LeftFields: "From_Stop",
+      RightFields: "From_Stop"
+    })
+    join.("TransitFlow_" + transit_mode) = join.sum_TransitFlow
+    join = null
+  end
+  out_tbl.Export({FileName: output_dir + "/transitflow_byfromstop.bin"})
 endmacro
 
 Macro "Validation Reports" (Args)
