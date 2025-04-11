@@ -3810,7 +3810,8 @@ Macro "Performance Measures Reports" (Args)
 			{FieldName: "SerMile_MD", Type: "real"},
       {FieldName: "SerMile_PM", Type: "real"},
 			{FieldName: "SerMile_NT", Type: "real"},
-      {FieldName: "ServiceMile", Type: "real"}
+      {FieldName: "ServiceMile", Type: "real"},
+      {FieldName: "HFServiceMile", Type: "real"}
 		}
 	})
   tbl.SerMile_AM = if tbl.AMHeadway >0 then 3*60/tbl.AMHeadway*tbl.len else 0
@@ -3818,13 +3819,15 @@ Macro "Performance Measures Reports" (Args)
   tbl.SerMile_PM = if tbl.PMHeadway >0 then 3*60/tbl.PMHeadway*tbl.len else 0
   tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.len else 0
   tbl.ServiceMile = tbl.SerMile_AM + tbl.SerMile_MD + tbl.SerMile_PM + tbl.SerMile_NT
+  tbl.HFServiceMile = if tbl.AMHeadway<=15 and tbl.MDHeadway<=15 and tbl.PMHeadway<=15 and tbl.NTHeadway<=15 then tbl.ServiceMile else 0
   
   group_fields = {"Agency", "Mode"}
   for group_field in group_fields do
     out_file = pm_dir + "/5.4 ServiceMile_by" + group_field + ".csv"
     agg = tbl.Aggregate({
         GroupBy: group_field,
-        FieldStats: {ServiceMile: "sum"}
+        FieldStats: {ServiceMile: "sum",
+                    HFServiceMile: "sum"}
     })
     agg.Export({FileName: out_file})
   end
