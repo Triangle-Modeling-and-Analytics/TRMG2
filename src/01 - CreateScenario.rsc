@@ -145,6 +145,7 @@ Macro "Create Scenario SE" (Args)
     master_se + "|",
     "FFB",
     scen_se,,
+    {"Row Order": {"TAZ"}}
   )
   CloseView(master_se)
 
