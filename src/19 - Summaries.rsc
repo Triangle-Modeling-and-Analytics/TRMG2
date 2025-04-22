@@ -2268,6 +2268,7 @@ Macro "Disadvantage Community Skims" (Args)
 
     // If called from the CoC tool, calculate hours of travel for 
     // all zones in the selected region/MPO
+    // as well as coc travel time for CoC zones only
     if called_from_coc then do
     		// Set MPO field
         v_mpo = se.(mpo_field)
@@ -2280,9 +2281,10 @@ Macro "Disadvantage Community Skims" (Args)
         mtx.AddCores({name + "_HBW_MPO_HoT"})
         mtx.(name + "_HBW_MPO_HoT") := mtx.CongTime * mtx.(name + "_HBW_MPO_Trips") / 60
 
-        // Get the average travel time (mins) for all zones in the MPO(s)
+        // Get the average travel time (mins) for all zones in the MPO(s) as well as CoC zones
         stats = MatrixStatistics(mtx.GetMatrixHandle(), )
-        avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+        mpo_avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+        coc_avg_mins = stats.(name + "_HBW_HoT").Sum / ( stats.(name + "_HBW_Trips").Sum) * 60
 
         // Calculate the average HBW travel time for each CoC zone and flag
         // those less than the average.
@@ -2291,7 +2293,7 @@ Macro "Disadvantage Community Skims" (Args)
         v_hot = mtx.GetVector({Core: name + "_HBW_HoT", Marginal: "Row Sum"})
         v_hot = if v_weight = 0 then null else v_hot
         v_avg_mins = v_hot / v_trips * 60
-        v_lt_avg = if v_avg_mins < avg_mins then 1 else 0
+        v_lt_avg = if v_avg_mins < mpo_avg_mins then 1 else 0
         tazs_with_lt_avg = v_lt_avg.sum()
         coc_tazs_in_mpo = v_weight.sum() / 100
     end
@@ -2339,7 +2341,7 @@ Macro "Disadvantage Community Skims" (Args)
   per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
   file = OpenFile(per_capita_file, "w")
   if called_from_coc 
-    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
+    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_MPO_HBW_TravelTime,Avg_CoC_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
     else WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
   v_pop = se.HH_POP
   stats = MatrixStatistics(mtx.GetMatrixHandle(), )
@@ -2375,7 +2377,7 @@ Macro "Disadvantage Community Skims" (Args)
     end
 
     if called_from_coc
-      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
+      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(mpo_avg_mins) + "," + String(coc_avg_mins) + ","+ String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
       else line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita)
 
     WriteLine(file, line)
