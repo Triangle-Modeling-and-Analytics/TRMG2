@@ -11,7 +11,7 @@
 Macro "trmg2" (Args)
 Body:
     // model = FlowChart( { StartNodes } , { EndNodes } , Description)
-    model = FlowChart({"Initial Processsing"},{"Summaries"},)
+    model = FlowChart({"Initial Processing"},{"Summaries"},)
     //
     // Nodes
     //
@@ -19,7 +19,7 @@ Body:
     //
     FlowChartNode(model,"Convergence",,,)
     FlowChartNode(model,"Roadway Assignment",,,)
-    FlowChartNode(model,"Initial Processsing",,,)
+    FlowChartNode(model,"Initial Processing",,,)
     FlowChartNode(model,"Generation Models",,,)
     FlowChartNode(model,"NonMotorized Models",,,)
     FlowChartNode(model,"Time of Day",,,)
@@ -38,7 +38,7 @@ Body:
     FlowChartLink(model,"Convergence","Skimming",True,,1)
     FlowChartLink(model,"Convergence","Hourly Roadway Assignment",2,,)
     FlowChartLink(model,"Roadway Assignment","Convergence",True,,)
-    FlowChartLink(model,"Initial Processsing","Generation Models",True,,)
+    FlowChartLink(model,"Initial Processing","Generation Models",True,,)
     FlowChartLink(model,"Generation Models","NonMotorized Models",True,,)
     FlowChartLink(model,"NonMotorized Models","Time of Day",True,,)
     FlowChartLink(model,"Time of Day","Skimming",True,,)
@@ -465,7 +465,7 @@ Body:
 EndMacro
 
 
-Macro "Initial Processsing" (Args,Result)
+Macro "Initial Processing" (Args,Result)
     Attributes = {
         {"Description", "Stage 1"},
         {"Picture", "bmp\\plan_config_v3.bmp"}

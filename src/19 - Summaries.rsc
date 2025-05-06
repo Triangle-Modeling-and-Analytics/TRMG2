@@ -2097,7 +2097,7 @@ Macro "Equity" (Args)
 	agg.vi_pct = v_pct
 	cutoff = Percentile(V2A(v_pct), 75)
 	agg.AddField("VehInsuff_dc")
-	agg.VehInsuff_dc = if agg.v0_pct > cutoff then 1 else 0
+	agg.VehInsuff_dc = if agg.vi_pct > cutoff then 1 else 0
 	// senior CoC
 	agg.AddField("senior_pct")
 	v_pct = agg.sum_has_seniors / agg.count_has_seniors * 100
@@ -2226,11 +2226,11 @@ Macro "Disadvantage Community Skims" (Args)
 	for type in types do
 		trip_mtx_file = mtx_dir + "/pa_per_trips_" + type + "_AM.mtx"
 		trip_mtx = CreateObject("Matrix", trip_mtx_file)
-		mtx.All_Trips := nz(mtx.All_Trips) + trip_mtx.sov + trip_mtx.hov2 + trip_mtx.hov3
+		mtx.All_Trips := nz(mtx.All_Trips) + nz(trip_mtx.sov) + nz(trip_mtx.hov2) + nz(trip_mtx.hov3)
 	end
 
 	// Get transit and walk times which is needed for one of the calculations
-	trans_file = skim_dir + "/transit/skim_AM_w_lb.mtx"
+	trans_file = skim_dir + "/transit/skim_AM_w_all.mtx"
 	transit_mtx = CreateObject("Matrix", trans_file)
 	walk_file = skim_dir + "/nonmotorized/walk_skim.mtx"
 	walk_mtx = CreateObject("Matrix", walk_file)
@@ -2268,6 +2268,7 @@ Macro "Disadvantage Community Skims" (Args)
 
     // If called from the CoC tool, calculate hours of travel for 
     // all zones in the selected region/MPO
+    // as well as coc travel time for CoC zones only
     if called_from_coc then do
     		// Set MPO field
         v_mpo = se.(mpo_field)
@@ -2280,9 +2281,10 @@ Macro "Disadvantage Community Skims" (Args)
         mtx.AddCores({name + "_HBW_MPO_HoT"})
         mtx.(name + "_HBW_MPO_HoT") := mtx.CongTime * mtx.(name + "_HBW_MPO_Trips") / 60
 
-        // Get the average travel time (mins) for all zones in the MPO(s)
+        // Get the average travel time (mins) for all zones in the MPO(s) as well as CoC zones
         stats = MatrixStatistics(mtx.GetMatrixHandle(), )
-        avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+        mpo_avg_mins = stats.(name + "_HBW_MPO_HoT").Sum / ( stats.(name + "_HBW_MPO_Trips").Sum) * 60
+        coc_avg_mins = stats.(name + "_HBW_HoT").Sum / ( stats.(name + "_HBW_Trips").Sum) * 60
 
         // Calculate the average HBW travel time for each CoC zone and flag
         // those less than the average.
@@ -2291,7 +2293,7 @@ Macro "Disadvantage Community Skims" (Args)
         v_hot = mtx.GetVector({Core: name + "_HBW_HoT", Marginal: "Row Sum"})
         v_hot = if v_weight = 0 then null else v_hot
         v_avg_mins = v_hot / v_trips * 60
-        v_lt_avg = if v_avg_mins < avg_mins then 1 else 0
+        v_lt_avg = if v_avg_mins < mpo_avg_mins then 1 else 0
         tazs_with_lt_avg = v_lt_avg.sum()
         coc_tazs_in_mpo = v_weight.sum() / 100
     end
@@ -2339,7 +2341,7 @@ Macro "Disadvantage Community Skims" (Args)
   per_capita_file = summary_dir + "/AM_per_capita_metrics.csv"
   file = OpenFile(per_capita_file, "w")
   if called_from_coc 
-    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
+    then WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita,Avg_MPO_HBW_TravelTime,Avg_CoC_HBW_TravelTime,CoC_TAZs_in_Geo,CoC_TAZs_w_TT_lt_Avg,Avg_Delay_per_capita,CoC_TAZs_w_DPC_lt_Avg")
     else WriteLine(file, "DC,Population,HoT,HoT_per_capita,Delay,Delay_per_capita")
   v_pop = se.HH_POP
   stats = MatrixStatistics(mtx.GetMatrixHandle(), )
@@ -2375,7 +2377,7 @@ Macro "Disadvantage Community Skims" (Args)
     end
 
     if called_from_coc
-      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(avg_mins) + "," + String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
+      then line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita) + "," + String(mpo_avg_mins) + "," + String(coc_avg_mins) + ","+ String(coc_tazs_in_mpo) + "," + String(tazs_with_lt_avg) + "," + String(mpo_avg_delay_per_capita) + "," + String(tazs_with_lt_avg_dpc)
       else line = name + "," + String(tot_dc_pop) + "," + String(total_hot) + "," + String(hot_per_capita) + "," + String(total_delay) + "," + String(delay_per_capita)
 
     WriteLine(file, line)
@@ -2645,12 +2647,38 @@ Macro "Aggregate Transit Flow by Route" (Args)
   scen_dir = Args.[Scenario Folder]
   out_dir  = Args.[Output Folder]
   assn_dir = out_dir + "/assignment/transit"
-  output_dir = out_dir + "/assignment/transit/aggregate"
+  output_dir = out_dir + "/_summaries/aggregate_transitflow"
   if GetDirectoryInfo(output_dir, "All") = null then CreateDirectory(output_dir)
   access_modes = Args.access_modes
   mode_table = Args.TransModeTable
   periods = Args.periods
   orig_transit_modes = RunMacro("Get Transit Modes", mode_table)
+
+  // Build master milepost table first
+  for period in periods do 
+    filename = assn_dir + "/" + period + "_w_all.bin"
+    df = CreateObject("df", filename)
+    df.select({"Route", "From_Stop", "To_Stop"})
+    df.mutate("key", i2s(df.tbl.Route) + "_" + i2s(df.tbl.From_Stop) + "_" + i2s(df.tbl.To_Stop))
+    v_key_period = df.tbl.key
+    if v_key <> null then v_key = ConcatenateVectors({v_key,v_key_period}) else v_key = v_key_period
+  end
+  v_key_unique = SortVector(v_key, {Unique: "true"})
+
+  tbl = CreateObject("Table", {Fields: {
+    {FieldName: "Key", Type: "String"},
+    {FieldName: "Route", Type: "Integer"},
+    {FieldName: "From_Stop", Type: "Integer"},
+    {FieldName: "To_Stop", Type: "Integer"},
+    {FieldName: "From_MP", Type: "Real"},
+    {FieldName: "To_MP", Type: "Real"},
+    {FieldName: "TransitFlow", Type: "Real"}
+  }})
+  tbl.AddRows({EmptyRows: v_key_unique.length})
+  tbl.Key = v_key_unique
+  tbl.Separate({FieldName:"Key", NewFieldNames :{"Route", "From_Stop", "To_Stop"}, Separator: "_"})
+  tbl.Export({FileName: output_dir + "/key.bin"})
+  tbl = null
 
   // Loop through transit assn bin files
   // By daily
@@ -2659,18 +2687,21 @@ Macro "Aggregate Transit Flow by Route" (Args)
     else transit_modes = orig_transit_modes 
 
     for transit_mode in transit_modes do
+
+      df = CreateObject("df", output_dir + "/key.bin")
+      daily = df.copy()
       for period in periods do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
         df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-        if daily = null then daily = df.copy()
-        else do
-          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"}) 
-          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-          daily.rename("TransitFlow_x", "TransitFlow")
-          daily.remove("TransitFlow_y")
-          end
+        daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+        daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+        daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+        daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+        daily.rename("From_MP_x", "From_MP")
+        daily.rename("To_MP_x", "To_MP")
+        daily.rename("TransitFlow_x", "TransitFlow")
+        daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
       end
       daily.write_bin(output_dir + "/daily_"+ access_mode + "_" + transit_mode + ".bin")
       daily = null
@@ -2681,20 +2712,22 @@ Macro "Aggregate Transit Flow by Route" (Args)
   for transit_mode in transit_modes do
     if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
     else transit_modes = orig_transit_modes
-
+    
+    df = CreateObject("df", output_dir + "/key.bin")
+    daily = df.copy()
     for period in periods do
       for access_mode in access_modes do 
         filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
         df = CreateObject("df", filename)
         df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-        if daily = null then daily = df.copy()
-        else do 
-          df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
-          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-          daily.rename("TransitFlow_x", "TransitFlow")
-          daily.remove("TransitFlow_y")
-          end
+        daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+        daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+        daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+        daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+        daily.rename("From_MP_x", "From_MP")
+        daily.rename("To_MP_x", "To_MP")
+        daily.rename("TransitFlow_x", "TransitFlow")
+        daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
       end
     end
     daily.write_bin(output_dir + "/daily_" + transit_mode + ".bin")
@@ -2706,26 +2739,82 @@ Macro "Aggregate Transit Flow by Route" (Args)
     if access_mode = "w" then transit_modes = orig_transit_modes + {"all"}
     else transit_modes = orig_transit_modes
     
+    df = CreateObject("df", output_dir + "/key.bin")
+    daily = df.copy()
     for transit_mode in transit_modes do
       for period in periods do
         
           filename = assn_dir + "/" + period + "_" + access_mode + "_" + transit_mode + ".bin"
           df = CreateObject("df", filename)
           df.select({"Route", "From_MP", "To_MP", "From_Stop", "To_Stop", "TransitFlow"})
-          if daily = null then daily = df.copy()
-          else do 
-            df.select({"Route", "From_Stop", "To_Stop", "TransitFlow"})
-            daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
-            daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
-            daily.rename("TransitFlow_x", "TransitFlow")
-            daily.remove("TransitFlow_y")
-            end
+          daily.left_join(df, {"Route", "From_Stop", "To_Stop"}, {"Route", "From_Stop", "To_Stop"})
+          daily.tbl.("From_MP_x") = if daily.tbl.("From_MP_y") <> null then daily.tbl.("From_MP_y") else daily.tbl.("From_MP_x")
+          daily.tbl.("To_MP_x") = if daily.tbl.("To_MP_y") <> null then daily.tbl.("To_MP_y") else daily.tbl.("To_MP_x")
+          daily.tbl.("TransitFlow_x") = nz(daily.tbl.("TransitFlow_x")) + nz(daily.tbl.("TransitFlow_y"))
+          daily.rename("From_MP_x", "From_MP")
+          daily.rename("To_MP_x", "To_MP")
+          daily.rename("TransitFlow_x", "TransitFlow")
+          daily.remove({"TransitFlow_y", "From_MP_y", "To_MP_y"})
         end
       end
       daily.write_bin(output_dir + "/daily_" + access_mode + ".bin")
       daily = null
   end
 
+  //Aggregate by stop
+  // First create an output table
+  transit_modes = orig_transit_modes + {"w_all"}
+  tbl = CreateObject("Table", output_dir + "/key.bin")
+  v_From_Stop_unique = SortVector(tbl.From_Stop, {Unique: "true"})
+  out_tbl = CreateObject("Table", {Fields: {
+    {FieldName: "From_Stop", Type: "Integer"}
+  }})
+  out_tbl.AddRows({EmptyRows: v_From_Stop_unique.length})
+  out_tbl.From_Stop = v_From_Stop_unique
+  for access_mode in access_modes do 
+    out_tbl.AddField("TransitFlow_" + access_mode + "access")
+  end
+  for transit_mode in transit_modes do
+    out_tbl.AddField("TransitFlow_" + transit_mode)
+  end
+
+  // aggregate by access mode
+  for access_mode in access_modes do 
+    filename = output_dir + "/daily_" + access_mode + ".bin"
+    tbl = CreateObject("Table", filename)
+    agg = tbl.Aggregate({
+      GroupBy: "From_Stop",
+      FieldStats: {TransitFlow: "sum"}
+    })
+    
+    join = out_tbl.Join({
+      Table: agg,
+      LeftFields: "From_Stop",
+      RightFields: "From_Stop"
+    })
+    join.("TransitFlow_" + access_mode + "access") = join.sum_TransitFlow
+    join = null
+  end
+
+  // aggregate by transit mode
+  
+  for transit_mode in transit_modes do
+    filename = output_dir + "/daily_" + transit_mode + ".bin"
+    tbl = CreateObject("Table", filename)
+    agg = tbl.Aggregate({
+      GroupBy: "From_Stop",
+      FieldStats: {TransitFlow: "sum"}
+    })
+
+    join = out_tbl.Join({
+      Table: agg,
+      LeftFields: "From_Stop",
+      RightFields: "From_Stop"
+    })
+    join.("TransitFlow_" + transit_mode) = join.sum_TransitFlow
+    join = null
+  end
+  out_tbl.Export({FileName: output_dir + "/transitflow_byfromstop.bin"})
 endmacro
 
 Macro "Validation Reports" (Args)
@@ -3066,8 +3155,9 @@ Macro "Performance Measures Reports" (Args)
     tbl.AddRows({EmptyRows: v_id.length})
     tbl.TAZ = v_id
 
-    // Create a matrix to store all person trips
-    result_mtx_file = pm_dir + "/all_person_trips.mtx"
+    // Create a matrix to store all person motorized trips
+    // All person trips including NM trips will be stored in the TAZ_measure bin file
+    result_mtx_file = pm_dir + "/all_person_mototrips.mtx"
     CopyFile(mtx_files[1], result_mtx_file)
     result_mtx = CreateObject("Matrix", result_mtx_file)
     to_drop = result_mtx.GetCoreNames()
@@ -3075,7 +3165,7 @@ Macro "Performance Measures Reports" (Args)
     result_mtx.DropCores(to_drop)
 
     // Loop through each group
-    groups = {"Daily", "PM", "W_HB_W"}
+    groups = {"Daily", "PM", "W_HB_W", "HB"}
 
     for group in groups do
 
@@ -3085,19 +3175,19 @@ Macro "Performance Measures Reports" (Args)
 
       // Resident HB nm trips
       trip_mtx = out_dir + "/resident/nonmotorized/nm_gravity.mtx"
-      {result, result_mtx} = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result, result_mtx: result_mtx})
+      result = RunMacro("Summarize HB NM RowSums", {group: group, trip_mtx: trip_mtx, result: result})
 
       // University trips
       trip_dir = out_dir + "/university/mode"
-      if group <> "W_HB_W" then {result, result_mtx} = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
+      if group <> "W_HB_W" and group <> "HB" then {result, result_mtx} = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
 
       // NHB trips (rowsums)
       trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
-      if group <> "W_HB_W" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
+      if group <> "W_HB_W" and group <> "HB" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
 
       // NHB trips (matrix)
-      trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
-      if group <> "W_HB_W" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
+      trip_dir = out_dir + "/resident/nhb/dc/trip_matrices_percopy"
+      if group <> "W_HB_W" and group <> "HB" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
       
     end
         
@@ -3347,7 +3437,7 @@ Macro "Performance Measures Reports" (Args)
   
   //1.5 - 1.9 Daily Average Travel Length
   //Set input path
-  allperson_mtx_file = pm_dir + "/all_person_trips.mtx"
+  allperson_mtx_file = pm_dir + "/all_person_mototrips.mtx"
   hbw_mtx_file = summary_dir + "/resident_hb/W_HB_W_All.mtx"
 
   skim_mtx_file = skim_dir + "/skim_hov_AM.mtx"
@@ -3722,7 +3812,8 @@ Macro "Performance Measures Reports" (Args)
 			{FieldName: "SerMile_MD", Type: "real"},
       {FieldName: "SerMile_PM", Type: "real"},
 			{FieldName: "SerMile_NT", Type: "real"},
-      {FieldName: "ServiceMile", Type: "real"}
+      {FieldName: "ServiceMile", Type: "real"},
+      {FieldName: "HFServiceMile", Type: "real"}
 		}
 	})
   tbl.SerMile_AM = if tbl.AMHeadway >0 then 3*60/tbl.AMHeadway*tbl.len else 0
@@ -3730,13 +3821,15 @@ Macro "Performance Measures Reports" (Args)
   tbl.SerMile_PM = if tbl.PMHeadway >0 then 3*60/tbl.PMHeadway*tbl.len else 0
   tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.len else 0
   tbl.ServiceMile = tbl.SerMile_AM + tbl.SerMile_MD + tbl.SerMile_PM + tbl.SerMile_NT
+  tbl.HFServiceMile = if tbl.AMHeadway<=15 and tbl.MDHeadway<=15 and tbl.PMHeadway<=15 and tbl.NTHeadway<=15 then tbl.ServiceMile else 0
   
   group_fields = {"Agency", "Mode"}
   for group_field in group_fields do
     out_file = pm_dir + "/5.4 ServiceMile_by" + group_field + ".csv"
     agg = tbl.Aggregate({
         GroupBy: group_field,
-        FieldStats: {ServiceMile: "sum"}
+        FieldStats: {ServiceMile: "sum",
+                    HFServiceMile: "sum"}
     })
     agg.Export({FileName: out_file})
   end
@@ -3765,6 +3858,193 @@ Macro "Performance Measures Reports" (Args)
     out_tbl.Total = 0
     out_tbl.Export({FileName: pm_dir + "/5.4 RailServiceMile.csv"})
   end
+  
+  //7.1-7.8 Average trip length for MTP reporting
+  // Create a matrix to store result mtx
+  mtx_files = RunMacro("Catalog Files", {dir: out_dir + "/assignment/roadway", ext: "mtx"})
+  se = CreateObject("Table", se_file)
+  result_mtx_file = pm_dir + "/all_person_mototrips_forTLD.mtx"
+  CopyFile(mtx_files[1], result_mtx_file)
+  result_mtx = CreateObject("Matrix", result_mtx_file)
+  to_drop = result_mtx.GetCoreNames()
+  result_mtx.AddCores({"auto_AM_total", "auto_PM_total", "auto_AM_hbw", "auto_PM_hbw"})
+  result_mtx.DropCores(to_drop)
+    
+  // Build an equivalency array that maps modes to summary mode levels
+  equiv = {
+    sov: "auto",
+    auto: "auto", //university auto mode 
+    hov2: "auto",
+    hov3: "auto",
+    auto_pay: "auto", //NHB auto pay mode 
+    transit: "w_all" //NHB transit
+  }
+
+  transit_modes = RunMacro("Get Transit Modes", mode_table)
+  for transit_mode in transit_modes do //only consider walk access trips
+    name = "w_" + transit_mode
+    equiv.(name) = name
+  end
+
+  // Process trips
+  // Loop through each group and tod
+  tods = {"AM", "PM"}
+  groups = {"total", "hbw"}
+
+  for tod in tods do
+    for group in groups do
+      // Resident HB motorized trips
+      trip_dir = out_dir + "/resident/trip_matrices"
+      result_mtx = RunMacro("Summarize HB Univ Trips for TLD", {equiv: equiv, group: group, tod: tod, trip_dir: trip_dir, result_mtx: result_mtx})
+
+      // University trips
+      trip_dir = out_dir + "/university/mode"
+      if group <> "hbw" then result_mtx = RunMacro("Summarize HB Univ Trips for TLD", {equiv: equiv, group: group, tod: tod, trip_dir: trip_dir, result_mtx: result_mtx})
+
+      // NHB trips (matrix)
+      trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
+      if group <> "hbw" then result_mtx = RunMacro("Summarize NHB Trips for TLD", {equiv: equiv, group: group, tod: tod, trip_dir: trip_dir, result_mtx: result_mtx})
+    end
+  end
+
+
+  //7.1 - 7.4 Auto Average Travel Length
+  //Set input path for auto
+  allperson_mtx_file = pm_dir + "/all_person_mototrips_forTLD.mtx"
+  geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
+  se = CreateObject("Table", se_file)
+  mtx_list = {{"auto_AM_total", "7.1 Average congested auto travel time (AM) - All purposes.csv"}, 
+                {"auto_PM_total", "7.2 Average congested auto travel time (PM) - All purposes.csv"}, 
+                {"auto_AM_hbw", "7.3 Average congested auto travel time (AM) - HBW trips.csv"}, 
+                {"auto_PM_hbw", "7.4 Average congested auto travel time (PM) - HBW trips.csv"}} 
+
+  //Run TLD for auto
+  for i = 1 to mtx_list.length do
+    result_len = "Average Travel Distance"
+    result_time = "Average Travel Time"
+	  mtx_file = allperson_mtx_file
+    corename = mtx_list[i][1]
+    summary_file = pm_dir + "/" + mtx_list[i][2]
+    f = OpenFile(summary_file, "w")
+    writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+    
+    mtx = CreateObject("Matrix", mtx_file)
+    for geo in geo_list do
+      //Set index			
+      if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
+      else do
+        if geo = "DCHC" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
+        else query = "County = '" + geo + "'"
+			
+        mtx.AddIndex({
+          IndexName: geo,
+          ViewName: se.GetView(),
+          Filter: query,
+          OriginalID: "TAZ",
+          NewID: "TAZ",
+          Dimension: "Row"
+        })
+      
+        tripmtx = {MatrixFile: mtx_file, Matrix: corename, RowIndex: geo}
+      end
+
+      //Set skim file
+      if position(corename, "am") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
+        else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
+      skim_mtx = CreateObject("Matrix", skim_mtx_file)
+      skim_coreD = skim_mtx.GetCore("Length (Skim)")
+      skim_coreT = skim_mtx.GetCore("CongTime")
+
+      avg_length = RunMacro("Summarize TLD Length", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreD: skim_coreD})
+      avg_time = RunMacro("Summarize TLD Time", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreT: skim_coreT})
+      
+      result_len = result_len + ", " + r2s(avg_length)
+      result_time = result_time + ", " + r2s(avg_time)
+    end
+    WriteLine(f, result_len)
+    WriteLine(f, result_time)
+    CloseFile(f)
+    mtx = null
+	end
+
+  //Set input path for transit
+  skim_dir = Args.[Output Folder] + "\\skims\\transit"
+  mtx_list = {{"total", "In-Vehicle Time", "AM", "7.5 Average transit IVTT Time(AM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Time", "PM", "7.6 Average transit IVTT Time(PM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Distance", "AM", "7.5 Average transit IVTT Distance(AM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Distance", "PM", "7.6 Average transit IVTT Distance(PM) - All purposes.csv"},
+                {"total", "Total Time", "AM", "7.7 Average transit total time (AM) - All purposes.csv"}, 
+                {"total", "Total Time", "PM", "7.8 Average transit total time (PM) - All purposes.csv"}, 
+                {"hbw", "Total Time", "AM", "7.9 Average transit total time (AM) - HBW trips.csv"}, 
+                {"hbw", "Total Time", "PM", "7.10 Average transit total time (PM) - HBW trips.csv"}} 
+
+  //Run TLD for transit
+  for i = 1 to mtx_list.length do
+    result = "Average Travel Time/Dist"
+    mtx_file = allperson_mtx_file
+    trip_purp = mtx_list[i][1]
+    skim_corename = mtx_list[i][2]
+    tod = mtx_list[i][3]
+    summary_file = pm_dir + "/" + mtx_list[i][4]
+    f = OpenFile(summary_file, "w")
+    writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+    
+    // calculate weighted total
+    mtx = CreateObject("Matrix", mtx_file)
+    corenames = mtx.GetCoreNames()
+    if corenames.position("weightedtotal") = 0 then mtx.AddCores({"weightedtotal", "totaltrips"})
+    if trip_purp = "total" then new_transit_modes = transit_modes + {"all"} else new_transit_modes = transit_modes
+
+    result_wttime = mtx.GetCore("weightedtotal")
+    result_trip = mtx.GetCore("totaltrips")
+    result_wttime := 0
+    result_trip := 0
+    for transit_mode in new_transit_modes do
+      //Set skim core and trip core
+      trip_corename = "w_" + transit_mode + "_" + tod + "_" + trip_purp
+      trip_core = mtx.GetCore(trip_corename)
+      skim_mtx_file = skim_dir + "/skim_" + tod + "_w_" + transit_mode + ".mtx" 
+      skim_mtx = CreateObject("Matrix", skim_mtx_file)
+      skim_core = skim_mtx.GetCore(skim_corename)
+      result_wttime := nz(result_wttime) + nz(trip_core) * nz(skim_core)
+      result_trip := nz(result_trip) + nz(trip_core)
+    end
+    
+    for geo in geo_list do  
+      //Set index			
+      if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
+      else do
+        if geo = "DCHC" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
+        else query = "County = '" + geo + "'"
+
+        mtx.AddIndex({
+          IndexName: geo,
+          ViewName: se.GetView(),
+          Filter: query,
+          OriginalID: "TAZ",
+          NewID: "TAZ",
+          Dimension: "Row"
+          })
+      
+        mtx.SetRowIndex(geo)
+      end
+
+      v_weightedtotal = mtx.GetVector({"Core": "weightedtotal", Marginal: "Row Sum"})
+      v_totaltrips = mtx.GetVector({"Core": "totaltrips", Marginal: "Row Sum"})
+      if v_totaltrips.sum() = 0 then result = result + ", " + "n/a"
+      else do
+        avg_td = v_weightedtotal.Sum() / v_totaltrips.Sum()
+        result = result + ", " + r2s(avg_td)
+      end
+    end
+    WriteLine(f, result)
+
+    CloseFile(f)
+    mtx = null
+	end
+
+  se = null
+
 endmacro
 
 Macro "Summarize HB Univ RowSums" (MacroOpts)
@@ -3779,6 +4059,7 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
   for mtx_file in mtx_files do
     if group = "PM" and position(mtx_file, group) = 0 then continue
     if group = "W_HB_W" and position(mtx_file, group) = 0 then continue
+    if group = "HB" and position(mtx_file, group) = 0 then continue
 
     mtx = CreateObject("Matrix", mtx_file)
     core_names = mtx.GetCoreNames()
@@ -3792,13 +4073,15 @@ Macro "Summarize HB Univ RowSums" (MacroOpts)
         then result.(out_name) = nz(v)
         else result.(out_name) = result.(out_name) + nz(v)
 
-      add_core = mtx.GetCore(core_name)
-      if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
-      else if group = "PM" then result_core = result_mtx.GetCore("pm_total")
-      if result_core <> null then result_core := nz(add_core) + nz(result_core)
+      if equiv.(core_name) <> "nm" then do  //only add motorized trip to the matrix
+        add_core = mtx.GetCore(core_name)
+        if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
+        else if group = "PM" then result_core = result_mtx.GetCore("pm_total")
+        if result_core <> null then result_core := nz(add_core) + nz(result_core)
       
-      add_core = null
-      result_core = null
+        add_core = null
+        result_core = null
+      end
     end
   end
 
@@ -3811,7 +4094,6 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
   trip_mtx = MacroOpts.trip_mtx
   group = MacroOpts.group
   result = MacroOpts.result
-  result_mtx = MacroOpts.result_mtx
 
   mtx = CreateObject("Matrix", trip_mtx)
   core_names = mtx.GetCoreNames()
@@ -3820,6 +4102,7 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
     if group = "Daily" and ArrayLength(parts) <> 4 then continue
     if group = "PM" and right(core_name, 2) <> "PM" then continue
     if group = "W_HB_W" and core_name <> "W_HB_W_All" then continue
+    if group = "HB" and ArrayLength(parts) <> 4 then continue
 
     out_name = "nm_" + group
     v = mtx.GetVector({Core: core_name, Marginal: "Row Sum"})
@@ -3827,17 +4110,10 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
     if TypeOf(result.(out_name)) = "null"
       then result.(out_name) = nz(v)
       else result.(out_name) = result.(out_name) + nz(v)
-    
-    add_core = mtx.GetCore(core_name)
-    if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
-    else if group = "PM" then result_core = result_mtx.GetCore("PM_total")
-    if result_core <> null then result_core := nz(add_core) + nz(result_core)
 
-    add_core = null
-    result_core = null
   end
 
-  return({result, result_mtx})
+  return(result)
 endmacro
 
 Macro "Summarize NHB RowSums" (MacroOpts)
@@ -3936,4 +4212,73 @@ Macro "Summarize TLD Time" (MacroOpts)
     avg_time = res.Data.AvTripLength
 
     return(avg_time)
+endmacro
+
+Macro "Summarize HB Univ Trips for TLD" (MacroOpts)
+  equiv = MacroOpts.equiv
+  trip_dir = MacroOpts.trip_dir
+  group = MacroOpts.group
+  tod = MacroOpts.tod
+  result_mtx = MacroOpts.result_mtx
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  for mtx_file in mtx_files do
+    if position(mtx_file, tod) = 0 then continue
+    if group = "hbw" and position(mtx_file, "W_HB_W") = 0 then continue
+
+    mtx = CreateObject("Matrix", mtx_file)
+    core_names = mtx.GetCoreNames()
+    for core_name in core_names do
+      // hb motorized and univ matrices core names have mode info
+      if equiv.(core_name) = null then continue
+      out_name = if left(core_name, 2) = "w_" then equiv.(core_name) + "_" + tod + "_" + group else "auto_" + tod + "_" + group
+      result_core_names = result_mtx.GetCoreNames()
+      if result_core_names.position(out_name) = 0 then result_mtx.AddCores({out_name})
+      
+      result_core = result_mtx.GetCore(out_name)
+      add_core = mtx.GetCore(core_name)
+      result_core := nz(add_core) + nz(result_core)
+      
+      add_core = null
+      result_core = null
+    end
+  end
+
+  return(result_mtx)
+endmacro
+
+Macro "Summarize NHB Trips for TLD" (MacroOpts)
+  equiv = MacroOpts.equiv
+  trip_dir = MacroOpts.trip_dir
+  group = MacroOpts.group
+  tod = MacroOpts.tod
+  result_mtx = MacroOpts.result_mtx
+
+  mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
+  for mtx_file in mtx_files do
+    if position(mtx_file, tod) = 0 then continue
+
+    // determine mode based on file name
+    {, , name, } = SplitPath(mtx_file)
+    parts = ParseString(name, "_")
+    if parts.length = 3 then mode = parts[2]
+      else if parts.length = 5 then mode = "auto_pay"
+      else mode = parts[3]
+    if equiv.(mode) = null then continue 
+    out_name = if mode = "transit" then "w_all_" + tod + "_" + group else "auto_" + tod + "_" + group
+
+    // read matrix
+    mtx = CreateObject("Matrix", mtx_file)
+    add_core = mtx.GetCore("Total")
+
+    result_core_names = result_mtx.GetCoreNames()
+    if result_core_names.position(out_name) = 0 then result_mtx.AddCores({out_name})
+    result_core = result_mtx.GetCore(out_name)
+    result_core := nz(add_core) + nz(result_core)
+    
+    add_core = null
+    result_core = null
+  end
+
+  return(result_mtx)
 endmacro

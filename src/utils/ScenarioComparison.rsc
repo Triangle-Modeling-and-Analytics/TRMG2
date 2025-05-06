@@ -176,7 +176,7 @@ Macro "Compare Summary Tables" (MacroOpts)
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_modeperiod.csv", {"trip_type", "period", "mode"}, {"Sum", "SumDiag", "PctDiag"}},
         {"/output/_summaries/resident_nhb/nhb_trip_stats_by_type.csv", {"matrix"}, {"Sum", "SumDiag", "PctDiag", "avg_length_mi", "avg_time_min"}},
         {"/output/sedata/scenario_se.bin", {"TAZ"}, {"HH", "HH_POP", "Median_Inc", "Industry", "Office", "Service_RateLow", "Service_RateHigh", "Retail"}},
-        {"/output/networks/scenario_links.bin", {"ID"}, {"Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily", "AB_TransitFlow"}},
+        {"/output/networks/scenario_links.bin", {"ID"}, {"AB_Flow_Daily", "BA_Flow_Daily", "ABAMCapE_h", "BAAMCapE_h", "AB_Delay_Daily", "BA_Delay_Daily", "Total_Flow_Daily", "Total_VMT_Daily", "Total_VHT_Daily", "Total_Delay_Daily", "AB_TransitFlow"}},
         {"/output/_summaries/overall_mode_shares_bytaz.bin", {"TAZ"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/overall_mode_shares_bycounty.bin", {"County"}, {"auto", "transit", "nm"}},
         {"/output/_summaries/hhstrata.csv", {"market_segment"}, {"count"}}
