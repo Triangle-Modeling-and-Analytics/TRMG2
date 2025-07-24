@@ -3933,6 +3933,10 @@ Macro "Performance Measures Reports" (Args)
     writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     mtx = CreateObject("Matrix", mtx_file)
+    if position(corename, "AM") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
+        else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
+    skim_mtx = CreateObject("Matrix", skim_mtx_file)
+
     for geo in geo_list do
       //Set index			
       if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
@@ -3948,14 +3952,19 @@ Macro "Performance Measures Reports" (Args)
           NewID: "TAZ",
           Dimension: "Row"
         })
-      
+        mtx.SetRowIndex(geo)
         tripmtx = {MatrixFile: mtx_file, Matrix: corename, RowIndex: geo}
-      end
 
-      //Set skim file
-      if position(corename, "am") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
-        else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
-      skim_mtx = CreateObject("Matrix", skim_mtx_file)
+        skim_mtx.AddIndex({
+            IndexName: geo,
+            ViewName: se.GetView(),
+            Filter: query,
+            OriginalID: "TAZ",
+            NewID: "TAZ",
+            Dimension: "Row"
+          })
+        skim_mtx.SetRowIndex(geo)
+      end
       skim_coreD = skim_mtx.GetCore("Length (Skim)")
       skim_coreT = skim_mtx.GetCore("CongTime")
 
