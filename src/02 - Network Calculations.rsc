@@ -1064,6 +1064,7 @@ endmacro
 Macro "Create Route Networks" (Args)
 
     link_dbd = Args.Links
+    taz_dbd = Args.TAZs
     rts_file = Args.Routes
     output_dir = Args.[Output Folder] + "/networks"
     periods = RunMacro("Get Unconverged Periods", Args)
@@ -1075,6 +1076,17 @@ Macro "Create Route Networks" (Args)
     // creating the scenario. This makes sure it 'just works'.
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     TagRouteStopsWithNode(rlyr,,"Node_ID",.2)
+    
+    // Add MPO and County
+    {tlyr} = GetDBLayers(taz_dbd)
+    tlyr = AddLayer(map, tlyr, taz_dbd, tlyr)
+    a_fields =  {
+      {"MPO", "Character", 10, ,,,, "The MPO this link is located in"},
+      {"County", "Character", 10, ,,,, "The county this link is located in"}
+    }
+    RunMacro("Add Fields", {view: slyr, a_fields: a_fields})
+    TagLayer("Value", slyr + "|", slyr + ".MPO", tlyr + "|", tlyr + ".MPO")
+    TagLayer("Value", slyr + "|", slyr + ".County", tlyr + "|", tlyr + ".County")
     CloseMap(map)
 
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)

@@ -3821,7 +3821,11 @@ Macro "Performance Measures Reports" (Args)
   tbl.SerMile_PM = if tbl.PMHeadway >0 then 3*60/tbl.PMHeadway*tbl.len else 0
   tbl.SerMile_NT = if tbl.NTHeadway >0 then 5.75*60/tbl.NTHeadway*tbl.len else 0
   tbl.ServiceMile = tbl.SerMile_AM + tbl.SerMile_MD + tbl.SerMile_PM + tbl.SerMile_NT
-  tbl.HFServiceMile = if tbl.AMHeadway<=15 and tbl.MDHeadway<=15 and tbl.PMHeadway<=15 and tbl.NTHeadway<=15 then tbl.ServiceMile else 0
+  v_HFSerMile_AM = if tbl.AMHeadway >0 and tbl.AMHeadway<=15 then tbl.SerMile_AM else 0
+  v_HFSerMile_MD = if tbl.MDHeadway >0 and tbl.MDHeadway<=15 then tbl.SerMile_MD else 0
+  v_HFSerMile_PM = if tbl.PMHeadway >0 and tbl.PMHeadway<=15 then tbl.SerMile_PM else 0
+  v_HFSerMile_NT = if tbl.NTHeadway >0 and tbl.NTHeadway<=15 then tbl.SerMile_NT else 0
+  tbl.HFServiceMile = v_HFSerMile_AM + v_HFSerMile_MD + v_HFSerMile_PM + v_HFSerMile_NT
   
   group_fields = {"Agency", "Mode"}
   for group_field in group_fields do
@@ -3929,6 +3933,10 @@ Macro "Performance Measures Reports" (Args)
     writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     mtx = CreateObject("Matrix", mtx_file)
+    if position(corename, "AM") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
+        else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
+    skim_mtx = CreateObject("Matrix", skim_mtx_file)
+
     for geo in geo_list do
       //Set index			
       if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
@@ -3944,14 +3952,19 @@ Macro "Performance Measures Reports" (Args)
           NewID: "TAZ",
           Dimension: "Row"
         })
-      
+        mtx.SetRowIndex(geo)
         tripmtx = {MatrixFile: mtx_file, Matrix: corename, RowIndex: geo}
-      end
 
-      //Set skim file
-      if position(corename, "am") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
-        else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
-      skim_mtx = CreateObject("Matrix", skim_mtx_file)
+        skim_mtx.AddIndex({
+            IndexName: geo,
+            ViewName: se.GetView(),
+            Filter: query,
+            OriginalID: "TAZ",
+            NewID: "TAZ",
+            Dimension: "Row"
+          })
+        skim_mtx.SetRowIndex(geo)
+      end
       skim_coreD = skim_mtx.GetCore("Length (Skim)")
       skim_coreT = skim_mtx.GetCore("CongTime")
 
