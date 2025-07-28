@@ -1,5 +1,5 @@
 master_links
-605
+605,codepage=65001
 "ID",I,1,4,0,10,0,,"","",,"Sum",
 "RoadName",C,5,32,0,32,0,,"","",,"Copy",
 "AltName",C,37,32,0,32,0,,"","",,"Copy",
