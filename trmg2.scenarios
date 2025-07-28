@@ -19,6 +19,6 @@ EndScenario
 Scenario "2055\\2055_EC"
     
     [Scenario Folder] = "%Scenarios Folder%\\2055_EC"
-    [Master SE] = "%Master Folder%\\sedata\\se_2055_EC.bin"
+    [Master SE] = "%Master Folder%\\sedata\\se_2055_Preferred.bin"
 EndScenario
     
