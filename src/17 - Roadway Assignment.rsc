@@ -193,7 +193,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 Demand: "sov",
                 PCE: 1,
                 VOI: voi,
-                LinkTollField: "TollCostSOV"
+                LinkTollField: "TollCostSOV" + "_" + period
             }
             if hov_exists then sov_opts = sov_opts + {ExclusionFilter: "HOV <> 'None'"}
             o.AddClass(sov_opts)
@@ -202,21 +202,21 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 Demand: "hov2",
                 PCE: 1,
                 VOI: voi,
-                LinkTollField: "TollCostHOV"
+                LinkTollField: "TollCostHOV" + "_" + period
             })
             // hov3
             o.AddClass({
                 Demand: "hov3",
                 PCE: 1,
                 VOI: voi,
-                LinkTollField: "TollCostHOV"
+                LinkTollField: "TollCostHOV" + "_" + period
             })
             // CV
             cv_opts = {
                 Demand: "CV",
                 PCE: 1,
                 VOI: voi,
-                LinkTollField: "TollCostSOV"
+                LinkTollField: "TollCostSOV" + "_" + period
             }
             if hov_exists then cv_opts = cv_opts + {ExclusionFilter: "HOV <> 'None'"}
             o.AddClass(cv_opts)
@@ -226,7 +226,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 Demand: "SUT",
                 PCE: 1.5,
                 VOI: voi,
-                LinkTollField: "TollCostSUT"
+                LinkTollField: "TollCostSUT" + "_" + period
             }
             if hov_exists then sut_opts = sut_opts + {ExclusionFilter: "HOV <> 'None'"}
             o.AddClass(sut_opts)
@@ -236,7 +236,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
                 Demand: "MUT",
                 PCE: 2.5,
                 VOI: voi,
-                LinkTollField: "TollCostMUT"
+                LinkTollField: "TollCostMUT" + "_" + period
             }
             if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
             o.AddClass(mut_opts)

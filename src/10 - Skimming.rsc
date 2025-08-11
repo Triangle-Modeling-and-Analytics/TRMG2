@@ -97,7 +97,7 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
             obj.Destinations = "Centroid = 1"
             obj.Minimize = "CongTime"
             obj.AddSkimField({"Length", "All"})
-            toll_field = "TollCost" + Upper(mode)
+            toll_field = "TollCost" + Upper(mode) + "_" + period
             obj.AddSkimField({toll_field, "All"})
             out_file = out_dir + "/skim_" + mode + "_" + period + ".mtx"
             if OtherOpts.out_file <> null then out_file = OtherOpts.out_file
@@ -128,6 +128,9 @@ Macro "Create Roadway Skims" (Args, OtherOpts)
             // Auto pay fare
             m.AddCores({"auto_pay_fare"})
             m.auto_pay_fare := 4 + .7 * m.[Length (Skim)] + .25 * m.CongTime
+
+            //Rename tollcost core
+            m.RenameCores({CurrentNames: {"TollCost" + Upper(mode) + "_" + period + " (Skim)"}, NewNames:{"TollCost" + Upper(mode) + " (Skim)"}})
         end
     end
 endmacro

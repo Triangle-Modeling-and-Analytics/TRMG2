@@ -52,6 +52,7 @@
         Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        Args.TollProfile = { "Type":"File" , "Value":"%Input Folder%\\networks\\toll_profile_factors.csv", "Description":"Toll profile time of day factors." }  
         
     Section = "Network Calculations|Transit"
         

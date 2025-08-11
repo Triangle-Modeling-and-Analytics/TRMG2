@@ -717,14 +717,27 @@ Macro "Other Attributes" (Args)
     trans_ratio_mut = Args.TransponderRatioMUT
     se_file = Args.SE
     taz_file = Args.TAZs
+    toll_factor_file = Args.TollProfile
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
-        {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_AM", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_AM", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_AM", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_AM", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_MD", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_MD", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_MD", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_MD", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_PM", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_PM", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_PM", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_PM", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_NT", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_NT", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_NT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_NT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -750,6 +763,16 @@ Macro "Other Attributes" (Args)
     // Open parameter table
     ffs_tbl = OpenTable("ffs", "CSV", {spd_file, })
 
+    // Fill toll profile factors to the sov toll cost fields, temporarily
+    fac_vw = OpenTable("toll", "CSV", {toll_factor_file,})
+    jv = JoinViews("jv", llyr + ".TollProfile", fac_vw + ".toll_profile", )
+    for period in periods do
+            v_factor = GetDataVector(jv + "|", fac_vw + "." + period, )
+            SetDataVector(jv + "|", llyr + ".TollCostSOV_" + period, v_factor, )
+        end
+    CloseView(jv)
+    CloseView(fac_vw)
+
     // Join based on AreaType and HCMType
     jv = JoinViewsMulti(
         "jv",
@@ -758,7 +781,7 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollfac_am, v_tollfac_md, v_tollfac_pm, v_tollfac_nt,v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
@@ -767,6 +790,10 @@ Macro "Other Attributes" (Args)
             llyr + ".WalkSpeed",
             llyr + ".BikeSpeed",
             llyr + ".TollType",
+            llyr + ".TollCostSOV_AM",
+            llyr + ".TollCostSOV_MD",
+            llyr + ".TollCostSOV_PM",
+            llyr + ".TollCostSOV_NT",
             llyr + ".TollCostT",
             llyr + ".TollCostNT",
             ffs_tbl + ".ModifyPosted",
@@ -791,6 +818,25 @@ Macro "Other Attributes" (Args)
     v_tollcost_mut = v_tollcost_t * trans_ratio_mut + v_tollcost_nt * (1 - trans_ratio_mut)
     v_tollcost_mut = v_tollcost_mut * 4
     v_tollcost_mut = if v_tolltype = "Free" then 0 else v_tollcost_mut
+    
+    // Determine toll cost using the tod factors stored in the toll cost field
+    v_tollcost_auto_am = v_tollcost_auto * v_tollfac_am
+    v_tollcost_auto_md = v_tollcost_auto * v_tollfac_md
+    v_tollcost_auto_pm = v_tollcost_auto * v_tollfac_pm
+    v_tollcost_auto_nt = v_tollcost_auto * v_tollfac_nt
+    v_tollcost_hov_am = v_tollcost_hov * v_tollfac_am
+    v_tollcost_hov_md = v_tollcost_hov * v_tollfac_md
+    v_tollcost_hov_pm = v_tollcost_hov * v_tollfac_pm
+    v_tollcost_hov_nt = v_tollcost_hov * v_tollfac_nt
+    v_tollcost_sut_am = v_tollcost_sut * v_tollfac_am
+    v_tollcost_sut_md = v_tollcost_sut * v_tollfac_md
+    v_tollcost_sut_pm = v_tollcost_sut * v_tollfac_pm
+    v_tollcost_sut_nt = v_tollcost_sut * v_tollfac_nt
+    v_tollcost_mut_am = v_tollcost_mut * v_tollfac_am
+    v_tollcost_mut_md = v_tollcost_mut * v_tollfac_md
+    v_tollcost_mut_pm = v_tollcost_mut * v_tollfac_pm
+    v_tollcost_mut_nt = v_tollcost_mut * v_tollfac_nt
+    
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -798,10 +844,22 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
-    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
-    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hov, )
-    SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
-    SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_AM", v_tollcost_auto_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_AM", v_tollcost_hov_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_AM", v_tollcost_sut_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_AM", v_tollcost_mut_am, )
+        SetDataVector(jv + "|", llyr + ".TollCostSOV_PM", v_tollcost_auto_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_PM", v_tollcost_hov_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_PM", v_tollcost_sut_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_PM", v_tollcost_mut_pm, )
+        SetDataVector(jv + "|", llyr + ".TollCostSOV_MD", v_tollcost_auto_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_MD", v_tollcost_hov_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_MD", v_tollcost_sut_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_MD", v_tollcost_mut_md, )
+        SetDataVector(jv + "|", llyr + ".TollCostSOV_NT", v_tollcost_auto_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_NT", v_tollcost_hov_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_NT", v_tollcost_sut_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_NT", v_tollcost_mut_nt, )
     
     // Initial congested time
     // The initial congested time table contains a field which holds converged congested times
@@ -984,10 +1042,22 @@ Macro "Create Link Networks" (Args)
             o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField: false})
             o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField: false, DefaultValue: 0.15})
             o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField: false, DefaultValue: 4.})
-            o.AddLinkField({Name: "TollCostSOV", Field: "TollCostSOV", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostHOV", Field: "TollCostHOV", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV_AM", Field: "TollCostSOV_AM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV_AM", Field: "TollCostHOV_AM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT_AM", Field: "TollCostSUT_AM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT_AM", Field: "TollCostMUT_AM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV_MD", Field: "TollCostSOV_MD", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV_MD", Field: "TollCostHOV_MD", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT_MD", Field: "TollCostSUT_MD", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT_MD", Field: "TollCostMUT_MD", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV_PM", Field: "TollCostSOV_PM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV_PM", Field: "TollCostHOV_PM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT_PM", Field: "TollCostSUT_PM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT_PM", Field: "TollCostMUT_PM", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV_NT", Field: "TollCostSOV_NT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV_NT", Field: "TollCostHOV_NT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT_NT", Field: "TollCostSUT_NT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT_NT", Field: "TollCostMUT_NT", IsTimeField: false})
             if GetFileInfo(turn_prohibtions) <> null then o.TurnProhibitionTable = turn_prohibtions
             o.OutNetworkName = net_file
             o.Run()
