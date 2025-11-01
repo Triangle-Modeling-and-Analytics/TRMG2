@@ -27,7 +27,7 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-    
+
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -2814,7 +2814,7 @@ Macro "Aggregate Transit Flow by Route" (Args)
     join.("TransitFlow_" + transit_mode) = join.sum_TransitFlow
     join = null
   end
-  out_tbl.Export({FileName: output_dir + "/transitflow_byfromstop.bin"})
+  out_tbl.Export({FileName: output_dir + "/transitflow_byfromstop.csv"})
 endmacro
 
 Macro "Validation Reports" (Args)
@@ -3862,6 +3862,21 @@ Macro "Performance Measures Reports" (Args)
     out_tbl.Total = 0
     out_tbl.Export({FileName: pm_dir + "/5.4 RailServiceMile.csv"})
   end
+
+  //5.6 Passenger miles summaries
+  passmile_file = Args.[Output Folder] + "/_summaries/transit/passenger_miles_and_hours.csv"
+  passmile_tbl = CreateObject("Table", passmile_file)
+  
+  group_fields = {"Agency", "Mode_abbr"}
+  for group_field in group_fields do
+    out_file = pm_dir + "/5.6 PassengerMile_by" + group_field + ".csv"
+    agg = passmile_tbl.Aggregate({
+        GroupBy: group_field,
+        FieldStats: {pass_hours: "sum",
+                     pass_miles: "sum"}
+    })
+    agg.Export({FileName: out_file})
+  end
   
   //7.1-7.8 Average trip length for MTP reporting
   // Create a matrix to store result mtx
@@ -3980,16 +3995,59 @@ Macro "Performance Measures Reports" (Args)
     mtx = null
 	end
 
+  // transit
+  // Create no-wait-total-time skim cores
+  periods = RunMacro("Get Unconverged Periods", Args)
+  TransModeTable = Args.TransModeTable
+  access_modes = Args.access_modes
+  skim_dir = Args.[Output Folder] + "/skims/transit"
+
+  transit_modes = RunMacro("Get Transit Modes", TransModeTable)
+  transit_modes = {"all"} + transit_modes
+
+  for period in periods do
+    for mode in transit_modes do
+
+      if mode = "all" 
+        then access_mode_subset = {"w"}
+        else access_mode_subset = access_modes
+
+      for access in access_mode_subset do
+        skim_file = skim_dir + "/skim_" + period + "_" + access + "_" + mode + ".mtx"
+        skim_mtx = CreateObject("Matrix", skim_file)
+        skim_mtx.AddCores({"No Wait Total Time"})
+        
+        result_core = skim_mtx.GetCore("No Wait Total Time")
+        ivtt_core = skim_mtx.GetCore("In-Vehicle Time")
+        twt_core = skim_mtx.GetCore("Transfer Walk Time")
+        awt_core = skim_mtx.GetCore("Access Walk Time")
+        ewt_core = skim_mtx.GetCore("Egress Walk Time")
+        adt_core = skim_mtx.GetCore("Access Drive Time")
+        dwt_core = skim_mtx.GetCore("Dwelling Time") 
+
+        result_core := nz(ivtt_core) + nz(twt_core) + nz(awt_core) + nz(ewt_core) + nz(adt_core) + nz(dwt_core)
+      end
+    end
+  end
+  result_core = null
+  ivtt_core = null
+  twt_core = null
+  awt_core = null
+  ewt_core = null
+  adt_core = null
+  dwt_core = null
+  skim_mtx = null
+
   //Set input path for transit
   skim_dir = Args.[Output Folder] + "\\skims\\transit"
   mtx_list = {{"total", "In-Vehicle Time", "AM", "7.5 Average transit IVTT Time(AM) - All purposes.csv"}, 
                 {"total", "In-Vehicle Time", "PM", "7.6 Average transit IVTT Time(PM) - All purposes.csv"}, 
                 {"total", "In-Vehicle Distance", "AM", "7.5 Average transit IVTT Distance(AM) - All purposes.csv"}, 
                 {"total", "In-Vehicle Distance", "PM", "7.6 Average transit IVTT Distance(PM) - All purposes.csv"},
-                {"total", "Total Time", "AM", "7.7 Average transit total time (AM) - All purposes.csv"}, 
-                {"total", "Total Time", "PM", "7.8 Average transit total time (PM) - All purposes.csv"}, 
-                {"hbw", "Total Time", "AM", "7.9 Average transit total time (AM) - HBW trips.csv"}, 
-                {"hbw", "Total Time", "PM", "7.10 Average transit total time (PM) - HBW trips.csv"}} 
+                {"total", "No Wait Total Time", "AM", "7.7 Average transit total time (AM) - All purposes.csv"}, 
+                {"total", "No Wait Total Time", "PM", "7.8 Average transit total time (PM) - All purposes.csv"}, 
+                {"hbw", "No Wait Total Time", "AM", "7.9 Average transit total time (AM) - HBW trips.csv"}, 
+                {"hbw", "No Wait Total Time", "PM", "7.10 Average transit total time (PM) - HBW trips.csv"}} 
 
   //Run TLD for transit
   for i = 1 to mtx_list.length do
@@ -4005,6 +4063,7 @@ Macro "Performance Measures Reports" (Args)
     // calculate weighted total
     mtx = CreateObject("Matrix", mtx_file)
     corenames = mtx.GetCoreNames()
+    transit_modes = RunMacro("Get Transit Modes", TransModeTable)
     if corenames.position("weightedtotal") = 0 then mtx.AddCores({"weightedtotal", "totaltrips"})
     if trip_purp = "total" then new_transit_modes = transit_modes + {"all"} else new_transit_modes = transit_modes
 
