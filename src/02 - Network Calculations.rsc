@@ -722,6 +722,10 @@ Macro "Other Attributes" (Args)
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
+        {"TollTODFactor_AM", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_MD", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_PM", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_NT", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
         {"TollCostSOV_AM", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
         {"TollCostHOV_AM", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
         {"TollCostSUT_AM", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
@@ -768,7 +772,7 @@ Macro "Other Attributes" (Args)
     jv = JoinViews("jv", llyr + ".TollProfile", fac_vw + ".toll_profile", )
     for period in periods do
             v_factor = GetDataVector(jv + "|", fac_vw + "." + period, )
-            SetDataVector(jv + "|", llyr + ".TollCostSOV_" + period, v_factor, )
+            SetDataVector(jv + "|", llyr + ".TollTODFactor_" + period, v_factor, )
         end
     CloseView(jv)
     CloseView(fac_vw)
@@ -790,10 +794,10 @@ Macro "Other Attributes" (Args)
             llyr + ".WalkSpeed",
             llyr + ".BikeSpeed",
             llyr + ".TollType",
-            llyr + ".TollCostSOV_AM",
-            llyr + ".TollCostSOV_MD",
-            llyr + ".TollCostSOV_PM",
-            llyr + ".TollCostSOV_NT",
+            llyr + ".TollTODFactor_AM",
+            llyr + ".TollTODFactor_MD",
+            llyr + ".TollTODFactor_PM",
+            llyr + ".TollTODFactor_NT",
             llyr + ".TollCostT",
             llyr + ".TollCostNT",
             ffs_tbl + ".ModifyPosted",
