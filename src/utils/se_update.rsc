@@ -9,7 +9,7 @@ total.
 Macro "Open SEUpdate Dbox" (Args)
 	RunDbox("SEUpdate", Args)
 endmacro
-dBox "SEUpdate" (Args) location: x, y, , 15
+dBox "SEUpdate" (Args) location: x, y, , 17
     Title: "SE Data Update Tool" toolbox NoKeyBoard
 
     close do
@@ -17,7 +17,7 @@ dBox "SEUpdate" (Args) location: x, y, , 15
     enditem
 
     init do
-        static x, y, initial_dir, taz_dir, orig_se, new_se, base_se, taz_dbd
+        static x, y, initial_dir, taz_dir, orig_se, new_se, base_se, taz_dbd, factor
         if x = null then x = -3
         if taz_dbd = null then taz_dbd = Args.[Master TAZs]
     enditem
@@ -101,8 +101,11 @@ dBox "SEUpdate" (Args) location: x, y, , 15
         )
     enditem
 
+    // Adjustment Factor
+    Edit Int 30, after, 5 Prompt: "Adjustment Factor (between 0-1):" Variable: factor
+
     // Quit Button
-    button 1, 13, 10 Prompt:"Quit" do
+    button 1, 15, 10 Prompt:"Quit" do
         Return(1)
     enditem
 
@@ -151,6 +154,17 @@ Inputs
         * String
         * The TAZ file. This is needed because county info is not stored on
           the se data table. Either the dbd or bin file can be provided.
+    * Factor
+        * Real
+        * A factor of 0 will revert all TAZs back to their base2020 SE number,
+          whereas a factor of 1 will keep all the growth in each TAZ in addition 
+          to all the growth in the new adjusted TAZs. (Create a dialog box to 
+          allow the user to enter a factor from 0-1 if there are more than or 
+          the same number of new HHs or employees than there is growth between 
+          the ‘Base SE to Original SE growth’. Then when the tool is run, these 
+          categories would be flagged by the tool with the user provided with 
+          how much over the ‘New SE to Original SE’ data is over the ‘Base SE 
+          to Original’ data.
           
 */
 
@@ -160,6 +174,7 @@ Macro "SEUpdate" (MacroOpts)
     new_se = MacroOpts.NewSE
     base_se = MacroOpts.BaseSE
     taz = MacroOpts.TAZ
+    factor = MacroOpts.factor
 
     if TypeOf(orig_se) = "null" then Throw("SEUpdate: 'OrigSE' is null.")
     if TypeOf(orig_se) <> "string" then Throw("SEUpdate: 'OrigSE' must be a string.")
@@ -181,7 +196,13 @@ Macro "SEUpdate" (MacroOpts)
 
     taz = CreateObject("Table", taz)
     orig = CreateObject("Table", orig_se)
-    new = CreateObject("Table", new_se)
+    
+    // Save a copy of the new se data
+    {drive, folder, name, } = SplitPath(new_se)
+    new_se_copy = drive + folder + name + "_update.bin"
+    se = OpenTable("se", "FFB", {new_se})
+    ExportView(se + "|", "FFB", new_se_copy, ,)
+    new = CreateObject("Table", new_se_copy)
     new.AddField("growth")
     new.AddField("modified")
     new.AddField("diff")
@@ -231,9 +252,20 @@ Macro "SEUpdate" (MacroOpts)
         })
         county_diff = join.Aggregate({
             GroupBy: "County",
-            FieldStats: {diff: {"sum"}}
+            FieldStats: {diff: "sum", growth: "sum"}
         })
-        
+        v_diff_county = county_diff.("sum_diff")
+        v_growth_county = county_diff.("sum_growth")
+        v_violations = if v_diff_county > v_growth_county then 1 else 0
+
+        if v_violations .sum() > 0 then do
+            ShowMessage(
+            "Warning: For field " + field + ", the adjustment in the new se data" + 
+            " is greater than the growth allowed in the original se data." + 
+            " After this run, please update the adjustment factor so the tool" +
+            "can update SE data correctly.")
+        end
+
         // For each non-modified zone, determine its % of its county
         join.CreateSet({SetName: "unmodified", Filter: "modified = 0"})
         join.ChangeSet("unmodified")
@@ -244,7 +276,7 @@ Macro "SEUpdate" (MacroOpts)
         join2 = join.Join({
             Table: agg,
             LeftFields: "County",
-            RightFields: "County"
+             RightFields: "County"
         })
         join2.unmod_cnt_total = join2.("sum_growth")
         join2 = null
@@ -262,10 +294,24 @@ Macro "SEUpdate" (MacroOpts)
             LeftFields: "County",
             RightFields: "County"
         })
-        join2.(field) = join2.(field) - join2.sum_diff * join2.pct
-        join2 = null
-        join = null
+        
+        if v_violations = 0 then do
+            join2.(field) = join2.(field) - join2.sum_diff * join2.pct
+            join2 = null
+            join = null
+        end else do
+            join3 = join2.Join({
+                Table: base,
+                LeftFields: "TAZ",
+                RightFields: "TAZ"
+            })
+            join3.(field) = join3.(base_vw + "." + field) + join3.growth * factor
+            join3 = null
+            join2 = null
+            join = null
+        end
     end
     orig_and_new = null
     new.DropFields({FieldNames: {"growth", "modified", "diff", "unmod_cnt_total", "pct"}})
+    
 endmacro
