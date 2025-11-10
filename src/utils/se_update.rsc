@@ -133,7 +133,8 @@ dBox "SEUpdate" (Args) location: x, y, , 17
             OrigSE: orig_se,
             NewSE: new_se,
             BaseSE: base_se,
-            TAZ: taz_dbd
+            TAZ: taz_dbd,
+            factor: factor
         })
         ShowMessage("SE Data update complete.")
     enditem
@@ -295,7 +296,7 @@ Macro "SEUpdate" (MacroOpts)
             RightFields: "County"
         })
         
-        if v_violations = 0 then do
+        if v_violations.sum() = 0 then do
             join2.(field) = join2.(field) - join2.sum_diff * join2.pct
             join2 = null
             join = null
@@ -305,7 +306,7 @@ Macro "SEUpdate" (MacroOpts)
                 LeftFields: "TAZ",
                 RightFields: "TAZ"
             })
-            join3.(field) = join3.(base_vw + "." + field) + join3.growth * factor
+            join3.(new_vw + "." + field) = join3.(base_vw + "." + field) + join3.growth * factor
             join3 = null
             join2 = null
             join = null
