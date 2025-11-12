@@ -102,7 +102,7 @@ dBox "SEUpdate" (Args) location: x, y, , 17
     enditem
 
     // Adjustment Factor
-    Edit Int 30, after, 5 Prompt: "Adjustment Factor (between 0-1):" Variable: factor
+    Edit Real 30, after, 5 Prompt: "Adjustment Factor (between 0-1):" Variable: factor
 
     // Quit Button
     button 1, 15, 10 Prompt:"Quit" do
@@ -306,7 +306,7 @@ Macro "SEUpdate" (MacroOpts)
                 LeftFields: "TAZ",
                 RightFields: "TAZ"
             })
-            join3.(new_vw + "." + field) = join3.(base_vw + "." + field) + join3.growth * factor
+            join3.(new_vw + "." + field) = if join3.modified = 1 then join3.(new_vw + "." + field) else join3.(base_vw + "." + field) + join3.growth * factor 
             join3 = null
             join2 = null
             join = null
