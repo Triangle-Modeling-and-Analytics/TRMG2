@@ -839,7 +839,7 @@ Macro "Isochrones" (Args)
   net_dir = Args.[Output Folder] + "\\networks"
   exclusion_file = Args.[Model Folder] + "\\other\\iso_exclusion\\IsochroneExclusionAreas.cdf"
   
-  periods = {"AM"}
+  periods = {"AM", "PM"}
   dirs = {"outbound", "inbound"}
   nodes = {
     108108, // Raleigh
@@ -857,6 +857,14 @@ Macro "Isochrones" (Args)
     for i = 1 to nodes.length do
       node_id = nodes[i]
       name = names[i]
+
+      if period = "AM" then do
+        interval = 10
+        bandmax = 30
+      end else do
+        interval = 20
+        bandmax = 80
+      end
 
       for dir in dirs do
         map_file = map_dir + "\\iso_" + name + "_" + dir + "_" + period + ".map"
@@ -877,8 +885,8 @@ Macro "Isochrones" (Args)
         o.NetworkName = net_file
         o.RoutingLayer = GetLayer()
         o.Minimize = "CongTime"
-        o.Interval = 10
-        o.BandMax  = 30
+        o.Interval = interval
+        o.BandMax  = bandmax
         o.CumulativeBands = "Yes"
         o.InboundBands = if dir = "inbound"
           then true
@@ -3181,13 +3189,9 @@ Macro "Performance Measures Reports" (Args)
       trip_dir = out_dir + "/university/mode"
       if group <> "W_HB_W" and group <> "HB" then {result, result_mtx} = RunMacro("Summarize HB Univ RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
 
-      // NHB trips (rowsums)
-      trip_bin = out_dir + "/resident/nhb/dc/NHBTripsForDC.bin"
-      if group <> "W_HB_W" and group <> "HB" then result = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_bin: trip_bin, result: result})
-
-      // NHB trips (matrix)
+      // NHB trips
       trip_dir = out_dir + "/resident/nhb/dc/trip_matrices_percopy"
-      if group <> "W_HB_W" and group <> "HB" then result_mtx = RunMacro("Summarize NHB Matrix", {equiv: equiv, group: group, trip_dir: trip_dir, result_mtx: result_mtx})
+      if group <> "W_HB_W" and group <> "HB" then {result, result_mtx} = RunMacro("Summarize NHB RowSums", {equiv: equiv, group: group, trip_dir: trip_dir, result: result, result_mtx: result_mtx})
       
     end
         
@@ -3231,7 +3235,7 @@ Macro "Performance Measures Reports" (Args)
     Query: "HCMType <> 'CC'"
   })
   tbl = hwy_tbl.Export()
-
+  /*
   //1.1 Daily VMT 1.2 Daily VHT
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "VMT_and_VHT", Type: "String"},
@@ -3920,7 +3924,7 @@ Macro "Performance Measures Reports" (Args)
       trip_dir = out_dir + "/university/mode"
       if group <> "hbw" then result_mtx = RunMacro("Summarize HB Univ Trips for TLD", {equiv: equiv, group: group, tod: tod, trip_dir: trip_dir, result_mtx: result_mtx})
 
-      // NHB trips (matrix)
+      // NHB trips
       trip_dir = out_dir + "/resident/nhb/dc/trip_matrices"
       if group <> "hbw" then result_mtx = RunMacro("Summarize NHB Trips for TLD", {equiv: equiv, group: group, tod: tod, trip_dir: trip_dir, result_mtx: result_mtx})
     end
@@ -3997,7 +4001,6 @@ Macro "Performance Measures Reports" (Args)
 
   // transit
   // Create no-wait-total-time skim cores
-  periods = RunMacro("Get Unconverged Periods", Args)
   TransModeTable = Args.TransModeTable
   access_modes = Args.access_modes
   skim_dir = Args.[Output Folder] + "/skims/transit"
@@ -4116,7 +4119,7 @@ Macro "Performance Measures Reports" (Args)
 	end
 
   se = null
-
+*/
 endmacro
 
 Macro "Summarize HB Univ RowSums" (MacroOpts)
@@ -4189,36 +4192,10 @@ Macro "Summarize HB NM RowSums" (MacroOpts)
 endmacro
 
 Macro "Summarize NHB RowSums" (MacroOpts)
-  
-  equiv = MacroOpts.equiv
-  trip_bin = MacroOpts.trip_bin
-  group = MacroOpts.group
-  result = MacroOpts.result
-
-  nhb = CreateObject("Table", trip_bin)
-  flds = nhb.GetFieldNames()
-  for fld in flds do
-    parts = ParseString(fld, "_")
-    mode = "default"
-    if ArrayLength(parts) = 3 then mode = parts[2] else if ArrayLength(parts) = 4 then mode = parts[3] else if ArrayLength(parts) = 5 then mode = "auto_pay"// set mode
-    if equiv.(mode) = null then continue // if fld is not trip fields
-    if group = "PM" and right(fld, 2) <> "PM" then continue // if group = PM then only add PM flds
-    
-    out_name = equiv.(mode) + "_" + group
-    v = nhb.(fld)
-    v.rowbased = "false"
-    if TypeOf(result.(out_name)) = "null"
-        then result.(out_name) = nz(v)
-        else result.(out_name) = result.(out_name) + nz(v)
-  end
-  return(result)
-
-endmacro
-
-Macro "Summarize NHB Matrix" (MacroOpts)
   equiv = MacroOpts.equiv
   trip_dir = MacroOpts.trip_dir
   group = MacroOpts.group
+  result = MacroOpts.result
   result_mtx = MacroOpts.result_mtx
 
   mtx_files = RunMacro("Catalog Files", {dir: trip_dir, ext: "mtx"})
@@ -4235,17 +4212,25 @@ Macro "Summarize NHB Matrix" (MacroOpts)
 
     // read matrix
     mtx = CreateObject("Matrix", mtx_file)
+
+    // Calculate row sum and add to result
+    v = mtx.GetVector({Core: "Total", Marginal: "Row Sum"})
+    if TypeOf(result.(out_name)) = "null"
+        then result.(out_name) = nz(v)
+        else result.(out_name) = result.(out_name) + nz(v)
     
-    add_core = mtx.GetCore("total")
-    if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
-      else if group = "PM" then result_core = result_mtx.GetCore("PM_total")
-    if result_core <> null then result_core := nz(add_core) + nz(result_core)
-    
-    add_core = null
-    result_core = null
+    if equiv.(mode) <> "nm" then do  //only add motorized trip to the matrix
+      add_core = mtx.GetCore("total")
+      if group = "Daily" then result_core = result_mtx.GetCore("daily_total")
+        else if group = "PM" then result_core = result_mtx.GetCore("PM_total")
+      if result_core <> null then result_core := nz(add_core) + nz(result_core)
+      
+      add_core = null
+      result_core = null
+    end
   end
 
-  return(result_mtx)
+  return({result, result_mtx})
 endmacro
 
 Macro "Summarize TLD Length" (MacroOpts)
