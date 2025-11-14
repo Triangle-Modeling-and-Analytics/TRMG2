@@ -3235,7 +3235,7 @@ Macro "Performance Measures Reports" (Args)
     Query: "HCMType <> 'CC'"
   })
   tbl = hwy_tbl.Export()
-  /*
+  
   //1.1 Daily VMT 1.2 Daily VHT
   out_tbl = CreateObject("Table", {Fields: {
       {FieldName: "VMT_and_VHT", Type: "String"},
@@ -4119,7 +4119,6 @@ Macro "Performance Measures Reports" (Args)
 	end
 
   se = null
-*/
 endmacro
 
 Macro "Summarize HB Univ RowSums" (MacroOpts)
