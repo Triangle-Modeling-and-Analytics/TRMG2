@@ -824,22 +824,22 @@ Macro "Other Attributes" (Args)
     v_tollcost_mut = if v_tolltype = "Free" then 0 else v_tollcost_mut
     
     // Determine toll cost using the tod factors stored in the toll cost field
-    v_tollcost_auto_am = v_tollcost_auto * v_tollfac_am
-    v_tollcost_auto_md = v_tollcost_auto * v_tollfac_md
-    v_tollcost_auto_pm = v_tollcost_auto * v_tollfac_pm
-    v_tollcost_auto_nt = v_tollcost_auto * v_tollfac_nt
-    v_tollcost_hov_am = v_tollcost_hov * v_tollfac_am
-    v_tollcost_hov_md = v_tollcost_hov * v_tollfac_md
-    v_tollcost_hov_pm = v_tollcost_hov * v_tollfac_pm
-    v_tollcost_hov_nt = v_tollcost_hov * v_tollfac_nt
-    v_tollcost_sut_am = v_tollcost_sut * v_tollfac_am
-    v_tollcost_sut_md = v_tollcost_sut * v_tollfac_md
-    v_tollcost_sut_pm = v_tollcost_sut * v_tollfac_pm
-    v_tollcost_sut_nt = v_tollcost_sut * v_tollfac_nt
-    v_tollcost_mut_am = v_tollcost_mut * v_tollfac_am
-    v_tollcost_mut_md = v_tollcost_mut * v_tollfac_md
-    v_tollcost_mut_pm = v_tollcost_mut * v_tollfac_pm
-    v_tollcost_mut_nt = v_tollcost_mut * v_tollfac_nt
+    v_tollcost_auto_am = nz(v_tollcost_auto * v_tollfac_am)
+    v_tollcost_auto_md = nz(v_tollcost_auto * v_tollfac_md)
+    v_tollcost_auto_pm = nz(v_tollcost_auto * v_tollfac_pm)
+    v_tollcost_auto_nt = nz(v_tollcost_auto * v_tollfac_nt)
+    v_tollcost_hov_am = nz(v_tollcost_hov * v_tollfac_am)
+    v_tollcost_hov_md = nz(v_tollcost_hov * v_tollfac_md)
+    v_tollcost_hov_pm = nz(v_tollcost_hov * v_tollfac_pm)
+    v_tollcost_hov_nt = nz(v_tollcost_hov * v_tollfac_nt)
+    v_tollcost_sut_am = nz(v_tollcost_sut * v_tollfac_am)
+    v_tollcost_sut_md = nz(v_tollcost_sut * v_tollfac_md)
+    v_tollcost_sut_pm = nz(v_tollcost_sut * v_tollfac_pm)
+    v_tollcost_sut_nt = nz(v_tollcost_sut * v_tollfac_nt)
+    v_tollcost_mut_am = nz(v_tollcost_mut * v_tollfac_am)
+    v_tollcost_mut_md = nz(v_tollcost_mut * v_tollfac_md)
+    v_tollcost_mut_pm = nz(v_tollcost_mut * v_tollfac_pm)
+    v_tollcost_mut_nt = nz(v_tollcost_mut * v_tollfac_nt)
     
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
@@ -852,15 +852,15 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".TollCostHOV_AM", v_tollcost_hov_am, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT_AM", v_tollcost_sut_am, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT_AM", v_tollcost_mut_am, )
-        SetDataVector(jv + "|", llyr + ".TollCostSOV_PM", v_tollcost_auto_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_PM", v_tollcost_auto_pm, )
     SetDataVector(jv + "|", llyr + ".TollCostHOV_PM", v_tollcost_hov_pm, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT_PM", v_tollcost_sut_pm, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT_PM", v_tollcost_mut_pm, )
-        SetDataVector(jv + "|", llyr + ".TollCostSOV_MD", v_tollcost_auto_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_MD", v_tollcost_auto_md, )
     SetDataVector(jv + "|", llyr + ".TollCostHOV_MD", v_tollcost_hov_md, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT_MD", v_tollcost_sut_md, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT_MD", v_tollcost_mut_md, )
-        SetDataVector(jv + "|", llyr + ".TollCostSOV_NT", v_tollcost_auto_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_NT", v_tollcost_auto_nt, )
     SetDataVector(jv + "|", llyr + ".TollCostHOV_NT", v_tollcost_hov_nt, )
     SetDataVector(jv + "|", llyr + ".TollCostSUT_NT", v_tollcost_sut_nt, )
     SetDataVector(jv + "|", llyr + ".TollCostMUT_NT", v_tollcost_mut_nt, )
