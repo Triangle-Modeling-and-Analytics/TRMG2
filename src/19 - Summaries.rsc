@@ -858,13 +858,13 @@ Macro "Isochrones" (Args)
       node_id = nodes[i]
       name = names[i]
 
-      if period = "AM" then do
-        interval = 10
-        bandmax = 30
-      end else do
+      //if period = "AM" then do
         interval = 20
-        bandmax = 80
-      end
+        bandmax = 100
+      //end else do
+      //  interval = 20
+      //  bandmax = 100
+      //end
 
       for dir in dirs do
         map_file = map_dir + "\\iso_" + name + "_" + dir + "_" + period + ".map"
@@ -4026,9 +4026,12 @@ Macro "Performance Measures Reports" (Args)
         awt_core = skim_mtx.GetCore("Access Walk Time")
         ewt_core = skim_mtx.GetCore("Egress Walk Time")
         adt_core = skim_mtx.GetCore("Access Drive Time")
-        dwt_core = skim_mtx.GetCore("Dwelling Time") 
+        dwt_core = skim_mtx.GetCore("Dwelling Time")
+        tt_core = skim_mtx.GetCore("Total Time")
 
-        result_core := nz(ivtt_core) + nz(twt_core) + nz(awt_core) + nz(ewt_core) + nz(adt_core) + nz(dwt_core)
+        result_core := if tt_core = null
+                          then null
+                          else nz(ivtt_core) + nz(twt_core) + nz(awt_core) + nz(ewt_core) + nz(adt_core) + nz(dwt_core)
       end
     end
   end
