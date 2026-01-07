@@ -27,7 +27,6 @@ Macro "Calibration Reports" (Args)
 endmacro
 
 Macro "Other Reports" (Args)
-
     RunMacro("Summarize HB DC and MC", Args)
     RunMacro("Summarize NHB DC and MC", Args)
     RunMacro("Summarize NM", Args)
@@ -3936,22 +3935,26 @@ Macro "Performance Measures Reports" (Args)
   allperson_mtx_file = pm_dir + "/all_person_mototrips_forTLD.mtx"
   geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
   se = CreateObject("Table", se_file)
-  mtx_list = {{"auto_AM_total", "7.1 Average congested auto travel time (AM) - All purposes.csv"}, 
-                {"auto_PM_total", "7.2 Average congested auto travel time (PM) - All purposes.csv"}, 
-                {"auto_AM_hbw", "7.3 Average congested auto travel time (AM) - HBW trips.csv"}, 
-                {"auto_PM_hbw", "7.4 Average congested auto travel time (PM) - HBW trips.csv"}} 
+  mtx_list = {{"auto_AM_total", "median", "7.1 Median auto travel time (AM) - All purposes.csv"}, 
+                {"auto_PM_total", "average", "7.2 Average auto travel time (PM) - All purposes.csv"}, 
+                {"auto_AM_hbw", "average", "7.3 Average auto travel time (AM) - HBW trips.csv"}, 
+                {"auto_AM_hbw", "median", "7.4 Median auto travel time (AM) - HBW trips.csv"}} 
 
   //Run TLD for auto
   for i = 1 to mtx_list.length do
-    result_len = "Average Travel Distance"
-    result_time = "Average Travel Time"
+    result_len = "Travel Distance"
+    result_time = "Travel Time"
 	  mtx_file = allperson_mtx_file
     corename = mtx_list[i][1]
-    summary_file = pm_dir + "/" + mtx_list[i][2]
+    method = mtx_list[i][2]
+    summary_file = pm_dir + "/" + mtx_list[i][3]
     f = OpenFile(summary_file, "w")
     writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     mtx = CreateObject("Matrix", mtx_file)
+    corenames = mtx.GetCoreNames()
+    if corenames.position("weightedtotal") = 0 then mtx.AddCores({"weightedtotal", "totaltrips"})
+
     if position(corename, "AM") then skim_mtx_file = skim_dir + "/skim_hov_AM.mtx" 
         else skim_mtx_file = skim_dir + "/skim_hov_PM.mtx" 
     skim_mtx = CreateObject("Matrix", skim_mtx_file)
@@ -3984,14 +3987,34 @@ Macro "Performance Measures Reports" (Args)
           })
         skim_mtx.SetRowIndex(geo)
       end
+      //Get core with index built in
+      result_wttime = mtx.GetCore("weightedtotal")
+      trip_core = mtx.GetCore(corename)
       skim_coreD = skim_mtx.GetCore("Length (Skim)")
       skim_coreT = skim_mtx.GetCore("CongTime")
 
-      avg_length = RunMacro("Summarize TLD Length", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreD: skim_coreD})
-      avg_time = RunMacro("Summarize TLD Time", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreT: skim_coreT})
-      
-      result_len = result_len + ", " + r2s(avg_length)
-      result_time = result_time + ", " + r2s(avg_time)
+      if method = "average" then do
+        res_length = RunMacro("Summarize TLD Length", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreD: skim_coreD})
+        res_time = RunMacro("Summarize TLD Time", {mtx_file: mtx_file, tripmtx: tripmtx, skim_coreT: skim_coreT})
+        end
+      else do
+        result_wttime := nz(trip_core) * nz(skim_coreD)
+        v_weightedtotal = mtx.GetVector({"Core": "weightedtotal", Marginal: "Row Sum"})
+        v_totaltrips = mtx.GetVector({"Core": corename, Marginal: "Row Sum"})
+        v_res_td = v_weightedtotal / v_totaltrips
+        arr_res_td = ArrayExclude(V2A(v_res_td), {null}) // exclude null values for median calculation
+        res_length = Median(arr_res_td) 
+
+        result_wttime := nz(trip_core) * nz(skim_coreT)
+        v_weightedtotal = mtx.GetVector({"Core": "weightedtotal", Marginal: "Row Sum"})
+        v_totaltrips = mtx.GetVector({"Core": corename, Marginal: "Row Sum"})
+        v_res_td = v_weightedtotal / v_totaltrips
+        arr_res_td = ArrayExclude(V2A(v_res_td), {null}) // exclude null values for median calculation
+        res_time = Median(arr_res_td)
+      end
+
+      result_len = result_len + ", " + r2s(res_length)
+      result_time = result_time + ", " + r2s(res_time)
     end
     WriteLine(f, result_len)
     WriteLine(f, result_time)
@@ -4046,31 +4069,31 @@ Macro "Performance Measures Reports" (Args)
 
   //Set input path for transit
   skim_dir = Args.[Output Folder] + "\\skims\\transit"
-  mtx_list = {{"total", "In-Vehicle Time", "AM", "7.5 Average transit IVTT Time(AM) - All purposes.csv"}, 
-                {"total", "In-Vehicle Time", "PM", "7.6 Average transit IVTT Time(PM) - All purposes.csv"}, 
-                {"total", "In-Vehicle Distance", "AM", "7.5 Average transit IVTT Distance(AM) - All purposes.csv"}, 
-                {"total", "In-Vehicle Distance", "PM", "7.6 Average transit IVTT Distance(PM) - All purposes.csv"},
-                {"total", "No Wait Total Time", "AM", "7.7 Average transit total time (AM) - All purposes.csv"}, 
-                {"total", "No Wait Total Time", "PM", "7.8 Average transit total time (PM) - All purposes.csv"}, 
-                {"hbw", "No Wait Total Time", "AM", "7.9 Average transit total time (AM) - HBW trips.csv"}, 
-                {"hbw", "No Wait Total Time", "PM", "7.10 Average transit total time (PM) - HBW trips.csv"}} 
+  mtx_list = {{"total", "In-Vehicle Time", "AM", "average", "7.5 Average transit IVTT Time(AM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Time", "PM", "average", "7.6 Average transit IVTT Time(PM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Distance", "AM", "average", "7.5 Average transit IVTT Distance(AM) - All purposes.csv"}, 
+                {"total", "In-Vehicle Distance", "PM", "average", "7.6 Average transit IVTT Distance(PM) - All purposes.csv"},
+                {"total", "No Wait Total Time", "AM", "average", "7.7 Average transit total time (AM) - All purposes.csv"}, 
+                {"total", "No Wait Total Time", "PM", "average", "7.8 Average transit total time (PM) - All purposes.csv"}, 
+                {"hbw", "No Wait Total Time", "AM", "average", "7.9 Average transit total time (AM) - HBW trips.csv"}, 
+                {"hbw", "No Wait Total Time", "AM", "median", "7.10 Median transit total time (AM) - HBW trips.csv"},
+                {"total", "No Wait Total Time", "PM", "median", "7.11 Median transit total time (PM) - All purposes.csv"}} 
 
   //Run TLD for transit
   for i = 1 to mtx_list.length do
-    result = "Average Travel Time/Dist"
+    result = "Travel Time/Dist"
     mtx_file = allperson_mtx_file
     trip_purp = mtx_list[i][1]
     skim_corename = mtx_list[i][2]
     tod = mtx_list[i][3]
-    summary_file = pm_dir + "/" + mtx_list[i][4]
+    method = mtx_list[i][4]
+    summary_file = pm_dir + "/" + mtx_list[i][5]
     f = OpenFile(summary_file, "w")
     writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     // calculate weighted total
     mtx = CreateObject("Matrix", mtx_file)
-    corenames = mtx.GetCoreNames()
     transit_modes = RunMacro("Get Transit Modes", TransModeTable)
-    if corenames.position("weightedtotal") = 0 then mtx.AddCores({"weightedtotal", "totaltrips"})
     if trip_purp = "total" then new_transit_modes = transit_modes + {"all"} else new_transit_modes = transit_modes
 
     result_wttime = mtx.GetCore("weightedtotal")
@@ -4106,13 +4129,22 @@ Macro "Performance Measures Reports" (Args)
       
         mtx.SetRowIndex(geo)
       end
+      //Get core with index built in
+      result_wttime = mtx.GetCore("weightedtotal")
+      result_trip = mtx.GetCore("totaltrips")
 
       v_weightedtotal = mtx.GetVector({"Core": "weightedtotal", Marginal: "Row Sum"})
       v_totaltrips = mtx.GetVector({"Core": "totaltrips", Marginal: "Row Sum"})
       if v_totaltrips.sum() = 0 then result = result + ", " + "n/a"
       else do
-        avg_td = v_weightedtotal.Sum() / v_totaltrips.Sum()
-        result = result + ", " + r2s(avg_td)
+        if method = "average" then
+          res_td = v_weightedtotal.Sum() / v_totaltrips.Sum()
+        else do
+          v_res_td = v_weightedtotal / v_totaltrips
+          arr_res_td = ArrayExclude(V2A(v_res_td), {null}) // exclude null values for median calculation
+          res_td = Median(arr_res_td)
+        end
+        result = result + ", " + r2s(res_td)
       end
     end
     WriteLine(f, result)
