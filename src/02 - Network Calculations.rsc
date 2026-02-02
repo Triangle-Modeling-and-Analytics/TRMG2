@@ -616,25 +616,25 @@ Changes the ftField of the ramp links to the FT to use for capacity calculation.
 Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
 
     SetLayer(llyr)
-    n1 = SelectByQuery("ramps", "Several", ramp_query)
+    num_ramps = SelectByQuery("ramps", "Several", ramp_query)
 
-    if n1 = 0 then do
-        Throw("No ramp links found.")
-    end else do
+    if num_ramps = 0 then Throw("No ramp links found.")
     
-        // Create a new field to identify these links as ramps
-        // after their facility type is changed.
-        a_fields = {
-            {"ramp", "Character", 10, ,,,,"Is this link a ramp?"}
-        }
-        RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-        opts = null
-        opts.Constant = "Yes"
-        v = Vector(n1, "String", opts)
-        SetDataVector(llyr + "|ramps", "ramp", v, )
-    
-        // Get ramp ids and loop over each one
+    // Create a new field to identify these links as ramps
+    // after their facility type is changed.
+    a_fields = {
+        {"ramp", "Character", 10, ,,,,"Is this link a ramp?"}
+    }
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+    opts = null
+    opts.Constant = "Yes"
+    v = Vector(num_ramps, "String", opts)
+    SetDataVector(llyr + "|ramps", "ramp", v, )
+
+    // Loop over each ramp and determine highest FT it connects to
+    while num_ramps > 0 do
         v_rampIDs = GetDataVector(llyr + "|ramps", "ID", )
+        a_ft = null
         for r = 1 to v_rampIDs.length do
             rampID = v_rampIDs[r]
 
@@ -660,13 +660,16 @@ Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
                 end
             end
 
-            // If a ramp is only connected to other ramps, code as highest FT
-            if minPos = 999 then a_ft = a_ft + {a_ftOrder[1]}
+            // If a ramp is only connected to other ramps, leave it null
+            if minPos = 999 then a_ft = a_ft + {null}
             else a_ft = a_ft + {a_ftOrder[R2I(minPos)]}
         end
+        SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
+
+        SetLayer(llyr)
+        num_ramps = SelectByQuery("ramps", "Several", "Select * where " + ftField + " = null and ramp = 'Yes'")
     end
 
-    SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
 EndMacro
 
 /*
