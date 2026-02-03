@@ -25,7 +25,7 @@ dBox "Highway Buffer Performance" (Args) location: center, center, 60, 12
   Text 20, 1, 15 Prompt: "Selected Scenario:" Variable: "(current scenario)"
   
   // Select Link Query
-  Edit Text same, after, 25 Prompt: "Select Link IDs CSV:" Variable: query_file
+  Edit Text 21, after, 25 Prompt: "Select Link IDs CSV:" Variable: query_file
   Button after, same, 5, 1 Prompt: "..." do
     on error, escape goto skip2
     query_file = ChooseFile({{"Query (*.csv)", "*.csv"}}, "Choose Link ID File", {"Initial Directory": scen_dir})
