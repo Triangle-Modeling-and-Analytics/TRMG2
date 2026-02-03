@@ -778,7 +778,7 @@ Macro "Accessibility Maps" (Args)
 		{field: "access_transit", values: {
 			{0, "true", .72, "false"},
 			{.72, "true", 2.11, "false"},
-			{2.35, "true", 3.43, "false"},
+			{2.11, "true", 3.43, "false"},
 			{3.43, "true", 4.75, "false"},
 			{4.75, "true", 1000, "false"}
 		}},
