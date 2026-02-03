@@ -776,18 +776,18 @@ Macro "Accessibility Maps" (Args)
 
 	a_stats = {
 		{field: "access_transit", values: {
-			{0, "true", .81, "false"},
-			{.81, "true", 2.35, "false"},
-			{2.35, "true", 3.49, "false"},
-			{3.49, "true", 4.8, "false"},
-			{4.8, "true", 1000, "false"}
+			{0, "true", .72, "false"},
+			{.72, "true", 2.11, "false"},
+			{2.35, "true", 3.43, "false"},
+			{3.43, "true", 4.75, "false"},
+			{4.75, "true", 1000, "false"}
 		}},
 		{field: "access_walk", values: {
-			{0, "true", .4, "false"},
-			{.4, "true", 1.1, "false"},
-			{1.1, "true", 1.76, "false"},
-			{1.76, "true", 2.61, "false"},
-			{2.61, "true", 1000, "false"}
+			{0, "true", .39, "false"},
+			{.39, "true", 1.07, "false"},
+			{1.07, "true", 1.74, "false"},
+			{1.74, "true", 2.60, "false"},
+			{2.60, "true", 1000, "false"}
 		}}
 	}
 
