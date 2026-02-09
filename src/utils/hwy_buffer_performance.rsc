@@ -69,27 +69,65 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   RunMacro("Create Directory", output_dir)
   RunMacro("Create Directory", proj_dir)
 
-  // Select links using the query
+  // Select corridor using the query
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
+  SetLayerVisibility(map + "|" + nlyr, "false")
   SetLayer(llyr)
-  n1 = SelectByIDFile("hwy_selection", "several", query_file)
-  /*
+  n1 = SelectByIDFile("corridor", "several", query_file)
+
   // Create buffer area using selected links
-  buffer_dbd = temp_dir + "/" + name + "_" + buffer + "mi_buffer.dbd"
-  
-  CreateBuffers(buffer_dbd, "buffer", {"hwy_selection"}, "Value", {buffer}, {Interior: "Merged", Exterior: "Merged"})
+  buffer_dbd = proj_dir + "/" + name + "_" + buffer + "mi_buffer.dbd"
+  CreateBuffers(buffer_dbd, "buffer", {"corridor"}, "Value", {s2r(buffer)}, {Interior: "Merged", Exterior: "Merged"})
   buffer_lyr = AddLayer(map, "buffer", buffer_dbd, "buffer")
-  */
-  // Select links using the buffer distance
-  n2 = SelectByVicinity("hwy_buffer", "Several", llyr + "|hwy_selection", s2r(buffer), {Inclusion: "Intersecting"})
+  
+  // Select links using the buffer area
+  n2 = SelectByVicinity("corridor_buffer", "Several", buffer_lyr + "|", 0, {Inclusion: "Intersecting"})
 
   // Exclude links that are not highway roads
   hwy_query = "Select * where HCMTYPE <> 'CC' and HCMTYPE <> NULL and HCMTYPE <> 'TransitOnly'"
-  n3 = SelectByQuery ("hwy_buffer", "Subset", hwy_query)
+  n3 = SelectByQuery("corridor_buffer", "subset", hwy_query)
 
+  // Define the line of all line fields to output in full spec format (except for ID, Dir and Length fields)
+  {flds, specs} = GetFields(llyr, "All")
+  flds = ExcludeArrayElements(flds, 1, 3)
+  specs = ExcludeArrayElements(specs, 1, 3)
+
+  // default copy for every field
+  attrib = null
+  for i=1 to flds.length do
+    fld = flds[i][1]
+    attrib.(fld) = "Copy"
+  end
+  
+  // Define which line attributes will be split
+  attrib.AB_Time_Daily = "Split"
+  attrib.BA_Time_Daily = "Split"
+  attrib.AB_VMT_Daily = "Split"
+  attrib.BA_VMT_Daily = "Split"
+  attrib.Total_VMT_Daily = "Split"
+  attrib.AB_VHT_Daily = "Split"
+  attrib.BA_VHT_Daily = "Split"
+  attrib.Total_VHT_Daily = "Split"
+  attrib.AB_Delay_Daily = "Split"
+  attrib.BA_Delay_Daily = "Split"
+  attrib.Total_Delay_Daily = "Split"
+  attrib.Tot_Delay_AM = "Split"
+  attrib.Tot_Delay_MD = "Split"
+  attrib.Tot_Delay_PM = "Split"
+  attrib.Tot_Delay_NT = "Split"
+
+  //Then run the cuttin macro "Clip Lines":
+  out_dbd = proj_dir + "/" + name + "_" + buffer + "mi_buffer_links.dbd"
+  clip = RunMacro("Clip Lines", llyr + "|corridor_buffer",  buffer_lyr + "|", out_dbd, specs, attrib, , )
+  clip_lyr = AddLayer(map, "clip", out_dbd, "master_links")
+  
   // Aggregate
-  agg_vw = ComputeStatistics("hwy_buffer", "hwy_buffer_stats", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.bin", "FFB", {"Strings", "False"})
-
+  SetLayer(clip_lyr)
+  agg_vw = ComputeStatistics(clip_lyr + "|", "corridor_buffer_stats", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.bin", "FFB", {"Strings", "False"})
+  
+  // Save map
+  mapFile = proj_dir + "/" + name + "_" + buffer + "mi_buffer_map.map"
+  SaveMap(map, mapFile)
   RunMacro("Close All")
 
 EndMacro
