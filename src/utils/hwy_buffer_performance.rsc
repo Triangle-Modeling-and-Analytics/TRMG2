@@ -124,6 +124,7 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   // Aggregate
   SetLayer(clip_lyr)
   agg_vw = ComputeStatistics(clip_lyr + "|", "corridor_buffer_stats", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.bin", "FFB", {"Strings", "False"})
+  ExportView(agg_vw + "|", "CSV", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.csv", , {"CSV Header": "true"})
   
   // Save map
   mapFile = proj_dir + "/" + name + "_" + buffer + "mi_buffer_map.map"
