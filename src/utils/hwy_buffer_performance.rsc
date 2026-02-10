@@ -92,29 +92,14 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   flds = ExcludeArrayElements(flds, 1, 3)
   specs = ExcludeArrayElements(specs, 1, 3)
 
-  // default copy for every field
+  // Define value settings for each field (Split for VMT, VHT, Delay, Time and Cost fields, Copy for all other fields)
   attrib = null
   for i=1 to flds.length do
-    fld = flds[i][1]
-    attrib.(fld) = "Copy"
+    fld = flds[i]
+    if Position(fld, "VMT") > 0 or Position(fld, "VHT") > 0 or Position(fld, "Delay") > 0 or Position(fld, "Time") > 0 or Position(fld, "Cost") > 0 then
+      attrib.(fld) = "Split"
+    else attrib.(fld) = "Copy"
   end
-  
-  // Define which line attributes will be split
-  attrib.AB_Time_Daily = "Split"
-  attrib.BA_Time_Daily = "Split"
-  attrib.AB_VMT_Daily = "Split"
-  attrib.BA_VMT_Daily = "Split"
-  attrib.Total_VMT_Daily = "Split"
-  attrib.AB_VHT_Daily = "Split"
-  attrib.BA_VHT_Daily = "Split"
-  attrib.Total_VHT_Daily = "Split"
-  attrib.AB_Delay_Daily = "Split"
-  attrib.BA_Delay_Daily = "Split"
-  attrib.Total_Delay_Daily = "Split"
-  attrib.Tot_Delay_AM = "Split"
-  attrib.Tot_Delay_MD = "Split"
-  attrib.Tot_Delay_PM = "Split"
-  attrib.Tot_Delay_NT = "Split"
 
   //Then run the cuttin macro "Clip Lines":
   out_dbd = proj_dir + "/" + name + "_" + buffer + "mi_buffer_links.dbd"
@@ -125,6 +110,7 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   SetLayer(clip_lyr)
   agg_vw = ComputeStatistics(clip_lyr + "|", "corridor_buffer_stats", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.bin", "FFB", {"Strings", "False"})
   ExportView(agg_vw + "|", "CSV", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.csv", , {"CSV Header": "true"})
+  ExportView(clip_lyr + "|", "CSV", proj_dir + "/" + name + "_" + buffer + "mi_buffer_links.csv", , {"CSV Header": "true"})
   
   // Save map
   mapFile = proj_dir + "/" + name + "_" + buffer + "mi_buffer_map.map"
