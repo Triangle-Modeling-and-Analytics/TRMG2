@@ -13,22 +13,28 @@ dBox "Highway Buffer Performance" (Args) location: center, center, 60, 12
 
   init do
     
-    static scen_dir,radius_list, radius_Index, buffer, query_file
+    static scen_dir,radius_list, radius_Index, buffer, query_file, type_list, type_index, type
 
     scen_dir = Args.[Scenarios Folder]
-    radius_list = {"0.25", "0.5","0.75","1"}
-
+    type_list = {"Link", "Node"}
+    radius_list = {"0.005", "0.01", "0.25", "0.5","0.75","1"}
     EnableItem("Select Buffer Radius")
 
   enditem
 
   Text 20, 1, 15 Prompt: "Selected Scenario:" Variable: "(current scenario)"
   
-  // Select Link Query
-  Edit Text 21, after, 25 Prompt: "Select Link IDs CSV:" Variable: query_file
+  // Select query type
+  Popdown Menu "Select Project Query Type" 29, after, 10 Prompt: "Choose Project Query Type (Link or Node)" 
+    List: type_list Variable: type_index do
+    type = type_list[type_index]
+  enditem
+  
+  // Select Link/Node Query
+  Edit Text 21, after, 25 Prompt: "Select Link/Node IDs CSV:" Variable: query_file
   Button after, same, 5, 1 Prompt: "..." do
     on error, escape goto skip2
-    query_file = ChooseFile({{"Query (*.csv)", "*.csv"}}, "Choose Link ID File", {"Initial Directory": scen_dir})
+    query_file = ChooseFile({{"Query (*.csv)", "*.csv"}}, "Choose Link/Node ID File", {"Initial Directory": scen_dir})
     skip2:
     on error default
   enditem
@@ -41,8 +47,8 @@ dBox "Highway Buffer Performance" (Args) location: center, center, 60, 12
   
   // Make Map Button
   button 15, 10, 10 Prompt:"Run" do 
-    if buffer = null or query_file = null then ShowMessage("Please make a selection for all drop down lists.")
-    else RunMacro("Hwy_Buffer_Performance_Agg", Args, buffer, query_file) 
+    if buffer = null or query_file = null or type = null then ShowMessage("Please make a selection for all drop down lists.")
+    else RunMacro("Hwy_Buffer_Performance_Agg", Args, buffer, query_file, type) 
 
     ShowMessage("Reports have been created successfully.")
   Enditem
@@ -57,7 +63,7 @@ enddbox
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //                        Macro "Hwy_Buffer_Performance_Agg"
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
+Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file, type)
 
   // Set directory and create output folder
   Scenario_Dir = Args.[Scenario Folder]
@@ -71,8 +77,7 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
 
   // Select corridor using the query
   {map, {nlyr, llyr}} = RunMacro("Create Map", {file: hwy_dbd})
-  SetLayerVisibility(map + "|" + nlyr, "false")
-  SetLayer(llyr)
+  if type = "Link" then SetLayer(llyr) else SetLayer(nlyr)
   n1 = SelectByIDFile("corridor", "several", query_file)
 
   // Create buffer area using selected links
@@ -81,6 +86,7 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   buffer_lyr = AddLayer(map, "buffer", buffer_dbd, "buffer")
   
   // Select links using the buffer area
+  SetLayer(llyr)
   n2 = SelectByVicinity("corridor_buffer", "Several", buffer_lyr + "|", 0, {Inclusion: "Intersecting"})
 
   // Exclude links that are not highway roads
@@ -208,6 +214,7 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file)
   
   // Save map
   mapFile = proj_dir + "/" + name + "_" + buffer + "mi_buffer_map.map"
+  SetLayerVisibility(map + "|" + nlyr, "false")
   SaveMap(map, mapFile)
   RunMacro("Close All")
 
