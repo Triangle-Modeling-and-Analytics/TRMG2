@@ -3474,7 +3474,7 @@ Macro "Performance Measures Reports" (Args)
     {allperson_mtx_file, "pm_total", "1.7 Peak Average Travel Length - All Person Trips.csv"}, 
     {cv_daily_file, "CV_daily", "1.8 Daily Average Travel Length - All CV Trips.csv"}, 
     {cv_daily_file, "Truck_daily", "1.9 Daily Average Travel Length - Truck Trips.csv"}} 
-  geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
+  geo_list = {"Region", "TWTPO", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
   se = CreateObject("Table", se_file)
 
   for i = 1 to mtx_list.length do
@@ -3484,14 +3484,14 @@ Macro "Performance Measures Reports" (Args)
     corename = mtx_list[i][2]
     summary_file = pm_dir + "/" + mtx_list[i][3]
     f = OpenFile(summary_file, "w")
-    writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+    writeline(f,", Region, TWTPO, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     mtx = CreateObject("Matrix", mtx_file)
     for geo in geo_list do
       //Set index			
       if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
       else do
-        if geo = "DCHC" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
+        if geo = "TWTPO" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
         else query = "County = '" + geo + "'"
 			
         mtx.AddIndex({
