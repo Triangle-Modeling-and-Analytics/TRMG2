@@ -3933,7 +3933,7 @@ Macro "Performance Measures Reports" (Args)
   //7.1 - 7.4 Auto Average Travel Length
   //Set input path for auto
   allperson_mtx_file = pm_dir + "/all_person_mototrips_forTLD.mtx"
-  geo_list = {"Region", "DCHC", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
+  geo_list = {"Region", "TWTPO", "CAMPO", "Alamance", "Chatham", "Durham", "Franklin", "Granville", "Harnett", "Johnston", "Nash", "Orange", "Person", "Wake"}
   se = CreateObject("Table", se_file)
   mtx_list = {{"auto_AM_total", "median", "7.1 Median auto travel time (AM) - All purposes.csv"}, 
                 {"auto_PM_total", "average", "7.2 Average auto travel time (PM) - All purposes.csv"}, 
@@ -3949,7 +3949,7 @@ Macro "Performance Measures Reports" (Args)
     method = mtx_list[i][2]
     summary_file = pm_dir + "/" + mtx_list[i][3]
     f = OpenFile(summary_file, "w")
-    writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+    writeline(f,", Region, TWTPO, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     mtx = CreateObject("Matrix", mtx_file)
     corenames = mtx.GetCoreNames()
@@ -3963,7 +3963,7 @@ Macro "Performance Measures Reports" (Args)
       //Set index			
       if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
       else do
-        if geo = "DCHC" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
+        if geo = "TWTPO" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
         else query = "County = '" + geo + "'"
 			
         mtx.AddIndex({
@@ -4089,7 +4089,7 @@ Macro "Performance Measures Reports" (Args)
     method = mtx_list[i][4]
     summary_file = pm_dir + "/" + mtx_list[i][5]
     f = OpenFile(summary_file, "w")
-    writeline(f,", Region, DCHC, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
+    writeline(f,", Region, TWTPO, CAMPO, Alamance, Chatham, Durham, Franklin, Granville, Harnett, Johnston, Nash, Orange, Person, Wake")
     
     // calculate weighted total
     mtx = CreateObject("Matrix", mtx_file)
@@ -4115,7 +4115,7 @@ Macro "Performance Measures Reports" (Args)
       //Set index			
       if geo = "Region" then tripmtx = {MatrixFile: mtx_file, Matrix: corename}
       else do
-        if geo = "DCHC" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
+        if geo = "TWTPO" or geo = "CAMPO" then query = "MPO = '" + geo + "'"
         else query = "County = '" + geo + "'"
 
         mtx.AddIndex({
