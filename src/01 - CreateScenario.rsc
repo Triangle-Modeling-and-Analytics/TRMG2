@@ -26,7 +26,7 @@ Macro "Check for Creation Files" (Args)
 
   // check to see which roadway project csv are present
   campo_list = GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") <> null
-  dchc_list = GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") <> null
+  TWTPO_list = GetFileInfo(scen_dir + "/RoadwayProjectList_TWTPO.csv") <> null
   final_list = GetFileInfo(scen_dir + "/RoadwayProjectList.csv") <> null
 
   // Ensure the minimum files are present
@@ -38,8 +38,8 @@ Macro "Check for Creation Files" (Args)
   else if !campo_list and !final_list then Throw(
     "The scenario directory is missing RoadwayProjectList_CAMPO.csv"
   )
-  else if !dchc_list and !final_list then Throw(
-    "The scenario directory is missing RoadwayProjectList_DCHC.csv"
+  else if !TWTPO_list and !final_list then Throw(
+    "The scenario directory is missing RoadwayProjectList_TWTPO.csv"
   )
   else if GetFileInfo(scen_dir + "/TransitProjectList.csv") = null then Throw(
     "The scenario directory is missing TransitProjectList.csv"
@@ -175,20 +175,20 @@ Macro "Create Scenario Roadway" (Args)
   // check to see which roadway project csv are present
   scen_dir = Args.[Scenario Folder]
   campo_list = GetFileInfo(scen_dir + "/RoadwayProjectList_CAMPO.csv") <> null
-  dchc_list = GetFileInfo(scen_dir + "/RoadwayProjectList_DCHC.csv") <> null
+  TWTPO_list = GetFileInfo(scen_dir + "/RoadwayProjectList_TWTPO.csv") <> null
   final_list = GetFileInfo(scen_dir + "/RoadwayProjectList.csv") <> null
 
   // Combine two project lists into one (if both are present)
-  if campo_list and dchc_list then do
+  if campo_list and TWTPO_list then do
     output_proj_list = scen_dir + "/RoadwayProjectList.csv"
     proj_list_CAMPO = scen_dir + "/RoadwayProjectList_CAMPO.csv"
-    proj_list_DCHC = scen_dir + "/RoadwayProjectList_DCHC.csv"
+    proj_list_TWTPO = scen_dir + "/RoadwayProjectList_TWTPO.csv"
     df = CreateObject("df", proj_list_CAMPO)
     output = df.copy()
     if output.tbl = null
-      then output = CreateObject("df", proj_list_DCHC)
+      then output = CreateObject("df", proj_list_TWTPO)
       else do
-        df = CreateObject("df", proj_list_DCHC)
+        df = CreateObject("df", proj_list_TWTPO)
         if df.tbl.ProjID.length > 0 then output.bind_rows(df)
       end
     if output.tbl.ProjID.length > 0 then output.write_csv(output_proj_list)

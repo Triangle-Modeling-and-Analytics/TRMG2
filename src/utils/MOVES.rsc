@@ -19,7 +19,7 @@ dBox "Prepare MOVES Input" (Args) location: center, center, 46, 7
     taz_vw = OpenTable("taz","FFB", {taz_bin})
     county = GetDataVector(taz_vw + "|", "County", )
     //mpo = GetDataVector(taz_vw + "|", "MPO", )
-    mpo_list = {"DCHC", "CAMPO"}
+    mpo_list = {"TWTPO", "CAMPO"}
     county_list = SortVector(county, {Unique: "true"})
     //mpo_list = SortVector(mpo, {Unique: "true"})
     //region_list = {"All_region"} + V2A(county_list) + V2A(mpo_list)
@@ -100,7 +100,7 @@ Macro "MOVES" (Args, region, year)
   
   // Determine region type
   region_type = if region = "All_region" then  "All_region"
-    else if region = "DCHC" or region = "CAMPO" then "MPO"
+    else if region = "TWTPO" or region = "CAMPO" then "MPO"
     else "County"
 
   // Read highway layer
