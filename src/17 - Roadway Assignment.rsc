@@ -241,6 +241,7 @@ Macro "Run Roadway Assignment" (Args, OtherOpts)
             if hov_exists then mut_opts = mut_opts + {ExclusionFilter: "HOV <> 'None'"}
             o.AddClass(mut_opts)
         end
+        o.IterationLog = Args.(period + "_IterLog")
         ret_value = o.Run()
         results = o.GetResults()
         /*
