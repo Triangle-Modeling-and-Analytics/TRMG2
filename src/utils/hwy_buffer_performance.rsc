@@ -25,13 +25,13 @@ dBox "Highway Buffer Performance" (Args) location: center, center, 60, 12
   Text 20, 1, 15 Prompt: "Selected Scenario:" Variable: "(current scenario)"
   
   // Select query type
-  Popdown Menu "Select Project Query Type" 29, after, 10 Prompt: "Choose Project Query Type (Link or Node)" 
+  Popdown Menu "Select Project Query Type" 40, after, 10 Prompt: "Choose Project Query Type (Link or Node)" 
     List: type_list Variable: type_index do
     type = type_list[type_index]
   enditem
   
   // Select Link/Node Query
-  Edit Text 21, after, 25 Prompt: "Select Link/Node IDs CSV:" Variable: query_file
+  Edit Text 26, after, 25 Prompt: "Select Link/Node IDs CSV:" Variable: query_file
   Button after, same, 5, 1 Prompt: "..." do
     on error, escape goto skip2
     query_file = ChooseFile({{"Query (*.csv)", "*.csv"}}, "Choose Link/Node ID File", {"Initial Directory": scen_dir})
