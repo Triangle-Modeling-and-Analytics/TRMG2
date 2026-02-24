@@ -216,6 +216,25 @@ Compares the same table between two scenarios. Can be used for summary CSVs,
 se bin table, etc.
 */
 
+Macro "test diff"
+    path = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2020\\output\\_summaries\\resident_hb\\hb_trip_mode_shares.csv"
+    tbl1 = CreateObject("Table", path)
+    path2 = "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2020\\output\\_summaries\\resident_hb\\hb_trip_mode_shares - Copy.csv"
+    tbl2 = CreateObject("Table", path2)
+    RunMacro("Diff Tables", {
+        Table1: path,
+        Table2: path2,
+        OutputFile: "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2020\\output\\_summaries\\resident_hb\\hb_trip_mode_shares_diff.csv",
+        IDColumns: {"trip_type", "mode"},
+        ColumnsToDiff: {"total", "pct"},
+        S1_name: "base",
+        S2_name: "new"
+    })
+
+    tbl3 = CreateObject("Table", "C:\\projects\\TRM\\repo_trmg2\\scenarios\\base_2020\\output\\_summaries\\resident_hb\\hb_trip_mode_shares_diff.csv")
+    tbl3.View()
+EndMacro
+
 Macro "Diff Tables" (MacroOpts)
     
     table1 = MacroOpts.Table1
@@ -234,6 +253,24 @@ Macro "Diff Tables" (MacroOpts)
             pos = field_names.position(id_col)
             field_names = ExcludeArrayElements(field_names, pos, 1)
         end
+    end
+
+    // Determine which table has more rows
+    temp1 = CreateObject("Table", table1)
+    temp2 = CreateObject("Table", table2)
+    count1 = temp1.GetRecordCount()
+    count2 = temp2.GetRecordCount()
+    
+    // Swap tables and names if table2 has more rows
+    swap_tables = (count2 > count1)
+    if swap_tables then do
+        temp_file = table1
+        table1 = table2
+        table2 = temp_file
+        
+        temp_name = ref_name
+        ref_name = new_name
+        new_name = temp_name
     end
 
     // Create tables and rename/add fields
