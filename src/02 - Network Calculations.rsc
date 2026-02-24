@@ -8,6 +8,7 @@ Macro "Create Initial Output Files" (Args)
     RunMacro("Create Output Copies", Args)
     RunMacro("Filter Transit Modes", Args)
     RunMacro("Check SE Data", Args)
+    RunMacro("Check Shadow Price Table", Args)
     return(1)
 EndMacro
 
@@ -259,6 +260,44 @@ Macro "Check SE Data" (Args)
                 
     CloseView(se_vw)
 endmacro
+
+/*
+The user might have made manual changes to the TAZ/SE data after creating the scenario (e.g. splitting zones).
+This macro updates the shadow price table to match the number of TAZs.
+*/
+
+Macro "Check Shadow Price Table" (Args)
+    se_file = Args.SE
+    sp_file = Args.ShadowPrices
+
+    se = CreateObject("Table", se_file)
+    sp = CreateObject("Table", sp_file)
+    cols = sp.GetFieldSpecs()
+    se_specs = se.GetFieldSpecs({NamedArray: "true"})
+    sp_specs = sp.GetFieldSpecs({NamedArray: "true"})
+
+    join = se.Join({
+        Table: sp,
+        LeftFields: "TAZ",
+        RightFields: "TAZ"
+    })
+    temp_file = GetTempFileName(".bin")
+    join.Export({
+        FileName: temp_file,
+        FieldNames: {se_specs.TAZ} + cols
+    })
+    join = null
+    sp = null
+    temp = CreateObject("Table", temp_file)
+    temp.(sp_specs.TAZ) = temp.(se_specs.TAZ)
+    temp.DropFields(se_specs.TAZ)
+    temp.RenameField({
+        FieldName: sp_specs.TAZ,
+        NewName: "TAZ"
+    })
+    temp.hbw = nz(temp.hbw)  
+    temp.Export({FileName: sp_file})
+EndMacro
 
 /*
 Helper macro for se check. Checks if any member of a vector is true.
