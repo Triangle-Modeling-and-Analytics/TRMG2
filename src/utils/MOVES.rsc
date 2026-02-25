@@ -19,7 +19,7 @@ dBox "Prepare MOVES Input" (Args) location: center, center, 46, 7
     taz_vw = OpenTable("taz","FFB", {taz_bin})
     county = GetDataVector(taz_vw + "|", "County", )
     //mpo = GetDataVector(taz_vw + "|", "MPO", )
-    mpo_list = {"DCHC", "CAMPO"}
+    mpo_list = {"TWTPO", "CAMPO"}
     county_list = SortVector(county, {Unique: "true"})
     //mpo_list = SortVector(mpo, {Unique: "true"})
     //region_list = {"All_region"} + V2A(county_list) + V2A(mpo_list)
@@ -100,7 +100,7 @@ Macro "MOVES" (Args, region, year)
   
   // Determine region type
   region_type = if region = "All_region" then  "All_region"
-    else if region = "DCHC" or region = "CAMPO" then "MPO"
+    else if region = "TWTPO" or region = "CAMPO" then "MPO"
     else "County"
 
   // Read highway layer
@@ -167,27 +167,6 @@ Macro "MOVES" (Args, region, year)
     CloseView(assn_vw)
   end
   */
- 
-  //2. Vehicle population
-  if region_type = "All_region" then do
-    hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
-    v = GetDataVector(hh_vw + "|", "Autos", )
-    veh_total = VectorStatistic(v, "Sum", )
-    CloseView(hh_vw)
-    out_file = summary_dir + "/total_vehicles.csv"
-    f = OpenFile(out_file, "w")
-    WriteLine(f, String(veh_total))
-    CloseFile(f)
-  end else do
-    taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
-    taz = CreateObject("df", taz_bin)
-    hh = CreateObject("df", popsyn_dir + "/Synthesized_HHs.bin")
-    hh.left_join(taz, "ZoneID", "ID")
-    hh.group_by("County")
-    hh.summarize("Autos", "sum")
-    hh.write_csv(summary_dir + "/county_vehicles.csv")
-  end
-
 
   //3. Road type output
   roadtype = Createobject("df", roadtype_file)
@@ -262,8 +241,90 @@ Macro "MOVES" (Args, region, year)
   speed.select({"sourceTypeID", "roadTypeID", "hourDayID", "hourID", "dayID", "TOD", "avgSpeedBinID", "AvgSpeedFraction"})
   speed.write_csv(summary_dir + "/speed.csv")
 
+  //2. Vehicle population
+  ////Region total vehicles
+  hh_vw = OpenTable("hh", "FFB", {popsyn_dir + "/Synthesized_HHs.bin"})
+  v = GetDataVector(hh_vw + "|", "Autos", )
+  veh_total = VectorStatistic(v, "Sum", )
+  CloseView(hh_vw)
+
+  out_region = CreateObject("Table", {Fields: {
+      {FieldName: "Metric", Type: "String"},
+      {FieldName: "Region", Type: "real"}
+    }})
+  out_region.AddRows({EmptyRows: 1})
+  out_region.Metric = "Total_Veh"
+  out_region.Region = veh_total
+  
+  //// By MPO and County total vehicles
+  taz_bin = Substitute(taz_dbd, ".dbd", ".bin",)
+  taz = CreateObject("Table", taz_bin)
+  taz.RenameField({FieldName: "PUMA", NewName: "taz_PUMA"})
+  hh = CreateObject("Table", popsyn_dir + "/Synthesized_HHs.bin")
+  join = hh.Join({
+    Table: taz,
+    LeftFields: "ZoneID",
+    RightFields: "ID"
+  })
+  
+  agg = join.Aggregate({
+    GroupBy: "MPO",
+    FieldStats: {Autos: "sum"}
+  })
+  agg.RenameField({FieldName: "sum_Autos", NewName: "Total_Veh"})
+  pivot = agg.PivotLonger({Fields: {"Total_Veh"}, NamesTo: "Metric", ValuesTo: "Value"})
+  pivot.AddField({FieldName: "tempid", Type: "Integer"})
+  pivot.tempid = 1
+  out_MPO = pivot.PivotWider({NamesFrom: "MPO", ValuesFrom: "Value"})
+  out_MPO.DropFields("tempid")
+
+  agg = join.Aggregate({
+    GroupBy: "County",
+    FieldStats: {Autos: "sum"}
+  })
+  agg.RenameField({FieldName: "sum_Autos", NewName: "Total_Veh"})
+  pivot = agg.PivotLonger({Fields: {"Total_Veh"}, NamesTo: "Metric", ValuesTo: "Value"})
+  pivot.AddField({FieldName: "tempid", Type: "Integer"})
+  pivot.tempid = 1
+  out_county = pivot.PivotWider({NamesFrom: "County", ValuesFrom: "Value"})
+  out_county.DropFields("tempid") 
+  
+  join1 = out_region.Join({
+    Table: out_MPO,
+    LeftFields: "Metric",
+    RightFields: "Metric"
+  })
+  join2 = join1.Join({
+    Table: out_county,
+    LeftFields: "Metric",
+    RightFields: "Metric"
+  })
+  join2.Export({FileName: summary_dir + "/total_vehicles.bin"})
+
+  //// Remove duplicate join fields
+  join3 = CreateObject("Table", summary_dir + "/total_vehicles.bin")
+  names = join3.GetFieldNames()
+  count = 0
+  for name in names do
+    if Position(name, "Metric") then do 
+      count = count +1
+      name = Substitute(name, "[", "",)
+      name = Substitute(name, "]", "",)
+      if count = 1 then join3.RenameField({FieldName: name, NewName: "Metric"})
+      else join3.DropFields({FieldNames: {name}})
+    end
+  end
+  join3.Export({FileName: summary_dir + "/total_vehicles.csv"})
+  
+  join = null
+  join1 = null
+  join2 = null
+  join3 = null
+  taz.RenameField({FieldName: "taz_PUMA", NewName: "PUMA"})
+
   DeleteFile(summary_dir + "/agg_link_table.csv")
   DeleteFile(summary_dir + "/link_table.csv")
+  DeleteFile(summary_dir + "/total_vehicles.bin")
   
   return(1)
 

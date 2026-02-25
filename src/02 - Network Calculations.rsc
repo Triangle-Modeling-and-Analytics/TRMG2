@@ -8,6 +8,7 @@ Macro "Create Initial Output Files" (Args)
     RunMacro("Create Output Copies", Args)
     RunMacro("Filter Transit Modes", Args)
     RunMacro("Check SE Data", Args)
+    RunMacro("Check Shadow Price Table", Args)
     return(1)
 EndMacro
 
@@ -259,6 +260,44 @@ Macro "Check SE Data" (Args)
                 
     CloseView(se_vw)
 endmacro
+
+/*
+The user might have made manual changes to the TAZ/SE data after creating the scenario (e.g. splitting zones).
+This macro updates the shadow price table to match the number of TAZs.
+*/
+
+Macro "Check Shadow Price Table" (Args)
+    se_file = Args.SE
+    sp_file = Args.ShadowPrices
+
+    se = CreateObject("Table", se_file)
+    sp = CreateObject("Table", sp_file)
+    cols = sp.GetFieldSpecs()
+    se_specs = se.GetFieldSpecs({NamedArray: "true"})
+    sp_specs = sp.GetFieldSpecs({NamedArray: "true"})
+
+    join = se.Join({
+        Table: sp,
+        LeftFields: "TAZ",
+        RightFields: "TAZ"
+    })
+    temp_file = GetTempFileName(".bin")
+    join.Export({
+        FileName: temp_file,
+        FieldNames: {se_specs.TAZ} + cols
+    })
+    join = null
+    sp = null
+    temp = CreateObject("Table", temp_file)
+    temp.(sp_specs.TAZ) = temp.(se_specs.TAZ)
+    temp.DropFields(se_specs.TAZ)
+    temp.RenameField({
+        FieldName: sp_specs.TAZ,
+        NewName: "TAZ"
+    })
+    temp.hbw = nz(temp.hbw)  
+    temp.Export({FileName: sp_file})
+EndMacro
 
 /*
 Helper macro for se check. Checks if any member of a vector is true.
@@ -616,25 +655,25 @@ Changes the ftField of the ramp links to the FT to use for capacity calculation.
 Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
 
     SetLayer(llyr)
-    n1 = SelectByQuery("ramps", "Several", ramp_query)
+    num_ramps = SelectByQuery("ramps", "Several", ramp_query)
 
-    if n1 = 0 then do
-        Throw("No ramp links found.")
-    end else do
+    if num_ramps = 0 then Throw("No ramp links found.")
     
-        // Create a new field to identify these links as ramps
-        // after their facility type is changed.
-        a_fields = {
-            {"ramp", "Character", 10, ,,,,"Is this link a ramp?"}
-        }
-        RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
-        opts = null
-        opts.Constant = "Yes"
-        v = Vector(n1, "String", opts)
-        SetDataVector(llyr + "|ramps", "ramp", v, )
-    
-        // Get ramp ids and loop over each one
+    // Create a new field to identify these links as ramps
+    // after their facility type is changed.
+    a_fields = {
+        {"ramp", "Character", 10, ,,,,"Is this link a ramp?"}
+    }
+    RunMacro("Add Fields", {view: llyr, a_fields: a_fields})
+    opts = null
+    opts.Constant = "Yes"
+    v = Vector(num_ramps, "String", opts)
+    SetDataVector(llyr + "|ramps", "ramp", v, )
+
+    // Loop over each ramp and determine highest FT it connects to
+    while num_ramps > 0 do
         v_rampIDs = GetDataVector(llyr + "|ramps", "ID", )
+        a_ft = null
         for r = 1 to v_rampIDs.length do
             rampID = v_rampIDs[r]
 
@@ -660,13 +699,16 @@ Macro "Assign FT to Ramps" (llyr, nlyr, ramp_query, ftField, a_ftOrder)
                 end
             end
 
-            // If a ramp is only connected to other ramps, code as highest FT
-            if minPos = 999 then a_ft = a_ft + {a_ftOrder[1]}
+            // If a ramp is only connected to other ramps, leave it null
+            if minPos = 999 then a_ft = a_ft + {null}
             else a_ft = a_ft + {a_ftOrder[R2I(minPos)]}
         end
+        SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
+
+        SetLayer(llyr)
+        num_ramps = SelectByQuery("ramps", "Several", "Select * where " + ftField + " = null and ramp = 'Yes'")
     end
 
-    SetDataVector(llyr + "|ramps", ftField, A2V(a_ft), )
 EndMacro
 
 /*
@@ -717,14 +759,31 @@ Macro "Other Attributes" (Args)
     trans_ratio_mut = Args.TransponderRatioMUT
     se_file = Args.SE
     taz_file = Args.TAZs
+    toll_factor_file = Args.TollProfile
 
     {map, {rlyr, slyr, , nlyr, llyr}} = RunMacro("Create Map", {file: rts_file})
     
     a_fields = {
-        {"TollCostSOV", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
-        {"TollCostHOV", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
-        {"TollCostSUT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
-        {"TollCostMUT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollTODFactor_AM", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_MD", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_PM", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollTODFactor_NT", "Real", 10, 2, , , , "Toll time of day adjustment factor"},
+        {"TollCostSOV_AM", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_AM", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_AM", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_AM", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_MD", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_MD", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_MD", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_MD", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_PM", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_PM", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_PM", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_PM", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
+        {"TollCostSOV_NT", "Real", 10, 2, , , , "TollCost|TollCost Influenced by TransponderRatioAuto"},
+        {"TollCostHOV_NT", "Real", 10, 2, , , , "Same as TollCostSOV, but HOT lanes are free."},
+        {"TollCostSUT_NT", "Real", 10, 2, , , , "TollCost * 2|TollCost Influenced by TransponderRatioSUT"},
+        {"TollCostMUT_NT", "Real", 10, 2, , , , "TollCost * 4|TollCost Influenced by TransponderRatioMUT"},
         {"D", "Integer", 10, , , , , "If drive mode is allowed (from DTWB column)"},
         {"T", "Integer", 10, , , , , "If transit mode is allowed (from DTWB column)"},
         {"W", "Integer", 10, , , , , "If walk mode is allowed (from DTWB column)"},
@@ -750,6 +809,16 @@ Macro "Other Attributes" (Args)
     // Open parameter table
     ffs_tbl = OpenTable("ffs", "CSV", {spd_file, })
 
+    // Fill toll profile factors to the sov toll cost fields, temporarily
+    fac_vw = OpenTable("toll", "CSV", {toll_factor_file,})
+    jv = JoinViews("jv", llyr + ".TollProfile", fac_vw + ".toll_profile", )
+    for period in periods do
+            v_factor = GetDataVector(jv + "|", fac_vw + "." + period, )
+            SetDataVector(jv + "|", llyr + ".TollTODFactor_" + period, v_factor, )
+        end
+    CloseView(jv)
+    CloseView(fac_vw)
+
     // Join based on AreaType and HCMType
     jv = JoinViewsMulti(
         "jv",
@@ -758,7 +827,7 @@ Macro "Other Attributes" (Args)
     )
 
     // Perform calculations
-    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
+    {v_dir, v_type, v_len, v_ps, v_walkspeed, v_bikespeed, v_tolltype, v_tollfac_am, v_tollfac_md, v_tollfac_pm, v_tollfac_nt,v_tollcost_t, v_tollcost_nt, v_mod, v_alpha, v_beta} = GetDataVectors(
         jv + "|", {
             llyr + ".Dir",
             llyr + ".HCMType",
@@ -767,6 +836,10 @@ Macro "Other Attributes" (Args)
             llyr + ".WalkSpeed",
             llyr + ".BikeSpeed",
             llyr + ".TollType",
+            llyr + ".TollTODFactor_AM",
+            llyr + ".TollTODFactor_MD",
+            llyr + ".TollTODFactor_PM",
+            llyr + ".TollTODFactor_NT",
             llyr + ".TollCostT",
             llyr + ".TollCostNT",
             ffs_tbl + ".ModifyPosted",
@@ -791,6 +864,25 @@ Macro "Other Attributes" (Args)
     v_tollcost_mut = v_tollcost_t * trans_ratio_mut + v_tollcost_nt * (1 - trans_ratio_mut)
     v_tollcost_mut = v_tollcost_mut * 4
     v_tollcost_mut = if v_tolltype = "Free" then 0 else v_tollcost_mut
+    
+    // Determine toll cost using the tod factors stored in the toll cost field
+    v_tollcost_auto_am = nz(v_tollcost_auto * v_tollfac_am)
+    v_tollcost_auto_md = nz(v_tollcost_auto * v_tollfac_md)
+    v_tollcost_auto_pm = nz(v_tollcost_auto * v_tollfac_pm)
+    v_tollcost_auto_nt = nz(v_tollcost_auto * v_tollfac_nt)
+    v_tollcost_hov_am = nz(v_tollcost_hov * v_tollfac_am)
+    v_tollcost_hov_md = nz(v_tollcost_hov * v_tollfac_md)
+    v_tollcost_hov_pm = nz(v_tollcost_hov * v_tollfac_pm)
+    v_tollcost_hov_nt = nz(v_tollcost_hov * v_tollfac_nt)
+    v_tollcost_sut_am = nz(v_tollcost_sut * v_tollfac_am)
+    v_tollcost_sut_md = nz(v_tollcost_sut * v_tollfac_md)
+    v_tollcost_sut_pm = nz(v_tollcost_sut * v_tollfac_pm)
+    v_tollcost_sut_nt = nz(v_tollcost_sut * v_tollfac_nt)
+    v_tollcost_mut_am = nz(v_tollcost_mut * v_tollfac_am)
+    v_tollcost_mut_md = nz(v_tollcost_mut * v_tollfac_md)
+    v_tollcost_mut_pm = nz(v_tollcost_mut * v_tollfac_pm)
+    v_tollcost_mut_nt = nz(v_tollcost_mut * v_tollfac_nt)
+    
     SetDataVector(jv + "|", llyr + ".FFSpeed", v_ffs, )
     SetDataVector(jv + "|", llyr + ".FFTime", v_fft, )
     SetDataVector(jv + "|", llyr + ".Alpha", v_alpha, )
@@ -798,10 +890,22 @@ Macro "Other Attributes" (Args)
     SetDataVector(jv + "|", llyr + ".WalkTime", v_wt, )
     SetDataVector(jv + "|", llyr + ".BikeTime", v_bt, )
     SetDataVector(jv + "|", llyr + ".Mode", v_mode, )
-    SetDataVector(jv + "|", llyr + ".TollCostSOV", v_tollcost_auto, )
-    SetDataVector(jv + "|", llyr + ".TollCostHOV", v_tollcost_hov, )
-    SetDataVector(jv + "|", llyr + ".TollCostSUT", v_tollcost_sut, )
-    SetDataVector(jv + "|", llyr + ".TollCostMUT", v_tollcost_mut, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_AM", v_tollcost_auto_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_AM", v_tollcost_hov_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_AM", v_tollcost_sut_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_AM", v_tollcost_mut_am, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_PM", v_tollcost_auto_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_PM", v_tollcost_hov_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_PM", v_tollcost_sut_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_PM", v_tollcost_mut_pm, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_MD", v_tollcost_auto_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_MD", v_tollcost_hov_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_MD", v_tollcost_sut_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_MD", v_tollcost_mut_md, )
+    SetDataVector(jv + "|", llyr + ".TollCostSOV_NT", v_tollcost_auto_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostHOV_NT", v_tollcost_hov_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostSUT_NT", v_tollcost_sut_nt, )
+    SetDataVector(jv + "|", llyr + ".TollCostMUT_NT", v_tollcost_mut_nt, )
     
     // Initial congested time
     // The initial congested time table contains a field which holds converged congested times
@@ -984,10 +1088,10 @@ Macro "Create Link Networks" (Args)
             o.AddLinkField({Name: "Capacity", Field: {"AB" + period + "CapE", "BA" + period + "CapE"}, IsTimeField: false})
             o.AddLinkField({Name: "Alpha", Field: "Alpha", IsTimeField: false, DefaultValue: 0.15})
             o.AddLinkField({Name: "Beta", Field: "Beta", IsTimeField: false, DefaultValue: 4.})
-            o.AddLinkField({Name: "TollCostSOV", Field: "TollCostSOV", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostHOV", Field: "TollCostHOV", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostSUT", Field: "TollCostSUT", IsTimeField: false})
-            o.AddLinkField({Name: "TollCostMUT", Field: "TollCostMUT", IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSOV_" + period, Field: "TollCostSOV_" + period, IsTimeField: false})
+            o.AddLinkField({Name: "TollCostHOV_" + period, Field: "TollCostHOV_" + period, IsTimeField: false})
+            o.AddLinkField({Name: "TollCostSUT_" + period, Field: "TollCostSUT_" + period, IsTimeField: false})
+            o.AddLinkField({Name: "TollCostMUT_" + period, Field: "TollCostMUT_" + period, IsTimeField: false})
             if GetFileInfo(turn_prohibtions) <> null then o.TurnProhibitionTable = turn_prohibtions
             o.OutNetworkName = net_file
             o.Run()
