@@ -123,7 +123,7 @@ Macro "Roadway Project Management" (MacroOpts)
     SetDataVectors(llyr + "|", final, )
     tbl = CreateObject("Table", llyr)
     tbl.AddField({
-      FieldName: "UpdatedWithP", Type: "String",
+      FieldName: "UpdatedWithP", Type: "String", Width:16,
       Description: "Project ID that updated the base attributes"
     })
     tbl.AddField({
