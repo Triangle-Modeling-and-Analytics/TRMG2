@@ -284,17 +284,11 @@ Macro "Check Shadow Price Table" (Args)
     temp_file = GetTempFileName(".bin")
     join.Export({
         FileName: temp_file,
-        FieldNames: {se_specs.TAZ} + cols
+        FieldNames: {se_specs.TAZ, "hbw"}
     })
     join = null
     sp = null
     temp = CreateObject("Table", temp_file)
-    temp.(sp_specs.TAZ) = temp.(se_specs.TAZ)
-    temp.DropFields(se_specs.TAZ)
-    temp.RenameField({
-        FieldName: sp_specs.TAZ,
-        NewName: "TAZ"
-    })
     temp.hbw = nz(temp.hbw)  
     temp.Export({FileName: sp_file})
 EndMacro
