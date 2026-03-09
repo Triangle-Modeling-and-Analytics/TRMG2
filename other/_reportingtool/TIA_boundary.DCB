@@ -1,15 +1,10 @@
 
-128,codepage=65001
+84,codepage=65001
 "ID",I,1,4,0,10,0,,"","",,"Sum",
-"Area",F,5,4,0,10,2,,"","Area of feature in Square Miles",,"Sum",
-"MPO",C,9,16,0,16,0,,"","",,"Copy",
-"District",I,25,4,0,8,0,,"","41-district system",,"Copy",
-"District2",I,29,4,0,8,0,,"","21-district system",,"Copy",
-"Cluster",I,33,4,0,8,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
-"ClusterName",C,37,16,0,16,0,,"","This is another district system, but this one is used in|the nested DC models",,"Copy",
-"County",C,53,20,0,20,0,,"","",,"Copy",
-"TAZ",I,73,4,0,10,0,,"","",,"Sum",
-"COR_DIST",C,77,16,0,16,0,,"","",,"Copy",
-"COR_Category",C,93,16,0,16,0,,"","",,"Copy",
-"Jurisdiction",C,109,16,0,16,0,,"","",,"Copy",
-"is_in_boundary",I,125,4,0,4,0,,"","",,"Sum",
+"TAZ",I,5,4,0,10,0,,"","",,"Sum",
+"AREA",F,9,4,0,10,2,,"","Area of feature in Square Miles",,"Sum",
+"COUNTY",C,13,20,0,20,0,,"","",,"Copy",
+"COR_DIST",C,33,16,0,16,0,,"","",,"Copy",
+"COR_Category",C,49,16,0,16,0,,"","",,"Copy",
+"Jurisdiction",C,65,16,0,16,0,,"","",,"Copy",
+"is_in_boundary",I,81,4,0,4,0,,"","",,"Sum",
