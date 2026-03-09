@@ -1969,7 +1969,7 @@ Macro "Summarize Transit" (MacroOpts)
   
   tables = RunMacro("Get Transit Output Tables", transit_asn_dir)
   
-  // Get agency name, route name, and mode name
+  // Get route level agency name, route name, and mode name
   rts_bin = Substitute(scen_rts, ".rts", "R.bin", 1)
   rts = CreateObject("df", rts_bin)
 
@@ -1978,9 +1978,14 @@ Macro "Summarize Transit" (MacroOpts)
   rts.left_join(mode_table, "Mode", "Mode_ID")
   rts.rename("Abbr", "Mode_abbr")
   rts.select({"Route_ID", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr"})
-  
+
+  // Get stop level MPO and county
+  stop_bin = Substitute(scen_rts, ".rts", "S.bin", 1)
+  stop = CreateObject("df", stop_bin)
+  stop.select({"STOP_ID", "MPO", "County"})
+
   // Summarize total ridership (total boardings)
-  onoff = tables.onoff
+  onoff = tables.onoff.copy()
   onoff.group_by({"ROUTE", "access", "mode", "period"})
   cols_to_summarize = onoff.colnames({start: "On", stop: "EgressOff"})
   onoff.summarize(cols_to_summarize, "sum")
@@ -1991,15 +1996,26 @@ Macro "Summarize Transit" (MacroOpts)
   onoff.write_csv(output_dir + "/boardings_and_alightings_by_period.csv")
   
   daily = onoff.copy()
-  daily.group_by("route")
+  daily.group_by({"route", "access", "mode"})
   daily.summarize(cols_to_summarize, "sum")
   opts = null
-  opts.new_names = {"route"} + cols_to_summarize
+  opts.new_names = {"route", "access", "mode"} + cols_to_summarize
   daily.colnames(opts)
   daily.mutate("period", "Daily")
   daily.left_join(rts, "route", "Route_ID")
-  daily.select({"route", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
+  daily.select({"route", "access", "mode", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
   daily.write_csv(output_dir + "/boardings_and_alightings_daily.csv")
+
+  byroute = onoff.copy()
+  byroute.group_by("route")
+  byroute.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"route"} + cols_to_summarize
+  byroute.colnames(opts)
+  byroute.mutate("period", "Daily")
+  byroute.left_join(rts, "route", "Route_ID")
+  byroute.select({"route", "Master_Route_ID", "Route_Name", "Agency", "Mode_abbr", "period"} + cols_to_summarize)
+  byroute.write_csv(output_dir + "/boardings_and_alightings_by_route.csv")
 
   
 
@@ -2022,6 +2038,25 @@ Macro "Summarize Transit" (MacroOpts)
   opts.new_names = {"agency", "mode"} + cols_to_summarize
   df.colnames(opts)
   df.write_csv(output_dir + "/boardings_and_alightings_daily_by_mode_by_agency.csv")
+
+  // Aggregate boardings by STOP location
+  onoff_raw = tables.onoff.copy()
+  onoff_raw.group_by("STOP")
+  onoff_raw.summarize(cols_to_summarize, "sum")
+  opts = null
+  opts.new_names = {"STOP"} + cols_to_summarize
+  onoff_raw.colnames(opts)
+  onoff_raw.left_join(stop, "STOP", "STOP_ID")
+  group_fields = {"MPO", "County"}
+  for var in group_fields do
+    df = onoff_raw.copy()
+    df.group_by(var)
+    df.summarize(cols_to_summarize, "sum")
+    opts = null
+    opts.new_names = {var} + cols_to_summarize
+    df.colnames(opts)
+    df.write_csv(output_dir + "/boardings_and_alightings_by_stop_" + var + ".csv")
+  end
 
   // aggregate transit flow by link and join to layer
   agg = tables.agg

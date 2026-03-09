@@ -124,6 +124,12 @@ menu "TRMG2 Utilities"
 
     MenuItem "TIA" text: "TIA Site Analysis"
         menu "TIA Site Analysis"
+
+    MenuItem "CocTool" text: "CoC Tool" do 
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open CoC Dbox", Args)
+    enditem
     
 endMenu
 
@@ -258,6 +264,17 @@ menu "Performance Measures"
         mr.RunCode("Open Concatenate Files Dbox", Args)
     enditem
 
+    MenuItem "Payback" text: "Payback Period Tool" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Payback Period Tool Dbox", Args)
+    enditem
+
+    MenuItem "Highway Buffer Performance" text: "Highway Buffer Performance" do
+        mr = CreateObject("Model.Runtime")
+        Args = mr.GetValues()
+        mr.RunCode("Open Highway Buffer Performance Dbox", Args)
+    enditem
 endMenu
 
 menu "File Management"

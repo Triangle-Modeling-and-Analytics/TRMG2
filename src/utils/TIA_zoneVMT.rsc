@@ -151,7 +151,7 @@ Macro "TIA Zone VMT" (Args, Scen_Name)
     univ_dir = dir + "\\output\\university"
     for tod in TOD_list do
         // set input path
-        univ_trip = univ_dir + "\\university_pa_modal_trips_" + tod + ".mtx"
+        univ_trip = univ_dir + "\\mode\\university_pa_modal_trips_" + tod + ".mtx"
         univ_mtx = CreateObject("Matrix", univ_trip)
         univ_core = univ_mtx.GetCore("auto")
 

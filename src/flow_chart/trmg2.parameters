@@ -1,16 +1,20 @@
+    Section = "Define Scenario"
+
+        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2020.bin", "Description":"Master SE data bin file" }
+        Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2020", "Description":"Scenario folder" }
+        Args.[AQ Year] = { "Type":"int" , "Value":2020, "Description":"The year of this scenario" }
+
     Section = "Master Files"
     
         Args.[Base Folder] = { "Type":"Folder" , "Value":"%Model Folder%", "Description":"Root model folder" }
         Args.[Master Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\master", "Description":"Master folder" }
         Args.[Master Links] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_links.dbd", "Description":"Master roadway line layer" }
         Args.[Master Routes] = { "Type":"File" , "Value":"%Master Folder%\\networks\\master_routes.rts", "Description":"Master transit routes" }
-        Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }
-        Args.[Master SE] = { "Type":"File" , "Value":"%Master Folder%\\sedata\\se_2020.bin", "Description":"Master SE data bin file" }
+        Args.[Master TAZs] = { "Type":"File" , "Value":"%Master Folder%\\tazs\\master_tazs.dbd", "Description":"Master TAZs" }   
     
     Section = "Main Scenario Inputs"
     
         Args.[Scenarios Folder] = { "Type":"Folder" , "Value":"%Base Folder%\\scenarios", "Description":"Directory that holds all scenario folders" }
-        Args.[Scenario Folder] = { "Type":"Folder" , "Value":"%Scenarios Folder%\\base_2020", "Description":"Scenario folder" }
         Args.[Input Folder] = { "Type":"Folder" , "Value":"%Scenario Folder%\\input", "Description":"Scenario input folder" }
         Args.[Input Links] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_links.dbd", "Description":"Scenario input roadway links. Created during scenario creation." }
         Args.[Input Routes] = { "Type":"File" , "Value":"%Input Folder%\\networks\\scenario_routes.rts", "Description":"Scenario input routes. Created during scenario creation." }
@@ -52,6 +56,7 @@
         Args.TransponderRatioMUT = { "Type":"double" , "Value":0.76, "Description":"Ratio of MUTs with a toll transponder (0-1)" }
         Args.periods = { Type:"hidden" , "Value": {"AM", "MD", "PM", "NT"}, "Description":"List of time periods in the model."}
         Args.access_modes = { Type:"hidden" , "Value": {"w", "knr", "pnr"} }
+        Args.TollProfile = { "Type":"File" , "Value":"%Input Folder%\\networks\\toll_profile_factors.csv", "Description":"Toll profile time of day factors." }  
         
     Section = "Network Calculations|Transit"
         

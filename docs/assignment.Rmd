@@ -115,7 +115,7 @@ The table below shows the alpha and beta values used for the BPR VDF.
 df <- read_csv("../master/networks/ff_speed_alpha_beta.csv") %>%
   select(HCMType, AreaType, Alpha, Beta) %>%
   mutate(Beta = round(Beta,0)) %>%
-  filter(!(HCMType %in% c("CC", "TransitOnly")))
+  filter(!(HCMType %in% c("CC")))
 ```
 
 ##### Alphas

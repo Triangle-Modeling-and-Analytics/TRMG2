@@ -47,3 +47,6 @@ utils/deletefiles.rsc
 utils/trip_aggregation_daily.rsc
 utils/TIA_zoneVMT.rsc
 utils/TIA_linkVMT.rsc
+utils/CoC.rsc
+utils/payback.rsc
+utils/hwy_buffer_performance.rsc

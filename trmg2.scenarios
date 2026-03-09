@@ -10,8 +10,31 @@ EndScenario
     
 Scenario "2055"
     
-    [Master SE] = "%Master Folder%\\sedata\\se_2055.bin"
+    [Master SE] = "%Master Folder%\\sedata\\se_2055_Adopted.bin"
     [Scenario Folder] = "%Scenarios Folder%\\2055"
-    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2050.bin"
+    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2055.bin"
+    [AQ Year] = 2055
+EndScenario
+    
+    
+Scenario "2035"
+    
+    [Master SE] = "%Master Folder%\\sedata\\se_2035_Adopted.bin"
+    [Scenario Folder] = "%Scenarios Folder%\\2035"
+    FeedbackConvergence = 0.1
+    FeedbackIterations = 5
+    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2035.bin"
+    [AQ Year] = 2035
+EndScenario
+    
+    
+Scenario "2045"
+    
+    [Master SE] = "%Master Folder%\\sedata\\SE_2045_Adopted.bin"
+    [Scenario Folder] = "%Scenarios Folder%\\2045"
+    FeedbackConvergence = 0.1
+    FeedbackIterations = 5
+    InitCongTimes = "%Input Folder%\\networks\\init_cong_time_2045.bin"
+    [AQ Year] = 2045
 EndScenario
     
