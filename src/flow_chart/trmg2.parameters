@@ -142,14 +142,10 @@
         Args.FeedbackConvergence = { "Type":"double" , "Value":.1, "Description":"%RMSE between skims. .1 = 0.1%" }
         Args.FeedbackIterations = { "Type":"int" , "Value":5, "Description":"Max number of feedback iterations" }
         Args.FeedbackIteration = { "Type":"hidden" , "Value":1, "Description":"Starting feedback iteration number.|Should be 1 unless debugging."}
-        Args.AssignIterations = { "Type":"int" , "Value":1000, "Description":"Max number of assignment iterations" }
+        Args.AssignIterations = { "Type":"int" , "Value":500, "Description":"Max number of assignment iterations" }
         Args.AssignConvergence = { "Type":"double" , "Value":0.00001, "Description":"Assignment Convergence (%RMSE)" }
         Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }
 
     Section = "Assignment"
 
         Args.SaveTurns = {"Type":"int" , "Value":0, "Caption":"If want to save turns for AM/PM assignment, value = 1. Default value = 0." }
-        Args.AM_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\AM_iterlog.bin", "Description":"AM assignment iteration log file." }
-        Args.MD_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\MD_iterlog.bin", "Description":"MD assignment iteration log file." }
-        Args.PM_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\PM_iterlog.bin", "Description":"PM assignment iteration log file." }
-        Args.NT_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\NT_iterlog.bin", "Description":"NT assignment iteration log file." }
