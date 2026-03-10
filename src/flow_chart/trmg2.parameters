@@ -147,5 +147,9 @@
         Args.sl_query = { "Type":"File" , "Value":null, "Caption":"Optional select link query file" }
 
     Section = "Assignment"
-
+    
+        Args.AM_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\AM_iterlog.bin", "Description":"AM assignment iteration log file." }
+        Args.MD_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\MD_iterlog.bin", "Description":"MD assignment iteration log file." }
+        Args.PM_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\PM_iterlog.bin", "Description":"PM assignment iteration log file." }
+        Args.NT_IterLog = { "Type":"File" , "Value":"%Output Folder%\\assignment\\roadway\\NT_iterlog.bin", "Description":"NT assignment iteration log file." }
         Args.SaveTurns = {"Type":"int" , "Value":0, "Caption":"If want to save turns for AM/PM assignment, value = 1. Default value = 0." }
