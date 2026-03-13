@@ -1,9 +1,9 @@
 master_links
 28,codepage=65001
-"ID",I,1,4,0,4,0,,"","",,"Sum",
-"Centroid",I,5,4,0,8,0,,"","Nodes on the network where travel can begin/end.|||1: the node is a centroid|0: not a centroid",,"Blank",
-"External",I,9,4,0,8,0,,"","1: the node is an external centroid/station|0: is not||All external stations are centroids. Not all centroids|are external stations.",,"Blank",
-"PNR",I,13,4,0,8,0,,"","",,"Sum",
-"NewID_tag",I,17,4,0,8,0,,"","",,"Sum",
-"v1_ID",I,21,4,0,8,0,,"","",,"Sum",
-"v3_ID",I,25,4,0,8,0,,"","",,"Sum",
+"v3_ID",I,1,4,0,4,0,,"","",,"Sum",
+"Centroid",I,9,4,0,8,0,,"","Nodes on the network where travel can begin/end.|||1: the node is a centroid|0: not a centroid",,"Blank",
+"External",I,13,4,0,8,0,,"","1: the node is an external centroid/station|0: is not||All external stations are centroids. Not all centroids|are external stations.",,"Blank",
+"PNR",I,17,4,0,8,0,,"","",,"Sum",
+"NewID_tag",I,21,4,0,8,0,,"","",,"Sum",
+"v1_ID",I,25,4,0,8,0,,"","",,"Sum",
+"v2_ID",I,5,4,0,10,0,,"","",,"Sum",
