@@ -39,3 +39,7 @@ TLHighway,Downtown,0,1.15,5,These will automatically behave like arterials unles
 TLHighway,Rural,-1,1,4,
 TLHighway,Suburban,-1,1.15,5,
 TLHighway,Urban,0,1.15,5,
+TransitOnly,Downtown,0,,,
+TransitOnly,Rural,0,,,
+TransitOnly,Suburban,0,,,
+TransitOnly,Urban,0,,,

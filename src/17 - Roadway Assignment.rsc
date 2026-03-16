@@ -297,7 +297,7 @@ Macro "Update Link Congested Times" (Args)
             new_field = assn_vw + "." + dir + "_MSA_Time"
             v_old = GetDataVector(jv + "|", old_field, )
             v_new = GetDataVector(jv + "|", new_field, )
-            // This check keeps CC links and any others not included
+            // This check keeps TransitOnly links and any others not included
             // in assignment from having their times replaced with nulls.
             v_new = if v_new = null
                 then v_old
