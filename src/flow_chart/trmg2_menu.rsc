@@ -130,6 +130,11 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open CoC Dbox", Args)
     enditem
+
+    MenuItem "GTFS" text: "GTFS Import" do 
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open GTFS Dbox")
+    enditem
     
 endMenu
 
