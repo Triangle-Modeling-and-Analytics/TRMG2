@@ -7,7 +7,7 @@ Macro "Open GTFS Dbox"
     RunDbox("GTFS")
 endmacro
 
-dBox "GTFS" location: x, y, 75, 9
+dBox "GTFS" location: x, y, 75, 10
     Title: "GTFS Import" toolbox NoKeyBoard
 
     close do
@@ -15,8 +15,9 @@ dBox "GTFS" location: x, y, 75, 9
     enditem
 
     init do
-        static x, y, link_dbd, gtfs_files
+        static x, y, link_dbd, gtfs_files, route_buffer
         if x = null then x = -3
+        if route_buffer = null then route_buffer = 10
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
     enditem
@@ -61,8 +62,18 @@ dBox "GTFS" location: x, y, 75, 9
         gtfs_files = null
     enditem
     
+    // Import buffer distance
+    Edit Int 18, after, 10 Prompt: "Route Buffer (ft):" Variable: route_buffer
+    Button after, same, 4, 1 Prompt: "?" do
+        ShowMessage(
+            "The route buffer is the distance that GTFS routes will be buffered " +
+            "when being imported. An attempt will be made to only use links inside " +
+            " this buffer. If a path can't be found, then all links will be used."
+        )
+    enditem
+
     // Run/Quit buttons
-    Button 3, 7, 10 Prompt: "Run" do
+    Button 3, 8, 10 Prompt: "Run" do
         if link_dbd = null then do
             ShowMessage("Choose a Link DBD file.")
         end else if gtfs_files = null then do
@@ -70,6 +81,7 @@ dBox "GTFS" location: x, y, 75, 9
         end else do
             Args.gtfs_files = gtfs_files
             Args.link_dbd = link_dbd
+            Args.route_buffer = route_buffer
             RunMacro("Import GTFS Wrapper", Args)
             ShowMessage("Done!")
         end
@@ -124,6 +136,7 @@ Macro "Import GTFS" (Args)
     gtfs_file = Args.gtfs_file
     link_dbd = Args.link_dbd
     output_rts_file = Args.output_rts_file
+    route_buffer = Args.route_buffer
 
     net_file = RunMacro("Create Simple Roadway Net", {
         hwy_dbd: link_dbd,
@@ -138,7 +151,7 @@ Macro "Import GTFS" (Args)
         GTFSFolder: gtfs_dir,
         RouteFile: output_rts_file,
         NetworkFile: net_file,
-        RouteBuffer: 50/5280
+        RouteBuffer: route_buffer / 5280 // convert feet to miles
     })
     gtfs.ServicesFlag = 0
     gtfs.Import({DropPhysicalStops: true})
