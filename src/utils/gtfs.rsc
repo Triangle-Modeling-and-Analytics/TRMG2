@@ -7,7 +7,7 @@ Macro "Open GTFS Dbox"
     RunDbox("GTFS")
 endmacro
 
-dBox "GTFS" location: x, y, 75, 10
+dBox "GTFS" location: x, y, 75, 11
     Title: "GTFS Import" toolbox NoKeyBoard
 
     close do
@@ -35,11 +35,13 @@ dBox "GTFS" location: x, y, 75, 10
         on error default
     enditem
 
-    Frame 2, 1.8, 65, 4 Prompt: "GTFS Files"
+    Text 67, 1.5 Prompt: "(routes.rts will be created in the same folder as the link layer.)"
+
+    Frame 2, 2.8, 65, 4 Prompt: "GTFS Files"
 
     // The GTFS file
     // Edit Text 11, 0, 50 Prompt: "GTFS File:" Variable: gtfs_file
-    Button 3, 3, 15, 1 Prompt: "Add GTFS File" do
+    Button 3, 4, 15, 1 Prompt: "Add GTFS File" do
         on error, escape goto skip1
         gtfs_file = ChooseFile(
             {{"TXT (*.txt)", "routes.txt"}}, 
@@ -73,7 +75,7 @@ dBox "GTFS" location: x, y, 75, 10
     enditem
 
     // Run/Quit buttons
-    Button 3, 8, 10 Prompt: "Run" do
+    Button 3, 9, 10 Prompt: "Run" do
         if link_dbd = null then do
             ShowMessage("Choose a Link DBD file.")
         end else if gtfs_files = null then do
