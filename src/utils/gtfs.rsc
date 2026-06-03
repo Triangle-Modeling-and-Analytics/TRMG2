@@ -142,7 +142,7 @@ Macro "Import GTFS" (Args)
 
     net_file = RunMacro("Create Simple Roadway Net", {
         hwy_dbd: link_dbd,
-        link_qry: "Select * where HCMType <> null and HCMType <> 'CC'"
+        link_qry: "Select * where HCMType <> 'CC'"
     })
 
     {drive, folder, , } = SplitPath(gtfs_file)
