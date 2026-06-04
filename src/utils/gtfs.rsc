@@ -1,21 +1,21 @@
 /*
 Creates a dbox accessed from the TRMG2 drop down menu.
-Imports a GTFS file into a route system on a given link layer dbd.
+Imports a route file into a route system on a given link layer dbd.
 */
 
-Macro "Open GTFS Dbox"
-    RunDbox("GTFS")
+Macro "Open Route Dbox"
+    RunDbox("Route")
 endmacro
 
-dBox "GTFS" location: x, y, 75, 11
-    Title: "GTFS Import" toolbox NoKeyBoard
+dBox "Route" location: x, y, 75, 11
+    Title: "Route Import" toolbox NoKeyBoard
 
     close do
         return()
     enditem
 
     init do
-        static x, y, link_dbd, gtfs_files, route_buffer
+        static x, y, link_dbd, route_files, ext, route_buffer
         if x = null then x = -3
         if route_buffer = null then route_buffer = 10
         mr = CreateObject("Model.Runtime")
@@ -37,31 +37,47 @@ dBox "GTFS" location: x, y, 75, 11
 
     Text 67, 1.5 Prompt: "(routes.rts will be created in the same folder as the link layer.)"
 
-    Frame 2, 2.8, 65, 4 Prompt: "GTFS Files"
+    Frame 2, 2.8, 65, 4 Prompt: "Route Files (either GTFS or RTS)"
 
-    // The GTFS file
-    // Edit Text 11, 0, 50 Prompt: "GTFS File:" Variable: gtfs_file
-    Button 3, 4, 15, 1 Prompt: "Add GTFS File" do
+    // Route file (either GTFS or RTS)
+    Button 3, 4, 15, 1 Prompt: "Add Route File" do
         on error, escape goto skip1
-        gtfs_file = ChooseFile(
-            {{"TXT (*.txt)", "routes.txt"}}, 
-            "Choose GTFS Route File", 
+        route_file = ChooseFile(
+            {{"TXT (*.txt)", "routes.txt"}, {"RTS (*.rts)", "*.rts"}}, 
+            "Choose Route File", 
             {"Initial Directory": Args.[Base Folder]}
         )
-        gtfs_files = gtfs_files + {gtfs_file}
-        gtfs_idx = gtfs_files.length
+        {drive, path, file, ext} = SplitPath(route_file)
+        // If the user selects a GTFS txt file, then we want to allow them to select multiple files.
+        // If they select an RTS file, then we will just import that one file and ignore any others.
+        if ext = ".txt" then do
+            if route_files <> null then do
+                for file in route_files do
+                    {, , , ext_check} = SplitPath(file)
+                    if ext_check = ".rts" then do
+                        route_files = null
+                        break
+                    end
+                end
+            end
+            route_files = route_files + {route_file}
+            route_idx = route_files.length
+        end else do
+            route_files = {route_file}
+            route_idx = 1
+        end
         skip1:
         on error default
     enditem
 
-    // List GTFS files and allow removal
-    Popdown Menu "GTFS Files" same, after, 35, 4 list: gtfs_files variable: gtfs_idx
+    // List Route files and allow removal
+    Popdown Menu "Route Files" same, after, 35, 4 list: route_files variable: route_idx
     Button after, same, 15, 1 Prompt: "Remove Selected" do
-        if gtfs_idx = null then return()
-        gtfs_files = ExcludeArrayElements(gtfs_files, gtfs_idx, 1)
+        if route_idx <> null 
+            then route_files = ExcludeArrayElements(route_files, route_idx, 1)
     enditem
     Button after, same Prompt: "Clear All" do
-        gtfs_files = null
+        route_files = null
     enditem
     
     // Import buffer distance
@@ -78,13 +94,15 @@ dBox "GTFS" location: x, y, 75, 11
     Button 3, 9, 10 Prompt: "Run" do
         if link_dbd = null then do
             ShowMessage("Choose a Link DBD file.")
-        end else if gtfs_files = null then do
-            ShowMessage("Choose a GTFS file.")
+        end else if route_files = null then do
+            ShowMessage("Choose a Route file.")
         end else do
-            Args.gtfs_files = gtfs_files
+            Args.route_files = route_files
             Args.link_dbd = link_dbd
             Args.route_buffer = route_buffer
-            RunMacro("Import GTFS Wrapper", Args)
+            if ext = ".txt" 
+                then RunMacro("Import GTFS Wrapper", Args)
+                else RunMacro("Import RTS", Args)
             ShowMessage("Done!")
         end
     enditem
@@ -94,13 +112,13 @@ dBox "GTFS" location: x, y, 75, 11
 enddBox
 
 /*
-The user can select multiple GTFS files. This will loop over each
+The user can select multiple Route files. This will loop over each
 one and then merge the resulting route systems together at the end.
 */
 
 Macro "Import GTFS Wrapper" (Args)
-    
-    gtfs_files = Args.gtfs_files
+    Throw("Import GTFS Wrapper")
+    route_files = Args.route_files
     link_dbd = Args.link_dbd
 
     {drive, folder, , } = SplitPath(link_dbd)
@@ -109,14 +127,14 @@ Macro "Import GTFS Wrapper" (Args)
     Args.temp_dir = out_dir + "temp_rts"
     if GetDirectoryInfo(Args.temp_dir, "All") = null then CreateDirectory(Args.temp_dir)
 
-    for i = 1 to gtfs_files.length do
-        gtfs_file = gtfs_files[i]
+    for i = 1 to route_files.length do
+        route_file = route_files[i]
         if i = 1 
             then out_rts_file = final_rts
             else out_rts_file = Args.temp_dir + "\\routes_" + String(i) + ".rts"
 
         Args.output_rts_file = out_rts_file
-        Args.gtfs_file = gtfs_file
+        Args.route_file = route_file
         RunMacro("Import GTFS", Args)
 
         if i > 1 then do
@@ -128,14 +146,14 @@ Macro "Import GTFS Wrapper" (Args)
 Endmacro
 
 /*
-This macro is called by the GTFS dbox after the user clicks "Run". 
-It takes the GTFS file and link layer DBD as arguments and runs the code 
-to import the GTFS data onto the link layer.
+This macro is called by the Route dbox after the user clicks "Run". 
+It takes the Route file and link layer DBD as arguments and runs the code 
+to import the Route data onto the link layer.
 */
 
 Macro "Import GTFS" (Args)
 
-    gtfs_file = Args.gtfs_file
+    route_file = Args.route_file
     link_dbd = Args.link_dbd
     output_rts_file = Args.output_rts_file
     route_buffer = Args.route_buffer
@@ -145,7 +163,7 @@ Macro "Import GTFS" (Args)
         link_qry: "Select * where HCMType <> 'CC'"
     })
 
-    {drive, folder, , } = SplitPath(gtfs_file)
+    {drive, folder, , } = SplitPath(route_file)
     gtfs_dir = drive + folder
 
     gtfs = CreateObject("GTFSImporter", {
@@ -196,3 +214,7 @@ Macro "Merge Route Systems2" (MacroOpts)
   // Delete the merged rts
   DeleteRouteSystem(rts_to_merge)
 endmacro
+
+Macro "Import RTS" (Args)
+    Throw("Import RTS")
+EndMacro
