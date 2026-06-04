@@ -15,7 +15,7 @@ dBox "Route" location: x, y, 75, 11
     enditem
 
     init do
-        static x, y, link_dbd, route_files, ext, route_buffer
+        static x, y, link_dbd, route_files, route_idx, ext, route_buffer
         if x = null then x = -3
         if route_buffer = null then route_buffer = 10
         mr = CreateObject("Model.Runtime")
@@ -51,6 +51,7 @@ dBox "Route" location: x, y, 75, 11
         // If the user selects a GTFS txt file, then we want to allow them to select multiple files.
         // If they select an RTS file, then we will just import that one file and ignore any others.
         if ext = ".txt" then do
+            EnableItem("buffer_item")
             if route_files <> null then do
                 for file in route_files do
                     {, , , ext_check} = SplitPath(file)
@@ -63,6 +64,7 @@ dBox "Route" location: x, y, 75, 11
             route_files = route_files + {route_file}
             route_idx = route_files.length
         end else do
+            DisableItem("buffer_item")
             route_files = {route_file}
             route_idx = 1
         end
@@ -81,7 +83,7 @@ dBox "Route" location: x, y, 75, 11
     enditem
     
     // Import buffer distance
-    Edit Int 18, after, 10 Prompt: "Route Buffer (ft):" Variable: route_buffer
+    Edit Int "buffer_item" 18, after, 10 Prompt: "Route Buffer (ft):" Variable: route_buffer
     Button after, same, 4, 1 Prompt: "?" do
         ShowMessage(
             "The route buffer is the distance that GTFS routes will be buffered " +
@@ -225,8 +227,8 @@ Macro "Import RTS" (Args)
     route_files = Args.route_files
     route_file = route_files[1]
     link_dbd = Args.link_dbd
-    output_rts_file = Args.output_rts_file
-    route_buffer = Args.route_buffer
+    // not used
+    // route_buffer = Args.route_buffer
 
     // Create project list of all transit routes
     map = CreateObject("Map", route_file)
@@ -253,17 +255,16 @@ Macro "Import RTS" (Args)
     pid_tbl.Export({FileName: project_file})
     map = null
     rtbl = null
-Throw()
+
     // Create scenario RTS using project manager
-    scen_dir = Args.[Scenario Folder]
     opts = null
-    opts.master_rts = Args.[Master Routes]
-    opts.scen_hwy = Args.[Input Links]
-    opts.proj_list = scen_dir + "/TransitProjectList.csv"
+    opts.master_rts = route_file
+    opts.scen_hwy = link_dbd
+    opts.proj_list = project_file
     opts.centroid_qry = "Centroid = 1"
-    opts.link_qry = "HCMType <> null and HCMType <> 'CC'"
-    {, , rts_name, ext} = SplitPath(scen_rts)
-    opts.output_rts_file = rts_name + ext
+    opts.link_qry = "HCMType <> 'CC'"
+    opts.output_rts_file = "routes.rts"
+    opts.delete_shape_stops = "false"
     RunMacro("Transit Project Management", opts)
 
     // If we added ProjID field to the route file, then remove it
