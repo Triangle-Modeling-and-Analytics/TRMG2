@@ -278,4 +278,5 @@ Macro "Import RTS" (Args)
     end
     
     DeleteFile(project_file)
+    DeleteFile(Substitute(project_file, ".csv", ".DCC", ))
 EndMacro
