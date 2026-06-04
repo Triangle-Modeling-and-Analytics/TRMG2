@@ -117,7 +117,6 @@ one and then merge the resulting route systems together at the end.
 */
 
 Macro "Import GTFS Wrapper" (Args)
-    Throw("Import GTFS Wrapper")
     route_files = Args.route_files
     link_dbd = Args.link_dbd
 
@@ -215,6 +214,67 @@ Macro "Merge Route Systems2" (MacroOpts)
   DeleteRouteSystem(rts_to_merge)
 endmacro
 
+/*
+This macro leverages the same logic from the model's scenario creation step.
+It just creates a temporary project list of all the transit routes and uses
+that.
+*/
+
 Macro "Import RTS" (Args)
-    Throw("Import RTS")
+    
+    route_files = Args.route_files
+    route_file = route_files[1]
+    link_dbd = Args.link_dbd
+    output_rts_file = Args.output_rts_file
+    route_buffer = Args.route_buffer
+
+    // Create project list of all transit routes
+    map = CreateObject("Map", route_file)
+    {, , rlyr} = map.GetLayerNames()
+    rtbl = CreateObject("Table", rlyr)
+    field_names = rtbl.GetFieldNames()
+    // Make sure ProjID exists since the project manager requires it. 
+    // If it doesn't exist, then create it and populate with unique values.
+    // Track if we added it so we know to delete it later.
+    if field_names.position("ProjID") = 0 then do
+        rtbl.AddField({FieldName: "ProjID", Type: "String"})
+        num_records = rtbl.GetRecordCount()
+        v = Vector(num_records, "Long", {{"Sequence", 1, 1}})
+        v = String(v)
+        rtbl.ProjID = v
+        added_projid = "true"
+    end
+    v_pid = rtbl.ProjID
+    pid_tbl = CreateObject("Table", {Fields: {{FieldName: "ProjID", Type: "String"}}})
+    pid_tbl.AddRows(v_pid.length)
+    pid_tbl.ProjID = v_pid
+    {drive, path, file, ext} = SplitPath(link_dbd)
+    project_file = drive + path + "temp_proj_list.csv"
+    pid_tbl.Export({FileName: project_file})
+    map = null
+    rtbl = null
+Throw()
+    // Create scenario RTS using project manager
+    scen_dir = Args.[Scenario Folder]
+    opts = null
+    opts.master_rts = Args.[Master Routes]
+    opts.scen_hwy = Args.[Input Links]
+    opts.proj_list = scen_dir + "/TransitProjectList.csv"
+    opts.centroid_qry = "Centroid = 1"
+    opts.link_qry = "HCMType <> null and HCMType <> 'CC'"
+    {, , rts_name, ext} = SplitPath(scen_rts)
+    opts.output_rts_file = rts_name + ext
+    RunMacro("Transit Project Management", opts)
+
+    // If we added ProjID field to the route file, then remove it
+    if added_projid then do
+        map = CreateObject("Map", route_file)
+        {, , rlyr} = map.GetLayerNames()
+        rtbl = CreateObject("Table", rlyr)
+        rtbl.DropField("ProjID")
+        rtbl = null
+        map = null
+    end
+    
+    DeleteFile(project_file)
 EndMacro
