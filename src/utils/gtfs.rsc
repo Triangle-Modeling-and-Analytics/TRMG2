@@ -16,10 +16,16 @@ dBox "Route" location: x, y, 75, 11
 
     init do
         static x, y, link_dbd, route_files, route_idx, ext, route_buffer
-        if x = null then x = -3
         if route_buffer = null then route_buffer = 10
         mr = CreateObject("Model.Runtime")
         Args = mr.GetValues()
+        // check if the buffer needs to be enabled based on the route files that were previously selected
+        if route_files <> null and route_files.length = 1 then do
+            // {drive, path, file, ext} = SplitPath(route_files[1])
+            if ext = ".rts" 
+                then DisableItem("buffer_item")
+                else EnableItem("buffer_item")
+        end
     enditem
 
     // The link layer DBD
@@ -43,7 +49,7 @@ dBox "Route" location: x, y, 75, 11
     Button 3, 4, 15, 1 Prompt: "Add Route File" do
         on error, escape goto skip1
         route_file = ChooseFile(
-            {{"TXT (*.txt)", "routes.txt"}, {"RTS (*.rts)", "*.rts"}}, 
+            {{"GTFS (*.txt)", "routes.txt"}, {"RTS (*.rts)", "*.rts"}}, 
             "Choose Route File", 
             {"Initial Directory": Args.[Base Folder]}
         )
