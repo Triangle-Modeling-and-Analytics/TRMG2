@@ -224,15 +224,36 @@ macro "Migrate Route System" (MacroOpts)
     v_link_ids = GetDataVector(llyr_s + "|", "ID", )
     SetLayer(rlyr_s)
     rh = GetFirstRecord(rlyr_s + "|", )
+    broken_routes = null
     while rh <> null do
       
       rt_links = GetRouteLinks(rlyr_s, rlyr_s.Route_Name)
       for i = 1 to rt_links.length do
         rt_link = rt_links[i][1]
         
+        // Check that the link the route runs on is in the scenario link layer. If not, mark this route as broken.
         if v_link_ids.position(rt_link) = 0 then do
           broken_routes = broken_routes + {rlyr_s.Route_ID}
           break
+        end
+        // Also check that the route is connected (i.e. not just running on unconnected links). 
+        // If the current link is not connected to the previous link, then mark as broken.
+        else do
+          SetLayer(llyr_s)
+          if i > 1 then do
+            prevlink = rt_links[i-1][1]
+            // check if the current link is connected to the previous link, if not then mark as broken
+            endpt = GetEndpoints(rt_link)
+            connected_links = null
+            for pt in endpt do
+              SetLayer(nlyr_s)
+              connected_links = connected_links + GetNodeLinks(pt)
+            end
+            if ArrayPosition(connected_links, {prevlink}, ) = 0 then do
+              broken_routes = broken_routes + {rlyr_s.Route_ID}
+              break
+            end
+          end
         end
       end
       
