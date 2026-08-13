@@ -2407,19 +2407,31 @@ Macro "Create Intra Cluster Matrix"(Args)
   vTAZ = GetDataVector(se_vw + "|", "TAZ",)
   nTAZ = vTAZ.length
   CloseView(se_vw)
+  info_arr = GetProgram()
+  version = info_arr[4]
 
   outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
   // Create empty matrix
   obj = CreateObject("Matrix", {Empty: True}) 
-  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
-  opts.RowIds = v2a(vTAZ) 
-  opts.ColIds = v2a(vTAZ)
-  opts.MatrixNames = {"IC", "IZ"}
-  opts.RowIndexName = "All Zones"
-  opts.ColIndexName = "All Zones"
+  if version <=40635 then do
+    obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+    opts.RowIds = v2a(vTAZ) 
+    opts.ColIds = v2a(vTAZ)
+    opts.MatrixNames = {"IC", "IZ"}
+    opts.RowIndexName = "All Zones"
+    opts.ColIndexName = "All Zones"
+  end else do
+    NewInfo = {Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"}
+    opts.RowIds = v2a(vTAZ) 
+    opts.ColIds = v2a(vTAZ)
+    opts.MatrixNames = {"IC", "IZ"}
+    opts.RowIndexName = "All Zones"
+    opts.ColIndexName = "All Zones"
+    opts.NewMatrixInfo = NewInfo
+  end
   mat = obj.CreateFromArrays(opts)
   obj = null
-  
+
   // Intialize IC and IZ cores
   mtx = CreateObject("Matrix", mat)
   mc = mtx.GetCore("IC")
