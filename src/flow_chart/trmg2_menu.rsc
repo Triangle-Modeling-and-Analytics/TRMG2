@@ -130,6 +130,11 @@ menu "TRMG2 Utilities"
         Args = mr.GetValues()
         mr.RunCode("Open CoC Dbox", Args)
     enditem
+
+    MenuItem "Route" text: "Route Import" do 
+        mr = CreateObject("Model.Runtime")
+        mr.RunCodeEx("Open Route Dbox")
+    enditem
     
 endMenu
 

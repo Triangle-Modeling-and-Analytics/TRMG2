@@ -2404,27 +2404,41 @@ endmacro
 Macro "Create Intra Cluster Matrix"(Args)
   se = Args.SE
   se_vw = OpenTable("SE", "FFB", {se})
-  vTAZ = GetDataVector(se_vw + "|", "TAZ",)
+  vTAZ = GetDataVector(se_vw + "|", "TAZ",{{"Sort Order", {{"TAZ", "Ascending"}}}})
   nTAZ = vTAZ.length
   CloseView(se_vw)
+  info_arr = GetProgram()
+  version = info_arr[4]
 
-  outMtx = Args.[Output Folder] + "/skims/IntraCluster.mtx"
+  outMtx = Args.[Output Folder] + "\\skims\\IntraCluster.mtx"
   // Create empty matrix
   obj = CreateObject("Matrix", {Empty: True}) 
-  obj.SetMatrixOptions({Compressed: 1, DataType: "Short", FileName: outMtx, MatrixLabel: "IntraCluster"})
-  opts.RowIds = v2a(vTAZ) 
-  opts.ColIds = v2a(vTAZ)
-  opts.MatrixNames = {"IC", "IZ"}
-  opts.RowIndexName = "All Zones"
-  opts.ColIndexName = "All Zones"
+  if version <=40635 then do
+    obj.SetMatrixOptions({Compressed: 1, DataType: "short", FileName: outMtx, MatrixLabel: "IntraCluster"})
+    opts.RowIds = v2a(vTAZ) 
+    opts.ColIds = v2a(vTAZ)
+    opts.MatrixNames = {"IC", "IZ"}
+    opts.RowIndexName = "All Zones"
+    opts.ColIndexName = "All Zones"
+  end else do
+    NewInfo = {Compressed: 1, DataType: "short", FileName: outMtx, MatrixLabel: "IntraCluster"}
+    opts.RowIds = v2a(vTAZ) 
+    opts.ColIds = v2a(vTAZ)
+    opts.MatrixNames = {"IC", "IZ"}
+    opts.RowIndexName = "All Zones"
+    opts.ColIndexName = "All Zones"
+    opts.NewMatrixInfo = NewInfo
+  end
   mat = obj.CreateFromArrays(opts)
   obj = null
-  
+
   // Intialize IC and IZ cores
-  mtx = CreateObject("Matrix", mat)
+  if version <=40635 then 
+    mtx = CreateObject("Matrix", mat)
+  else mtx = mat
+  
   mc = mtx.GetCore("IC")
   mc := 0
-  
   mc = mtx.GetCore("IZ")
   mc := 0
   v = Vector(nTAZ, "Short", {{"Constant", 1}})
