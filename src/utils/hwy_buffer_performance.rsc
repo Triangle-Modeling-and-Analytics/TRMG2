@@ -206,6 +206,25 @@ Macro "Hwy_Buffer_Performance_Agg" (Args, buffer, query_file, type)
   clip = RunMacro("Clip Lines", llyr + "|corridor_buffer",  buffer_lyr + "|", out_dbd, specs, attrib, , )
   clip_lyr = AddLayer(map, "clip", out_dbd, "master_links")
   
+
+  // =========================================================================
+  // INSERTED TAGGING BLOCK: Copy original link ID to clipped layers
+  // =========================================================================
+  SetLayer(clip_lyr)
+  strct = GetTableStructure(clip_lyr, {{"Include Original", "True"}})
+
+  // 1. Fully populated 9-element array strictly conforming to TransCAD 10 rules:
+  // { FieldName, Type, Width, Decimals, Indexed, Description, Formula, WidthBytes, CodeTable }
+  new_field = {"Orig_Link_ID", "Integer", 10, 0, "False", , ,"Original Link ID", , , , null}
+  strct = strct + {new_field}
+
+  // Apply structural change using a cleanly grouped operation matrix list
+  ModifyTable(clip_lyr, strct)
+  
+  // 2. Tag the clip layer using spatial overlap with the original line layer
+  TagLayer("Value", clip_lyr + "|", clip_lyr + ".Orig_Link_ID", llyr + "|", llyr + ".ID")
+  // =========================================================================
+
   // Aggregate
   SetLayer(clip_lyr)
   agg_vw = ComputeStatistics(clip_lyr + "|", "corridor_buffer_stats", proj_dir + "/" + name + "_" + buffer + "mi_buffer_summary.bin", "FFB", {"Strings", "False"})
